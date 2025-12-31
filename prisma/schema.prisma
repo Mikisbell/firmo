@@ -1,0 +1,630 @@
+// PARK POS — Prisma Schema
+// Version: 1.0 (Enterprise Complete)
+// Generated: December 2025
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// CORE: Configuration & Identity
+// ============================================================================
+
+model TenantSettings {
+  tenant_id                     String   @id @db.Uuid
+  legal_name                    String
+  ruc                           String?
+  address_text                  String?
+  logo_url                      String?
+  timezone                      String   @default("America/Lima")
+  currency                      String   @default("PEN")
+  receipt_footer_text           String?
+  kds_audio_enabled             Boolean  @default(true)
+  kds_audio_volume              Int      @default(80)
+  default_delivery_fee_cents    Int      @default(0)
+  require_payment_verification  Boolean  @default(false)
+  allow_cod                     Boolean  @default(true)
+  default_payment_expectation   String   @default("PREPAID")
+  enable_tips                   Boolean  @default(true)
+  tips_on_invoice               Boolean  @default(false)
+  allow_offline_coupon          Boolean  @default(false)
+  max_offline_coupons_per_order Int      @default(1)
+  require_manager_for_offline   Boolean  @default(true)
+  updated_at                    DateTime @default(now()) @db.Timestamptz
+
+  @@map("tenant_settings")
+}
+
+model Employee {
+  id         String   @id @db.Uuid
+  tenant_id  String   @db.Uuid
+  name       String
+  role       String // ADMIN|MANAGER|CASHIER|WAITER|KITCHEN|DRIVER
+  pin_hash   String?
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  shifts_opened Shift[] @relation("ShiftOpenedBy")
+  shifts_closed Shift[] @relation("ShiftClosedBy")
+
+  @@index([tenant_id, is_active])
+  @@map("employees")
+}
+
+model Terminal {
+  id                 String    @id @default(uuid()) @db.Uuid
+  tenant_id          String    @db.Uuid
+  terminal_id        String
+  station_id         String?   @db.Uuid
+  device_secret_hash String?
+  is_allowed         Boolean   @default(true)
+  last_seen_at       DateTime? @db.Timestamptz
+
+  // Relations
+  station Station? @relation(fields: [station_id], references: [id])
+
+  @@unique([tenant_id, terminal_id])
+  @@map("terminals")
+}
+
+model Station {
+  id        String  @id @default(uuid()) @db.Uuid
+  tenant_id String  @db.Uuid
+  code      String
+  name      String
+  is_active Boolean @default(true)
+
+  // Relations
+  terminals Terminal[]
+  printers  Printer[]
+
+  @@unique([tenant_id, code])
+  @@map("stations")
+}
+
+// ============================================================================
+// CORE: Catalog
+// ============================================================================
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenant_id   String   @db.Uuid
+  sku         String
+  name        String
+  short_name  String?
+  price_cents Int
+  category    String
+  station     String
+  type        String   @default("SIMPLE") // SIMPLE|COMBO
+  components  Json? // If combo
+  recipe      Json? // For inventory deduction
+  is_active   Boolean  @default(true)
+  version     Int      @default(1)
+  updated_at  DateTime @default(now()) @db.Timestamptz
+
+  @@unique([tenant_id, sku])
+  @@index([tenant_id, category])
+  @@map("products")
+}
+
+model CatalogMeta {
+  tenant_id       String   @id @db.Uuid
+  catalog_version Int      @default(1)
+  updated_at      DateTime @default(now()) @db.Timestamptz
+
+  @@map("catalog_meta")
+}
+
+// ============================================================================
+// CORE: Orders (Hot Path)
+// ============================================================================
+
+model Order {
+  id                  String   @id @default(uuid()) @db.Uuid
+  tenant_id           String   @db.Uuid
+  order_number        Int
+  order_type          String // DINE_IN|TAKEOUT|DELIVERY
+  order_status        String   @default("OPEN") // OPEN|IN_PROGRESS|DONE|CANCELLED
+  fulfillment_status  String   @default("COOKING") // COOKING|PARTIAL_READY|ALL_READY
+  handoff_status      String   @default("WAITING") // WAITING|PACKING|READY_FOR_PICKUP|OUT_FOR_DELIVERY|DELIVERED
+  stations_active     String[] @default([])
+  unpaid_checks_count Int      @default(0)
+  subtotal_cents      Int      @default(0)
+  discount_cents      Int      @default(0)
+  total_cents         Int      @default(0)
+  promotion_id        String?  @db.Uuid
+  promotion_snapshot  Json?
+  coupon_code         String?
+  revision            Int      @default(0)
+  terminal_id         String
+  created_at          DateTime @default(now()) @db.Timestamptz
+  updated_at          DateTime @default(now()) @db.Timestamptz
+
+  // JSONB denormalized
+  items       Json  @default("[]")
+  checks      Json  @default("[]")
+  fulfillment Json?
+  delivery    Json?
+
+  // Relations
+  promotion Promotion? @relation(fields: [promotion_id], references: [id])
+  invoices  Invoice[]
+
+  @@index([tenant_id, order_status])
+  @@index([tenant_id, created_at(sort: Desc)])
+  @@map("orders")
+}
+
+// ============================================================================
+// CORE: Shifts
+// ============================================================================
+
+model Shift {
+  id                  String    @id @default(uuid()) @db.Uuid
+  tenant_id           String    @db.Uuid
+  terminal_id         String
+  status              String    @default("OPEN") // OPEN|CLOSED
+  opened_at           DateTime  @default(now()) @db.Timestamptz
+  closed_at           DateTime? @db.Timestamptz
+  opened_by           String    @db.Uuid
+  closed_by           String?   @db.Uuid
+  cash_opening_cents  Int
+  cash_expected_cents Int?
+  cash_counted_cents  Int?
+  diff_cents          Int?
+
+  // Relations
+  opener Employee  @relation("ShiftOpenedBy", fields: [opened_by], references: [id])
+  closer Employee? @relation("ShiftClosedBy", fields: [closed_by], references: [id])
+
+  @@index([tenant_id, status])
+  @@map("shifts")
+}
+
+// ============================================================================
+// CORE: Customers & Delivery
+// ============================================================================
+
+model Customer {
+  id               String   @id @default(uuid()) @db.Uuid
+  tenant_id        String   @db.Uuid
+  phone            String
+  name             String?
+  addresses        Json     @default("[]")
+  birth_month      Int?
+  birth_day        Int?
+  marketing_opt_in Boolean  @default(true)
+  updated_at       DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  profile CustomerProfile?
+  coupons Coupon[]
+
+  @@unique([tenant_id, phone])
+  @@map("customers")
+}
+
+model Driver {
+  id        String  @id @default(uuid()) @db.Uuid
+  tenant_id String  @db.Uuid
+  name      String
+  phone     String?
+  is_active Boolean @default(true)
+
+  @@index([tenant_id, is_active])
+  @@map("drivers")
+}
+
+// ============================================================================
+// CORE: Invoices
+// ============================================================================
+
+model Invoice {
+  id                String    @id @default(uuid()) @db.Uuid
+  tenant_id         String    @db.Uuid
+  order_id          String    @db.Uuid
+  check_id          String
+  invoice_type      String // BOLETA|FACTURA
+  series            String?
+  invoice_number    String?
+  customer_doc_type String?
+  customer_doc      String?
+  total_cents       Int
+  payment_summary   Json?
+  status            String    @default("ISSUED") // ISSUED|VOIDED|REFUNDED
+  void_reason       String?
+  voided_by         String?   @db.Uuid
+  voided_at         DateTime? @db.Timestamptz
+  created_at        DateTime  @default(now()) @db.Timestamptz
+
+  // Relations
+  order Order @relation(fields: [order_id], references: [id])
+
+  @@unique([tenant_id, order_id, check_id])
+  @@unique([tenant_id, series, invoice_number])
+  @@index([tenant_id, created_at(sort: Desc)])
+  @@map("invoices")
+}
+
+// ============================================================================
+// CORE: Events (Append-Only)
+// ============================================================================
+
+model Event {
+  id                  String   @id @default(uuid()) @db.Uuid
+  tenant_id           String   @db.Uuid
+  occurred_at         DateTime @db.Timestamptz
+  received_at         DateTime @default(now()) @db.Timestamptz
+  type                String
+  entity_type         String
+  entity_id           String?  @db.Uuid
+  actor_id            String?  @db.Uuid
+  actor_role_snapshot String?
+  terminal_id         String
+  shift_id            String?  @db.Uuid
+  payload_version     Int      @default(1)
+  payload             Json
+
+  @@index([tenant_id, occurred_at(sort: Desc)])
+  @@index([tenant_id, entity_id])
+  @@map("events")
+}
+
+// ============================================================================
+// PROMOTIONS
+// ============================================================================
+
+model Promotion {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenant_id  String    @db.Uuid
+  code       String?
+  name       String
+  type       String // PERCENT|FIXED|HAPPY_HOUR|2X1|COMBO|DELIVERY_FEE_DISCOUNT
+  value      Int?
+  rules      Json // DSL rules
+  starts_at  DateTime? @db.Timestamptz
+  ends_at    DateTime? @db.Timestamptz
+  is_active  Boolean   @default(true)
+  stackable  Boolean   @default(false)
+  priority   Int       @default(100)
+  created_at DateTime  @default(now()) @db.Timestamptz
+  updated_at DateTime  @default(now()) @db.Timestamptz
+
+  // Relations
+  orders  Order[]
+  coupons Coupon[]
+
+  @@index([tenant_id, is_active])
+  @@map("promotions")
+}
+
+model DailySalesSummary {
+  tenant_id          String   @db.Uuid
+  business_date      DateTime @db.Date
+  gross_sales_cents  Int      @default(0)
+  net_sales_cents    Int      @default(0)
+  discount_cents     Int      @default(0)
+  tips_cents         Int      @default(0)
+  delivery_fee_cents Int      @default(0)
+  voids_cents        Int      @default(0)
+  refunds_cents      Int      @default(0)
+  orders_count       Int      @default(0)
+  checks_count       Int      @default(0)
+  payments_breakdown Json?
+  created_at         DateTime @default(now()) @db.Timestamptz
+
+  @@id([tenant_id, business_date])
+  @@map("daily_sales_summary")
+}
+
+// ============================================================================
+// PRINTING
+// ============================================================================
+
+model Printer {
+  id              String  @id @default(uuid()) @db.Uuid
+  tenant_id       String  @db.Uuid
+  name            String
+  station_id      String? @db.Uuid
+  station_code    String
+  connection_type String // USB|LAN|SERIAL
+  connection      Json // {host, port} or {device_path}
+  paper_width     Int     @default(80)
+  is_active       Boolean @default(true)
+
+  // Relations
+  station    Station?   @relation(fields: [station_id], references: [id])
+  print_jobs PrintJob[]
+
+  @@index([tenant_id, station_code])
+  @@map("printers")
+}
+
+model PrintJob {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenant_id   String    @db.Uuid
+  printer_id  String?   @db.Uuid
+  job_type    String // KITCHEN_TICKET|RECEIPT|PRECHECK|SHIFT_REPORT
+  priority    Int       @default(5)
+  status      String    @default("QUEUED") // QUEUED|SENT|PRINTED|FAILED|CANCELLED
+  attempts    Int       @default(0)
+  payload     Json
+  order_id    String?   @db.Uuid
+  check_id    String?
+  actor_id    String?   @db.Uuid
+  terminal_id String?
+  created_at  DateTime  @default(now()) @db.Timestamptz
+  sent_at     DateTime? @db.Timestamptz
+  printed_at  DateTime? @db.Timestamptz
+  failed_at   DateTime? @db.Timestamptz
+
+  // Relations
+  printer Printer? @relation(fields: [printer_id], references: [id])
+
+  @@index([tenant_id, status, created_at(sort: Desc)])
+  @@map("print_jobs")
+}
+
+// ============================================================================
+// GROWTH: Customers & Segmentation
+// ============================================================================
+
+model CustomerProfile {
+  tenant_id            String    @db.Uuid
+  customer_id          String    @unique @db.Uuid
+  first_seen_at        DateTime? @db.Timestamptz
+  last_seen_at         DateTime? @db.Timestamptz
+  orders_count         Int       @default(0)
+  invoices_count       Int       @default(0)
+  lifetime_value_cents Int       @default(0)
+  avg_ticket_cents     Int       @default(0)
+  favorite_order_type  String?
+  favorite_products    Json?
+  recency_days         Int?
+  frequency_30d        Int?
+  is_birthday          Boolean   @default(false)
+  updated_at           DateTime  @default(now()) @db.Timestamptz
+
+  // Relations
+  customer Customer @relation(fields: [customer_id], references: [id])
+
+  @@id([tenant_id, customer_id])
+  @@map("customer_profile")
+}
+
+model MarketingSegment {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenant_id  String   @db.Uuid
+  name       String
+  definition Json // Rules DSL
+  is_active  Boolean  @default(true)
+  updated_at DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  members   SegmentMember[]
+  campaigns MarketingCampaign[]
+
+  @@index([tenant_id, is_active])
+  @@map("marketing_segments")
+}
+
+model SegmentMember {
+  tenant_id   String   @db.Uuid
+  segment_id  String   @db.Uuid
+  customer_id String   @db.Uuid
+  computed_at DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  segment MarketingSegment @relation(fields: [segment_id], references: [id])
+
+  @@id([tenant_id, segment_id, customer_id])
+  @@map("segment_members")
+}
+
+// ============================================================================
+// GROWTH: Campaigns & Messaging
+// ============================================================================
+
+model MarketingCampaign {
+  id                  String   @id @default(uuid()) @db.Uuid
+  tenant_id           String   @db.Uuid
+  name                String
+  channel             String // WHATSAPP|SMS|EMAIL|IN_APP
+  segment_id          String?  @db.Uuid
+  message_template_id String?  @db.Uuid
+  offer               Json?
+  schedule            Json?
+  status              String   @default("DRAFT") // DRAFT|SCHEDULED|RUNNING|PAUSED|COMPLETED
+  created_by          String?  @db.Uuid
+  created_at          DateTime @default(now()) @db.Timestamptz
+  updated_at          DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  segment  MarketingSegment? @relation(fields: [segment_id], references: [id])
+  template MessageTemplate?  @relation(fields: [message_template_id], references: [id])
+  messages MessageOutbox[]
+
+  @@index([tenant_id, status])
+  @@map("marketing_campaigns")
+}
+
+model MessageTemplate {
+  id               String   @id @default(uuid()) @db.Uuid
+  tenant_id        String   @db.Uuid
+  channel          String
+  name             String
+  language         String   @default("es_PE")
+  template_key     String?
+  content          String
+  variables_schema Json?
+  is_active        Boolean  @default(true)
+  updated_at       DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  campaigns MarketingCampaign[]
+
+  @@index([tenant_id, channel, is_active])
+  @@map("message_templates")
+}
+
+model MessageOutbox {
+  id                  String    @id @default(uuid()) @db.Uuid
+  tenant_id           String    @db.Uuid
+  channel             String
+  customer_id         String?   @db.Uuid
+  to_phone            String
+  campaign_id         String?   @db.Uuid
+  template_id         String?   @db.Uuid
+  payload             Json
+  status              String    @default("QUEUED") // QUEUED|SENT|DELIVERED|FAILED|CANCELLED
+  attempts            Int       @default(0)
+  last_error          String?
+  scheduled_at        DateTime? @db.Timestamptz
+  sent_at             DateTime? @db.Timestamptz
+  provider_message_id String?
+  created_at          DateTime  @default(now()) @db.Timestamptz
+
+  // Relations
+  campaign MarketingCampaign? @relation(fields: [campaign_id], references: [id])
+
+  @@index([tenant_id, status, scheduled_at])
+  @@map("message_outbox")
+}
+
+// ============================================================================
+// GROWTH: AI Suggestions
+// ============================================================================
+
+model AiSuggestion {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenant_id  String   @db.Uuid
+  type       String // UPSELL|PROMO_SUGGESTION|FORECAST
+  context    Json?
+  suggestion Json
+  confidence Float?
+  status     String   @default("DRAFT") // DRAFT|APPROVED|REJECTED|APPLIED
+  created_at DateTime @default(now()) @db.Timestamptz
+  created_by String   @default("SYSTEM")
+
+  @@index([tenant_id, status])
+  @@map("ai_suggestions")
+}
+
+// ============================================================================
+// SECURITY: Coupons & Redemptions
+// ============================================================================
+
+model Coupon {
+  id                      String    @id @default(uuid()) @db.Uuid
+  tenant_id               String    @db.Uuid
+  code                    String
+  promotion_id            String?   @db.Uuid
+  customer_id             String?   @db.Uuid
+  issued_at               DateTime  @default(now()) @db.Timestamptz
+  expires_at              DateTime? @db.Timestamptz
+  status                  String    @default("ACTIVE") // ACTIVE|RESERVED|REDEEMED|EXPIRED|VOIDED
+  reserved_at             DateTime? @db.Timestamptz
+  reserved_by_terminal_id String?
+  redeemed_at             DateTime? @db.Timestamptz
+  redeemed_order_id       String?   @db.Uuid
+  redeemed_check_id       String?
+  void_reason             String?
+  created_at              DateTime  @default(now()) @db.Timestamptz
+
+  // Relations
+  promotion   Promotion?         @relation(fields: [promotion_id], references: [id])
+  customer    Customer?          @relation(fields: [customer_id], references: [id])
+  redemptions CouponRedemption[]
+
+  @@unique([tenant_id, code])
+  @@index([tenant_id, status, expires_at])
+  @@index([tenant_id, customer_id, status])
+  @@map("coupons")
+}
+
+model CouponRedemption {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenant_id   String   @db.Uuid
+  coupon_id   String   @db.Uuid
+  code        String
+  action      String // ISSUED|RESERVED|RESERVE_CANCELLED|REDEEMED|VOIDED
+  order_id    String?  @db.Uuid
+  check_id    String?
+  actor_id    String?  @db.Uuid
+  terminal_id String
+  occurred_at DateTime @default(now()) @db.Timestamptz
+  payload     Json?
+
+  // Relations
+  coupon Coupon @relation(fields: [coupon_id], references: [id])
+
+  @@index([tenant_id, coupon_id, occurred_at(sort: Desc)])
+  @@map("coupon_redemptions")
+}
+
+// ============================================================================
+// SECURITY: Sync Conflicts
+// ============================================================================
+
+model SyncConflict {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenant_id   String    @db.Uuid
+  entity_type String // coupon|order|payment
+  entity_id   String?   @db.Uuid
+  severity    String    @default("WARN") // INFO|WARN|BLOCKING
+  detected_at DateTime  @default(now()) @db.Timestamptz
+  details     Json
+  resolved_by String?   @db.Uuid
+  resolved_at DateTime? @db.Timestamptz
+  resolution  Json?
+
+  @@index([tenant_id, severity])
+  @@map("sync_conflicts")
+}
+
+// ============================================================================
+// OPTIONAL: Inventory
+// ============================================================================
+
+model Inventory {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenant_id  String   @db.Uuid
+  code       String
+  name       String
+  unit       String
+  stock      Decimal  @default(0) @db.Decimal(10, 3)
+  min_stock  Decimal? @db.Decimal(10, 3)
+  cost_cents Int?
+  updated_at DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  logs InventoryLog[]
+
+  @@unique([tenant_id, code])
+  @@map("inventory")
+}
+
+model InventoryLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenant_id     String   @db.Uuid
+  inventory_id  String   @db.Uuid
+  movement_type String // IN|OUT|ADJUST|WASTE
+  quantity      Decimal  @db.Decimal(10, 3)
+  reference_id  String?  @db.Uuid
+  reason        String?
+  actor_id      String?  @db.Uuid
+  created_at    DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  inventory Inventory @relation(fields: [inventory_id], references: [id])
+
+  @@index([tenant_id, inventory_id, created_at(sort: Desc)])
+  @@map("inventory_log")
+}

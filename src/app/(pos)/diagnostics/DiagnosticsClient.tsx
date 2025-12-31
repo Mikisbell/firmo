@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { db } from "@/src/core/db/schema";
 import { getSyncClient } from "@/src/core/sync/client";
 import { useProjections } from "@/src/core/projections/useProjections";
+import { BackupSection } from "./BackupSection";
 
 // Si no tienes esto aún, no pasa nada: lo intentamos igual.
 async function tryPersist(): Promise<{ supported: boolean; granted: boolean | null }> {
@@ -171,6 +172,8 @@ export default function DiagnosticsClient() {
                     </div>
                 </div>
             </section>
+
+            <BackupSection />
         </div>
     );
 }

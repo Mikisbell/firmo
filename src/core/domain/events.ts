@@ -110,7 +110,7 @@ export const eventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("SALE"),
         payload: saleConfirmedPayload,
     }),
-]).strict();
+]);
 
 export type ParkEvent = z.infer<typeof eventSchema>;
 

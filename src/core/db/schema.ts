@@ -53,8 +53,9 @@ const DB_NAME = 'ParkDB';
 export class ParkDB extends Dexie {
     events!: EntityTable<EventEntity, 'id'>;
     sync_state!: EntityTable<SyncStateEntity, 'id'>;
-    catalog_versions!: EntityTable<CatalogVersionEntity, '[store_id+version]'>;
+    catalog_versions!: EntityTable<CatalogVersionEntity, any>;
     catalog_items!: EntityTable<CatalogItemEntity, 'id'>;
+    projections!: EntityTable<any, 'key'>;
 
     constructor() {
         super(DB_NAME);

@@ -182,7 +182,10 @@ export class SyncClient {
         try {
             const r = await fetch(this.endpoint, {
                 method: "POST",
-                headers: { "content-type": "application/json" },
+                headers: {
+                    "content-type": "application/json",
+                    "x-api-secret": "park_secret_mvp_2025" // Hardcoded for MVP Client-Side (no environment exposure in browser)
+                },
                 body: JSON.stringify(req),
             });
 

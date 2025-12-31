@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"core/ai/recommendations.ts -> @tensorflow/tfjs\":{\"id\":\"core/ai/recommendations.ts -> @tensorflow/tfjs\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_tensorflow_tfjs_dist_index_js.js\"]}}"
