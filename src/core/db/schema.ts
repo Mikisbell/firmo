@@ -45,6 +45,12 @@ export interface CatalogItemEntity {
     // ... minimal fields for POS
 }
 
+export interface ProjectionEntity {
+    key: string;
+    data: any;
+    last_seq: number;
+}
+
 // ---------------------------
 // DB Class
 // ---------------------------
@@ -55,7 +61,7 @@ export class ParkDB extends Dexie {
     sync_state!: EntityTable<SyncStateEntity, 'id'>;
     catalog_versions!: EntityTable<CatalogVersionEntity, any>;
     catalog_items!: EntityTable<CatalogItemEntity, 'id'>;
-    projections!: EntityTable<any, 'key'>;
+    projections!: EntityTable<ProjectionEntity, 'key'>;
 
     constructor() {
         super(DB_NAME);
