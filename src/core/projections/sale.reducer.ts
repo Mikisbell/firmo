@@ -1,4 +1,4 @@
-import type { ParkEvent } from "@/src/core/domain/events";
+import type { ParkEvent, isEventType } from "@/src/core/domain/events";
 import type { ApplyResult, SaleLine, SalePayment, SaleProjection } from "./types";
 
 function computeSubtotal(lines: Record<string, SaleLine>): number {
@@ -7,20 +7,39 @@ function computeSubtotal(lines: Record<string, SaleLine>): number {
     return sum;
 }
 
-export function createSaleFromEvent(e: Extract<ParkEvent, { event_type: "sale_created" }>): SaleProjection {
-    const { sale_id, catalog_version } = e.payload;
+export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_CREATED" }>): SaleProjection {
+    const { order_id, order_number, order_type, items, checks } = e.payload;
+
+    // Convert items array to lines record
+    const lines: Record<string, SaleLine> = {};
+    for (const item of items ?? []) {
+        lines[item.line_id] = {
+            line_id: item.line_id,
+            product_id: item.product_id,
+            qty: item.qty,
+            unit_price_cents: item.unit_price_cents,
+            line_total_cents: item.qty * item.unit_price_cents,
+        };
+    }
+
+    const subtotal = computeSubtotal(lines);
+
     return {
-        sale_id,
-        catalog_version,
+        sale_id: order_id, // Keep sale_id for backward compatibility
+        order_id,
+        order_number,
+        order_type,
+        catalog_version: 1, // TODO: get from context
         status: "OPEN",
-        lines: {},
-        subtotal_cents: 0,
+        lines,
+        subtotal_cents: subtotal,
         payments: [],
         paid_cents: 0,
         change_cents: 0,
         total_cents: null,
         last_event_sequence: e.terminal_sequence,
         correlation_id: e.correlation_id,
+        checks: checks ?? [],
     };
 }
 
@@ -30,31 +49,32 @@ export function applySaleEvent(
 ): ApplyResult<SaleProjection | null> {
     const warnings: string[] = [];
 
-    // Ignorar eventos no relacionados a SALE/PAYMENT salvo para warnings
-    if (e.event_type === "sale_created") {
+    // ORDER_CREATED - creates new order/sale
+    if (e.event_type === "ORDER_CREATED") {
         if (sale && sale.status === "OPEN") {
-            warnings.push("sale_created recibido mientras hay venta OPEN; reemplazando venta activa.");
+            warnings.push("ORDER_CREATED recibido mientras hay venta OPEN; reemplazando venta activa.");
         }
-        return { state: createSaleFromEvent(e), warnings };
+        return { state: createOrderFromEvent(e), warnings };
     }
 
     if (!sale) {
-        // Si llega un evento de venta sin sale_created, warning y lo ignoramos (MVP)
-        if (e.aggregate_type === "SALE" || e.event_type.startsWith("sale_") || e.event_type === "payment_captured_local") {
-            warnings.push(`Evento ${e.event_type} sin venta activa; ignorado.`);
+        // If event arrives without active order, warn and ignore
+        if (e.aggregate_type === "ORDER" || e.event_type.startsWith("ORDER_") || e.event_type.startsWith("CHECK_")) {
+            warnings.push(`Evento ${e.event_type} sin orden activa; ignorado.`);
         }
         return { state: sale, warnings };
     }
 
-    // Si la venta ya está confirmada, no aplicar mutaciones (solo warnings)
+    // If order already confirmed, don't apply mutations
     if (sale.status === "CONFIRMED") {
         warnings.push(`Evento ${e.event_type} recibido después de CONFIRMED; ignorado.`);
         return { state: sale, warnings };
     }
 
     switch (e.event_type) {
-        case "sale_item_added": {
-            const { line_id, product_id, qty, unit_price_cents } = e.payload;
+        case "ORDER_ITEM_ADDED": {
+            const { line } = e.payload;
+            const { line_id, product_id, qty, unit_price_cents } = line;
             const prev = sale.lines[line_id];
 
             const newQty = (prev?.qty ?? 0) + qty;
@@ -73,21 +93,20 @@ export function applySaleEvent(
             return { state: sale, warnings };
         }
 
-        case "sale_item_removed": {
-            const { line_id, qty } = e.payload;
+        case "ORDER_ITEM_QTY_CHANGED": {
+            const { line_id, to_qty } = e.payload;
             const prev = sale.lines[line_id];
             if (!prev) {
-                warnings.push(`sale_item_removed: line_id ${line_id} no existe; ignorado.`);
+                warnings.push(`ORDER_ITEM_QTY_CHANGED: line_id ${line_id} no existe; ignorado.`);
                 sale.last_event_sequence = e.terminal_sequence;
                 return { state: sale, warnings };
             }
 
-            const newQty = prev.qty - qty;
-            if (newQty <= 0) {
+            if (to_qty <= 0) {
                 delete sale.lines[line_id];
             } else {
-                prev.qty = newQty;
-                prev.line_total_cents = newQty * prev.unit_price_cents;
+                prev.qty = to_qty;
+                prev.line_total_cents = to_qty * prev.unit_price_cents;
                 sale.lines[line_id] = prev;
             }
 
@@ -96,30 +115,44 @@ export function applySaleEvent(
             return { state: sale, warnings };
         }
 
-        case "payment_captured_local": {
-            const { method, amount_cents, change_given_cents } = e.payload;
-
-            // MVP: solo CASH
-            const p: SalePayment = {
-                method,
-                amount_cents,
-                change_given_cents,
-            };
-            sale.payments.push(p);
-
-            sale.paid_cents += amount_cents;
-            sale.change_cents += change_given_cents;
+        case "ORDER_ITEM_VOIDED": {
+            const { line_id } = e.payload;
+            delete sale.lines[line_id];
+            sale.subtotal_cents = computeSubtotal(sale.lines);
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }
 
-        case "sale_confirmed": {
+        case "CHECK_PAYMENT_ADDED": {
+            const { payment } = e.payload;
+            const { method, amount_cents } = payment;
+
+            const p: SalePayment = {
+                method,
+                amount_cents,
+                change_given_cents: 0,
+            };
+            sale.payments.push(p);
+
+            sale.paid_cents += amount_cents;
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "CHECK_MARKED_PAID": {
+            const { change_cents } = e.payload;
+            sale.change_cents = change_cents ?? 0;
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "INVOICE_ISSUED": {
             const { total_cents } = e.payload;
 
             // Invariante mínima: paid - change >= total
             const netPaid = sale.paid_cents - sale.change_cents;
             if (netPaid < total_cents) {
-                warnings.push(`sale_confirmed: netPaid(${netPaid}) < total(${total_cents}). Aún así se marca CONFIRMED (revisar flujo).`);
+                warnings.push(`INVOICE_ISSUED: netPaid(${netPaid}) < total(${total_cents}). Aún así se marca CONFIRMED.`);
             }
 
             sale.total_cents = total_cents;
@@ -128,8 +161,14 @@ export function applySaleEvent(
             return { state: sale, warnings };
         }
 
+        case "ORDER_CANCELLED": {
+            sale.status = "CANCELLED";
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
         default:
-            // eventos de shift no afectan venta
+            // Events like SHIFT_* don't affect sale
             return { state: sale, warnings };
     }
 }

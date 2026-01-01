@@ -1,23 +1,45 @@
-import type { ParkEvent } from "@/src/core/domain/events";
+import type { ParkEvent, PaymentMethod, OrderType } from "@/src/core/domain/events";
 
-export type SaleStatus = "OPEN" | "CONFIRMED" | "VOIDED";
+export type SaleStatus = "OPEN" | "CONFIRMED" | "CANCELLED";
 
 export type SaleLine = {
     line_id: string;
     product_id: string;
-    qty: number; // int
-    unit_price_cents: number; // int
-    line_total_cents: number; // qty * price
+    qty: number;
+    unit_price_cents: number;
+    line_total_cents: number;
 };
 
 export type SalePayment = {
-    method: "CASH";
+    method: PaymentMethod;
     amount_cents: number;
     change_given_cents: number;
 };
 
+export type CheckProjection = {
+    check_id: string;
+    name?: string;
+    mode: "ITEMS" | "PERCENT";
+    lines: { line_id: string; qty: number }[];
+    subtotal_cents: number;
+    discount_cents: number;
+    tip_cents: number;
+    total_cents: number;
+    payment: {
+        status: "UNPAID" | "PARTIAL" | "PAID";
+        payments: { method: PaymentMethod; amount_cents: number; ref?: string }[];
+    };
+};
+
 export type SaleProjection = {
+    // New order-based fields
+    order_id: string;
+    order_number: number;
+    order_type: OrderType;
+
+    // Legacy field (alias for order_id)
     sale_id: string;
+
     catalog_version: number;
     status: SaleStatus;
 
@@ -28,11 +50,13 @@ export type SaleProjection = {
     paid_cents: number;
     change_cents: number;
 
-    total_cents: number | null; // set al confirmar
+    total_cents: number | null;
     last_event_sequence: number;
 
-    // trazabilidad mínima
     correlation_id: string;
+
+    // Split bill support
+    checks: CheckProjection[];
 };
 
 export type ShiftStatus = "CLOSED" | "OPEN";
@@ -46,15 +70,16 @@ export type CashMovement = {
 };
 
 export type ShiftProjection = {
+    shift_id: string;
     status: ShiftStatus;
     opening_cash_cents: number;
     cash_movements: CashMovement[];
 
-    // calculados por eventos de pago (CASH)
-    cash_sales_in_cents: number;   // suma de cash recibida (amount_cents)
-    cash_change_out_cents: number; // suma de change_given_cents
+    // Calculated from payment events (CASH)
+    cash_sales_in_cents: number;
+    cash_change_out_cents: number;
 
-    expected_cash_cents: number;   // opening + in - out + cash_sales_in - change_out
+    expected_cash_cents: number;
     declared_cash_cents: number | null;
     over_short_cents: number | null;
 

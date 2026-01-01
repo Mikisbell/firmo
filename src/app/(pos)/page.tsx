@@ -8,15 +8,20 @@ import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
 
-// Config hardcoded MVP
-const STORE_ID = "store_demo";
+// Config hardcoded MVP - TODO: get from context/env
+const TENANT_ID = "00000000-0000-0000-0000-000000000001"; // Demo tenant UUID
 const TERM_ID = "term_1";
+const ACTOR_ID = "00000000-0000-0000-0000-000000000001"; // Demo employee UUID
+
+// Order number counter (MVP - in production this comes from server)
+let orderNumberCounter = 1;
 
 export default function POSPage() {
     const projections = useProjections();
     const activeSale = projections?.activeSale ?? null;
     const [showSuccess, setShowSuccess] = useState(false);
     const [recommendations, setRecommendations] = useState<string[]>([]);
+    const [currentOrder, setCurrentOrder] = useState<{ order_id: string; check_id: string } | null>(null);
 
     // Entrenar modelo al cargar (solo en cliente)
     useEffect(() => {
@@ -34,23 +39,56 @@ export default function POSPage() {
         }
     }, [activeSale]);
 
-    const handleAdd = async (product: { id: string; price: number }) => {
-        if (!activeSale || activeSale.status !== "OPEN") {
-            const newSaleId = await POSActions.startSale(STORE_ID, TERM_ID);
-            await POSActions.addToCart(STORE_ID, TERM_ID, newSaleId, product);
-        } else {
-            await POSActions.addToCart(STORE_ID, TERM_ID, activeSale.sale_id, product);
+    const handleAdd = async (product: { id: string; name: string; price: number; sku?: string; station?: string }) => {
+        let orderId = currentOrder?.order_id;
+
+        // If no active order, create one
+        if (!orderId || !activeSale || activeSale.status !== "OPEN") {
+            const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
+                order_type: "DINE_IN",
+                order_number: orderNumberCounter++,
+            });
+            orderId = result.order_id;
+            setCurrentOrder(result);
         }
+
+        // Add item to order
+        await POSActions.addItem(TENANT_ID, TERM_ID, ACTOR_ID, orderId, {
+            product_id: product.id,
+            sku: product.sku ?? product.id,
+            name: product.name,
+            unit_price_cents: product.price,
+            station: product.station ?? "COCINA",
+        });
     };
 
     const handleStartSale = async () => {
-        await POSActions.startSale(STORE_ID, TERM_ID);
+        const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
+            order_type: "DINE_IN",
+            order_number: orderNumberCounter++,
+        });
+        setCurrentOrder(result);
     };
 
     const handleConfirm = async () => {
-        if (!activeSale) return;
-        if (confirm(`¿Confirmar cobro de $${activeSale.subtotal_cents / 100}?`)) {
-            await POSActions.confirmSale(STORE_ID, TERM_ID, activeSale.sale_id, activeSale.subtotal_cents);
+        if (!activeSale || !currentOrder) return;
+
+        const total = activeSale.subtotal_cents;
+        if (confirm(`¿Confirmar cobro de S/${(total / 100).toFixed(2)}?`)) {
+            // 1. Add payment
+            await POSActions.addPayment(TENANT_ID, TERM_ID, ACTOR_ID, currentOrder.order_id, currentOrder.check_id, {
+                method: "CASH",
+                amount_cents: total,
+            });
+
+            // 2. Mark check as paid
+            await POSActions.markCheckPaid(TENANT_ID, TERM_ID, ACTOR_ID, currentOrder.order_id, currentOrder.check_id);
+
+            // 3. Issue invoice
+            await POSActions.issueInvoice(TENANT_ID, TERM_ID, ACTOR_ID, currentOrder.order_id, currentOrder.check_id, "BOLETA", total);
+
+            // Reset
+            setCurrentOrder(null);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 2000);
         }
@@ -98,7 +136,6 @@ export default function POSPage() {
                             ONLINE
                         </span>
                         <span className="w-px h-3 bg-zinc-700"></span>
-                        <span>S:{STORE_ID}</span>
                         <span>T:{TERM_ID}</span>
                     </div>
                 </header>

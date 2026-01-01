@@ -382,6 +382,10 @@ export const IngestRequestSchema = z.object({
 
 export type IngestRequest = z.infer<typeof IngestRequestSchema>;
 
+// Backward compatibility alias (lowercase)
+export const ingestRequestSchema = IngestRequestSchema;
+export const eventSchema = EventSchema;
+
 // ============================================================================
 // Helpers
 // ============================================================================

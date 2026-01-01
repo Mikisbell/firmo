@@ -3,6 +3,7 @@ import type { ApplyResult, ShiftProjection } from "./types";
 
 export function emptyShift(): ShiftProjection {
     return {
+        shift_id: "",
         status: "CLOSED",
         opening_cash_cents: 0,
         cash_movements: [],
@@ -27,56 +28,78 @@ export function applyShiftEvent(shift: ShiftProjection, e: ParkEvent): ApplyResu
     const warnings: string[] = [];
 
     switch (e.event_type) {
-        case "shift_opened": {
-            const { opening_cash_cents } = e.payload;
-            if (shift.status === "OPEN") warnings.push("shift_opened recibido con turno ya OPEN; reiniciando turno.");
+        case "SHIFT_OPENED": {
+            const { shift_id, cash_opening_cents } = e.payload;
+            if (shift.status === "OPEN") warnings.push("SHIFT_OPENED recibido con turno ya OPEN; reiniciando turno.");
             const s = emptyShift();
+            s.shift_id = shift_id;
             s.status = "OPEN";
-            s.opening_cash_cents = opening_cash_cents;
+            s.opening_cash_cents = cash_opening_cents;
             s.opened_at = e.occurred_at;
             s.last_event_sequence = e.terminal_sequence;
             s.expected_cash_cents = recomputeExpected(s);
             return { state: s, warnings };
         }
 
-        case "cash_movement": {
+        case "CASH_ADJUSTED": {
             if (shift.status !== "OPEN") {
-                warnings.push("cash_movement con turno CLOSED; ignorado.");
+                warnings.push("CASH_ADJUSTED con turno CLOSED; ignorado.");
                 return { state: shift, warnings };
             }
-            const { type, amount_cents, reason } = e.payload;
-            shift.cash_movements.push({ type, amount_cents, reason, occurred_at: e.occurred_at, seq: e.terminal_sequence });
+            const { delta_cents, reason } = e.payload;
+            const mvtType = delta_cents >= 0 ? "IN" : "OUT";
+            shift.cash_movements.push({
+                type: mvtType,
+                amount_cents: Math.abs(delta_cents),
+                reason,
+                occurred_at: e.occurred_at,
+                seq: e.terminal_sequence
+            });
             shift.expected_cash_cents = recomputeExpected(shift);
             shift.last_event_sequence = e.terminal_sequence;
             return { state: shift, warnings };
         }
 
-        case "payment_captured_local": {
-            // para caja, solo sumamos CASH
+        case "CHECK_PAYMENT_ADDED": {
+            // For shift, only sum CASH payments
             if (shift.status !== "OPEN") {
-                warnings.push("payment_captured_local con turno CLOSED; ignorado.");
+                warnings.push("CHECK_PAYMENT_ADDED con turno CLOSED; ignorado.");
                 return { state: shift, warnings };
             }
 
-            const { method, amount_cents, change_given_cents } = e.payload;
-            if (method !== "CASH") return { state: shift, warnings };
+            const { payment } = e.payload;
+            if (payment.method !== "CASH") return { state: shift, warnings };
 
-            shift.cash_sales_in_cents += amount_cents;
-            shift.cash_change_out_cents += change_given_cents;
+            shift.cash_sales_in_cents += payment.amount_cents;
             shift.expected_cash_cents = recomputeExpected(shift);
             shift.last_event_sequence = e.terminal_sequence;
             return { state: shift, warnings };
         }
 
-        case "shift_closed": {
-            if (shift.status !== "OPEN") warnings.push("shift_closed con turno CLOSED; interpretando como cierre tardío.");
-            const { declared_cash_cents, over_short_cents } = e.payload;
+        case "CHECK_MARKED_PAID": {
+            // Track change given
+            if (shift.status !== "OPEN") {
+                return { state: shift, warnings };
+            }
+
+            const { change_cents } = e.payload;
+            if (change_cents && change_cents > 0) {
+                shift.cash_change_out_cents += change_cents;
+                shift.expected_cash_cents = recomputeExpected(shift);
+            }
+            shift.last_event_sequence = e.terminal_sequence;
+            return { state: shift, warnings };
+        }
+
+        case "SHIFT_CLOSED": {
+            if (shift.status !== "OPEN") warnings.push("SHIFT_CLOSED con turno CLOSED; interpretando como cierre tardío.");
+            const { cash_counted_cents, notes } = e.payload;
+
             shift.status = "CLOSED";
-            shift.declared_cash_cents = declared_cash_cents;
-            shift.over_short_cents = over_short_cents;
+            shift.declared_cash_cents = cash_counted_cents;
+            shift.over_short_cents = cash_counted_cents - shift.expected_cash_cents;
             shift.closed_at = e.occurred_at;
             shift.last_event_sequence = e.terminal_sequence;
-            // expected ya está calculado
             return { state: shift, warnings };
         }
 

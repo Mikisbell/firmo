@@ -5,7 +5,7 @@ import { ingestRequestSchema, type IngestRequest, type ParkEvent } from "@/src/c
 
 export type IngestResponse = {
     accepted: boolean;
-    store_id?: string;
+    tenant_id?: string;
     terminal_id?: string;
     acked_through_terminal_sequence: number | null;
     deduped_event_ids?: string[];
@@ -166,11 +166,11 @@ export class SyncClient {
         const last = contiguous[contiguous.length - 1]!;
 
         const req: IngestRequest = {
-            store_id: first.store_id,
+            tenant_id: (first as any).tenant_id ?? (first as any).store_id ?? 'default_tenant',
             terminal_id: first.terminal_id,
             from_terminal_sequence: first.terminal_sequence,
             to_terminal_sequence: last.terminal_sequence,
-            events: contiguous,
+            events: contiguous as any,
         };
 
         if (this.validateWithZodBeforeSend) {
@@ -223,17 +223,17 @@ export class SyncClient {
 
         if (resp.accepted && typeof resp.acked_through_terminal_sequence === "number") {
             const ack = resp.acked_through_terminal_sequence;
-            const store_id = req.store_id;
 
             await db.transaction("rw", db.events, db.sync_state, async () => {
+                // Query by terminal_sequence instead of compound index
                 const toAck = await db.events
-                    .where("[store_id+terminal_sequence]")
-                    .between([store_id, Dexie.minKey], [store_id, ack], true, true)
+                    .where("terminal_sequence")
+                    .belowOrEqual(ack)
+                    .and(e => e.synced === 0)
                     .toArray();
 
-                // Solo actualizar si no está synced
-                const toUpdate = toAck.filter(e => e.synced === 0);
-                for (const e of toUpdate) {
+                // Mark as synced
+                for (const e of toAck) {
                     e.synced = 1;
                     await db.events.put(e);
                 }

@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
-import { ingestRequestSchema, type IngestRequest, type ParkEvent } from "@/src/core/domain/events";
+import { ingestRequestSchema, type ParkEvent } from "@/src/core/domain/events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // 1. Configurar Pool con SSL permisivo para Supabase
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL, // Usar Pooler URL
-    ssl: { rejectUnauthorized: false },       // Importante para Supabase/AWS
-    max: 20,                                  // Pool size conservador
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
 });
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
         );
     }
 
-    const { store_id, terminal_id, events, from_terminal_sequence, to_terminal_sequence } = result.data;
+    const { tenant_id, terminal_id, events, from_terminal_sequence, to_terminal_sequence } = result.data;
 
     // Fast path: batch vacío
     if (events.length === 0) {
@@ -83,45 +83,44 @@ export async function POST(req: Request) {
         await client.query("BEGIN");
 
         // Construir Multi-Row Insert (Eficiente)
-        const values: any[] = [];
+        const values: unknown[] = [];
         const placeholders: string[] = [];
         let p = 1;
 
-        for (const e of events) {
-            const ev = e as ParkEvent;
-            placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
+        for (const ev of events as ParkEvent[]) {
+            placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
 
             values.push(
-                ev.store_id,
-                ev.terminal_id,
-                ev.terminal_sequence,
-                ev.event_id,
-                ev.event_type,
-                ev.schema_version,
-                ev.occurred_at, // pg driver maneja ISO Strings a Timestamp
-                ev.aggregate_type,
-                ev.aggregate_id,
-                ev.correlation_id,
-                ev.causation_id,
-                JSON.stringify(ev.payload)
+                ev.event_id,          // id (UUID)
+                ev.tenant_id,         // tenant_id
+                ev.occurred_at,       // occurred_at
+                ev.event_type,        // type
+                ev.aggregate_type,    // entity_type
+                ev.aggregate_id,      // entity_id
+                ev.actor_id ?? null,  // actor_id
+                ev.actor_role_snapshot ?? null, // actor_role_snapshot
+                ev.terminal_id,       // terminal_id
+                ev.schema_version,    // payload_version
+                JSON.stringify(ev.payload)  // payload
             );
         }
 
+        // Insert to 'events' table (Prisma schema)
         const insertSql = `
             INSERT INTO events (
-                store_id, terminal_id, terminal_sequence, event_id, event_type, schema_version, occurred_at,
-                aggregate_type, aggregate_id, correlation_id, causation_id, payload
+                id, tenant_id, occurred_at, type, entity_type, entity_id,
+                actor_id, actor_role_snapshot, terminal_id, payload_version, payload
             )
             VALUES ${placeholders.join(", ")}
-            ON CONFLICT (store_id, event_id) DO NOTHING
-            RETURNING event_id;
+            ON CONFLICT (id) DO NOTHING
+            RETURNING id;
         `;
 
         const res = await client.query(insertSql, values);
         await client.query("COMMIT");
 
         // Deducir duplicados (los que NO devolvió el RETURNING)
-        const insertedIds = new Set(res.rows.map((r: any) => r.event_id));
+        const insertedIds = new Set(res.rows.map((r: { id: string }) => r.id));
         const deduped_event_ids = events
             .filter(e => !insertedIds.has(e.event_id))
             .map(e => e.event_id);
@@ -129,7 +128,7 @@ export async function POST(req: Request) {
         return NextResponse.json(
             {
                 accepted: true,
-                store_id,
+                tenant_id,
                 terminal_id,
                 acked_through_terminal_sequence: to_terminal_sequence,
                 deduped_event_ids,
@@ -141,7 +140,6 @@ export async function POST(req: Request) {
     } catch (e: unknown) {
         await client.query("ROLLBACK").catch(() => { });
 
-        // LOGGING ROBUSTO (Paso B del usuario)
         const msg = e instanceof Error ? e.message : String(e);
         console.error("[ingest] DB_ERROR:", msg, e);
 
