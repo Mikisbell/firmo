@@ -95,14 +95,45 @@ export class ParkDB extends Dexie {
     }
 }
 
-export const db = new ParkDB();
+// Lazy singleton to avoid SSR issues
+let _db: ParkDB | null = null;
+
+function getDbInstance(): ParkDB {
+    if (typeof window === 'undefined') {
+        throw new Error('Dexie can only be used on the client side');
+    }
+    if (!_db) {
+        _db = new ParkDB();
+    }
+    return _db;
+}
+
+// Export a proxy that lazily initializes on first access
+export const db = new Proxy({} as ParkDB, {
+    get(_, prop) {
+        const instance = getDbInstance();
+        const value = (instance as any)[prop];
+        if (typeof value === 'function') {
+            return value.bind(instance);
+        }
+        return value;
+    }
+});
+
+// SSR-safe getter - returns null on server
+export function getDb(): ParkDB | null {
+    if (typeof window === 'undefined') return null;
+    return getDbInstance();
+}
 
 // Helper to clear all local data (for development/testing)
 export async function clearLocalDatabase(): Promise<void> {
-    await db.events.clear();
-    await db.projections.clear();
-    await db.sync_state.clear();
-    await db.catalog_versions.clear();
-    await db.catalog_items.clear();
+    if (typeof window === 'undefined') return;
+    const instance = getDbInstance();
+    await instance.events.clear();
+    await instance.projections.clear();
+    await instance.sync_state.clear();
+    await instance.catalog_versions.clear();
+    await instance.catalog_items.clear();
     console.log('[DB] Local database cleared');
 }
