@@ -1,95 +1,201 @@
 # PARK — Task Prompts para IDE + IA
 
 > **Instrucción base:** Cada tarea empieza recordando:  
-> *"Lee docs/CONTEXT.md como fuente de verdad. No inventes features fuera del MVP."*
+> *"Lee docs/CONTEXT.md como fuente de verdad. No implementes features fuera del MVP (P0)."*
 
 ---
 
-## Tarea 1 — DB Local (Dexie)
+## ⚠️ Antes de Implementar
 
-```
-Lee docs/CONTEXT.md. Implementa src/core/db/schema.ts con Dexie: 
-tablas events, sync_state, catalog_versions, y una tabla catalog_items 
-(products/variants minimal). Agrega índices para consultas por synced 
-y terminal_sequence. Incluye una función initDb() y tests básicos 
-(si usas vitest) para insert/orden/consulta.
-```
+1. **Lee `docs/CONTEXT.md`** para entender las fases P0/P1/P2
+2. **Solo implementa tablas P0** a menos que se indique lo contrario
+3. **Sigue las reglas duras** (offline-first, cents, idempotencia)
 
 ---
 
-## Tarea 2 — Event Schemas + Money Helpers
+## P0 — MVP Tasks
+
+### Tarea 1 — Dexie Local Schema (Event Log)
 
 ```
-Usa docs/CONTEXT.md como fuente de verdad. Implementa:
-- src/core/domain/money.ts (int cents)
-- src/core/domain/events.ts con Zod: envelope + eventos MVP 
-  (shift_opened, cash_movement, sale_item_added, payment_captured_local, 
-  sale_confirmed, etc.)
-Prohibe floats.
-```
+Lee docs/CONTEXT.md. Revisa src/core/db/schema.ts (Dexie).
+Verifica que tenga:
+- Tabla events con índices [synced, terminal_sequence]
+- Tabla projections para cache de estado
+- Tabla sync_state para tracking de sincronización
+- Tabla catalog_versions y catalog_items
 
----
-
-## Tarea 3 — Reducers (SaleProjection + ShiftProjection)
-
-```
-Implementa reducers determinísticos en src/core/projections/*.reducer.ts 
-que consuman eventos ordenados por terminal_sequence y produzcan proyecciones. 
-Agrega rebuild.ts que reconstruya proyecciones desde events. 
-Incluye invariantes (venta confirmada requiere pago suficiente).
+El schema ya existe. Solo verifica y ajusta si es necesario.
 ```
 
 ---
 
-## Tarea 4 — Sync Client + Backoff
+### Tarea 2 — Event Schemas (Zod)
 
 ```
-Implementa src/core/sync/client.ts que envíe batches a /api/events/ingest 
-con reintentos y backoff. Debe marcar eventos synced=1 hasta 
-acked_through_terminal_sequence. No puede duplicar eventos.
-```
-
----
-
-## Tarea 5 — API Ingest en Vercel + Postgres Dedupe
-
-```
-Implementa src/app/api/events/ingest/route.ts. Debe insertar en Postgres 
-un event store con UNIQUE(store_id, event_id). Debe responder 
-acked_through_terminal_sequence para los eventos aceptados, incluso 
-con reintentos. Devuelve errores estructurados si schema inválido.
+Lee docs/EVENTS.md. Implementa en src/core/domain/events.ts:
+- Schemas Zod para eventos P0:
+  - SHIFT_OPENED, SHIFT_CLOSED
+  - ORDER_CREATED, ORDER_ITEM_ADDED
+  - CHECK_PAYMENT_ADDED, CHECK_MARKED_PAID
+  - INVOICE_ISSUED
+- Type guards y validadores
+- Dinero siempre en centavos (int), nunca float.
 ```
 
 ---
 
-## Tarea 6 — Catálogo Versionado (Snapshot + Checksum + Pinning)
+### Tarea 3 — Reducers (Proyecciones)
 
 ```
-Implementa src/core/catalog/*: cache local, aplicar snapshot/diff, 
-validar checksum, pinning por venta (sale_created guarda catalog_version). 
-Implementa endpoints /api/catalog/latest y /api/catalog/diff.
-```
+Implementa reducers en src/core/projections/*.reducer.ts:
+- sale.reducer.ts: proyección de venta activa
+- shift.reducer.ts: proyección de turno actual
+- rebuild.ts: reconstruye desde events ordenados por terminal_sequence
 
----
-
-## Tarea 7 — Backup/Restore Cifrado
-
-```
-Implementa src/core/backup/* con WebCrypto (AES-GCM + PBKDF2). 
-Export: rango de terminal_sequence a un Blob descargable. 
-Import: descifrar, dedupe por event_id, insertar en DB y 
-reconstruir proyecciones.
+Invariantes:
+- Venta confirmada requiere pago >= total
+- Shift solo puede cerrarse si está abierto
 ```
 
 ---
 
-## Tarea 8 — Diagnósticos y UX de Estados
+### Tarea 4 — Sync Client
 
 ```
-Implementa diagnostics/page.tsx: muestra persistent storage status, 
-backlog de sync, último sync OK, errores. Agrega banners de:
-- INTERNET_OFFLINE
-- SYNC_BACKLOG_HIGH  
-- STORAGE_NOT_PERSISTENT
-- BACKUP_RECOMMENDED
+Verifica src/core/sync/client.ts:
+- Envía batches a /api/events/ingest con header x-api-secret
+- Reintentos con backoff exponencial
+- Marca eventos synced=1 hasta acked_through_terminal_sequence
+- No duplica eventos (idempotencia)
 ```
+
+---
+
+### Tarea 5 — API Ingest (Vercel + Postgres)
+
+```
+Verifica src/app/api/events/ingest/route.ts:
+- Valida x-api-secret header
+- Inserta en Postgres con UNIQUE(tenant_id, event_id)
+- Responde acked_through_terminal_sequence
+- Maneja reintentos sin duplicar
+```
+
+---
+
+### Tarea 6 — Catálogo Versionado
+
+```
+Implementa src/core/catalog/*:
+- Cache local en Dexie (catalog_items)
+- Validar checksum al cargar
+- Pinning: order_created guarda catalog_version
+- Endpoint GET /api/catalog/latest (productos activos)
+```
+
+---
+
+### Tarea 7 — Backup/Restore Cifrado
+
+```
+Ya implementado en src/core/security/encryption.ts y 
+src/app/(pos)/diagnostics/BackupSection.tsx.
+
+Verifica:
+- Export: AES-GCM a Blob descargable
+- Import: descifrar, dedupe por event_id, reconstruir proyecciones
+```
+
+---
+
+### Tarea 8 — UI Diagnósticos
+
+```
+Ya implementado en src/app/(pos)/diagnostics/.
+
+Verifica:
+- Muestra: storage status, backlog sync, ultimo sync OK
+- Banners: INTERNET_OFFLINE, SYNC_BACKLOG_HIGH, STORAGE_NOT_PERSISTENT
+- Backup/Restore funcional
+```
+
+---
+
+### Tarea 9 — Shifts (Turnos)
+
+```
+Implementa flujo de turnos:
+- UI para abrir turno (cash_opening_cents)
+- UI para cerrar turno (cash_counted_cents, diff)
+- Eventos: SHIFT_OPENED, SHIFT_CLOSED
+- Tabla: shifts (Prisma ya existe)
+```
+
+---
+
+### Tarea 10 — Facturación por Check
+
+```
+Implementa flujo de facturación:
+- Cada check puede emitir boleta/factura independiente
+- Evento: INVOICE_ISSUED
+- Tabla: invoices (Prisma ya existe)
+- Validar: check debe estar PAID para facturar
+```
+
+---
+
+## P1 — Multi-Terminal Tasks
+
+### Tarea 11 — KDS (Kitchen Display)
+
+```
+Implementa pantalla KDS:
+- Filtra por: station = ANY(orders.stations_active)
+- Muestra items de su estación
+- Permite: marcar COOKING → READY → DONE
+- Audio opcional según tenant_settings.kds_audio_enabled
+```
+
+---
+
+### Tarea 12 — Split Bill
+
+```
+Implementa división de cuenta:
+- orders.checks JSONB con múltiples checks
+- Modos: ITEMS (por línea) o PERCENT
+- Cada check tiene su payment y puede facturarse individualmente
+```
+
+---
+
+### Tarea 13 — Promotions
+
+```
+Implementa promociones usando docs/PROMOTIONS_DSL.md:
+- Tabla: promotions con rules JSONB
+- Validación server-side en caja
+- Guardar promotion_snapshot en order
+```
+
+---
+
+## P2 — Growth Tasks
+
+Ver `docs/GROWTH.md` y `docs/SECURITY.md` cuando llegues a esta fase.
+
+---
+
+## Referencia Rápida
+
+| Documento | Para qué |
+|-----------|----------|
+| `CONTEXT.md` | Scope, fases, reglas duras |
+| `ARCHITECTURE.md` | Tablas Prisma (27) |
+| `EVENTS.md` | 30+ eventos + triggers |
+| `SPECS.md` | Enums, pagos, impresión |
+| `GROWTH.md` | WhatsApp, IA (P2) |
+| `PROMOTIONS_DSL.md` | Reglas promos (P1) |
+| `SECURITY.md` | Cupones, anti-fraude (P1-P2) |
