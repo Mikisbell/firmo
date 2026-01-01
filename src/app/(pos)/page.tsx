@@ -3,15 +3,16 @@
 import React, { useEffect, useState } from "react";
 import CatalogGrid from "./components/CatalogGrid";
 import Cart from "./components/Cart";
+import { ShiftModal, ShiftStatus } from "./components/ShiftModal";
 import { useProjections } from "@/src/core/projections/useProjections";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
 
 // Config hardcoded MVP - TODO: get from context/env
-const TENANT_ID = "00000000-0000-0000-0000-000000000001"; // Demo tenant UUID
+const TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const TERM_ID = "term_1";
-const ACTOR_ID = "00000000-0000-0000-0000-000000000001"; // Demo employee UUID
+const ACTOR_ID = "00000000-0000-0000-0000-000000000001";
 
 // Order number counter (MVP - in production this comes from server)
 let orderNumberCounter = 1;
@@ -19,16 +20,24 @@ let orderNumberCounter = 1;
 export default function POSPage() {
     const projections = useProjections();
     const activeSale = projections?.activeSale ?? null;
+    const shift = projections?.shift ?? null;
+
     const [showSuccess, setShowSuccess] = useState(false);
     const [recommendations, setRecommendations] = useState<string[]>([]);
     const [currentOrder, setCurrentOrder] = useState<{ order_id: string; check_id: string } | null>(null);
 
-    // Entrenar modelo al cargar (solo en cliente)
+    // Shift modal state
+    const [shiftModalOpen, setShiftModalOpen] = useState(false);
+    const [shiftModalMode, setShiftModalMode] = useState<"open" | "close">("open");
+
+    const shiftIsOpen = shift?.status === "OPEN";
+
+    // Train AI model on load
     useEffect(() => {
         recommender.train().catch(console.error);
     }, []);
 
-    // Actualizar recomendaciones cuando cambia el carrito
+    // Update recommendations when cart changes
     useEffect(() => {
         if (activeSale && Object.keys(activeSale.lines).length > 0) {
             const currentIds = Object.values(activeSale.lines).map(l => l.product_id);
@@ -40,6 +49,12 @@ export default function POSPage() {
     }, [activeSale]);
 
     const handleAdd = async (product: { id: string; name: string; price: number; sku?: string; station?: string }) => {
+        if (!shiftIsOpen) {
+            setShiftModalMode("open");
+            setShiftModalOpen(true);
+            return;
+        }
+
         let orderId = currentOrder?.order_id;
 
         // If no active order, create one
@@ -63,6 +78,12 @@ export default function POSPage() {
     };
 
     const handleStartSale = async () => {
+        if (!shiftIsOpen) {
+            setShiftModalMode("open");
+            setShiftModalOpen(true);
+            return;
+        }
+
         const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
             order_type: "DINE_IN",
             order_number: orderNumberCounter++,
@@ -94,8 +115,27 @@ export default function POSPage() {
         }
     };
 
+    const openShiftModal = (mode: "open" | "close") => {
+        setShiftModalMode(mode);
+        setShiftModalOpen(true);
+    };
+
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-white relative font-sans">
+            {/* Shift Modal */}
+            <ShiftModal
+                isOpen={shiftModalOpen}
+                mode={shiftModalMode}
+                tenantId={TENANT_ID}
+                terminalId={TERM_ID}
+                actorId={ACTOR_ID}
+                currentShiftId={shift?.shift_id}
+                expectedCash={shift?.expected_cash_cents ?? 0}
+                onClose={() => setShiftModalOpen(false)}
+                onSuccess={() => { }}
+            />
+
+            {/* Success Animation */}
             <AnimatePresence>
                 {showSuccess && (
                     <motion.div
@@ -130,18 +170,35 @@ export default function POSPage() {
                         </div>
                         <h1 className="text-xl font-bold tracking-tight text-white">PARK POS</h1>
                     </div>
-                    <div className="flex items-center gap-4 text-xs font-mono text-zinc-500 bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-800">
-                        <span className="flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            ONLINE
-                        </span>
-                        <span className="w-px h-3 bg-zinc-700"></span>
-                        <span>T:{TERM_ID}</span>
+
+                    <div className="flex items-center gap-3">
+                        {/* Shift Status */}
+                        <ShiftStatus
+                            isOpen={shiftIsOpen}
+                            shiftId={shift?.shift_id}
+                            expectedCash={shift?.expected_cash_cents ?? 0}
+                            onOpenClick={() => openShiftModal("open")}
+                            onCloseClick={() => openShiftModal("close")}
+                        />
+
+                        {/* Online Status */}
+                        <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-800">
+                            <span className="flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                ONLINE
+                            </span>
+                            <span className="w-px h-3 bg-zinc-700"></span>
+                            <span>T:{TERM_ID}</span>
+                        </div>
                     </div>
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-6">
-                    <CatalogGrid onAdd={handleAdd} recommendations={recommendations} />
+                    <CatalogGrid
+                        onAdd={handleAdd}
+                        recommendations={recommendations}
+                        shiftOpen={shiftIsOpen}
+                    />
                 </main>
             </div>
 
