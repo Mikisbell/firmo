@@ -1,11 +1,11 @@
 import Dexie, { type EntityTable } from 'dexie';
 
 // ---------------------------
-// Types match EventEnvelope mostly, but flat for indexeddb if needed
+// Types match EventEnvelope (aligned with Zod schema)
 // ---------------------------
 export interface EventEntity {
-    id?: number; // auto-increment for local ordering if needed, but we rely on terminal_sequence
-    store_id: string;
+    id?: number; // auto-increment for local ordering
+    tenant_id: string; // UUID
     terminal_id: string;
     terminal_sequence: number;
     event_id: string;
@@ -16,6 +16,8 @@ export interface EventEntity {
     aggregate_id: string;
     correlation_id: string;
     causation_id?: string | null;
+    actor_id?: string | null;
+    actor_role_snapshot?: string | null;
     payload: any;
     synced: number; // 0 = pending, 1 = synced
 }
@@ -29,20 +31,19 @@ export interface SyncStateEntity {
 }
 
 export interface CatalogVersionEntity {
-    store_id: string;
+    tenant_id: string;
     version: number;
     checksum: string;
-    active: boolean; // boolean, indexed as 0/1 usually
+    active: boolean;
     created_at: string;
 }
 
 export interface CatalogItemEntity {
-    id: string; // uuid
-    product_id: string; // from cloud
+    id: string;
+    product_id: string;
     name: string;
     price_cents: number;
-    tax_rate: number; // e.g. 0.19
-    // ... minimal fields for POS
+    tax_rate: number;
 }
 
 export interface ProjectionEntity {
@@ -65,23 +66,43 @@ export class ParkDB extends Dexie {
 
     constructor() {
         super(DB_NAME);
+
+        // Version 1: Original schema (deprecated)
         this.version(1).stores({
-            // Primary key: id (auto-increment)
-            // Indexes: 
-            //  synced: needed for "where('synced').equals(0)"
-            //  terminal_sequence: needed for ordering
-            //  [store_id+terminal_sequence]: needed for range queries in sync client ACK
-            //  [store_id+event_id]: unique constraint check (manual or via hook)
             events: '++id, synced, terminal_sequence, [store_id+terminal_sequence], &[store_id+event_id]',
-            projections: 'key', // 'singleton_sale', 'singleton_shift'
-
-            sync_state: 'id', // 'singleton'
-
+            projections: 'key',
+            sync_state: 'id',
             catalog_versions: '[store_id+version], active',
-
             catalog_items: 'id, product_id, name'
+        });
+
+        // Version 2: Updated to use tenant_id
+        this.version(2).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id]',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, product_id, name'
+        }).upgrade(tx => {
+            // Migrate store_id to tenant_id for existing events
+            return tx.table('events').toCollection().modify(event => {
+                if ((event as any).store_id && !event.tenant_id) {
+                    event.tenant_id = (event as any).store_id;
+                    delete (event as any).store_id;
+                }
+            });
         });
     }
 }
 
 export const db = new ParkDB();
+
+// Helper to clear all local data (for development/testing)
+export async function clearLocalDatabase(): Promise<void> {
+    await db.events.clear();
+    await db.projections.clear();
+    await db.sync_state.clear();
+    await db.catalog_versions.clear();
+    await db.catalog_items.clear();
+    console.log('[DB] Local database cleared');
+}
