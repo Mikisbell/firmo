@@ -16,6 +16,7 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
         lines[item.line_id] = {
             line_id: item.line_id,
             product_id: item.product_id,
+            name: item.name,
             qty: item.qty,
             unit_price_cents: item.unit_price_cents,
             line_total_cents: item.qty * item.unit_price_cents,
@@ -74,7 +75,7 @@ export function applySaleEvent(
     switch (e.event_type) {
         case "ORDER_ITEM_ADDED": {
             const { line } = e.payload;
-            const { line_id, product_id, qty, unit_price_cents } = line;
+            const { line_id, product_id, name, qty, unit_price_cents } = line;
             const prev = sale.lines[line_id];
 
             const newQty = (prev?.qty ?? 0) + qty;
@@ -83,12 +84,41 @@ export function applySaleEvent(
             sale.lines[line_id] = {
                 line_id,
                 product_id,
+                name: name || prev?.name || "Unknown",
                 qty: newQty,
                 unit_price_cents,
                 line_total_cents,
             };
 
             sale.subtotal_cents = computeSubtotal(sale.lines);
+
+            // AUTO-ASSIGN TO DEFAULT CHECK
+            // If there's exactly 1 check and it's UNPAID, add the item there too
+            if (sale.checks.length >= 1) {
+                const defaultCheck = sale.checks[0];
+                // Only auto-add if check is not yet paid
+                if (defaultCheck.payment?.status !== "PAID") {
+                    const existingLineIdx = defaultCheck.lines.findIndex(l => l.line_id === line_id);
+                    if (existingLineIdx >= 0) {
+                        // Update qty
+                        defaultCheck.lines[existingLineIdx].qty = newQty;
+                    } else {
+                        // Add new line reference
+                        defaultCheck.lines.push({ line_id, qty: newQty });
+                    }
+                    // Recalculate check totals
+                    let checkSubtotal = 0;
+                    for (const l of defaultCheck.lines) {
+                        const masterLine = sale.lines[l.line_id];
+                        if (masterLine) {
+                            checkSubtotal += masterLine.unit_price_cents * l.qty;
+                        }
+                    }
+                    defaultCheck.subtotal_cents = checkSubtotal;
+                    defaultCheck.total_cents = checkSubtotal;
+                }
+            }
+
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }
@@ -123,18 +153,147 @@ export function applySaleEvent(
             return { state: sale, warnings };
         }
 
+        case "CHECK_CREATED": {
+            const { check } = e.payload;
+            console.log("REDUCER: CHECK_CREATED received", check);
+            // Idempotency check
+            if (sale.checks.some(c => c.check_id === check.check_id)) {
+                sale.last_event_sequence = e.terminal_sequence;
+                return { state: sale, warnings };
+            }
+
+            // Map payload check to projection check (ensure fields)
+            sale.checks.push({
+                check_id: check.check_id,
+                name: check.name,
+                mode: check.mode,
+                lines: check.lines ?? [],
+                subtotal_cents: check.subtotal_cents ?? 0,
+                discount_cents: check.discount_cents ?? 0,
+                tip_cents: check.tip_cents ?? 0,
+                total_cents: check.total_cents ?? 0,
+                payment: check.payment ?? { status: "UNPAID", payments: [] }
+            });
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "CHECK_ITEMS_UPDATED": {
+            const { check_id, lines } = e.payload;
+            const checkIndex = sale.checks.findIndex(c => c.check_id === check_id);
+            if (checkIndex === -1) {
+                warnings.push(`CHECK_ITEMS_UPDATED: check_id ${check_id} no existe; ignorado.`);
+                sale.last_event_sequence = e.terminal_sequence;
+                return { state: sale, warnings };
+            }
+
+            // Update lines
+            sale.checks[checkIndex].lines = lines;
+
+            // Recalculate totals for this check
+            let checkSubtotal = 0;
+            for (const l of lines) {
+                const masterLine = sale.lines[l.line_id];
+                if (masterLine) {
+                    checkSubtotal += masterLine.unit_price_cents * l.qty;
+                }
+            }
+            // Simple logic: total = subtotal (ignoring discount/tip structure for now as they are 0)
+            sale.checks[checkIndex].subtotal_cents = checkSubtotal;
+            sale.checks[checkIndex].total_cents = checkSubtotal; // TODO: + tips - discounts
+
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "CHECK_ITEMS_MOVED": {
+            const { from_check_id, to_check_id, lines } = e.payload;
+
+            const sourceIdx = sale.checks.findIndex(c => c.check_id === from_check_id);
+            const targetIdx = sale.checks.findIndex(c => c.check_id === to_check_id);
+
+            if (sourceIdx === -1 || targetIdx === -1) {
+                warnings.push(`CHECK_ITEMS_MOVED: Check source(${from_check_id}) or target(${to_check_id}) not found.`);
+                sale.last_event_sequence = e.terminal_sequence;
+                return { state: sale, warnings };
+            }
+
+            // Logic: Remove from Source, Add to Target
+            for (const itemToMove of lines) {
+                const { line_id, qty } = itemToMove;
+
+                // 1. Remove from Source
+                const sourceCheck = sale.checks[sourceIdx];
+                const sourceLineIdx = sourceCheck.lines.findIndex(l => l.line_id === line_id);
+                if (sourceLineIdx !== -1) {
+                    const sourceLine = sourceCheck.lines[sourceLineIdx];
+                    if (sourceLine.qty <= qty) {
+                        sourceCheck.lines.splice(sourceLineIdx, 1);
+                    } else {
+                        sourceLine.qty -= qty;
+                        sourceCheck.lines[sourceLineIdx] = sourceLine;
+                    }
+                }
+
+                // 2. Add to Target
+                const targetCheck = sale.checks[targetIdx];
+                const targetLineIdx = targetCheck.lines.findIndex(l => l.line_id === line_id);
+                if (targetLineIdx !== -1) {
+                    targetCheck.lines[targetLineIdx].qty += qty;
+                } else {
+                    targetCheck.lines.push({ line_id, qty });
+                }
+            }
+
+            // Recalculate Totals for Both
+            [sourceIdx, targetIdx].forEach(idx => {
+                const c = sale.checks[idx];
+                let sub = 0;
+                for (const l of c.lines) {
+                    const master = sale.lines[l.line_id];
+                    if (master) sub += master.unit_price_cents * l.qty;
+                }
+                c.subtotal_cents = sub;
+                c.total_cents = sub;
+            });
+
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
         case "CHECK_PAYMENT_ADDED": {
-            const { payment } = e.payload;
+            const { check_id, payment } = e.payload;
             const { method, amount_cents } = payment;
 
+            // Global Update
             const p: SalePayment = {
                 method,
                 amount_cents,
                 change_given_cents: 0,
             };
             sale.payments.push(p);
-
             sale.paid_cents += amount_cents;
+
+            // Check Specific Update
+            const checkIndex = sale.checks.findIndex(c => c.check_id === check_id);
+            if (checkIndex >= 0) {
+                const check = sale.checks[checkIndex];
+                check.payment.payments.push({ method, amount_cents, ref: payment.ref });
+
+                // Recalculate Check Status
+                const totalPaid = check.payment.payments.reduce((acc, curr) => acc + curr.amount_cents, 0);
+                if (totalPaid >= check.total_cents && check.total_cents > 0) {
+                    check.payment.status = "PAID";
+                } else if (totalPaid > 0) {
+                    check.payment.status = "PARTIAL";
+                } else {
+                    check.payment.status = "UNPAID";
+                }
+                sale.checks[checkIndex] = check;
+            } else {
+                warnings.push(`CHECK_PAYMENT_ADDED: check_id ${check_id} not found.`);
+            }
+
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }

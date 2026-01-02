@@ -4,10 +4,10 @@ import type { ParkEvent, OrderType, PaymentMethod } from "@/src/core/domain/even
 import { getSyncClient } from "@/src/core/sync/client";
 
 // Helper para obtener secuencia de forma segura
+// Helper para obtener secuencia de forma segura
 async function getNextSequence(): Promise<number> {
-    const st = await db.sync_state.get("singleton");
-    const count = await db.events.count();
-    return (st?.last_terminal_sequence_acked ?? 0) + count + 1;
+    const lastEvent = await db.events.orderBy("terminal_sequence").last();
+    return (lastEvent?.terminal_sequence ?? 0) + 1;
 }
 
 // Helper genérico para appender eventos
@@ -277,6 +277,89 @@ export const POSActions = {
                 shift_id,
                 cash_counted_cents,
                 notes,
+            },
+        });
+    },
+    async createCheck(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        name?: string
+    ) {
+        const check_id = newUUID();
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "CHECK_CREATED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                check: {
+                    check_id,
+                    name: name ?? "Check",
+                    mode: "ITEMS",
+                    lines: [],
+                    subtotal_cents: 0,
+                    discount_cents: 0,
+                    tip_cents: 0,
+                    total_cents: 0,
+                    payment: { status: "UNPAID", payments: [] },
+                },
+            },
+        });
+        return check_id;
+    },
+
+    async updateCheckItems(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        check_id: string,
+        lines: { line_id: string; qty: number }[]
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "CHECK_ITEMS_UPDATED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                check_id,
+                lines,
+            },
+        });
+    },
+
+    async moveCheckItems(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        from_check_id: string,
+        to_check_id: string,
+        lines: { line_id: string; qty: number }[]
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "CHECK_ITEMS_MOVED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                from_check_id,
+                to_check_id,
+                lines,
             },
         });
     },

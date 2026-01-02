@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
+import { Pool, PoolClient } from "pg";
 import { ingestRequestSchema, type ParkEvent } from "@/src/core/domain/events";
 
 export const runtime = "nodejs";
@@ -43,6 +43,119 @@ function err(
 function serverError(apiError: ApiError, status = 500) {
     return NextResponse.json({ accepted: false, error: apiError }, { status });
 }
+
+// 3. Projections Helper (Synchronous MVP)
+async function projectEvent(client: PoolClient, event: ParkEvent) {
+    const { event_type, tenant_id, payload, occurred_at, terminal_id, actor_id } = event;
+
+    try {
+        await client.query("SAVEPOINT projection_sp");
+
+        switch (event_type) {
+            case "ORDER_CREATED": {
+                const p = payload as any;
+                // Insert Order (Upsert to be safe)
+                await client.query(`
+                    INSERT INTO orders (
+                        id, tenant_id, order_number, order_type, order_status, 
+                        items, checks, terminal_id, created_at, updated_at
+                    ) VALUES ($1, $2, $3, $4, 'OPEN', $5, $6, $7, $8, $8)
+                    ON CONFLICT (id) DO UPDATE SET
+                        items = EXCLUDED.items,
+                        checks = EXCLUDED.checks,
+                        updated_at = EXCLUDED.updated_at
+                `, [
+                    p.order_id,
+                    tenant_id,
+                    p.order_number,
+                    p.order_type,
+                    JSON.stringify(p.items || []),
+                    JSON.stringify(p.checks || []),
+                    terminal_id,
+                    occurred_at
+                ]);
+                break;
+            }
+
+            case "INVOICE_ISSUED": {
+                const p = payload as any;
+                /* Payload:
+                    order_id, check_id, invoice_id, invoice_type, 
+                    series, invoice_number, total_cents
+                */
+                // Insert Invoice
+                await client.query(`
+                    INSERT INTO invoices (
+                        id, tenant_id, order_id, check_id, invoice_type,
+                        series, invoice_number, total_cents, 
+                        status, created_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ISSUED', $9)
+                    ON CONFLICT (tenant_id, order_id, check_id) DO NOTHING
+                `, [
+                    p.invoice_id,
+                    tenant_id,
+                    p.order_id,
+                    p.check_id,
+                    p.invoice_type,
+                    p.series || null,
+                    p.invoice_number || null,
+                    p.total_cents,
+                    occurred_at
+                ]);
+
+                // Update Order Status if needed? 
+                // For MVP, we don't strictly update order status here, rely on ORDER_CLOSED later or implicit.
+                break;
+            }
+
+            case "SHIFT_OPENED": {
+                const p = payload as any;
+                // Insert Shift
+                await client.query(`
+                    INSERT INTO shifts (
+                        id, tenant_id, terminal_id, status, opened_at, opened_by, cash_opening_cents
+                    ) VALUES ($1, $2, $3, 'OPEN', $4, $5, $6)
+                    ON CONFLICT (id) DO NOTHING
+                `, [
+                    p.shift_id,
+                    tenant_id,
+                    terminal_id,
+                    occurred_at,
+                    actor_id,
+                    p.cash_opening_cents
+                ]);
+                break;
+            }
+
+            case "SHIFT_CLOSED": {
+                const p = payload as any;
+                // Update Shift
+                await client.query(`
+                    UPDATE shifts 
+                    SET status = 'CLOSED', closed_at = $1, closed_by = $2, 
+                        cash_expected_cents = $3, cash_counted_cents = $4, diff_cents = $5
+                    WHERE id = $6 AND tenant_id = $7
+                `, [
+                    occurred_at,
+                    occurred_at,
+                    actor_id,
+                    p.cash_expected_cents,
+                    p.cash_counted_cents,
+                    p.diff_cents,
+                    p.shift_id,
+                    tenant_id
+                ]);
+                break;
+            }
+        }
+        await client.query("RELEASE SAVEPOINT projection_sp");
+    } catch (e) {
+        // Rollback only the projection, keep the event insertion
+        await client.query("ROLLBACK TO SAVEPOINT projection_sp");
+        console.error(`[Projections] Error projecting ${event_type} ${event.event_id}:`, e);
+    }
+}
+
 
 export async function POST(req: Request) {
     // 0. Seguridad: Validar API Secret
@@ -117,6 +230,17 @@ export async function POST(req: Request) {
         `;
 
         const res = await client.query(insertSql, values);
+
+        // --- PROJECTIONS (Synchronous MVP) ---
+        // Only project the events that were actually inserted (deduped) OR project all?
+        // Idempotency: Projecting twice is fine if UPSERT is used.
+        // We'll project ALL incoming events to be safe, assuming upsert logic handles strictness.
+        // Actually, better to project only new ones? No, if we lost projection but event exists, re-projecting helps.
+        // Let's project in order.
+        for (const ev of events as ParkEvent[]) {
+            await projectEvent(client, ev);
+        }
+
         await client.query("COMMIT");
 
         // Deducir duplicados (los que NO devolvió el RETURNING)

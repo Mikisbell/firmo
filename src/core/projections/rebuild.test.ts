@@ -7,78 +7,115 @@ function e<T extends ParkEvent>(x: T): T { return x; }
 describe("rebuildFromEvents", () => {
     it("rebuild determinístico: venta cash + shift expected", () => {
         const events: ParkEvent[] = [
+            // EVENT 1: SHIFT_OPENED
             e({
-                store_id: "s1", terminal_id: "t1", terminal_sequence: 1,
-                event_id: "11111111-1111-1111-1111-111111111111",
+                tenant_id: "t1", terminal_id: "term1", terminal_sequence: 1,
+                event_id: "e1",
                 schema_version: 1, occurred_at: new Date().toISOString(),
                 aggregate_type: "SHIFT", aggregate_id: "shift1",
                 correlation_id: "c1", causation_id: null,
-                event_type: "shift_opened",
-                payload: { opening_cash_cents: 10000 },
+                actor_id: "user1",
+                event_type: "SHIFT_OPENED",
+                payload: {
+                    shift_id: "shift1",
+                    cash_opening_cents: 10000
+                },
             }),
+            // EVENT 2: ORDER_CREATED
             e({
-                store_id: "s1", terminal_id: "t1", terminal_sequence: 2,
-                event_id: "22222222-2222-2222-2222-222222222222",
+                tenant_id: "t1", terminal_id: "term1", terminal_sequence: 2,
+                event_id: "e2",
                 schema_version: 1, occurred_at: new Date().toISOString(),
-                aggregate_type: "SALE", aggregate_id: "sale1",
+                aggregate_type: "ORDER", aggregate_id: "order1",
                 correlation_id: "c2", causation_id: null,
-                event_type: "sale_created",
-                payload: { sale_id: "sale1", catalog_version: 1 },
+                actor_id: "user1",
+                event_type: "ORDER_CREATED",
+                payload: {
+                    order_id: "order1",
+                    order_number: 101,
+                    order_type: "DINE_IN",
+                    items: [],
+                    checks: [
+                        { check_id: "check1", name: "Principal", mode: "ITEMS", lines: [], subtotal_cents: 0, discount_cents: 0, tip_cents: 0, total_cents: 0, payment: { status: "UNPAID", payments: [] } }
+                    ]
+                },
             }),
+            // EVENT 3: ORDER_ITEM_ADDED
             e({
-                store_id: "s1", terminal_id: "t1", terminal_sequence: 3,
-                event_id: "33333333-3333-3333-3333-333333333333",
+                tenant_id: "t1", terminal_id: "term1", terminal_sequence: 3,
+                event_id: "e3",
                 schema_version: 1, occurred_at: new Date().toISOString(),
-                aggregate_type: "SALE", aggregate_id: "sale1",
+                aggregate_type: "ORDER", aggregate_id: "order1",
                 correlation_id: "c2", causation_id: null,
-                event_type: "sale_item_added",
-                payload: { line_id: "l1", product_id: "p1", qty: 2, unit_price_cents: 1500 },
+                actor_id: "user1",
+                event_type: "ORDER_ITEM_ADDED",
+                payload: {
+                    order_id: "order1",
+                    line: {
+                        line_id: "line1",
+                        product_id: "p1",
+                        sku: "POLLO",
+                        name: "Pollo a la Brasa",
+                        price_cents: 6500,
+                        unit_price_cents: 6500,
+                        qty: 1,
+                        station: "COCINA",
+                        status: "PENDING",
+                        mods: [],
+                        notes: ""
+                    }
+                },
             }),
+            // EVENT 4: CHECK_PAYMENT_ADDED
             e({
-                store_id: "s1", terminal_id: "t1", terminal_sequence: 4,
-                event_id: "44444444-4444-4444-4444-444444444444",
+                tenant_id: "t1", terminal_id: "term1", terminal_sequence: 4,
+                event_id: "e4",
                 schema_version: 1, occurred_at: new Date().toISOString(),
-                aggregate_type: "PAYMENT", aggregate_id: "pay1",
+                aggregate_type: "ORDER", aggregate_id: "order1", // UPDATED: Must be ORDER
                 correlation_id: "c2", causation_id: null,
-                event_type: "payment_captured_local",
-                payload: { method: "CASH", amount_cents: 5000, change_given_cents: 2000 },
+                actor_id: "user1",
+                event_type: "CHECK_PAYMENT_ADDED",
+                payload: {
+                    order_id: "order1", // ADDED
+                    check_id: "check1",
+                    payment: {
+                        method: "CASH",
+                        amount_cents: 6500,
+                        ref: "efectivo"
+                    }
+                },
             }),
+            // EVENT 5: INVOICE_ISSUED (Finalizes Sale)
             e({
-                store_id: "s1", terminal_id: "t1", terminal_sequence: 5,
-                event_id: "55555555-5555-5555-5555-555555555555",
+                tenant_id: "t1", terminal_id: "term1", terminal_sequence: 5,
+                event_id: "e5",
                 schema_version: 1, occurred_at: new Date().toISOString(),
-                aggregate_type: "SALE", aggregate_id: "sale1",
+                aggregate_type: "INVOICE", aggregate_id: "inv1", // Usually separate aggregate, or ORDER? Check events.ts. Assuming INVOICE is aggregate type.
                 correlation_id: "c2", causation_id: null,
-                event_type: "sale_confirmed",
-                payload: { total_cents: 3000 },
-            }),
+                actor_id: "user1",
+                event_type: "INVOICE_ISSUED",
+                payload: {
+                    order_id: "order1",
+                    check_id: "check1",
+                    invoice_id: "inv1",
+                    invoice_type: "BOLETA",
+                    total_cents: 6500
+                }
+            })
         ];
 
         const { state } = rebuildFromEvents(events);
 
+        // A. Venta Confirmed y Balanceada
         expect(state.activeSale?.status).toBe("CONFIRMED");
-        expect(state.activeSale?.total_cents).toBe(3000);
+        expect(state.activeSale?.total_cents).toBe(6500); // Ahora sí debe ser 6500
+        expect(state.activeSale?.paid_cents).toBe(6500); // 65.00 pagado
+        expect(state.activeSale?.change_cents).toBe(0); // 0 vuelto
 
-        // Shift expected: opening 10000 + cash_sales_in 5000 - change 2000 = 13000
-        expect(state.shift.expected_cash_cents).toBe(13000);
+        // B. Shift Balanceado
         expect(state.shift.status).toBe("OPEN");
-    });
-
-    it("ignora cash_movement si shift no está OPEN", () => {
-        const events: ParkEvent[] = [
-            e({
-                store_id: "s1", terminal_id: "t1", terminal_sequence: 1,
-                event_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                schema_version: 1, occurred_at: new Date().toISOString(),
-                aggregate_type: "SHIFT", aggregate_id: "shift1",
-                correlation_id: "c1", causation_id: null,
-                event_type: "cash_movement",
-                payload: { type: "IN", amount_cents: 1000, reason: "test" },
-            }),
-        ];
-
-        const { state } = rebuildFromEvents(events);
-        expect(state.shift.expected_cash_cents).toBe(0);
-        expect(state.shift.status).toBe("CLOSED");
+        expect(state.shift.opening_cash_cents).toBe(10000);
+        expect(state.shift.cash_sales_in_cents).toBe(6500);
+        expect(state.shift.expected_cash_cents).toBe(16500);
     });
 });

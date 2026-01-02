@@ -1,4 +1,5 @@
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -15,7 +16,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="es" className="dark">
-            <body className={`${inter.className} bg-zinc-950 text-white antialiased`}>{children}</body>
+            <body className={`${inter.className} bg-zinc-950 text-white antialiased`}>
+                {children}
+                <Toaster position="top-center" richColors theme="dark" />
+            </body>
         </html>
     );
 }

@@ -62,37 +62,51 @@ export default function DiagnosticsClient() {
     }
 
     async function seedFakeEvent() {
-        // Solo para testing manual: inserta 1 evento dummy si quieres.
-        // Ajusta campos si tu schema exige strict typing.
         try {
             const st = await db.sync_state.get("singleton");
             const count = await db.events.count();
             const nextSeq = (st?.last_terminal_sequence_acked ?? 0) + count + 1;
 
             const now = new Date().toISOString();
-            const store_id = "store_demo";
+            const tenant_id = "00000000-0000-0000-0000-000000000001"; // Valid UUID for MVP
             const terminal_id = "t1";
 
             await db.events.add({
-                store_id,
+                tenant_id,
                 terminal_id,
                 terminal_sequence: nextSeq,
                 event_id: crypto.randomUUID(),
-                event_type: "sale_created",
+                event_type: "ORDER_CREATED", // Use valid event type
                 schema_version: 1,
                 occurred_at: now,
-                aggregate_type: "SALE",
-                aggregate_id: `sale_${nextSeq}`,
+                aggregate_type: "ORDER",
+                aggregate_id: crypto.randomUUID(),
                 correlation_id: `corr_${nextSeq}`,
                 causation_id: null,
-                payload: { sale_id: `sale_${nextSeq}`, catalog_version: 1 },
+                payload: {
+                    order_id: crypto.randomUUID(),
+                    order_number: nextSeq,
+                    order_type: "DINE_IN",
+                    items: []
+                },
                 synced: 0,
-            } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+            } as any);
 
             await refresh();
         } catch (e) {
             console.error("Error seeding event:", e);
             alert("Error seeding event. Check console.");
+        }
+    }
+
+    async function clearBacklog() {
+        try {
+            await db.events.where("synced").equals(0).delete();
+            await refresh();
+            alert("Cola de sincronización limpiada (Backlog cleared).");
+        } catch (e) {
+            console.error("Error clearing backlog:", e);
+            alert("Error al limpiar backlog");
         }
     }
 
@@ -145,6 +159,7 @@ export default function DiagnosticsClient() {
                     <button onClick={() => { syncClient.start(); alert("Auto sync started properly"); }}>Start Auto Sync</button>
                     <button onClick={() => { syncClient.stop(); alert("Auto sync stopped"); }}>Stop Auto Sync</button>
                     <button onClick={seedFakeEvent}>Seed Fake Event</button>
+                    <button onClick={clearBacklog} className="bg-red-100 text-red-800 hover:bg-red-200">Clear Backlog (Fix 400)</button>
                 </div>
             </section>
 

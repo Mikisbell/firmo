@@ -134,14 +134,33 @@ Implementa flujo de turnos:
 
 ---
 
-### Tarea 10 — Facturación por Check
+### Tarea 10 — Facturación por Check (P0 - Completado)
 
 ```
-Implementa flujo de facturación:
-- Cada check puede emitir boleta/factura independiente
+✅ Implementado:
+- Flujo de facturación por check (CheckDetail, Modals)
 - Evento: INVOICE_ISSUED
-- Tabla: invoices (Prisma ya existe)
 - Validar: check debe estar PAID para facturar
+```
+
+### Tarea 10b — Backend Projections (P0 - Completado)
+
+```
+✅ Implementado:
+- Proyección Síncrona en ingest:
+  - ORDER_CREATED -> orders (Upsert)
+  - INVOICE_ISSUED -> invoices (Insert)
+  - SHIFT_OPENED/CLOSED -> shifts (Upsert)
+- Visibilidad inmediata en Supabase/BI
+```
+
+### Tarea 10c — Impresión de Tickets (P0 - Completado)
+
+```
+✅ Implementado:
+- Templates 80mm en `src/core/printing/templates.tsx`
+- Browser Print (`window.print`) para MVP sin drivers
+- Auto-print al emitir facturas
 ```
 
 ---

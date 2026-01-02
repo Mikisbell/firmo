@@ -5,6 +5,7 @@ export type SaleStatus = "OPEN" | "CONFIRMED" | "CANCELLED";
 export type SaleLine = {
     line_id: string;
     product_id: string;
+    name: string; // Added for UI
     qty: number;
     unit_price_cents: number;
     line_total_cents: number;

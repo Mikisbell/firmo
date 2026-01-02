@@ -50,6 +50,11 @@ export function useProjections(): ProjectionsState | null {
             }
         }
 
+        // If sale is CONFIRMED or CANCELLED, treat as no active sale (reset cycle)
+        if (activeSale && (activeSale.status === "CONFIRMED" || activeSale.status === "CANCELLED")) {
+            activeSale = null;
+        }
+
         return { activeSale, shift };
     }, [], null); // null mientras carga
 }

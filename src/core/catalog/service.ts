@@ -41,7 +41,7 @@ export async function saveCatalogToLocal(catalog: CatalogSnapshot): Promise<void
 
         // Save new version
         await db.catalog_versions.add({
-            store_id: storeId,
+            tenant_id: storeId, // Using generic ID for now (MVP single tenant)
             version: catalog.version,
             checksum: catalog.checksum,
             active: true,

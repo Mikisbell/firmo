@@ -30,6 +30,20 @@ export type OrderType = z.infer<typeof OrderTypeSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type ItemStatus = z.infer<typeof ItemStatusSchema>;
 
+// Export inferred types for UI
+export type OrderLine = z.infer<typeof OrderLineSchema>;
+export type Check = z.infer<typeof CheckSchema>;
+// OrderCreatedPayload typically represents the full Order state in our event sourcing model (snapshot)
+// But wait, the Order entity might be structured slightly differently than the payload if we have computed fields?
+// For MVP, lets assume the OrderCreatedPayload structure roughly matches the entity state, 
+// OR we can export `OrderCreatedEvent["payload"]` as `Order` for simplicity, 
+// but we need to include ALL fields (id, etc).
+// Actually, `OrderCreatedPayload` has `order_id` etc.
+// Let's rely on `OrderCreatedPayload` structure for `Order` type for now.
+// Wait, `OrderCreatedPayload` is not exported purely.
+// Let's define:
+export type Order = z.infer<typeof OrderCreatedPayload>;
+
 // ============================================================================
 // Aggregate Types
 // ============================================================================
@@ -96,7 +110,7 @@ const CashAdjustedPayload = z.object({
 // Order Item structure (embedded in ORDER_CREATED and ORDER_ITEM_ADDED)
 export const OrderLineSchema = z.object({
     line_id: z.string().min(1),
-    product_id: uuidSchema,
+    product_id: z.string().min(1), // Relaxed from uuidSchema to support 'prod_001' style IDs
     sku: z.string().min(1),
     name: z.string().min(1),
     short_name: z.string().optional(),
@@ -227,6 +241,15 @@ const CheckTipSetPayload = z.object({
     tip_cents: positiveCentsSchema,
 });
 
+const CheckItemsUpdatedPayload = z.object({
+    order_id: uuidSchema,
+    check_id: z.string().min(1),
+    lines: z.array(z.object({
+        line_id: z.string().min(1),
+        qty: z.number().int().positive(),
+    })),
+});
+
 // ============================================================================
 // INVOICE Events (P0)
 // ============================================================================
@@ -331,6 +354,24 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("ORDER"),
         payload: CheckTipSetPayload,
     }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("CHECK_ITEMS_UPDATED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: CheckItemsUpdatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("CHECK_ITEMS_MOVED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: z.object({
+            order_id: uuidSchema,
+            from_check_id: z.string().min(1),
+            to_check_id: z.string().min(1),
+            lines: z.array(z.object({
+                line_id: z.string().min(1),
+                qty: z.number().int().positive(),
+            })),
+        }),
+    }),
 
     // INVOICE events
     BaseEnvelopeSchema.extend({
@@ -364,6 +405,8 @@ export type ShiftOpenedEvent = Extract<ParkEvent, { event_type: "SHIFT_OPENED" }
 export type ShiftClosedEvent = Extract<ParkEvent, { event_type: "SHIFT_CLOSED" }>;
 export type OrderCreatedEvent = Extract<ParkEvent, { event_type: "ORDER_CREATED" }>;
 export type OrderItemAddedEvent = Extract<ParkEvent, { event_type: "ORDER_ITEM_ADDED" }>;
+export type CheckCreatedEvent = Extract<ParkEvent, { event_type: "CHECK_CREATED" }>;
+export type CheckItemsUpdatedEvent = Extract<ParkEvent, { event_type: "CHECK_ITEMS_UPDATED" }>;
 export type CheckPaymentAddedEvent = Extract<ParkEvent, { event_type: "CHECK_PAYMENT_ADDED" }>;
 export type CheckMarkedPaidEvent = Extract<ParkEvent, { event_type: "CHECK_MARKED_PAID" }>;
 export type InvoiceIssuedEvent = Extract<ParkEvent, { event_type: "INVOICE_ISSUED" }>;

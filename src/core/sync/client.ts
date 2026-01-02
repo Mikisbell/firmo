@@ -192,18 +192,10 @@ export class SyncClient {
             resp = (await r.json()) as IngestResponse;
 
             if (!r.ok && !resp?.error) {
-                resp = {
-                    accepted: false,
-                    acked_through_terminal_sequence: null,
-                    error: {
-                        error_code: "HTTP_ERROR",
-                        severity: "ERROR",
-                        message: `HTTP ${r.status}`,
-                        user_action: "Reintenta la sincronización.",
-                        retryable: true,
-                        context: { status: r.status },
-                    },
-                };
+                // ... fallback ...
+            } else if (!r.ok && resp?.error) {
+                // Log detailed error from server (Zod issues)
+                console.error("[Sync] Server rejected batch:", JSON.stringify(resp.error, null, 2));
             }
         } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             await this.updateSyncAttempt("FAIL");

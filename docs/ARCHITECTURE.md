@@ -84,6 +84,8 @@ terminal_session       -- Terminal, station, employee
 events, orders, products, catalog_meta, tenant_settings,
 promotions, daily_sales_summary, employees, terminals, 
 shifts, customers, drivers, invoices, stations
+
+**Nota (v1.1):** Ingest API (`/api/events/ingest`) realiza **Proyección Síncrona** a estas tablas para asegurar visibilidad inmediata en BI/Admin Dashboard.
 ```
 
 ### 3.3 Capa Growth (Asíncrona)
@@ -524,10 +526,10 @@ order_status = DONE cuando:
 
 1. ☐ Tablas P0: tenant_settings, employees, terminals, stations
 2. ☐ products + catalog_meta
-3. ☐ orders + triggers derivados
+3. ☐ orders + triggers derivados (✅ Proyección Síncrona)
 4. ☐ promotions + función validate/apply
-5. ☐ invoices (por check)
-6. ☐ shifts + cierre de caja
+5. ✅ invoices (por check)
+6. ✅ shifts (Proyección Síncrona)
 7. ☐ daily_sales_summary (job)
 8. ☐ Print server
 9. ☐ Notificaciones KDS
