@@ -1,138 +1,90 @@
 import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Demo catalog data - In production, this would come from database
-const DEMO_CATALOG = {
-    version: 1,
-    checksum: "abc123",
-    updated_at: new Date().toISOString(),
-    items: [
-        {
-            id: "prod_001",
-            sku: "POLLO-ENT",
-            name: "Pollo a la Brasa Entero",
-            short_name: "Pollo Ent",
-            price_cents: 6500, // S/65.00
-            category: "pollos",
-            station: "PARRILLA",
-            active: true,
-        },
-        {
-            id: "prod_002",
-            sku: "POLLO-MED",
-            name: "1/2 Pollo a la Brasa",
-            short_name: "1/2 Pollo",
-            price_cents: 3500,
-            category: "pollos",
-            station: "PARRILLA",
-            active: true,
-        },
-        {
-            id: "prod_003",
-            sku: "POLLO-CRT",
-            name: "1/4 Pollo a la Brasa",
-            short_name: "1/4 Pollo",
-            price_cents: 2000,
-            category: "pollos",
-            station: "PARRILLA",
-            active: true,
-        },
-        {
-            id: "prod_004",
-            sku: "PAPAS-GRD",
-            name: "Papas Fritas Grande",
-            short_name: "Papas Grd",
-            price_cents: 1500,
-            category: "acompañamientos",
-            station: "FREIDORA",
-            active: true,
-        },
-        {
-            id: "prod_005",
-            sku: "PAPAS-MED",
-            name: "Papas Fritas Mediana",
-            short_name: "Papas Med",
-            price_cents: 1000,
-            category: "acompañamientos",
-            station: "FREIDORA",
-            active: true,
-        },
-        {
-            id: "prod_006",
-            sku: "ENSALADA",
-            name: "Ensalada",
-            short_name: "Ensalada",
-            price_cents: 800,
-            category: "acompañamientos",
-            station: "FRIO",
-            active: true,
-        },
-        {
-            id: "prod_007",
-            sku: "GASEOSA-PEQ",
-            name: "Gaseosa Personal",
-            short_name: "Gaseosa",
-            price_cents: 500,
-            category: "bebidas",
-            station: "BAR",
-            active: true,
-        },
-        {
-            id: "prod_008",
-            sku: "GASEOSA-1L",
-            name: "Gaseosa 1L",
-            short_name: "Gaseosa 1L",
-            price_cents: 1000,
-            category: "bebidas",
-            station: "BAR",
-            active: true,
-        },
-        {
-            id: "prod_009",
-            sku: "CHICHA-1L",
-            name: "Chicha Morada 1L",
-            short_name: "Chicha 1L",
-            price_cents: 800,
-            category: "bebidas",
-            station: "BAR",
-            active: true,
-        },
-        {
-            id: "prod_010",
-            sku: "CERVEZA",
-            name: "Cerveza Cusqueña",
-            short_name: "Cerveza",
-            price_cents: 1200,
-            category: "bebidas",
-            station: "BAR",
-            active: true,
-        },
-        {
-            id: "prod_011",
-            sku: "ANTICUCHO-3",
-            name: "Anticuchos (3 palitos)",
-            short_name: "Anticucho",
-            price_cents: 2500,
-            category: "parrilla",
-            station: "PARRILLA",
-            active: true,
-        },
-        {
-            id: "prod_012",
-            sku: "CHORIZO",
-            name: "Chorizo a la Parrilla",
-            short_name: "Chorizo",
-            price_cents: 1500,
-            category: "parrilla",
-            station: "PARRILLA",
-            active: true,
-        },
-    ],
-};
+const prisma = new PrismaClient();
 
-export async function GET() {
-    // In production: query database for active catalog
-    return NextResponse.json(DEMO_CATALOG);
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const tenantId = searchParams.get("tenant_id") || "00000000-0000-0000-0000-000000000001";
+
+    try {
+        // Get products from database
+        const products = await prisma.product.findMany({
+            where: {
+                tenant_id: tenantId,
+                is_active: true,
+            },
+            orderBy: [
+                { category: "asc" },
+                { name: "asc" },
+            ],
+        });
+
+        // Get catalog meta
+        const meta = await prisma.catalogMeta.findUnique({
+            where: { tenant_id: tenantId },
+        });
+
+        // Transform to catalog format
+        const items = products.map(p => ({
+            id: p.id,
+            sku: p.sku,
+            name: p.name,
+            short_name: p.short_name || p.name.substring(0, 12),
+            price_cents: p.price_cents,
+            category: p.category,
+            station: p.station,
+            active: p.is_active,
+        }));
+
+        // Calculate checksum
+        const checksum = crypto
+            .createHash("md5")
+            .update(JSON.stringify(items))
+            .digest("hex")
+            .substring(0, 8);
+
+        // If no products in DB, return demo catalog
+        if (items.length === 0) {
+            return NextResponse.json(getDemoCatalog());
+        }
+
+        return NextResponse.json({
+            version: meta?.active_version || 1,
+            checksum,
+            updated_at: meta?.updated_at?.toISOString() || new Date().toISOString(),
+            items,
+        });
+    } catch (error) {
+        console.error("[catalog/latest] Error:", error);
+        // Fallback to demo catalog on error
+        return NextResponse.json(getDemoCatalog());
+    }
+}
+
+// Demo catalog for development/fallback
+function getDemoCatalog() {
+    return {
+        version: 1,
+        checksum: "demo1234",
+        updated_at: new Date().toISOString(),
+        items: [
+            { id: "prod_001", sku: "POLLO-ENT", name: "Pollo a la Brasa Entero", short_name: "Pollo Ent", price_cents: 6500, category: "pollos", station: "PARRILLA", active: true },
+            { id: "prod_002", sku: "POLLO-MED", name: "1/2 Pollo a la Brasa", short_name: "1/2 Pollo", price_cents: 3500, category: "pollos", station: "PARRILLA", active: true },
+            { id: "prod_003", sku: "POLLO-CRT", name: "1/4 Pollo a la Brasa", short_name: "1/4 Pollo", price_cents: 2000, category: "pollos", station: "PARRILLA", active: true },
+            { id: "prod_004", sku: "PAPAS-GRD", name: "Papas Fritas Grande", short_name: "Papas Grd", price_cents: 1500, category: "acompañamientos", station: "FREIDORA", active: true },
+            { id: "prod_005", sku: "PAPAS-MED", name: "Papas Fritas Mediana", short_name: "Papas Med", price_cents: 1000, category: "acompañamientos", station: "FREIDORA", active: true },
+            { id: "prod_006", sku: "ENSALADA", name: "Ensalada", short_name: "Ensalada", price_cents: 800, category: "acompañamientos", station: "FRIO", active: true },
+            { id: "prod_007", sku: "GASEOSA-PEQ", name: "Gaseosa Personal", short_name: "Gaseosa", price_cents: 500, category: "bebidas", station: "BAR", active: true },
+            { id: "prod_008", sku: "GASEOSA-1L", name: "Gaseosa 1L", short_name: "Gaseosa 1L", price_cents: 1000, category: "bebidas", station: "BAR", active: true },
+            { id: "prod_009", sku: "CHICHA-1L", name: "Chicha Morada 1L", short_name: "Chicha 1L", price_cents: 800, category: "bebidas", station: "BAR", active: true },
+            { id: "prod_010", sku: "CERVEZA", name: "Cerveza Cusqueña", short_name: "Cerveza", price_cents: 1200, category: "bebidas", station: "BAR", active: true },
+            { id: "prod_011", sku: "ANTICUCHO-3", name: "Anticuchos (3 palitos)", short_name: "Anticucho", price_cents: 2500, category: "parrilla", station: "PARRILLA", active: true },
+            { id: "prod_012", sku: "CHORIZO", name: "Chorizo a la Parrilla", short_name: "Chorizo", price_cents: 1500, category: "parrilla", station: "PARRILLA", active: true },
+        ],
+    };
 }

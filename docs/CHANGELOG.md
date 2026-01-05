@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.2.0] - 2026-01-02
+### Added
+- **Full Frontend Integration (P0 MVP Complete):**
+  - `page.tsx` now uses `CheckDetail` instead of basic `Cart`.
+  - PaymentModal integrated: CASH, YAPE, PLIN, CARD selection.
+  - InvoiceModal integrated: Boleta/Factura selection.
+  - SplitBillModal integrated: Divide cuenta by items.
+  - Automatic ticket printing after invoice issuance.
+  - Real offline/online indicator (`navigator.onLine`).
+  - Sonner toasts for all actions.
+
+### Fixed
+- **Items now auto-assign to default check** (was causing S/0.00 tickets).
+- **Cycle resets correctly** after invoice (was staying on CONFIRMED sale).
+- **Event sequences** no longer have gaps.
+
+### Changed
+- Replaced `Cart.tsx` usage with `CheckDetail.tsx` in main page.
+- Unified payment flow: Add Payment → Mark Paid → Issue Invoice → Print.
+
+---
+
 ## [1.1.0] - 2026-01-01
 ### Added
 - **Billing System (Task 10):**

@@ -299,8 +299,15 @@ export function applySaleEvent(
         }
 
         case "CHECK_MARKED_PAID": {
-            const { change_cents } = e.payload;
+            const { check_id, change_cents } = e.payload;
             sale.change_cents = change_cents ?? 0;
+
+            // Update the specific check's payment status
+            const checkIdx = sale.checks.findIndex(c => c.check_id === check_id);
+            if (checkIdx >= 0) {
+                sale.checks[checkIdx].payment.status = "PAID";
+            }
+
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }

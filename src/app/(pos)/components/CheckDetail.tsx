@@ -3,7 +3,7 @@ import { CheckProjection, SaleProjection, SaleLine } from "@/src/core/projection
 import { PaymentModal } from "./PaymentModal";
 import { InvoiceModal } from "./InvoiceModal";
 import { SplitBillModal } from "./SplitBillModal";
-import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split } from "lucide-react";
+import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, Plus, Minus, Trash2 } from "lucide-react";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { AnimatePresence } from "framer-motion";
 
@@ -16,13 +16,14 @@ interface CheckDetailProps {
     onBack: () => void;
     onPayment: (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number) => void;
     onInvoice: (type: "BOLETA" | "FACTURA") => void;
+    onUpdateQty?: (lineId: string, newQty: number) => void;
     // New Props for Selector
     checks: CheckProjection[];
     selectedCheckId: string;
     onSelectCheck: (id: string) => void;
 }
 
-export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, checks, selectedCheckId, onSelectCheck }: CheckDetailProps) {
+export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, onUpdateQty, checks, selectedCheckId, onSelectCheck }: CheckDetailProps) {
     const [showPayModal, setShowPayModal] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [showSplitModal, setShowSplitModal] = useState(false);
@@ -154,8 +155,24 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 const total = unitPrice * l.qty;
 
                                 return (
-                                    <div key={l.line_id + idx} className="flex justify-between items-baseline group">
-                                        <div className="flex gap-2 text-sm text-gray-800">
+                                    <div key={l.line_id + idx} className="flex justify-between items-center group py-1">
+                                        <div className="flex items-center gap-2 text-sm text-gray-800">
+                                            {onUpdateQty && !isPaid && (
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => onUpdateQty(l.line_id, l.qty - 1)}
+                                                        className="w-6 h-6 rounded bg-gray-100 hover:bg-red-100 flex items-center justify-center text-gray-500 hover:text-red-600"
+                                                    >
+                                                        {l.qty === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => onUpdateQty(l.line_id, l.qty + 1)}
+                                                        className="w-6 h-6 rounded bg-gray-100 hover:bg-green-100 flex items-center justify-center text-gray-500 hover:text-green-600"
+                                                    >
+                                                        <Plus size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
                                             <span className="font-mono font-bold w-6 text-right">{l.qty}</span>
                                             <span className="font-medium group-hover:text-black">{name}</span>
                                         </div>
