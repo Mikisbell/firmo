@@ -88,7 +88,12 @@ shifts, customers, drivers, invoices, stations
 **Nota (v1.1):** Ingest API (`/api/events/ingest`) realiza **Proyección Síncrona** a estas tablas para asegurar visibilidad inmediata en BI/Admin Dashboard.
 ```
 
-### 3.3 Capa Growth (Asíncrona)
+### 3.3 Capa Real-Time (Phase P1)
+- **Event Bus:** Pub/Sub interno (Memoria para Single-Node, Redis para Multi-Node).
+- **SSE Stream:** Endpoint `/api/events/stream` distribuye eventos a todos los clientes conectados.
+- **SyncClient:** Clientes mantienen conexión persistente y aplican eventos remotos a su IndexedDB local.
+
+### 3.4 Capa Growth (Asíncrona)
 - Campañas/promos WhatsApp
 - Segmentación
 - IA (recomendaciones/forecast)

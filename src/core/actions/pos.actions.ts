@@ -1,6 +1,6 @@
 import { db } from "@/src/core/db/schema";
-import { newUUID, type UUID } from "@/src/core/domain/ids";
-import type { ParkEvent, OrderType, PaymentMethod } from "@/src/core/domain/events";
+import { newUUID } from "@/src/core/domain/ids";
+import type { ParkEvent, OrderType, PaymentMethod, ItemStatus } from "@/src/core/domain/events";
 import { getSyncClient } from "@/src/core/sync/client";
 
 // Helper para obtener secuencia de forma segura
@@ -363,4 +363,90 @@ export const POSActions = {
             },
         });
     },
+
+    /**
+     * Void an item (UNDO) - FR-005
+     */
+    async voidItem(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        line_id: string,
+        reason: string = "UNDO"
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "ORDER_ITEM_VOIDED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                line_id,
+                reason,
+                voided_at: new Date().toISOString(),
+            },
+        });
+    },
+
+    /**
+     * Adjust cash (IN/OUT) - FR-021
+     */
+    async adjustCash(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        shift_id: string,
+        delta_cents: number,
+        reason: string
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "CASH_ADJUSTED",
+            aggregate_type: "SHIFT",
+            aggregate_id: shift_id,
+            correlation_id: shift_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                shift_id,
+                delta_cents,
+                reason,
+            },
+        });
+    },
+    /**
+     * Update item status (e.g. KDS Kitchen Workflow)
+     */
+    async updateItemStatus(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        line_id: string,
+        from_status: ItemStatus,
+        to_status: ItemStatus,
+        station: string = "kds"
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "ORDER_ITEM_STATUS_CHANGED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                line_id,
+                from: from_status,
+                to: to_status,
+                station
+            },
+        });
+    },
 };
+

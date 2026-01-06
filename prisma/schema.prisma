@@ -197,15 +197,21 @@ model Customer {
   tenant_id        String   @db.Uuid
   phone            String
   name             String?
-  addresses        Json     @default("[]")
+  email            String?
+  addresses        Json     @default("[]") // Legacy - use DeliveryAddress
   birth_month      Int?
   birth_day        Int?
   marketing_opt_in Boolean  @default(true)
+  total_orders     Int      @default(0)
+  total_spent      Int      @default(0) // centavos
+  last_order_at    DateTime? @db.Timestamptz
+  notes            String?
   updated_at       DateTime @default(now()) @db.Timestamptz
 
   // Relations
-  profile CustomerProfile?
-  coupons Coupon[]
+  profile           CustomerProfile?
+  coupons           Coupon[]
+  delivery_addresses DeliveryAddress[]
 
   @@unique([tenant_id, phone])
   @@map("customers")
@@ -627,4 +633,593 @@ model InventoryLog {
 
   @@index([tenant_id, inventory_id, created_at(sort: Desc)])
   @@map("inventory_log")
+}
+
+// ============================================================================
+// INVENTORY: Extended (Suppliers, Recipes, Alerts, Transfers)
+// ============================================================================
+
+model Supplier {
+  id              String   @id @default(uuid()) @db.Uuid
+  tenant_id       String   @db.Uuid
+  name            String
+  ruc             String?
+  contact_name    String?
+  phone           String?
+  email           String?
+  address         String?
+  payment_terms   Int      @default(0) // Days of credit
+  min_order_cents Int      @default(0)
+  delivery_days   String[] @default([]) // ["LUNES", "MIERCOLES"]
+  lead_time_days  Int      @default(1)
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now()) @db.Timestamptz
+  updated_at      DateTime @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, is_active])
+  @@map("suppliers")
+}
+
+model Recipe {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenant_id    String   @db.Uuid
+  product_id   String   @db.Uuid
+  ingredients  Json // Array of {sku, quantity, unit, is_optional, substitutes}
+  yield_qty    Decimal  @default(1) @db.Decimal(10, 3)
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now()) @db.Timestamptz
+  updated_at   DateTime @default(now()) @db.Timestamptz
+
+  @@unique([tenant_id, product_id])
+  @@map("recipes")
+}
+
+model StockAlert {
+  id                 String    @id @default(uuid()) @db.Uuid
+  tenant_id          String    @db.Uuid
+  location_id        String    @db.Uuid
+  sku                String
+  alert_type         String // LOW_STOCK|OUT_OF_STOCK|EXPIRING_SOON|OVERSTOCK
+  severity           String    @default("MEDIUM") // LOW|MEDIUM|HIGH|CRITICAL
+  current_qty        Decimal   @db.Decimal(10, 3)
+  threshold_qty      Decimal   @db.Decimal(10, 3)
+  is_acknowledged    Boolean   @default(false)
+  acknowledged_by    String?   @db.Uuid
+  acknowledged_at    DateTime? @db.Timestamptz
+  created_at         DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, location_id, is_acknowledged])
+  @@map("stock_alerts")
+}
+
+model StockTransfer {
+  id               String    @id @default(uuid()) @db.Uuid
+  tenant_id        String    @db.Uuid
+  from_location_id String    @db.Uuid
+  to_location_id   String    @db.Uuid
+  status           String    @default("PENDING") // PENDING|IN_TRANSIT|RECEIVED|CANCELLED
+  items            Json // Array of {sku, quantity, unit_cost}
+  transport_cost   Int       @default(0) // centavos
+  authorized_by    String    @db.Uuid
+  received_by      String?   @db.Uuid
+  shipped_at       DateTime? @db.Timestamptz
+  received_at      DateTime? @db.Timestamptz
+  notes            String?
+  created_at       DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, status])
+  @@map("stock_transfers")
+}
+
+// ============================================================================
+// TABLES & ZONES (Floor Plan)
+// ============================================================================
+
+model Zone {
+  id                  String   @id @default(uuid()) @db.Uuid
+  tenant_id           String   @db.Uuid
+  location_id         String   @db.Uuid
+  code                String // "A", "BAR", "TERRAZA"
+  name                String
+  color               String   @default("#4CAF50")
+  bounds              Json? // {x, y, width, height}
+  is_smoking          Boolean  @default(false)
+  is_outdoor          Boolean  @default(false)
+  has_ac              Boolean  @default(false)
+  assigned_waiter_ids String[] @default([])
+  sort_order          Int      @default(0)
+  is_active           Boolean  @default(true)
+  created_at          DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  tables Table[]
+
+  @@unique([tenant_id, location_id, code])
+  @@map("zones")
+}
+
+model Table {
+  id               String    @id @default(uuid()) @db.Uuid
+  tenant_id        String    @db.Uuid
+  location_id      String    @db.Uuid
+  zone_id          String?   @db.Uuid
+  number           String // "5", "5-6-7", "T1"
+  display_name     String?
+  capacity         Int       @default(4)
+  position_x       Int       @default(0)
+  position_y       Int       @default(0)
+  width            Int       @default(60)
+  height           Int       @default(60)
+  rotation         Int       @default(0)
+  shape            String    @default("SQUARE") // SQUARE|ROUND|RECTANGLE
+  status           String    @default("AVAILABLE") // AVAILABLE|OCCUPIED|RESERVED|CLEANING|BLOCKED
+  current_order_id String?   @db.Uuid
+  occupied_since   DateTime? @db.Timestamptz
+  is_merged        Boolean   @default(false)
+  merged_table_ids String[]  @default([])
+  parent_table_id  String?   @db.Uuid
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now()) @db.Timestamptz
+  updated_at       DateTime  @default(now()) @db.Timestamptz
+
+  // Relations
+  zone         Zone?         @relation(fields: [zone_id], references: [id])
+  reservations Reservation[]
+
+  @@unique([tenant_id, location_id, number])
+  @@index([tenant_id, location_id, status])
+  @@map("tables")
+}
+
+model TableLayout {
+  id                   String   @id @default(uuid()) @db.Uuid
+  tenant_id            String   @db.Uuid
+  location_id          String   @db.Uuid
+  name                 String
+  is_active            Boolean  @default(true)
+  canvas_width         Int      @default(800)
+  canvas_height        Int      @default(600)
+  background_image_url String?
+  background_opacity   Int      @default(50)
+  decorations          Json     @default("[]") // Array of decoration objects
+  created_at           DateTime @default(now()) @db.Timestamptz
+  updated_at           DateTime @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, location_id, is_active])
+  @@map("table_layouts")
+}
+
+// ============================================================================
+// RESERVATIONS & WAITLIST
+// ============================================================================
+
+model Reservation {
+  id                  String    @id @default(uuid()) @db.Uuid
+  tenant_id           String    @db.Uuid
+  location_id         String    @db.Uuid
+  customer_name       String
+  customer_phone      String
+  customer_email      String?
+  customer_id         String?   @db.Uuid
+  date                DateTime  @db.Date
+  time                String // "20:00"
+  duration_minutes    Int       @default(90)
+  party_size          Int
+  table_id            String?   @db.Uuid
+  table_number        String?
+  zone_preference     String?
+  status              String    @default("PENDING") // PENDING|PENDING_DEPOSIT|CONFIRMED|WAITLIST|SEATED|COMPLETED|NO_SHOW|CANCELLED
+  confirmation_sent   DateTime? @db.Timestamptz
+  confirmed_at        DateTime? @db.Timestamptz
+  confirmed_via       String? // WHATSAPP|PHONE|EMAIL
+  deposit_required    Boolean   @default(false)
+  deposit_amount      Int? // centavos
+  deposit_paid_at     DateTime? @db.Timestamptz
+  deposit_payment_id  String?
+  special_requests    String?
+  internal_notes      String?
+  arrived_at          DateTime? @db.Timestamptz
+  seated_at           DateTime? @db.Timestamptz
+  no_show_at          DateTime? @db.Timestamptz
+  cancelled_at        DateTime? @db.Timestamptz
+  cancelled_reason    String?
+  created_by          String    @db.Uuid
+  created_at          DateTime  @default(now()) @db.Timestamptz
+  updated_at          DateTime  @default(now()) @db.Timestamptz
+
+  // Relations
+  table Table? @relation(fields: [table_id], references: [id])
+
+  @@index([tenant_id, location_id, date, status])
+  @@index([tenant_id, customer_phone])
+  @@map("reservations")
+}
+
+model Waitlist {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenant_id      String    @db.Uuid
+  location_id    String    @db.Uuid
+  customer_name  String
+  customer_phone String
+  date           DateTime  @db.Date
+  preferred_time String
+  party_size     Int
+  position       Int
+  notified_at    DateTime? @db.Timestamptz
+  expires_at     DateTime? @db.Timestamptz
+  status         String    @default("WAITING") // WAITING|NOTIFIED|CONVERTED|EXPIRED
+  created_at     DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, location_id, date, status])
+  @@map("waitlist")
+}
+
+// ============================================================================
+// PETTY CASH (Caja Chica)
+// ============================================================================
+
+model PettyCashTransaction {
+  id                String    @id @default(uuid()) @db.Uuid
+  tenant_id         String    @db.Uuid
+  location_id       String    @db.Uuid
+  shift_id          String    @db.Uuid
+  type              String // WITHDRAWAL|DEPOSIT
+  amount            Int // centavos (always positive)
+  category          String // COMPRA_EMERGENCIA|TRANSPORTE|LIMPIEZA|MANTENIMIENTO|PROPINA_DELIVERY|OTROS
+  description       String
+  requires_approval Boolean   @default(false)
+  approved_by       String?   @db.Uuid
+  approved_at       DateTime? @db.Timestamptz
+  receipt_photo_url String?
+  receipt_number    String?
+  supplier_name     String?
+  created_by        String    @db.Uuid
+  created_at        DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, location_id, shift_id])
+  @@map("petty_cash_transactions")
+}
+
+model PettyCashBalance {
+  id                 String   @id @default(uuid()) @db.Uuid
+  tenant_id          String   @db.Uuid
+  location_id        String   @db.Uuid
+  current_balance    Int      @default(0) // centavos
+  max_balance        Int      @default(50000) // S/500
+  min_balance        Int      @default(10000) // S/100
+  approval_threshold Int      @default(5000) // S/50
+  last_reconciled_at DateTime @default(now()) @db.Timestamptz
+  last_reconciled_by String?  @db.Uuid
+  updated_at         DateTime @default(now()) @db.Timestamptz
+
+  @@unique([tenant_id, location_id])
+  @@map("petty_cash_balance")
+}
+
+// ============================================================================
+// TIPS (Propinas)
+// ============================================================================
+
+model Tip {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenant_id      String    @db.Uuid
+  location_id    String    @db.Uuid
+  order_id       String    @db.Uuid
+  shift_id       String    @db.Uuid
+  amount         Int // centavos
+  payment_method String // CASH|CARD|TRANSFER
+  waiter_id      String    @db.Uuid
+  zone_id        String?   @db.Uuid
+  status         String    @default("RECEIVED") // RECEIVED|PENDING_SETTLEMENT|SETTLED|DISTRIBUTED
+  settled_at     DateTime? @db.Timestamptz
+  created_at     DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, shift_id, waiter_id])
+  @@map("tips")
+}
+
+model TipDistribution {
+  id                String   @id @default(uuid()) @db.Uuid
+  tenant_id         String   @db.Uuid
+  location_id       String   @db.Uuid
+  shift_id          String   @db.Uuid
+  distribution_mode String // INDIVIDUAL|POOL_EQUAL|POOL_BY_HOURS|BY_ZONE
+  total_tips        Int // centavos
+  participants      Int
+  distributions     Json // Array of {employee_id, amount, zone_id?}
+  distributed_by    String   @db.Uuid
+  distributed_at    DateTime @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, shift_id])
+  @@map("tip_distributions")
+}
+
+model TipConfig {
+  id                      String  @id @default(uuid()) @db.Uuid
+  tenant_id               String  @db.Uuid
+  location_id             String  @db.Uuid
+  distribution_mode       String  @default("INDIVIDUAL")
+  include_kitchen         Boolean @default(false)
+  kitchen_percentage      Int     @default(0)
+  card_tip_fee_percentage Int     @default(0)
+  min_tip_to_record       Int     @default(100) // S/1
+
+  @@unique([tenant_id, location_id])
+  @@map("tip_config")
+}
+
+// ============================================================================
+// EMPLOYEES: Extended (Schedules, Attendance, Time Off)
+// ============================================================================
+
+model Schedule {
+  id                   String    @id @default(uuid()) @db.Uuid
+  tenant_id            String    @db.Uuid
+  location_id          String    @db.Uuid
+  employee_id          String    @db.Uuid
+  date                 DateTime  @db.Date
+  shift_start          String // "12:00"
+  shift_end            String // "22:00"
+  break_minutes        Int       @default(60)
+  zone_id              String?   @db.Uuid
+  status               String    @default("SCHEDULED") // SCHEDULED|SWAP_PENDING|SWAP_APPROVED|CANCELLED|COMPLETED
+  original_employee_id String?   @db.Uuid
+  swap_approved_by     String?   @db.Uuid
+  notes                String?
+  created_by           String    @db.Uuid
+  created_at           DateTime  @default(now()) @db.Timestamptz
+  updated_at           DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, location_id, date])
+  @@index([tenant_id, employee_id, date])
+  @@map("schedules")
+}
+
+model Attendance {
+  id                  String    @id @default(uuid()) @db.Uuid
+  tenant_id           String    @db.Uuid
+  location_id         String    @db.Uuid
+  employee_id         String    @db.Uuid
+  schedule_id         String?   @db.Uuid
+  date                DateTime  @db.Date
+  clock_in            DateTime  @db.Timestamptz
+  clock_out           DateTime? @db.Timestamptz
+  breaks              Json      @default("[]") // Array of {start, end, type}
+  scheduled_minutes   Int       @default(0)
+  worked_minutes      Int       @default(0)
+  overtime_minutes    Int       @default(0)
+  late_minutes        Int       @default(0)
+  early_leave_minutes Int       @default(0)
+  status              String    @default("PRESENT") // PRESENT|ON_BREAK|COMPLETED|ABSENT|LATE|EXCUSED
+  notes               String?
+  created_at          DateTime  @default(now()) @db.Timestamptz
+  updated_at          DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, employee_id, date])
+  @@map("attendance")
+}
+
+model TimeOffRequest {
+  id           String    @id @default(uuid()) @db.Uuid
+  tenant_id    String    @db.Uuid
+  employee_id  String    @db.Uuid
+  type         String // VACATION|SICK|PERSONAL|BEREAVEMENT|MATERNITY|OTHER
+  start_date   DateTime  @db.Date
+  end_date     DateTime  @db.Date
+  reason       String
+  status       String    @default("PENDING") // PENDING|APPROVED|REJECTED
+  reviewed_by  String?   @db.Uuid
+  reviewed_at  DateTime? @db.Timestamptz
+  review_notes String?
+  created_at   DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, employee_id, status])
+  @@map("time_off_requests")
+}
+
+// ============================================================================
+// INVOICING: Extended (SUNAT Queue, CDR, Daily Summary)
+// ============================================================================
+
+model InvoiceQueue {
+  id              String    @id @default(uuid()) @db.Uuid
+  tenant_id       String    @db.Uuid
+  invoice_id      String    @db.Uuid
+  action          String // SEND|VOID|SUMMARY|QUERY_CDR
+  priority        Int       @default(5)
+  attempts        Int       @default(0)
+  max_attempts    Int       @default(3)
+  last_attempt_at DateTime? @db.Timestamptz
+  last_error      String?
+  scheduled_at    DateTime  @default(now()) @db.Timestamptz
+  processed_at    DateTime? @db.Timestamptz
+  status          String    @default("PENDING") // PENDING|PROCESSING|COMPLETED|FAILED
+
+  @@index([tenant_id, status, scheduled_at])
+  @@map("invoice_queue")
+}
+
+model InvoiceCDR {
+  id               String   @id @default(uuid()) @db.Uuid
+  tenant_id        String   @db.Uuid
+  invoice_id       String   @db.Uuid
+  response_code    String
+  response_message String
+  hash             String?
+  cdr_xml          String? // Compressed CDR XML
+  received_at      DateTime @default(now()) @db.Timestamptz
+
+  @@unique([tenant_id, invoice_id])
+  @@map("invoice_cdr")
+}
+
+model SunatDailySummary {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenant_id      String    @db.Uuid
+  location_id    String    @db.Uuid
+  summary_date   DateTime  @db.Date
+  summary_number String // RC-20260105-001
+  boletas_count  Int       @default(0)
+  boletas_total  Int       @default(0) // centavos
+  ticket_number  String?
+  sunat_status   String    @default("PENDING")
+  cdr_received   DateTime? @db.Timestamptz
+  created_at     DateTime  @default(now()) @db.Timestamptz
+
+  @@unique([tenant_id, location_id, summary_date])
+  @@map("sunat_daily_summary")
+}
+
+// ============================================================================
+// REFUNDS (Devoluciones)
+// ============================================================================
+
+model Refund {
+  id                   String    @id @default(uuid()) @db.Uuid
+  tenant_id            String    @db.Uuid
+  order_id             String    @db.Uuid
+  check_id             String
+  invoice_id           String?   @db.Uuid
+  type                 String // FULL|PARTIAL|VOID
+  status               String    @default("REQUESTED") // REQUESTED|AUTHORIZED|ISSUED|REJECTED
+  reason_code          String // PRODUCT_DEFECTIVE|WRONG_PRODUCT|CASHIER_ERROR|CUSTOMER_CANCELLED|EXCESSIVE_WAIT|OTHER
+  reason_detail        String?
+  requested_by         String    @db.Uuid
+  authorized_by        String?   @db.Uuid
+  original_amount      Int // centavos
+  refund_amount        Int // centavos
+  refund_method        String // CASH|CARD|YAPE|PLIN
+  refund_reference     String?
+  items                Json? // Array of {line_id, qty, amount}
+  credit_note_id       String?   @db.Uuid
+  created_at           DateTime  @default(now()) @db.Timestamptz
+  authorized_at        DateTime? @db.Timestamptz
+  issued_at            DateTime? @db.Timestamptz
+
+  @@index([tenant_id, order_id])
+  @@index([tenant_id, status])
+  @@map("refunds")
+}
+
+// ============================================================================
+// DELIVERY: Extended (Zones, Customers)
+// ============================================================================
+
+model DeliveryZone {
+  id               String   @id @default(uuid()) @db.Uuid
+  tenant_id        String   @db.Uuid
+  location_id      String   @db.Uuid
+  name             String
+  type             String   @default("RADIUS") // RADIUS|POLYGON
+  center_lat       Decimal? @db.Decimal(10, 7)
+  center_lng       Decimal? @db.Decimal(10, 7)
+  radius_km        Decimal? @db.Decimal(5, 2)
+  polygon          Json? // Array of {lat, lng}
+  delivery_fee     Int      @default(0) // centavos
+  min_order        Int      @default(0) // centavos
+  estimated_mins   Int      @default(30)
+  is_active        Boolean  @default(true)
+  priority         Int      @default(0)
+  created_at       DateTime @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, location_id, is_active])
+  @@map("delivery_zones")
+}
+
+model DeliveryAddress {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenant_id    String   @db.Uuid
+  customer_id  String   @db.Uuid
+  label        String? // "Casa", "Oficina"
+  address_text String
+  reference    String?
+  district     String?
+  lat          Decimal? @db.Decimal(10, 7)
+  lng          Decimal? @db.Decimal(10, 7)
+  zone_id      String?  @db.Uuid
+  delivery_fee Int      @default(0) // centavos
+  is_default   Boolean  @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  customer Customer @relation(fields: [customer_id], references: [id])
+
+  @@index([tenant_id, customer_id])
+  @@map("delivery_addresses")
+}
+
+model DeliveryOrder {
+  id                    String    @id @default(uuid()) @db.Uuid
+  tenant_id             String    @db.Uuid
+  order_id              String    @db.Uuid
+  driver_id             String?   @db.Uuid
+  address_id            String?   @db.Uuid
+  address_text          String
+  address_reference     String?
+  customer_phone        String
+  delivery_fee          Int       @default(0) // centavos
+  estimated_delivery_at DateTime? @db.Timestamptz
+  assigned_at           DateTime? @db.Timestamptz
+  dispatched_at         DateTime? @db.Timestamptz
+  delivered_at          DateTime? @db.Timestamptz
+  failed_at             DateTime? @db.Timestamptz
+  failure_reason        String?
+  delivery_time_mins    Int?
+  signature_url         String?
+  status                String    @default("PENDING") // PENDING|ASSIGNED|DISPATCHED|DELIVERED|FAILED
+  created_at            DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, status])
+  @@index([tenant_id, driver_id, status])
+  @@map("delivery_orders")
+}
+
+
+// ============================================================================
+// SYNC: Event Outbox (Garantiza publicación de eventos)
+// ============================================================================
+
+model EventOutbox {
+  id           String    @id @default(uuid()) @db.Uuid
+  tenant_id    String    @db.Uuid
+  event_id     String    @db.Uuid
+  payload      Json
+  published    Boolean   @default(false)
+  published_at DateTime? @db.Timestamptz
+  attempts     Int       @default(0)
+  last_error   String?
+  created_at   DateTime  @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, published, created_at])
+  @@map("event_outbox")
+}
+
+
+// ============================================================================
+// SYNC: Processed Events (Idempotencia en Proyecciones)
+// ============================================================================
+
+model ProcessedEvent {
+  event_id     String   @id @db.Uuid
+  tenant_id    String   @db.Uuid
+  processed_at DateTime @default(now()) @db.Timestamptz
+
+  @@index([tenant_id, processed_at])
+  @@map("processed_events")
+}
+
+
+// ============================================================================
+// SYNC: Terminal Number Ranges (Evita colisiones de order_number)
+// ============================================================================
+
+model TerminalNumberRange {
+  terminal_id    String @id
+  tenant_id      String @db.Uuid
+  range_start    Int
+  range_end      Int
+  current_number Int
+
+  @@unique([tenant_id, range_start])
+  @@map("terminal_number_ranges")
 }

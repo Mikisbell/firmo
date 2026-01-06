@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2, Plus, Minus, CreditCard, Printer, X, Receipt, CheckCircle } from "lucide-react";
+import { Trash2, Plus, Minus, CreditCard, Printer, X, Receipt } from "lucide-react";
 import { useCart, getCartTotals, type CartItem, type Payment } from "../hooks/useCart";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,7 +14,7 @@ export function CartSidebar({ onPrint }: CartSidebarProps) {
     const { subtotal, totalPaid, remaining, isPaid } = getCartTotals(items, payments);
 
     const [showPayModal, setShowPayModal] = useState(false);
-    const [payAmount, setPayAmount] = useState("");
+    const [_payAmount, _setPayAmount] = useState("");
 
     const handleQuickPay = async (method: Payment["method"]) => {
         // Pay exact remaining amount

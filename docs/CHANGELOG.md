@@ -1,7 +1,46 @@
 # Changelog
 
-## [1.2.0] - 2026-01-02
+## [1.3.0] - 2026-01-05
 ### Added
+- **Shared Component Architecture:**
+  - New shared components: `src/components/shared/LineItem.tsx`, `OrderPanel.tsx`
+  - `OrderPanel` supports `mode="waiter"` and `mode="cashier"` for role-based UI
+  - Index exports at `src/components/shared/index.ts`
+  
+- **Waiter UI Redesign (Split Layout):**
+  - Two-column layout: Left = Catalog, Right = Order sidebar
+  - QR code payment display for Yape/Plin
+  - "Enviar a Cocina" and "Llamar Cuenta" buttons
+  - Modern dark glassmorphism styling
+  
+- **Shift Validation Tests:**
+  - 4 new tests in `pos-flow.e2e.test.ts`:
+    - `should require open shift before creating order`
+    - `should require open shift before adding items`
+    - `should require open shift before processing payments`
+    - `should track shift cash movements correctly`
+
+- **Role-Module Documentation:**
+  - Created `roles-modules.md` documenting URL ↔ Role mapping
+  - Cajera (`/`), Mozo (`/waiter`), KDS (`/kds`), Bar/Parrilla filters
+
+### Fixed
+- **SyncClient TypeError:** Added missing `onOnline()` and `syncNow()` methods
+- **Dexie Schema Error:** Added `aggregate_id` index in Version 4
+- **SSE Stream Error:** Added `closed` flag to prevent "Controller already closed" errors
+- **Next.js 15 Params Warning:** Updated to use `React.use(params)` pattern
+- **Invalid UUIDs:** Fixed placeholder `"test_tenant"` → valid UUID format
+- **sale.reducer `status` undefined:** Fixed missing destructuring
+
+### Changed
+- `WaiterOrderPage` now uses shared `OrderPanel` component
+- Improved error messages in `ShiftModal` to show actual error details
+
+## [1.2.0] - 2026-01-05
+### Added
+- **Multi-Terminal Architecture (Phase P1):**
+
+## [1.1.1] - 2026-01-02
 - **Full Frontend Integration (P0 MVP Complete):**
   - `page.tsx` now uses `CheckDetail` instead of basic `Cart`.
   - PaymentModal integrated: CASH, YAPE, PLIN, CARD selection.

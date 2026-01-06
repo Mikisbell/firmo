@@ -12,8 +12,8 @@ export function rebuildFromEvents(events: ParkEvent[]): { state: ProjectionsStat
 
     for (const e of events) {
         // Sale
-        const saleRes = applySaleEvent(activeSale as any, e); // eslint-disable-line @typescript-eslint/no-explicit-any
-        activeSale = saleRes.state as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+        const saleRes = applySaleEvent(activeSale as any, e);
+        activeSale = saleRes.state as any;
         warnings.push(...saleRes.warnings);
 
         // Shift

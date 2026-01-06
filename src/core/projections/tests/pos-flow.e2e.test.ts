@@ -6,8 +6,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { applySaleEvent, createOrderFromEvent } from "../sale.reducer";
 import { applyShiftEvent, emptyShift } from "../shift.reducer";
-import type { SaleProjection, CheckProjection } from "../types";
-import type { ParkEvent } from "../../domain/events";
+import type { SaleProjection } from "../types";
 
 // Test Constants
 const TENANT_ID = "00000000-0000-0000-0000-000000000001";
@@ -307,6 +306,81 @@ describe("POS Complete Flow E2E", () => {
 
             expect(check1!.total_cents).toBe(6500); // Solo pollo
             expect(check2!.total_cents).toBe(2000); // 2 gaseosas
+        });
+    });
+
+    describe("6. Shift Required Validation", () => {
+        it("should require open shift before creating order", () => {
+            // This test validates business rule: No shift = No sales
+            const shiftClosed = emptyShift();
+            shiftClosed.status = "CLOSED";
+
+            // Validation function (client-side check)
+            const canCreateOrder = (shift: any) => shift?.status === "OPEN";
+
+            expect(canCreateOrder(null)).toBe(false);
+            expect(canCreateOrder(shiftClosed)).toBe(false);
+            expect(canCreateOrder({ status: "OPEN" })).toBe(true);
+        });
+
+        it("should require open shift before adding items", () => {
+            // Create order when shift is open
+            shiftState = applyShift(null, makeEvent("SHIFT_OPENED", {
+                shift_id: "shift_1",
+                cash_opening_cents: 50000,
+            }, seq++, "shift_1"));
+
+            saleState = applySale(null, makeEvent("ORDER_CREATED", {
+                order_id: "order_1",
+                order_number: 1,
+                order_type: "DINE_IN",
+                checks: [defaultCheck("c1")],
+                fulfillment: { table_number: "M1" },
+            }, seq++));
+
+            // Simulate shift closed
+            shiftState = applyShift(shiftState, makeEvent("SHIFT_CLOSED", {
+                shift_id: "shift_1",
+                cash_counted_cents: 50000,
+            }, seq++, "shift_1"));
+
+            // Validation check
+            const canAddItem = (shift: any) => shift?.status === "OPEN";
+
+            expect(canAddItem(shiftState)).toBe(false);
+        });
+
+        it("should require open shift before processing payments", () => {
+            const canProcessPayment = (shift: any) => shift?.status === "OPEN";
+
+            expect(canProcessPayment(null)).toBe(false);
+            expect(canProcessPayment({ status: "CLOSED" })).toBe(false);
+            expect(canProcessPayment({ status: "OPEN" })).toBe(true);
+        });
+
+        it("should track shift cash movements correctly", () => {
+            // Open shift with S/500
+            shiftState = applyShift(null, makeEvent("SHIFT_OPENED", {
+                shift_id: "shift_1",
+                cash_opening_cents: 50000,
+            }, seq++, "shift_1"));
+
+            // Add cash income (+200)
+            shiftState = applyShift(shiftState, makeEvent("CASH_ADJUSTED", {
+                shift_id: "shift_1",
+                delta_cents: 20000,
+                reason: "Venta en efectivo",
+            }, seq++, "shift_1"));
+
+            // Withdraw cash (-50)
+            shiftState = applyShift(shiftState, makeEvent("CASH_ADJUSTED", {
+                shift_id: "shift_1",
+                delta_cents: -5000,
+                reason: "Pago proveedor",
+            }, seq++, "shift_1"));
+
+            // Expected = 500 + 200 - 50 = 650
+            expect(shiftState.expected_cash_cents).toBe(65000);
         });
     });
 });

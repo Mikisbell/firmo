@@ -92,6 +92,24 @@ export class ParkDB extends Dexie {
                 }
             });
         });
+
+        // Version 3: Performance Hardening (Indexes for KDS/Queries)
+        this.version(3).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, product_id, name'
+        });
+
+        // Version 4: Added aggregate_id index for order lookups
+        this.version(4).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, aggregate_id, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, product_id, name'
+        });
     }
 }
 

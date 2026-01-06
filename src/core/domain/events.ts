@@ -200,7 +200,8 @@ const OrderItemVoidedPayload = z.object({
     order_id: uuidSchema,
     line_id: z.string().min(1),
     reason: z.string().min(1),
-    approved_by: uuidSchema,
+    voided_at: isoDateSchema,
+    approved_by: uuidSchema.optional(),
 });
 
 const OrderCancelledPayload = z.object({

@@ -1,4 +1,4 @@
-import type { ParkEvent, isEventType } from "@/src/core/domain/events";
+import type { ParkEvent } from "@/src/core/domain/events";
 import type { ApplyResult, SaleLine, SalePayment, SaleProjection } from "./types";
 
 function computeSubtotal(lines: Record<string, SaleLine>): number {
@@ -20,6 +20,7 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
             qty: item.qty,
             unit_price_cents: item.unit_price_cents,
             line_total_cents: item.qty * item.unit_price_cents,
+            status: item.status ?? "PENDING",
         };
     }
 
@@ -75,7 +76,7 @@ export function applySaleEvent(
     switch (e.event_type) {
         case "ORDER_ITEM_ADDED": {
             const { line } = e.payload;
-            const { line_id, product_id, name, qty, unit_price_cents } = line;
+            const { line_id, product_id, name, qty, unit_price_cents, status } = line;
             const prev = sale.lines[line_id];
 
             const newQty = (prev?.qty ?? 0) + qty;
@@ -88,6 +89,7 @@ export function applySaleEvent(
                 qty: newQty,
                 unit_price_cents,
                 line_total_cents,
+                status: status ?? prev?.status ?? "PENDING",
             };
 
             sale.subtotal_cents = computeSubtotal(sale.lines);
@@ -147,8 +149,30 @@ export function applySaleEvent(
 
         case "ORDER_ITEM_VOIDED": {
             const { line_id } = e.payload;
+
+            // 1. Remove from master sale lines
             delete sale.lines[line_id];
             sale.subtotal_cents = computeSubtotal(sale.lines);
+
+            // 2. Remove from all checks where it might exist
+            for (const check of sale.checks) {
+                const initialLen = check.lines.length;
+                check.lines = check.lines.filter(l => l.line_id !== line_id);
+
+                // If check changed, recompute its totals
+                if (check.lines.length !== initialLen) {
+                    let checkSubtotal = 0;
+                    for (const l of check.lines) {
+                        const masterLine = sale.lines[l.line_id];
+                        if (masterLine) {
+                            checkSubtotal += masterLine.unit_price_cents * l.qty;
+                        }
+                    }
+                    check.subtotal_cents = checkSubtotal;
+                    check.total_cents = checkSubtotal; // Simplified for MVP (no discounts/tips calc on void yet)
+                }
+            }
+
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }
@@ -329,6 +353,19 @@ export function applySaleEvent(
 
         case "ORDER_CANCELLED": {
             sale.status = "CANCELLED";
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "ORDER_ITEM_STATUS_CHANGED": {
+            const { line_id, to } = e.payload;
+            const line = sale.lines[line_id];
+            if (line) {
+                line.status = to;
+                sale.lines[line_id] = line;
+            } else {
+                warnings.push(`ORDER_ITEM_STATUS_CHANGED: line_id ${line_id} not found.`);
+            }
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }

@@ -93,7 +93,7 @@ export function applyShiftEvent(shift: ShiftProjection, e: ParkEvent): ApplyResu
 
         case "SHIFT_CLOSED": {
             if (shift.status !== "OPEN") warnings.push("SHIFT_CLOSED con turno CLOSED; interpretando como cierre tardío.");
-            const { cash_counted_cents, notes } = e.payload;
+            const { cash_counted_cents, notes: _notes } = e.payload;
 
             shift.status = "CLOSED";
             shift.declared_cash_cents = cash_counted_cents;

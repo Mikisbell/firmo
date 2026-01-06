@@ -8,7 +8,7 @@ import { BackupSection } from "./BackupSection";
 
 // Si no tienes esto aún, no pasa nada: lo intentamos igual.
 async function tryPersist(): Promise<{ supported: boolean; granted: boolean | null }> {
-    const navAny = navigator as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const navAny = navigator as any;
     if (!navAny?.storage?.persist) return { supported: false, granted: null };
     try {
         const granted = await navAny.storage.persist();
@@ -32,7 +32,7 @@ export default function DiagnosticsClient() {
     const [persistGranted, setPersistGranted] = useState<boolean | null>(null);
 
     const [syncing, setSyncing] = useState<boolean>(false);
-    const [lastSyncResult, setLastSyncResult] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [lastSyncResult, setLastSyncResult] = useState<any>(null);
 
     async function refresh() {
         try {

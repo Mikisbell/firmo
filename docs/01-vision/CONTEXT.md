@@ -165,3 +165,7 @@ Ver `docs/EVENTS.md` para lista completa (30+ eventos).
 | `GROWTH.md` | WhatsApp, IA, segmentación | P2 |
 | `PROMOTIONS_DSL.md` | Reglas de promociones | P1 |
 | `SECURITY.md` | Cupones, anti-fraude | P1-P2 |
+| `MEJORAS_ARQUITECTONICAS.md` | 10 mejoras críticas | P0-P2 |
+| `OBSERVABILIDAD.md` | Monitoring y telemetría | P0 |
+| `PERFORMANCE.md` | Optimizaciones | P0-P1 |
+| `ROADMAP_MEJORAS.md` | Plan de implementación | - |

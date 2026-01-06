@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, FileText, Printer, CheckCircle, Receipt } from "lucide-react";
+import { X, FileText, Printer } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface InvoiceModalProps {
@@ -9,7 +9,7 @@ interface InvoiceModalProps {
     onIssue: (type: "BOLETA" | "FACTURA") => void;
 }
 
-export function InvoiceModal({ checkId, totalCents, onClose, onIssue }: InvoiceModalProps) {
+export function InvoiceModal({ checkId: _checkId, totalCents, onClose, onIssue }: InvoiceModalProps) {
     const [type, setType] = useState<"BOLETA" | "FACTURA">("BOLETA");
     const [docNumber, setDocNumber] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);

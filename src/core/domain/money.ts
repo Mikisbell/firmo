@@ -33,7 +33,8 @@ export function parseMoneyToCents(input: string): Cents {
     return cents(parseInt(i, 10) * 100 + parseInt(dec, 10));
 }
 
-export function formatCents(c: Cents): string {
+// Accept number | Cents for flexibility in UI components
+export function formatCents(c: number | Cents): string {
     const n = c as number;
     const sign = n < 0 ? "-" : "";
     const abs = Math.abs(n);
@@ -41,3 +42,4 @@ export function formatCents(c: Cents): string {
     const d = String(abs % 100).padStart(2, "0");
     return `${sign}${i}.${d}`;
 }
+

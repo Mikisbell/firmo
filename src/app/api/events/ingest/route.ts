@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { ingestRequestSchema, type ParkEvent } from "@/src/core/domain/events";
+import { validateEvent, type ValidationResult } from "@/src/core/validation";
+import { checkRateLimit } from "@/src/core/middleware/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,10 +40,29 @@ function serverError(apiError: ApiError, status = 500) {
     return NextResponse.json({ accepted: false, error: apiError }, { status });
 }
 
-// Projections using Prisma
-async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent) {
+// Projections using Prisma (with idempotency check)
+async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Promise<boolean> {
     const { event_type, tenant_id, payload, occurred_at, terminal_id, actor_id } = event;
 
+    // 1. Check if already processed (idempotency)
+    const exists = await tx.processedEvent.findUnique({
+        where: { event_id: event.event_id }
+    });
+
+    if (exists) {
+        console.log(`[Projection] Event ${event.event_id} already processed, skipping`);
+        return false; // Already processed
+    }
+
+    // 2. Mark as processed BEFORE projecting (prevents race conditions)
+    await tx.processedEvent.create({
+        data: {
+            event_id: event.event_id,
+            tenant_id: event.tenant_id,
+        }
+    });
+
+    // 3. Project the event
     try {
         switch (event_type) {
             case "ORDER_CREATED": {
@@ -175,9 +196,16 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent) {
     } catch (e) {
         console.error(`[Projections] Error projecting ${event_type} ${event.event_id}:`, e);
     }
+
+    return true; // Successfully processed
 }
 
 export async function POST(req: Request) {
+    // Get IP for rate limiting
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+        || req.headers.get("x-real-ip") 
+        || "unknown";
+
     // Security: Validate API Secret
     const secret = req.headers.get("x-api-secret");
     if (secret !== process.env.PARK_API_SECRET) {
@@ -206,6 +234,30 @@ export async function POST(req: Request) {
 
     const { tenant_id, terminal_id, events, to_terminal_sequence } = result.data;
 
+    // Rate Limiting Check
+    const rateLimit = checkRateLimit(tenant_id, terminal_id, ip);
+    if (!rateLimit.allowed) {
+        return NextResponse.json(
+            {
+                accepted: false,
+                error: {
+                    error_code: "RATE_LIMIT_EXCEEDED",
+                    severity: "WARN",
+                    message: "Demasiadas solicitudes. Intenta de nuevo.",
+                    user_action: `Espera ${rateLimit.retryAfter} segundos antes de reintentar.`,
+                    retryable: true,
+                    context: { retry_after: rateLimit.retryAfter },
+                },
+            },
+            {
+                status: 429,
+                headers: {
+                    "Retry-After": String(rateLimit.retryAfter),
+                },
+            }
+        );
+    }
+
     // Fast path: empty batch
     if (events.length === 0) {
         return NextResponse.json({ accepted: true, acked_through_terminal_sequence: to_terminal_sequence });
@@ -213,10 +265,25 @@ export async function POST(req: Request) {
 
     try {
         const deduped_event_ids: string[] = [];
+        const rejected: Array<{ event_id: string; error: string; details?: Record<string, unknown> }> = [];
+
+        const acceptedEvents: ParkEvent[] = [];
 
         await prisma.$transaction(async (tx) => {
             for (const ev of events as ParkEvent[]) {
-                // Try to create event, skip if duplicate
+                // 1. VALIDATE business rules FIRST
+                const validation: ValidationResult = await validateEvent(tx, ev);
+                
+                if (!validation.valid) {
+                    rejected.push({
+                        event_id: ev.event_id,
+                        error: validation.error || "VALIDATION_FAILED",
+                        details: validation.details,
+                    });
+                    continue; // Skip this event
+                }
+
+                // 2. Try to create event, skip if duplicate
                 try {
                     await tx.event.create({
                         data: {
@@ -233,9 +300,9 @@ export async function POST(req: Request) {
                             payload: ev.payload as Prisma.InputJsonValue,
                         },
                     });
-                } catch (e: any) {
+                } catch (e: unknown) {
                     // Unique constraint = duplicate, skip
-                    if (e.code === "P2002") {
+                    if (e && typeof e === 'object' && 'code' in e && e.code === "P2002") {
                         deduped_event_ids.push(ev.event_id);
                         continue;
                     }
@@ -244,11 +311,39 @@ export async function POST(req: Request) {
 
                 // Project the event
                 await projectEvent(tx, ev);
+
+                // Add to outbox (ATOMIC with event insert)
+                await tx.eventOutbox.create({
+                    data: {
+                        tenant_id: ev.tenant_id,
+                        event_id: ev.event_id,
+                        payload: ev as unknown as Prisma.InputJsonValue,
+                    },
+                });
+
+                acceptedEvents.push(ev);
             }
         }, {
             timeout: 30000, // 30 seconds
             maxWait: 10000, // 10 seconds max wait for transaction slot
         });
+
+        // Publish events from outbox AFTER transaction commits
+        // This ensures consistency - if publish fails, outbox worker will retry
+        for (const ev of acceptedEvents) {
+            try {
+                const { eventBus } = await import("@/src/core/infra/event-bus");
+                eventBus.publish(tenant_id, ev);
+                
+                // Mark as published (fire and forget - worker will catch failures)
+                prisma.eventOutbox.updateMany({
+                    where: { event_id: ev.event_id },
+                    data: { published: true, published_at: new Date() },
+                }).catch(() => { /* Worker will handle */ });
+            } catch (e) {
+                console.warn("[Bus] Failed to publish, outbox worker will retry", e);
+            }
+        }
 
         return NextResponse.json(
             {
@@ -257,7 +352,7 @@ export async function POST(req: Request) {
                 terminal_id,
                 acked_through_terminal_sequence: to_terminal_sequence,
                 deduped_event_ids,
-                rejected: [],
+                rejected,
             },
             { status: 200 }
         );

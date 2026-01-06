@@ -1,5 +1,4 @@
 import React from "react";
-import { type SaleLine } from "../projections/types";
 
 // Helper to format currency
 const formatMoney = (cents: number) => `S/ ${(cents / 100).toFixed(2)}`;
@@ -91,6 +90,7 @@ interface TicketProps {
     invoiceType?: "BOLETA" | "FACTURA" | "PRE-CUENTA";
     invoiceSeries?: string;
     invoiceNumber?: string;
+    logoUrl?: string;
 }
 
 export const TicketTemplate: React.FC<TicketProps> = ({
@@ -107,10 +107,18 @@ export const TicketTemplate: React.FC<TicketProps> = ({
     invoiceType = "PRE-CUENTA",
     invoiceSeries,
     invoiceNumber,
+    logoUrl = "/logo.svg",
 }) => {
     return (
         <div>
             <div className="center">
+                {logoUrl && (
+                    <img
+                        src={logoUrl}
+                        alt="Logo"
+                        style={{ width: '60px', height: '60px', margin: '0 auto 10px' }}
+                    />
+                )}
                 <div className="large">{tenantName}</div>
                 {address && <div>{address}</div>}
                 <div className="divider" />

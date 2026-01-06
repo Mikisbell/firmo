@@ -1,35 +1,74 @@
 @import "tailwindcss";
 
+@layer utilities {
+  .glass {
+    background-color: rgba(24, 24, 27, 0.6);
+    /* bg-park-surface/60 */
+    backdrop-filter: blur(24px);
+    /* backdrop-blur-xl */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    /* border-white/5 */
+    box-shadow: 0 20px 25px -5px cubic-bezier(0, 0, 0, 1), 0 8px 10px -6px cubic-bezier(0, 0, 0, 1);
+    /* shadow-xl */
+  }
+
+  .glass-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-hover:hover {
+    background-color: rgba(24, 24, 27, 0.8);
+    /* bg-park-surface/80 */
+    border-color: rgba(255, 255, 255, 0.1);
+    /* border-white/10 */
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  }
+}
 
 :root {
-  --foreground-rgb: 255, 255, 255;
+  --foreground-rgb: 228, 228, 231;
+  /* Zinc 200 */
   --background-start-rgb: 9, 9, 11;
-  /* zinc-950 */
-  --background-end-rgb: 0, 0, 0;
+  /* Zinc 950 */
+  --background-end-rgb: 24, 24, 27;
+  /* Zinc 900 */
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
+  background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
+  min-height: 100vh;
 }
 
-/* Custom Scrollbar for Dark Mode */
+/* Custom Selection */
+::selection {
+  background: rgba(16, 185, 129, 0.3);
+  /* Brand Green */
+  color: white;
+}
+
+/* Premium Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #18181b;
-  /* zinc-900 */
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  /* zinc-700 */
-  border-radius: 4px;
+  background: #27272a;
+  /* Zinc 800 */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #52525b;
-  /* zinc-600 */
+  /* Zinc 600 */
 }

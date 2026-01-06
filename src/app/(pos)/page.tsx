@@ -9,19 +9,23 @@ import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
-import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud } from "lucide-react";
+import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, LogOut, User } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { getDb } from "@/src/core/db/schema";
-
-// Config hardcoded MVP - TODO: get from context/env
-const TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const TERM_ID = "term_1";
-const ACTOR_ID = "00000000-0000-0000-0000-000000000001";
+import { useAuth } from "@/src/components/auth";
 
 // Order number counter (MVP - in production this comes from server)
 let orderNumberCounter = 1;
 
 export default function POSPage() {
+    // Auth context - provides tenant, terminal, and employee info
+    const { terminal, session, logout } = useAuth();
+    
+    // Derive IDs from auth session
+    const TENANT_ID = terminal?.tenant_id ?? "";
+    const TERM_ID = terminal?.terminal_id ?? "";
+    const ACTOR_ID = session?.employee_id ?? "";
+    
     const projections = useProjections();
     const activeSale = projections?.activeSale ?? null;
     const shift = projections?.shift ?? null;
@@ -35,7 +39,7 @@ export default function POSPage() {
 
     // Shift modal state
     const [shiftModalOpen, setShiftModalOpen] = useState(false);
-    const [shiftModalMode, setShiftModalMode] = useState<"open" | "close">("open");
+    const [shiftModalMode, setShiftModalMode] = useState<"open" | "close" | "movements">("open");
 
     const shiftIsOpen = shift?.status === "OPEN";
 
@@ -115,7 +119,7 @@ export default function POSPage() {
         toast.success(`${product.name} agregado`, { duration: 1000 });
     };
 
-    const handleStartSale = async () => {
+    const _handleStartSale = async () => {
         if (!shiftIsOpen) {
             setShiftModalMode("open");
             setShiftModalOpen(true);
@@ -209,8 +213,9 @@ export default function POSPage() {
         if (!activeSale || !activeCheck) return;
 
         if (newQty <= 0) {
-            // Remove item - for MVP just show toast, full implementation in P1
-            toast.info("Eliminar items próximamente");
+            // Void item using FR-005 UNDO functionality
+            await POSActions.voidItem(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, lineId, "REMOVED");
+            toast.success("Item eliminado");
             return;
         }
 
@@ -218,9 +223,30 @@ export default function POSPage() {
         toast.info("Editar cantidad próximamente");
     };
 
-    const openShiftModal = (mode: "open" | "close") => {
+    // FR-005: UNDO last action - voids the most recent item
+    const handleUndo = async () => {
+        if (!activeSale || !activeCheck || activeCheck.payment.status === "PAID") return;
+
+        // Get the last line from the check that's not voided
+        const lastLine = [...activeCheck.lines].reverse()[0];
+        if (!lastLine) {
+            toast.info("No hay items para deshacer");
+            return;
+        }
+
+        await POSActions.voidItem(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, lastLine.line_id, "UNDO");
+        toast.success("UNDO: Último item eliminado", { icon: "↩️" });
+    };
+
+    const openShiftModal = (mode: "open" | "close" | "movements") => {
         setShiftModalMode(mode);
         setShiftModalOpen(true);
+    };
+
+    const handleAdjustCash = async (deltaCents: number, reason: string) => {
+        if (!shift?.shift_id) return;
+        await POSActions.adjustCash(TENANT_ID, TERM_ID, ACTOR_ID, shift.shift_id, deltaCents, reason);
+        toast.success(deltaCents > 0 ? "Ingreso registrado" : "Salida registrada");
     };
 
     return (
@@ -238,6 +264,7 @@ export default function POSPage() {
                 expectedCash={shift?.expected_cash_cents ?? 0}
                 onClose={() => setShiftModalOpen(false)}
                 onSuccess={() => { }}
+                onAdjustCash={handleAdjustCash}
             />
 
             {/* Success Animation */}
@@ -270,42 +297,72 @@ export default function POSPage() {
             <div className="flex-1 flex flex-col relative z-0">
                 <header className="h-16 px-6 bg-zinc-950/80 backdrop-blur-sm border-b border-zinc-900 flex justify-between items-center z-10 sticky top-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <span className="font-bold text-white text-lg">P</span>
-                        </div>
+                        <img
+                            src="/logo.svg"
+                            alt="PARK POS"
+                            className="w-8 h-8 rounded-lg shadow-lg"
+                        />
                         <h1 className="text-xl font-bold tracking-tight text-white">PARK POS</h1>
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {/* Employee Info & Logout */}
+                        {session && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700">
+                                <User size={14} className="text-zinc-400" />
+                                <span className="text-sm text-zinc-300">{session.employee_name}</span>
+                                <button
+                                    onClick={logout}
+                                    className="ml-2 p-1 rounded hover:bg-zinc-700 text-zinc-400 hover:text-red-400 transition-colors"
+                                    title="Cerrar sesión"
+                                >
+                                    <LogOut size={14} />
+                                </button>
+                            </div>
+                        )}
+
                         {/* Shift Status */}
                         <ShiftStatus
                             isOpen={shiftIsOpen}
                             shiftId={shift?.shift_id}
                             expectedCash={shift?.expected_cash_cents ?? 0}
+                            openedAt={shift?.opened_at}
+                            employeeName={session?.employee_name ?? "Sin sesión"}
                             onOpenClick={() => openShiftModal("open")}
                             onCloseClick={() => openShiftModal("close")}
+                            onMovementsClick={() => openShiftModal("movements")}
                         />
 
-                        {/* Sync Status Badge */}
-                        {pendingSync > 0 && (
-                            <div className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-full border ${pendingSync > 10
-                                ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/30 animate-pulse"
-                                : "text-blue-400 bg-blue-500/10 border-blue-500/30"
-                                }`}>
-                                <CloudOff size={12} />
-                                <span>{pendingSync}</span>
-                            </div>
+                        {/* UNDO Button - FR-005 */}
+                        {activeSale && activeCheck && activeCheck.payment.status !== "PAID" && (
+                            <button
+                                onClick={handleUndo}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors text-sm font-medium border border-zinc-700"
+                                title="Deshacer último item (UNDO)"
+                            >
+                                <Undo2 size={16} />
+                                <span>UNDO</span>
+                            </button>
                         )}
+
+                        {/* Sync Status Badge */}
+                        <div className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-full border transition-colors ${pendingSync > 0
+                            ? (pendingSync > 10 ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/30 animate-pulse" : "text-blue-400 bg-blue-500/10 border-blue-500/30")
+                            : "text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
+                            }`}>
+                            {pendingSync > 0 ? <CloudOff size={12} /> : <Cloud size={12} />}
+                            <span>{pendingSync > 0 ? pendingSync : "SYNCED"}</span>
+                        </div>
 
                         {/* Online/Offline Status */}
                         <div className={`flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border ${isOnline
                             ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
-                            : "text-yellow-400 bg-yellow-500/10 border-yellow-500/30"
+                            : "text-red-400 bg-red-500/10 border-red-500/30"
                             }`}>
                             {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
                             <span>{isOnline ? "ONLINE" : "OFFLINE"}</span>
                             <span className="w-px h-3 bg-zinc-700"></span>
-                            <span>T:{TERM_ID}</span>
+                            <span>T:{terminal?.terminal_id?.slice(-4) ?? "---"}</span>
                         </div>
                     </div>
                 </header>

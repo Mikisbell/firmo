@@ -1,4 +1,4 @@
-import type { ParkEvent, PaymentMethod, OrderType } from "@/src/core/domain/events";
+import type { ParkEvent, PaymentMethod, OrderType, ItemStatus } from "@/src/core/domain/events";
 
 export type SaleStatus = "OPEN" | "CONFIRMED" | "CANCELLED";
 
@@ -9,6 +9,7 @@ export type SaleLine = {
     qty: number;
     unit_price_cents: number;
     line_total_cents: number;
+    status: ItemStatus;
 };
 
 export type SalePayment = {
