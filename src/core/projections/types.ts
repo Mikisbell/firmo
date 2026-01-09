@@ -10,6 +10,12 @@ export type SaleLine = {
     unit_price_cents: number;
     line_total_cents: number;
     status: ItemStatus;
+    station: string; // Estación de cocina (PARRILLA, COCINA, BAR, etc.)
+    // Timestamps for item lifecycle tracking
+    created_at?: string;
+    started_cooking_at?: string | null;
+    ready_at?: string | null;
+    served_at?: string | null;
 };
 
 export type SalePayment = {

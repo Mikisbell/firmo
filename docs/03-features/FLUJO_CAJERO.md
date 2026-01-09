@@ -28,12 +28,12 @@ TURNOS:  2 turnos de 6 horas cada uno
 
 PERSONAL:
 - 1 cajero por turno
-- 3-5 meseros
-- 2-3 cocineros
+- 3-15 meseros
+- 2-6 cocineros
 - 1 administrador (supervisa ambos turnos)
 
 VOLUMEN DIARIO:
-- 80-150 órdenes/día
+- 80-350 órdenes/día
 - Ticket promedio: S/ 45-80
 - Pico: 12:00-14:00 y 19:00-21:00
 
@@ -863,6 +863,1122 @@ ESTADO ACTUAL:
 - 🔴 Sin notificaciones entre actores
 - 🔴 Sin eventos de coordinación
 - 🟡 Depende de polling/liveQuery
+
+---
+
+**Documento actualizado:** Enero 2026
+
+
+---
+
+# 💳 SPLIT BILL (División de Cuenta) — Análisis Profundo
+
+## Contexto del Negocio
+
+En pollerías peruanas, dividir la cuenta es MUY común:
+- Grupos de amigos (cada uno paga lo suyo)
+- Familias (papá paga comida, hijo paga bebidas)
+- Reuniones de trabajo (algunos con factura, otros con boleta)
+- Parejas (él invita la comida, ella las bebidas)
+
+**Frecuencia estimada:** 20-30% de las mesas piden dividir cuenta.
+
+---
+
+## Modos de División en la Industria
+
+### Modo 1: Por Items (Actual)
+```
+Cada persona paga los items que consumió.
+
+Mesa pide:
+- 2x 1/4 Pollo (S/ 18 c/u)
+- 2x Gaseosa (S/ 3.50 c/u)
+- 1x Ensalada (S/ 6)
+
+División:
+- Persona A: 1/4 Pollo + Gaseosa = S/ 21.50
+- Persona B: 1/4 Pollo + Gaseosa + Ensalada = S/ 27.50
+
+✅ PARK POS soporta esto
+```
+
+### Modo 2: Equitativo (NO soportado)
+```
+Total ÷ N personas
+
+Mesa pide: Total S/ 72
+4 personas
+
+División:
+- Cada uno paga: S/ 72 ÷ 4 = S/ 18.00
+
+❌ PARK POS NO soporta esto
+```
+
+### Modo 3: Por Porcentaje (NO soportado)
+```
+Cada persona paga un % del total.
+
+Total: S/ 100
+- Persona A: 60% = S/ 60
+- Persona B: 40% = S/ 40
+
+❌ PARK POS NO soporta esto
+```
+
+### Modo 4: División de Item (NO soportado)
+```
+Un item se divide entre varias personas.
+
+1 Pollo entero S/ 58, 4 personas
+
+División:
+- Cada uno paga: S/ 58 ÷ 4 = S/ 14.50
+
+❌ PARK POS NO soporta esto
+```
+
+### Modo 5: Mixto (NO soportado)
+```
+Combinación de modos.
+
+Mesa pide:
+- 1 Pollo entero S/ 58 (dividir entre 4)
+- 4 Gaseosas S/ 3.50 c/u (cada uno la suya)
+
+División:
+- Persona A: S/ 14.50 (pollo) + S/ 3.50 (gaseosa) = S/ 18.00
+- Persona B: S/ 14.50 (pollo) + S/ 3.50 (gaseosa) = S/ 18.00
+- etc.
+
+❌ PARK POS NO soporta esto
+```
+
+---
+
+## Análisis del Código Actual
+
+### Estructura de Datos
+
+```typescript
+// types.ts - CheckProjection
+interface CheckProjection {
+  check_id: string;
+  name: string;           // "Principal", "Cuenta 2", etc.
+  mode: "ITEMS" | "PERCENT" | "EQUAL";  // Solo ITEMS implementado
+  lines: { line_id: string; qty: number }[];  // Referencias a items
+  subtotal_cents: number;
+  discount_cents: number;
+  tip_cents: number;
+  total_cents: number;
+  payment: {
+    status: "UNPAID" | "PARTIAL" | "PAID";
+    payments: Payment[];
+  };
+}
+```
+
+**Observación:** El modelo tiene `mode` con opciones PERCENT y EQUAL, pero NO están implementadas.
+
+### Flujo de Crear Sub-Cuenta
+
+```typescript
+// SplitBillModal.tsx
+async function handleCreateCheck() {
+  const nextIdx = subChecks.length + 2;
+  await POSActions.createCheck(
+    currentTenantId,
+    currentTerminalId,
+    actorId,
+    order.order_id,
+    `Cuenta ${nextIdx}`  // Solo nombre, sin modo
+  );
+}
+```
+
+**Problema:** No se puede especificar el modo (EQUAL, PERCENT).
+
+### Flujo de Mover Items
+
+```typescript
+// SplitBillModal.tsx
+async function handleMoveItem(lineId: string, qty: number, targetCheckId: string) {
+  await POSActions.moveCheckItems(
+    currentTenantId,
+    currentTerminalId,
+    actorId,
+    order.order_id,
+    sourceCheck.check_id,
+    targetCheck.check_id,
+    [{ line_id: lineId, qty }]  // Mueve qty unidades
+  );
+}
+```
+
+**Observación:** Técnicamente puede mover cantidades parciales (qty), pero la UI solo pasa `qty: 1`.
+
+### Reducer de Movimiento
+
+```typescript
+// sale.reducer.ts - CHECK_ITEMS_MOVED
+case "CHECK_ITEMS_MOVED": {
+  const { from_check_id, to_check_id, lines } = e.payload;
+  
+  for (const itemToMove of lines) {
+    const { line_id, qty } = itemToMove;
+    
+    // 1. Restar de origen
+    if (sourceLine.qty <= qty) {
+      sourceCheck.lines.splice(sourceLineIdx, 1);  // Eliminar completo
+    } else {
+      sourceLine.qty -= qty;  // Restar parcial
+    }
+    
+    // 2. Sumar a destino
+    if (targetLineIdx !== -1) {
+      targetCheck.lines[targetLineIdx].qty += qty;  // Incrementar
+    } else {
+      targetCheck.lines.push({ line_id, qty });  // Agregar nuevo
+    }
+  }
+  
+  // 3. Recalcular totales
+  // ...
+}
+```
+
+**Observación:** El reducer SÍ soporta movimiento parcial, pero la UI no lo expone.
+
+---
+
+## Escenarios Reales Detallados
+
+### ESCENARIO S1: División Simple por Items
+
+```
+SITUACIÓN:
+Pareja en Mesa 3:
+- Él pidió: 1/2 Pollo S/ 32 + Chicha S/ 5 = S/ 37
+- Ella pidió: 1/4 Pollo S/ 18 + Limonada S/ 6 = S/ 24
+TOTAL: S/ 61
+
+FLUJO ACTUAL:
+1. Cajero abre Split Bill
+2. Cajero crea "Cuenta 2"
+3. Cajero mueve 1/4 Pollo a Cuenta 2 (click en "2")
+4. Cajero mueve Limonada a Cuenta 2 (click en "2")
+5. Resultado:
+   - Cuenta Principal: S/ 37
+   - Cuenta 2: S/ 24
+6. Cada uno paga su cuenta
+
+ESTADO: ✅ FUNCIONA
+```
+
+### ESCENARIO S2: División Equitativa (Problema)
+
+```
+SITUACIÓN:
+4 amigos comparten todo:
+- 1 Pollo entero S/ 58
+- 1 Gaseosa 3L S/ 12
+- 1 Porción papas extra S/ 8
+TOTAL: S/ 78
+
+DIVISIÓN DESEADA: S/ 78 ÷ 4 = S/ 19.50 cada uno
+
+FLUJO ACTUAL:
+1. Cajero abre Split Bill
+2. Cajero crea Cuenta 2, 3, 4
+3. Cajero intenta mover... ¿qué?
+   - El pollo es 1 unidad, no se puede dividir
+   - La gaseosa es 1 unidad
+   - Las papas son 1 unidad
+4. IMPOSIBLE dividir equitativamente
+
+WORKAROUND ACTUAL:
+- Cajero hace cálculo mental: S/ 78 ÷ 4 = S/ 19.50
+- Cobra S/ 19.50 a cada uno en la MISMA cuenta
+- Registra 4 pagos de S/ 19.50
+- Problema: Solo 1 boleta, no 4
+
+ESTADO: ❌ NO FUNCIONA CORRECTAMENTE
+```
+
+### ESCENARIO S3: Item Compartido (Problema)
+
+```
+SITUACIÓN:
+2 personas comparten 1 pollo:
+- 1 Pollo entero S/ 58
+- 2 Gaseosas S/ 3.50 c/u = S/ 7
+TOTAL: S/ 65
+
+DIVISIÓN DESEADA:
+- Persona A: 1/2 pollo (S/ 29) + gaseosa (S/ 3.50) = S/ 32.50
+- Persona B: 1/2 pollo (S/ 29) + gaseosa (S/ 3.50) = S/ 32.50
+
+FLUJO ACTUAL:
+1. Cajero abre Split Bill
+2. Cajero crea Cuenta 2
+3. Cajero puede mover 1 gaseosa a Cuenta 2 ✓
+4. Cajero NO puede dividir el pollo
+5. Resultado:
+   - Cuenta Principal: Pollo S/ 58 + Gaseosa S/ 3.50 = S/ 61.50
+   - Cuenta 2: Gaseosa S/ 3.50
+   
+ESTADO: ❌ NO FUNCIONA
+```
+
+### ESCENARIO S4: Múltiples Cantidades (Parcialmente)
+
+```
+SITUACIÓN:
+Mesa pidió:
+- 4x 1/4 Pollo S/ 18 c/u = S/ 72
+- 4x Gaseosa S/ 3.50 c/u = S/ 14
+TOTAL: S/ 86
+
+DIVISIÓN DESEADA: 4 cuentas de S/ 21.50 cada una
+
+FLUJO ACTUAL:
+1. Cajero abre Split Bill
+2. Cajero crea Cuenta 2, 3, 4
+3. Para mover 1/4 Pollo a Cuenta 2:
+   - Click en botón "2" → Mueve 1 unidad ✓
+4. Repetir para cada item...
+5. Problema: 4 items × 3 cuentas = 12 clicks mínimo
+
+UI ACTUAL:
+- Botones pequeños "2", "3", "4" junto a cada item
+- No hay "mover todo" o "distribuir equitativamente"
+- Proceso tedioso y propenso a errores
+
+ESTADO: ⚠️ FUNCIONA PERO UX TERRIBLE
+```
+
+### ESCENARIO S5: Factura + Boleta (Problema)
+
+```
+SITUACIÓN:
+Almuerzo de trabajo:
+- Jefe quiere FACTURA para la empresa
+- Empleado quiere BOLETA personal
+- Total: S/ 120
+
+DIVISIÓN DESEADA:
+- Cuenta 1 (Jefe): S/ 80 → FACTURA con RUC
+- Cuenta 2 (Empleado): S/ 40 → BOLETA
+
+FLUJO ACTUAL:
+1. Cajero divide items entre cuentas ✓
+2. Jefe paga su cuenta ✓
+3. Cajero emite... ¿FACTURA o BOLETA?
+   - InvoiceModal solo pregunta tipo
+   - NO pregunta datos de factura (RUC, razón social)
+4. Empleado paga su cuenta ✓
+5. Cajero emite BOLETA ✓
+
+PROBLEMA:
+- No hay campo para RUC/razón social
+- No hay validación de datos fiscales
+- No hay integración con SUNAT
+
+ESTADO: ⚠️ PARCIAL (falta datos fiscales)
+```
+
+---
+
+## Problemas de UX Identificados
+
+### 1. Botones de Destino Confusos
+```
+ACTUAL:
+[Item: 1/4 Pollo]  [2] [3] [4]  ← ¿Qué significan estos números?
+
+MEJOR:
+[Item: 1/4 Pollo]  [→ Cuenta 2 ▼]  ← Dropdown claro
+```
+
+### 2. Sin Feedback Visual de Totales
+```
+ACTUAL:
+Al mover items, no se ve el total actualizado de cada cuenta
+hasta que se cierra el modal.
+
+MEJOR:
+Mostrar totales en tiempo real:
+┌─────────────────┬─────────────────┐
+│ Cuenta 1: S/ 45 │ Cuenta 2: S/ 33 │
+└─────────────────┴─────────────────┘
+```
+
+### 3. Sin Opción de Deshacer
+```
+ACTUAL:
+Si mueves item equivocado, debes moverlo de vuelta manualmente.
+
+MEJOR:
+Botón "Deshacer último movimiento" o historial de cambios.
+```
+
+### 4. Sin División Rápida
+```
+ACTUAL:
+Para dividir en 4, crear 3 cuentas manualmente.
+
+MEJOR:
+"Dividir en [4] partes iguales" → Crea cuentas automáticamente.
+```
+
+### 5. Sin Previsualización
+```
+ACTUAL:
+No hay forma de ver cómo quedará antes de confirmar.
+
+MEJOR:
+Vista previa con totales y opción de ajustar antes de guardar.
+```
+
+---
+
+## Solución Propuesta: Split Bill v2
+
+### Nuevos Modos
+
+```typescript
+// Agregar a CHECK_CREATED payload
+interface CreateCheckPayload {
+  check_id: string;
+  name: string;
+  mode: "ITEMS" | "EQUAL" | "PERCENT" | "AMOUNT";
+  
+  // Para modo EQUAL
+  split_count?: number;  // Dividir entre N personas
+  
+  // Para modo PERCENT
+  percent?: number;  // % del total
+  
+  // Para modo AMOUNT
+  fixed_amount_cents?: number;  // Monto fijo
+}
+```
+
+### Nuevo Evento: ITEM_SPLIT
+
+```typescript
+// Para dividir un item entre cuentas
+interface ItemSplitPayload {
+  order_id: string;
+  line_id: string;
+  splits: Array<{
+    check_id: string;
+    qty: number;      // Puede ser decimal para división
+    amount_cents: number;  // O monto fijo
+  }>;
+}
+
+// Ejemplo: Dividir 1 pollo S/ 58 entre 2 personas
+{
+  order_id: "...",
+  line_id: "pollo-123",
+  splits: [
+    { check_id: "check-1", qty: 0.5, amount_cents: 2900 },
+    { check_id: "check-2", qty: 0.5, amount_cents: 2900 }
+  ]
+}
+```
+
+### UI Mejorada
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    DIVIDIR CUENTA                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ MODO DE DIVISIÓN                                     │   │
+│  │ ○ Por items (cada uno paga lo suyo)                 │   │
+│  │ ○ Equitativo (total ÷ personas)                     │   │
+│  │ ○ Personalizado (montos específicos)                │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ DIVIDIR EN: [4] PARTES                              │   │
+│  │                                                      │   │
+│  │ Total: S/ 78.00                                     │   │
+│  │ Cada uno: S/ 19.50                                  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────┬─────────────┬─────────────┬───────────┐   │
+│  │ Cuenta 1    │ Cuenta 2    │ Cuenta 3    │ Cuenta 4  │   │
+│  │ S/ 19.50    │ S/ 19.50    │ S/ 19.50    │ S/ 19.50  │   │
+│  │ [Ajustar]   │ [Ajustar]   │ [Ajustar]   │ [Ajustar] │   │
+│  └─────────────┴─────────────┴─────────────┴───────────┘   │
+│                                                             │
+│  [CANCELAR]                              [APLICAR DIVISIÓN] │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Prioridad de Implementación
+
+| Feature | Impacto | Esfuerzo | Prioridad |
+|---------|---------|----------|-----------|
+| División equitativa | Alto | 4h | 🔴 P0 |
+| UI mejorada (totales en tiempo real) | Alto | 2h | 🔴 P0 |
+| División de item individual | Medio | 6h | 🟡 P1 |
+| Datos fiscales (RUC) | Medio | 4h | 🟡 P1 |
+| Modo porcentaje | Bajo | 3h | 🟢 P2 |
+
+---
+
+## Resumen
+
+**Lo que funciona:**
+- ✅ Crear múltiples cuentas
+- ✅ Mover items completos entre cuentas
+- ✅ Pagar cada cuenta por separado
+- ✅ Emitir comprobante por cuenta
+
+**Lo que falta (crítico):**
+- ❌ División equitativa (total ÷ N)
+- ❌ División de item individual
+- ❌ UI clara con totales en tiempo real
+
+**Lo que falta (importante):**
+- ❌ Datos fiscales para factura
+- ❌ Previsualización antes de confirmar
+- ❌ Deshacer movimientos
+
+---
+
+**Documento actualizado:** Enero 2026
+
+
+---
+
+# 🍽️ FLUJO DEL MESERO — Análisis Profundo
+
+## Contexto del Negocio
+
+### Perfil del Mesero en Pollería
+
+```
+RESPONSABILIDADES:
+- Atender 4-6 mesas simultáneamente
+- Tomar pedidos rápidamente
+- Comunicar con cocina
+- Servir cuando está listo
+- Cobrar (en algunos casos)
+- Limpiar mesa para siguiente cliente
+
+HERRAMIENTA:
+- Tablet o celular con app de mesero
+- Debe funcionar offline (WiFi inestable)
+- Interfaz táctil, rápida
+
+MÉTRICAS CLAVE:
+- Tiempo desde pedido hasta servir
+- Órdenes por hora
+- Propinas (si aplica)
+```
+
+### Mapa de Mesas Típico
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      PISO 1 (Principal)                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   ┌─────┐   ┌─────┐   ┌─────┐                              │
+│   │ M1  │   │ M2  │   │ M3  │     ← Mesas 4 personas       │
+│   └─────┘   └─────┘   └─────┘                              │
+│                                                             │
+│   ┌─────────────┐   ┌─────────────┐                        │
+│   │     M4      │   │     M5      │  ← Mesas 6 personas    │
+│   └─────────────┘   └─────────────┘                        │
+│                                                             │
+│   ┌───────────────────────────────┐                        │
+│   │            M6                 │  ← Mesa 10 personas    │
+│   └───────────────────────────────┘                        │
+│                                                             │
+│   [BARRA]  ○ ○ ○ ○ ○ ○ ○ ○        ← 8 asientos barra      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                      PISO 2 (Terraza)                       │
+├─────────────────────────────────────────────────────────────┤
+│   ┌─────┐   ┌─────┐   ┌─────┐   ┌─────┐                    │
+│   │ M7  │   │ M8  │   │ M9  │   │ M10 │                    │
+│   └─────┘   └─────┘   └─────┘   └─────┘                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Escenarios Reales del Mesero
+
+### ESCENARIO M1: Tomar Pedido Completo
+
+```
+SITUACIÓN:
+- Familia de 4 llega a Mesa 3
+- Mesero los atiende
+
+FLUJO ESPERADO:
+1. Mesero abre app, ve mapa de mesas
+2. Mesa 3 está verde (disponible)
+3. Mesero toca Mesa 3
+4. Sistema abre pantalla de pedido
+5. Mesero pregunta y agrega:
+   - 1x Pollo entero
+   - 2x 1/4 Pollo
+   - 4x Gaseosa personal
+   - 1x Ensalada
+6. Mesero confirma: "¿Algo más?"
+7. Mesero presiona "Enviar a Cocina"
+8. Sistema genera eventos:
+   - ORDER_CREATED
+   - ORDER_ITEM_ADDED x5
+9. KDS recibe pedido inmediatamente
+10. Mesa 3 cambia a azul (ocupada)
+11. Mesero ve: "Pedido #067 enviado ✓"
+
+ESTADO ACTUAL:
+✅ Mapa de mesas existe
+✅ Navegación a orden funciona
+⚠️ No vi la pantalla de tomar pedido
+⚠️ Sin confirmación visual de envío
+❌ Sin tiempo estimado de preparación
+```
+
+### ESCENARIO M2: Modificar Pedido (Agregar)
+
+```
+SITUACIÓN:
+- Mesa 3 ya tiene pedido en cocina
+- Cliente quiere agregar otra gaseosa
+
+FLUJO ESPERADO:
+1. Mesero toca Mesa 3 (azul/ocupada)
+2. Sistema muestra pedido actual con estados:
+   - Pollo entero: 🔥 COCINANDO
+   - 1/4 Pollo x2: 🔥 COCINANDO
+   - Gaseosas x4: ✅ LISTO
+   - Ensalada: ✅ LISTO
+3. Mesero presiona "Agregar Item"
+4. Agrega: 1x Gaseosa personal
+5. Sistema genera ORDER_ITEM_ADDED
+6. Nuevo item aparece como PENDIENTE
+7. KDS recibe solo el nuevo item
+
+ESTADO ACTUAL:
+⚠️ useOrder.ts reconstruye toda la orden
+⚠️ No hay UI para ver estados de items
+❌ No hay "Agregar Item" en orden existente
+```
+
+### ESCENARIO M3: Modificar Pedido (Quitar)
+
+```
+SITUACIÓN:
+- Mesa 3 pidió ensalada
+- Cocina aún no la prepara
+- Cliente cambia de opinión
+
+FLUJO ESPERADO:
+1. Mesero ve pedido de Mesa 3
+2. Ensalada está en estado PENDIENTE
+3. Mesero toca ensalada → "Quitar"
+4. Sistema pregunta: "¿Motivo?"
+5. Mesero selecciona: "Cliente canceló"
+6. Sistema genera ORDER_ITEM_VOIDED
+7. KDS elimina ensalada de su lista
+8. Total se actualiza
+
+RESTRICCIÓN:
+- Solo se puede quitar si estado = PENDIENTE
+- Si ya está COCINANDO, requiere autorización
+
+ESTADO ACTUAL:
+❌ No hay UI para quitar items desde mesero
+❌ No hay validación de estado
+```
+
+### ESCENARIO M4: Item Listo - Notificación
+
+```
+SITUACIÓN:
+- Cocina terminó el pollo de Mesa 3
+- Mesero está atendiendo Mesa 7
+
+FLUJO ESPERADO:
+1. Cocinero marca pollo como READY en KDS
+2. Sistema genera ORDER_ITEM_STATUS_CHANGED
+3. App de mesero recibe notificación:
+   "🍗 Mesa 3 - Pollo entero LISTO"
+4. Mesero ve badge en Mesa 3: "1 listo"
+5. Mesero va a cocina, recoge, sirve
+6. Mesero marca como SERVIDO (opcional)
+
+ESTADO ACTUAL:
+❌ No hay notificaciones al mesero
+❌ No hay badge de items listos
+❌ No hay estado SERVIDO
+```
+
+### ESCENARIO M5: Pedir la Cuenta
+
+```
+SITUACIÓN:
+- Mesa 3 terminó de comer
+- Piden la cuenta
+
+FLUJO ESPERADO:
+1. Mesero toca Mesa 3
+2. Mesero presiona "Pedir Cuenta"
+3. Sistema genera REQUEST_CHECK
+4. Caja recibe notificación:
+   "Mesa 3 solicita cuenta - S/ 89.00"
+5. Cajero prepara pre-cuenta
+6. Mesero lleva pre-cuenta a mesa
+7. Cliente revisa y decide pagar
+
+OPCIONES DE PAGO:
+a) Cliente va a caja
+b) Mesero cobra en mesa (si tiene permiso)
+c) Cliente paga con QR (Yape/Plin)
+
+ESTADO ACTUAL:
+❌ No hay botón "Pedir Cuenta"
+❌ No hay evento REQUEST_CHECK
+❌ No hay notificación a caja
+```
+
+### ESCENARIO M6: Cambio de Mesa
+
+```
+SITUACIÓN:
+- Mesa 3 tiene pedido en curso
+- Cliente quiere moverse a Mesa 6 (más grande)
+
+FLUJO ESPERADO:
+1. Mesero selecciona Mesa 3
+2. Mesero presiona "Cambiar Mesa"
+3. Sistema muestra mesas disponibles
+4. Mesero selecciona Mesa 6
+5. Sistema genera TABLE_CHANGED
+6. Pedido se asocia a Mesa 6
+7. Mesa 3 queda libre (verde)
+8. Mesa 6 queda ocupada (azul)
+
+ESTADO ACTUAL:
+❌ No existe esta funcionalidad
+```
+
+### ESCENARIO M7: Mesero Offline
+
+```
+SITUACIÓN:
+- WiFi se cae mientras mesero toma pedido
+- Mesero no se da cuenta
+
+FLUJO ESPERADO:
+1. Mesero toma pedido normalmente
+2. Eventos se guardan en IndexedDB local
+3. App muestra indicador: "📴 Offline"
+4. Mesero presiona "Enviar"
+5. App muestra: "Pedido guardado, se enviará al reconectar"
+6. WiFi regresa
+7. SyncClient envía eventos automáticamente
+8. KDS recibe pedido (con delay)
+
+ESTADO ACTUAL:
+✅ Eventos se guardan localmente
+✅ Sync automático al reconectar
+⚠️ Indicador offline existe pero básico
+❌ No hay confirmación clara de "pendiente de envío"
+```
+
+### ESCENARIO M8: Dos Meseros, Misma Mesa
+
+```
+SITUACIÓN:
+- Mesero A tomó pedido inicial de Mesa 5
+- Mesero B (relevo) quiere agregar postre
+
+FLUJO ESPERADO:
+1. Mesero B abre Mesa 5
+2. Ve pedido existente (tomado por Mesero A)
+3. Puede agregar items
+4. Sistema registra que Mesero B agregó el postre
+5. Propina/comisión se puede dividir
+
+ESTADO ACTUAL:
+⚠️ Cualquier mesero puede modificar cualquier mesa
+❌ No hay tracking de quién agregó qué
+❌ No hay sistema de propinas
+```
+
+---
+
+## Problemas del Módulo Mesero
+
+### Críticos 🔴
+
+| # | Problema | Impacto |
+|---|----------|---------|
+| 1 | No hay pantalla de tomar pedido | Funcionalidad core |
+| 2 | No hay notificaciones de cocina | Comunicación rota |
+| 3 | Terminal ID hardcodeado | Sin trazabilidad |
+
+### Importantes 🟡
+
+| # | Problema | Impacto |
+|---|----------|---------|
+| 4 | No hay "Pedir Cuenta" | Proceso manual |
+| 5 | No hay modificación de pedido | UX limitada |
+| 6 | Query lenta (full rebuild) | Performance |
+| 7 | No hay cambio de mesa | Flexibilidad |
+
+### Menores 🟢
+
+| # | Problema | Impacto |
+|---|----------|---------|
+| 8 | Sin tiempo estimado | UX |
+| 9 | Sin tracking de mesero | Métricas |
+| 10 | Sin propinas | Funcionalidad |
+
+---
+
+# 👨‍🍳 FLUJO DEL KDS (COCINA) — Análisis Profundo
+
+## Contexto del Negocio
+
+### Perfil de la Cocina en Pollería
+
+```
+ESTACIONES TÍPICAS:
+1. PARRILLA - Pollos al carbón/horno
+2. FREIDORA - Papas, extras fritos
+3. FRÍOS - Ensaladas, bebidas
+4. ARMADO - Platos completos
+
+PERSONAL:
+- 1-2 parrilleros
+- 1 ayudante de freidora
+- 1 armador/despachador
+
+FLUJO DE TRABAJO:
+1. Pedido llega a KDS
+2. Cada estación ve SUS items
+3. Parrillero empieza pollo (más lento)
+4. Freidora prepara papas
+5. Fríos prepara ensalada/bebidas
+6. Armador junta todo cuando está listo
+7. Armador marca como READY
+8. Mesero recoge
+```
+
+### Tiempos de Preparación Típicos
+
+| Item | Tiempo | Estación |
+|------|--------|----------|
+| Pollo entero | 25-30 min | Parrilla |
+| 1/2 Pollo | 20-25 min | Parrilla |
+| 1/4 Pollo | 15-20 min | Parrilla |
+| Papas fritas | 8-10 min | Freidora |
+| Ensalada | 3-5 min | Fríos |
+| Gaseosa | 1 min | Fríos |
+
+---
+
+## Escenarios Reales del KDS
+
+### ESCENARIO K1: Pedido Normal Llega
+
+```
+SITUACIÓN:
+- Mesa 3 pidió:
+  - 1x Pollo entero
+  - 2x Porción papas
+  - 1x Ensalada
+  - 4x Gaseosa
+
+FLUJO ESPERADO:
+1. Pedido llega al KDS central
+2. Sistema distribuye por estación:
+   - PARRILLA: 1x Pollo entero
+   - FREIDORA: 2x Porción papas
+   - FRÍOS: 1x Ensalada, 4x Gaseosa
+3. Cada pantalla muestra solo sus items
+4. Timer empieza a contar
+5. Parrillero toca "Pollo" → COOKING
+6. Freidora toca "Papas" → COOKING
+7. Fríos prepara y marca READY
+8. Cuando todo está READY → Notificar mesero
+
+ESTADO ACTUAL:
+✅ Pedidos llegan al KDS
+✅ Filtro por estación existe
+✅ Estados PENDING → COOKING → READY
+⚠️ Timer no funciona (bug)
+❌ No hay distribución automática por estación
+❌ No hay notificación cuando todo está listo
+```
+
+### ESCENARIO K2: Hora Pico (10+ Pedidos)
+
+```
+SITUACIÓN:
+- 12:30 PM, hora pico de almuerzo
+- 10 pedidos activos simultáneos
+- 25+ items en preparación
+
+FLUJO ESPERADO:
+1. KDS muestra tickets ordenados por antigüedad
+2. Items más antiguos resaltados en rojo
+3. Cocinero prioriza los rojos
+4. Sistema sugiere orden de preparación
+5. Tickets completados desaparecen
+
+PROBLEMAS ACTUALES:
+1. useKitchenTickets hace FULL SCAN de eventos
+2. Reconstruye TODAS las órdenes cada render
+3. Sin filtro por fecha (carga histórico)
+4. Performance degrada con volumen
+
+CÓDIGO PROBLEMÁTICO:
+```typescript
+// useKitchenTickets.ts - O(n) donde n = TODOS los eventos
+const events = await db.events
+  .where("aggregate_type")
+  .equals("ORDER")
+  .toArray();  // Miles de eventos!
+
+// Luego reconstruye cada orden
+for (const orderId in eventsByOrder) {
+  // Replay completo de cada orden
+}
+```
+
+SOLUCIÓN NECESARIA:
+- Filtrar por fecha (solo hoy)
+- Usar proyecciones pre-calculadas
+- Índice en occurred_at
+```
+
+### ESCENARIO K3: Item Agotado (86'd)
+
+```
+SITUACIÓN:
+- Se acabó la ensalada
+- Hay 3 pedidos con ensalada pendiente
+
+FLUJO ESPERADO:
+1. Cocinero detecta que no hay ensalada
+2. Cocinero marca "Ensalada" como AGOTADO en sistema
+3. Sistema:
+   - Notifica a meseros de mesas afectadas
+   - Bloquea ensalada en catálogo
+   - Muestra alerta en POS
+4. Meseros informan a clientes
+5. Clientes deciden: cambiar o quitar
+6. Al reponer, cocinero desbloquea
+
+ESTADO ACTUAL:
+❌ No existe estado AGOTADO
+❌ No hay notificación a meseros
+❌ No hay bloqueo en catálogo
+```
+
+### ESCENARIO K4: Pedido Urgente (VIP/Delivery)
+
+```
+SITUACIÓN:
+- Pedido de delivery con tiempo límite
+- O cliente VIP que tiene prisa
+
+FLUJO ESPERADO:
+1. Cajero/Mesero marca pedido como URGENTE
+2. KDS muestra ticket con borde rojo + 🔥
+3. Ticket sube al inicio de la cola
+4. Timer más agresivo (alerta antes)
+5. Cocineros priorizan
+
+ESTADO ACTUAL:
+❌ No hay flag de urgente
+❌ No hay priorización
+```
+
+### ESCENARIO K5: Error de Cocina (Rehacer)
+
+```
+SITUACIÓN:
+- Pollo se quemó
+- Hay que rehacer
+
+FLUJO ESPERADO:
+1. Cocinero marca item como FAILED/REDO
+2. Sistema registra motivo: "Quemado"
+3. Item vuelve a PENDING
+4. Timer se reinicia
+5. Se registra para métricas de merma
+
+ESTADO ACTUAL:
+❌ No hay estado FAILED
+❌ No hay tracking de merma
+```
+
+### ESCENARIO K6: Pedido Parcialmente Listo
+
+```
+SITUACIÓN:
+- Mesa 3: Pollo listo, papas listas, ensalada pendiente
+- ¿Se sirve parcial o se espera?
+
+POLÍTICA TÍPICA:
+- Opción A: Servir todo junto (esperar)
+- Opción B: Servir caliente primero (parcial)
+
+FLUJO ESPERADO (Opción A):
+1. Pollo y papas en READY
+2. Sistema NO notifica aún
+3. Ensalada pasa a READY
+4. Sistema notifica: "Mesa 3 COMPLETO"
+5. Mesero recoge todo junto
+
+FLUJO ESPERADO (Opción B):
+1. Pollo y papas en READY
+2. Sistema notifica: "Mesa 3 - Pollo y Papas LISTOS"
+3. Mesero decide si llevar o esperar
+4. Ensalada se notifica después
+
+ESTADO ACTUAL:
+❌ No hay configuración de política
+❌ Notifica item por item (si existiera)
+```
+
+### ESCENARIO K7: Múltiples KDS (Por Estación)
+
+```
+SITUACIÓN:
+- KDS 1: Parrilla
+- KDS 2: Freidora + Fríos
+- KDS 3: Despacho (ve todo)
+
+FLUJO ESPERADO:
+1. Pedido llega
+2. KDS 1 ve solo items de parrilla
+3. KDS 2 ve items de freidora y fríos
+4. KDS 3 ve todos los items
+5. Cada KDS puede marcar sus items
+6. KDS 3 marca pedido completo como READY
+
+ESTADO ACTUAL:
+✅ Filtro por estación existe
+⚠️ Estación se infiere del nombre del producto (frágil)
+❌ No hay KDS de despacho
+❌ No hay configuración de qué estación ve qué
+```
+
+---
+
+## Problemas del Módulo KDS
+
+### Críticos 🔴
+
+| # | Problema | Impacto |
+|---|----------|---------|
+| 1 | Full scan de eventos | Performance crítica |
+| 2 | Sin filtro por fecha | Carga histórico |
+| 3 | Timer roto | UX incompleta |
+
+### Importantes 🟡
+
+| # | Problema | Impacto |
+|---|----------|---------|
+| 4 | Sin notificación a mesero | Comunicación |
+| 5 | Sin estado AGOTADO | Operación |
+| 6 | Sin priorización | Eficiencia |
+| 7 | Estación por nombre | Frágil |
+
+### Menores 🟢
+
+| # | Problema | Impacto |
+|---|----------|---------|
+| 8 | Sin métricas de tiempo | Análisis |
+| 9 | Sin tracking de merma | Costos |
+| 10 | Sin KDS de despacho | Organización |
+
+---
+
+## Soluciones Propuestas
+
+### Para Mesero
+
+```typescript
+// 1. Crear página de tomar pedido
+// src/app/waiter/order/[tableId]/page.tsx
+
+// 2. Agregar evento REQUEST_CHECK
+interface RequestCheckPayload {
+  order_id: string;
+  table_id: string;
+  requested_by: string;  // mesero
+  total_cents: number;
+}
+
+// 3. Sistema de notificaciones
+// Usar SSE existente para push a meseros
+```
+
+### Para KDS
+
+```typescript
+// 1. Optimizar query - filtrar por fecha
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const events = await db.events
+  .where("aggregate_type").equals("ORDER")
+  .and(e => new Date(e.occurred_at) >= today)
+  .toArray();
+
+// 2. Usar proyecciones pre-calculadas
+// En lugar de reconstruir, leer de tabla orders
+
+// 3. Agregar estado AGOTADO
+type ItemStatus = "PENDING" | "COOKING" | "READY" | "DONE" | "OUT_OF_STOCK";
+```
+
+---
+
+## Prioridades de Implementación
+
+### Mesero
+
+| # | Feature | Esfuerzo | Prioridad |
+|---|---------|----------|-----------|
+| 1 | Pantalla tomar pedido | 8h | 🔴 P0 |
+| 2 | Notificaciones de cocina | 6h | 🔴 P0 |
+| 3 | Botón "Pedir Cuenta" | 4h | 🟡 P1 |
+| 4 | Modificar pedido | 6h | 🟡 P1 |
+| 5 | Cambio de mesa | 4h | 🟢 P2 |
+
+### KDS
+
+| # | Feature | Esfuerzo | Prioridad |
+|---|---------|----------|-----------|
+| 1 | Optimizar query | 4h | 🔴 P0 |
+| 2 | Arreglar timer | 2h | 🔴 P0 |
+| 3 | Notificar a mesero | 4h | 🟡 P1 |
+| 4 | Estado AGOTADO | 4h | 🟡 P1 |
+| 5 | Priorización | 4h | 🟢 P2 |
 
 ---
 

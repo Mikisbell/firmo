@@ -11,7 +11,7 @@ describe("rebuildFromEvents", () => {
             e({
                 tenant_id: "t1", terminal_id: "term1", terminal_sequence: 1,
                 event_id: "e1",
-                schema_version: 1, occurred_at: new Date().toISOString(),
+                schema_version: 1, payload_version: 1, occurred_at: new Date().toISOString(),
                 aggregate_type: "SHIFT", aggregate_id: "shift1",
                 correlation_id: "c1", causation_id: null,
                 actor_id: "user1",
@@ -25,7 +25,7 @@ describe("rebuildFromEvents", () => {
             e({
                 tenant_id: "t1", terminal_id: "term1", terminal_sequence: 2,
                 event_id: "e2",
-                schema_version: 1, occurred_at: new Date().toISOString(),
+                schema_version: 1, payload_version: 1, occurred_at: new Date().toISOString(),
                 aggregate_type: "ORDER", aggregate_id: "order1",
                 correlation_id: "c2", causation_id: null,
                 actor_id: "user1",
@@ -44,7 +44,7 @@ describe("rebuildFromEvents", () => {
             e({
                 tenant_id: "t1", terminal_id: "term1", terminal_sequence: 3,
                 event_id: "e3",
-                schema_version: 1, occurred_at: new Date().toISOString(),
+                schema_version: 1, payload_version: 1, occurred_at: new Date().toISOString(),
                 aggregate_type: "ORDER", aggregate_id: "order1",
                 correlation_id: "c2", causation_id: null,
                 actor_id: "user1",
@@ -56,7 +56,6 @@ describe("rebuildFromEvents", () => {
                         product_id: "p1",
                         sku: "POLLO",
                         name: "Pollo a la Brasa",
-                        price_cents: 6500,
                         unit_price_cents: 6500,
                         qty: 1,
                         station: "COCINA",
@@ -70,7 +69,7 @@ describe("rebuildFromEvents", () => {
             e({
                 tenant_id: "t1", terminal_id: "term1", terminal_sequence: 4,
                 event_id: "e4",
-                schema_version: 1, occurred_at: new Date().toISOString(),
+                schema_version: 1, payload_version: 1, occurred_at: new Date().toISOString(),
                 aggregate_type: "ORDER", aggregate_id: "order1", // UPDATED: Must be ORDER
                 correlation_id: "c2", causation_id: null,
                 actor_id: "user1",
@@ -89,7 +88,7 @@ describe("rebuildFromEvents", () => {
             e({
                 tenant_id: "t1", terminal_id: "term1", terminal_sequence: 5,
                 event_id: "e5",
-                schema_version: 1, occurred_at: new Date().toISOString(),
+                schema_version: 1, payload_version: 1, occurred_at: new Date().toISOString(),
                 aggregate_type: "INVOICE", aggregate_id: "inv1", // Usually separate aggregate, or ORDER? Check events.ts. Assuming INVOICE is aggregate type.
                 correlation_id: "c2", causation_id: null,
                 actor_id: "user1",

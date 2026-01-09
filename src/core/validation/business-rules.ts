@@ -6,14 +6,21 @@
  * - Facturas sin pago
  * - Items inválidos
  * - Voids sin autorización
+ * - Eventos emitidos por roles no autorizados
  */
 
 import { Prisma } from "@prisma/client";
 import type { ParkEvent } from "@/src/core/domain/events";
 import { LIMITS } from "@/src/core/constants/limits";
+import { 
+    canRoleEmitEvent, 
+    requiresManagerApproval, 
+    canApproveManagerActions 
+} from "./role-permissions";
 
 // Re-export para compatibilidad
 export { LIMITS } from "@/src/core/constants/limits";
+export { canRoleEmitEvent, getAllowedEventsForRole } from "./role-permissions";
 
 export interface ValidationResult {
     valid: boolean;
@@ -41,6 +48,59 @@ export async function validateEvent(
     tx: Prisma.TransactionClient,
     event: ParkEvent
 ): Promise<ValidationResult> {
+    // 1. ROLE-BASED VALIDATION (primero)
+    const roleValidation = canRoleEmitEvent(
+        event.actor_role_snapshot,
+        event.event_type
+    );
+    
+    if (!roleValidation.allowed) {
+        return {
+            valid: false,
+            error: roleValidation.error,
+            details: roleValidation.details,
+        };
+    }
+
+    // 2. MANAGER APPROVAL CHECK
+    if (requiresManagerApproval(event.event_type)) {
+        // Verificar si el actor puede aprobar o si hay approved_by
+        const payload = event.payload as { approved_by?: string };
+        
+        if (!canApproveManagerActions(event.actor_role_snapshot)) {
+            // Si el actor no es manager, debe haber un approved_by
+            if (!payload.approved_by) {
+                return {
+                    valid: false,
+                    error: "MANAGER_APPROVAL_REQUIRED",
+                    details: {
+                        event_type: event.event_type,
+                        actor_role: event.actor_role_snapshot,
+                    },
+                };
+            }
+            
+            // Verificar que approved_by sea un manager/admin
+            const approver = await tx.employees.findUnique({
+                where: { id: payload.approved_by },
+                select: { role: true, is_active: true },
+            });
+            
+            if (!approver || !approver.is_active) {
+                return { valid: false, error: "APPROVER_NOT_FOUND" };
+            }
+            
+            if (!canApproveManagerActions(approver.role)) {
+                return {
+                    valid: false,
+                    error: "APPROVER_NOT_AUTHORIZED",
+                    details: { approver_role: approver.role },
+                };
+            }
+        }
+    }
+
+    // 3. EVENT-SPECIFIC VALIDATION
     switch (event.event_type) {
         case "CHECK_MARKED_PAID":
             return validateCheckMarkedPaid(tx, event);
@@ -80,7 +140,7 @@ async function validateCheckMarkedPaid(
         change_cents?: number;
     };
 
-    const order = await tx.order.findUnique({
+    const order = await tx.orders.findUnique({
         where: { id: payload.order_id }
     }) as OrderData | null;
 
@@ -147,7 +207,7 @@ async function validateInvoiceIssued(
         invoice_number?: string;
     };
 
-    const order = await tx.order.findUnique({
+    const order = await tx.orders.findUnique({
         where: { id: payload.order_id }
     }) as OrderData | null;
 
@@ -168,7 +228,7 @@ async function validateInvoiceIssued(
     }
 
     // No debe existir factura previa
-    const existingInvoice = await tx.invoice.findFirst({
+    const existingInvoice = await tx.invoices.findFirst({
         where: {
             order_id: payload.order_id,
             check_id: payload.check_id,
@@ -231,9 +291,21 @@ async function validateOrderItemAdded(
         };
     }
 
+    // UUID regex pattern
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
     // Validar producto si tiene product_id o sku
     if (payload.line.product_id || payload.line.sku) {
-        const product = await tx.product.findFirst({
+        // Validate product_id is a valid UUID before querying
+        if (payload.line.product_id && !UUID_REGEX.test(payload.line.product_id)) {
+            return { 
+                valid: false, 
+                error: "INVALID_PRODUCT_ID",
+                details: { product_id: payload.line.product_id, reason: "Not a valid UUID" }
+            };
+        }
+
+        const product = await tx.products.findFirst({
             where: payload.line.product_id
                 ? { id: payload.line.product_id }
                 : { sku: payload.line.sku, tenant_id: event.tenant_id },
@@ -245,7 +317,7 @@ async function validateOrderItemAdded(
     }
 
     // Validar límite de items por orden
-    const order = await tx.order.findUnique({
+    const order = await tx.orders.findUnique({
         where: { id: payload.order_id }
     }) as OrderData | null;
 
@@ -275,11 +347,11 @@ async function validateOrderItemAdded(
 
 /**
  * Valida ITEM_VOIDED
- * - Solo MANAGER o ADMIN pueden anular
  * - Debe tener razón
+ * - Permisos ya validados en validateEvent()
  */
 async function validateItemVoided(
-    tx: Prisma.TransactionClient,
+    _tx: Prisma.TransactionClient,
     event: ParkEvent
 ): Promise<ValidationResult> {
     const payload = event.payload as {
@@ -291,17 +363,7 @@ async function validateItemVoided(
         return { valid: false, error: "VOID_REASON_REQUIRED" };
     }
 
-    // Validar permisos del actor
-    if (event.actor_id) {
-        const employee = await tx.employee.findUnique({
-            where: { id: event.actor_id },
-        });
-
-        if (employee && !["ADMIN", "MANAGER"].includes(employee.role)) {
-            return { valid: false, error: "INSUFFICIENT_PERMISSIONS" };
-        }
-    }
-
+    // Permisos de manager ya validados en validateEvent()
     return { valid: true };
 }
 

@@ -28,7 +28,7 @@ export async function allocateRange(
     terminalId: string
 ): Promise<NumberRange> {
     // Buscar si ya tiene rango asignado
-    const existing = await prisma.terminalNumberRange.findUnique({
+    const existing = await prisma.terminal_number_ranges.findUnique({
         where: { terminal_id: terminalId }
     });
 
@@ -42,7 +42,7 @@ export async function allocateRange(
     }
 
     // Buscar el último rango asignado para este tenant
-    const lastRange = await prisma.terminalNumberRange.findFirst({
+    const lastRange = await prisma.terminal_number_ranges.findFirst({
         where: { tenant_id: tenantId },
         orderBy: { range_end: 'desc' }
     });
@@ -51,7 +51,7 @@ export async function allocateRange(
     const rangeEnd = rangeStart + RANGE_SIZE - 1;
 
     // Crear nuevo rango
-    const newRange = await prisma.terminalNumberRange.create({
+    const newRange = await prisma.terminal_number_ranges.create({
         data: {
             terminal_id: terminalId,
             tenant_id: tenantId,
@@ -77,7 +77,7 @@ export async function getNextOrderNumber(
     prisma: PrismaClient,
     terminalId: string
 ): Promise<number> {
-    const range = await prisma.terminalNumberRange.findUnique({
+    const range = await prisma.terminal_number_ranges.findUnique({
         where: { terminal_id: terminalId }
     });
 
@@ -90,7 +90,7 @@ export async function getNextOrderNumber(
     }
 
     // Incrementar y retornar
-    const updated = await prisma.terminalNumberRange.update({
+    const updated = await prisma.terminal_number_ranges.update({
         where: { terminal_id: terminalId },
         data: { current_number: { increment: 1 } }
     });
@@ -106,7 +106,7 @@ export async function needsNewRange(
     terminalId: string,
     threshold: number = 100 // Alertar cuando quedan menos de 100
 ): Promise<boolean> {
-    const range = await prisma.terminalNumberRange.findUnique({
+    const range = await prisma.terminal_number_ranges.findUnique({
         where: { terminal_id: terminalId }
     });
 
@@ -124,7 +124,7 @@ export async function extendRange(
     tenantId: string,
     terminalId: string
 ): Promise<NumberRange> {
-    const existing = await prisma.terminalNumberRange.findUnique({
+    const existing = await prisma.terminal_number_ranges.findUnique({
         where: { terminal_id: terminalId }
     });
 
@@ -133,7 +133,7 @@ export async function extendRange(
     }
 
     // Buscar el último rango global
-    const lastRange = await prisma.terminalNumberRange.findFirst({
+    const lastRange = await prisma.terminal_number_ranges.findFirst({
         where: { tenant_id: tenantId },
         orderBy: { range_end: 'desc' }
     });
@@ -141,7 +141,7 @@ export async function extendRange(
     const newRangeEnd = (lastRange?.range_end ?? existing.range_end) + RANGE_SIZE;
 
     // Extender el rango existente
-    const updated = await prisma.terminalNumberRange.update({
+    const updated = await prisma.terminal_number_ranges.update({
         where: { terminal_id: terminalId },
         data: { range_end: newRangeEnd }
     });

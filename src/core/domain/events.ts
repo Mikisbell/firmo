@@ -80,6 +80,11 @@ export const BaseEnvelopeSchema = z.object({
 
     // Version
     schema_version: z.number().int().positive().default(1),
+    payload_version: z.number().int().positive().default(1), // Version of the payload schema
+
+    // Context (added for schema completeness)
+    shift_id: uuidSchema.nullish(),
+    business_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(), // YYYY-MM-DD format
 });
 
 // ============================================================================
@@ -120,6 +125,11 @@ export const OrderLineSchema = z.object({
     status: ItemStatusSchema.default("PENDING"),
     mods: z.array(z.string()).default([]),
     notes: z.string().optional(),
+    // Timestamps for item lifecycle tracking
+    created_at: isoDateSchema.optional(),
+    started_cooking_at: isoDateSchema.nullish(),
+    ready_at: isoDateSchema.nullish(),
+    served_at: isoDateSchema.nullish(),
 });
 
 // Check structure (for split bill)
@@ -208,6 +218,28 @@ const OrderCancelledPayload = z.object({
     order_id: uuidSchema,
     reason: z.string().min(1),
     approved_by: uuidSchema.optional(),
+});
+
+// REQUEST_CHECK - Waiter requests bill for table
+const RequestCheckPayload = z.object({
+    order_id: uuidSchema,
+    requested_by: uuidSchema,
+    requested_at: isoDateSchema,
+    table_number: z.string().optional(),
+});
+
+// ORDER_SUBMITTED - Order sent to kitchen
+const OrderSubmittedPayload = z.object({
+    order_id: uuidSchema,
+    submitted_at: isoDateSchema,
+    items_by_station: z.record(z.string(), z.array(z.object({
+        line_id: z.string().min(1),
+        product_id: z.string().min(1),
+        name: z.string().min(1),
+        qty: z.number().int().positive(),
+        mods: z.array(z.string()).default([]),
+        notes: z.string().optional(),
+    }))),
 });
 
 // ============================================================================
@@ -333,6 +365,16 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("ORDER"),
         payload: OrderCancelledPayload,
     }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("REQUEST_CHECK"),
+        aggregate_type: z.literal("ORDER"),
+        payload: RequestCheckPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ORDER_SUBMITTED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: OrderSubmittedPayload,
+    }),
 
     // CHECK events (split bill)
     BaseEnvelopeSchema.extend({
@@ -411,6 +453,10 @@ export type CheckItemsUpdatedEvent = Extract<ParkEvent, { event_type: "CHECK_ITE
 export type CheckPaymentAddedEvent = Extract<ParkEvent, { event_type: "CHECK_PAYMENT_ADDED" }>;
 export type CheckMarkedPaidEvent = Extract<ParkEvent, { event_type: "CHECK_MARKED_PAID" }>;
 export type InvoiceIssuedEvent = Extract<ParkEvent, { event_type: "INVOICE_ISSUED" }>;
+export type RequestCheckEvent = Extract<ParkEvent, { event_type: "REQUEST_CHECK" }>;
+export type OrderSubmittedEvent = Extract<ParkEvent, { event_type: "ORDER_SUBMITTED" }>;
+export type OrderItemQtyChangedEvent = Extract<ParkEvent, { event_type: "ORDER_ITEM_QTY_CHANGED" }>;
+export type OrderItemVoidedEvent = Extract<ParkEvent, { event_type: "ORDER_ITEM_VOIDED" }>;
 
 // ============================================================================
 // Ingest Request Schema

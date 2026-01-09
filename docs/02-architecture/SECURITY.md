@@ -201,15 +201,216 @@ Evento aceptado solo si:
 
 ---
 
-## 5) Roles para Operaciones Peligrosas
+## 5) Role-Based Event Validation
 
-| Acción | Rol Requerido |
-|--------|---------------|
-| `ITEM_VOIDED` | MANAGER, ADMIN |
-| `CHECK_PAYMENT_VOIDED` | MANAGER, ADMIN |
-| `INVOICE_VOIDED` | MANAGER, ADMIN |
-| `REFUND_ISSUED` | MANAGER, ADMIN |
-| `COUPON_VOIDED` | MANAGER, ADMIN |
+### 5.1 Roles del Sistema
+
+| Rol | Descripción |
+|-----|-------------|
+| `ADMIN` | Acceso completo a todos los eventos |
+| `MANAGER` | Todo excepto catálogo |
+| `CASHIER` | Turnos, órdenes, pagos, facturas |
+| `WAITER` | Crear órdenes, agregar items, NO pagos |
+| `KITCHEN` | Solo cambiar estado de items |
+| `DRIVER` | Solo cambiar estado de items (delivery) |
+
+### 5.2 Permisos por Rol
+
+#### ADMIN
+Acceso completo a todos los eventos del sistema.
+
+#### MANAGER
+```
+SHIFT_OPENED, SHIFT_CLOSED, CASH_ADJUSTED
+ORDER_CREATED, ORDER_ITEM_ADDED, ORDER_ITEM_QTY_CHANGED
+ORDER_ITEM_STATUS_CHANGED, ORDER_ITEM_VOIDED, ORDER_CANCELLED
+CHECK_CREATED, CHECK_PAYMENT_ADDED, CHECK_MARKED_PAID
+CHECK_TIP_SET, CHECK_ITEMS_UPDATED, CHECK_ITEMS_MOVED
+INVOICE_ISSUED, INVOICE_VOIDED
+```
+
+#### CASHIER
+```
+SHIFT_OPENED, SHIFT_CLOSED, CASH_ADJUSTED
+ORDER_CREATED, ORDER_ITEM_ADDED, ORDER_ITEM_QTY_CHANGED
+ORDER_ITEM_STATUS_CHANGED
+CHECK_CREATED, CHECK_PAYMENT_ADDED, CHECK_MARKED_PAID
+CHECK_TIP_SET, CHECK_ITEMS_UPDATED, CHECK_ITEMS_MOVED
+INVOICE_ISSUED
+```
+
+#### WAITER
+```
+ORDER_CREATED, ORDER_ITEM_ADDED, ORDER_ITEM_QTY_CHANGED
+ORDER_ITEM_STATUS_CHANGED
+CHECK_CREATED, CHECK_ITEMS_UPDATED, CHECK_ITEMS_MOVED
+CHECK_TIP_SET
+```
+
+#### KITCHEN / DRIVER
+```
+ORDER_ITEM_STATUS_CHANGED
+```
+
+### 5.3 Eventos que Requieren Aprobación de Manager
+
+| Evento | Descripción |
+|--------|-------------|
+| `ORDER_ITEM_VOIDED` | Anular item de orden |
+| `ORDER_CANCELLED` | Cancelar orden completa |
+| `INVOICE_VOIDED` | Anular factura emitida |
+| `CASH_ADJUSTED` | Ajuste de caja |
+
+**Regla:** Si el actor no es MANAGER/ADMIN, debe incluir `approved_by` con UUID de un manager activo.
+
+### 5.4 Implementación
+
+```typescript
+// src/core/validation/role-permissions.ts
+import { canRoleEmitEvent, requiresManagerApproval } from '@/src/core/validation';
+
+// Validar si rol puede emitir evento
+const result = canRoleEmitEvent('WAITER', 'CHECK_PAYMENT_ADDED');
+// { allowed: false, error: 'ROLE_NOT_AUTHORIZED', details: {...} }
+
+// Verificar si requiere aprobación
+const needsApproval = requiresManagerApproval('ORDER_ITEM_VOIDED');
+// true
+```
+
+### 5.5 Errores de Validación
+
+| Error | Descripción |
+|-------|-------------|
+| `ROLE_REQUIRED` | Evento requiere actor_role_snapshot |
+| `INVALID_ROLE` | Rol no reconocido |
+| `ROLE_NOT_AUTHORIZED` | Rol no puede emitir este evento |
+| `MANAGER_APPROVAL_REQUIRED` | Falta approved_by para acción peligrosa |
+| `APPROVER_NOT_FOUND` | approved_by no existe o inactivo |
+| `APPROVER_NOT_AUTHORIZED` | approved_by no es MANAGER/ADMIN |
+
+### 5.6 Eventos de Sistema
+
+`CATALOG_VERSION_BUMPED` no requiere rol (evento de sistema).
+
+---
+
+## 5.7) Autenticación JWT y Seguridad de Sesiones
+
+### 5.7.1 Arquitectura de Autenticación
+
+```
+┌─────────────┐     POST /api/auth/session     ┌─────────────┐
+│   PinModal  │ ─────────────────────────────► │  Auth API   │
+│  (Frontend) │                                │             │
+│             │ ◄───────────────────────────── │  - Lockout  │
+│             │     { token, employee }        │  - JWT      │
+└─────────────┘                                │  - Session  │
+       │                                       └─────────────┘
+       │ Bearer token                                │
+       ▼                                             ▼
+┌─────────────┐                              ┌─────────────┐
+│ localStorage│                              │  PostgreSQL │
+│ park_pos_   │                              │  - Session  │
+│ auth_token  │                              │  - Attempts │
+└─────────────┘                              │  - AuditLog │
+                                             └─────────────┘
+```
+
+### 5.7.2 Protección contra Fuerza Bruta
+
+| Configuración | Valor |
+|---------------|-------|
+| Intentos máximos | 3 |
+| Duración lockout | 5 minutos |
+| Duración sesión | 30 minutos |
+| Inactividad máxima | 15 minutos |
+
+### 5.7.3 Tablas de Seguridad
+
+```sql
+-- Intentos de login (para lockout)
+CREATE TABLE login_attempts (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    employee_id UUID,
+    pin_hash TEXT NOT NULL,
+    success BOOLEAN NOT NULL,
+    ip_address TEXT,
+    user_agent TEXT,
+    terminal_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Log de acceso admin (auditoría)
+CREATE TABLE admin_access_logs (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    employee_id UUID NOT NULL,
+    action TEXT NOT NULL,  -- LOGIN|LOGOUT|ACCESS_DENIED|SESSION_EXPIRED
+    resource TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    terminal_id TEXT,
+    metadata JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Sesiones activas
+CREATE TABLE sessions (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    employee_id UUID NOT NULL,
+    token_hash TEXT NOT NULL,
+    ip_address TEXT,
+    user_agent TEXT,
+    terminal_id TEXT,
+    expires_at TIMESTAMPTZ NOT NULL,
+    last_active TIMESTAMPTZ DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 5.7.4 Flujo de Autenticación
+
+```typescript
+// 1. Login con PIN
+const response = await fetch('/api/auth/session', {
+    method: 'POST',
+    body: JSON.stringify({ pin: '1234', allowedRoles: ['ADMIN', 'MANAGER'] })
+});
+// → { token: 'eyJ...', employee: {...}, expiresAt: '...' }
+
+// 2. Validar sesión
+const session = await fetch('/api/auth/session', {
+    headers: { Authorization: `Bearer ${token}` }
+});
+// → { valid: true, employee: {...} }
+
+// 3. Logout
+await fetch('/api/auth/session', {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+});
+```
+
+### 5.7.5 Errores de Autenticación
+
+| Código | Descripción |
+|--------|-------------|
+| `INVALID_PIN` | PIN no encontrado |
+| `ACCOUNT_LOCKED` | Cuenta bloqueada por intentos fallidos |
+| `ROLE_NOT_ALLOWED` | Rol no autorizado para la operación |
+| `INACTIVE_EMPLOYEE` | Empleado desactivado |
+
+### 5.7.6 Archivos Relacionados
+
+| Archivo | Propósito |
+|---------|-----------|
+| `src/core/auth/auth.service.ts` | Servicio de autenticación |
+| `src/app/api/auth/session/route.ts` | API de sesiones |
+| `src/components/inventory/PinModal.tsx` | Modal de PIN con lockout |
 
 ---
 

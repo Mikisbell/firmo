@@ -29,7 +29,8 @@
             ]
         },
         "types": [
-            "node"
+            "node",
+            "@serwist/next/typings"
         ]
     },
     "include": [

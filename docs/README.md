@@ -61,6 +61,7 @@
 #### Crecimiento
 - [FLUJO_DELIVERY.md](03-features/FLUJO_DELIVERY.md) — 🆕 Delivery propio + Rappi/PedidosYa
 - [FLUJO_CRM_FIDELIZACION.md](03-features/FLUJO_CRM_FIDELIZACION.md) — 🆕 CRM con IA multi-proveedor
+- [FLUJO_PREMIUM_DASHBOARD.md](03-features/FLUJO_PREMIUM_DASHBOARD.md) — 🆕 Analytics tiempo real + Push Notifications
 - [PROMOTIONS_DSL.md](03-features/PROMOTIONS_DSL.md) — DSL para promociones y descuentos
 - [GROWTH.md](03-features/GROWTH.md) — Features de crecimiento (P2)
 - [NAVEGACION_UX.md](03-features/NAVEGACION_UX.md) — Flujos de navegación UI/UX
@@ -91,11 +92,13 @@
 
 | Fase | Progreso | Estado |
 |------|----------|--------|
-| P0 — MVP | 85% | 🟡 En progreso |
-| P1 — Multi-Terminal | 0% | ⬜ Pendiente |
+| P0 — MVP | 100% | ✅ Completado |
+| P1 — Multi-Terminal | 15% | 🟡 En progreso |
 | P2 — Growth | 0% | ⬜ Pendiente |
 
-**Próxima tarea:** Outbox Pattern
+**Tests:** 101 unit + 10 stress + 52 E2E (Playwright)
+
+**Próxima tarea:** P1 - Conflict Resolution
 
 ---
 
@@ -112,16 +115,27 @@ npm run dev
 npx prisma migrate dev
 npx prisma db seed
 
-# Tests
+# Tests unitarios (101 tests)
 npm run test
+
+# Tests de estrés (10 tests)
+npx tsx scripts/stress-test.ts
+
+# Tests E2E (52 tests - requiere servidor corriendo)
+npm run dev  # En una terminal
+npx playwright test  # En otra terminal
 ```
 
 **Archivos clave:**
-- `prisma/schema.prisma` — Modelo de datos (27 tablas)
-- `src/core/domain/events.ts` — Definición de eventos
+- `prisma/schema.prisma` — Modelo de datos (63 tablas)
+- `src/core/domain/events.ts` — Definición de eventos (30+ tipos)
+- `src/core/domain/inventory-events.ts` — Eventos de inventario (7 tipos)
 - `src/core/sync/client.ts` — Cliente de sincronización
 - `src/core/projections/` — Reducers de proyecciones
+- `e2e/` — Tests E2E con Playwright (52 tests)
+- `src/core/inventory/` — Servicios de inventario (4 servicios)
+- `src/app/admin/inventario/` — Panel de inventario con PIN
 
 ---
 
-*Última actualización: Enero 2026*
+*Última actualización: 6 de Enero 2026*

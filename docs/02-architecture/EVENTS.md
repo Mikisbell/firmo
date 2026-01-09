@@ -287,4 +287,60 @@ type PaymentExpectation = 'PREPAID' | 'COD';
 
 ---
 
+## E) Eventos de Inventario (Enero 2026)
+
+> **Archivo**: `src/core/domain/inventory-events.ts`
+
+### Grupo 10: Órdenes de Compra
+
+| Evento | Payload |
+|--------|---------|
+| `PURCHASE_ORDER_CREATED` | `{purchase_order_id, supplier_id, location_id, order_number, items[], subtotal_cents, tax_cents, total_cents}` |
+| `PURCHASE_ORDER_STATUS_CHANGED` | `{purchase_order_id, from_status, to_status}` |
+
+### Grupo 11: Recepción de Mercadería
+
+| Evento | Payload |
+|--------|---------|
+| `GOODS_RECEIVED` | `{goods_receipt_id, purchase_order_id?, location_id, receipt_number, items[], received_by}` |
+
+### Grupo 12: Control de Inventario
+
+| Evento | Payload |
+|--------|---------|
+| `INVENTORY_ADJUSTED` | `{inventory_code, location_id, from_qty, to_qty, reason, reference_type?, reference_id?}` |
+| `WASTE_RECORDED` | `{waste_log_id, inventory_code, location_id, quantity, unit, reason_code, cost_cents, reported_by}` |
+| `INVENTORY_COUNT_COMPLETED` | `{inventory_count_id, location_id, count_date, count_type, items[], total_difference_cents, counted_by}` |
+
+### Grupo 13: Deducción por Ventas
+
+| Evento | Payload |
+|--------|---------|
+| `INVENTORY_DEDUCTED` | `{order_id, line_id, product_id, location_id, ingredients[]}` |
+
+### Enums de Inventario
+
+```typescript
+// purchase_order_status
+type PurchaseOrderStatus = 'DRAFT' | 'SENT' | 'PARTIAL_RECEIVED' | 'RECEIVED' | 'CANCELLED';
+
+// goods_receipt_status
+type GoodsReceiptStatus = 'DRAFT' | 'CONFIRMED' | 'CANCELLED';
+
+// waste_reason_code
+type WasteReasonCode = 'EXPIRED' | 'DAMAGED' | 'THEFT' | 'PRODUCTION_LOSS' | 
+                       'REJECTED_ON_RECEIPT' | 'COUNT_ADJUSTMENT' | 'OTHER';
+
+// inventory_count_type
+type InventoryCountType = 'FULL' | 'PARTIAL' | 'SPOT';
+
+// inventory_count_status
+type InventoryCountStatus = 'IN_PROGRESS' | 'PENDING_APPROVAL' | 'APPROVED' | 'CANCELLED';
+
+// inventory_movement_type
+type InventoryMovementType = 'IN' | 'OUT' | 'ADJUST' | 'WASTE';
+```
+
+---
+
 **Fin del Documento**

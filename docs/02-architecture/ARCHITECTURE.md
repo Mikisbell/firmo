@@ -517,13 +517,70 @@ order_status = DONE cuando:
 13. promotions
 14. daily_sales_summary
 
-### Opcional/Futuro
+### Inventario (14) — Implementado Enero 2026
 15. inventory
 16. inventory_log
-17. tables
-18. reservations
-19. marketing_*
-20. loyalty/gift_cards
+17. suppliers
+18. supplier_products
+19. recipes
+20. stock_alerts
+21. stock_transfers
+22. purchase_orders
+23. purchase_order_items
+24. goods_receipts
+25. goods_receipt_items
+26. inventory_counts
+27. inventory_count_items
+28. waste_logs
+
+### Mesas y Reservas (5)
+29. zones
+30. tables
+31. table_layouts
+32. reservations
+33. waitlist
+
+### Delivery (3)
+34. delivery_zones
+35. delivery_addresses
+36. delivery_orders
+
+### Growth/Marketing (7)
+37. customer_profile
+38. marketing_segments
+39. segment_members
+40. marketing_campaigns
+41. message_templates
+42. message_outbox
+43. ai_suggestions
+
+### Seguridad/Sync (5)
+44. coupons
+45. coupon_redemptions
+46. sync_conflicts
+47. event_outbox
+48. processed_events
+49. terminal_number_ranges
+
+### Empleados Extendido (3)
+50. schedules
+51. attendance
+52. time_off_requests
+
+### Facturación Extendido (3)
+53. invoice_queue
+54. invoice_cdr
+55. sunat_daily_summary
+
+### Otros (5)
+56. printers
+57. print_jobs
+58. petty_cash_transactions
+59. petty_cash_balance
+60. tips
+61. tip_distributions
+62. tip_config
+63. refunds
 
 ---
 

@@ -1,6 +1,8 @@
 // src/core/auth/fingerprint.ts
 // Generate unique device fingerprint for terminal identification
 
+import { logger } from '@/src/core/observability/logger';
+
 export async function generateDeviceFingerprint(): Promise<string> {
   const components: string[] = [];
 
@@ -61,12 +63,34 @@ export function setStoredTerminalId(id: string): void {
   localStorage.setItem('park_terminal_id', id);
 }
 
+// Generate deterministic UUID from terminal_id for actor_id
+function generateActorId(terminalId: string): string {
+  const hash = terminalId.split('').reduce((acc, char, i) => {
+    return acc + char.charCodeAt(0) * (i + 1);
+  }, 0);
+  
+  const hex = hash.toString(16).padStart(8, '0');
+  const terminalHash = terminalId.split('').map(c => c.charCodeAt(0).toString(16)).join('').padStart(24, '0');
+  
+  return `${hex.slice(0, 8)}-${terminalHash.slice(0, 4)}-4${terminalHash.slice(4, 7)}-a${terminalHash.slice(7, 10)}-${terminalHash.slice(10, 22)}`;
+}
+
 export function getStoredTerminalConfig(): import('./types').TerminalConfig | null {
   if (typeof window === 'undefined') return null;
   const data = localStorage.getItem('park_terminal_config');
   if (!data) return null;
   try {
-    return JSON.parse(data);
+    const config = JSON.parse(data) as import('./types').TerminalConfig;
+    
+    // Migrate old configs that don't have actor_id
+    if (!config.actor_id && config.terminal_id) {
+      config.actor_id = generateActorId(config.terminal_id);
+      // Save migrated config
+      localStorage.setItem('park_terminal_config', JSON.stringify(config));
+      logger.info('AUTH_CONFIG_MIGRATED', 'Migrated terminal config with new actor_id', { actorId: config.actor_id });
+    }
+    
+    return config;
   } catch {
     return null;
   }

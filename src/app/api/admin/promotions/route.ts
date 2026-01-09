@@ -1,0 +1,87 @@
+/**
+ * Promotions API - GET and POST
+ * Requirements: 6.2, 6.3
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/src/core/db/prisma';
+import { z } from 'zod';
+
+const promotionSchema = z.object({
+  name: z.string().min(1).max(100),
+  type: z.enum(['PERCENT', 'FIXED', 'HAPPY_HOUR', '2X1', 'COMBO']),
+  value: z.number().min(0),
+  rules: z.record(z.unknown()).optional(),
+  starts_at: z.string().datetime(),
+  ends_at: z.string().datetime(),
+  is_active: z.boolean().default(true),
+});
+
+export async function GET() {
+  try {
+    const tenantId = process.env.TENANT_ID || 'default';
+    const now = new Date();
+    
+    // Auto-deactivate expired promotions
+    await prisma.promotions.updateMany({
+      where: {
+        tenant_id: tenantId,
+        ends_at: { lt: now },
+        is_active: true,
+      },
+      data: { is_active: false },
+    });
+    
+    const promotions = await prisma.promotions.findMany({
+      where: { tenant_id: tenantId },
+      orderBy: { starts_at: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        value: true,
+        starts_at: true,
+        ends_at: true,
+        is_active: true,
+      },
+    });
+    
+    return NextResponse.json(promotions);
+  } catch (error) {
+    console.error('Promotions GET error:', error);
+    return NextResponse.json({ error: 'Failed to fetch promotions' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const tenantId = process.env.TENANT_ID || 'default';
+    const body = await request.json();
+    
+    const parsed = promotionSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid data', details: parsed.error.flatten() }, { status: 400 });
+    }
+    
+    const data = parsed.data;
+    
+    const promotion = await prisma.promotions.create({
+      data: {
+        id: crypto.randomUUID(),
+        tenant_id: tenantId,
+        name: data.name,
+        type: data.type,
+        value: data.value,
+        rules: data.rules ? JSON.parse(JSON.stringify(data.rules)) : {},
+        starts_at: new Date(data.starts_at),
+        ends_at: new Date(data.ends_at),
+        is_active: data.is_active,
+      },
+    });
+    
+    return NextResponse.json(promotion, { status: 201 });
+  } catch (error) {
+    console.error('Promotions POST error:', error);
+    return NextResponse.json({ error: 'Failed to create promotion' }, { status: 500 });
+  }
+}

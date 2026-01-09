@@ -9,6 +9,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import type { ParkEvent } from "@/src/core/domain/events";
+import { logger } from "@/src/core/observability/logger";
 
 const prisma = new PrismaClient();
 
@@ -20,7 +21,7 @@ let isRunning = false;
 
 export async function processOutbox(): Promise<number> {
     // Obtener eventos pendientes de publicar
-    const pending = await prisma.eventOutbox.findMany({
+    const pending = await prisma.event_outbox.findMany({
         where: { 
             published: false,
             attempts: { lt: MAX_ATTEMPTS },
@@ -44,7 +45,7 @@ export async function processOutbox(): Promise<number> {
             eventBus.publish(item.tenant_id, item.payload as unknown as ParkEvent);
 
             // Marcar como publicado
-            await prisma.eventOutbox.update({
+            await prisma.event_outbox.update({
                 where: { id: item.id },
                 data: {
                     published: true,
@@ -55,10 +56,12 @@ export async function processOutbox(): Promise<number> {
             published++;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            console.error(`[OutboxPublisher] Error publishing event ${item.event_id}:`, errorMessage);
+            logger.error('outbox.publish_error', `Error publishing event ${item.event_id}`, error instanceof Error ? error : undefined, { 
+                event_id: item.event_id 
+            });
 
             // Incrementar intentos y guardar error
-            await prisma.eventOutbox.update({
+            await prisma.event_outbox.update({
                 where: { id: item.id },
                 data: {
                     attempts: { increment: 1 },
@@ -73,12 +76,12 @@ export async function processOutbox(): Promise<number> {
 
 export async function startOutboxPublisher(): Promise<void> {
     if (isRunning) {
-        console.log("[OutboxPublisher] Already running");
+        logger.debug('outbox.already_running', 'Already running');
         return;
     }
 
     isRunning = true;
-    console.log("[OutboxPublisher] Started");
+    logger.info('outbox.started', 'OutboxPublisher Started');
 
     const poll = async () => {
         if (!isRunning) return;
@@ -86,10 +89,10 @@ export async function startOutboxPublisher(): Promise<void> {
         try {
             const count = await processOutbox();
             if (count > 0) {
-                console.log(`[OutboxPublisher] Published ${count} events`);
+                logger.info('outbox.published', `Published ${count} events`, { count });
             }
         } catch (error) {
-            console.error("[OutboxPublisher] Poll error:", error);
+            logger.error('outbox.poll_error', 'Poll error', error instanceof Error ? error : undefined);
         }
 
         // Programar siguiente poll
@@ -101,7 +104,7 @@ export async function startOutboxPublisher(): Promise<void> {
 
 export function stopOutboxPublisher(): void {
     isRunning = false;
-    console.log("[OutboxPublisher] Stopped");
+    logger.info('outbox.stopped', 'OutboxPublisher Stopped');
 }
 
 // Cleanup de eventos publicados (ejecutar periódicamente)
@@ -109,14 +112,14 @@ export async function cleanupPublishedEvents(olderThanDays: number = 7): Promise
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - olderThanDays);
 
-    const result = await prisma.eventOutbox.deleteMany({
+    const result = await prisma.event_outbox.deleteMany({
         where: {
             published: true,
             published_at: { lt: cutoff },
         },
     });
 
-    console.log(`[OutboxPublisher] Cleaned up ${result.count} old events`);
+    logger.info('outbox.cleanup', `Cleaned up ${result.count} old events`, { count: result.count });
     return result.count;
 }
 
@@ -130,9 +133,9 @@ export async function getOutboxStats(): Promise<{
     today.setHours(0, 0, 0, 0);
 
     const [pending, failed, publishedToday] = await Promise.all([
-        prisma.eventOutbox.count({ where: { published: false, attempts: { lt: MAX_ATTEMPTS } } }),
-        prisma.eventOutbox.count({ where: { published: false, attempts: { gte: MAX_ATTEMPTS } } }),
-        prisma.eventOutbox.count({ where: { published: true, published_at: { gte: today } } }),
+        prisma.event_outbox.count({ where: { published: false, attempts: { lt: MAX_ATTEMPTS } } }),
+        prisma.event_outbox.count({ where: { published: false, attempts: { gte: MAX_ATTEMPTS } } }),
+        prisma.event_outbox.count({ where: { published: true, published_at: { gte: today } } }),
     ]);
 
     return { pending, failed, published_today: publishedToday };
@@ -144,7 +147,7 @@ if (require.main === module) {
 
     // Graceful shutdown
     process.on("SIGINT", async () => {
-        console.log("\n[OutboxPublisher] Shutting down...");
+        logger.info('outbox.shutdown', 'Shutting down...');
         stopOutboxPublisher();
         await prisma.$disconnect();
         process.exit(0);

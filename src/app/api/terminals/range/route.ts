@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     }
 
     try {
-        const range = await prisma.terminalNumberRange.findUnique({
+        const range = await prisma.terminal_number_ranges.findUnique({
             where: { terminal_id: terminalId }
         });
 

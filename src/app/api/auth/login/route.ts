@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const data = LoginSchema.parse(body);
 
     // 1. Verify terminal is registered and allowed
-    const terminal = await prisma.terminal.findUnique({
+    const terminal = await prisma.terminals.findUnique({
       where: {
         tenant_id_terminal_id: {
           tenant_id: data.tenant_id,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Find employee by PIN
     const pinHash = await hashPin(data.pin);
-    const employee = await prisma.employee.findFirst({
+    const employee = await prisma.employees.findFirst({
       where: {
         tenant_id: data.tenant_id,
         pin_hash: pinHash,
@@ -69,13 +69,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Update terminal last seen
-    await prisma.terminal.update({
+    await prisma.terminals.update({
       where: { id: terminal.id },
       data: { last_seen_at: new Date() },
     });
 
     // 5. Get active shift (if any)
-    const activeShift = await prisma.shift.findFirst({
+    const activeShift = await prisma.shifts.findFirst({
       where: {
         tenant_id: data.tenant_id,
         terminal_id: data.terminal_id,

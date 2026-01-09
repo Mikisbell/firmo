@@ -9,7 +9,7 @@ async function verify() {
 
     // 1. Check DB Connection
     try {
-        const countBefore = await prisma.event.count();
+        const countBefore = await prisma.events.count();
         console.log(`✅ DB Connected. Events count: ${countBefore}`);
 
         // 2. Prepare Test Event
@@ -61,7 +61,7 @@ async function verify() {
         if (!json.accepted) throw new Error("API did not accept the event");
 
         // 4. Verify DB persistence
-        const countAfter = await prisma.event.count();
+        const countAfter = await prisma.events.count();
         console.log(`📊 Events count after: ${countAfter}`);
 
         if (countAfter > countBefore) {
@@ -71,7 +71,7 @@ async function verify() {
         }
 
         // 5. Verify Projection (Order Created)
-        const order = await prisma.order.findUnique({
+        const order = await prisma.orders.findUnique({
             where: { id: testEvent.payload.order_id }
         });
 

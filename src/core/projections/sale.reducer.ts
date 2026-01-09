@@ -1,5 +1,10 @@
 import type { ParkEvent } from "@/src/core/domain/events";
+import { eventMigrator } from "@/src/core/domain/event-migrator";
 import type { ApplyResult, SaleLine, SalePayment, SaleProjection } from "./types";
+import { logger } from "@/src/core/observability/logger";
+
+// Ensure migrations are registered
+import "@/src/core/domain/migrations";
 
 function computeSubtotal(lines: Record<string, SaleLine>): number {
     let sum = 0;
@@ -21,6 +26,12 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
             unit_price_cents: item.unit_price_cents,
             line_total_cents: item.qty * item.unit_price_cents,
             status: item.status ?? "PENDING",
+            station: item.station || "COCINA", // Preservar estación
+            // Timestamps
+            created_at: item.created_at ?? e.occurred_at,
+            started_cooking_at: item.started_cooking_at,
+            ready_at: item.ready_at,
+            served_at: item.served_at,
         };
     }
 
@@ -51,12 +62,15 @@ export function applySaleEvent(
 ): ApplyResult<SaleProjection | null> {
     const warnings: string[] = [];
 
+    // Migrate event to current schema version if needed
+    const event = eventMigrator.migrate(e);
+
     // ORDER_CREATED - creates new order/sale
-    if (e.event_type === "ORDER_CREATED") {
+    if (event.event_type === "ORDER_CREATED") {
         if (sale && sale.status === "OPEN") {
             warnings.push("ORDER_CREATED recibido mientras hay venta OPEN; reemplazando venta activa.");
         }
-        return { state: createOrderFromEvent(e), warnings };
+        return { state: createOrderFromEvent(event), warnings };
     }
 
     if (!sale) {
@@ -76,7 +90,7 @@ export function applySaleEvent(
     switch (e.event_type) {
         case "ORDER_ITEM_ADDED": {
             const { line } = e.payload;
-            const { line_id, product_id, name, qty, unit_price_cents, status } = line;
+            const { line_id, product_id, name, qty, unit_price_cents, status, station } = line;
             const prev = sale.lines[line_id];
 
             const newQty = (prev?.qty ?? 0) + qty;
@@ -90,6 +104,12 @@ export function applySaleEvent(
                 unit_price_cents,
                 line_total_cents,
                 status: status ?? prev?.status ?? "PENDING",
+                station: station || prev?.station || "COCINA", // Preservar estación
+                // Set created_at timestamp from event or line
+                created_at: prev?.created_at ?? line.created_at ?? e.occurred_at,
+                started_cooking_at: prev?.started_cooking_at ?? line.started_cooking_at,
+                ready_at: prev?.ready_at ?? line.ready_at,
+                served_at: prev?.served_at ?? line.served_at,
             };
 
             sale.subtotal_cents = computeSubtotal(sale.lines);
@@ -179,7 +199,7 @@ export function applySaleEvent(
 
         case "CHECK_CREATED": {
             const { check } = e.payload;
-            console.log("REDUCER: CHECK_CREATED received", check);
+            logger.debug('reducer.check_created', 'CHECK_CREATED received', { check_id: check.check_id });
             // Idempotency check
             if (sale.checks.some(c => c.check_id === check.check_id)) {
                 sale.last_event_sequence = e.terminal_sequence;
@@ -362,6 +382,19 @@ export function applySaleEvent(
             const line = sale.lines[line_id];
             if (line) {
                 line.status = to;
+                // Update timestamp based on new status
+                const timestamp = e.occurred_at;
+                switch (to) {
+                    case "COOKING":
+                        line.started_cooking_at = timestamp;
+                        break;
+                    case "READY":
+                        line.ready_at = timestamp;
+                        break;
+                    case "DONE":
+                        line.served_at = timestamp;
+                        break;
+                }
                 sale.lines[line_id] = line;
             } else {
                 warnings.push(`ORDER_ITEM_STATUS_CHANGED: line_id ${line_id} not found.`);

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = VerifySchema.parse(body);
 
-    const terminal = await prisma.terminal.findUnique({
+    const terminal = await prisma.terminals.findUnique({
       where: {
         tenant_id_terminal_id: {
           tenant_id: data.tenant_id,
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update last seen
-    await prisma.terminal.update({
+    await prisma.terminals.update({
       where: { id: terminal.id },
       data: { last_seen_at: new Date() },
     });

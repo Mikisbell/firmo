@@ -1,6 +1,7 @@
 "use client";
 
 import { db } from '../db/schema';
+import { logger } from '@/src/core/observability/logger';
 
 // Mapa de productos simple para MVP
 const PRODUCT_IDS = ['p1', 'p2', 'p3', 'p4'];
@@ -22,7 +23,7 @@ export class RecommendationEngine {
         if (typeof window === 'undefined') return null;
         if (!this.tf) {
             this.tf = await import('@tensorflow/tfjs');
-            console.log("AI: TensorFlow.js cargado ✅");
+            logger.info('AI_TENSORFLOW_LOADED', 'TensorFlow.js loaded');
         }
         return this.tf;
     }
@@ -33,7 +34,7 @@ export class RecommendationEngine {
         const sales = events.filter(e => e.event_type === 'SALE_CONFIRMED');
 
         if (sales.length < 5) {
-            console.log("AI: Poco historial real, usando datos sintéticos para demo.");
+            logger.debug('AI_SYNTHETIC_DATA', 'Using synthetic data for demo - insufficient history');
             return [
                 [1, 1, 0, 0], // Café + Croissant
                 [1, 0, 1, 0], // Café + Jugo
@@ -51,11 +52,11 @@ export class RecommendationEngine {
     async train() {
         const tf = await this.loadTF();
         if (!tf) {
-            console.log("AI: TensorFlow no disponible (SSR)");
+            logger.debug('AI_TENSORFLOW_UNAVAILABLE', 'TensorFlow not available (SSR)');
             return;
         }
 
-        console.log("AI: Entrenando modelo de recomendaciones...");
+        logger.info('AI_TRAINING_START', 'Training recommendation model');
         const data = await this.getPurchaseHistory();
         if (data.length === 0) return;
 
@@ -81,7 +82,7 @@ export class RecommendationEngine {
         });
 
         this.isTrained = true;
-        console.log("AI: Modelo entrenado ✅");
+        logger.info('AI_TRAINING_COMPLETE', 'Model trained successfully');
     }
 
     // Predecir productos recomendados

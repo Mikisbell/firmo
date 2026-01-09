@@ -1,4 +1,4 @@
-# 🎯 PARK POS — Master Steering
+ son sueñ# 🎯 PARK POS — Master Steering
 
 > **Este archivo guía TODO el desarrollo del proyecto. Léelo SIEMPRE antes de cualquier tarea.**
 
@@ -9,12 +9,14 @@
 **PARK POS** = Sistema POS offline-first para pollerías peruanas
 - **Arquitectura:** Event Sourcing + Device-SoT + IndexedDB/PostgreSQL
 - **Stack:** Next.js 15 + Prisma + Dexie + Supabase + Tailwind
-- **Fase actual:** P0 (MVP) → 85% completado
+- **Fase actual:** P0 (MVP) ✅ + P1 (Multi-Terminal) ✅ → P2 pendiente
 
 **Reglas de oro:**
 - 💰 Dinero SIEMPRE en centavos (int), NUNCA float
 - 📱 15 terminales + 1 caja + KDS screens
 - 🔌 Funciona 100% offline, sincroniza cuando hay conexión
+
+**Tests:** 214 unit + 10 stress + 52 E2E (Playwright)
 
 ---
 
@@ -22,44 +24,52 @@
 
 ### P0 — MVP (Antes de producción)
 
+#### 💰 SEGURIDAD FINANCIERA (CRÍTICO) → `docs/02-architecture/MONEY_SAFETY.md`
+- [x] **Event Deduplication** — Tabla `processed_events` + check en projectEvent
+- [x] **Outbox Pattern** — Tabla `event_outbox` + worker de publicación
+- [x] **Order Number Ranges** — Tabla `terminal_number_ranges` + allocation
+- [x] **Server Validation** — validateEvent() para pagos, facturas, items, voids
+- [x] **Timezone Handling** — getBusinessDate() con hora de corte 6AM
+- [x] **Límites de Seguridad** — MAX_ITEMS, MAX_TOTAL, validación cliente+server
+
 #### Core Event Sourcing
 - [x] Eventos base (30+ tipos definidos)
 - [x] SyncClient con retry + SSE
 - [x] Reducers: sale.reducer, shift.reducer
-- [ ] **Outbox Pattern** → `docs/05-improvements/MEJORAS.md#1`
-- [ ] **Idempotencia en proyecciones** → `docs/05-improvements/GAPS.md#3`
-- [ ] **Server-side validation** → `docs/05-improvements/GAPS.md#4`
+- [x] **Circuit Breaker** → `docs/05-improvements/MEJORAS.md#4`
+- [x] **Performance Indices** → `docs/05-improvements/MEJORAS.md#10`
 
 #### UI Roles
 - [x] Caja (POS principal)
 - [x] KDS (Kitchen Display)
 - [x] Mesero (Waiter)
-- [ ] Split Bill UI incompleto
-- [ ] Service Worker para PWA
+- [x] Split Bill UI — División por items + equitativo
+- [x] Service Worker para PWA — Offline cache + update prompt
 
-#### Infraestructura Crítica
-- [ ] **Clock Skew handling** → `docs/05-improvements/GAPS.md#1`
-- [ ] **Order Number collision fix** → `docs/05-improvements/GAPS.md#2`
-- [ ] **Rate Limiting** → `docs/05-improvements/MEJORAS.md#6`
-- [ ] **Performance Indices** → `docs/05-improvements/MEJORAS.md#10`
-- [ ] **Circuit Breaker** → `docs/05-improvements/MEJORAS.md#4`
+#### Infraestructura
+- [x] **Rate Limiting** → `docs/05-improvements/MEJORAS.md#6`
+- [x] **IndexedDB cleanup** → `docs/05-improvements/GAPS.md#8`
 
-#### Datos
-- [ ] **Timezone handling** → `docs/05-improvements/GAPS.md#7`
-- [ ] **IndexedDB cleanup** → `docs/05-improvements/GAPS.md#8`
-- [ ] **JSONB size limits** → `docs/05-improvements/GAPS.md#6`
+#### Testing (Enero 2026)
+- [x] **E2E Tests (Playwright)** — 52 tests (chromium + mobile)
+- [x] **Stress Tests** — 10 tests de carga
+- [x] **Inventory Admin Panel** — `/admin/inventario` con PIN
+- [x] **Schema Completeness** — Eventos de inventario, servicios, migraciones
 
-### P1 — Multi-Terminal (Antes de escalar)
+### P1 — Multi-Terminal ✅ COMPLETADO
 
-- [ ] **Conflict Resolution** → `docs/05-improvements/MEJORAS.md#5`
-- [ ] **Event Schema Versioning** → `docs/05-improvements/MEJORAS.md#2`
-- [ ] **Snapshots/Compaction** → `docs/05-improvements/MEJORAS.md#8`
-- [ ] **Observabilidad** → `docs/04-operations/OBSERVABILIDAD.md`
-- [ ] Terminal registration flow
-- [ ] Role-based event validation
+- [x] **Conflict Resolution** → `docs/05-improvements/MEJORAS.md#5` ✅ (Fases 1-4 completas, 21 tests)
+- [x] **Event Schema Versioning** → `docs/05-improvements/MEJORAS.md#2` ✅ (19 tests, migraciones V1→V2)
+- [x] **Snapshots/Compaction** → `docs/05-improvements/MEJORAS.md#8` ✅ (13 tests, rebuild optimizado)
+- [x] **Observabilidad** → `docs/04-operations/OBSERVABILIDAD.md` ✅ (24 tests, métricas + logger)
+- [x] Terminal registration flow
+- [x] Role-based event validation ✅ (28 tests, 5 property-based)
+- [x] **JWT Authentication** → `docs/02-architecture/SECURITY.md#5.7` ✅ (8 tests, PIN lockout + sessions)
+- [x] **Branded Types** → `src/core/types/shared.ts` ✅ (15 tests, Centavos/OrderId/BusinessDate)
 
 ### P2 — Growth (Futuro)
 
+- [ ] **Premium Dashboard** → `.kiro/specs/premium-dashboard/` (Analytics + Push Notifications)
 - [ ] Saga Pattern para flujos complejos
 - [ ] Property-Based Testing
 - [ ] Multi-tenant improvements
@@ -101,9 +111,22 @@ docs/
 │   ├── ARCHITECTURE.md         # Arquitectura general
 │   ├── EVENTS.md               # Sistema de eventos
 │   ├── SECURITY.md             # Seguridad
-│   └── PERFORMANCE.md          # Optimizaciones
+│   ├── PERFORMANCE.md          # Optimizaciones
+│   ├── MONEY_SAFETY.md         # 🔴 Riesgos financieros
+│   ├── AUDITORIA_CRITICA.md    # 🔴 10 problemas críticos
+│   └── IMPLEMENTACION_PASO_A_PASO.md  # 🔴 Guía de 10 fases
 ├── 03-features/                 # Funcionalidades
-│   ├── PROMOTIONS_DSL.md       # Promociones
+│   ├── FLUJO_CAJERO.md         # Caja, Split Bill
+│   ├── FLUJO_MESERO.md         # 15 meseros, zonas, barra
+│   ├── FLUJO_KDS.md            # 5 estaciones (Parrilla, Bar, etc.)
+│   ├── FLUJO_ADMIN.md          # Panel de administración
+│   ├── FLUJO_OFFLINE_SYNC.md   # Sincronización offline
+│   ├── FLUJO_DEVOLUCIONES.md   # Devoluciones y NC
+│   ├── FLUJO_DESCUENTOS.md     # Descuentos y promociones
+│   ├── FLUJO_REPORTES.md       # Reportes y cierre
+│   ├── FLUJO_AUTENTICACION.md  # Login, roles, PINs
+│   ├── FLUJO_CONFIGURACION.md  # Setup terminal/tenant
+│   ├── PROMOTIONS_DSL.md       # DSL de promociones
 │   ├── GROWTH.md               # Features futuras
 │   └── NAVEGACION_UX.md        # UX/UI
 ├── 04-operations/               # Operación
@@ -124,16 +147,37 @@ docs/
 
 | Necesito... | Archivo |
 |-------------|---------|
+| **🔴 AUDITORÍA CRÍTICA** | `docs/02-architecture/AUDITORIA_CRITICA.md` |
+| **🔴 SEGURIDAD FINANCIERA** | `docs/02-architecture/MONEY_SAFETY.md` |
+| **🔴 IMPLEMENTACIÓN PASO A PASO** | `docs/02-architecture/IMPLEMENTACION_PASO_A_PASO.md` |
+| **🔴 Prisma Naming Convention** | `docs/02-architecture/PRISMA_NAMING.md` |
+| **🔴 Role-Based Validation** | `docs/02-architecture/SECURITY.md#5-role-based-event-validation` |
+| **🔴 Branded Types (Type Safety)** | `src/core/types/shared.ts` |
 | Entender el negocio | `docs/01-vision/CONTEXT.md` |
 | Ver arquitectura | `docs/02-architecture/ARCHITECTURE.md` |
 | Lista de eventos | `docs/02-architecture/EVENTS.md` |
 | Gaps críticos | `docs/05-improvements/GAPS.md` |
 | Mejoras a implementar | `docs/05-improvements/MEJORAS.md` |
 | Plan de trabajo | `docs/05-improvements/ROADMAP.md` |
+| **Flujo Cajero/Split Bill** | `docs/03-features/FLUJO_CAJERO.md` |
+| **Flujo Mesero (15 terminales)** | `docs/03-features/FLUJO_MESERO.md` |
+| **Flujo KDS (5 estaciones)** | `docs/03-features/FLUJO_KDS.md` |
+| **Flujo Admin (Panel completo)** | `docs/03-features/FLUJO_ADMIN.md` |
+| **Flujo Offline/Sync** | `docs/03-features/FLUJO_OFFLINE_SYNC.md` |
+| **Flujo Devoluciones** | `docs/03-features/FLUJO_DEVOLUCIONES.md` |
+| **Flujo Descuentos** | `docs/03-features/FLUJO_DESCUENTOS.md` |
+| **Flujo Reportes** | `docs/03-features/FLUJO_REPORTES.md` |
+| **Flujo Autenticación** | `docs/03-features/FLUJO_AUTENTICACION.md` |
+| **Flujo Configuración** | `docs/03-features/FLUJO_CONFIGURACION.md` |
+| **Premium Dashboard** | `docs/03-features/FLUJO_PREMIUM_DASHBOARD.md` |
 | Schema Prisma | `prisma/schema.prisma` |
 | Eventos TypeScript | `src/core/domain/events.ts` |
 | Sync Client | `src/core/sync/client.ts` |
 | API Ingest | `src/app/api/events/ingest/route.ts` |
+| **E2E Tests** | `e2e/` |
+| **Inventory Services** | `src/core/inventory/` |
+| **Admin Panel** | `src/app/admin/inventario/` |
+| **Role Permissions** | `src/core/validation/role-permissions.ts` |
 
 ---
 
@@ -144,8 +188,9 @@ docs/
 3. **Código mínimo** — implementar solo lo esencial
 4. **Validar siempre** — usar getDiagnostics después de cambios
 5. **Actualizar checklist** — marcar `[x]` al completar
+6. **🔴 PRISMA NAMING** — Usar nombres EXACTOS del schema.prisma (NO camelCase automático)
 
 ---
 
-**Última actualización:** Enero 2026  
-**Próxima tarea pendiente:** Outbox Pattern
+**Última actualización:** 7 Enero 2026  
+**Próxima tarea pendiente:** P2 - Saga Pattern o Multi-tenant improvements

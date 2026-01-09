@@ -4,9 +4,24 @@ import { createHash } from "crypto";
 const prisma = new PrismaClient();
 
 const TENANT_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+const SALT = 'PARK_POS_2026_'; // Must match src/core/auth/pin.ts
+
+// UUIDs fijos para employees - DEBEN coincidir con src/core/config/terminal.ts
+const EMPLOYEE_IDS = {
+    ADMIN: "00000000-0000-0000-0000-000000000001",
+    CASHIER_MARIA: "00000000-0000-0000-0000-000000000002",
+    WAITER_CARLOS: "00000000-0000-0000-0000-000000000003",
+    KITCHEN_LUIS: "00000000-0000-0000-0000-000000000004",
+    PARRILLA_PEDRO: "00000000-0000-0000-0000-000000000005",
+    BAR_JORGE: "00000000-0000-0000-0000-000000000006",
+    MANAGER_ROSA: "00000000-0000-0000-0000-000000000007",
+    WAITER_ANA: "00000000-0000-0000-0000-000000000008",
+    WAITER_CARMEN: "00000000-0000-0000-0000-000000000009",
+    DELIVERY_MIGUEL: "00000000-0000-0000-0000-000000000010",
+};
 
 function hashPin(pin: string): string {
-    return createHash("sha256").update(pin).digest("hex");
+    return createHash("sha256").update(SALT + pin).digest("hex");
 }
 
 function uuid(): string {
@@ -17,7 +32,7 @@ async function main() {
     console.log("🌱 Seeding database...");
 
     // 1. TENANT SETTINGS
-    await prisma.tenantSettings.upsert({
+    await prisma.tenant_settings.upsert({
         where: { tenant_id: TENANT_ID },
         update: {},
         create: {
@@ -33,33 +48,44 @@ async function main() {
         },
     });
 
-    // 2. EMPLOYEES
+    // 2. EMPLOYEES (con UUIDs fijos para coincidir con terminal.ts)
     const employees = [
-        { id: uuid(), name: "Admin Principal", role: "ADMIN", pin: "1234" },
-        { id: uuid(), name: "María García", role: "CASHIER", pin: "1111" },
-        { id: uuid(), name: "Carlos López", role: "WAITER", pin: "2222" },
-        { id: uuid(), name: "Ana Torres", role: "WAITER", pin: "3333" },
-        { id: uuid(), name: "Pedro Ruiz", role: "WAITER", pin: "4444" },
-        { id: uuid(), name: "Luis Mendoza", role: "KITCHEN", pin: "5555" },
-        { id: uuid(), name: "Rosa Flores", role: "MANAGER", pin: "0000" },
-        { id: uuid(), name: "Jorge Díaz", role: "BAR", pin: "6666" },
-        { id: uuid(), name: "Carmen Vega", role: "WAITER", pin: "7777" },
-        { id: uuid(), name: "Miguel Soto", role: "DELIVERY", pin: "8888" },
+        { id: EMPLOYEE_IDS.ADMIN, name: "Admin Principal", role: "ADMIN", pin: "1234" },
+        { id: EMPLOYEE_IDS.CASHIER_MARIA, name: "María García", role: "CASHIER", pin: "1111" },
+        { id: EMPLOYEE_IDS.WAITER_CARLOS, name: "Carlos López", role: "WAITER", pin: "2222" },
+        { id: EMPLOYEE_IDS.WAITER_ANA, name: "Ana Torres", role: "WAITER", pin: "3333" },
+        { id: EMPLOYEE_IDS.PARRILLA_PEDRO, name: "Pedro Ruiz", role: "KITCHEN", pin: "4444" },
+        { id: EMPLOYEE_IDS.KITCHEN_LUIS, name: "Luis Mendoza", role: "KITCHEN", pin: "5555" },
+        { id: EMPLOYEE_IDS.MANAGER_ROSA, name: "Rosa Flores", role: "MANAGER", pin: "0000" },
+        { id: EMPLOYEE_IDS.BAR_JORGE, name: "Jorge Díaz", role: "BAR", pin: "6666" },
+        { id: EMPLOYEE_IDS.WAITER_CARMEN, name: "Carmen Vega", role: "WAITER", pin: "7777" },
+        { id: EMPLOYEE_IDS.DELIVERY_MIGUEL, name: "Miguel Soto", role: "DELIVERY", pin: "8888" },
     ];
 
     for (const emp of employees) {
-        await prisma.employee.upsert({
-            where: { id: emp.id },
-            update: {},
-            create: {
-                id: emp.id,
-                tenant_id: TENANT_ID,
-                name: emp.name,
-                role: emp.role,
-                pin_hash: hashPin(emp.pin),
-                is_active: true,
-            },
+        // First try to find existing employee by name
+        const existing = await prisma.employees.findFirst({
+            where: { tenant_id: TENANT_ID, name: emp.name }
         });
+        
+        if (existing) {
+            // Update pin_hash to ensure it matches current SALT
+            await prisma.employees.update({
+                where: { id: existing.id },
+                data: { pin_hash: hashPin(emp.pin) }
+            });
+        } else {
+            await prisma.employees.create({
+                data: {
+                    id: emp.id,
+                    tenant_id: TENANT_ID,
+                    name: emp.name,
+                    role: emp.role,
+                    pin_hash: hashPin(emp.pin),
+                    is_active: true,
+                },
+            });
+        }
     }
     console.log(`✅ ${employees.length} employees`);
 
@@ -73,7 +99,7 @@ async function main() {
     ];
 
     for (const st of stations) {
-        await prisma.station.upsert({
+        await prisma.stations.upsert({
             where: { tenant_id_code: { tenant_id: TENANT_ID, code: st.code } },
             update: {},
             create: { id: uuid(), tenant_id: TENANT_ID, code: st.code, name: st.name },
@@ -116,7 +142,7 @@ async function main() {
     ];
 
     for (const p of products) {
-        await prisma.product.upsert({
+        await prisma.products.upsert({
             where: { tenant_id_sku: { tenant_id: TENANT_ID, sku: p.sku } },
             update: { price_cents: p.price },
             create: {
@@ -145,7 +171,7 @@ async function main() {
 
     for (const z of zones) {
         const zoneId = uuid();
-        await prisma.zone.upsert({
+        await prisma.zones.upsert({
             where: { tenant_id_location_id_code: { tenant_id: TENANT_ID, location_id: locationId, code: z.code } },
             update: {},
             create: {
@@ -159,7 +185,7 @@ async function main() {
         });
 
         for (let i = 0; i < z.tables; i++) {
-            await prisma.table.upsert({
+            await prisma.tables.upsert({
                 where: { tenant_id_location_id_number: { tenant_id: TENANT_ID, location_id: locationId, number: String(tableNum) } },
                 update: {},
                 create: {
@@ -181,9 +207,9 @@ async function main() {
     // 6. TERMINALS
     const terminals = [
         { terminal_id: "CAJA_01", role: "CASHIER" },
-        { terminal_id: "KDS_PARRILLA", role: "KDS" },
-        { terminal_id: "KDS_COCINA", role: "KDS" },
-        { terminal_id: "KDS_BAR", role: "KDS" },
+        { terminal_id: "SPC_HORNO", role: "KDS" },
+        { terminal_id: "SPC_COCINA", role: "KDS" },
+        { terminal_id: "SPC_BAR", role: "KDS" },
         { terminal_id: "MOZO_01", role: "WAITER" },
         { terminal_id: "MOZO_02", role: "WAITER" },
         { terminal_id: "MOZO_03", role: "WAITER" },
@@ -192,7 +218,7 @@ async function main() {
     ];
 
     for (const t of terminals) {
-        await prisma.terminal.upsert({
+        await prisma.terminals.upsert({
             where: { tenant_id_terminal_id: { tenant_id: TENANT_ID, terminal_id: t.terminal_id } },
             update: {},
             create: {
@@ -213,7 +239,7 @@ async function main() {
     ];
 
     for (const p of promos) {
-        await prisma.promotion.upsert({
+        await prisma.promotions.upsert({
             where: { id: uuid() },
             update: {},
             create: {
@@ -239,7 +265,7 @@ async function main() {
     ];
 
     for (const p of printers) {
-        await prisma.printer.upsert({
+        await prisma.printers.upsert({
             where: { id: uuid() },
             update: {},
             create: {
@@ -262,7 +288,7 @@ async function main() {
     ];
 
     for (const dz of deliveryZones) {
-        await prisma.deliveryZone.create({
+        await prisma.delivery_zones.create({
             data: {
                 id: uuid(),
                 tenant_id: TENANT_ID,
@@ -275,19 +301,29 @@ async function main() {
     }
     console.log(`✅ ${deliveryZones.length} delivery zones`);
 
-    // 10. INVENTORY (Ingredientes básicos)
+    // 10. INVENTORY (Ingredientes básicos con FEFO)
+    const today = new Date();
+    const daysFromNow = (days: number) => new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+    
     const inventory = [
-        { code: "POLLO-KG", name: "Pollo (kg)", unit: "KG", stock: 50, min: 10 },
-        { code: "PAPA-KG", name: "Papa (kg)", unit: "KG", stock: 100, min: 20 },
-        { code: "ACEITE-LT", name: "Aceite (lt)", unit: "LT", stock: 30, min: 10 },
-        { code: "SAL-KG", name: "Sal (kg)", unit: "KG", stock: 10, min: 2 },
-        { code: "AJI-KG", name: "Ají (kg)", unit: "KG", stock: 5, min: 1 },
+        { code: "POLLO-KG", name: "Pollo (kg)", unit: "KG", stock: 50, min: 10, cost: 1200, expiry: daysFromNow(3), lot: "LOT-POLLO-001" },
+        { code: "PAPA-KG", name: "Papa (kg)", unit: "KG", stock: 100, min: 20, cost: 200, expiry: daysFromNow(14), lot: "LOT-PAPA-001" },
+        { code: "ACEITE-LT", name: "Aceite (lt)", unit: "LT", stock: 30, min: 10, cost: 800, expiry: null, lot: null }, // No perecedero
+        { code: "SAL-KG", name: "Sal (kg)", unit: "KG", stock: 10, min: 2, cost: 150, expiry: null, lot: null }, // No perecedero
+        { code: "AJI-KG", name: "Ají (kg)", unit: "KG", stock: 5, min: 1, cost: 500, expiry: daysFromNow(1), lot: "LOT-AJI-001" }, // Vence mañana
+        { code: "MAYONESA-KG", name: "Mayonesa (kg)", unit: "KG", stock: 8, min: 3, cost: 600, expiry: daysFromNow(0), lot: "LOT-MAYO-001" }, // Vence hoy
+        { code: "KETCHUP-KG", name: "Ketchup (kg)", unit: "KG", stock: 6, min: 2, cost: 450, expiry: daysFromNow(-1), lot: "LOT-KETCH-001" }, // Ya venció
+        { code: "MOSTAZA-KG", name: "Mostaza (kg)", unit: "KG", stock: 4, min: 1, cost: 400, expiry: daysFromNow(7), lot: "LOT-MOST-001" }, // Vence en 7 días
     ];
 
     for (const inv of inventory) {
         await prisma.inventory.upsert({
             where: { tenant_id_code: { tenant_id: TENANT_ID, code: inv.code } },
-            update: {},
+            update: {
+                expiry_date: inv.expiry,
+                lot_number: inv.lot,
+                cost_cents: inv.cost,
+            },
             create: {
                 id: uuid(),
                 tenant_id: TENANT_ID,
@@ -296,13 +332,16 @@ async function main() {
                 unit: inv.unit,
                 stock: inv.stock,
                 min_stock: inv.min,
+                cost_cents: inv.cost,
+                expiry_date: inv.expiry,
+                lot_number: inv.lot,
             },
         });
     }
-    console.log(`✅ ${inventory.length} inventory items`);
+    console.log(`✅ ${inventory.length} inventory items (con FEFO)`);
 
     // 11. TIP CONFIG
-    await prisma.tipConfig.upsert({
+    await prisma.tip_config.upsert({
         where: { tenant_id_location_id: { tenant_id: TENANT_ID, location_id: locationId } },
         update: {},
         create: {
@@ -316,7 +355,7 @@ async function main() {
     console.log(`✅ Tip config`);
 
     // 12. PETTY CASH BALANCE
-    await prisma.pettyCashBalance.upsert({
+    await prisma.petty_cash_balance.upsert({
         where: { tenant_id_location_id: { tenant_id: TENANT_ID, location_id: locationId } },
         update: {},
         create: {
@@ -340,33 +379,45 @@ async function main() {
     ];
 
     for (const c of customers) {
-        const customerId = uuid();
-        await prisma.customer.upsert({
+        // Primero buscar si existe
+        let customer = await prisma.customers.findUnique({
             where: { tenant_id_phone: { tenant_id: TENANT_ID, phone: c.phone } },
-            update: {},
-            create: {
-                id: customerId,
-                tenant_id: TENANT_ID,
-                phone: c.phone,
-                name: c.name,
-                email: c.email,
-                total_orders: Math.floor(Math.random() * 20),
-                total_spent: Math.floor(Math.random() * 50000),
-            },
         });
 
-        // Crear dirección de delivery
-        await prisma.deliveryAddress.create({
-            data: {
-                id: uuid(),
-                tenant_id: TENANT_ID,
-                customer_id: customerId,
-                label: "Casa",
-                address_text: c.address,
-                district: c.district,
-                is_default: true,
-            },
+        if (!customer) {
+            // Crear nuevo customer
+            customer = await prisma.customers.create({
+                data: {
+                    id: uuid(),
+                    tenant_id: TENANT_ID,
+                    phone: c.phone,
+                    name: c.name,
+                    email: c.email,
+                    total_orders: Math.floor(Math.random() * 20),
+                    total_spent: Math.floor(Math.random() * 50000),
+                },
+            });
+        }
+
+        // Verificar si ya tiene dirección
+        const existingAddress = await prisma.delivery_addresses.findFirst({
+            where: { tenant_id: TENANT_ID, customer_id: customer.id },
         });
+
+        if (!existingAddress) {
+            // Crear dirección de delivery solo si no existe
+            await prisma.delivery_addresses.create({
+                data: {
+                    id: uuid(),
+                    tenant_id: TENANT_ID,
+                    customer_id: customer.id,
+                    label: "Casa",
+                    address_text: c.address,
+                    district: c.district,
+                    is_default: true,
+                },
+            });
+        }
     }
     console.log(`✅ ${customers.length} customers with addresses`);
 
@@ -378,23 +429,261 @@ async function main() {
     ];
 
     for (const d of drivers) {
-        await prisma.driver.create({
+        // Verificar si ya existe por nombre
+        const existing = await prisma.drivers.findFirst({
+            where: { tenant_id: TENANT_ID, name: d.name },
+        });
+
+        if (!existing) {
+            await prisma.drivers.create({
+                data: {
+                    id: uuid(),
+                    tenant_id: TENANT_ID,
+                    name: d.name,
+                    phone: d.phone,
+                    is_active: true,
+                },
+            });
+        }
+    }
+    console.log(`✅ ${drivers.length} drivers`);
+
+    // ========================================================================
+    // INVENTORY MODULE - Schema Completeness (Task 11.3)
+    // ========================================================================
+
+    // 15. SUPPLIER
+    const supplierId = uuid();
+    const existingSupplier = await prisma.suppliers.findFirst({
+        where: { tenant_id: TENANT_ID, name: "Avícola San Fernando" }
+    });
+
+    if (!existingSupplier) {
+        await prisma.suppliers.create({
             data: {
-                id: uuid(),
+                id: supplierId,
                 tenant_id: TENANT_ID,
-                name: d.name,
-                phone: d.phone,
+                name: "Avícola San Fernando",
+                ruc: "20100154308",
+                contact_name: "José Ramírez",
+                phone: "01-6196000",
+                email: "ventas@sanfernando.com.pe",
+                address: "Av. República de Panamá 4295, Surquillo",
+                payment_terms: 15,
+                min_order_cents: 50000, // S/500
+                delivery_days: ["LUNES", "MIERCOLES", "VIERNES"],
+                lead_time_days: 1,
                 is_active: true,
             },
         });
+        console.log(`✅ 1 supplier (Avícola San Fernando)`);
+    } else {
+        console.log(`✅ Supplier already exists`);
     }
-    console.log(`✅ ${drivers.length} drivers`);
+
+    const supplier = existingSupplier || await prisma.suppliers.findFirst({
+        where: { tenant_id: TENANT_ID, name: "Avícola San Fernando" }
+    });
+
+    // 16. SUPPLIER PRODUCTS
+    if (supplier) {
+        const supplierProducts = [
+            { inventory_code: "POLLO-KG", supplier_sku: "SF-POLLO-001", unit_cost_cents: 1200, min_order_qty: 10 },
+            { inventory_code: "PAPA-KG", supplier_sku: "SF-PAPA-001", unit_cost_cents: 200, min_order_qty: 50 },
+        ];
+
+        for (const sp of supplierProducts) {
+            const existing = await prisma.supplier_products.findUnique({
+                where: {
+                    tenant_id_supplier_id_inventory_code: {
+                        tenant_id: TENANT_ID,
+                        supplier_id: supplier.id,
+                        inventory_code: sp.inventory_code
+                    }
+                }
+            });
+
+            if (!existing) {
+                await prisma.supplier_products.create({
+                    data: {
+                        id: uuid(),
+                        tenant_id: TENANT_ID,
+                        supplier_id: supplier.id,
+                        inventory_code: sp.inventory_code,
+                        supplier_sku: sp.supplier_sku,
+                        unit_cost_cents: sp.unit_cost_cents,
+                        min_order_qty: sp.min_order_qty,
+                        lead_time_days: 1,
+                        is_active: true,
+                    },
+                });
+            }
+        }
+        console.log(`✅ ${supplierProducts.length} supplier products`);
+
+        // 17. PURCHASE ORDER (Example)
+        const existingPO = await prisma.purchase_orders.findFirst({
+            where: { tenant_id: TENANT_ID, order_number: 1 }
+        });
+
+        if (!existingPO && supplier) {
+            const poId = uuid();
+            await prisma.purchase_orders.create({
+                data: {
+                    id: poId,
+                    tenant_id: TENANT_ID,
+                    location_id: locationId,
+                    supplier_id: supplier.id,
+                    order_number: 1,
+                    status: "RECEIVED",
+                    subtotal_cents: 22000,
+                    tax_cents: 3960,
+                    total_cents: 25960,
+                    expected_delivery_date: new Date(),
+                    notes: "Pedido inicial de prueba",
+                    created_by: EMPLOYEE_IDS.ADMIN,
+                    purchase_order_items: {
+                        create: [
+                            {
+                                id: uuid(),
+                                inventory_code: "POLLO-KG",
+                                quantity_ordered: 10,
+                                unit: "KG",
+                                unit_cost_cents: 1200,
+                                total_cents: 12000,
+                            },
+                            {
+                                id: uuid(),
+                                inventory_code: "PAPA-KG",
+                                quantity_ordered: 50,
+                                unit: "KG",
+                                unit_cost_cents: 200,
+                                total_cents: 10000,
+                            },
+                        ],
+                    },
+                },
+            });
+            console.log(`✅ 1 purchase order (PO-001)`);
+
+            // 18. GOODS RECEIPT (Example)
+            const grId = uuid();
+            await prisma.goods_receipts.create({
+                data: {
+                    id: grId,
+                    tenant_id: TENANT_ID,
+                    location_id: locationId,
+                    purchase_order_id: poId,
+                    receipt_number: "GR-001",
+                    status: "CONFIRMED",
+                    received_by: EMPLOYEE_IDS.ADMIN,
+                    received_at: new Date(),
+                    notes: "Recepción completa",
+                    goods_receipt_items: {
+                        create: [
+                            {
+                                id: uuid(),
+                                inventory_code: "POLLO-KG",
+                                quantity_ordered: 10,
+                                quantity_received: 10,
+                                quantity_rejected: 0,
+                                unit_cost_cents: 1200,
+                                lot_number: "LOT-2026-001",
+                                expiry_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +7 days
+                            },
+                            {
+                                id: uuid(),
+                                inventory_code: "PAPA-KG",
+                                quantity_ordered: 50,
+                                quantity_received: 48,
+                                quantity_rejected: 2,
+                                rejection_reason: "Papas dañadas",
+                                unit_cost_cents: 200,
+                            },
+                        ],
+                    },
+                },
+            });
+            console.log(`✅ 1 goods receipt (GR-001)`);
+        }
+    }
+
+    // 19. RECIPES (Para deducción automática de inventario)
+    const products_for_recipes = await prisma.products.findMany({
+        where: { tenant_id: TENANT_ID, sku: { in: ["POLLO-ENT", "POLLO-1/2", "POLLO-1/4", "PAPAS-GDE", "PAPAS-MED"] } },
+        select: { id: true, sku: true }
+    });
+
+    const recipeData: Record<string, Array<{ inventory_code: string; quantity: number; unit: string }>> = {
+        "POLLO-ENT": [
+            { inventory_code: "POLLO-KG", quantity: 1.5, unit: "KG" },
+            { inventory_code: "SAL-KG", quantity: 0.02, unit: "KG" },
+            { inventory_code: "AJI-KG", quantity: 0.05, unit: "KG" },
+        ],
+        "POLLO-1/2": [
+            { inventory_code: "POLLO-KG", quantity: 0.75, unit: "KG" },
+            { inventory_code: "SAL-KG", quantity: 0.01, unit: "KG" },
+            { inventory_code: "AJI-KG", quantity: 0.025, unit: "KG" },
+        ],
+        "POLLO-1/4": [
+            { inventory_code: "POLLO-KG", quantity: 0.375, unit: "KG" },
+            { inventory_code: "SAL-KG", quantity: 0.005, unit: "KG" },
+            { inventory_code: "AJI-KG", quantity: 0.0125, unit: "KG" },
+        ],
+        "PAPAS-GDE": [
+            { inventory_code: "PAPA-KG", quantity: 0.5, unit: "KG" },
+            { inventory_code: "ACEITE-LT", quantity: 0.1, unit: "LT" },
+            { inventory_code: "SAL-KG", quantity: 0.005, unit: "KG" },
+        ],
+        "PAPAS-MED": [
+            { inventory_code: "PAPA-KG", quantity: 0.3, unit: "KG" },
+            { inventory_code: "ACEITE-LT", quantity: 0.06, unit: "LT" },
+            { inventory_code: "SAL-KG", quantity: 0.003, unit: "KG" },
+        ],
+    };
+
+    let recipesCreated = 0;
+    for (const product of products_for_recipes) {
+        const ingredients = recipeData[product.sku];
+        if (ingredients) {
+            const existing = await prisma.recipes.findUnique({
+                where: { tenant_id_product_id: { tenant_id: TENANT_ID, product_id: product.id } }
+            });
+
+            if (!existing) {
+                await prisma.recipes.create({
+                    data: {
+                        id: uuid(),
+                        tenant_id: TENANT_ID,
+                        product_id: product.id,
+                        ingredients: ingredients,
+                        yield_qty: 1,
+                        is_active: true,
+                    },
+                });
+                recipesCreated++;
+            }
+        }
+    }
+    console.log(`✅ ${recipesCreated} recipes created`);
+
+    // Update inventory with location_id
+    await prisma.inventory.updateMany({
+        where: { tenant_id: TENANT_ID, location_id: null },
+        data: { location_id: locationId }
+    });
+    console.log(`✅ Inventory location_id updated`);
 
     console.log("\n🎉 Seed completed!");
     console.log(`\n📋 Test PINs:`);
     employees.forEach(e => console.log(`   ${e.name}: ${e.pin}`));
     console.log(`\n📱 Test Customers (para delivery):`);
     customers.forEach(c => console.log(`   ${c.name}: ${c.phone}`));
+    console.log(`\n📦 Inventory Module:`);
+    console.log(`   - Supplier: Avícola San Fernando`);
+    console.log(`   - PO-001: 10kg Pollo + 50kg Papa`);
+    console.log(`   - GR-001: Recepción completa (2kg papa rechazada)`);
+    console.log(`   - Recipes: Pollo entero, 1/2, 1/4, Papas grande/mediana`);
 }
 
 main()

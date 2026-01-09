@@ -33,8 +33,10 @@ export async function encryptData(data: object, password: string): Promise<Blob>
     return new Blob([combined], { type: "application/octet-stream" });
 }
 
+import { logger } from '@/src/core/observability/logger';
+
 export async function decryptData(blob: Blob, password: string): Promise<unknown> {
-    console.log(`[decryptData] Blob size: ${blob.size}`);
+    logger.debug('DECRYPT_START', 'Starting decryption', { blobSize: blob.size });
 
     const buffer = await blob.arrayBuffer();
     const u8 = new Uint8Array(buffer);
@@ -48,7 +50,7 @@ export async function decryptData(blob: Blob, password: string): Promise<unknown
     // Extract Ciphertext (rest)
     const ciphertext = u8.slice(12);
 
-    console.log(`[decryptData] IV length: ${iv.length}, Ciphertext length: ${ciphertext.length}`);
+    logger.debug('DECRYPT_PROGRESS', 'Extracted IV and ciphertext', { ivLength: iv.length, ciphertextLength: ciphertext.length });
 
     try {
         const key = await getCryptoKey(password);
@@ -63,7 +65,7 @@ export async function decryptData(blob: Blob, password: string): Promise<unknown
         const str = decoder.decode(decrypted);
         return JSON.parse(str);
     } catch (e) {
-        console.error("[decryptData] Crypto Operation Failed:", e);
+        logger.error('DECRYPT_FAILED', 'Crypto operation failed', e instanceof Error ? e : undefined, {});
         throw new Error("Contraseña incorrecta o archivo corrupto.");
     }
 }

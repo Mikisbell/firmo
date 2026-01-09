@@ -2,6 +2,7 @@
 import { db } from "@/src/core/db/schema";
 import { ingestRequestSchema, type IngestRequest, type ParkEvent } from "@/src/core/domain/events";
 import { syncCircuitBreaker } from "./circuit-breaker";
+import { logger, syncLogger, logEvents } from "@/src/core/observability/logger";
 
 export type IngestResponse = {
     accepted: boolean;
@@ -9,7 +10,15 @@ export type IngestResponse = {
     terminal_id?: string;
     acked_through_terminal_sequence: number | null;
     deduped_event_ids?: string[];
-    rejected?: { event_id: string; code: string; message: string }[];
+    rejected?: Array<{ 
+        event_id: string; 
+        error: string; 
+        details?: Record<string, unknown>;
+    }>;
+    merged?: Array<{
+        event_id: string;
+        merge_type: string;
+    }>;
     error?: {
         error_code: string;
         severity: "INFO" | "WARN" | "ERROR" | "FATAL";
@@ -44,6 +53,85 @@ function jitter(ms: number, ratio: number) {
 function nextBackoff(attempt: number, minMs: number, maxMs: number) {
     const raw = minMs * Math.pow(2, Math.min(attempt, 10));
     return Math.min(raw, maxMs);
+}
+
+// UUID v4 regex pattern
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isValidUUID(str: string): boolean {
+    return UUID_REGEX.test(str);
+}
+
+// Check if event has invalid UUIDs in payload (like product_id: "p1", "prod_001")
+function hasInvalidUUIDs(event: ParkEvent): boolean {
+    // First check actor_id - must be valid UUID or null/undefined
+    if (event.actor_id && typeof event.actor_id === 'string') {
+        if (!isValidUUID(event.actor_id)) {
+            logger.warn('sync.invalid_uuid', `Event ${event.event_id} has invalid actor_id`, { 
+                event_id: event.event_id, 
+                actor_id: event.actor_id 
+            });
+            return true;
+        }
+    }
+
+    // Deep search for invalid UUIDs in the entire payload
+    const payloadStr = JSON.stringify(event.payload);
+    
+    // Check for common invalid patterns
+    const invalidPatterns = [
+        /"product_id"\s*:\s*"p\d+"/i,           // "product_id": "p1"
+        /"product_id"\s*:\s*"prod_\d+"/i,       // "product_id": "prod_001"
+        /"order_id"\s*:\s*"order_\d+"/i,        // "order_id": "order_1"
+        /"line_id"\s*:\s*"line_\d+"/i,          // "line_id": "line_1" (this is OK, but check product_id)
+    ];
+    
+    for (const pattern of invalidPatterns) {
+        if (pattern.test(payloadStr)) {
+            logger.warn('sync.invalid_uuid', `Found invalid UUID pattern in event ${event.event_id}`, { 
+                event_id: event.event_id, 
+                payload_preview: payloadStr.substring(0, 200) 
+            });
+            return true;
+        }
+    }
+    
+    // Also check specific fields
+    const payload = event.payload as Record<string, unknown>;
+    
+    // Check common UUID fields at root level
+    const uuidFields = ['product_id', 'order_id', 'shift_id', 'invoice_id', 'customer_id'];
+    
+    for (const field of uuidFields) {
+        if (payload[field] && typeof payload[field] === 'string') {
+            if (!isValidUUID(payload[field] as string)) {
+                return true;
+            }
+        }
+    }
+    
+    // Check nested line items
+    if (payload.line && typeof payload.line === 'object') {
+        const line = payload.line as Record<string, unknown>;
+        if (line.product_id && typeof line.product_id === 'string') {
+            if (!isValidUUID(line.product_id as string)) {
+                return true;
+            }
+        }
+    }
+    
+    // Check items array
+    if (Array.isArray(payload.items)) {
+        for (const item of payload.items) {
+            if (item.product_id && typeof item.product_id === 'string') {
+                if (!isValidUUID(item.product_id as string)) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
 }
 
 export class SyncClient {
@@ -82,8 +170,44 @@ export class SyncClient {
             window.addEventListener("online", this.onOnlineBound);
             this.timer = window.setInterval(() => void this.syncNow(), this.tickMs);
             this.connectSSE();
+            
+            // Clean up invalid events on startup BEFORE first sync
+            this.cleanupInvalidEvents().then(() => {
+                void this.syncNow();
+            });
+            return; // Don't call syncNow() below, wait for cleanup
         }
         void this.syncNow();
+    }
+    
+    /**
+     * Clean up events with invalid actor_id on startup.
+     * Marks them as synced to prevent retry loops.
+     */
+    private async cleanupInvalidEvents(): Promise<void> {
+        try {
+            const pending = await db.events
+                .where("synced")
+                .equals(0)
+                .toArray() as any as ParkEvent[];
+            
+            const invalidEvents = pending.filter(e => hasInvalidUUIDs(e));
+            
+            if (invalidEvents.length > 0) {
+                await db.transaction('rw', db.events, async () => {
+                    for (const ev of invalidEvents) {
+                        if ((ev as any).id) {
+                            await db.events.update((ev as any).id, { synced: 1 });
+                        }
+                    }
+                });
+                logger.info('sync.cleanup', `Cleaned up ${invalidEvents.length} events with invalid UUIDs on startup`, { 
+                    count: invalidEvents.length 
+                });
+            }
+        } catch (e) {
+            logger.error('sync.cleanup_error', 'Error cleaning up invalid events', e instanceof Error ? e : new Error(String(e)));
+        }
     }
 
     stop() {
@@ -107,20 +231,20 @@ export class SyncClient {
             try {
                 const event = JSON.parse(msg.data);
                 if (event.type === "CONNECTED") {
-                    console.log("[Sync] SSE Connected");
+                    logger.info('sync.sse_connected', 'SSE Connected');
                     return;
                 }
 
                 // Process incoming ParkEvent
                 await this.handleIncomingEvent(event);
             } catch (error) {
-                console.error("[Sync] SSE Error parsing:", error);
+                logger.error('sync.sse_parse_error', 'SSE Error parsing', error instanceof Error ? error : new Error(String(error)));
             }
         };
 
-        this.eventSource.onerror = (e) => {
+        this.eventSource.onerror = (_e) => {
             // Browser auto-reconnects, but we log
-            console.warn("[Sync] SSE Connection lost, browser will retry...", e);
+            logger.warn('sync.sse_connection_lost', 'SSE Connection lost, browser will retry...');
         };
     }
 
@@ -163,7 +287,7 @@ export class SyncClient {
                 // so simply adding to DB *should* trigger UI update automatically!
             });
         } catch (e) {
-            console.error("[Sync] Error applying SSE event:", e);
+            logger.error('sync.sse_apply_error', 'Error applying SSE event', e instanceof Error ? e : new Error(String(e)));
         }
     }
 
@@ -186,7 +310,7 @@ export class SyncClient {
     async syncOnce(): Promise<IngestResponse | null> {
         // Check circuit breaker first
         if (syncCircuitBreaker.isOpen()) {
-            console.log('[Sync] Circuit breaker OPEN, skipping sync');
+            logger.debug('sync.circuit_open', 'Circuit breaker OPEN, skipping sync');
             return null;
         }
 
@@ -202,14 +326,58 @@ export class SyncClient {
             return null;
         }
 
+        // Filter out events with invalid UUIDs and mark them as synced to prevent retry loops
+        const validEvents: ParkEvent[] = [];
+        const invalidEvents: ParkEvent[] = [];
+        
+        for (const event of pending) {
+            if (hasInvalidUUIDs(event)) {
+                invalidEvents.push(event);
+                logger.warn('sync.skip_invalid', `Skipping event ${event.event_id} with invalid UUID in payload`, { 
+                    event_id: event.event_id 
+                });
+            } else {
+                validEvents.push(event);
+            }
+        }
+        
+        // Mark invalid events as "synced" to stop retry attempts
+        if (invalidEvents.length > 0) {
+            await db.transaction('rw', db.events, async () => {
+                for (const ev of invalidEvents) {
+                    // Use the auto-increment id if available, otherwise find by event_id
+                    if ((ev as any).id) {
+                        await db.events.update((ev as any).id, { synced: 1 });
+                    } else {
+                        // Find by tenant_id + event_id compound key
+                        const existing = await db.events
+                            .where('[tenant_id+event_id]')
+                            .equals([ev.tenant_id, ev.event_id])
+                            .first();
+                        if (existing?.id) {
+                            await db.events.update(existing.id, { synced: 1 });
+                        }
+                    }
+                }
+            });
+            logger.info('sync.marked_invalid', `Marked ${invalidEvents.length} invalid events as synced`, { 
+                count: invalidEvents.length 
+            });
+        }
+        
+        if (validEvents.length === 0) {
+            await this.updateSyncAttempt("OK");
+            return null;
+        }
+
         // recortar a bloque contiguo
-        const contiguous: ParkEvent[] = [pending[0]!];
-        for (let i = 1; i < pending.length; i++) {
+        const contiguous: ParkEvent[] = [validEvents[0]!];
+        for (let i = 1; i < validEvents.length; i++) {
             // Aseguramos number para evitar errores sutiles de tipos
             const prev = Number(contiguous[contiguous.length - 1]!.terminal_sequence);
-            const cur = Number(pending[i]!.terminal_sequence);
+            const cur = Number(validEvents[i]!.terminal_sequence);
             if (cur !== prev + 1) break;
-            contiguous.push(pending[i]!);
+            contiguous.push(validEvents[i]!);
         }
 
         const first = contiguous[0]!;
@@ -243,7 +411,39 @@ export class SyncClient {
                 const data = (await r.json()) as IngestResponse;
 
                 if (!r.ok && data?.error) {
-                    console.error("[Sync] Server rejected batch:", JSON.stringify(data.error, null, 2));
+                    logger.error('sync.server_rejected', 'Server rejected batch', undefined, { 
+                        error_code: data.error.error_code,
+                        message: data.error.message 
+                    });
+                    
+                    // If SCHEMA_VALIDATION_FAILED with actor_id issues, mark events as synced to stop retry loop
+                    if (data.error.error_code === 'SCHEMA_VALIDATION_FAILED' && data.error.context?.issues) {
+                        const issues = data.error.context.issues as Array<{ path?: string[]; validation?: string }>;
+                        const hasActorIdIssue = issues.some(i => 
+                            i.path?.includes('actor_id') && i.validation === 'uuid'
+                        );
+                        
+                        if (hasActorIdIssue) {
+                            logger.warn('sync.invalid_actor_id', 'Detected invalid actor_id in batch, marking events as synced to prevent retry loop');
+                            // Mark all events in this batch as synced
+                            await db.transaction('rw', db.events, async () => {
+                                for (const ev of contiguous) {
+                                    if ((ev as any).id) {
+                                        await db.events.update((ev as any).id, { synced: 1 });
+                                    }
+                                }
+                            });
+                            // Return a non-retryable response
+                            return {
+                                accepted: false,
+                                acked_through_terminal_sequence: null,
+                                error: {
+                                    ...data.error,
+                                    retryable: false,
+                                },
+                            };
+                        }
+                    }
                 }
 
                 if (!r.ok) {
@@ -256,7 +456,7 @@ export class SyncClient {
             const err = e instanceof Error ? e : new Error(String(e));
             
             if (err.message === 'Circuit breaker is OPEN') {
-                console.log('[Sync] Circuit breaker OPEN, skipping request');
+                logger.debug('sync.circuit_open', 'Circuit breaker OPEN, skipping request');
                 return null;
             }
 
@@ -338,6 +538,10 @@ export class SyncClient {
 
             if (result.accepted) {
                 this.attempt = 0;
+                
+                // Handle conflicts - emit events for UI
+                await this.handleConflictResponse(result);
+                
                 // If there might be more events, schedule another sync immediately
                 const remaining = await db.events.where("synced").equals(0).count();
                 if (remaining > 0) {
@@ -347,15 +551,122 @@ export class SyncClient {
                 // Retry with backoff
                 this.attempt++;
                 const delay = jitter(nextBackoff(this.attempt, this.minBackoffMs, this.maxBackoffMs), this.jitterRatio);
-                console.warn(`[Sync] Batch rejected, retrying in ${delay}ms...`);
+                logger.warn('sync.batch_rejected', `Batch rejected, retrying in ${delay}ms...`, { delay_ms: delay });
                 await sleep(delay);
                 void this.syncNow();
             }
         } catch (e) {
-            console.error("[Sync] syncNow error:", e);
+            logger.error('sync.error', 'syncNow error', e instanceof Error ? e : new Error(String(e)));
             this.attempt++;
         } finally {
             this.syncing = false;
+        }
+    }
+
+    /**
+     * Handle conflict responses from server.
+     * Emits events for UI and refreshes affected orders.
+     */
+    private async handleConflictResponse(resp: IngestResponse): Promise<void> {
+        // Handle rejected events (REVISION_CONFLICT, PAYMENT_CONFLICT)
+        if (resp.rejected && resp.rejected.length > 0) {
+            for (const rejection of resp.rejected) {
+                const conflictType = rejection.error as 'REVISION_CONFLICT' | 'PAYMENT_CONFLICT';
+                
+                if (conflictType === 'REVISION_CONFLICT' || conflictType === 'PAYMENT_CONFLICT') {
+                    logger.warn(logEvents.CONFLICT_DETECTED, `Conflict detected: ${conflictType} for event ${rejection.event_id}`, { 
+                        event_id: rejection.event_id,
+                        conflict_type: conflictType 
+                    });
+                    
+                    // Emit event for UI
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('conflict-detected', {
+                            detail: {
+                                type: conflictType,
+                                event_id: rejection.event_id,
+                                aggregate_id: rejection.details?.aggregate_id,
+                                details: rejection.details,
+                            }
+                        }));
+                    }
+                    
+                    // Refresh the affected order from server
+                    const aggregateId = rejection.details?.aggregate_id as string;
+                    if (aggregateId) {
+                        await this.refreshOrder(aggregateId);
+                    }
+                }
+            }
+        }
+        
+        // Handle merged events (informational)
+        if (resp.merged && resp.merged.length > 0) {
+            for (const merge of resp.merged) {
+                logger.info(logEvents.CONFLICT_RESOLVED, `Event ${merge.event_id} was merged with strategy: ${merge.merge_type}`, { 
+                    event_id: merge.event_id,
+                    merge_type: merge.merge_type 
+                });
+                
+                // Emit event for UI (optional toast)
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('conflict-detected', {
+                        detail: {
+                            type: 'MERGED',
+                            event_id: merge.event_id,
+                            details: { merge_type: merge.merge_type },
+                        }
+                    }));
+                }
+            }
+        }
+    }
+
+    /**
+     * Refresh an order from the server.
+     * Used after conflict detection to get the latest state.
+     * Emits an event for UI to refresh its local state.
+     */
+    async refreshOrder(orderId: string): Promise<boolean> {
+        try {
+            const response = await fetch(`/api/orders/${orderId}/state`, {
+                headers: {
+                    "x-api-secret": "park_secret_mvp_2025"
+                }
+            });
+            
+            if (!response.ok) {
+                logger.warn('sync.refresh_failed', `Failed to refresh order ${orderId}: ${response.status}`, { 
+                    order_id: orderId, 
+                    status: response.status 
+                });
+                return false;
+            }
+            
+            const data = await response.json();
+            
+            // Emit event for UI to update its local state
+            // The UI components using useLiveQuery will pick this up
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('order-refreshed', {
+                    detail: {
+                        orderId,
+                        order: data.order,
+                        revision: data.revision,
+                    }
+                }));
+            }
+            
+            logger.info('sync.order_refreshed', `Refreshed order ${orderId} from server (revision: ${data.revision})`, { 
+                order_id: orderId, 
+                revision: data.revision 
+            });
+            return true;
+        } catch (e) {
+            logger.error('sync.refresh_error', `Error refreshing order ${orderId}`, e instanceof Error ? e : new Error(String(e)), { 
+                order_id: orderId 
+            });
+            return false;
         }
     }
 }
@@ -364,4 +675,21 @@ let singleton: SyncClient | null = null;
 export function getSyncClient(opts?: SyncClientOptions) {
     if (!singleton) singleton = new SyncClient(opts);
     return singleton;
+}
+
+// ============================================================================
+// Conflict Event Types (for UI notification)
+// ============================================================================
+
+export type ConflictEvent = {
+    type: 'REVISION_CONFLICT' | 'PAYMENT_CONFLICT' | 'MERGED';
+    event_id: string;
+    aggregate_id?: string;
+    details?: Record<string, unknown>;
+};
+
+export function emitConflictEvent(conflict: ConflictEvent) {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('conflict-detected', { detail: conflict }));
+    }
 }

@@ -9,6 +9,7 @@
  */
 
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@/src/core/observability/logger";
 
 const prisma = new PrismaClient();
 
@@ -18,13 +19,16 @@ export async function cleanupProcessedEvents(retentionDays: number = RETENTION_D
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - retentionDays);
 
-    const result = await prisma.processedEvent.deleteMany({
+    const result = await prisma.processed_events.deleteMany({
         where: {
             processed_at: { lt: cutoff }
         }
     });
 
-    console.log(`[Cleanup] Deleted ${result.count} processed events older than ${retentionDays} days`);
+    logger.info('cleanup.processed_events', `Deleted ${result.count} processed events older than ${retentionDays} days`, { 
+        count: result.count, 
+        retention_days: retentionDays 
+    });
     return result.count;
 }
 
@@ -32,11 +36,11 @@ export async function cleanupProcessedEvents(retentionDays: number = RETENTION_D
 if (require.main === module) {
     cleanupProcessedEvents()
         .then((count) => {
-            console.log(`Cleanup complete. Removed ${count} records.`);
+            logger.info('cleanup.complete', `Cleanup complete. Removed ${count} records.`, { count });
             process.exit(0);
         })
         .catch((error) => {
-            console.error("Cleanup failed:", error);
+            logger.error('cleanup.failed', 'Cleanup failed', error instanceof Error ? error : undefined);
             process.exit(1);
         });
 }

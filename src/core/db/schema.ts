@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
+import { logger } from '@/src/core/observability/logger';
 
 // ---------------------------
 // Types match EventEnvelope (aligned with Zod schema)
@@ -11,6 +12,7 @@ export interface EventEntity {
     event_id: string;
     event_type: string;
     schema_version: number;
+    payload_version: number;
     occurred_at: string;
     aggregate_type: string;
     aggregate_id: string;
@@ -52,6 +54,16 @@ export interface ProjectionEntity {
     last_seq: number;
 }
 
+// Snapshot entity for fast projection rebuilds
+export interface SnapshotEntity {
+    id?: number;              // auto-increment
+    aggregate_type: string;   // 'ORDER', 'SHIFT', 'GLOBAL'
+    aggregate_id: string;     // order_id, shift_id, or 'global'
+    sequence: number;         // Last event sequence included
+    state: any;               // Serialized projection state
+    created_at: string;       // ISO timestamp
+}
+
 // ---------------------------
 // DB Class
 // ---------------------------
@@ -63,6 +75,7 @@ export class ParkDB extends Dexie {
     catalog_versions!: EntityTable<CatalogVersionEntity, any>;
     catalog_items!: EntityTable<CatalogItemEntity, 'id'>;
     projections!: EntityTable<ProjectionEntity, 'key'>;
+    snapshots!: EntityTable<SnapshotEntity, 'id'>;
 
     constructor() {
         super(DB_NAME);
@@ -110,6 +123,16 @@ export class ParkDB extends Dexie {
             catalog_versions: '[tenant_id+version], active',
             catalog_items: 'id, product_id, name'
         });
+
+        // Version 5: Added snapshots table for fast projection rebuilds
+        this.version(5).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, aggregate_id, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, product_id, name',
+            snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at'
+        });
     }
 }
 
@@ -153,5 +176,32 @@ export async function clearLocalDatabase(): Promise<void> {
     await instance.sync_state.clear();
     await instance.catalog_versions.clear();
     await instance.catalog_items.clear();
-    console.log('[DB] Local database cleared');
+    logger.info('DB_CLEARED', 'Local database cleared');
+}
+
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Helper to clean events with invalid actor_id (not a valid UUID)
+export async function cleanInvalidActorIdEvents(): Promise<number> {
+    if (typeof window === 'undefined') return 0;
+    const instance = getDbInstance();
+    
+    // Get all unsynced events
+    const unsyncedEvents = await instance.events.where('synced').equals(0).toArray();
+    
+    // Find events with invalid actor_id
+    const invalidEvents = unsyncedEvents.filter(ev => {
+        if (!ev.actor_id) return false; // null/undefined is OK
+        return !UUID_REGEX.test(ev.actor_id);
+    });
+    
+    if (invalidEvents.length === 0) return 0;
+    
+    // Delete invalid events
+    const idsToDelete = invalidEvents.map(ev => ev.id!).filter(Boolean);
+    await instance.events.bulkDelete(idsToDelete);
+    
+    logger.info('DB_CLEANED_INVALID_EVENTS', 'Cleaned events with invalid actor_id', { count: invalidEvents.length });
+    return invalidEvents.length;
 }

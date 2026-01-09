@@ -4,17 +4,14 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useOrder } from "@/src/app/mozo/hooks/useOrder";
-import CatalogGrid from "@/src/app/(pos)/components/CatalogGrid";
+import CatalogGrid from "@/src/app/pos/components/CatalogGrid";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { db } from "@/src/core/db/schema";
 import { ParkEvent } from "@/src/core/domain/events";
 import { OrderPanel } from "@/src/components/shared/OrderPanel";
 import { ArrowLeft, Clock } from "lucide-react";
-
-// MVP Constants
-const TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const TERMINAL_ID = "waiter_1";
-const ACTOR_ID = "00000000-0000-0000-0000-000000000002";
+import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
+import { TerminalConfig } from "@/src/core/auth/types";
 
 export default function WaiterOrderPage({ params }: { params: Promise<{ tableId: string }> }) {
     const router = useRouter();
@@ -22,9 +19,21 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
 
     const [orderId, setOrderId] = useState<string | null>(null);
     const [initializing, setInitializing] = useState(true);
+    const [terminalConfig, setTerminalConfig] = useState<TerminalConfig | null>(null);
 
     // Reactive State
     const activeSale = useOrder(orderId);
+
+    // 0. Load terminal config and redirect if not configured
+    useEffect(() => {
+        const config = getStoredTerminalConfig();
+        if (!config?.terminal_id) {
+            toast.error("Terminal no configurado");
+            router.replace("/");
+            return;
+        }
+        setTerminalConfig(config);
+    }, [router]);
 
     // 1. Resolve existing order for this table
     useEffect(() => {
@@ -73,29 +82,45 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
     }, [tableId]);
 
     const handleAddItem = async (product: any) => {
+        if (!terminalConfig) {
+            toast.error("Terminal no configurado");
+            return;
+        }
+
         try {
             let targetOrderId = orderId;
 
             if (!targetOrderId) {
-                const res = await POSActions.createOrder(TENANT_ID, TERMINAL_ID, ACTOR_ID, {
-                    order_type: "DINE_IN",
-                    order_number: Math.floor(Math.random() * 1000),
-                    table_number: tableId
-                });
+                const res = await POSActions.createOrder(
+                    terminalConfig.tenant_id,
+                    terminalConfig.terminal_id,
+                    terminalConfig.actor_id, // Use actor_id (UUID) instead of terminal_id
+                    {
+                        order_type: "DINE_IN",
+                        order_number: Math.floor(Math.random() * 1000),
+                        table_number: tableId
+                    }
+                );
                 targetOrderId = res.order_id;
                 setOrderId(targetOrderId);
                 toast.info("Pedido creado");
             }
 
             if (targetOrderId) {
-                await POSActions.addItem(TENANT_ID, TERMINAL_ID, ACTOR_ID, targetOrderId, {
-                    product_id: product.id,
-                    sku: product.id,
-                    name: product.name,
-                    unit_price_cents: product.price,
-                    station: product.station,
-                    qty: 1
-                });
+                await POSActions.addItem(
+                    terminalConfig.tenant_id,
+                    terminalConfig.terminal_id,
+                    terminalConfig.actor_id, // Use actor_id (UUID) instead of terminal_id
+                    targetOrderId,
+                    {
+                        product_id: product.id,
+                        sku: product.id,
+                        name: product.name,
+                        unit_price_cents: product.price,
+                        station: product.station,
+                        qty: 1
+                    }
+                );
                 toast.success(`+1 ${product.name}`);
             }
         } catch (e) {
@@ -104,14 +129,72 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
         }
     };
 
-    const handleSendToKitchen = () => {
-        toast.success("¡Pedido enviado a cocina!");
-        // TODO: Emit ORDER_SUBMITTED event
+    const handleSendToKitchen = async () => {
+        if (!orderId || !terminalConfig) {
+            toast.error("No hay pedido activo");
+            return;
+        }
+
+        const items = activeSale ? Object.values(activeSale.lines) : [];
+        if (items.length === 0) {
+            toast.error("No hay items para enviar");
+            return;
+        }
+
+        try {
+            // Group items by station for the toast message
+            const stationCounts: Record<string, number> = {};
+            items.forEach(item => {
+                const station = item.station || "COCINA";
+                stationCounts[station] = (stationCounts[station] || 0) + item.qty;
+            });
+
+            await POSActions.submitToKitchen(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                items.map(item => ({
+                    line_id: item.line_id,
+                    product_id: item.product_id,
+                    name: item.name,
+                    qty: item.qty,
+                    station: item.station,
+                    mods: [],
+                    notes: undefined,
+                }))
+            );
+
+            // Build toast message with stations
+            const stationList = Object.entries(stationCounts)
+                .map(([station, count]) => `${station}: ${count}`)
+                .join(", ");
+            toast.success(`¡Enviado! ${stationList}`);
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al enviar a cocina");
+        }
     };
 
-    const handleCallBill = () => {
-        toast.info("Caja notificada: Mesa quiere pagar");
-        // TODO: Emit BILL_REQUESTED event
+    const handleCallBill = async () => {
+        if (!orderId || !terminalConfig) {
+            toast.error("No hay pedido activo");
+            return;
+        }
+
+        try {
+            await POSActions.requestCheck(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                tableId
+            );
+            toast.info("Caja notificada: Mesa quiere pagar");
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al solicitar cuenta");
+        }
     };
 
     const handlePrintPrecheck = () => {
@@ -120,16 +203,66 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
     };
 
     const handleRemoveItem = async (lineId: string) => {
-        if (!orderId) return;
+        if (!orderId || !terminalConfig) return;
         try {
-            await POSActions.voidItem(TENANT_ID, TERMINAL_ID, ACTOR_ID, orderId, lineId, "REMOVED");
+            await POSActions.voidItem(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                lineId,
+                "REMOVED"
+            );
             toast.success("Item eliminado");
         } catch (_e) {
             toast.error("Error al eliminar");
         }
     };
 
-    if (initializing) {
+    const handleIncrement = async (lineId: string) => {
+        if (!orderId || !terminalConfig) return;
+        const item = activeSale?.lines[lineId];
+        if (!item) return;
+        
+        try {
+            await POSActions.updateItemQuantity(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                lineId,
+                item.qty,
+                item.qty + 1
+            );
+        } catch (_e) {
+            toast.error("Error al incrementar");
+        }
+    };
+
+    const handleDecrement = async (lineId: string) => {
+        if (!orderId || !terminalConfig) return;
+        const item = activeSale?.lines[lineId];
+        if (!item) return;
+        
+        try {
+            await POSActions.updateItemQuantity(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                lineId,
+                item.qty,
+                item.qty - 1
+            );
+            if (item.qty - 1 <= 0) {
+                toast.success("Item eliminado");
+            }
+        } catch (_e) {
+            toast.error("Error al decrementar");
+        }
+    };
+
+    if (initializing || !terminalConfig) {
         return (
             <div className="h-screen flex items-center justify-center bg-park-black">
                 <div className="text-center">
@@ -175,6 +308,8 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                     subtotalCents={activeSale?.subtotal_cents ?? 0}
                     orderNumber={activeSale?.order_number}
                     tableId={tableId}
+                    onIncrement={handleIncrement}
+                    onDecrement={handleDecrement}
                     onRemove={handleRemoveItem}
                     onSendToKitchen={handleSendToKitchen}
                     onCallBill={handleCallBill}

@@ -1,27 +1,63 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { useState, useEffect } from "react";
 import { db } from "@/src/core/db/schema";
 import { ParkEvent } from "@/src/core/domain/events";
 
-export type TableStatus = "FREE" | "OCCUPIED" | "BILL_PRINTED" | "PAID";
+export type TableStatus = "FREE" | "OCCUPIED" | "BILL_REQUESTED" | "PAID";
 
-export type TableInfo = {
-    id: string; // "M1", "M2"
+export interface Zone {
+    id: string;
+    code: string;
+    name: string;
+    color: string;
+}
+
+export interface TableInfo {
+    id: string;
+    number: string;
     name: string;
     status: TableStatus;
     orderId?: string;
     waiterName?: string;
     totalCents?: number;
-    time?: string;
-};
+    elapsedMinutes?: number;
+    readyItemsCount?: number;
+    createdAt?: string;
+    zone?: Zone;
+}
 
-export function useTableStatus() {
+// Fetch tables from API
+async function fetchTablesFromAPI(): Promise<Array<{
+    id: string;
+    number: string;
+    display_name: string | null;
+    zone: Zone | null;
+    is_active: boolean;
+}>> {
+    try {
+        const res = await fetch('/api/admin/tables?active=true');
+        if (!res.ok) return [];
+        return await res.json();
+    } catch {
+        return [];
+    }
+}
+
+export function useTableStatus(zoneId?: string) {
+    const [apiTables, setApiTables] = useState<Array<{
+        id: string;
+        number: string;
+        display_name: string | null;
+        zone: Zone | null;
+    }>>([]);
+
+    // Load tables from API on mount
+    useEffect(() => {
+        fetchTablesFromAPI().then(setApiTables);
+    }, []);
+
     const tables = useLiveQuery(async () => {
-        // 1. Get all relevant events
-        // Optimization: In real app, we might query 'active_orders' projection.
-        // For Pilot: Query all ORDER_CREATED and filter status dynamically.
-
-        // We fetch ALL events for now? No, just ORDER type events.
-        // Dexie doesn't allow easy "OR" on index unless we gather.
+        // 1. Get all ORDER events from IndexedDB
         const events = await db.events
             .where("aggregate_type")
             .equals("ORDER")
@@ -29,11 +65,14 @@ export function useTableStatus() {
 
         // 2. Rebuild state of Open Orders
         const ordersMap = new Map<string, {
-            orderId: string,
-            table?: string,
-            status: string,
-            total: number,
-            waiter?: string // Need actor_id to name? OR just use terminal_id as proxy
+            orderId: string;
+            table?: string;
+            status: string;
+            total: number;
+            waiter?: string;
+            createdAt?: string;
+            billRequested?: boolean;
+            readyItems: number;
         }>();
 
         // Sort by sequence to replay correctly
@@ -41,61 +80,140 @@ export function useTableStatus() {
 
         for (const ev of events) {
             if (ev.event_type === "ORDER_CREATED") {
-                const p = ev.payload as any;
-                ordersMap.set(p.order_id, {
-                    orderId: p.order_id,
-                    table: p.fulfillment?.table_number,
-                    status: p.order_status || "OPEN",
+                const p = ev.payload as Record<string, unknown>;
+                const fulfillment = p.fulfillment as Record<string, unknown> | undefined;
+                ordersMap.set(p.order_id as string, {
+                    orderId: p.order_id as string,
+                    table: fulfillment?.table_number as string | undefined,
+                    status: (p.order_status as string) || "OPEN",
                     total: 0,
-                    waiter: ev.actor_id || "Mozo"
+                    waiter: ev.actor_id || "Mozo",
+                    createdAt: ev.occurred_at,
+                    readyItems: 0,
                 });
             } else if (ev.event_type === "ORDER_CANCELLED") {
-                const p = ev.payload as any;
-                ordersMap.delete(p.order_id); // Remove from tracking
+                const p = ev.payload as Record<string, unknown>;
+                ordersMap.delete(p.order_id as string);
             } else if (ev.event_type === "CHECK_MARKED_PAID") {
-                // Needs loop to check if ALL checks are paid.
-                // MVP Simplification: If check paid, assume order might be closing.
-                // Real logic requires counting unpaid checks.
-            } else if (ev.event_type === "ORDER_ITEM_ADDED") {
-                const p = ev.payload as any;
-                const ord = ordersMap.get(p.order_id);
+                const p = ev.payload as Record<string, unknown>;
+                const ord = ordersMap.get(p.order_id as string);
                 if (ord) {
-                    ord.total += (p.line.qty * p.line.unit_price_cents);
+                    ord.status = "PAID";
+                }
+            } else if (ev.event_type === "ORDER_ITEM_ADDED") {
+                const p = ev.payload as Record<string, unknown>;
+                const line = p.line as Record<string, unknown>;
+                const ord = ordersMap.get(p.order_id as string);
+                if (ord && line) {
+                    ord.total += ((line.qty as number) * (line.unit_price_cents as number));
+                }
+            } else if (ev.event_type === "ORDER_ITEM_STATUS_CHANGED") {
+                const p = ev.payload as Record<string, unknown>;
+                const ord = ordersMap.get(p.order_id as string);
+                if (ord && p.to === "READY") {
+                    ord.readyItems++;
+                }
+            } else if (ev.event_type === "REQUEST_CHECK") {
+                // Mark order as bill requested
+                const p = ev.payload as Record<string, unknown>;
+                const ord = ordersMap.get(p.order_id as string);
+                if (ord) {
+                    ord.billRequested = true;
                 }
             }
         }
 
         // 3. Map to Tables
         const tableState: Record<string, TableInfo> = {};
+        const now = Date.now();
 
-        // Default Tables (Can be config later)
-        const ALL_TABLES = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        // Use API tables if available, fallback to default
+        const tablesToUse = apiTables.length > 0 ? apiTables : [
+            { id: "1", number: "1", display_name: "Mesa 1", zone: { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" } },
+            { id: "2", number: "2", display_name: "Mesa 2", zone: { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" } },
+            { id: "3", number: "3", display_name: "Mesa 3", zone: { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" } },
+            { id: "4", number: "4", display_name: "Mesa 4", zone: { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" } },
+            { id: "5", number: "5", display_name: "Mesa 5", zone: { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" } },
+            { id: "6", number: "6", display_name: "Mesa 6", zone: { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" } },
+            { id: "7", number: "7", display_name: "Mesa 7", zone: { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" } },
+            { id: "8", number: "8", display_name: "Mesa 8", zone: { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" } },
+            { id: "9", number: "9", display_name: "Mesa 9", zone: { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" } },
+        ];
 
-        // Initialize Free
-        ALL_TABLES.forEach(t => {
-            tableState[`M${t}`] = {
-                id: `M${t}`,
-                name: `Mesa ${t}`,
-                status: "FREE"
+        // Initialize all tables as FREE
+        tablesToUse.forEach(t => {
+            // Filter by zone if specified
+            if (zoneId && t.zone?.id !== zoneId) return;
+            
+            const tableId = t.number.startsWith("M") || t.number.startsWith("B") 
+                ? t.number 
+                : `M${t.number}`;
+            
+            tableState[tableId] = {
+                id: tableId,
+                number: t.number,
+                name: t.display_name || `Mesa ${t.number}`,
+                status: "FREE",
+                zone: t.zone || undefined,
             };
         });
 
-        // Fill Occupied
+        // Fill with order data
         ordersMap.forEach((ord) => {
-            if (ord.table) { // Table might be "M1" or "1"
-                // Normalize table ID
-                const tId = ord.table.startsWith("M") ? ord.table : `M${ord.table}`;
+            if (!ord.table || ord.status === "PAID") return;
+            
+            // Normalize table ID
+            const tId = ord.table.startsWith("M") || ord.table.startsWith("B") 
+                ? ord.table 
+                : `M${ord.table}`;
 
-                if (tableState[tId]) {
-                    tableState[tId].status = "OCCUPIED";
-                    tableState[tId].orderId = ord.orderId;
-                    tableState[tId].totalCents = ord.total;
+            if (tableState[tId]) {
+                // Calculate elapsed time
+                let elapsedMinutes: number | undefined;
+                if (ord.createdAt) {
+                    const created = new Date(ord.createdAt).getTime();
+                    elapsedMinutes = Math.floor((now - created) / 60000);
                 }
+
+                // Determine status
+                let status: TableStatus = "OCCUPIED";
+                if (ord.billRequested) {
+                    status = "BILL_REQUESTED";
+                }
+
+                tableState[tId] = {
+                    ...tableState[tId],
+                    status,
+                    orderId: ord.orderId,
+                    totalCents: ord.total,
+                    waiterName: ord.waiter,
+                    elapsedMinutes,
+                    readyItemsCount: ord.readyItems > 0 ? ord.readyItems : undefined,
+                    createdAt: ord.createdAt,
+                };
             }
         });
 
         return Object.values(tableState);
-    }, []);
+    }, [apiTables, zoneId]);
 
     return tables || [];
+}
+
+// Hook to get zones
+export function useZones() {
+    const [zones, setZones] = useState<Zone[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch('/api/admin/zones')
+            .then(res => res.ok ? res.json() : [])
+            .then(data => {
+                setZones(data);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
+
+    return { zones, loading };
 }

@@ -8,7 +8,7 @@ const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 export async function GET() {
   try {
-    const terminals = await prisma.terminal.findMany({
+    const terminals = await prisma.terminals.findMany({
       where: {
         tenant_id: TENANT_ID,
         is_allowed: true,

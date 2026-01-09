@@ -11,6 +11,7 @@
  */
 
 import { db, getDb } from './schema';
+import { logger } from '@/src/core/observability/logger';
 
 // Configuración
 const RETENTION_DAYS = 30;
@@ -28,7 +29,7 @@ export interface CleanupResult {
 export async function cleanupOldEvents(): Promise<CleanupResult> {
     const dbInstance = getDb();
     if (!dbInstance) {
-        console.log('[Cleanup] Skipping - not in browser');
+        logger.debug('CLEANUP_SKIPPED', 'Skipping cleanup - not in browser');
         return { deletedEvents: 0, freedSpaceEstimate: '0 KB', duration: 0 };
     }
 
@@ -63,7 +64,7 @@ export async function cleanupOldEvents(): Promise<CleanupResult> {
     const duration = Date.now() - startTime;
     const freedSpaceEstimate = formatBytes(totalDeleted * 500); // ~500 bytes por evento
 
-    console.log(`[Cleanup] Deleted ${totalDeleted} events older than ${RETENTION_DAYS} days in ${duration}ms`);
+    logger.info('CLEANUP_COMPLETED', 'Deleted old events', { count: totalDeleted, retentionDays: RETENTION_DAYS, durationMs: duration });
 
     return {
         deletedEvents: totalDeleted,
@@ -157,7 +158,7 @@ export async function needsCleanup(): Promise<boolean> {
  */
 export async function autoCleanup(): Promise<CleanupResult | null> {
     if (await needsCleanup()) {
-        console.log('[Cleanup] Auto-cleanup triggered');
+        logger.info('CLEANUP_AUTO_TRIGGERED', 'Auto-cleanup triggered');
         return cleanupOldEvents();
     }
     return null;
@@ -187,5 +188,5 @@ export async function clearAllLocalData(): Promise<void> {
     await db.catalog_versions.clear();
     await db.catalog_items.clear();
 
-    console.log('[Cleanup] All local data cleared');
+    logger.info('CLEANUP_ALL_DATA_CLEARED', 'All local data cleared');
 }

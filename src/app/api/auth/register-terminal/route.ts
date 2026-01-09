@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify tenant exists
-    const tenant = await prisma.tenantSettings.findUnique({
+    const tenant = await prisma.tenant_settings.findUnique({
       where: { tenant_id: tenantId },
     });
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if device already registered
-    const existing = await prisma.terminal.findFirst({
+    const existing = await prisma.terminals.findFirst({
       where: {
         tenant_id: tenantId,
         device_secret_hash: data.device_fingerprint,
@@ -63,14 +63,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate terminal ID
-    const terminalCount = await prisma.terminal.count({
+    const terminalCount = await prisma.terminals.count({
       where: { tenant_id: tenantId },
     });
     const terminalId = `${data.role}-${String(terminalCount + 1).padStart(2, '0')}`;
 
     // Create terminal
-    const terminal = await prisma.terminal.create({
+    const terminal = await prisma.terminals.create({
       data: {
+        id: crypto.randomUUID(),
         tenant_id: tenantId,
         terminal_id: terminalId,
         device_secret_hash: data.device_fingerprint,

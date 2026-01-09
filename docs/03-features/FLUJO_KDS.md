@@ -94,7 +94,9 @@ POLLERÍA TÍPICA:
 
 ## ESTACIONES DE PREPARACIÓN
 
-### Estación 1: PARRILLA
+> **Nota:** Según MASTER.md, el sistema usa 3 estaciones KDS principales.
+
+### Estación 1: HORNO/PARRILLA 🔥
 
 ```
 PRODUCTOS:
@@ -109,79 +111,40 @@ CARACTERÍSTICAS:
 - Requiere atención constante
 - Prioridad alta (producto principal)
 - 1-2 parrilleros por turno
-
-PANTALLA KDS:
-- Mostrar tiempo desde que entró
-- Alertar si > 20 min
-- Agrupar por tipo de pollo
 ```
 
-### Estación 2: FREIDORA
+### Estación 2: COCINA 🍳
 
 ```
 PRODUCTOS:
 - Papas fritas
 - Yucas fritas
-- Camotes fritos
-- Chicharrón
-- Nuggets
+- Ensaladas
+- Cremas y aderezos
+- Guarniciones
 
 CARACTERÍSTICAS:
 - Tiempo de preparación: 5-10 min
-- Puede preparar en batch
 - Sincronizar con parrilla
-- 1 freidorista por turno
-
-PANTALLA KDS:
-- Mostrar cantidad total de papas
-- Agrupar pedidos cercanos
-- Alertar cuando pollo casi listo
+- 1-2 cocineros por turno
 ```
 
-### Estación 3: COCINA FRÍA
-
-```
-PRODUCTOS:
-- Ensaladas
-- Cremas y aderezos
-- Ají
-- Sarsa criolla
-- Vinagreta
-
-CARACTERÍSTICAS:
-- Tiempo de preparación: 2-5 min
-- Puede preparar con anticipación
-- Menor prioridad
-- 1 ayudante por turno
-
-PANTALLA KDS:
-- Mostrar solo cuando orden casi lista
-- Agrupar por tipo de ensalada
-```
-
-### Estación 4: BAR 🍺
+### Estación 3: BAR 🍺
 
 ```
 PRODUCTOS:
 - Gaseosas (personal, 1.5L, 3L)
-- Cervezas (personal, grande, jarra)
+- Cervezas
 - Jugos naturales
 - Chicha morada
 - Refrescos
-- Cócteles (pisco sour, chilcano)
-- Vinos
-- Shots
+- Cócteles
 
 CARACTERÍSTICAS:
 - Tiempo de preparación: 1-5 min
 - Alta rotación
 - Puede servir antes que comida
 - 1-2 barman por turno
-
-PANTALLA KDS:
-- Prioridad alta (cliente espera)
-- Mostrar inmediatamente
-- Separar bebidas simples de cócteles
 ```
 
 ---
@@ -576,54 +539,36 @@ ESTADO ACTUAL: ❌ NO EXISTE
 
 ## DISEÑO PROPUESTO
 
-### Configuración de Estaciones
+### Configuración de Estaciones (3 según MASTER.md)
 
 ```typescript
 const KDS_STATIONS = [
   { 
     id: "PARRILLA", 
-    name: "Parrilla",
-    terminal_id: "kds_parrilla",
+    name: "Horno/Parrilla",
+    terminal_id: "KDS_PARRILLA",
     color: "#EF4444",  // Rojo
     avg_time_min: 20,
     alert_time_min: 25,
     products: ["pollo", "anticucho", "chuleta", "costilla"]
   },
   { 
-    id: "FREIDORA", 
-    name: "Freidora",
-    terminal_id: "kds_freidora",
+    id: "COCINA", 
+    name: "Cocina",
+    terminal_id: "KDS_COCINA",
     color: "#F59E0B",  // Amarillo
     avg_time_min: 8,
     alert_time_min: 12,
-    sync_with: "PARRILLA",  // Sincronizar con parrilla
-    products: ["papas", "yuca", "camote", "chicharron"]
-  },
-  { 
-    id: "COCINA_FRIA", 
-    name: "Cocina Fría",
-    terminal_id: "kds_fria",
-    color: "#3B82F6",  // Azul
-    avg_time_min: 3,
-    alert_time_min: 5,
-    products: ["ensalada", "crema", "aji", "sarsa"]
+    products: ["papas", "yuca", "ensalada", "crema", "guarnicion"]
   },
   { 
     id: "BAR", 
     name: "Bar",
-    terminal_id: "kds_bar",
+    terminal_id: "KDS_BAR",
     color: "#8B5CF6",  // Púrpura
     avg_time_min: 2,
     alert_time_min: 5,
     products: ["gaseosa", "cerveza", "jugo", "chicha", "pisco", "vino"]
-  },
-  { 
-    id: "EXPEDICION", 
-    name: "Expedición",
-    terminal_id: "kds_expedicion",
-    color: "#10B981",  // Verde
-    show_all: true,  // Muestra todo
-    alert_when_ready: true
   }
 ];
 ```

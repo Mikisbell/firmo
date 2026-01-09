@@ -1168,42 +1168,45 @@ this.version(4).stores({
 
 ## 📊 Resumen de Mejoras
 
-| # | Mejora | Prioridad | Esfuerzo | Fase |
-|---|--------|-----------|----------|------|
-| 1 | Outbox Pattern | 🔥 CRÍTICO | 2 días | P0 |
-| 2 | Event Schema Versioning | ⚠️ IMPORTANTE | 3 días | P1 |
-| 3 | Saga Pattern | 💡 MEJORA | 5 días | P1 |
-| 4 | Circuit Breaker | ⚠️ IMPORTANTE | 1 día | P0 |
-| 5 | Conflict Resolution | 🔥 CRÍTICO | 3 días | P0 |
-| 6 | Rate Limiting | ⚠️ IMPORTANTE | 1 día | P0 |
-| 7 | Monitoring/Observabilidad | ⚠️ IMPORTANTE | 2-3 días | P0 |
-| 8 | Event Compaction/Snapshots | ⚠️ IMPORTANTE | 3 días | P1 |
-| 9 | Property-Based Testing | 💡 MEJORA | 2 días | P1 |
-| 10 | Performance Indices | ⚠️ IMPORTANTE | 1 día | P0 |
+| # | Mejora | Prioridad | Esfuerzo | Fase | Estado |
+|---|--------|-----------|----------|------|--------|
+| 1 | Outbox Pattern | 🔥 CRÍTICO | 2 días | P0 | ✅ Completado |
+| 2 | Event Schema Versioning | ⚠️ IMPORTANTE | 3 días | P1 | ⏳ Pendiente |
+| 3 | Saga Pattern | 💡 MEJORA | 5 días | P2 | ⏳ Pendiente |
+| 4 | Circuit Breaker | ⚠️ IMPORTANTE | 1 día | P0 | ✅ Completado |
+| 5 | Conflict Resolution | 🔥 CRÍTICO | 3 días | P1 | ⏳ Pendiente |
+| 6 | Rate Limiting | ⚠️ IMPORTANTE | 1 día | P0 | ✅ Completado |
+| 7 | Monitoring/Observabilidad | ⚠️ IMPORTANTE | 2-3 días | P1 | ⏳ Pendiente |
+| 8 | Event Compaction/Snapshots | ⚠️ IMPORTANTE | 3 días | P1 | ⏳ Pendiente |
+| 9 | Property-Based Testing | 💡 MEJORA | 2 días | P2 | ⏳ Pendiente |
+| 10 | Performance Indices | ⚠️ IMPORTANTE | 1 día | P0 | ✅ Completado |
 
-**Total Estimado:**
-- **P0 (Antes de producción):** ~10-12 días
-- **P1 (Antes de escalar):** ~13 días
+**Estado Actual (Enero 2026):**
+- **P0 Completado:** 4/4 mejoras críticas ✅
+- **P1 Pendiente:** 4 mejoras importantes
+- **P2 Pendiente:** 2 mejoras opcionales
 
 ---
 
-## 🎯 Orden de Implementación Recomendado
+## 🎯 Orden de Implementación (Actualizado)
 
-### Semana 1 (Crítico - P0)
-1. **Día 1:** Performance Indices + Rate Limiting
-2. **Días 2-3:** Outbox Pattern
-3. **Días 4-5:** Conflict Resolution
+### ✅ Completado (P0)
+1. **Performance Indices** - ✅ Migración aplicada
+2. **Rate Limiting** - ✅ `src/core/middleware/rate-limit.ts`
+3. **Outbox Pattern** - ✅ Tabla `event_outbox` + worker
+4. **Circuit Breaker** - ✅ `src/core/sync/circuit-breaker.ts`
+5. **Event Deduplication** - ✅ Tabla `processed_events`
+6. **Server Validation** - ✅ `validateEvent()` en business-rules.ts
 
-### Semana 2 (Importante - P0)
-1. **Día 1:** Circuit Breaker
-2. **Días 2-4:** Monitoring/Observabilidad
-3. **Día 5:** Testing y validación
+### 🟡 Próximos (P1)
+1. Conflict Resolution (3 días)
+2. Event Schema Versioning (3 días)
+3. Snapshots/Compaction (3 días)
+4. Observabilidad (2-3 días)
 
-### Semana 3-4 (P1)
-1. Event Schema Versioning (3 días)
-2. Event Compaction/Snapshots (3 días)
-3. Property-Based Testing (2 días)
-4. Saga Pattern (5 días)
+### ⬜ Futuro (P2)
+1. Saga Pattern (5 días)
+2. Property-Based Testing (2 días)
 
 ---
 

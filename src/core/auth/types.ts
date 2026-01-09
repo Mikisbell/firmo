@@ -7,6 +7,7 @@ export type EmployeeRole = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'WAITER' | 'KITCHEN
 export interface TerminalConfig {
   terminal_id: string;
   tenant_id: string;
+  actor_id: string; // UUID for event actor_id field
   device_fingerprint: string;
   device_name: string;
   role: TerminalRole;

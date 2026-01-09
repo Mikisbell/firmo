@@ -3,6 +3,8 @@ import { PrismaClient, Prisma } from "@prisma/client";
 import { ingestRequestSchema, type ParkEvent } from "@/src/core/domain/events";
 import { validateEvent, type ValidationResult } from "@/src/core/validation";
 import { checkRateLimit } from "@/src/core/middleware/rate-limit";
+import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
+import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +47,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
     const { event_type, tenant_id, payload, occurred_at, terminal_id, actor_id } = event;
 
     // 1. Check if already processed (idempotency)
-    const exists = await tx.processedEvent.findUnique({
+    const exists = await tx.processed_events.findUnique({
         where: { event_id: event.event_id }
     });
 
@@ -55,7 +57,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
     }
 
     // 2. Mark as processed BEFORE projecting (prevents race conditions)
-    await tx.processedEvent.create({
+    await tx.processed_events.create({
         data: {
             event_id: event.event_id,
             tenant_id: event.tenant_id,
@@ -67,7 +69,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
         switch (event_type) {
             case "ORDER_CREATED": {
                 const p = payload as any;
-                await tx.order.upsert({
+                await tx.orders.upsert({
                     where: { id: p.order_id },
                     create: {
                         id: p.order_id,
@@ -97,11 +99,11 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "ORDER_ITEM_ADDED": {
                 const p = payload as any;
-                const order = await tx.order.findUnique({ where: { id: p.order_id } });
+                const order = await tx.orders.findUnique({ where: { id: p.order_id } });
                 if (order) {
                     const items = order.items as any[] || [];
                     const lineCents = (p.line.qty || 1) * (p.line.unit_price_cents || 0);
-                    await tx.order.update({
+                    await tx.orders.update({
                         where: { id: p.order_id },
                         data: {
                             items: [...items, p.line],
@@ -122,7 +124,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "CHECK_MARKED_PAID": {
                 const p = payload as any;
-                await tx.order.update({
+                await tx.orders.update({
                     where: { id: p.order_id },
                     data: {
                         unpaid_checks_count: { decrement: 1 },
@@ -134,7 +136,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "INVOICE_ISSUED": {
                 const p = payload as any;
-                await tx.invoice.upsert({
+                await tx.invoices.upsert({
                     where: {
                         tenant_id_order_id_check_id: {
                             tenant_id,
@@ -161,7 +163,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "SHIFT_OPENED": {
                 const p = payload as any;
-                await tx.shift.upsert({
+                await tx.shifts.upsert({
                     where: { id: p.shift_id },
                     create: {
                         id: p.shift_id,
@@ -179,7 +181,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "SHIFT_CLOSED": {
                 const p = payload as any;
-                await tx.shift.update({
+                await tx.shifts.update({
                     where: { id: p.shift_id },
                     data: {
                         status: "CLOSED",
@@ -190,6 +192,36 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         diff_cents: p.diff_cents,
                     },
                 });
+                break;
+            }
+
+            case "ORDER_ITEM_STATUS_CHANGED": {
+                const p = payload as any;
+                // When item is marked DONE, deduct inventory based on recipe
+                if (p.to === "DONE") {
+                    const order = await tx.orders.findUnique({ where: { id: event.aggregate_id } });
+                    if (order) {
+                        const items = order.items as any[] || [];
+                        const item = items.find((i: any) => i.line_id === p.line_id);
+                        if (item) {
+                            // Get location from order or use default
+                            const locationId = (order as any).location_id || tenant_id;
+                            
+                            // Deduct inventory (fire and forget - don't block order flow)
+                            deductInventoryForOrder(
+                                prisma,
+                                tenant_id,
+                                locationId,
+                                event.aggregate_id,
+                                p.line_id,
+                                item.product_id,
+                                item.qty || 1
+                            ).catch((err) => {
+                                console.warn(`[Inventory] Deduction failed for order ${event.aggregate_id}:`, err);
+                            });
+                        }
+                    }
+                }
                 break;
             }
         }
@@ -266,6 +298,7 @@ export async function POST(req: Request) {
     try {
         const deduped_event_ids: string[] = [];
         const rejected: Array<{ event_id: string; error: string; details?: Record<string, unknown> }> = [];
+        const merged: Array<{ event_id: string; merge_type: string }> = [];
 
         const acceptedEvents: ParkEvent[] = [];
 
@@ -283,9 +316,48 @@ export async function POST(req: Request) {
                     continue; // Skip this event
                 }
 
-                // 2. Try to create event, skip if duplicate
+                // 2. CONFLICT DETECTION for ORDER events
+                if (ev.aggregate_type === "ORDER") {
+                    const order = await tx.orders.findUnique({
+                        where: { id: ev.aggregate_id },
+                        select: { revision: true }
+                    });
+
+                    if (order) {
+                        const conflictResult = await detectAndResolveConflict(
+                            tx,
+                            ev,
+                            order.revision
+                        );
+
+                        if (conflictResult.hasConflict) {
+                            if (!conflictResult.shouldApply) {
+                                // REJECTED - add to rejected[]
+                                rejected.push({
+                                    event_id: ev.event_id,
+                                    error: conflictResult.conflict!.type,
+                                    details: {
+                                        expected_revision: conflictResult.conflict!.expected_revision,
+                                        actual_revision: conflictResult.conflict!.actual_revision,
+                                        resolution: conflictResult.conflict!.resolution,
+                                        reason: conflictResult.conflict!.rejected_reason,
+                                    }
+                                });
+                                continue; // Skip this event
+                            }
+
+                            // MERGED - add to merged[]
+                            merged.push({
+                                event_id: ev.event_id,
+                                merge_type: conflictResult.conflict!.resolution,
+                            });
+                        }
+                    }
+                }
+
+                // 3. Try to create event, skip if duplicate
                 try {
-                    await tx.event.create({
+                    await tx.events.create({
                         data: {
                             id: ev.event_id,
                             tenant_id: ev.tenant_id,
@@ -312,9 +384,20 @@ export async function POST(req: Request) {
                 // Project the event
                 await projectEvent(tx, ev);
 
+                // INCREMENT REVISION for ORDER events after projection
+                if (ev.aggregate_type === "ORDER") {
+                    await tx.orders.update({
+                        where: { id: ev.aggregate_id },
+                        data: { revision: { increment: 1 } }
+                    }).catch(() => {
+                        // Order might not exist yet (ORDER_CREATED), ignore
+                    });
+                }
+
                 // Add to outbox (ATOMIC with event insert)
-                await tx.eventOutbox.create({
+                await tx.event_outbox.create({
                     data: {
+                        id: crypto.randomUUID(),
                         tenant_id: ev.tenant_id,
                         event_id: ev.event_id,
                         payload: ev as unknown as Prisma.InputJsonValue,
@@ -336,7 +419,7 @@ export async function POST(req: Request) {
                 eventBus.publish(tenant_id, ev);
                 
                 // Mark as published (fire and forget - worker will catch failures)
-                prisma.eventOutbox.updateMany({
+                prisma.event_outbox.updateMany({
                     where: { event_id: ev.event_id },
                     data: { published: true, published_at: new Date() },
                 }).catch(() => { /* Worker will handle */ });
@@ -353,6 +436,7 @@ export async function POST(req: Request) {
                 acked_through_terminal_sequence: to_terminal_sequence,
                 deduped_event_ids,
                 rejected,
+                merged,
             },
             { status: 200 }
         );

@@ -1,75 +1,253 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTableStatus } from "./hooks/useTableStatus";
+import { useTableStatus, useZones, TableStatus } from "./hooks/useTableStatus";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCents } from "@/src/core/domain/money";
-import { Users, Utensils, Clock } from "lucide-react";
+import { Users, Utensils, Clock, ClipboardList, Wifi, WifiOff, LogOut, Home, Bell, AlertTriangle, Receipt } from "lucide-react";
+import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
+import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
 
-const PISOS = [
-    { id: "P1", name: "Piso 1" },
-    { id: "P2", name: "Piso 2" },
-    { id: "P3", name: "Terraza" },
+// Fallback zones when API is not available
+const DEFAULT_ZONES = [
+    { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" },
+    { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" },
+    { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" },
 ];
+
+// Time thresholds for color coding (in minutes)
+const TIME_THRESHOLDS = {
+    WARNING: 20,  // Yellow after 20 min
+    ALERT: 40,    // Red after 40 min
+};
+
+// Get table color based on status and elapsed time
+function getTableColors(status: TableStatus, elapsedMinutes?: number) {
+    if (status === "FREE") {
+        return {
+            bg: "bg-emerald-950/40",
+            border: "border-emerald-500/50",
+            shadow: "shadow-emerald-900/20",
+            gradient: "from-emerald-500/10 via-transparent to-green-500/5",
+            icon: "bg-emerald-500/20 text-emerald-300 ring-emerald-500/30",
+            light: "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)]",
+            text: "text-emerald-400",
+            label: "Disponible",
+        };
+    }
+    
+    if (status === "BILL_REQUESTED") {
+        return {
+            bg: "bg-amber-950/40",
+            border: "border-amber-500/50",
+            shadow: "shadow-amber-900/20",
+            gradient: "from-amber-500/10 via-transparent to-orange-500/5",
+            icon: "bg-amber-500/20 text-amber-300 ring-amber-500/30",
+            light: "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)] animate-pulse",
+            text: "text-amber-400",
+            label: "PIDE CUENTA",
+        };
+    }
+    
+    // OCCUPIED - color depends on elapsed time
+    const minutes = elapsedMinutes ?? 0;
+    
+    if (minutes >= TIME_THRESHOLDS.ALERT) {
+        // Red - urgent attention needed
+        return {
+            bg: "bg-red-950/40",
+            border: "border-red-500/50",
+            shadow: "shadow-red-900/20",
+            gradient: "from-red-500/10 via-transparent to-rose-500/5",
+            icon: "bg-red-500/20 text-red-300 ring-red-500/30",
+            light: "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse",
+            text: "text-red-400",
+            label: `${minutes}m ⚠️`,
+        };
+    }
+    
+    if (minutes >= TIME_THRESHOLDS.WARNING) {
+        // Yellow/Orange - attention needed soon
+        return {
+            bg: "bg-orange-950/40",
+            border: "border-orange-500/50",
+            shadow: "shadow-orange-900/20",
+            gradient: "from-orange-500/10 via-transparent to-amber-500/5",
+            icon: "bg-orange-500/20 text-orange-300 ring-orange-500/30",
+            light: "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)]",
+            text: "text-orange-400",
+            label: `${minutes}m`,
+        };
+    }
+    
+    // Blue/Violet - normal occupied
+    return {
+        bg: "bg-violet-950/40",
+        border: "border-violet-500/50",
+        shadow: "shadow-violet-900/20",
+        gradient: "from-violet-500/10 via-transparent to-purple-500/5",
+        icon: "bg-violet-500/20 text-violet-300 ring-violet-500/30",
+        light: "bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.6)]",
+        text: "text-violet-400",
+        label: `${minutes}m`,
+    };
+}
 
 export default function WaiterPage() {
     const router = useRouter();
-    const [piso, setPiso] = useState("P1");
-    const tables = useTableStatus();
+    const { isLoading, isAuthenticated } = useRequireTerminal();
+    const { zones: apiZones, loading: zonesLoading } = useZones();
+    const [selectedZoneId, setSelectedZoneId] = useState<string | null>("all"); // "all" = todas las zonas
+    
+    // Use API zones or fallback
+    const zones = apiZones.length > 0 ? apiZones : DEFAULT_ZONES;
+    
+    // Get tables filtered by zone (null = all zones)
+    const tables = useTableStatus(selectedZoneId === "all" ? undefined : selectedZoneId || undefined);
 
-    // Filter tables for current floor
-    const filteredTables = tables.filter(t => {
-        const num = parseInt(t.id.replace("M", ""));
-        if (piso === "P1" && num <= 3) return true;
-        if (piso === "P2" && num > 3 && num <= 6) return true;
-        if (piso === "P3" && num > 6) return true;
-        return false;
-    });
-
-    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-
-    return (
-        <div className="min-h-screen bg-zinc-950 pb-24 text-zinc-100 font-sans">
-            {/* Header */}
-            <div className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 p-4 flex items-center justify-between">
-                <div>
-                    <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                        <span>PARK</span>
-                        <span className="text-emerald-500">MOZO</span>
-                    </h1>
-                    <p className="text-xs text-zinc-500 font-medium">Terminal T-01</p>
-                </div>
-
-                {/* Sync Indicator */}
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${isOnline ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                    <div className="relative flex h-2 w-2">
-                        {isOnline && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
-                        <span className={`relative inline-flex rounded-full h-2 w-2 ${isOnline ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{isOnline ? 'LIVE' : 'OFFLINE'}</span>
+    // Mostrar loading mientras verifica autenticación
+    if (isLoading || !isAuthenticated || zonesLoading) {
+        return (
+            <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-zinc-700 border-t-violet-500 rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-zinc-400">Verificando sesión...</p>
                 </div>
             </div>
+        );
+    }
+
+    // Tables are already filtered by zone in the hook
+    const filteredTables = tables;
+
+    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    const occupiedCount = tables.filter(t => t.status === "OCCUPIED" || t.status === "BILL_REQUESTED").length;
+    const billRequestedCount = tables.filter(t => t.status === "BILL_REQUESTED").length;
+    const alertCount = tables.filter(t => 
+        (t.status === "OCCUPIED" && (t.elapsedMinutes ?? 0) >= TIME_THRESHOLDS.ALERT) ||
+        t.status === "BILL_REQUESTED"
+    ).length;
+    const readyItemsTotal = tables.reduce((sum, t) => sum + (t.readyItemsCount ?? 0), 0);
+
+    const handleExit = () => {
+        clearTerminalConfig();
+        router.push("/");
+    };
+
+    const handleHome = () => {
+        router.push("/");
+    };
+
+    return (
+        <div className="min-h-screen bg-zinc-950 pb-24 text-zinc-100 font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/30 via-zinc-950 to-zinc-950">
+            {/* Header - Estilo Morado/Violeta */}
+            <header className="sticky top-0 z-30 h-20 bg-gradient-to-r from-violet-950/90 to-purple-950/70 backdrop-blur-md border-b-4 border-violet-500 p-4 flex items-center justify-between shadow-[0_4px_20px_rgba(139,92,246,0.2)]">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-violet-500/20 rounded-xl border-2 border-violet-500/50">
+                        <ClipboardList className="text-violet-400" size={28} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black tracking-wider">
+                            <span className="text-violet-400">MESERO</span>
+                            <span className="text-violet-600/60 text-lg ml-2">T-01</span>
+                        </h1>
+                        <p className="text-violet-300/50 text-xs uppercase tracking-widest">Toma de Pedidos • Mesas</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    {/* Ready Items Counter */}
+                    {readyItemsTotal > 0 && (
+                        <div className="text-center px-4 py-2 bg-emerald-950/50 rounded-lg border border-emerald-500/30 animate-pulse">
+                            <div className="text-xl font-black text-emerald-400 flex items-center gap-1">
+                                <Bell size={16} />
+                                {readyItemsTotal}
+                            </div>
+                            <div className="text-[10px] uppercase tracking-wider text-emerald-300/60">Listos</div>
+                        </div>
+                    )}
+
+                    {/* Alert Counter */}
+                    {alertCount > 0 && (
+                        <div className="text-center px-4 py-2 bg-amber-950/50 rounded-lg border border-amber-500/30">
+                            <div className="text-xl font-black text-amber-400 flex items-center gap-1">
+                                <AlertTriangle size={16} />
+                                {alertCount}
+                            </div>
+                            <div className="text-[10px] uppercase tracking-wider text-amber-300/60">Atención</div>
+                        </div>
+                    )}
+
+                    {/* Tables Counter */}
+                    <div className="text-center px-4 py-2 bg-violet-950/50 rounded-lg border border-violet-500/30">
+                        <div className="text-xl font-black text-violet-400">{occupiedCount}</div>
+                        <div className="text-[10px] uppercase tracking-wider text-violet-300/60">Ocupadas</div>
+                    </div>
+
+                    {/* Sync Indicator */}
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${isOnline ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                        {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+                        <span className="text-xs font-bold uppercase tracking-wider">{isOnline ? 'LIVE' : 'OFFLINE'}</span>
+                    </div>
+
+                    {/* Home Button */}
+                    <button
+                        onClick={handleHome}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors border border-zinc-700"
+                        title="Ir al inicio"
+                    >
+                        <Home size={18} />
+                    </button>
+
+                    {/* Exit Button */}
+                    <button
+                        onClick={handleExit}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors border border-red-500/30"
+                        title="Cerrar sesión"
+                    >
+                        <LogOut size={18} />
+                        <span className="text-sm font-medium">Cerrar sesión</span>
+                    </button>
+                </div>
+            </header>
 
             <div className="p-4 space-y-6">
-                {/* Floor Selector */}
-                <div className="flex bg-zinc-900/50 p-1.5 rounded-2xl overflow-x-auto gap-2 border border-zinc-800/50">
-                    {PISOS.map((p) => (
+                {/* Zone Selector - Estilo Violeta con opción "Todas" */}
+                <div className="flex bg-zinc-900/50 p-1.5 rounded-2xl overflow-x-auto gap-2 border border-violet-500/20">
+                    {/* "Todas" option */}
+                    <button
+                        onClick={() => setSelectedZoneId("all")}
+                        className="relative flex-1 py-3 px-4 text-sm font-semibold rounded-xl transition-all outline-none min-w-[80px]"
+                    >
+                        {selectedZoneId === "all" && (
+                            <motion.div
+                                layoutId="zone-bg"
+                                className="absolute inset-0 bg-gradient-to-r from-zinc-600 to-zinc-700 rounded-xl shadow-lg shadow-zinc-900/40"
+                                initial={false}
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className={`relative z-10 ${selectedZoneId === "all" ? "text-white" : "text-zinc-400"}`}>
+                            Todas
+                        </span>
+                    </button>
+                    {zones.map((zone) => (
                         <button
-                            key={p.id}
-                            onClick={() => setPiso(p.id)}
+                            key={zone.id}
+                            onClick={() => setSelectedZoneId(zone.id)}
                             className="relative flex-1 py-3 px-4 text-sm font-semibold rounded-xl transition-all outline-none"
                         >
-                            {piso === p.id && (
+                            {selectedZoneId === zone.id && (
                                 <motion.div
-                                    layoutId="floor-bg"
-                                    className="absolute inset-0 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-900/40"
+                                    layoutId="zone-bg"
+                                    className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl shadow-lg shadow-violet-900/40"
                                     initial={false}
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
-                            <span className={`relative z-10 ${piso === p.id ? "text-white" : "text-zinc-400"}`}>
-                                {p.name}
+                            <span className={`relative z-10 ${selectedZoneId === zone.id ? "text-white" : "text-zinc-400"}`}>
+                                {zone.name}
                             </span>
                         </button>
                     ))}
@@ -78,74 +256,124 @@ export default function WaiterPage() {
                 {/* Tables Grid */}
                 <motion.div
                     layout
-                    className="grid grid-cols-2 md:grid-cols-3 gap-4"
+                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
                 >
                     <AnimatePresence mode="popLayout">
-                        {filteredTables.map((t) => (
+                        {filteredTables.map((t) => {
+                            const colors = getTableColors(t.status, t.elapsedMinutes);
+                            return (
                             <motion.button
                                 key={t.id}
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
-                                onClick={() => router.push(`/mozo/mesa/${t.id}`)} // Real Navigation
+                                onClick={() => router.push(`/mozo/mesa/${t.number}`)}
                                 whileTap={{ scale: 0.97 }}
-                                className={`relative aspect-[4/3] rounded-3xl flex flex-col items-center justify-center border transition-all overflow-hidden group ${t.status === "OCCUPIED"
-                                    ? "bg-slate-900/80 border-indigo-500/30 shadow-xl shadow-indigo-900/10"
-                                    : "bg-zinc-900/40 border-zinc-800 hover:bg-zinc-800/60 hover:border-emerald-500/30"
-                                    }`}
+                                className={`relative aspect-[4/3] rounded-2xl flex flex-col items-center justify-center border-2 transition-all overflow-hidden group ${colors.bg} ${colors.border} shadow-xl ${colors.shadow}`}
                             >
                                 {/* Active State Background Gradient */}
-                                {t.status === "OCCUPIED" && (
-                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
+                                {t.status !== "FREE" && (
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} pointer-events-none`} />
+                                )}
+
+                                {/* Ready Items Badge */}
+                                {t.readyItemsCount && t.readyItemsCount > 0 && (
+                                    <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full animate-pulse shadow-lg shadow-emerald-500/50">
+                                        <Bell size={12} />
+                                        {t.readyItemsCount} listo{t.readyItemsCount > 1 ? 's' : ''}
+                                    </div>
+                                )}
+
+                                {/* Bill Requested Badge */}
+                                {t.status === "BILL_REQUESTED" && (
+                                    <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded-full animate-pulse shadow-lg shadow-amber-500/50">
+                                        <Receipt size={12} />
+                                        CUENTA
+                                    </div>
+                                )}
+
+                                {/* Zone indicator when showing all */}
+                                {selectedZoneId === "all" && t.zone && (
+                                    <div 
+                                        className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                                        style={{ backgroundColor: `${t.zone.color}30`, color: t.zone.color }}
+                                    >
+                                        {t.zone.code}
+                                    </div>
                                 )}
 
                                 <div className="space-y-2 z-10 flex flex-col items-center">
-                                    <div className={`p-3 rounded-2xl transition-colors ${t.status === "OCCUPIED"
-                                        ? "bg-indigo-500/20 text-indigo-300 ring-1 ring-inset ring-indigo-500/20"
-                                        : "bg-zinc-800 text-zinc-500 group-hover:text-emerald-400 group-hover:bg-emerald-500/10"
-                                        }`}>
-                                        {t.status === "OCCUPIED"
-                                            ? <Users className="w-6 h-6" />
-                                            : <Utensils className="w-6 h-6" />
+                                    <div className={`p-3 rounded-xl transition-colors ring-2 ${colors.icon}`}>
+                                        {t.status === "FREE" 
+                                            ? <Utensils className="w-6 h-6" />
+                                            : t.status === "BILL_REQUESTED"
+                                            ? <Receipt className="w-6 h-6" />
+                                            : <Users className="w-6 h-6" />
                                         }
                                     </div>
 
                                     <div className="text-center">
                                         <div className="text-lg font-bold text-white tracking-tight">{t.name}</div>
-                                        {t.status === "OCCUPIED" ? (
+                                        {t.status !== "FREE" ? (
                                             <div className="mt-1 flex flex-col animate-in fade-in slide-in-from-bottom-2">
-                                                <span className="text-sm font-mono font-medium text-emerald-400">
+                                                <span className={`text-sm font-mono font-medium ${colors.text}`}>
                                                     {formatCents((t.totalCents || 0) as any)}
                                                 </span>
-                                                <span className="text-[10px] text-zinc-500 mt-0.5 flex items-center justify-center gap-1">
-                                                    <Clock className="w-3 h-3" /> 12m
+                                                <span className={`text-[10px] mt-0.5 flex items-center justify-center gap-1 ${colors.text}`}>
+                                                    <Clock className="w-3 h-3" /> {colors.label}
                                                 </span>
                                             </div>
                                         ) : (
-                                            <span className="text-xs font-medium text-zinc-500 mt-1 block group-hover:text-zinc-400">
-                                                Disponible
+                                            <span className="text-xs font-medium text-emerald-400 mt-1 block">
+                                                {colors.label}
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Status Light */}
-                                <div className={`absolute top-4 right-4 w-2 h-2 rounded-full ${t.status === "OCCUPIED" ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-zinc-700"
-                                    }`} />
+                                <div className={`absolute top-3 right-3 w-3 h-3 rounded-full ${colors.light}`} />
                             </motion.button>
-                        ))}
+                            );
+                        })}
                     </AnimatePresence>
 
-                    {/* Add Table Button (Mock) */}
-                    <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        className="aspect-[4/3] rounded-3xl border-2 border-dashed border-zinc-800 text-zinc-600 flex flex-col items-center justify-center hover:bg-zinc-900 hover:border-zinc-700 hover:text-zinc-400 transition-colors"
-                    >
-                        <span className="text-2xl font-light mb-1">+</span>
-                        <span className="text-xs font-bold uppercase tracking-wider">Barra</span>
-                    </motion.button>
+                    {/* Add Table Button - Only show in specific zone */}
+                    {selectedZoneId !== "all" && (
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            className="aspect-[4/3] rounded-2xl border-2 border-dashed border-violet-500/30 text-violet-500/50 flex flex-col items-center justify-center hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-400 transition-colors"
+                        >
+                            <span className="text-3xl font-light mb-1">+</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">Barra</span>
+                        </motion.button>
+                    )}
                 </motion.div>
+
+                {/* Legend */}
+                <div className="flex flex-wrap gap-4 justify-center text-xs text-zinc-500 pt-4 border-t border-zinc-800">
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                        <span>Disponible</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-violet-500" />
+                        <span>Ocupada &lt;20m</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-orange-500" />
+                        <span>20-40m</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+                        <span>&gt;40m</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse" />
+                        <span>Pide cuenta</span>
+                    </div>
+                </div>
             </div>
         </div>
     );

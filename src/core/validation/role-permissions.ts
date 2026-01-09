@@ -1,0 +1,173 @@
+/**
+ * Role-Based Event Validation
+ * 
+ * Define qué roles pueden emitir qué tipos de eventos.
+ * Esto previene que un mesero emita pagos o que cocina cree órdenes.
+ * 
+ * Roles: ADMIN | MANAGER | CASHIER | WAITER | KITCHEN | DRIVER
+ */
+
+import type { EventType } from "@/src/core/domain/events";
+
+// Roles del sistema
+export type EmployeeRole = "ADMIN" | "MANAGER" | "CASHIER" | "WAITER" | "KITCHEN" | "DRIVER";
+
+// Permisos por rol
+const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
+    // ADMIN: Acceso completo a todos los eventos
+    ADMIN: new Set([
+        "SHIFT_OPENED", "SHIFT_CLOSED", "CASH_ADJUSTED",
+        "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_QTY_CHANGED",
+        "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
+        "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
+        "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "CATALOG_VERSION_BUMPED",
+    ]),
+
+    // MANAGER: Casi todo excepto catálogo
+    MANAGER: new Set([
+        "SHIFT_OPENED", "SHIFT_CLOSED", "CASH_ADJUSTED",
+        "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_QTY_CHANGED",
+        "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
+        "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
+        "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED",
+    ]),
+
+    // CASHIER: Turnos, órdenes, pagos, facturas
+    CASHIER: new Set([
+        "SHIFT_OPENED", "SHIFT_CLOSED", "CASH_ADJUSTED",
+        "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_QTY_CHANGED",
+        "ORDER_ITEM_STATUS_CHANGED",
+        "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
+        "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
+        "INVOICE_ISSUED",
+    ]),
+
+    // WAITER: Crear órdenes, agregar items, NO pagos ni facturas
+    WAITER: new Set([
+        "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_QTY_CHANGED",
+        "ORDER_ITEM_STATUS_CHANGED",
+        "CHECK_CREATED", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
+        "CHECK_TIP_SET",
+    ]),
+
+    // KITCHEN: Solo cambiar estado de items (PENDING → COOKING → READY)
+    KITCHEN: new Set([
+        "ORDER_ITEM_STATUS_CHANGED",
+    ]),
+
+    // DRIVER: Solo cambiar estado de items para delivery
+    DRIVER: new Set([
+        "ORDER_ITEM_STATUS_CHANGED",
+    ]),
+};
+
+// Eventos que requieren autorización de MANAGER/ADMIN
+const REQUIRES_MANAGER_APPROVAL: Set<EventType> = new Set([
+    "ORDER_ITEM_VOIDED",
+    "ORDER_CANCELLED",
+    "INVOICE_VOIDED",
+    "CASH_ADJUSTED",
+]);
+
+// Eventos que pueden emitirse sin actor (sistema)
+const SYSTEM_EVENTS: Set<EventType> = new Set([
+    "CATALOG_VERSION_BUMPED",
+]);
+
+export interface RoleValidationResult {
+    allowed: boolean;
+    error?: string;
+    details?: {
+        role: string;
+        event_type: string;
+        allowed_events?: string[];
+        requires_approval?: boolean;
+    };
+}
+
+/**
+ * Valida si un rol puede emitir un tipo de evento
+ */
+export function canRoleEmitEvent(
+    role: string | null | undefined,
+    eventType: EventType
+): RoleValidationResult {
+    // Eventos de sistema no requieren rol
+    if (SYSTEM_EVENTS.has(eventType)) {
+        return { allowed: true };
+    }
+
+    // Si no hay rol, rechazar (excepto eventos de sistema)
+    if (!role) {
+        return {
+            allowed: false,
+            error: "ROLE_REQUIRED",
+            details: {
+                role: "NONE",
+                event_type: eventType,
+            },
+        };
+    }
+
+    // Validar que el rol sea válido
+    const normalizedRole = role.toUpperCase() as EmployeeRole;
+    if (!ROLE_PERMISSIONS[normalizedRole]) {
+        return {
+            allowed: false,
+            error: "INVALID_ROLE",
+            details: {
+                role,
+                event_type: eventType,
+            },
+        };
+    }
+
+    // Verificar si el rol tiene permiso
+    const permissions = ROLE_PERMISSIONS[normalizedRole];
+    if (!permissions.has(eventType)) {
+        return {
+            allowed: false,
+            error: "ROLE_NOT_AUTHORIZED",
+            details: {
+                role: normalizedRole,
+                event_type: eventType,
+                allowed_events: Array.from(permissions),
+            },
+        };
+    }
+
+    return { allowed: true };
+}
+
+/**
+ * Verifica si un evento requiere aprobación de manager
+ */
+export function requiresManagerApproval(eventType: EventType): boolean {
+    return REQUIRES_MANAGER_APPROVAL.has(eventType);
+}
+
+/**
+ * Obtiene los eventos permitidos para un rol
+ */
+export function getAllowedEventsForRole(role: string): EventType[] {
+    const normalizedRole = role.toUpperCase() as EmployeeRole;
+    const permissions = ROLE_PERMISSIONS[normalizedRole];
+    return permissions ? Array.from(permissions) : [];
+}
+
+/**
+ * Verifica si un rol puede aprobar acciones que requieren manager
+ */
+export function canApproveManagerActions(role: string | null | undefined): boolean {
+    if (!role) return false;
+    const normalizedRole = role.toUpperCase();
+    return normalizedRole === "ADMIN" || normalizedRole === "MANAGER";
+}
+
+// Export para testing
+export const _ROLE_PERMISSIONS = ROLE_PERMISSIONS;
+export const _REQUIRES_MANAGER_APPROVAL = REQUIRES_MANAGER_APPROVAL;
+export const _SYSTEM_EVENTS = SYSTEM_EVENTS;

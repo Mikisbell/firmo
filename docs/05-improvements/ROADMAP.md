@@ -230,38 +230,42 @@ src/core/projections/rebuild.ts (modificar)
 
 ---
 
-## 📅 Calendario Sugerido
+## 📅 Calendario (Actualizado Enero 2026)
 
-### Semana 1 (Ene 6-10)
-- Lun-Mar: Outbox Pattern
-- Mié-Jue: Proyecciones Server-Side
-- Vie: Service Worker
+### ✅ Completado (P0)
+- ✅ Outbox Pattern - Implementado
+- ✅ Circuit Breaker - Implementado
+- ✅ Rate Limiting - Implementado
+- ✅ Performance Indices - Implementado
+- ✅ Service Worker - Implementado
+- ✅ E2E Tests (52 tests) - Implementado
+- ✅ Inventory Admin Panel - Implementado
 
-### Semana 2 (Ene 13-17)
-- Lun: Circuit Breaker
-- Mar: Rate Limiting
-- Mié-Vie: Observabilidad
+### 🟡 En Progreso (P1 - Enero-Febrero 2026)
+- ⏳ Conflict Resolution
+- ⏳ Event Schema Versioning
+- ⏳ Snapshots/Compaction
+- ⏳ Observabilidad (OpenTelemetry)
+- ⏳ Role-based event validation
 
-### Semana 3 (Ene 20-24)
-- Lun-Mié: Snapshots
-- Jue-Vie: Testing y ajustes
-
-### Semana 4+ (Ene 27+)
-- Event Versioning
+### ⬜ Pendiente (P2 - Futuro)
+- **Premium Dashboard** — Analytics tiempo real + Push Notifications (spec completo)
 - Saga Pattern
 - Property-Based Testing
+- Multi-tenant improvements
 
 ---
 
-## 🎯 Hitos
+## 🎯 Hitos (Actualizado)
 
-| Fecha | Hito | Entregable |
-|-------|------|------------|
-| Ene 10 | Fase 1 Completa | MVP Production-Ready |
-| Ene 17 | Fase 2 Completa | Sistema Robusto |
-| Ene 24 | Testing Completo | QA Pass |
-| Ene 31 | Piloto Real | 1 Pollería Live |
-| Feb 14 | Fase 3 Completa | Sistema Enterprise |
+| Fecha | Hito | Estado |
+|-------|------|--------|
+| Ene 6 | P0 Completo | ✅ Completado |
+| Ene 6 | E2E Tests (52) | ✅ Completado |
+| Ene 6 | Inventory Admin | ✅ Completado |
+| Feb 2026 | P1 Completo | 🟡 En progreso |
+| Mar 2026 | Piloto Real | ⬜ Pendiente |
+| Abr 2026 | P2 Completo | ⬜ Pendiente |
 
 ---
 

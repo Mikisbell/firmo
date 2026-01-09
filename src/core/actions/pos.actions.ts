@@ -14,7 +14,7 @@ async function getNextSequence(): Promise<number> {
 async function appendEvent(
     tenant_id: string,
     terminal_id: string,
-    event_partial: Omit<ParkEvent, "tenant_id" | "terminal_id" | "terminal_sequence" | "occurred_at" | "schema_version">
+    event_partial: Omit<ParkEvent, "tenant_id" | "terminal_id" | "terminal_sequence" | "occurred_at" | "schema_version" | "payload_version">
 ) {
     const seq = await getNextSequence();
     const now = new Date().toISOString();
@@ -25,6 +25,7 @@ async function appendEvent(
         terminal_id,
         terminal_sequence: seq,
         schema_version: 1,
+        payload_version: 1,
         occurred_at: now,
         synced: 0, // For Dexie local tracking
     };
@@ -47,10 +48,28 @@ export const POSActions = {
             order_type: OrderType;
             order_number: number;
             table_number?: string;
+            fulfillment?: {
+                table_number?: string;
+                guest_count?: number;
+                pickup_name?: string;
+                pickup_phone?: string;
+            };
+            delivery?: {
+                courier_type?: "OWN" | "APP";
+                delivery_fee_cents?: number;
+                payment_expectation?: "PREPAID" | "COD";
+                address_snapshot?: {
+                    address_text: string;
+                    reference?: string;
+                };
+            };
         }
     ) {
         const order_id = newUUID();
         const check_id = "c1"; // Default first check
+
+        // Build fulfillment object
+        const fulfillment = params.fulfillment || (params.table_number ? { table_number: params.table_number } : undefined);
 
         await appendEvent(tenant_id, terminal_id, {
             event_id: newUUID(),
@@ -76,7 +95,14 @@ export const POSActions = {
                     total_cents: 0,
                     payment: { status: "UNPAID", payments: [] },
                 }],
-                fulfillment: params.table_number ? { table_number: params.table_number } : undefined,
+                fulfillment,
+                delivery: params.delivery ? {
+                    courier_type: params.delivery.courier_type,
+                    delivery_fee_cents: params.delivery.delivery_fee_cents ?? 0,
+                    payment_expectation: params.delivery.payment_expectation ?? "PREPAID",
+                    assigned_driver_id: undefined,
+                    address_snapshot: params.delivery.address_snapshot,
+                } : undefined,
             },
         });
 
@@ -445,6 +471,145 @@ export const POSActions = {
                 from: from_status,
                 to: to_status,
                 station
+            },
+        });
+    },
+
+    /**
+     * Update item quantity (+/-)
+     * If newQty = 0, voids the item
+     */
+    async updateItemQuantity(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        line_id: string,
+        from_qty: number,
+        to_qty: number
+    ) {
+        if (to_qty <= 0) {
+            // Void the item completely
+            await appendEvent(tenant_id, terminal_id, {
+                event_id: newUUID(),
+                event_type: "ORDER_ITEM_VOIDED",
+                aggregate_type: "ORDER",
+                aggregate_id: order_id,
+                correlation_id: order_id,
+                causation_id: null,
+                actor_id,
+                payload: {
+                    order_id,
+                    line_id,
+                    reason: "Cantidad reducida a 0",
+                    voided_at: new Date().toISOString(),
+                },
+            });
+        } else {
+            // Change quantity
+            await appendEvent(tenant_id, terminal_id, {
+                event_id: newUUID(),
+                event_type: "ORDER_ITEM_QTY_CHANGED",
+                aggregate_type: "ORDER",
+                aggregate_id: order_id,
+                correlation_id: order_id,
+                causation_id: null,
+                actor_id,
+                payload: {
+                    order_id,
+                    line_id,
+                    from_qty,
+                    to_qty,
+                },
+            });
+        }
+    },
+
+    /**
+     * Request check/bill for a table (waiter action)
+     */
+    async requestCheck(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        table_number?: string
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "REQUEST_CHECK",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                requested_by: actor_id,
+                requested_at: new Date().toISOString(),
+                table_number,
+            },
+        });
+    },
+
+    /**
+     * Submit order to kitchen (groups items by station)
+     */
+    async submitToKitchen(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        items: Array<{
+            line_id: string;
+            product_id: string;
+            name: string;
+            qty: number;
+            station: string;
+            mods?: string[];
+            notes?: string;
+        }>
+    ) {
+        if (items.length === 0) {
+            throw new Error("No se puede enviar una orden vacía a cocina");
+        }
+
+        // Group items by station
+        const itemsByStation: Record<string, Array<{
+            line_id: string;
+            product_id: string;
+            name: string;
+            qty: number;
+            mods: string[];
+            notes?: string;
+        }>> = {};
+
+        for (const item of items) {
+            if (!itemsByStation[item.station]) {
+                itemsByStation[item.station] = [];
+            }
+            itemsByStation[item.station].push({
+                line_id: item.line_id,
+                product_id: item.product_id,
+                name: item.name,
+                qty: item.qty,
+                mods: item.mods || [],
+                notes: item.notes,
+            });
+        }
+
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "ORDER_SUBMITTED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                submitted_at: new Date().toISOString(),
+                items_by_station: itemsByStation,
             },
         });
     },

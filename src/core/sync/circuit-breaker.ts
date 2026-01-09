@@ -5,6 +5,8 @@
  * Estados: CLOSED (normal) → OPEN (bloqueado) → HALF_OPEN (probando)
  */
 
+import { logger, logEvents } from "@/src/core/observability/logger";
+
 type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
 export class CircuitBreaker {
@@ -24,7 +26,7 @@ export class CircuitBreaker {
             if (this.shouldAttemptReset()) {
                 this.state = 'HALF_OPEN';
                 this.successCount = 0;
-                console.log('[CircuitBreaker] Transitioning to HALF_OPEN');
+                logger.info(logEvents.CIRCUIT_HALF_OPEN, 'Transitioning to HALF_OPEN');
             } else {
                 throw new Error('Circuit breaker is OPEN');
             }
@@ -49,7 +51,7 @@ export class CircuitBreaker {
         if (this.state === 'HALF_OPEN') {
             this.successCount++;
             if (this.successCount >= this.halfOpenAttempts) {
-                console.log('[CircuitBreaker] Closing circuit after successful attempts');
+                logger.info(logEvents.CIRCUIT_CLOSED, 'Closing circuit after successful attempts');
                 this.state = 'CLOSED';
                 this.failures = 0;
                 this.successCount = 0;
@@ -65,7 +67,7 @@ export class CircuitBreaker {
         this.successCount = 0;
 
         if (this.state === 'HALF_OPEN' || this.failures >= this.threshold) {
-            console.warn(`[CircuitBreaker] Opening circuit after ${this.failures} failures`);
+            logger.warn(logEvents.CIRCUIT_OPENED, `Opening circuit after ${this.failures} failures`, { failures: this.failures });
             this.state = 'OPEN';
         }
     }
