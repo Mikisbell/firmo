@@ -5,6 +5,7 @@
 
 import prisma from '@/src/core/db/prisma';
 import { Driver, DriverWithStatus, DriverStatus, DeliveryOrder } from './types';
+import { asCentavos } from '@/src/core/types/shared';
 
 export class DriverServiceError extends Error {
   constructor(
@@ -298,7 +299,7 @@ function mapToDeliveryOrder(record: {
     address_text: record.address_text,
     address_reference: record.address_reference,
     customer_phone: record.customer_phone,
-    delivery_fee: record.delivery_fee,
+    delivery_fee: asCentavos(record.delivery_fee),
     estimated_delivery_at: record.estimated_delivery_at,
     assigned_at: record.assigned_at,
     dispatched_at: record.dispatched_at,

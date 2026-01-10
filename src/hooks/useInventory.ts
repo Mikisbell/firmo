@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { InventoryItem, StockSummary } from '@/src/core/inventory/stock-types';
+import { asCentavos } from '@/src/core/types/shared';
 import { KardexEntry, KardexSummary, KardexMovementType } from '@/src/app/api/inventory/kardex/[code]/route';
 import { inventoryOfflineDb, PendingInventoryEvent } from '@/src/core/db/inventory-offline-db';
 
@@ -101,7 +102,7 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
   const [summary, setSummary] = useState<StockSummary>({
     lowStockCount: 0,
     expiringCount: 0,
-    totalValueCents: 0,
+    totalValueCents: asCentavos(0),
   });
   const [recentMovements, setRecentMovements] = useState<RecentMovement[]>([]);
   const [isLoading, setIsLoading] = useState(true);

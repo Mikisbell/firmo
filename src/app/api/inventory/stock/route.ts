@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     const items: InventoryItem[] = inventoryItems.map((item) => {
       const stock = Number(item.stock);
       const minStock = Number(item.min_stock || 0);
-      const costCents = unsafeCentavos(item.cost_cents || 0);
+      const costCents = item.cost_cents || 0;
       const status = calculateStatus(stock, minStock);
       
       // Calculate expiry urgency (FEFO - Task 11)

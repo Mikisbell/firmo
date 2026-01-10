@@ -138,19 +138,24 @@ describe('Reducers convert to Branded Types', () => {
         terminal_sequence: 1,
         correlation_id: 'corr-1',
         occurred_at: new Date().toISOString(),
+        payload_version: 1,
+        schema_version: 1,
         payload: {
           order_id: 'order-1',
           order_number: 1,
           order_type: 'DINE_IN',
+          checks: [],
           items: [
             {
               line_id: 'line-1',
               product_id: 'prod-1',
+              sku: 'SKU-001',
               name: 'Pollo a la Brasa',
               qty: 2,
               unit_price_cents: 2500,
               status: 'PENDING',
               station: 'PARRILLA',
+              mods: [],
             }
           ],
         },
@@ -201,6 +206,8 @@ describe('Reducers convert to Branded Types', () => {
         terminal_sequence: 1,
         correlation_id: 'corr-1',
         occurred_at: new Date().toISOString(),
+        payload_version: 1,
+        schema_version: 1,
         payload: {
           shift_id: 'shift-1',
           cash_opening_cents: 50000,
@@ -228,14 +235,17 @@ describe('Centavos arithmetic in reducers', () => {
       terminal_sequence: 1,
       correlation_id: 'corr-1',
       occurred_at: new Date().toISOString(),
+      payload_version: 1,
+      schema_version: 1,
       payload: {
         order_id: 'order-1',
         order_number: 1,
         order_type: 'DINE_IN',
+        checks: [],
         items: [
-          { line_id: 'l1', product_id: 'p1', name: 'Item 1', qty: 2, unit_price_cents: 1000, status: 'PENDING', station: 'COCINA' },
-          { line_id: 'l2', product_id: 'p2', name: 'Item 2', qty: 3, unit_price_cents: 1500, status: 'PENDING', station: 'COCINA' },
-          { line_id: 'l3', product_id: 'p3', name: 'Item 3', qty: 1, unit_price_cents: 2500, status: 'PENDING', station: 'BAR' },
+          { line_id: 'l1', product_id: 'p1', sku: 'SKU-1', name: 'Item 1', qty: 2, unit_price_cents: 1000, status: 'PENDING', station: 'COCINA', mods: [] },
+          { line_id: 'l2', product_id: 'p2', sku: 'SKU-2', name: 'Item 2', qty: 3, unit_price_cents: 1500, status: 'PENDING', station: 'COCINA', mods: [] },
+          { line_id: 'l3', product_id: 'p3', sku: 'SKU-3', name: 'Item 3', qty: 1, unit_price_cents: 2500, status: 'PENDING', station: 'BAR', mods: [] },
         ],
       },
     };

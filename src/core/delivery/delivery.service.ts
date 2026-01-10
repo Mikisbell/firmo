@@ -12,6 +12,7 @@ import {
   isValidTransition 
 } from './types';
 import { notifyDeliveryAssigned } from './notification-handlers';
+import { asCentavos } from '@/src/core/types/shared';
 
 export class DeliveryServiceError extends Error {
   constructor(
@@ -307,7 +308,7 @@ export const DeliveryService = {
           return {
             zoneId: zone.id,
             zoneName: zone.name,
-            fee: zone.delivery_fee,
+            fee: asCentavos(zone.delivery_fee),
             estimatedMins: zone.estimated_mins,
             isOutsideZones: false,
           };
@@ -321,7 +322,7 @@ export const DeliveryService = {
           return {
             zoneId: zone.id,
             zoneName: zone.name,
-            fee: zone.delivery_fee,
+            fee: asCentavos(zone.delivery_fee),
             estimatedMins: zone.estimated_mins,
             isOutsideZones: false,
           };
@@ -337,7 +338,7 @@ export const DeliveryService = {
     return {
       zoneId: null,
       zoneName: null,
-      fee: settings?.default_delivery_fee_cents ?? 500, // S/5.00 por defecto
+      fee: asCentavos(settings?.default_delivery_fee_cents ?? 500), // S/5.00 por defecto
       estimatedMins: 45, // 45 min por defecto fuera de zona
       isOutsideZones: true,
     };
@@ -434,7 +435,7 @@ function mapToDeliveryOrder(record: {
     address_text: record.address_text,
     address_reference: record.address_reference,
     customer_phone: record.customer_phone,
-    delivery_fee: record.delivery_fee,
+    delivery_fee: asCentavos(record.delivery_fee),
     estimated_delivery_at: record.estimated_delivery_at,
     assigned_at: record.assigned_at,
     dispatched_at: record.dispatched_at,

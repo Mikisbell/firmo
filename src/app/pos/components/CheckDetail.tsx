@@ -7,6 +7,7 @@ import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, 
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint, OrderLineInput } from "@/src/core/printing/utils";
 import { AnimatePresence } from "framer-motion";
+import { asCentavos } from "@/src/core/types/shared";
 
 interface CheckDetailProps {
     check: CheckProjection;
@@ -41,13 +42,14 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
         // Transform check lines to OrderLineInput format for the common function
         const orderLines: OrderLineInput[] = check.lines.map(l => {
             const item = allLines[l.line_id];
+            const unitPrice = item?.unit_price_cents || 0;
             return {
                 line_id: l.line_id,
                 product_id: l.line_id,
                 name: item?.name || "Unknown",
                 qty: l.qty,
-                unit_price_cents: item?.unit_price_cents || 0,
-                line_total_cents: (item?.unit_price_cents || 0) * l.qty
+                unit_price_cents: asCentavos(unitPrice),
+                line_total_cents: asCentavos(unitPrice * l.qty)
             };
         });
 

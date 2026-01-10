@@ -9,6 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import { transformLinesToPrint, calculatePrintTotal, OrderLineInput } from '@/src/core/printing/utils';
+import { asCentavos } from '@/src/core/types/shared';
 
 // Arbitraries
 const orderLineArb: fc.Arbitrary<OrderLineInput> = fc.record({
@@ -16,8 +17,8 @@ const orderLineArb: fc.Arbitrary<OrderLineInput> = fc.record({
   product_id: fc.string({ minLength: 1, maxLength: 20 }),
   name: fc.string({ minLength: 1, maxLength: 50 }),
   qty: fc.integer({ min: 1, max: 99 }),
-  unit_price_cents: fc.integer({ min: 100, max: 100000 }),
-  line_total_cents: fc.integer({ min: 100, max: 1000000 }),
+  unit_price_cents: fc.integer({ min: 100, max: 100000 }).map(n => asCentavos(n)),
+  line_total_cents: fc.integer({ min: 100, max: 1000000 }).map(n => asCentavos(n)),
   station: fc.option(fc.constantFrom('PARRILLA', 'COCINA', 'BAR', 'FRIOS'), { nil: undefined })
 });
 

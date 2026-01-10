@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { InventoryItem, StockSummary, StockStatus, ExpiryUrgency } from '@/src/core/inventory/stock-types';
 import { KardexMovementType } from '@/src/app/api/inventory/kardex/[code]/route';
+import { asCentavos } from '@/src/core/types/shared';
 
 interface StockViewProps {
   tenantId: string;
@@ -346,7 +347,7 @@ export default function StockView({
   const [summary, setSummary] = useState<StockSummary>({
     lowStockCount: 0,
     expiringCount: 0,
-    totalValueCents: 0,
+    totalValueCents: asCentavos(0),
   });
   const [recentMovements, setRecentMovements] = useState<RecentMovement[]>([]);
   const [searchQuery, setSearchQuery] = useState('');

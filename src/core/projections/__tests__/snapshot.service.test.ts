@@ -61,6 +61,7 @@ import {
     type AggregateType,
 } from '../snapshot.service';
 import type { SaleProjection } from '../types';
+import { asCentavos, asOrderId } from '@/src/core/types/shared';
 
 describe('Snapshot Service', () => {
     beforeEach(async () => {
@@ -94,17 +95,17 @@ describe('Snapshot Service', () => {
     describe('maybeCreateSnapshot', () => {
         it('creates snapshot when threshold reached', async () => {
             const state: SaleProjection = {
-                sale_id: 'sale-1',
-                order_id: 'order-1',
+                sale_id: asOrderId('sale-1'),
+                order_id: asOrderId('order-1'),
                 order_number: 1,
                 order_type: 'DINE_IN',
                 catalog_version: 1,
                 status: 'OPEN',
                 lines: {},
-                subtotal_cents: 0,
+                subtotal_cents: asCentavos(0),
                 payments: [],
-                paid_cents: 0,
-                change_cents: 0,
+                paid_cents: asCentavos(0),
+                change_cents: asCentavos(0),
                 total_cents: null,
                 last_event_sequence: 1000,
                 correlation_id: 'corr-1',
@@ -197,28 +198,30 @@ describe('Snapshot Properties', () => {
 
                     const state = {
                         ...partialState,
-                        order_id: partialState.sale_id,
+                        sale_id: asOrderId(partialState.sale_id),
+                        order_id: asOrderId(partialState.sale_id),
+                        subtotal_cents: asCentavos(partialState.subtotal_cents),
                         order_number: 1,
                         order_type: 'DINE_IN' as const,
                         catalog_version: 1,
                         status: 'OPEN' as const,
                         lines: {},
                         payments: [],
-                        paid_cents: 0,
-                        change_cents: 0,
+                        paid_cents: asCentavos(0),
+                        change_cents: asCentavos(0),
                         total_cents: null,
                         last_event_sequence: 1000,
                         correlation_id: 'test',
                         checks: [],
                     };
 
-                    await forceCreateSnapshot('ORDER', state.sale_id, state, 1000);
+                    await forceCreateSnapshot('ORDER', partialState.sale_id, state, 1000);
 
                     // Mutate original state
-                    state.subtotal_cents = 999999;
+                    (state as any).subtotal_cents = 999999;
 
                     // Snapshot should have original value
-                    const snapshot = await getLatestSnapshot('ORDER', state.sale_id);
+                    const snapshot = await getLatestSnapshot('ORDER', partialState.sale_id);
                     expect(snapshot?.state.subtotal_cents).toBe(partialState.subtotal_cents);
                 }
             ),

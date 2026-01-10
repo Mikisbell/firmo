@@ -9,6 +9,7 @@ import { DeliveryService } from './delivery.service';
 import { notifyDeliveryReady } from './notification-handlers';
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/logger';
+import { asCentavos } from '@/src/core/types/shared';
 
 export interface CreateDeliveryFromOrderInput {
   tenantId: string;
@@ -37,7 +38,7 @@ export async function createDeliveryFromOrder(
     addressText: input.addressText,
     addressReference: input.addressReference,
     customerPhone: input.customerPhone,
-    deliveryFee: input.deliveryFeeCents,
+    deliveryFee: asCentavos(input.deliveryFeeCents),
     estimatedDeliveryAt,
   });
 
