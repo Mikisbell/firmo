@@ -7,6 +7,10 @@ import { Flame, Coffee, Beer, Drumstick, UtensilsCrossed, Search, Star, IceCream
 import type { CatalogItem } from "@/src/core/catalog/service";
 import { CategoryTabs } from "./CategoryTabs";
 import { useResponsive } from "@/src/hooks/useResponsive";
+import { VirtualizedGrid } from "./VirtualizedGrid";
+
+// Threshold for enabling virtualization
+const VIRTUALIZATION_THRESHOLD = 50;
 
 // Product type for component
 type Product = {
@@ -181,88 +185,98 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
                 categoryCounts={categoryCounts}
             />
 
-            {/* Products Grid - Container Query based */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    ref={containerRef}
-                    key={selectedCategory + searchQuery}
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
-                    className="catalog-grid-container"
-                    style={{ containerType: 'inline-size' }}
-                >
-                    <div className="catalog-grid">
-                        {filteredProducts.length === 0 ? (
-                            <div className="col-span-full text-center py-12 text-zinc-500">
-                                No se encontraron productos
-                            </div>
-                        ) : (
-                            filteredProducts.map((p) => {
-                                const Icon = CATEGORY_ICONS[p.category ?? "default"] || Coffee;
-                                const isRecommended = recommendations.includes(p.id);
-                                const stationColor = STATION_COLORS[p.station ?? "COCINA"] ?? STATION_COLORS.COCINA;
+            {/* Products Grid - Virtualized for large catalogs */}
+            {filteredProducts.length > VIRTUALIZATION_THRESHOLD ? (
+                <VirtualizedGrid
+                    products={filteredProducts}
+                    onAdd={onAdd}
+                    recommendations={recommendations}
+                    shiftOpen={shiftOpen}
+                    isMobile={isMobile}
+                />
+            ) : (
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        ref={containerRef}
+                        key={selectedCategory + searchQuery}
+                        variants={container}
+                        initial="hidden"
+                        animate="show"
+                        className="catalog-grid-container"
+                        style={{ containerType: 'inline-size' }}
+                    >
+                        <div className="catalog-grid">
+                            {filteredProducts.length === 0 ? (
+                                <div className="col-span-full text-center py-12 text-zinc-500">
+                                    No se encontraron productos
+                                </div>
+                            ) : (
+                                filteredProducts.map((p) => {
+                                    const Icon = CATEGORY_ICONS[p.category ?? "default"] || Coffee;
+                                    const isRecommended = recommendations.includes(p.id);
+                                    const stationColor = STATION_COLORS[p.station ?? "COCINA"] ?? STATION_COLORS.COCINA;
 
-                                return (
-                                    <motion.button
-                                        layout
-                                        variants={itemVariant}
-                                        key={p.id}
-                                        onClick={() => shiftOpen ? onAdd(p) : alert("Abre un turno para vender")}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        disabled={!shiftOpen}
-                                        className={`
-                                            group relative flex flex-col items-start justify-between 
-                                            p-3 md:p-4 
-                                            min-h-[100px] md:min-h-[140px] lg:min-h-[160px]
-                                            w-full rounded-xl md:rounded-2xl border shadow-lg backdrop-blur-sm 
-                                            transition-all overflow-hidden text-left 
-                                            ${!shiftOpen
-                                                ? 'opacity-40 cursor-not-allowed bg-zinc-900 border-zinc-800 grayscale'
-                                                : isRecommended
-                                                    ? 'bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-500/40 ring-1 ring-indigo-400/20'
-                                                    : 'bg-zinc-900/80 border-zinc-800 hover:border-indigo-500/30 hover:bg-zinc-800 active:bg-zinc-700'
-                                            }
-                                        `}
-                                    >
-                                        {isRecommended && (
-                                            <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2">
-                                                <span className="bg-indigo-500 text-white text-[8px] md:text-[9px] uppercase font-black px-1 md:px-1.5 py-0.5 rounded-full">
-                                                    🔥
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center gap-1.5 md:gap-2 w-full">
-                                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center ${isRecommended ? 'bg-indigo-500/20' : 'bg-zinc-800'}`}>
-                                                <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isRecommended ? 'text-indigo-300' : 'text-zinc-400'}`} />
-                                            </div>
-                                            {!isMobile && (
-                                                <span className={`text-[8px] md:text-[9px] font-bold tracking-wider px-1 md:px-1.5 py-0.5 rounded border ${stationColor} uppercase`}>
-                                                    {p.station}
-                                                </span>
+                                    return (
+                                        <motion.button
+                                            layout
+                                            variants={itemVariant}
+                                            key={p.id}
+                                            onClick={() => shiftOpen ? onAdd(p) : alert("Abre un turno para vender")}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            disabled={!shiftOpen}
+                                            className={`
+                                                group relative flex flex-col items-start justify-between 
+                                                p-3 md:p-4 
+                                                min-h-[100px] md:min-h-[140px] lg:min-h-[160px]
+                                                w-full rounded-xl md:rounded-2xl border shadow-lg backdrop-blur-sm 
+                                                transition-all overflow-hidden text-left 
+                                                ${!shiftOpen
+                                                    ? 'opacity-40 cursor-not-allowed bg-zinc-900 border-zinc-800 grayscale'
+                                                    : isRecommended
+                                                        ? 'bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-500/40 ring-1 ring-indigo-400/20'
+                                                        : 'bg-zinc-900/80 border-zinc-800 hover:border-indigo-500/30 hover:bg-zinc-800 active:bg-zinc-700'
+                                                }
+                                            `}
+                                        >
+                                            {isRecommended && (
+                                                <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2">
+                                                    <span className="bg-indigo-500 text-white text-[8px] md:text-[9px] uppercase font-black px-1 md:px-1.5 py-0.5 rounded-full">
+                                                        🔥
+                                                    </span>
+                                                </div>
                                             )}
-                                        </div>
 
-                                        <div className="w-full mt-auto">
-                                            <h3 className="font-medium text-xs md:text-sm text-zinc-100 leading-tight line-clamp-2 mb-0.5 md:mb-1">
-                                                {p.name}
-                                            </h3>
-                                            <div className="flex items-baseline gap-0.5 md:gap-1">
-                                                <span className="text-[8px] md:text-[10px] text-zinc-500">S/</span>
-                                                <span className={`font-mono text-base md:text-xl font-bold ${isRecommended ? 'text-emerald-300' : 'text-emerald-400'}`}>
-                                                    {formatCents(p.price)}
-                                                </span>
+                                            <div className="flex items-center gap-1.5 md:gap-2 w-full">
+                                                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center ${isRecommended ? 'bg-indigo-500/20' : 'bg-zinc-800'}`}>
+                                                    <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isRecommended ? 'text-indigo-300' : 'text-zinc-400'}`} />
+                                                </div>
+                                                {!isMobile && (
+                                                    <span className={`text-[8px] md:text-[9px] font-bold tracking-wider px-1 md:px-1.5 py-0.5 rounded border ${stationColor} uppercase`}>
+                                                        {p.station}
+                                                    </span>
+                                                )}
                                             </div>
-                                        </div>
-                                    </motion.button>
-                                );
-                            })
-                        )}
-                    </div>
-                </motion.div>
-            </AnimatePresence>
+
+                                            <div className="w-full mt-auto">
+                                                <h3 className="font-medium text-xs md:text-sm text-zinc-100 leading-tight line-clamp-2 mb-0.5 md:mb-1">
+                                                    {p.name}
+                                                </h3>
+                                                <div className="flex items-baseline gap-0.5 md:gap-1">
+                                                    <span className="text-[8px] md:text-[10px] text-zinc-500">S/</span>
+                                                    <span className={`font-mono text-base md:text-xl font-bold ${isRecommended ? 'text-emerald-300' : 'text-emerald-400'}`}>
+                                                        {formatCents(p.price)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </motion.button>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+            )}
 
             {/* Container Query CSS */}
             <style jsx>{`
