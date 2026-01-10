@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
+import { asCentavos } from '@/src/core/types/shared';
 
 const TENANT_ID = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
 
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       addressText: parsed.data.addressText,
       addressReference: parsed.data.addressReference,
       customerPhone: parsed.data.customerPhone,
-      deliveryFee: parsed.data.deliveryFee,
+      deliveryFee: asCentavos(parsed.data.deliveryFee),
       estimatedDeliveryAt: parsed.data.estimatedDeliveryAt 
         ? new Date(parsed.data.estimatedDeliveryAt) 
         : undefined,
