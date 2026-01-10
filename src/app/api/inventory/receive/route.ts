@@ -10,6 +10,7 @@ import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { validateInventoryAuth, createAuthErrorResponse } from '@/src/core/middleware/inventory-auth';
 import { logGoodsReceipt, logInventoryFailure } from '@/src/core/inventory/audit.service';
+import { asCentavos } from '@/src/core/types/shared';
 
 // Zod schema for validation
 const receiveSchema = z.object({
@@ -236,7 +237,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
       {
         inventory_code: input.inventory_code,
         quantity: input.quantity,
-        unit_cost_cents: input.unit_cost_cents,
+        unit_cost_cents: asCentavos(input.unit_cost_cents),
         supplier_id: input.supplier_id,
         invoice_number: input.invoice_number,
       },
