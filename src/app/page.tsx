@@ -99,9 +99,13 @@ export default function HomePage() {
     const [checking, setChecking] = useState(true);
     const [existingConfig, setExistingConfig] = useState<TerminalConfig | null>(null);
     const [showSelector, setShowSelector] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
     const hasDBError = useIndexedDBErrorDetection();
 
     useEffect(() => {
+        // Skip check if we're already navigating away
+        if (isNavigating) return;
+        
         // Check if terminal is already configured
         const config = getStoredTerminalConfig();
         if (config?.terminal_id) {
@@ -111,7 +115,7 @@ export default function HomePage() {
             setShowSelector(true);
             setChecking(false);
         }
-    }, []);
+    }, [isNavigating]);
 
     const handleContinueWithExisting = () => {
         if (existingConfig?.terminal_id) {
@@ -127,6 +131,7 @@ export default function HomePage() {
     };
 
     const handleTerminalSetup = (config: TerminalConfig) => {
+        setIsNavigating(true);
         const route = getRouteForTerminal(config.terminal_id);
         router.push(route);
     };
