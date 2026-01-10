@@ -160,14 +160,14 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - Colores de alerta según tiempo
     - _Requirements: 7.6_
 
-- [ ] 13. Refactorizar POS (/pos)
-  - [ ] 13.1 Agregar warning para móvil
+- [x] 13. Refactorizar POS (/pos)
+  - [x] 13.1 Agregar warning para móvil
     - Mostrar mensaje "usar tablet o desktop" en < 768px
     - _Requirements: 8.2_
-  - [ ] 13.2 Optimizar Numpad
+  - [x] 13.2 Optimizar Numpad
     - Botones mínimo 60x60px
     - _Requirements: 8.3_
-  - [ ] 13.3 Hacer Payment Modal fullscreen en móvil
+  - [x] 13.3 Hacer Payment Modal fullscreen en móvil
     - _Requirements: 8.4_
 
 - [ ] 14. Implementar optimizaciones de performance

@@ -80,10 +80,10 @@ export function NumpadCalculator({
                                 else if (key === "00") { handleDigit("0"); handleDigit("0"); }
                                 else handleDigit(key);
                             }}
-                            className={`h-14 rounded-xl text-white text-xl font-bold transition-colors active:scale-95 ${
+                            className={`min-h-[60px] h-[60px] rounded-xl text-white text-xl font-bold transition-colors active:scale-95 touch-manipulation ${
                                 key === "C" 
-                                    ? "bg-amber-600 hover:bg-amber-500" 
-                                    : "bg-zinc-800 hover:bg-zinc-700"
+                                    ? "bg-amber-600 hover:bg-amber-500 active:bg-amber-400" 
+                                    : "bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600"
                             }`}
                         >
                             {key === "⌫" ? <Delete className="mx-auto" size={20} /> : key}
@@ -94,14 +94,14 @@ export function NumpadCalculator({
                 <div className="grid grid-cols-2 gap-2 mt-4">
                     <button
                         onClick={onCancel}
-                        className="h-12 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-zinc-300 font-bold flex items-center justify-center gap-2"
+                        className="min-h-[56px] h-14 rounded-xl bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-500 text-zinc-300 font-bold flex items-center justify-center gap-2 touch-manipulation"
                     >
                         <X size={18} /> Cancelar
                     </button>
                     <button
                         onClick={handleConfirm}
                         disabled={currentValue <= 0}
-                        className="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold flex items-center justify-center gap-2"
+                        className="min-h-[56px] h-14 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold flex items-center justify-center gap-2 touch-manipulation"
                     >
                         <Check size={18} /> Confirmar
                     </button>

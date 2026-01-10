@@ -23,3 +23,7 @@ export type { BottomNavigationProps, BottomNavItem } from './BottomNavigation';
 // FAB (Floating Action Button)
 export { FAB, OrderFAB } from './FAB';
 export type { FABProps, OrderFABProps } from './FAB';
+
+// Mobile Warning
+export { MobileWarning } from './MobileWarning';
+export type { default as MobileWarningProps } from './MobileWarning';

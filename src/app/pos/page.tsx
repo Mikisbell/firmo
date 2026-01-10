@@ -16,6 +16,7 @@ import { toast, Toaster } from "sonner";
 import { getDb } from "@/src/core/db/schema";
 import { useAuth } from "@/src/components/auth";
 import { useLiveOrders } from "./hooks/useLiveOrders";
+import { MobileWarning } from "@/src/components/ui";
 
 // Order number counter (MVP - in production this comes from server)
 let orderNumberCounter = 1;
@@ -324,6 +325,13 @@ export default function POSPage() {
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-950/20 via-zinc-950 to-zinc-950">
             <Toaster position="top-center" richColors />
+            
+            {/* Mobile Warning - POS is optimized for tablet/desktop */}
+            <MobileWarning
+                title="Caja optimizada para tablet/desktop"
+                message="La caja principal funciona mejor en pantallas grandes. Usa el modo Mesero para móvil."
+                storageKey="pos-mobile-warning-dismissed"
+            />
 
             {/* Shift Modal */}
             <ShiftModal
