@@ -26,8 +26,21 @@ const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@parkpos.pe';
 
+// Only configure VAPID if all keys are present and subject is valid
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && webpush) {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  // Validate VAPID_SUBJECT format (must be mailto: or https://)
+  const isValidSubject = VAPID_SUBJECT.startsWith('mailto:') || VAPID_SUBJECT.startsWith('https://');
+  if (isValidSubject) {
+    try {
+      webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    } catch (error) {
+      logger.warn('NOTIFICATION_VAPID_CONFIG_ERROR', 'Failed to configure VAPID', { error: String(error) });
+      webpush = null; // Disable webpush if config fails
+    }
+  } else {
+    logger.warn('NOTIFICATION_VAPID_INVALID_SUBJECT', 'VAPID_SUBJECT must start with mailto: or https://', { subject: VAPID_SUBJECT });
+    webpush = null; // Disable webpush if subject is invalid
+  }
 }
 
 // ============ SUBSCRIPTIONS ============

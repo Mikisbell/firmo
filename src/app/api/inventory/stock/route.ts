@@ -12,7 +12,7 @@ import {
   calculateStatus,
   calculateExpiryUrgency,
 } from '@/src/core/inventory/stock-types';
-import { asCentavos, type Centavos } from '@/src/core/types/shared';
+import { asCentavos } from '@/src/core/types/shared';
 
 /**
  * GET /api/inventory/stock
