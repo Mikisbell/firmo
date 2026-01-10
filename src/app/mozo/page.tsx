@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import { useTableStatus, useZones, TableStatus } from "./hooks/useTableStatus";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCents } from "@/src/core/domain/money";
-import { Users, Utensils, Clock, ClipboardList, Wifi, WifiOff, LogOut, Home, Bell, AlertTriangle, Receipt } from "lucide-react";
+import { Users, Utensils, Clock, ClipboardList, Wifi, WifiOff, LogOut, Home, Bell, AlertTriangle, Receipt, Settings } from "lucide-react";
 import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
 import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
+import { useResponsive } from "@/src/hooks/useResponsive";
+import { MobileHeader, HeaderSpacer } from "@/src/components/ui/MobileHeader";
+import { BottomNavigation, BottomNavItem } from "@/src/components/ui/BottomNavigation";
 
 // Fallback zones when API is not available
 const DEFAULT_ZONES = [
@@ -99,6 +102,7 @@ export default function WaiterPage() {
     const { isLoading, isAuthenticated } = useRequireTerminal();
     const { zones: apiZones, loading: zonesLoading } = useZones();
     const [selectedZoneId, setSelectedZoneId] = useState<string | null>("all"); // "all" = todas las zonas
+    const { isMobile, isTablet } = useResponsive();
     
     // Use API zones or fallback
     const zones = apiZones.length > 0 ? apiZones : DEFAULT_ZONES;
@@ -139,91 +143,127 @@ export default function WaiterPage() {
         router.push("/");
     };
 
+    // Bottom navigation items for mobile
+    const navItems: BottomNavItem[] = [
+        { id: 'mesas', icon: <Utensils className="w-6 h-6" />, label: 'Mesas', href: '/mozo', badge: alertCount > 0 ? alertCount : undefined },
+        { id: 'listos', icon: <Bell className="w-6 h-6" />, label: 'Listos', href: '/mozo/listos', badge: readyItemsTotal > 0 ? readyItemsTotal : undefined },
+        { id: 'config', icon: <Settings className="w-6 h-6" />, label: 'Config', href: '/mozo/config' },
+    ];
+
     return (
-        <div className="min-h-screen bg-zinc-950 pb-24 text-zinc-100 font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/30 via-zinc-950 to-zinc-950">
-            {/* Header - Estilo Morado/Violeta */}
-            <header className="sticky top-0 z-30 h-20 bg-gradient-to-r from-violet-950/90 to-purple-950/70 backdrop-blur-md border-b-4 border-violet-500 p-4 flex items-center justify-between shadow-[0_4px_20px_rgba(139,92,246,0.2)]">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-violet-500/20 rounded-xl border-2 border-violet-500/50">
-                        <ClipboardList className="text-violet-400" size={28} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-black tracking-wider">
-                            <span className="text-violet-400">MESERO</span>
-                            <span className="text-violet-600/60 text-lg ml-2">T-01</span>
-                        </h1>
-                        <p className="text-violet-300/50 text-xs uppercase tracking-widest">Toma de Pedidos • Mesas</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    {/* Ready Items Counter */}
-                    {readyItemsTotal > 0 && (
-                        <div className="text-center px-4 py-2 bg-emerald-950/50 rounded-lg border border-emerald-500/30 animate-pulse">
-                            <div className="text-xl font-black text-emerald-400 flex items-center gap-1">
-                                <Bell size={16} />
-                                {readyItemsTotal}
+        <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/30 via-zinc-950 to-zinc-950">
+            {/* Mobile Header */}
+            {isMobile ? (
+                <>
+                    <MobileHeader
+                        title="MESERO"
+                        subtitle={`${occupiedCount} ocupadas`}
+                        variant="colored"
+                        colorClass="bg-gradient-to-r from-violet-950/90 to-purple-950/90 border-b-2 border-violet-500"
+                        leftAction={
+                            <div className="p-2 bg-violet-500/20 rounded-lg">
+                                <ClipboardList className="text-violet-400 w-5 h-5" />
                             </div>
-                            <div className="text-[10px] uppercase tracking-wider text-emerald-300/60">Listos</div>
+                        }
+                        rightActions={[
+                            <div key="sync" className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs ${isOnline ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+                            </div>,
+                            alertCount > 0 ? (
+                                <div key="alert" className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 text-amber-400 rounded-lg text-xs">
+                                    <AlertTriangle size={14} />
+                                    {alertCount}
+                                </div>
+                            ) : null,
+                        ].filter(Boolean)}
+                    />
+                    <HeaderSpacer />
+                </>
+            ) : (
+                /* Desktop Header - Estilo Morado/Violeta */
+                <header className="sticky top-0 z-30 h-20 bg-gradient-to-r from-violet-950/90 to-purple-950/70 backdrop-blur-md border-b-4 border-violet-500 p-4 flex items-center justify-between shadow-[0_4px_20px_rgba(139,92,246,0.2)]">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-violet-500/20 rounded-xl border-2 border-violet-500/50">
+                            <ClipboardList className="text-violet-400" size={28} />
                         </div>
-                    )}
+                        <div>
+                            <h1 className="text-2xl font-black tracking-wider">
+                                <span className="text-violet-400">MESERO</span>
+                                <span className="text-violet-600/60 text-lg ml-2">T-01</span>
+                            </h1>
+                            <p className="text-violet-300/50 text-xs uppercase tracking-widest">Toma de Pedidos • Mesas</p>
+                        </div>
+                    </div>
 
-                    {/* Alert Counter */}
-                    {alertCount > 0 && (
-                        <div className="text-center px-4 py-2 bg-amber-950/50 rounded-lg border border-amber-500/30">
-                            <div className="text-xl font-black text-amber-400 flex items-center gap-1">
-                                <AlertTriangle size={16} />
-                                {alertCount}
+                    <div className="flex items-center gap-4">
+                        {/* Ready Items Counter */}
+                        {readyItemsTotal > 0 && (
+                            <div className="text-center px-4 py-2 bg-emerald-950/50 rounded-lg border border-emerald-500/30 animate-pulse">
+                                <div className="text-xl font-black text-emerald-400 flex items-center gap-1">
+                                    <Bell size={16} />
+                                    {readyItemsTotal}
+                                </div>
+                                <div className="text-[10px] uppercase tracking-wider text-emerald-300/60">Listos</div>
                             </div>
-                            <div className="text-[10px] uppercase tracking-wider text-amber-300/60">Atención</div>
+                        )}
+
+                        {/* Alert Counter */}
+                        {alertCount > 0 && (
+                            <div className="text-center px-4 py-2 bg-amber-950/50 rounded-lg border border-amber-500/30">
+                                <div className="text-xl font-black text-amber-400 flex items-center gap-1">
+                                    <AlertTriangle size={16} />
+                                    {alertCount}
+                                </div>
+                                <div className="text-[10px] uppercase tracking-wider text-amber-300/60">Atención</div>
+                            </div>
+                        )}
+
+                        {/* Tables Counter */}
+                        <div className="text-center px-4 py-2 bg-violet-950/50 rounded-lg border border-violet-500/30">
+                            <div className="text-xl font-black text-violet-400">{occupiedCount}</div>
+                            <div className="text-[10px] uppercase tracking-wider text-violet-300/60">Ocupadas</div>
                         </div>
-                    )}
 
-                    {/* Tables Counter */}
-                    <div className="text-center px-4 py-2 bg-violet-950/50 rounded-lg border border-violet-500/30">
-                        <div className="text-xl font-black text-violet-400">{occupiedCount}</div>
-                        <div className="text-[10px] uppercase tracking-wider text-violet-300/60">Ocupadas</div>
+                        {/* Sync Indicator */}
+                        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${isOnline ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                            {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+                            <span className="text-xs font-bold uppercase tracking-wider">{isOnline ? 'LIVE' : 'OFFLINE'}</span>
+                        </div>
+
+                        {/* Home Button */}
+                        <button
+                            onClick={handleHome}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors border border-zinc-700"
+                            title="Ir al inicio"
+                        >
+                            <Home size={18} />
+                        </button>
+
+                        {/* Exit Button */}
+                        <button
+                            onClick={handleExit}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors border border-red-500/30"
+                            title="Cerrar sesión"
+                        >
+                            <LogOut size={18} />
+                            <span className="text-sm font-medium">Cerrar sesión</span>
+                        </button>
                     </div>
+                </header>
+            )}
 
-                    {/* Sync Indicator */}
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${isOnline ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
-                        {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
-                        <span className="text-xs font-bold uppercase tracking-wider">{isOnline ? 'LIVE' : 'OFFLINE'}</span>
-                    </div>
-
-                    {/* Home Button */}
-                    <button
-                        onClick={handleHome}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors border border-zinc-700"
-                        title="Ir al inicio"
-                    >
-                        <Home size={18} />
-                    </button>
-
-                    {/* Exit Button */}
-                    <button
-                        onClick={handleExit}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors border border-red-500/30"
-                        title="Cerrar sesión"
-                    >
-                        <LogOut size={18} />
-                        <span className="text-sm font-medium">Cerrar sesión</span>
-                    </button>
-                </div>
-            </header>
-
-            <div className="p-4 space-y-6">
-                {/* Zone Selector - Estilo Violeta con opción "Todas" */}
-                <div className="flex bg-zinc-900/50 p-1.5 rounded-2xl overflow-x-auto gap-2 border border-violet-500/20">
+            <div className="p-3 md:p-4 space-y-4 md:space-y-6 pb-20 md:pb-6">
+                {/* Zone Selector - Horizontal scroll on mobile */}
+                <div className="flex bg-zinc-900/50 p-1 md:p-1.5 rounded-xl md:rounded-2xl overflow-x-auto gap-1 md:gap-2 border border-violet-500/20 scrollbar-hide">
                     {/* "Todas" option */}
                     <button
                         onClick={() => setSelectedZoneId("all")}
-                        className="relative flex-1 py-3 px-4 text-sm font-semibold rounded-xl transition-all outline-none min-w-[80px]"
+                        className="relative flex-shrink-0 md:flex-1 py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-semibold rounded-lg md:rounded-xl transition-all outline-none min-w-[60px] md:min-w-[80px]"
                     >
                         {selectedZoneId === "all" && (
                             <motion.div
                                 layoutId="zone-bg"
-                                className="absolute inset-0 bg-gradient-to-r from-zinc-600 to-zinc-700 rounded-xl shadow-lg shadow-zinc-900/40"
+                                className="absolute inset-0 bg-gradient-to-r from-zinc-600 to-zinc-700 rounded-lg md:rounded-xl shadow-lg shadow-zinc-900/40"
                                 initial={false}
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
@@ -236,12 +276,12 @@ export default function WaiterPage() {
                         <button
                             key={zone.id}
                             onClick={() => setSelectedZoneId(zone.id)}
-                            className="relative flex-1 py-3 px-4 text-sm font-semibold rounded-xl transition-all outline-none"
+                            className="relative flex-shrink-0 md:flex-1 py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-semibold rounded-lg md:rounded-xl transition-all outline-none min-w-[60px]"
                         >
                             {selectedZoneId === zone.id && (
                                 <motion.div
                                     layoutId="zone-bg"
-                                    className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl shadow-lg shadow-violet-900/40"
+                                    className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 rounded-lg md:rounded-xl shadow-lg shadow-violet-900/40"
                                     initial={false}
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
@@ -253,10 +293,16 @@ export default function WaiterPage() {
                     ))}
                 </div>
 
-                {/* Tables Grid */}
+                {/* Tables Grid - Responsive columns */}
                 <motion.div
                     layout
-                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                    className={`grid gap-2 md:gap-4 ${
+                        isMobile 
+                            ? 'grid-cols-2' 
+                            : isTablet 
+                                ? 'grid-cols-3' 
+                                : 'grid-cols-4'
+                    }`}
                 >
                     <AnimatePresence mode="popLayout">
                         {filteredTables.map((t) => {
@@ -270,7 +316,12 @@ export default function WaiterPage() {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 onClick={() => router.push(`/mozo/mesa/${t.number}`)}
                                 whileTap={{ scale: 0.97 }}
-                                className={`relative aspect-[4/3] rounded-2xl flex flex-col items-center justify-center border-2 transition-all overflow-hidden group ${colors.bg} ${colors.border} shadow-xl ${colors.shadow}`}
+                                className={`
+                                    relative rounded-xl md:rounded-2xl flex flex-col items-center justify-center 
+                                    border-2 transition-all overflow-hidden group 
+                                    min-h-[100px] md:min-h-[140px] aspect-[4/3]
+                                    ${colors.bg} ${colors.border} shadow-xl ${colors.shadow}
+                                `}
                             >
                                 {/* Active State Background Gradient */}
                                 {t.status !== "FREE" && (
@@ -279,53 +330,53 @@ export default function WaiterPage() {
 
                                 {/* Ready Items Badge */}
                                 {t.readyItemsCount && t.readyItemsCount > 0 && (
-                                    <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full animate-pulse shadow-lg shadow-emerald-500/50">
-                                        <Bell size={12} />
-                                        {t.readyItemsCount} listo{t.readyItemsCount > 1 ? 's' : ''}
+                                    <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 bg-emerald-500 text-white text-[10px] md:text-xs font-bold rounded-full animate-pulse shadow-lg shadow-emerald-500/50">
+                                        <Bell size={isMobile ? 10 : 12} />
+                                        {t.readyItemsCount}
                                     </div>
                                 )}
 
                                 {/* Bill Requested Badge */}
                                 {t.status === "BILL_REQUESTED" && (
-                                    <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded-full animate-pulse shadow-lg shadow-amber-500/50">
-                                        <Receipt size={12} />
-                                        CUENTA
+                                    <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 bg-amber-500 text-white text-[10px] md:text-xs font-bold rounded-full animate-pulse shadow-lg shadow-amber-500/50">
+                                        <Receipt size={isMobile ? 10 : 12} />
+                                        {!isMobile && 'CUENTA'}
                                     </div>
                                 )}
 
                                 {/* Zone indicator when showing all */}
                                 {selectedZoneId === "all" && t.zone && (
                                     <div 
-                                        className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                                        className="absolute bottom-1.5 left-1.5 md:bottom-2 md:left-2 px-1.5 md:px-2 py-0.5 rounded text-[8px] md:text-[10px] font-bold uppercase tracking-wider"
                                         style={{ backgroundColor: `${t.zone.color}30`, color: t.zone.color }}
                                     >
                                         {t.zone.code}
                                     </div>
                                 )}
 
-                                <div className="space-y-2 z-10 flex flex-col items-center">
-                                    <div className={`p-3 rounded-xl transition-colors ring-2 ${colors.icon}`}>
+                                <div className="space-y-1 md:space-y-2 z-10 flex flex-col items-center">
+                                    <div className={`p-2 md:p-3 rounded-lg md:rounded-xl transition-colors ring-2 ${colors.icon}`}>
                                         {t.status === "FREE" 
-                                            ? <Utensils className="w-6 h-6" />
+                                            ? <Utensils className="w-4 h-4 md:w-6 md:h-6" />
                                             : t.status === "BILL_REQUESTED"
-                                            ? <Receipt className="w-6 h-6" />
-                                            : <Users className="w-6 h-6" />
+                                            ? <Receipt className="w-4 h-4 md:w-6 md:h-6" />
+                                            : <Users className="w-4 h-4 md:w-6 md:h-6" />
                                         }
                                     </div>
 
                                     <div className="text-center">
-                                        <div className="text-lg font-bold text-white tracking-tight">{t.name}</div>
+                                        <div className="text-sm md:text-lg font-bold text-white tracking-tight">{t.name}</div>
                                         {t.status !== "FREE" ? (
-                                            <div className="mt-1 flex flex-col animate-in fade-in slide-in-from-bottom-2">
-                                                <span className={`text-sm font-mono font-medium ${colors.text}`}>
+                                            <div className="mt-0.5 md:mt-1 flex flex-col animate-in fade-in slide-in-from-bottom-2">
+                                                <span className={`text-xs md:text-sm font-mono font-medium ${colors.text}`}>
                                                     {formatCents(t.totalCents || 0)}
                                                 </span>
-                                                <span className={`text-[10px] mt-0.5 flex items-center justify-center gap-1 ${colors.text}`}>
-                                                    <Clock className="w-3 h-3" /> {colors.label}
+                                                <span className={`text-[9px] md:text-[10px] mt-0.5 flex items-center justify-center gap-0.5 md:gap-1 ${colors.text}`}>
+                                                    <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" /> {colors.label}
                                                 </span>
                                             </div>
                                         ) : (
-                                            <span className="text-xs font-medium text-emerald-400 mt-1 block">
+                                            <span className="text-[10px] md:text-xs font-medium text-emerald-400 mt-0.5 md:mt-1 block">
                                                 {colors.label}
                                             </span>
                                         )}
@@ -333,7 +384,7 @@ export default function WaiterPage() {
                                 </div>
 
                                 {/* Status Light */}
-                                <div className={`absolute top-3 right-3 w-3 h-3 rounded-full ${colors.light}`} />
+                                <div className={`absolute top-2 right-2 md:top-3 md:right-3 w-2 h-2 md:w-3 md:h-3 rounded-full ${colors.light}`} />
                             </motion.button>
                             );
                         })}
@@ -343,16 +394,16 @@ export default function WaiterPage() {
                     {selectedZoneId !== "all" && (
                         <motion.button
                             whileTap={{ scale: 0.95 }}
-                            className="aspect-[4/3] rounded-2xl border-2 border-dashed border-violet-500/30 text-violet-500/50 flex flex-col items-center justify-center hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-400 transition-colors"
+                            className="min-h-[100px] md:min-h-[140px] aspect-[4/3] rounded-xl md:rounded-2xl border-2 border-dashed border-violet-500/30 text-violet-500/50 flex flex-col items-center justify-center hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-400 transition-colors"
                         >
-                            <span className="text-3xl font-light mb-1">+</span>
-                            <span className="text-xs font-bold uppercase tracking-wider">Barra</span>
+                            <span className="text-2xl md:text-3xl font-light mb-0.5 md:mb-1">+</span>
+                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider">Barra</span>
                         </motion.button>
                     )}
                 </motion.div>
 
-                {/* Legend */}
-                <div className="flex flex-wrap gap-4 justify-center text-xs text-zinc-500 pt-4 border-t border-zinc-800">
+                {/* Legend - Hidden on mobile, shown on tablet+ */}
+                <div className="hidden md:flex flex-wrap gap-4 justify-center text-xs text-zinc-500 pt-4 border-t border-zinc-800">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-emerald-500" />
                         <span>Disponible</span>
@@ -375,6 +426,9 @@ export default function WaiterPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Bottom Navigation - Mobile only */}
+            <BottomNavigation items={navItems} activeId="mesas" />
         </div>
     );
 }

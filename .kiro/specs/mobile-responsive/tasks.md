@@ -79,8 +79,8 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - Variante extended con label
     - _Requirements: 3.3_
 
-- [ ] 7. Refactorizar CatalogGrid con Container Queries
-  - [ ] 7.1 Actualizar CatalogGrid para usar Container Queries
+- [x] 7. Refactorizar CatalogGrid con Container Queries
+  - [x] 7.1 Actualizar CatalogGrid para usar Container Queries
     - Wrapper con container-type: inline-size
     - Grid columns según container width
     - Fallback con media queries
@@ -115,19 +115,19 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - **Property 1: Touch Targets Minimum Size**
     - **Validates: Requirements 1.5, 5.3, 10.1**
 
-- [ ] 9. Refactorizar página /mozo
-  - [ ] 9.1 Actualizar Header del mozo
+- [x] 9. Refactorizar página /mozo
+  - [x] 9.1 Actualizar Header del mozo
     - Usar MobileHeader en móvil
     - Colapsar counters a badges
     - _Requirements: 2.1, 2.6_
-  - [ ] 9.2 Actualizar Grid de mesas
+  - [x] 9.2 Actualizar Grid de mesas
     - 2 cols móvil, 3 tablet, 4+ desktop
     - Aspect ratio 1:1 en móvil
     - _Requirements: 2.2, 2.3, 2.4_
-  - [ ] 9.3 Actualizar Zone Selector
+  - [x] 9.3 Actualizar Zone Selector
     - Scroll horizontal con scroll-snap
     - _Requirements: 2.5_
-  - [ ] 9.4 Agregar BottomNavigation
+  - [x] 9.4 Agregar BottomNavigation
     - Items: Mesas, Pedido, Config
     - _Requirements: 2.7_
 
