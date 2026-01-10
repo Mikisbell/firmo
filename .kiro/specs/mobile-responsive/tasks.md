@@ -144,19 +144,19 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - Usar modo 'auto'
     - _Requirements: 3.2_
 
-- [ ] 11. Checkpoint - Verificar páginas del mozo
+- [x] 11. Checkpoint - Verificar páginas del mozo
   - Probar en móvil real o emulador
   - Verificar gestos funcionan correctamente
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Refactorizar KDS (/cocina, /bar)
-  - [ ] 12.1 Actualizar layout de tickets
+- [x] 12. Refactorizar KDS (/cocina, /bar)
+  - [x] 12.1 Actualizar layout de tickets
     - 1 col en móvil, 2-3 en tablet, 4+ en desktop
     - _Requirements: 7.2, 7.3, 7.4_
-  - [ ] 12.2 Aumentar tipografía
+  - [x] 12.2 Aumentar tipografía
     - Min 18px para legibilidad a distancia
     - _Requirements: 7.5_
-  - [ ] 12.3 Hacer timer prominente
+  - [x] 12.3 Hacer timer prominente
     - Colores de alerta según tiempo
     - _Requirements: 7.6_
 
