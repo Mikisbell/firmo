@@ -96,7 +96,7 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - **Property 3: Virtualization Efficiency**
     - **Validates: Requirements 4.7, 9.2**
 
-- [-] 8. Refactorizar OrderPanel para ser adaptativo
+- [x] 8. Refactorizar OrderPanel para ser adaptativo
   - [x] 8.1 Actualizar OrderPanel con modo auto
     - Detectar viewport y cambiar modo
     - Sidebar en desktop, BottomSheet en móvil
@@ -111,7 +111,7 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - Min-height: 56px en móvil
     - Touch targets: 44x44px en controles +/-
     - _Requirements: 5.3, 5.6_
-  - [ ] 8.5 Write property test for touch targets
+  - [x] 8.5 Write property test for touch targets
     - **Property 1: Touch Targets Minimum Size**
     - **Validates: Requirements 1.5, 5.3, 10.1**
 
