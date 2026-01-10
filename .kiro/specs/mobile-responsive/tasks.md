@@ -85,7 +85,7 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - Grid columns según container width
     - Fallback con media queries
     - _Requirements: 3.5, 4.1, 4.2, 4.3, 4.4_
-  - [ ] 7.2 Write property test for grid columns
+  - [x] 7.2 Write property test for grid columns
     - **Property 7: Grid Column Responsiveness**
     - **Validates: Requirements 4.2, 4.3, 4.4**
   - [ ] 7.3 Implementar Virtualization para listas largas
@@ -170,43 +170,43 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
   - [x] 13.3 Hacer Payment Modal fullscreen en móvil
     - _Requirements: 8.4_
 
-- [ ] 14. Implementar optimizaciones de performance
-  - [ ] 14.1 Agregar Skeleton Loading
+- [-] 14. Implementar optimizaciones de performance
+  - [x] 14.1 Agregar Skeleton Loading
     - En listas de mesas, productos, pedidos
     - _Requirements: 9.1_
-  - [ ] 14.2 Implementar lazy loading de imágenes
+  - [x] 14.2 Implementar lazy loading de imágenes
     - loading="lazy" en todas las imágenes de productos
     - _Requirements: 9.3_
   - [ ] 14.3 Write property test for lazy loading
     - **Property 5: Image Lazy Loading**
     - **Validates: Requirements 9.3**
-  - [ ] 14.4 Implementar prefetch de rutas
+  - [x] 14.4 Implementar prefetch de rutas
     - Prefetch /mesa/[id] al hover en mesa
     - _Requirements: 9.4_
 
-- [ ] 15. Implementar accesibilidad táctil
-  - [ ] 15.1 Verificar y corregir Touch Targets
+- [x] 15. Implementar accesibilidad táctil
+  - [x] 15.1 Verificar y corregir Touch Targets
     - Auditar todos los elementos interactivos
     - Corregir los que sean < 44x44px
     - _Requirements: 10.1_
-  - [ ] 15.2 Verificar spacing entre elementos
+  - [x] 15.2 Verificar spacing entre elementos
     - Mínimo 8px entre elementos táctiles
     - _Requirements: 10.2_
   - [ ] 15.3 Write property test for spacing
     - **Property 2: Spacing Between Touch Targets**
     - **Validates: Requirements 10.2**
-  - [ ] 15.4 Agregar feedback visual en touch
+  - [x] 15.4 Agregar feedback visual en touch
     - Active states en todos los botones
     - _Requirements: 10.3_
-  - [ ] 15.5 Agregar confirmación para acciones destructivas
+  - [x] 15.5 Agregar confirmación para acciones destructivas
     - Modal o toast con undo
     - _Requirements: 10.5_
 
-- [ ] 16. Soporte de orientación
-  - [ ] 16.1 Verificar layouts en landscape
+- [x] 16. Soporte de orientación
+  - [x] 16.1 Verificar layouts en landscape
     - Ajustar layouts para aprovechar ancho
     - _Requirements: 11.2_
-  - [ ] 16.2 Agregar recomendación de orientación en KDS
+  - [x] 16.2 Agregar recomendación de orientación en KDS
     - Sugerir landscape pero funcionar en portrait
     - _Requirements: 11.3_
 

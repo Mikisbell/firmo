@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
 import { Toaster } from "sonner";
+import { OrientationHint } from "@/src/components/ui";
 
 export interface KDSLayoutProps {
     // Header
@@ -178,6 +179,13 @@ export function KDSLayout({
     return (
         <div className={`flex flex-col h-screen bg-zinc-950 text-white font-sans overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${colors.bgGradient}`}>
             <Toaster position="top-right" theme="dark" />
+            
+            {/* Orientation hint for KDS - recommend landscape */}
+            <OrientationHint 
+                recommended="landscape" 
+                storageKey={`kds-${accentColor}`}
+                showOnce={true}
+            />
 
             {/* Header - Responsive */}
             <header className={`
