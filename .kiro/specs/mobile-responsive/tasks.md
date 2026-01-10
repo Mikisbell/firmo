@@ -96,18 +96,18 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - **Property 3: Virtualization Efficiency**
     - **Validates: Requirements 4.7, 9.2**
 
-- [ ] 8. Refactorizar OrderPanel para ser adaptativo
-  - [ ] 8.1 Actualizar OrderPanel con modo auto
+- [-] 8. Refactorizar OrderPanel para ser adaptativo
+  - [x] 8.1 Actualizar OrderPanel con modo auto
     - Detectar viewport y cambiar modo
     - Sidebar en desktop, BottomSheet en móvil
     - _Requirements: 5.1_
-  - [ ] 8.2 Integrar SwipeableItem en items del pedido
+  - [x] 8.2 Integrar SwipeableItem en items del pedido
     - Swipe left para eliminar
     - _Requirements: 5.4_
-  - [ ] 8.3 Hacer Total sticky
+  - [x] 8.3 Hacer Total sticky
     - Siempre visible independiente del scroll
     - _Requirements: 5.5_
-  - [ ] 8.4 Aumentar tamaño de botones de acción
+  - [x] 8.4 Aumentar tamaño de botones de acción
     - Min-height: 56px en móvil
     - Touch targets: 44x44px en controles +/-
     - _Requirements: 5.3, 5.6_
