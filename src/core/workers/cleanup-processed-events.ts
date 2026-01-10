@@ -13,7 +13,7 @@ import { logger } from "@/src/core/observability/logger";
 
 const prisma = new PrismaClient();
 
-const RETENTION_DAYS = 7; // Mantener 7 días de historial
+const RETENTION_DAYS = 30; // Mantener 30 días de historial
 
 export async function cleanupProcessedEvents(retentionDays: number = RETENTION_DAYS): Promise<number> {
     const cutoff = new Date();

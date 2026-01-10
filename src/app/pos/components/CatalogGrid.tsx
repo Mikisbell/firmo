@@ -237,7 +237,7 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-[10px] text-zinc-500">PEN</span>
                                             <span className={`font-mono text-xl font-bold ${isRecommended ? 'text-emerald-300' : 'text-emerald-400'}`}>
-                                                {formatCents(p.price as any)}
+                                                {formatCents(p.price)}
                                             </span>
                                         </div>
                                     </div>

@@ -18,8 +18,8 @@ export const positiveCentsSchema = z.number().int().nonnegative();
 // ============================================================================
 
 export const OrderTypeSchema = z.enum(["DINE_IN", "TAKEOUT", "DELIVERY"]);
-export const OrderStatusSchema = z.enum(["OPEN", "IN_PROGRESS", "DONE", "CANCELLED"]);
-export const FulfillmentStatusSchema = z.enum(["COOKING", "PARTIAL_READY", "ALL_READY"]);
+export const OrderStatusSchema = z.enum(["OPEN", "IN_PROGRESS", "CONFIRMED", "CANCELLED"]);
+export const FulfillmentStatusSchema = z.enum(["COOKING", "READY", "DELIVERED"]);
 export const ItemStatusSchema = z.enum(["PENDING", "COOKING", "READY", "DONE", "VOIDED"]);
 export const PaymentMethodSchema = z.enum(["CASH", "YAPE", "PLIN", "CARD", "TRANSFER"]);
 export const PaymentStatusSchema = z.enum(["UNPAID", "PARTIAL", "PAID"]);

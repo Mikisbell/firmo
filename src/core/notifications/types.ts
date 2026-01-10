@@ -3,7 +3,13 @@
  * Tipos para el servicio de notificaciones push
  */
 
-export type NotificationType = 'ITEM_READY' | 'REQUEST_CHECK' | 'TEST';
+export type NotificationType = 
+  | 'ITEM_READY' 
+  | 'REQUEST_CHECK' 
+  | 'TEST'
+  | 'DELIVERY_ASSIGNED'
+  | 'DELIVERY_READY_FOR_DISPATCH'
+  | 'DELIVERY_DELAYED';
 
 export interface WebPushKeys {
   p256dh: string;
@@ -45,6 +51,9 @@ export interface NotificationPayload {
     table_number?: string;
     station?: string;
     url?: string;
+    delivery_id?: string;
+    driver_id?: string;
+    address?: string;
   };
   tag?: string;
 }

@@ -18,10 +18,10 @@ export interface StationMetrics {
 
 export interface RealtimeMetrics {
   // Ventas
-  total_sales_cents: number;
+  total_sales_cents: Centavos;
   orders_count: number;
-  avg_ticket_cents: number;
-  sales_by_payment_method: Record<PaymentMethod, number>;
+  avg_ticket_cents: Centavos;
+  sales_by_payment_method: Record<PaymentMethod, Centavos>;
   
   // Mesas
   tables_occupied: number;
@@ -56,12 +56,12 @@ export interface TopProduct {
   sku: string;
   name: string;
   qty_sold: number;
-  revenue_cents: number;
+  revenue_cents: Centavos;
 }
 
 export interface HourlySales {
   hour: number;  // 0-23
-  sales_cents: number;
+  sales_cents: Centavos;
   orders_count: number;
 }
 

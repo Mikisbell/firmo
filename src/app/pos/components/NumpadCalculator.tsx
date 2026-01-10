@@ -31,7 +31,7 @@ export function NumpadCalculator({
 
     const handleDecimal = () => {
         if (!display.includes(".")) {
-            setDisplay(display || "0" + ".");
+            setDisplay((display || "0") + ".");
         }
     };
 
@@ -39,7 +39,7 @@ export function NumpadCalculator({
         setDisplay(display.slice(0, -1));
     };
 
-    const _handleClear = () => {
+    const handleClear = () => {
         setDisplay("");
     };
 
@@ -69,16 +69,22 @@ export function NumpadCalculator({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                    {["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "⌫"].map(key => (
+                <div className="grid grid-cols-4 gap-2">
+                    {["1", "2", "3", "C", "4", "5", "6", "⌫", "7", "8", "9", ".", "0", "00"].map(key => (
                         <button
                             key={key}
                             onClick={() => {
                                 if (key === "⌫") handleBackspace();
+                                else if (key === "C") handleClear();
                                 else if (key === ".") handleDecimal();
+                                else if (key === "00") { handleDigit("0"); handleDigit("0"); }
                                 else handleDigit(key);
                             }}
-                            className="h-14 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xl font-bold transition-colors active:scale-95"
+                            className={`h-14 rounded-xl text-white text-xl font-bold transition-colors active:scale-95 ${
+                                key === "C" 
+                                    ? "bg-amber-600 hover:bg-amber-500" 
+                                    : "bg-zinc-800 hover:bg-zinc-700"
+                            }`}
                         >
                             {key === "⌫" ? <Delete className="mx-auto" size={20} /> : key}
                         </button>

@@ -2,13 +2,14 @@
 // Catalog versioning service for offline-first POS
 
 import { db } from "@/src/core/db/schema";
+import type { Centavos } from "@/src/core/types/shared";
 
 export interface CatalogItem {
     id: string;
     sku: string;
     name: string;
     short_name?: string;
-    price_cents: number;
+    price_cents: Centavos;
     category: string;
     station: string;
     active: boolean;
@@ -64,6 +65,7 @@ export async function saveCatalogToLocal(catalog: CatalogSnapshot): Promise<void
 
 // Load catalog from local cache
 export async function loadCatalogFromLocal(): Promise<CatalogItem[]> {
+    const { unsafeCentavos } = await import("@/src/core/types/shared");
     const items = await db.catalog_items.toArray();
 
     // Transform to CatalogItem format
@@ -72,7 +74,7 @@ export async function loadCatalogFromLocal(): Promise<CatalogItem[]> {
         sku: item.product_id,
         name: item.name,
         short_name: undefined,
-        price_cents: item.price_cents,
+        price_cents: unsafeCentavos(item.price_cents),
         category: "general",
         station: "COCINA",
         active: true,

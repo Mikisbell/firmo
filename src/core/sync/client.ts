@@ -2,7 +2,7 @@
 import { db } from "@/src/core/db/schema";
 import { ingestRequestSchema, type IngestRequest, type ParkEvent } from "@/src/core/domain/events";
 import { syncCircuitBreaker } from "./circuit-breaker";
-import { logger, syncLogger, logEvents } from "@/src/core/observability/logger";
+import { logger, logEvents } from "@/src/core/observability/logger";
 
 export type IngestResponse = {
     accepted: boolean;
@@ -223,8 +223,16 @@ export class SyncClient {
     private connectSSE() {
         if (this.eventSource) return;
 
-        // TODO: Get tenant_id dynamically from context/auth
-        const tenantId = "00000000-0000-0000-0000-000000000001";
+        // Get tenant_id from localStorage (set during terminal setup)
+        const tenantId = typeof localStorage !== 'undefined' 
+            ? localStorage.getItem('park_pos_tenant_id') 
+            : null;
+        
+        if (!tenantId) {
+            logger.warn('sync.no_tenant', 'No tenant_id available for SSE connection. Set park_pos_tenant_id in localStorage.');
+            return;
+        }
+        
         this.eventSource = new EventSource(`/api/events/stream?tenant_id=${tenantId}`);
 
         this.eventSource.onmessage = async (msg) => {
@@ -399,11 +407,15 @@ export class SyncClient {
         let resp: IngestResponse;
         try {
             resp = await syncCircuitBreaker.execute(async () => {
+                const apiSecret = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_SECRET
+                    ? process.env.NEXT_PUBLIC_API_SECRET
+                    : "park_secret_mvp_2025"; // Fallback for development
+                
                 const r = await fetch(this.endpoint, {
                     method: "POST",
                     headers: {
                         "content-type": "application/json",
-                        "x-api-secret": "park_secret_mvp_2025"
+                        "x-api-secret": apiSecret
                     },
                     body: JSON.stringify(req),
                 });
@@ -629,9 +641,13 @@ export class SyncClient {
      */
     async refreshOrder(orderId: string): Promise<boolean> {
         try {
+            const apiSecret = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_SECRET
+                ? process.env.NEXT_PUBLIC_API_SECRET
+                : "park_secret_mvp_2025"; // Fallback for development
+            
             const response = await fetch(`/api/orders/${orderId}/state`, {
                 headers: {
-                    "x-api-secret": "park_secret_mvp_2025"
+                    "x-api-secret": apiSecret
                 }
             });
             

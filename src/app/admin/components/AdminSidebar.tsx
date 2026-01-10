@@ -25,6 +25,8 @@ import {
   X,
   Warehouse,
   Grid3X3,
+  Truck,
+  Bike,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -42,6 +44,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/terminales', label: 'Terminales', icon: Monitor, permission: 'manage_terminals' },
   { href: '/admin/promociones', label: 'Promociones', icon: Gift, permission: 'manage_promotions' },
   { href: '/admin/estaciones', label: 'Estaciones KDS', icon: ChefHat, permission: 'manage_stations' },
+  { href: '/admin/delivery', label: 'Delivery', icon: Truck, permission: 'manage_config' },
+  { href: '/admin/drivers', label: 'Motorizados', icon: Bike, permission: 'manage_employees' },
   { href: '/inventario', label: 'Inventario', icon: Warehouse, permission: 'manage_products' },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, permission: 'manage_config' },
   { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, permission: 'view_reports' },

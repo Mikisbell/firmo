@@ -40,8 +40,8 @@ interface StoredSubscription {
 
 // Generators
 const uuidArb = fc.uuid();
-const hexStringArb = fc.string({ minLength: 32, maxLength: 32 }).filter(s => /^[0-9a-f]+$/.test(s));
-const endpointArb = fc.webUrl().map(url => `${url}/push/v1/subscription`);
+const _hexStringArb = fc.string({ minLength: 32, maxLength: 32 }).filter(s => /^[0-9a-f]+$/.test(s));
+const _endpointArb = fc.webUrl().map(url => `${url}/push/v1/subscription`);
 const base64Arb = fc.base64String({ minLength: 20, maxLength: 100 });
 
 const subscriptionDataArb = fc.record({

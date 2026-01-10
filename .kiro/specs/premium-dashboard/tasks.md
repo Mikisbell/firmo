@@ -103,7 +103,7 @@ Este plan implementa el dashboard de analytics en tiempo real y las notificacion
     - **Property 12: API Authorization**
     - **Validates: Requirements 10.3**
 
-- [ ] 4. Checkpoint - Analytics Backend Complete
+- [x] 4. Checkpoint - Analytics Backend Complete
   - Ensure all analytics tests pass
   - Verify API responses match schema
   - Ask user if questions arise
@@ -212,70 +212,70 @@ Este plan implementa el dashboard de analytics en tiempo real y las notificacion
     - Include days_inactive calculation
     - _Requirements: 7.1, 7.2_
 
-- [ ] 8. Checkpoint - Notification Backend Complete
+- [x] 8. Checkpoint - Notification Backend Complete
   - Ensure all notification tests pass
   - Verify push sending works with test endpoint
   - Ask user if questions arise
 
 - [x] 9. Service Worker Push Integration
-  - [ ] 9.1 Add push event handler to Service Worker
+  - [x] 9.1 Add push event handler to Service Worker
     - Update `public/sw.js` with push event listener
     - Parse notification payload
     - Show notification with correct options
     - _Requirements: 8.1_
   
-  - [ ] 9.2 Add notificationclick handler
+  - [x] 9.2 Add notificationclick handler
     - Handle click to open correct URL
     - Focus existing window or open new
     - _Requirements: 8.2, 5.4, 6.3_
   
-  - [ ] 9.3 Add notification actions
+  - [x] 9.3 Add notification actions
     - Add 'view' and 'dismiss' actions
     - Handle action clicks
     - _Requirements: 5.4, 6.3_
 
-- [ ] 10. Dashboard UI
-  - [ ] 10.1 Create Dashboard page layout
+- [x] 10. Dashboard UI
+  - [x] 10.1 Create Dashboard page layout
     - Create `src/app/admin/dashboard/page.tsx`
     - Grid layout for KPI cards, charts, tables
     - _Requirements: 1.1_
   
-  - [ ] 10.2 Create KPI cards component
+  - [x] 10.2 Create KPI cards component
     - Create `src/app/admin/dashboard/components/KPICard.tsx`
     - Show value, comparison delta, trend indicator
     - Color coding (green positive, red negative)
     - _Requirements: 1.3, 2.2_
   
-  - [ ] 10.3 Create sales metrics section
+  - [x] 10.3 Create sales metrics section
     - Total sales, orders count, avg ticket
     - Sales by payment method breakdown
     - _Requirements: 1.3_
   
-  - [ ] 10.4 Create table metrics section
+  - [x] 10.4 Create table metrics section
     - Occupied/free tables
     - Table turnover
     - _Requirements: 1.4_
   
-  - [ ] 10.5 Create station metrics section
+  - [x] 10.5 Create station metrics section
     - Cards per station (COCINA, HORNO, BAR)
     - Pending items, avg prep time
     - Alert styling when > 10 pending
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
   
-  - [ ] 10.6 Create top products table
+  - [x] 10.6 Create top products table
     - Top 5 products with qty and revenue
     - _Requirements: 2.4_
   
-  - [ ] 10.7 Create hourly sales chart
+  - [x] 10.7 Create hourly sales chart
     - Bar chart of sales by hour
     - Use recharts or similar
     - _Requirements: 1.7_
   
-  - [ ] 10.8 Add date range filter
+  - [x] 10.8 Add date range filter
     - Date picker for historical view
     - _Requirements: 1.6_
   
-  - [ ] 10.9 Add auto-refresh with SSE
+  - [x] 10.9 Add auto-refresh with SSE
     - Connect to SSE stream for real-time updates
     - Update metrics without full page reload
     - _Requirements: 1.2_
@@ -302,29 +302,29 @@ Este plan implementa el dashboard de analytics en tiempo real y las notificacion
     - Link to browser settings
     - _Requirements: 4.4_
 
-- [ ] 12. Admin Notification Management UI
-  - [ ] 12.1 Create notification status page
+- [x] 12. Admin Notification Management UI
+  - [x] 12.1 Create notification status page
     - Create `src/app/admin/notificaciones/page.tsx`
     - Table of employees with subscription status
     - Warning for inactive > 7 days
     - _Requirements: 7.1, 7.2_
   
-  - [ ] 12.2 Add test notification button
+  - [x] 12.2 Add test notification button
     - Send test to selected employee
     - _Requirements: 7.3_
 
-- [ ] 13. Integration & Event Wiring
-  - [ ] 13.1 Register event handlers in Event Bus
+- [x] 13. Integration & Event Wiring
+  - [x] 13.1 Register event handlers in Event Bus
     - Wire handleItemReady to ORDER_ITEM_STATUS_CHANGED
     - Wire handleRequestCheck to REQUEST_CHECK
     - _Requirements: 5.1, 6.1_
   
-  - [ ] 13.2 Add analytics cache invalidation
+  - [x] 13.2 Add analytics cache invalidation
     - Invalidate on CHECK_MARKED_PAID
     - Invalidate on ORDER_ITEM_STATUS_CHANGED
     - _Requirements: 1.2_
 
-- [ ] 14. Final Checkpoint
+- [x] 14. Final Checkpoint
   - Run all tests (unit + property)
   - Manual E2E test of notification flow
   - Manual E2E test of dashboard

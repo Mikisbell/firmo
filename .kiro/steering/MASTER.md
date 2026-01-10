@@ -69,11 +69,11 @@
 
 ### P2 — Growth (Futuro)
 
-- [ ] **Premium Dashboard** → `.kiro/specs/premium-dashboard/` (Analytics + Push Notifications)
+- [x] **Premium Dashboard** → `.kiro/specs/premium-dashboard/` ✅ (98 analytics + notifications tests, Dashboard UI completo)
+- [x] **Delivery Module** → `.kiro/specs/delivery-module/` ✅ (Services, APIs, UIs, Notifications, POS Integration)
 - [ ] Saga Pattern para flujos complejos
 - [ ] Property-Based Testing
 - [ ] Multi-tenant improvements
-- [ ] Delivery module completo
 
 ---
 
@@ -192,5 +192,39 @@ docs/
 
 ---
 
-**Última actualización:** 7 Enero 2026  
+## 🛑 REGLAS DE AUDITORÍA DE CÓDIGO (CRÍTICO)
+
+**ANTES de proponer eliminar o modificar código existente:**
+
+1. **ENTENDER EL PROPÓSITO** — Leer el código completo y su contexto
+2. **BUSCAR USOS** — Verificar si el código se usa en otros lugares
+3. **VERIFICAR CONVENCIONES** — Variables con prefijo `_` son intencionalmente no usadas (convención TypeScript)
+4. **CONSOLE.LOG DE DEBUG** — En componentes críticos (backup, restore, auth) son útiles para troubleshooting
+5. **CONSTANTES DUPLICADAS** — Verificar si ya existe una versión centralizada antes de proponer cambios
+6. **TYPE CASTS** — Verificar si la función destino ya acepta el tipo antes de proponer cambios
+
+**NUNCA proponer:**
+- ❌ Eliminar variables `_prefixed` — son intencionales
+- ❌ Eliminar console.log en componentes de diagnóstico/backup
+- ❌ Cambiar código que funciona sin entender su propósito
+- ❌ Crear nuevas constantes si ya existen centralizadas
+
+**SIEMPRE verificar:**
+- ✅ `src/core/config/terminal.ts` — DEFAULT_TENANT_ID ya existe
+- ✅ `src/core/domain/money.ts` — formatCents ya acepta `number | Cents`
+- ✅ `src/core/types/shared.ts` — Branded Types y helpers ya existen
+- ✅ Funciones con `_` prefijo — son reservadas para uso futuro
+
+**Archivos de configuración centralizada:**
+| Constante | Ubicación |
+|-----------|-----------|
+| DEFAULT_TENANT_ID | `src/core/config/terminal.ts` |
+| EMPLOYEE_IDS | `src/core/config/terminal.ts` |
+| TERMINAL_CONFIG | `src/core/config/terminal.ts` |
+| Branded Types | `src/core/types/shared.ts` |
+| Money helpers | `src/core/domain/money.ts` |
+
+---
+
+**Última actualización:** 9 Enero 2026  
 **Próxima tarea pendiente:** P2 - Saga Pattern o Multi-tenant improvements

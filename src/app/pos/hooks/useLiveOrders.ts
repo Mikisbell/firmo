@@ -53,7 +53,6 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
 
         const pending: PendingOrder[] = projections.map(o => {
             const fulfillment = o.fulfillment || {};
-            const delivery = o.delivery || {};
             
             return {
                 order_id: o.order_id,
@@ -65,14 +64,15 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 waiter_name: o.waiter_name || o.actor_name,
                 guest_count: fulfillment.guest_count,
                 
-                // DELIVERY fields
-                customer_name: delivery.customer_name || fulfillment.pickup_name,
-                customer_phone: delivery.customer_phone || fulfillment.pickup_phone,
-                delivery_address: delivery.address_snapshot?.address_text,
-                delivery_reference: delivery.address_snapshot?.reference,
-                delivery_fee_cents: delivery.delivery_fee_cents,
-                assigned_driver: delivery.assigned_driver_name,
-                payment_expectation: delivery.payment_expectation,
+                // DELIVERY fields - basic info from fulfillment
+                // Full delivery info should be fetched from delivery_orders API
+                customer_name: fulfillment.pickup_name,
+                customer_phone: fulfillment.pickup_phone,
+                delivery_address: undefined, // Fetch from delivery_orders
+                delivery_reference: undefined, // Fetch from delivery_orders
+                delivery_fee_cents: undefined, // Fetch from delivery_orders
+                assigned_driver: undefined, // Fetch from delivery_orders
+                payment_expectation: undefined, // Fetch from delivery_orders
                 
                 // TAKEOUT fields
                 pickup_name: fulfillment.pickup_name,
@@ -171,21 +171,16 @@ function mapFulfillmentStatus(
     if (deliveryStatus) {
         switch (deliveryStatus) {
             case "DISPATCHED":
-            case "ON_THE_WAY":
                 return "DISPATCHED";
             case "DELIVERED":
-            case "COMPLETED":
                 return "DELIVERED";
         }
     }
     
     switch (fulfillmentStatus) {
         case "READY":
-        case "READY_FOR_PICKUP":
-        case "ALL_READY":
             return "READY";
-        case "SERVED":
-        case "PICKED_UP":
+        case "DELIVERED":
             return "SERVED";
         default:
             return "COOKING";

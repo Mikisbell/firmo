@@ -7,6 +7,7 @@
  * - Items inválidos
  * - Voids sin autorización
  * - Eventos emitidos por roles no autorizados
+ * - Status inválidos
  */
 
 import { Prisma } from "@prisma/client";
@@ -17,6 +18,14 @@ import {
     requiresManagerApproval, 
     canApproveManagerActions 
 } from "./role-permissions";
+import {
+    isValidStatus,
+    ORDER_STATUS_VALUES,
+    FULFILLMENT_STATUS_VALUES,
+    PAYMENT_STATUS_VALUES,
+    CHECK_STATUS_VALUES,
+    DELIVERY_ORDER_STATUS_VALUES,
+} from "@/src/core/domain/db-enums";
 
 // Re-export para compatibilidad
 export { LIMITS } from "@/src/core/constants/limits";
@@ -117,6 +126,15 @@ export async function validateEvent(
         case "CHECK_PAYMENT_ADDED":
             return validateCheckPaymentAdded(tx, event);
 
+        case "REQUEST_CHECK":
+            return validateRequestCheck(tx, event);
+
+        case "ORDER_SUBMITTED":
+            return validateOrderSubmitted(tx, event);
+
+        case "ORDER_CANCELLED":
+            return validateOrderCancelled(tx, event);
+
         default:
             return { valid: true };
     }
@@ -124,8 +142,13 @@ export async function validateEvent(
 
 /**
  * Valida CHECK_MARKED_PAID
- * - Pago debe ser >= total del check
+ * - Check debe existir
+ * - Pagos acumulados en el check deben ser >= total
  * - Cambio no puede ser mayor al esperado
+ * 
+ * NOTA: El evento CHECK_MARKED_PAID no tiene payment.payments en su schema.
+ * Los pagos se agregan previamente via CHECK_PAYMENT_ADDED.
+ * Esta validación verifica que los pagos acumulados sean suficientes.
  */
 async function validateCheckMarkedPaid(
     tx: Prisma.TransactionClient,
@@ -134,9 +157,6 @@ async function validateCheckMarkedPaid(
     const payload = event.payload as {
         order_id: string;
         check_id: string;
-        payment?: {
-            payments: Array<{ amount_cents: number }>;
-        };
         change_cents?: number;
     };
 
@@ -149,43 +169,48 @@ async function validateCheckMarkedPaid(
     }
 
     const checks = order.checks || [];
-    const check = checks.find((c) => c.check_id === payload.check_id);
+    const check = checks.find((c) => c.check_id === payload.check_id) as {
+        check_id: string;
+        total_cents: number;
+        payment?: {
+            status: string;
+            payments: Array<{ amount_cents: number }>;
+        };
+    } | undefined;
 
     if (!check) {
         return { valid: false, error: "CHECK_NOT_FOUND" };
     }
 
-    // Validar que pago >= total
-    if (payload.payment?.payments) {
-        const totalPaid = payload.payment.payments.reduce(
-            (sum, p) => sum + (p.amount_cents || 0),
-            0
-        );
+    // Validar que los pagos acumulados en el check sean >= total
+    const totalPaid = check.payment?.payments?.reduce(
+        (sum, p) => sum + (p.amount_cents || 0),
+        0
+    ) || 0;
 
-        if (totalPaid < check.total_cents) {
-            return {
-                valid: false,
-                error: "INSUFFICIENT_PAYMENT",
-                details: {
-                    required: check.total_cents,
-                    received: totalPaid,
-                    missing: check.total_cents - totalPaid,
-                },
-            };
-        }
+    if (totalPaid < check.total_cents) {
+        return {
+            valid: false,
+            error: "INSUFFICIENT_PAYMENT",
+            details: {
+                required: check.total_cents,
+                received: totalPaid,
+                missing: check.total_cents - totalPaid,
+            },
+        };
+    }
 
-        // Validar cambio
-        const expectedChange = totalPaid - check.total_cents;
-        if (payload.change_cents && payload.change_cents > expectedChange) {
-            return {
-                valid: false,
-                error: "INVALID_CHANGE",
-                details: {
-                    expected: expectedChange,
-                    claimed: payload.change_cents,
-                },
-            };
-        }
+    // Validar cambio
+    const expectedChange = totalPaid - check.total_cents;
+    if (payload.change_cents && payload.change_cents > expectedChange) {
+        return {
+            valid: false,
+            error: "INVALID_CHANGE",
+            details: {
+                expected: expectedChange,
+                claimed: payload.change_cents,
+            },
+        };
     }
 
     return { valid: true };
@@ -193,7 +218,7 @@ async function validateCheckMarkedPaid(
 
 /**
  * Valida INVOICE_ISSUED
- * - Check debe estar PAID
+ * - Check debe estar PAID (check.payment.status === "PAID")
  * - No debe existir factura previa
  */
 async function validateInvoiceIssued(
@@ -216,14 +241,21 @@ async function validateInvoiceIssued(
     }
 
     const checks = order.checks || [];
-    const check = checks.find((c) => c.check_id === payload.check_id);
+    const check = checks.find((c) => c.check_id === payload.check_id) as {
+        check_id: string;
+        total_cents: number;
+        payment?: {
+            status: string;
+            payments: Array<{ amount_cents: number }>;
+        };
+    } | undefined;
 
     if (!check) {
         return { valid: false, error: "CHECK_NOT_FOUND" };
     }
 
-    // Check debe estar PAID
-    if (check.status !== "PAID") {
+    // Check debe estar PAID (status está dentro de payment)
+    if (check.payment?.status !== "PAID") {
         return { valid: false, error: "CHECK_NOT_PAID" };
     }
 
@@ -351,16 +383,38 @@ async function validateOrderItemAdded(
  * - Permisos ya validados en validateEvent()
  */
 async function validateItemVoided(
-    _tx: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient,
     event: ParkEvent
 ): Promise<ValidationResult> {
     const payload = event.payload as {
+        order_id?: string;
+        line_id?: string;
         reason?: string;
     };
 
     // Validar que tenga razón
     if (!payload.reason || payload.reason.length < 3) {
         return { valid: false, error: "VOID_REASON_REQUIRED" };
+    }
+
+    // Validar que la orden existe y el item existe
+    if (payload.order_id && payload.line_id) {
+        const order = await tx.orders.findUnique({
+            where: { id: payload.order_id },
+            select: { id: true, items: true, order_status: true },
+        });
+
+        if (!order) {
+            return { valid: false, error: "ORDER_NOT_FOUND" };
+        }
+
+        if (order.order_status === "CANCELLED" || order.order_status === "CONFIRMED") {
+            return { 
+                valid: false, 
+                error: "ORDER_NOT_MODIFIABLE",
+                details: { status: order.order_status }
+            };
+        }
     }
 
     // Permisos de manager ya validados en validateEvent()
@@ -390,8 +444,8 @@ async function validateCheckPaymentAdded(
         return { valid: false, error: "INVALID_PAYMENT_AMOUNT" };
     }
 
-    // Validar método de pago
-    const validMethods = ["CASH", "CARD", "YAPE", "PLIN", "TRANSFER", "CREDIT"];
+    // Validar método de pago (debe coincidir con PaymentMethodSchema en events.ts)
+    const validMethods = ["CASH", "CARD", "YAPE", "PLIN", "TRANSFER"];
     if (!validMethods.includes(payload.payment.method)) {
         return {
             valid: false,
@@ -400,5 +454,234 @@ async function validateCheckPaymentAdded(
         };
     }
 
+    return { valid: true };
+}
+
+/**
+ * Valida REQUEST_CHECK
+ * - Order debe existir
+ * - Order no debe estar cancelada
+ */
+async function validateRequestCheck(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent
+): Promise<ValidationResult> {
+    const payload = event.payload as {
+        order_id: string;
+    };
+
+    const order = await tx.orders.findUnique({
+        where: { id: payload.order_id },
+        select: { id: true, order_status: true },
+    });
+
+    if (!order) {
+        return { valid: false, error: "ORDER_NOT_FOUND" };
+    }
+
+    if (order.order_status === "CANCELLED") {
+        return { valid: false, error: "ORDER_CANCELLED" };
+    }
+
+    return { valid: true };
+}
+
+/**
+ * Valida ORDER_SUBMITTED
+ * - Order debe existir
+ * - Order debe tener items
+ * - Order no debe estar cancelada
+ */
+async function validateOrderSubmitted(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent
+): Promise<ValidationResult> {
+    const payload = event.payload as {
+        order_id: string;
+        items_by_station: Record<string, unknown[]>;
+    };
+
+    const order = await tx.orders.findUnique({
+        where: { id: payload.order_id },
+        select: { id: true, order_status: true, items: true },
+    });
+
+    if (!order) {
+        return { valid: false, error: "ORDER_NOT_FOUND" };
+    }
+
+    if (order.order_status === "CANCELLED") {
+        return { valid: false, error: "ORDER_CANCELLED" };
+    }
+
+    // Verificar que hay items en el payload
+    const totalItems = Object.values(payload.items_by_station || {}).reduce(
+        (sum, items) => sum + (items?.length || 0),
+        0
+    );
+
+    if (totalItems === 0) {
+        return { valid: false, error: "NO_ITEMS_TO_SUBMIT" };
+    }
+
+    return { valid: true };
+}
+
+/**
+ * Valida ORDER_CANCELLED
+ * - Order debe existir
+ * - Order no debe estar ya cancelada o confirmada
+ * - Debe tener razón
+ * - Si hay pagos, advertir (pero permitir con manager approval)
+ */
+async function validateOrderCancelled(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent
+): Promise<ValidationResult> {
+    const payload = event.payload as {
+        order_id: string;
+        reason?: string;
+    };
+
+    // Validar razón
+    if (!payload.reason || payload.reason.length < 3) {
+        return { valid: false, error: "CANCEL_REASON_REQUIRED" };
+    }
+
+    const order = await tx.orders.findUnique({
+        where: { id: payload.order_id },
+        select: { 
+            id: true, 
+            order_status: true, 
+            checks: true,
+            total_cents: true 
+        },
+    }) as {
+        id: string;
+        order_status: string;
+        checks: Array<{
+            payment?: {
+                status: string;
+                payments: Array<{ amount_cents: number }>;
+            };
+        }>;
+        total_cents: number;
+    } | null;
+
+    if (!order) {
+        return { valid: false, error: "ORDER_NOT_FOUND" };
+    }
+
+    // No se puede cancelar una orden ya cancelada
+    if (order.order_status === "CANCELLED") {
+        return { valid: false, error: "ORDER_ALREADY_CANCELLED" };
+    }
+
+    // No se puede cancelar una orden confirmada (facturada)
+    if (order.order_status === "CONFIRMED") {
+        return { 
+            valid: false, 
+            error: "ORDER_ALREADY_CONFIRMED",
+            details: { 
+                message: "Use INVOICE_VOIDED + credit note for confirmed orders" 
+            }
+        };
+    }
+
+    // Verificar si hay pagos - advertir pero permitir (manager approval ya validado)
+    const checks = order.checks || [];
+    const totalPaid = checks.reduce((sum, check) => {
+        const payments = check.payment?.payments || [];
+        return sum + payments.reduce((pSum, p) => pSum + (p.amount_cents || 0), 0);
+    }, 0);
+
+    if (totalPaid > 0) {
+        // Pagos existen - esto requiere devolución manual
+        // El manager approval ya fue validado en validateEvent()
+        return { 
+            valid: true,
+            details: {
+                warning: "ORDER_HAS_PAYMENTS",
+                total_paid_cents: totalPaid,
+                requires_refund: true
+            }
+        };
+    }
+
+    return { valid: true };
+}
+
+
+// ============================================
+// Status Validation Helpers
+// ============================================
+
+/**
+ * Valida que un status de orden sea válido
+ */
+export function validateOrderStatus(status: string): ValidationResult {
+    if (!isValidStatus(status, ORDER_STATUS_VALUES)) {
+        return {
+            valid: false,
+            error: "INVALID_ORDER_STATUS",
+            details: { status, valid: ORDER_STATUS_VALUES },
+        };
+    }
+    return { valid: true };
+}
+
+/**
+ * Valida que un status de fulfillment sea válido
+ */
+export function validateFulfillmentStatus(status: string): ValidationResult {
+    if (!isValidStatus(status, FULFILLMENT_STATUS_VALUES)) {
+        return {
+            valid: false,
+            error: "INVALID_FULFILLMENT_STATUS",
+            details: { status, valid: FULFILLMENT_STATUS_VALUES },
+        };
+    }
+    return { valid: true };
+}
+
+/**
+ * Valida que un status de pago sea válido
+ */
+export function validatePaymentStatus(status: string): ValidationResult {
+    if (!isValidStatus(status, PAYMENT_STATUS_VALUES)) {
+        return {
+            valid: false,
+            error: "INVALID_PAYMENT_STATUS",
+            details: { status, valid: PAYMENT_STATUS_VALUES },
+        };
+    }
+    return { valid: true };
+}
+
+/**
+ * Valida que un status de check sea válido
+ */
+export function validateCheckStatus(status: string): ValidationResult {
+    if (!isValidStatus(status, CHECK_STATUS_VALUES)) {
+        return {
+            valid: false,
+            error: "INVALID_CHECK_STATUS",
+            details: { status, valid: CHECK_STATUS_VALUES },
+        };
+    }
+    return { valid: true };
+}
+
+/**
+ * Valida que un status de delivery order sea válido
+ */
+export function validateDeliveryOrderStatus(status: string): ValidationResult {
+    if (!isValidStatus(status, DELIVERY_ORDER_STATUS_VALUES)) {
+        return {
+            valid: false,
+            error: "INVALID_DELIVERY_STATUS",
+            details: { status, valid: DELIVERY_ORDER_STATUS_VALUES },
+        };
+    }
     return { valid: true };
 }

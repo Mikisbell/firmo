@@ -9,7 +9,6 @@ import { logger } from '@/src/core/observability/logger';
 // Web-push is optional - only used when VAPID keys are configured
 let webpush: typeof import('web-push') | null = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   webpush = require('web-push');
 } catch {
   logger.warn('NOTIFICATION_WEBPUSH_UNAVAILABLE', 'web-push not available');

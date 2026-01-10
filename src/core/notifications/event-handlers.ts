@@ -174,7 +174,7 @@ async function sendGroupedItemReadyNotification(key: string): Promise<void> {
  */
 export async function handleRequestCheck(event: RequestCheckEvent): Promise<void> {
   const { order_id, table_id } = event.payload;
-  const { tenant_id, actor_id } = event.meta;
+  const { tenant_id } = event.meta;
 
   // Get order details
   const order = await prisma.orders.findUnique({

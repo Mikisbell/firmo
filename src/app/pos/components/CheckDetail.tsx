@@ -5,6 +5,7 @@ import { InvoiceModal } from "./InvoiceModal";
 import { SplitBillModal } from "./SplitBillModal";
 import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, Plus, Minus, Trash2 } from "lucide-react";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
+import { transformLinesToPrint, OrderLineInput } from "@/src/core/printing/utils";
 import { AnimatePresence } from "framer-motion";
 
 interface CheckDetailProps {
@@ -37,14 +38,20 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
     const isPaid = remainingCents <= 0;
 
     const handlePrintPreCheck = () => {
-        const linesToPrint = check.lines.map(l => {
+        // Transform check lines to OrderLineInput format for the common function
+        const orderLines: OrderLineInput[] = check.lines.map(l => {
             const item = allLines[l.line_id];
             return {
+                line_id: l.line_id,
+                product_id: l.line_id,
                 name: item?.name || "Unknown",
                 qty: l.qty,
-                total: (item?.unit_price_cents || 0) * l.qty
+                unit_price_cents: item?.unit_price_cents || 0,
+                line_total_cents: (item?.unit_price_cents || 0) * l.qty
             };
         });
+
+        const linesToPrint = transformLinesToPrint(orderLines);
 
         printComponent(
             <TicketTemplate

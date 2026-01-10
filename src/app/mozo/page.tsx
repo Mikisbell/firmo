@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTableStatus, useZones, TableStatus } from "./hooks/useTableStatus";
 import { motion, AnimatePresence } from "framer-motion";
@@ -123,7 +123,7 @@ export default function WaiterPage() {
 
     const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
     const occupiedCount = tables.filter(t => t.status === "OCCUPIED" || t.status === "BILL_REQUESTED").length;
-    const billRequestedCount = tables.filter(t => t.status === "BILL_REQUESTED").length;
+    const _billRequestedCount = tables.filter(t => t.status === "BILL_REQUESTED").length;
     const alertCount = tables.filter(t => 
         (t.status === "OCCUPIED" && (t.elapsedMinutes ?? 0) >= TIME_THRESHOLDS.ALERT) ||
         t.status === "BILL_REQUESTED"
@@ -318,7 +318,7 @@ export default function WaiterPage() {
                                         {t.status !== "FREE" ? (
                                             <div className="mt-1 flex flex-col animate-in fade-in slide-in-from-bottom-2">
                                                 <span className={`text-sm font-mono font-medium ${colors.text}`}>
-                                                    {formatCents((t.totalCents || 0) as any)}
+                                                    {formatCents(t.totalCents || 0)}
                                                 </span>
                                                 <span className={`text-[10px] mt-0.5 flex items-center justify-center gap-1 ${colors.text}`}>
                                                     <Clock className="w-3 h-3" /> {colors.label}

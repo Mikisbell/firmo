@@ -1,6 +1,7 @@
 // src/core/inventory/goods-receipt.service.ts
 // Goods Receipt Service - Schema Completeness Fase 3
 import { PrismaClient, Prisma } from "@prisma/client";
+import type { Centavos } from "@/src/core/types/shared";
 
 export interface GoodsReceiptItemInput {
   inventory_code: string;
@@ -8,7 +9,7 @@ export interface GoodsReceiptItemInput {
   quantity_received: number;
   quantity_rejected?: number;
   rejection_reason?: string;
-  unit_cost_cents: number;
+  unit_cost_cents: Centavos;
   lot_number?: string;
   expiry_date?: string; // YYYY-MM-DD
 }

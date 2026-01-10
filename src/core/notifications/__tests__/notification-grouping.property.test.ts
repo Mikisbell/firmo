@@ -270,7 +270,7 @@ describe('Property 9: Notification Grouping', () => {
   });
 
   it('Property 9.4: Grouping window resets on new item', async () => {
-    const { handleItemReady, getPendingNotificationsCount } = await import('../event-handlers');
+    const { handleItemReady } = await import('../event-handlers');
 
     const tenantId = crypto.randomUUID();
     const orderId = crypto.randomUUID();

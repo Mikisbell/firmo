@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       where: {
         tenant_id: tenantId,
         created_at: { gte: startDate },
-        order_status: 'DONE',
+        order_status: 'CONFIRMED',
       },
       select: {
         total_cents: true,

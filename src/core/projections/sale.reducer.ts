@@ -2,14 +2,15 @@ import type { ParkEvent } from "@/src/core/domain/events";
 import { eventMigrator } from "@/src/core/domain/event-migrator";
 import type { ApplyResult, SaleLine, SalePayment, SaleProjection } from "./types";
 import { logger } from "@/src/core/observability/logger";
+import { unsafeCentavos, asOrderId, type Centavos } from "@/src/core/types/shared";
 
 // Ensure migrations are registered
 import "@/src/core/domain/migrations";
 
-function computeSubtotal(lines: Record<string, SaleLine>): number {
+function computeSubtotal(lines: Record<string, SaleLine>): Centavos {
     let sum = 0;
     for (const k of Object.keys(lines)) sum += lines[k]!.line_total_cents;
-    return sum;
+    return unsafeCentavos(sum);
 }
 
 export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_CREATED" }>): SaleProjection {
@@ -23,8 +24,8 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
             product_id: item.product_id,
             name: item.name,
             qty: item.qty,
-            unit_price_cents: item.unit_price_cents,
-            line_total_cents: item.qty * item.unit_price_cents,
+            unit_price_cents: unsafeCentavos(item.unit_price_cents),
+            line_total_cents: unsafeCentavos(item.qty * item.unit_price_cents),
             status: item.status ?? "PENDING",
             station: item.station || "COCINA", // Preservar estación
             // Timestamps
@@ -38,8 +39,8 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
     const subtotal = computeSubtotal(lines);
 
     return {
-        sale_id: order_id, // Keep sale_id for backward compatibility
-        order_id,
+        sale_id: asOrderId(order_id), // Keep sale_id for backward compatibility
+        order_id: asOrderId(order_id),
         order_number,
         order_type,
         catalog_version: 1, // TODO: get from context
@@ -47,12 +48,25 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
         lines,
         subtotal_cents: subtotal,
         payments: [],
-        paid_cents: 0,
-        change_cents: 0,
+        paid_cents: unsafeCentavos(0),
+        change_cents: unsafeCentavos(0),
         total_cents: null,
         last_event_sequence: e.terminal_sequence,
         correlation_id: e.correlation_id,
-        checks: checks ?? [],
+        checks: checks?.map(c => ({
+            ...c,
+            subtotal_cents: unsafeCentavos(c.subtotal_cents ?? 0),
+            discount_cents: unsafeCentavos(c.discount_cents ?? 0),
+            tip_cents: unsafeCentavos(c.tip_cents ?? 0),
+            total_cents: unsafeCentavos(c.total_cents ?? 0),
+            payment: c.payment ? {
+                ...c.payment,
+                payments: c.payment.payments.map(p => ({
+                    ...p,
+                    amount_cents: unsafeCentavos(p.amount_cents)
+                }))
+            } : { status: "UNPAID" as const, payments: [] }
+        })) ?? [],
     };
 }
 
@@ -94,14 +108,14 @@ export function applySaleEvent(
             const prev = sale.lines[line_id];
 
             const newQty = (prev?.qty ?? 0) + qty;
-            const line_total_cents = newQty * unit_price_cents;
+            const line_total_cents = unsafeCentavos(newQty * unit_price_cents);
 
             sale.lines[line_id] = {
                 line_id,
                 product_id,
                 name: name || prev?.name || "Unknown",
                 qty: newQty,
-                unit_price_cents,
+                unit_price_cents: unsafeCentavos(unit_price_cents),
                 line_total_cents,
                 status: status ?? prev?.status ?? "PENDING",
                 station: station || prev?.station || "COCINA", // Preservar estación
@@ -136,8 +150,8 @@ export function applySaleEvent(
                             checkSubtotal += masterLine.unit_price_cents * l.qty;
                         }
                     }
-                    defaultCheck.subtotal_cents = checkSubtotal;
-                    defaultCheck.total_cents = checkSubtotal;
+                    defaultCheck.subtotal_cents = unsafeCentavos(checkSubtotal);
+                    defaultCheck.total_cents = unsafeCentavos(checkSubtotal);
                 }
             }
 
@@ -158,7 +172,7 @@ export function applySaleEvent(
                 delete sale.lines[line_id];
             } else {
                 prev.qty = to_qty;
-                prev.line_total_cents = to_qty * prev.unit_price_cents;
+                prev.line_total_cents = unsafeCentavos(to_qty * prev.unit_price_cents);
                 sale.lines[line_id] = prev;
             }
 
@@ -188,8 +202,8 @@ export function applySaleEvent(
                             checkSubtotal += masterLine.unit_price_cents * l.qty;
                         }
                     }
-                    check.subtotal_cents = checkSubtotal;
-                    check.total_cents = checkSubtotal; // Simplified for MVP (no discounts/tips calc on void yet)
+                    check.subtotal_cents = unsafeCentavos(checkSubtotal);
+                    check.total_cents = unsafeCentavos(checkSubtotal); // Simplified for MVP (no discounts/tips calc on void yet)
                 }
             }
 
@@ -212,11 +226,17 @@ export function applySaleEvent(
                 name: check.name,
                 mode: check.mode,
                 lines: check.lines ?? [],
-                subtotal_cents: check.subtotal_cents ?? 0,
-                discount_cents: check.discount_cents ?? 0,
-                tip_cents: check.tip_cents ?? 0,
-                total_cents: check.total_cents ?? 0,
-                payment: check.payment ?? { status: "UNPAID", payments: [] }
+                subtotal_cents: unsafeCentavos(check.subtotal_cents ?? 0),
+                discount_cents: unsafeCentavos(check.discount_cents ?? 0),
+                tip_cents: unsafeCentavos(check.tip_cents ?? 0),
+                total_cents: unsafeCentavos(check.total_cents ?? 0),
+                payment: check.payment ? {
+                    ...check.payment,
+                    payments: check.payment.payments.map(p => ({
+                        ...p,
+                        amount_cents: unsafeCentavos(p.amount_cents)
+                    }))
+                } : { status: "UNPAID" as const, payments: [] }
             });
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
@@ -243,8 +263,8 @@ export function applySaleEvent(
                 }
             }
             // Simple logic: total = subtotal (ignoring discount/tip structure for now as they are 0)
-            sale.checks[checkIndex].subtotal_cents = checkSubtotal;
-            sale.checks[checkIndex].total_cents = checkSubtotal; // TODO: + tips - discounts
+            sale.checks[checkIndex].subtotal_cents = unsafeCentavos(checkSubtotal);
+            sale.checks[checkIndex].total_cents = unsafeCentavos(checkSubtotal); // TODO: + tips - discounts
 
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
@@ -297,8 +317,8 @@ export function applySaleEvent(
                     const master = sale.lines[l.line_id];
                     if (master) sub += master.unit_price_cents * l.qty;
                 }
-                c.subtotal_cents = sub;
-                c.total_cents = sub;
+                c.subtotal_cents = unsafeCentavos(sub);
+                c.total_cents = unsafeCentavos(sub);
             });
 
             sale.last_event_sequence = e.terminal_sequence;
@@ -312,17 +332,17 @@ export function applySaleEvent(
             // Global Update
             const p: SalePayment = {
                 method,
-                amount_cents,
-                change_given_cents: 0,
+                amount_cents: unsafeCentavos(amount_cents),
+                change_given_cents: unsafeCentavos(0),
             };
             sale.payments.push(p);
-            sale.paid_cents += amount_cents;
+            sale.paid_cents = unsafeCentavos(sale.paid_cents + amount_cents);
 
             // Check Specific Update
             const checkIndex = sale.checks.findIndex(c => c.check_id === check_id);
             if (checkIndex >= 0) {
                 const check = sale.checks[checkIndex];
-                check.payment.payments.push({ method, amount_cents, ref: payment.ref });
+                check.payment.payments.push({ method, amount_cents: unsafeCentavos(amount_cents), ref: payment.ref });
 
                 // Recalculate Check Status
                 const totalPaid = check.payment.payments.reduce((acc, curr) => acc + curr.amount_cents, 0);
@@ -344,13 +364,33 @@ export function applySaleEvent(
 
         case "CHECK_MARKED_PAID": {
             const { check_id, change_cents } = e.payload;
-            sale.change_cents = change_cents ?? 0;
+            sale.change_cents = unsafeCentavos(change_cents ?? 0);
 
             // Update the specific check's payment status
             const checkIdx = sale.checks.findIndex(c => c.check_id === check_id);
             if (checkIdx >= 0) {
                 sale.checks[checkIdx].payment.status = "PAID";
             }
+
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "CHECK_TIP_SET": {
+            const { check_id, tip_cents } = e.payload;
+            const checkIdx = sale.checks.findIndex(c => c.check_id === check_id);
+            
+            if (checkIdx === -1) {
+                warnings.push(`CHECK_TIP_SET: check_id ${check_id} no existe; ignorado.`);
+                sale.last_event_sequence = e.terminal_sequence;
+                return { state: sale, warnings };
+            }
+
+            // Update tip and recalculate total
+            const check = sale.checks[checkIdx];
+            check.tip_cents = unsafeCentavos(tip_cents);
+            check.total_cents = unsafeCentavos(check.subtotal_cents - check.discount_cents + tip_cents);
+            sale.checks[checkIdx] = check;
 
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
@@ -365,7 +405,7 @@ export function applySaleEvent(
                 warnings.push(`INVOICE_ISSUED: netPaid(${netPaid}) < total(${total_cents}). Aún así se marca CONFIRMED.`);
             }
 
-            sale.total_cents = total_cents;
+            sale.total_cents = unsafeCentavos(total_cents);
             sale.status = "CONFIRMED";
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };

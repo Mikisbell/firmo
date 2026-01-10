@@ -12,6 +12,8 @@ import { OrderPanel } from "@/src/components/shared/OrderPanel";
 import { ArrowLeft, Clock } from "lucide-react";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 import { TerminalConfig } from "@/src/core/auth/types";
+import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
+import { transformLinesToPrint } from "@/src/core/printing/utils";
 
 export default function WaiterOrderPage({ params }: { params: Promise<{ tableId: string }> }) {
     const router = useRouter();
@@ -198,8 +200,27 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
     };
 
     const handlePrintPrecheck = () => {
-        toast.info("Enviando pre-cuenta...");
-        // TODO: Print precheck
+        if (!activeSale || items.length === 0) {
+            toast.error("No hay items para imprimir");
+            return;
+        }
+
+        const linesToPrint = transformLinesToPrint(items);
+
+        printComponent(
+            <TicketTemplate
+                tenantName="PARK POS"
+                date={new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}
+                orderNumber={activeSale.order_number || 0}
+                lines={linesToPrint}
+                subtotal={activeSale.subtotal_cents}
+                discount={0}
+                total={activeSale.subtotal_cents}
+                invoiceType="PRE-CUENTA"
+            />,
+            `Pre-cuenta Mesa ${tableId}`
+        );
+        toast.success("Pre-cuenta enviada a impresora");
     };
 
     const handleRemoveItem = async (lineId: string) => {

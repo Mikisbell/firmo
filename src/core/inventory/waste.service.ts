@@ -1,6 +1,7 @@
 // src/core/inventory/waste.service.ts
 // Waste Log Service - Schema Completeness Fase 4
 import { PrismaClient, Prisma } from "@prisma/client";
+import { unsafeCentavos, type Centavos } from "@/src/core/types/shared";
 
 export type WasteReasonCode =
   | "EXPIRED"
@@ -29,7 +30,7 @@ export interface RecordWasteInput {
 export interface RecordWasteResult {
   success: boolean;
   waste_log_id?: string;
-  cost_cents?: number;
+  cost_cents?: Centavos;
   error?: string;
 }
 
@@ -69,7 +70,7 @@ export async function recordWaste(
       return { success: false, error: `Inventory not found: ${inventory_code}` };
     }
 
-    const cost_cents = Math.round(quantity * (inventory.cost_cents || 0));
+    const cost_cents = unsafeCentavos(Math.round(quantity * (inventory.cost_cents || 0)));
 
     // 2. Create waste log and update inventory in transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -136,9 +137,9 @@ export async function getWasteSummary(
   from_date: Date,
   to_date: Date
 ): Promise<{
-  total_cost_cents: number;
-  by_reason: Record<WasteReasonCode, { count: number; cost_cents: number }>;
-  top_items: Array<{ inventory_code: string; quantity: number; cost_cents: number }>;
+  total_cost_cents: Centavos;
+  by_reason: Record<WasteReasonCode, { count: number; cost_cents: Centavos }>;
+  top_items: Array<{ inventory_code: string; quantity: number; cost_cents: Centavos }>;
 }> {
   const wasteLogs = await prisma.waste_logs.findMany({
     where: {
@@ -148,8 +149,8 @@ export async function getWasteSummary(
     },
   });
 
-  const by_reason: Record<string, { count: number; cost_cents: number }> = {};
-  const by_item: Record<string, { quantity: number; cost_cents: number }> = {};
+  const by_reason: Record<string, { count: number; cost_cents: Centavos }> = {};
+  const by_item: Record<string, { quantity: number; cost_cents: Centavos }> = {};
   let total_cost_cents = 0;
 
   for (const log of wasteLogs) {
@@ -157,17 +158,17 @@ export async function getWasteSummary(
 
     // By reason
     if (!by_reason[log.reason_code]) {
-      by_reason[log.reason_code] = { count: 0, cost_cents: 0 };
+      by_reason[log.reason_code] = { count: 0, cost_cents: unsafeCentavos(0) };
     }
     by_reason[log.reason_code].count++;
-    by_reason[log.reason_code].cost_cents += log.cost_cents;
+    by_reason[log.reason_code].cost_cents = unsafeCentavos(by_reason[log.reason_code].cost_cents + log.cost_cents);
 
     // By item
     if (!by_item[log.inventory_code]) {
-      by_item[log.inventory_code] = { quantity: 0, cost_cents: 0 };
+      by_item[log.inventory_code] = { quantity: 0, cost_cents: unsafeCentavos(0) };
     }
     by_item[log.inventory_code].quantity += Number(log.quantity);
-    by_item[log.inventory_code].cost_cents += log.cost_cents;
+    by_item[log.inventory_code].cost_cents = unsafeCentavos(by_item[log.inventory_code].cost_cents + log.cost_cents);
   }
 
   // Top items by cost
@@ -177,8 +178,8 @@ export async function getWasteSummary(
     .slice(0, 10);
 
   return {
-    total_cost_cents,
-    by_reason: by_reason as Record<WasteReasonCode, { count: number; cost_cents: number }>,
+    total_cost_cents: unsafeCentavos(total_cost_cents),
+    by_reason: by_reason as Record<WasteReasonCode, { count: number; cost_cents: Centavos }>,
     top_items,
   };
 }

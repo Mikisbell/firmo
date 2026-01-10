@@ -8,6 +8,7 @@
  */
 
 import prisma from '@/src/core/db/prisma';
+import type { Centavos } from '@/src/core/types/shared';
 
 export type InventoryAuditAction = 
   | 'GOODS_RECEIVED'
@@ -68,7 +69,7 @@ export async function logGoodsReceipt(
   payload: {
     inventory_code: string;
     quantity: number;
-    unit_cost_cents: number;
+    unit_cost_cents: Centavos;
     supplier_id?: string;
     invoice_number?: string;
   },
@@ -100,7 +101,7 @@ export async function logWasteRecorded(
     inventory_code: string;
     quantity: number;
     reason_code: string;
-    cost_cents: number;
+    cost_cents: Centavos;
   },
   metadata?: { ip?: string; userAgent?: string; terminalId?: string }
 ): Promise<string> {

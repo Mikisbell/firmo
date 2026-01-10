@@ -5,6 +5,7 @@
 
 import prisma from '@/src/core/db/prisma';
 import { getCurrentBusinessDate, getBusinessDate } from '@/src/core/utils/business-date';
+import { unsafeCentavos, type Centavos } from '@/src/core/types/shared';
 import type {
   RealtimeMetrics,
   StationMetrics,
@@ -17,16 +18,64 @@ import type {
 const STATIONS = ['COCINA', 'HORNO', 'BAR'] as const;
 const CACHE_TTL_MS = 30_000; // 30 seconds
 
-interface CacheEntry {
-  data: RealtimeMetrics;
-  timestamp: number;
+function getCacheKey(tenantId: string, shiftId?: string): string {
+  return shiftId ? `realtime:${tenantId}:${shiftId}` : `realtime:${tenantId}:current`;
 }
 
-// In-memory cache for hot path
-const metricsCache = new Map<string, CacheEntry>();
+/**
+ * Get cached metrics from database (works across serverless instances)
+ */
+async function getFromDbCache(tenantId: string, cacheKey: string): Promise<RealtimeMetrics | null> {
+  try {
+    const cached = await prisma.analytics_cache.findUnique({
+      where: { 
+        tenant_id_cache_key: {
+          tenant_id: tenantId,
+          cache_key: cacheKey,
+        }
+      },
+    });
+    
+    if (cached && cached.expires_at && new Date(cached.expires_at) > new Date()) {
+      return cached.metrics as unknown as RealtimeMetrics;
+    }
+    return null;
+  } catch {
+    // Cache miss or error - proceed to calculate
+    return null;
+  }
+}
 
-function getCacheKey(tenantId: string, shiftId?: string): string {
-  return shiftId ? `${tenantId}:${shiftId}` : `${tenantId}:current`;
+/**
+ * Store metrics in database cache
+ */
+async function setDbCache(tenantId: string, cacheKey: string, data: RealtimeMetrics): Promise<void> {
+  try {
+    const expiresAt = new Date(Date.now() + CACHE_TTL_MS);
+    const metricsJson = JSON.parse(JSON.stringify(data)); // Ensure valid JSON
+    
+    await prisma.analytics_cache.upsert({
+      where: { 
+        tenant_id_cache_key: {
+          tenant_id: tenantId,
+          cache_key: cacheKey,
+        }
+      },
+      create: {
+        tenant_id: tenantId,
+        cache_key: cacheKey,
+        metrics: metricsJson,
+        expires_at: expiresAt,
+      },
+      update: {
+        metrics: metricsJson,
+        expires_at: expiresAt,
+      },
+    });
+  } catch (e) {
+    // Non-critical - log and continue
+    console.warn('[Analytics] Failed to cache metrics:', e);
+  }
 }
 
 export async function getRealtimeMetrics(
@@ -34,10 +83,11 @@ export async function getRealtimeMetrics(
   shiftId?: string
 ): Promise<RealtimeMetrics> {
   const cacheKey = getCacheKey(tenantId, shiftId);
-  const cached = metricsCache.get(cacheKey);
   
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.data;
+  // Check DB cache first (works across serverless instances)
+  const cached = await getFromDbCache(tenantId, cacheKey);
+  if (cached) {
+    return cached;
   }
 
   const businessDate = getCurrentBusinessDate();
@@ -64,12 +114,12 @@ export async function getRealtimeMetrics(
 
   // Calculate sales metrics
   let totalSalesCents = 0;
-  const salesByMethod: Record<PaymentMethod, number> = {
-    CASH: 0,
-    YAPE: 0,
-    PLIN: 0,
-    CARD: 0,
-    TRANSFER: 0,
+  const salesByMethod: Record<PaymentMethod, Centavos> = {
+    CASH: unsafeCentavos(0),
+    YAPE: unsafeCentavos(0),
+    PLIN: unsafeCentavos(0),
+    CARD: unsafeCentavos(0),
+    TRANSFER: unsafeCentavos(0),
   };
 
   for (const order of orders) {
@@ -83,7 +133,7 @@ export async function getRealtimeMetrics(
         for (const payment of check.payments) {
           const method = payment.method as PaymentMethod;
           if (method in salesByMethod) {
-            salesByMethod[method] += payment.amount_cents;
+            salesByMethod[method] = unsafeCentavos(salesByMethod[method] + payment.amount_cents);
             totalSalesCents += payment.amount_cents;
           }
         }
@@ -127,9 +177,9 @@ export async function getRealtimeMetrics(
   const stations = await getStationMetrics(tenantId);
 
   const metrics: RealtimeMetrics = {
-    total_sales_cents: totalSalesCents,
+    total_sales_cents: unsafeCentavos(totalSalesCents),
     orders_count: ordersCount,
-    avg_ticket_cents: avgTicketCents,
+    avg_ticket_cents: unsafeCentavos(avgTicketCents),
     sales_by_payment_method: salesByMethod,
     tables_occupied: tablesOccupied,
     tables_free: tablesFree,
@@ -142,8 +192,8 @@ export async function getRealtimeMetrics(
     last_updated: new Date().toISOString(),
   };
 
-  // Cache the result
-  metricsCache.set(cacheKey, { data: metrics, timestamp: Date.now() });
+  // Cache the result in DB (works across serverless instances)
+  await setDbCache(tenantId, cacheKey, metrics);
 
   return metrics;
 }
@@ -286,7 +336,7 @@ export async function getTopProducts(
     sku: data.sku,
     name: data.name,
     qty_sold: data.qty,
-    revenue_cents: data.revenue,
+    revenue_cents: unsafeCentavos(data.revenue),
   }));
 }
 
@@ -335,9 +385,9 @@ export async function getComparison(tenantId: string): Promise<ComparisonMetrics
   // Build previous metrics (simplified)
   const previous: RealtimeMetrics = {
     ...current,
-    total_sales_cents: prevTotalSales,
+    total_sales_cents: unsafeCentavos(prevTotalSales),
     orders_count: prevOrdersCount,
-    avg_ticket_cents: prevAvgTicket,
+    avg_ticket_cents: unsafeCentavos(prevAvgTicket),
   };
 
   // Calculate deltas
@@ -399,16 +449,21 @@ export async function getHourlySales(tenantId: string): Promise<HourlySales[]> {
     .filter(([, data]) => data.count > 0)
     .map(([hour, data]) => ({
       hour: parseInt(hour),
-      sales_cents: data.sales,
+      sales_cents: unsafeCentavos(data.sales),
       orders_count: data.count,
     }));
 }
 
-export function invalidateCache(tenantId: string): void {
-  for (const key of metricsCache.keys()) {
-    if (key.startsWith(tenantId)) {
-      metricsCache.delete(key);
-    }
+export async function invalidateCache(tenantId: string): Promise<void> {
+  try {
+    // Delete all cache entries for this tenant
+    await prisma.analytics_cache.deleteMany({
+      where: {
+        tenant_id: tenantId,
+      },
+    });
+  } catch (e) {
+    console.warn('[Analytics] Failed to invalidate cache:', e);
   }
 }
 

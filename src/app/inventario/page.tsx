@@ -41,6 +41,7 @@ import { InventoryItem } from '@/src/core/inventory/stock-types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { clearTerminalConfig } from '@/src/core/auth/fingerprint';
+import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
 
 type TabType = 'dashboard' | 'recepcion' | 'conteo' | 'merma' | 'alertas';
 
@@ -50,9 +51,6 @@ interface AuthEmployee {
   role: string;
 }
 
-// Tenant ID hardcoded por ahora - en producción vendría del contexto
-// Debe ser UUID válido (mismo que en prisma/seed.ts)
-const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const TERMINAL_ID = 'ADMIN_01';
 
 // ============ TOAST SYSTEM ============
@@ -225,7 +223,7 @@ export default function InventarioPage() {
 
   const loadStats = async () => {
     try {
-      const response = await fetch(`/api/inventory/stats?tenant_id=${TENANT_ID}`);
+      const response = await fetch(`/api/inventory/stats?tenant_id=${DEFAULT_TENANT_ID}`);
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -374,7 +372,7 @@ export default function InventarioPage() {
             <DashboardStats stats={stats} />
             <StockView
               key={refreshKey}
-              tenantId={TENANT_ID}
+              tenantId={DEFAULT_TENANT_ID}
               employeeId={employee?.id || ''}
               onReceive={handleReceive}
               onWaste={handleWaste}
@@ -384,7 +382,7 @@ export default function InventarioPage() {
         )}
         {activeTab === 'recepcion' && (
           <RecepcionTab 
-            tenantId={TENANT_ID}
+            tenantId={DEFAULT_TENANT_ID}
             employeeId={employee?.id || ''} 
             onReceive={handleReceive}
             refreshKey={refreshKey}
@@ -395,14 +393,14 @@ export default function InventarioPage() {
         )}
         {activeTab === 'merma' && (
           <MermaTab 
-            tenantId={TENANT_ID}
+            tenantId={DEFAULT_TENANT_ID}
             employeeId={employee?.id || ''} 
             onWaste={handleWaste}
             refreshKey={refreshKey}
           />
         )}
         {activeTab === 'alertas' && (
-          <AlertasTab tenantId={TENANT_ID} />
+          <AlertasTab tenantId={DEFAULT_TENANT_ID} />
         )}
       </main>
 
@@ -417,7 +415,7 @@ export default function InventarioPage() {
             inventoryItem={selectedItem}
             employeeId={employee?.id || ''}
             terminalId={TERMINAL_ID}
-            tenantId={TENANT_ID}
+            tenantId={DEFAULT_TENANT_ID}
             locationId={selectedItem.locationId || ''}
           />
           <WasteModal
@@ -428,7 +426,7 @@ export default function InventarioPage() {
             inventoryItem={selectedItem}
             employeeId={employee?.id || ''}
             terminalId={TERMINAL_ID}
-            tenantId={TENANT_ID}
+            tenantId={DEFAULT_TENANT_ID}
             locationId={selectedItem.locationId || ''}
           />
           <KardexModal
@@ -436,7 +434,7 @@ export default function InventarioPage() {
             onClose={handleModalClose}
             inventoryCode={selectedItem.code}
             inventoryName={selectedItem.name}
-            tenantId={TENANT_ID}
+            tenantId={DEFAULT_TENANT_ID}
           />
         </>
       )}

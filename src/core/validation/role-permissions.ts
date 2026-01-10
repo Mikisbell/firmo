@@ -23,6 +23,7 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
         "INVOICE_ISSUED", "INVOICE_VOIDED",
         "CATALOG_VERSION_BUMPED",
+        "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
 
     // MANAGER: Casi todo excepto catálogo
@@ -33,6 +34,7 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
         "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
         "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
 
     // CASHIER: Turnos, órdenes, pagos, facturas
@@ -43,6 +45,7 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
         "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
         "INVOICE_ISSUED",
+        "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
 
     // WAITER: Crear órdenes, agregar items, NO pagos ni facturas
@@ -51,6 +54,7 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "ORDER_ITEM_STATUS_CHANGED",
         "CHECK_CREATED", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
         "CHECK_TIP_SET",
+        "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
 
     // KITCHEN: Solo cambiar estado de items (PENDING → COOKING → READY)

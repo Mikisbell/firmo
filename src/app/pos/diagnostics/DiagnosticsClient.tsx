@@ -5,6 +5,7 @@ import { db } from "@/src/core/db/schema";
 import { getSyncClient } from "@/src/core/sync/client";
 import { useProjections } from "@/src/core/projections/useProjections";
 import { BackupSection } from "./BackupSection";
+import { DEFAULT_TENANT_ID } from "@/src/core/config/terminal";
 
 // Si no tienes esto aún, no pasa nada: lo intentamos igual.
 async function tryPersist(): Promise<{ supported: boolean; granted: boolean | null }> {
@@ -68,7 +69,7 @@ export default function DiagnosticsClient() {
             const nextSeq = (st?.last_terminal_sequence_acked ?? 0) + count + 1;
 
             const now = new Date().toISOString();
-            const tenant_id = "00000000-0000-0000-0000-000000000001"; // Valid UUID for MVP
+            const tenant_id = DEFAULT_TENANT_ID;
             const terminal_id = "t1";
 
             await db.events.add({

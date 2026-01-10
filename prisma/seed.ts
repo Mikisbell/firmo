@@ -167,6 +167,23 @@ async function main() {
     ];
 
     const locationId = uuid();
+    
+    // Create default location first
+    await prisma.locations.upsert({
+        where: { tenant_id_code: { tenant_id: TENANT_ID, code: "LOCAL-01" } },
+        update: {},
+        create: {
+            id: locationId,
+            tenant_id: TENANT_ID,
+            code: "LOCAL-01",
+            name: "Sucursal Principal",
+            address: "Av. Principal 123",
+            phone: "+51 1 234 5678",
+            timezone: "America/Lima",
+        },
+    });
+    console.log(`✅ 1 location`);
+    
     let tableNum = 1;
 
     for (const z of zones) {

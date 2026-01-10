@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import prisma from "@/src/core/db/prisma";
 import { ingestRequestSchema, type ParkEvent } from "@/src/core/domain/events";
 import { validateEvent, type ValidationResult } from "@/src/core/validation";
 import { checkRateLimit } from "@/src/core/middleware/rate-limit";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
+import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// Prisma Client singleton
-const prisma = new PrismaClient();
 
 // Error Helpers
 type ApiError = {
@@ -265,6 +264,9 @@ export async function POST(req: Request) {
     }
 
     const { tenant_id, terminal_id, events, to_terminal_sequence } = result.data;
+
+    // Register notification handlers for this tenant (idempotent)
+    registerNotificationHandlers(tenant_id);
 
     // Rate Limiting Check
     const rateLimit = checkRateLimit(tenant_id, terminal_id, ip);

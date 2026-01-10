@@ -7,7 +7,7 @@
  * time of creation.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
 import { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
 
@@ -73,7 +73,7 @@ function createOrderEvent(
 function createItemAddedEvent(
   config: TerminalConfig,
   orderId: string,
-  productId: string
+  _productId: string
 ): OrderEvent {
   return {
     event_type: 'ORDER_ITEM_ADDED',
@@ -99,7 +99,7 @@ const tableNumberArb = fc.oneof(
   fc.integer({ min: 1, max: 45 }).map(n => `M${n}`),
   fc.integer({ min: 1, max: 10 }).map(n => `B${n}`)
 );
-const productIdArb = fc.uuid();
+const _productIdArb = fc.uuid();
 
 const actorIdArb = fc.uuid();
 
@@ -170,7 +170,7 @@ describe('Feature: waiter-module, Property 1: Terminal Configuration Consistency
         fc.property(
           terminalConfigArb,
           tableNumberArb,
-          productIdArb,
+          _productIdArb,
           (config, tableNumber, productId) => {
             setStoredTerminalConfig(config);
             const storedConfig = getStoredTerminalConfig();

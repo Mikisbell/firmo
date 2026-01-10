@@ -79,11 +79,11 @@ export default function Cart({
                             <div className="flex-1 min-w-0 pr-4">
                                 <div className="font-medium text-zinc-200 text-sm truncate mb-0.5">{line.product_id}</div>
                                 <div className="text-xs text-zinc-500 group-hover:text-zinc-400">
-                                    {line.qty} x ${formatCents(line.unit_price_cents as any)}
+                                    {line.qty} x ${formatCents(line.unit_price_cents)}
                                 </div>
                             </div>
                             <div className="font-mono font-bold text-zinc-100 text-sm">
-                                ${formatCents(line.line_total_cents as any)}
+                                ${formatCents(line.line_total_cents)}
                             </div>
                         </motion.div>
                     ))}
@@ -100,7 +100,7 @@ export default function Cart({
                         animate={{ scale: 1, color: "#ffffff" }}
                         className="text-3xl font-bold text-white tracking-tight"
                     >
-                        ${formatCents(sale.subtotal_cents as any)}
+                        ${formatCents(sale.subtotal_cents)}
                     </motion.span>
                 </div>
 

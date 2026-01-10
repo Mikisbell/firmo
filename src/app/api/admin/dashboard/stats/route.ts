@@ -43,7 +43,7 @@ export async function GET() {
       where: {
         tenant_id: tenantId,
         business_date: new Date(businessDate),
-        order_status: 'DONE',
+        order_status: 'CONFIRMED',
       },
       _sum: {
         total_cents: true,

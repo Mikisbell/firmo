@@ -1,6 +1,7 @@
 // src/core/inventory/inventory-count.service.ts
 // Inventory Count Service - Schema Completeness Fase 4
 import { PrismaClient, Prisma } from "@prisma/client";
+import { unsafeCentavos, type Centavos } from "@/src/core/types/shared";
 
 export type CountType = "FULL" | "PARTIAL" | "SPOT";
 export type CountStatus = "IN_PROGRESS" | "PENDING_APPROVAL" | "APPROVED" | "CANCELLED";
@@ -35,7 +36,7 @@ export interface ApproveCountInput {
 export interface ApproveCountResult {
   success: boolean;
   adjustments_made: number;
-  total_difference_cents: number;
+  total_difference_cents: Centavos;
   errors: string[];
 }
 
@@ -225,11 +226,11 @@ export async function approveInventoryCount(
     });
 
     if (!count) {
-      return { success: false, adjustments_made: 0, total_difference_cents: 0, errors: ["Count not found"] };
+      return { success: false, adjustments_made: 0, total_difference_cents: unsafeCentavos(0), errors: ["Count not found"] };
     }
 
     if (count.status !== "PENDING_APPROVAL") {
-      return { success: false, adjustments_made: 0, total_difference_cents: 0, errors: [`Invalid status: ${count.status}`] };
+      return { success: false, adjustments_made: 0, total_difference_cents: unsafeCentavos(0), errors: [`Invalid status: ${count.status}`] };
     }
 
     await prisma.$transaction(async (tx) => {
@@ -286,9 +287,9 @@ export async function approveInventoryCount(
       });
     });
 
-    return { success: true, adjustments_made, total_difference_cents, errors };
+    return { success: true, adjustments_made, total_difference_cents: unsafeCentavos(total_difference_cents), errors };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return { success: false, adjustments_made: 0, total_difference_cents: 0, errors: [message] };
+    return { success: false, adjustments_made: 0, total_difference_cents: unsafeCentavos(0), errors: [message] };
   }
 }

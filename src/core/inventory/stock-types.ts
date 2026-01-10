@@ -3,6 +3,8 @@
  * Shared types for inventory stock management
  */
 
+import type { Centavos } from '@/src/core/types/shared';
+
 export type StockStatus = 'OK' | 'LOW' | 'CRITICAL';
 
 // Tipo de urgencia de vencimiento
@@ -15,7 +17,7 @@ export interface InventoryItem {
   stock: number;
   minStock: number;
   unit: string;
-  costCents: number;
+  costCents: Centavos;
   status: StockStatus;
   expiringLots: number;
   locationId: string | null;
@@ -29,7 +31,7 @@ export interface InventoryItem {
 export interface StockSummary {
   lowStockCount: number;
   expiringCount: number;
-  totalValueCents: number;
+  totalValueCents: Centavos;
 }
 
 export interface StockResponse {

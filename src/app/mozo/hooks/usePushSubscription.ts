@@ -77,7 +77,6 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
   // Check initial state on mount
   useEffect(() => {
     checkSubscription();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
