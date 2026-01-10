@@ -35,6 +35,65 @@
   /* Zinc 950 */
   --background-end-rgb: 24, 24, 27;
   /* Zinc 900 */
+
+  /* ========================================
+     MOBILE-FIRST RESPONSIVE SYSTEM
+     ======================================== */
+
+  /* Fluid Typography - scales smoothly from mobile to desktop */
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);     /* 12px → 14px */
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);       /* 14px → 16px */
+  --font-size-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);       /* 16px → 18px */
+  --font-size-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);      /* 18px → 20px */
+  --font-size-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);       /* 20px → 24px */
+  --font-size-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);            /* 24px → 32px */
+  --font-size-3xl: clamp(1.875rem, 1.5rem + 1.5vw, 2.5rem);      /* 30px → 40px */
+
+  /* Fluid Spacing - responsive padding/margins/gaps */
+  --space-xs: clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem);           /* 4px → 8px */
+  --space-sm: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);            /* 8px → 12px */
+  --space-md: clamp(0.75rem, 0.6rem + 0.75vw, 1rem);             /* 12px → 16px */
+  --space-lg: clamp(1rem, 0.8rem + 1vw, 1.5rem);                 /* 16px → 24px */
+  --space-xl: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);               /* 24px → 32px */
+  --space-2xl: clamp(2rem, 1.5rem + 2vw, 3rem);                  /* 32px → 48px */
+
+  /* Touch Targets - WCAG 2.1 compliant minimums */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+  --touch-spacing-min: 8px;
+
+  /* Button Sizes */
+  --button-height-sm: 36px;
+  --button-height-md: 44px;
+  --button-height-lg: 56px;
+
+  /* Header Heights */
+  --header-height-mobile: 56px;
+  --header-height-desktop: 64px;
+
+  /* Bottom Navigation */
+  --bottom-nav-height: 64px;
+
+  /* Bottom Sheet */
+  --bottom-sheet-collapsed: 80px;
+  --bottom-sheet-handle-height: 24px;
+
+  /* FAB (Floating Action Button) */
+  --fab-size: 56px;
+  --fab-margin: 16px;
+
+  /* Z-Index Scale */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+  --z-bottom-sheet: 350;
+  --z-fab: 250;
+  --z-bottom-nav: 300;
 }
 
 body {
@@ -71,4 +130,250 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #52525b;
   /* Zinc 600 */
+}
+
+
+/* ========================================
+   TOUCH TARGET UTILITIES
+   ======================================== */
+
+/* Ensure minimum touch target size */
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+}
+
+.touch-target-comfortable {
+  min-width: var(--touch-target-comfortable);
+  min-height: var(--touch-target-comfortable);
+}
+
+/* Touch-friendly button base */
+.btn-touch {
+  min-height: var(--button-height-md);
+  padding-inline: var(--space-md);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-touch-lg {
+  min-height: var(--button-height-lg);
+  padding-inline: var(--space-lg);
+}
+
+/* Active state feedback for touch */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* ========================================
+   CONTAINER QUERY SUPPORT
+   ======================================== */
+
+/* Container for responsive components */
+.container-responsive {
+  container-type: inline-size;
+}
+
+.container-responsive-block {
+  container-type: size;
+}
+
+/* Named containers for specific components */
+.container-catalog {
+  container-type: inline-size;
+  container-name: catalog;
+}
+
+.container-order-panel {
+  container-type: inline-size;
+  container-name: order-panel;
+}
+
+/* ========================================
+   FLUID TYPOGRAPHY UTILITIES
+   ======================================== */
+
+.text-fluid-xs { font-size: var(--font-size-xs); }
+.text-fluid-sm { font-size: var(--font-size-sm); }
+.text-fluid-base { font-size: var(--font-size-base); }
+.text-fluid-lg { font-size: var(--font-size-lg); }
+.text-fluid-xl { font-size: var(--font-size-xl); }
+.text-fluid-2xl { font-size: var(--font-size-2xl); }
+.text-fluid-3xl { font-size: var(--font-size-3xl); }
+
+/* ========================================
+   FLUID SPACING UTILITIES
+   ======================================== */
+
+.p-fluid-xs { padding: var(--space-xs); }
+.p-fluid-sm { padding: var(--space-sm); }
+.p-fluid-md { padding: var(--space-md); }
+.p-fluid-lg { padding: var(--space-lg); }
+.p-fluid-xl { padding: var(--space-xl); }
+
+.gap-fluid-xs { gap: var(--space-xs); }
+.gap-fluid-sm { gap: var(--space-sm); }
+.gap-fluid-md { gap: var(--space-md); }
+.gap-fluid-lg { gap: var(--space-lg); }
+.gap-fluid-xl { gap: var(--space-xl); }
+
+/* ========================================
+   SCROLL UTILITIES
+   ======================================== */
+
+/* Horizontal scroll with snap */
+.scroll-x-snap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.scroll-x-snap::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-x-snap > * {
+  scroll-snap-align: start;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
+   SAFE AREA INSETS (for notched devices)
+   ======================================== */
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-inset-left {
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+.safe-area-inset-right {
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+/* ========================================
+   MOBILE-FIRST MEDIA QUERY HELPERS
+   ======================================== */
+
+/* Hide on mobile, show on tablet+ */
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+@media (min-width: 768px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Hide on tablet+, show on mobile */
+@media (min-width: 768px) {
+  .hide-tablet-up {
+    display: none !important;
+  }
+}
+
+/* Show only on tablet+ */
+@media (max-width: 767px) {
+  .show-tablet-up {
+    display: none !important;
+  }
+}
+
+
+/* ========================================
+   CONTAINER QUERY FALLBACKS
+   For browsers without @container support
+   ======================================== */
+
+@supports not (container-type: inline-size) {
+  /* Fallback: use media queries instead */
+  
+  /* CatalogGrid fallback */
+  .catalog-grid-fallback {
+    display: grid;
+    gap: var(--space-sm);
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: 640px) {
+    .catalog-grid-fallback {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .catalog-grid-fallback {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .catalog-grid-fallback {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+}
+
+/* ========================================
+   CONTAINER QUERY GRID PATTERNS
+   ======================================== */
+
+/* Responsive grid using container queries */
+@container (min-width: 0px) {
+  .cq-grid-auto {
+    display: grid;
+    gap: var(--space-sm);
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container (min-width: 400px) {
+  .cq-grid-auto {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@container (min-width: 600px) {
+  .cq-grid-auto {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@container (min-width: 800px) {
+  .cq-grid-auto {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@container (min-width: 1000px) {
+  .cq-grid-auto {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
