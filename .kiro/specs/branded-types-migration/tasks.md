@@ -222,10 +222,13 @@ Si algo falla, revertir es trivial:
 - `src/core/inventory/goods-receipt.service.ts` — `unit_cost_cents`
 - `src/core/inventory/inventory-count.service.ts` — `total_difference_cents`
 - `src/core/inventory/audit.service.ts` — Campos de costo en payloads de auditoría
+- `src/app/api/admin/analytics/history/route.ts` — Conversión a `Centavos` con `asCentavos()`
 
 **Archivos NO migrados (decisión intencional):**
 - `src/core/db/schema.ts` — Dexie/IndexedDB almacena `number`, bajo valor
 - `src/core/validation/business-rules.ts` — Recibe datos de Prisma/eventos (ya `number`)
+- `src/core/actions/pos.actions.ts` — Funciones de acción que reciben input de UI
+- `src/app/api/admin/reports/route.ts` — Casts internos para JSON de Prisma
 - Archivos de test (`.test.ts`) — No son código de producción
 - `events.ts` — Zod schemas ya validan, JSON sigue siendo `number`
 - UI components — Bajo valor, alto esfuerzo
@@ -233,3 +236,7 @@ Si algo falla, revertir es trivial:
 
 **Tests agregados:**
 - `src/core/projections/__tests__/branded-types.test.ts` — 10 tests de type safety
+
+**Nota importante:** Cuando se usan tipos que incluyen `Centavos` (como `RealtimeMetrics`), 
+los valores deben convertirse usando `asCentavos()` o `unsafeCentavos()`. Esto aplica especialmente
+en APIs que retornan estos tipos.
