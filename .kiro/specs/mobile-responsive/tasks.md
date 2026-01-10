@@ -131,16 +131,16 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - Items: Mesas, Pedido, Config
     - _Requirements: 2.7_
 
-- [ ] 10. Refactorizar página /mozo/mesa/[id]
-  - [ ] 10.1 Implementar layout responsivo
+- [x] 10. Refactorizar página /mozo/mesa/[id]
+  - [x] 10.1 Implementar layout responsivo
     - Single column + BottomSheet en móvil
     - Side-by-side en tablet+
     - _Requirements: 3.1, 3.4_
-  - [ ] 10.2 Agregar FAB con total
+  - [x] 10.2 Agregar FAB con total
     - Mostrar cantidad de items y total
     - Click abre BottomSheet
     - _Requirements: 3.3_
-  - [ ] 10.3 Integrar OrderPanel adaptativo
+  - [x] 10.3 Integrar OrderPanel adaptativo
     - Usar modo 'auto'
     - _Requirements: 3.2_
 

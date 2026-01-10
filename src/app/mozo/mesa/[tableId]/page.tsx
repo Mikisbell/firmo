@@ -9,19 +9,24 @@ import { POSActions } from "@/src/core/actions/pos.actions";
 import { db } from "@/src/core/db/schema";
 import { ParkEvent } from "@/src/core/domain/events";
 import { OrderPanel } from "@/src/components/shared/OrderPanel";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, ShoppingCart } from "lucide-react";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 import { TerminalConfig } from "@/src/core/auth/types";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint } from "@/src/core/printing/utils";
+import { useResponsive } from "@/src/hooks/useResponsive";
+import { BottomSheet } from "@/src/components/ui/BottomSheet";
+import { OrderFAB } from "@/src/components/ui/FAB";
 
 export default function WaiterOrderPage({ params }: { params: Promise<{ tableId: string }> }) {
     const router = useRouter();
     const { tableId } = use(params);
+    const { isMobile } = useResponsive();
 
     const [orderId, setOrderId] = useState<string | null>(null);
     const [initializing, setInitializing] = useState(true);
     const [terminalConfig, setTerminalConfig] = useState<TerminalConfig | null>(null);
+    const [isOrderSheetOpen, setIsOrderSheetOpen] = useState(false);
 
     // Reactive State
     const activeSale = useOrder(orderId);
@@ -295,48 +300,98 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
     }
 
     const items = activeSale ? Object.values(activeSale.lines) : [];
+    const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
+
+    // Order panel content (shared between sidebar and bottom sheet)
+    const orderPanelContent = (
+        <OrderPanel
+            mode="waiter"
+            items={items}
+            subtotalCents={activeSale?.subtotal_cents ?? 0}
+            orderNumber={activeSale?.order_number}
+            tableId={tableId}
+            onIncrement={handleIncrement}
+            onDecrement={handleDecrement}
+            onRemove={handleRemoveItem}
+            onSendToKitchen={handleSendToKitchen}
+            onCallBill={handleCallBill}
+            onPrintPrecheck={handlePrintPrecheck}
+            compact={isMobile}
+        />
+    );
 
     return (
         <div className="h-screen flex flex-col bg-park-black text-white overflow-hidden">
-            {/* Header */}
-            <header className="h-14 border-b border-zinc-800/50 flex items-center justify-between px-4 bg-zinc-900/50 backdrop-blur-xl shrink-0">
-                <button onClick={() => router.back()} className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors">
+            {/* Header - Responsive */}
+            <header className="h-14 border-b border-zinc-800/50 flex items-center justify-between px-3 md:px-4 bg-zinc-900/50 backdrop-blur-xl shrink-0">
+                <button 
+                    onClick={() => router.back()} 
+                    className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                >
                     <ArrowLeft size={20} />
                 </button>
-                <div className="text-center">
-                    <h1 className="text-lg font-bold text-white">Mesa {tableId}</h1>
-                    <span className="text-xs text-zinc-500">
+                <div className="text-center flex-1">
+                    <h1 className="text-base md:text-lg font-bold text-white">Mesa {tableId}</h1>
+                    <span className="text-[10px] md:text-xs text-zinc-500">
                         {orderId ? `Pedido #${activeSale?.order_number ?? "..."}` : "Nueva Cuenta"}
                     </span>
                 </div>
-                <div className="flex items-center gap-1 text-zinc-500 text-xs">
+                <div className="flex items-center gap-1 text-zinc-500 text-[10px] md:text-xs min-w-[44px] justify-end">
                     <Clock size={12} />
-                    <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="hidden sm:inline">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
             </header>
 
-            {/* Main Content: Split Layout */}
+            {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
-                {/* LEFT: Catalog */}
-                <main className="flex-1 overflow-y-auto p-4">
+                {/* Catalog - Full width on mobile, partial on desktop */}
+                <main className={`flex-1 overflow-y-auto p-3 md:p-4 ${isMobile ? 'pb-24' : ''}`}>
                     <CatalogGrid onAdd={handleAddItem} shiftOpen={true} />
                 </main>
 
-                {/* RIGHT: Order Panel (SHARED COMPONENT) */}
-                <OrderPanel
-                    mode="waiter"
-                    items={items}
-                    subtotalCents={activeSale?.subtotal_cents ?? 0}
-                    orderNumber={activeSale?.order_number}
-                    tableId={tableId}
-                    onIncrement={handleIncrement}
-                    onDecrement={handleDecrement}
-                    onRemove={handleRemoveItem}
-                    onSendToKitchen={handleSendToKitchen}
-                    onCallBill={handleCallBill}
-                    onPrintPrecheck={handlePrintPrecheck}
-                />
+                {/* Order Panel - Sidebar on desktop only */}
+                {!isMobile && (
+                    <aside className="w-80 lg:w-96 border-l border-zinc-800/50 flex flex-col">
+                        {orderPanelContent}
+                    </aside>
+                )}
             </div>
+
+            {/* Mobile: FAB to open order sheet */}
+            {isMobile && (
+                <OrderFAB
+                    itemCount={itemCount}
+                    totalCents={activeSale?.subtotal_cents ?? 0}
+                    onClick={() => setIsOrderSheetOpen(true)}
+                />
+            )}
+
+            {/* Mobile: Bottom Sheet for order */}
+            {isMobile && (
+                <BottomSheet
+                    isOpen={isOrderSheetOpen}
+                    onClose={() => setIsOrderSheetOpen(false)}
+                    snapPoints={['collapsed', 'half', 'full']}
+                    defaultSnap="half"
+                    header={
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="font-bold text-white">Pedido Mesa {tableId}</h2>
+                                <p className="text-xs text-zinc-400">{itemCount} items</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-lg font-bold text-emerald-400">
+                                    S/ {((activeSale?.subtotal_cents ?? 0) / 100).toFixed(2)}
+                                </p>
+                            </div>
+                        </div>
+                    }
+                >
+                    <div className="p-4">
+                        {orderPanelContent}
+                    </div>
+                </BottomSheet>
+            )}
         </div>
     );
 }
