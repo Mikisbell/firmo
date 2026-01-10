@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import type { RealtimeMetrics } from '@/src/core/analytics/types';
-import type { PaymentMethod } from '@/src/core/types/shared';
+import { asCentavos, type PaymentMethod, type Centavos } from '@/src/core/types/shared';
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,13 +63,13 @@ export async function GET(request: NextRequest) {
 
     // Convert to RealtimeMetrics format
     const metrics: Partial<RealtimeMetrics>[] = summaries.map(s => ({
-      total_sales_cents: s.net_sales_cents,
+      total_sales_cents: asCentavos(s.net_sales_cents),
       orders_count: s.orders_count,
-      avg_ticket_cents: s.orders_count > 0 
+      avg_ticket_cents: asCentavos(s.orders_count > 0 
         ? Math.round(s.net_sales_cents / s.orders_count) 
-        : 0,
-      sales_by_payment_method: (s.payments_breakdown as Record<PaymentMethod, number>) || {
-        CASH: 0, YAPE: 0, PLIN: 0, CARD: 0, TRANSFER: 0,
+        : 0),
+      sales_by_payment_method: (s.payments_breakdown as Record<PaymentMethod, Centavos>) || {
+        CASH: asCentavos(0), YAPE: asCentavos(0), PLIN: asCentavos(0), CARD: asCentavos(0), TRANSFER: asCentavos(0),
       },
       business_date: s.business_date.toISOString().split('T')[0],
       last_updated: s.created_at.toISOString(),
