@@ -170,14 +170,14 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
   - [x] 13.3 Hacer Payment Modal fullscreen en móvil
     - _Requirements: 8.4_
 
-- [-] 14. Implementar optimizaciones de performance
+- [x] 14. Implementar optimizaciones de performance
   - [x] 14.1 Agregar Skeleton Loading
     - En listas de mesas, productos, pedidos
     - _Requirements: 9.1_
   - [x] 14.2 Implementar lazy loading de imágenes
     - loading="lazy" en todas las imágenes de productos
     - _Requirements: 9.3_
-  - [ ] 14.3 Write property test for lazy loading
+  - [x] 14.3 Write property test for lazy loading
     - **Property 5: Image Lazy Loading**
     - **Validates: Requirements 9.3**
   - [x] 14.4 Implementar prefetch de rutas
@@ -192,7 +192,7 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
   - [x] 15.2 Verificar spacing entre elementos
     - Mínimo 8px entre elementos táctiles
     - _Requirements: 10.2_
-  - [ ] 15.3 Write property test for spacing
+  - [x] 15.3 Write property test for spacing
     - **Property 2: Spacing Between Touch Targets**
     - **Validates: Requirements 10.2**
   - [x] 15.4 Agregar feedback visual en touch
@@ -210,7 +210,7 @@ Implementación Mobile-First completa para PARK POS. Se crearán componentes reu
     - Sugerir landscape pero funcionar en portrait
     - _Requirements: 11.3_
 
-- [ ] 17. Final Checkpoint
+- [x] 17. Final Checkpoint
   - Probar todas las páginas en móvil, tablet, desktop
   - Probar en portrait y landscape
   - Verificar performance con Lighthouse
