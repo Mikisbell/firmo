@@ -12,6 +12,7 @@ import {
   calculateStatus,
   calculateExpiryUrgency,
 } from '@/src/core/inventory/stock-types';
+import { asCentavos, type Centavos } from '@/src/core/types/shared';
 
 /**
  * GET /api/inventory/stock
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
     const items: InventoryItem[] = inventoryItems.map((item) => {
       const stock = Number(item.stock);
       const minStock = Number(item.min_stock || 0);
-      const costCents = item.cost_cents || 0;
+      const costCents = unsafeCentavos(item.cost_cents || 0);
       const status = calculateStatus(stock, minStock);
       
       // Calculate expiry urgency (FEFO - Task 11)
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
         stock,
         minStock,
         unit: item.unit,
-        costCents,
+        costCents: asCentavos(costCents),
         status,
         expiringLots: isExpiring ? 1 : 0,
         locationId: item.location_id,
@@ -103,9 +104,9 @@ export async function GET(request: NextRequest) {
         item.status === 'LOW' || item.status === 'CRITICAL'
       ).length,
       expiringCount: items.filter((item) => item.expiringLots > 0).length,
-      totalValueCents: items.reduce((acc: number, item: InventoryItem) => 
-        acc + Math.round(item.stock * item.costCents), 0
-      ),
+      totalValueCents: asCentavos(items.reduce((acc: number, item: InventoryItem) => 
+        acc + Math.round(item.stock * (item.costCents as number)), 0
+      )),
     };
 
     const response: StockResponse = {

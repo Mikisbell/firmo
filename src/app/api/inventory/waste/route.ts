@@ -10,6 +10,7 @@ import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { validateInventoryAuth, createAuthErrorResponse } from '@/src/core/middleware/inventory-auth';
 import { logWasteRecorded, logInventoryFailure } from '@/src/core/inventory/audit.service';
+import { asCentavos } from '@/src/core/types/shared';
 
 // Valid waste reason codes
 const WASTE_REASON_CODES = [
@@ -259,7 +260,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
         inventory_code: input.inventory_code,
         quantity: input.quantity,
         reason_code: input.reason_code,
-        cost_cents: costCents,
+        cost_cents: asCentavos(costCents),
       },
       { ip, userAgent, terminalId: input.terminal_id }
     );
