@@ -8,7 +8,6 @@
 import { describe, it, expect } from 'vitest';
 import { 
   asCentavos, 
-  unsafeCentavos, 
   asOrderId, 
   asShiftId,
   type Centavos,

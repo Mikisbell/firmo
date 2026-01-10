@@ -429,6 +429,22 @@ model inventory_log {
   @@index([tenant_id, inventory_id, created_at(sort: Desc)])
 }
 
+model locations {
+  id         String   @id @db.Uuid
+  tenant_id  String   @db.Uuid
+  code       String
+  name       String
+  address    String?
+  phone      String?
+  timezone   String   @default("America/Lima")
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, code])
+  @@index([tenant_id, is_active])
+}
+
 model invoice_cdr {
   id               String   @id @db.Uuid
   tenant_id        String   @db.Uuid

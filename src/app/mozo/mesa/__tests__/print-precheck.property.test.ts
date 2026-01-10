@@ -8,7 +8,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { transformLinesToPrint, calculatePrintTotal, OrderLineInput, PrintLine } from '@/src/core/printing/utils';
+import { transformLinesToPrint, calculatePrintTotal, OrderLineInput } from '@/src/core/printing/utils';
 
 // Arbitraries
 const orderLineArb: fc.Arbitrary<OrderLineInput> = fc.record({
