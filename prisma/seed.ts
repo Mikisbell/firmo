@@ -169,7 +169,7 @@ async function main() {
     const locationId = uuid();
     
     // Create default location first
-    await prisma.locations.upsert({
+    const location = await prisma.locations.upsert({
         where: { tenant_id_code: { tenant_id: TENANT_ID, code: "LOCAL-01" } },
         update: {},
         create: {
@@ -189,12 +189,12 @@ async function main() {
     for (const z of zones) {
         const zoneId = uuid();
         await prisma.zones.upsert({
-            where: { tenant_id_location_id_code: { tenant_id: TENANT_ID, location_id: locationId, code: z.code } },
+            where: { tenant_id_location_id_code: { tenant_id: TENANT_ID, location_id: location.id, code: z.code } },
             update: {},
             create: {
                 id: zoneId,
                 tenant_id: TENANT_ID,
-                location_id: locationId,
+                location_id: location.id,
                 code: z.code,
                 name: z.name,
                 color: z.color,
@@ -203,12 +203,12 @@ async function main() {
 
         for (let i = 0; i < z.tables; i++) {
             await prisma.tables.upsert({
-                where: { tenant_id_location_id_number: { tenant_id: TENANT_ID, location_id: locationId, number: String(tableNum) } },
+                where: { tenant_id_location_id_number: { tenant_id: TENANT_ID, location_id: location.id, number: String(tableNum) } },
                 update: {},
                 create: {
                     id: uuid(),
                     tenant_id: TENANT_ID,
-                    location_id: locationId,
+                    location_id: location.id,
                     zone_id: zoneId,
                     number: String(tableNum),
                     capacity: z.code === "VIP" ? 8 : 4,
@@ -309,7 +309,7 @@ async function main() {
             data: {
                 id: uuid(),
                 tenant_id: TENANT_ID,
-                location_id: locationId,
+                location_id: location.id,
                 name: dz.name,
                 delivery_fee: dz.fee,
                 estimated_mins: dz.mins,
@@ -359,12 +359,12 @@ async function main() {
 
     // 11. TIP CONFIG
     await prisma.tip_config.upsert({
-        where: { tenant_id_location_id: { tenant_id: TENANT_ID, location_id: locationId } },
+        where: { tenant_id_location_id: { tenant_id: TENANT_ID, location_id: location.id } },
         update: {},
         create: {
             id: uuid(),
             tenant_id: TENANT_ID,
-            location_id: locationId,
+            location_id: location.id,
             distribution_mode: "INDIVIDUAL",
             include_kitchen: false,
         },
@@ -373,12 +373,12 @@ async function main() {
 
     // 12. PETTY CASH BALANCE
     await prisma.petty_cash_balance.upsert({
-        where: { tenant_id_location_id: { tenant_id: TENANT_ID, location_id: locationId } },
+        where: { tenant_id_location_id: { tenant_id: TENANT_ID, location_id: location.id } },
         update: {},
         create: {
             id: uuid(),
             tenant_id: TENANT_ID,
-            location_id: locationId,
+            location_id: location.id,
             current_balance: 20000, // S/200
             max_balance: 50000,
             min_balance: 10000,
@@ -549,7 +549,7 @@ async function main() {
                 data: {
                     id: poId,
                     tenant_id: TENANT_ID,
-                    location_id: locationId,
+                    location_id: location.id,
                     supplier_id: supplier.id,
                     order_number: 1,
                     status: "RECEIVED",
@@ -589,7 +589,7 @@ async function main() {
                 data: {
                     id: grId,
                     tenant_id: TENANT_ID,
-                    location_id: locationId,
+                    location_id: location.id,
                     purchase_order_id: poId,
                     receipt_number: "GR-001",
                     status: "CONFIRMED",
@@ -687,7 +687,7 @@ async function main() {
     // Update inventory with location_id
     await prisma.inventory.updateMany({
         where: { tenant_id: TENANT_ID, location_id: null },
-        data: { location_id: locationId }
+        data: { location_id: location.id }
     });
     console.log(`✅ Inventory location_id updated`);
 
