@@ -377,3 +377,36 @@ body {
     grid-template-columns: repeat(6, 1fr);
   }
 }
+
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}

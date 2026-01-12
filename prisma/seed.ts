@@ -691,6 +691,129 @@ async function main() {
     });
     console.log(`✅ Inventory location_id updated`);
 
+    // ========================================================================
+    // TERMINAL ARCHITECTURE v2 - Device Binding & Security
+    // ========================================================================
+
+    // 20. TERMINAL DEVICES (con diferentes estados para testing)
+    const terminalDevices = [
+        { terminal_id: "CAJA_01", role: "CASHIER", status: "active", device_name: "Caja Principal", location_id: "LOC01" },
+        { terminal_id: "SPC_HORNO", role: "KDS", status: "active", device_name: "Horno/Parrilla", location_id: "LOC01" },
+        { terminal_id: "SPC_COCINA", role: "KDS", status: "active", device_name: "Cocina", location_id: "LOC01" },
+        { terminal_id: "SPC_BAR", role: "BAR", status: "active", device_name: "Bar", location_id: "LOC01" },
+        { terminal_id: "MOZO_01", role: "WAITER", status: "active", device_name: "Mesero 1", location_id: "LOC01" },
+        { terminal_id: "MOZO_02", role: "WAITER", status: "active", device_name: "Mesero 2", location_id: "LOC01" },
+        { terminal_id: "MOZO_03", role: "WAITER", status: "pending", device_name: "Mesero 3", location_id: "LOC01" }, // Pending activation
+        { terminal_id: "MOZO_04", role: "WAITER", status: "disabled", device_name: "Mesero 4", location_id: "LOC01" }, // Disabled
+        { terminal_id: "MOZO_05", role: "WAITER", status: "pending", device_name: "Mesero 5", location_id: "LOC01" }, // Pending activation
+    ];
+
+    for (const td of terminalDevices) {
+        const existing = await prisma.terminal_devices.findUnique({
+            where: { terminal_id: td.terminal_id }
+        });
+
+        if (!existing) {
+            const now = new Date();
+            await prisma.terminal_devices.create({
+                data: {
+                    terminal_id: td.terminal_id,
+                    tenant_id: TENANT_ID,
+                    role: td.role,
+                    fingerprint_hash: td.status === "active" ? createHash("sha256").update(`fp_${td.terminal_id}_test`).digest("hex") : null,
+                    fingerprint_salt: createHash("sha256").update(TENANT_ID).digest("hex").slice(0, 16),
+                    status: td.status,
+                    bound_at: td.status === "active" ? now : null,
+                    last_seen_at: now,
+                    last_fingerprint_check: now,
+                    drift_score: 0,
+                    location_id: td.location_id,
+                    device_name: td.device_name,
+                },
+            });
+        }
+    }
+    console.log(`✅ ${terminalDevices.length} terminal devices (v2)`);
+
+    // 21. ACTIVATION CODES (para terminales pending)
+    const pendingTerminals = terminalDevices.filter(t => t.status === "pending");
+    for (const pt of pendingTerminals) {
+        const existing = await prisma.activation_codes.findFirst({
+            where: { terminal_id: pt.terminal_id, used: false }
+        });
+
+        if (!existing) {
+            // Generate 6-digit code
+            const code = String(Math.floor(100000 + Math.random() * 900000));
+            const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+            await prisma.activation_codes.create({
+                data: {
+                    terminal_id: pt.terminal_id,
+                    code: code,
+                    expires_at: expiresAt,
+                    attempts: 0,
+                    used: false,
+                    created_by: EMPLOYEE_IDS.ADMIN,
+                },
+            });
+        }
+    }
+    console.log(`✅ ${pendingTerminals.length} activation codes`);
+
+    // 22. AUTH EVENTS (sample events for audit log)
+    const authEventTypes = [
+        { terminal_id: "CAJA_01", event_type: "login_success", employee_id: EMPLOYEE_IDS.CASHIER_MARIA, risk_score: 10, fingerprint_match: 95 },
+        { terminal_id: "CAJA_01", event_type: "logout", employee_id: EMPLOYEE_IDS.CASHIER_MARIA, risk_score: null, fingerprint_match: null },
+        { terminal_id: "MOZO_01", event_type: "login_success", employee_id: EMPLOYEE_IDS.WAITER_CARLOS, risk_score: 15, fingerprint_match: 92 },
+        { terminal_id: "MOZO_02", event_type: "login_failed", employee_id: null, risk_score: 75, fingerprint_match: 30 },
+        { terminal_id: "SPC_HORNO", event_type: "device_activated", employee_id: null, risk_score: 0, fingerprint_match: 100 },
+    ];
+
+    // Only create if no auth events exist
+    const existingAuthEvents = await prisma.auth_events.count({ where: { tenant_id: TENANT_ID } });
+    if (existingAuthEvents === 0) {
+        for (const ae of authEventTypes) {
+            await prisma.auth_events.create({
+                data: {
+                    tenant_id: TENANT_ID,
+                    terminal_id: ae.terminal_id,
+                    employee_id: ae.employee_id,
+                    event_type: ae.event_type,
+                    risk_score: ae.risk_score,
+                    fingerprint_match: ae.fingerprint_match,
+                    ip_address: "192.168.1.100",
+                    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
+                    metadata: {},
+                },
+            });
+        }
+        console.log(`✅ ${authEventTypes.length} auth events (sample)`);
+    }
+
+    // 23. SECURITY ALERTS (sample alerts)
+    const securityAlerts = [
+        { terminal_id: "MOZO_02", alert_type: "fingerprint_mismatch", severity: "high", message: "Fingerprint mismatch detected - possible device change" },
+        { terminal_id: "MOZO_04", alert_type: "terminal_disabled", severity: "medium", message: "Terminal disabled by admin" },
+    ];
+
+    const existingAlerts = await prisma.security_alerts.count({ where: { tenant_id: TENANT_ID } });
+    if (existingAlerts === 0) {
+        for (const sa of securityAlerts) {
+            await prisma.security_alerts.create({
+                data: {
+                    tenant_id: TENANT_ID,
+                    terminal_id: sa.terminal_id,
+                    alert_type: sa.alert_type,
+                    severity: sa.severity,
+                    message: sa.message,
+                    acknowledged: false,
+                },
+            });
+        }
+        console.log(`✅ ${securityAlerts.length} security alerts (sample)`);
+    }
+
     console.log("\n🎉 Seed completed!");
     console.log(`\n📋 Test PINs:`);
     employees.forEach(e => console.log(`   ${e.name}: ${e.pin}`));
@@ -701,6 +824,10 @@ async function main() {
     console.log(`   - PO-001: 10kg Pollo + 50kg Papa`);
     console.log(`   - GR-001: Recepción completa (2kg papa rechazada)`);
     console.log(`   - Recipes: Pollo entero, 1/2, 1/4, Papas grande/mediana`);
+    console.log(`\n🔐 Terminal Architecture v2:`);
+    console.log(`   - Active terminals: CAJA_01, SPC_HORNO, SPC_COCINA, SPC_BAR, MOZO_01, MOZO_02`);
+    console.log(`   - Pending activation: MOZO_03, MOZO_05 (check activation_codes table)`);
+    console.log(`   - Disabled: MOZO_04`);
 }
 
 main()

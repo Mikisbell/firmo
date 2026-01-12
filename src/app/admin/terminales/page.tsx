@@ -1,84 +1,100 @@
 'use client';
 
 /**
- * Terminals Management Page
- * Lista de terminales con estado, rangos y activación
+ * Terminals Management Page v2
+ * Lista de terminales con estado, códigos de activación y device binding
  * 
- * Requirements: 5.1, 5.2, 5.3, 5.4
+ * Requirements: 2.1, 3.1, 6.1 (Terminal Architecture v2)
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, Check, X, Wifi, WifiOff, Copy, Key } from 'lucide-react';
-import { DataTable, Column, FilterConfig } from '../components/DataTable';
-
-interface Terminal {
-  id: string;
-  terminal_id: string;
-  station_id: string | null;
-  is_allowed: boolean;
-  last_seen_at: string | null;
-}
+import { RefreshCw, Check, Wifi, WifiOff, Copy, Smartphone, Monitor, ChefHat, Wine } from 'lucide-react';
 
 interface ActivationCode {
   code: string;
   expires_at: string;
 }
 
-const STATUS_OPTIONS = [
-  { value: 'true', label: 'Activo' },
-  { value: 'false', label: 'Revocado' },
-];
+interface TerminalDevice {
+  id: string;
+  terminal_id: string;
+  role: string;
+  status: string;
+  device_name: string;
+  location_id: string | null;
+  bound_at: string | null;
+  last_seen_at: string | null;
+  drift_score: number;
+  activation_code: ActivationCode | null;
+}
 
-const filters: FilterConfig[] = [
-  { key: 'is_allowed', label: 'Estado', options: STATUS_OPTIONS },
-];
+interface Summary {
+  total: number;
+  active: number;
+  pending: number;
+  disabled: number;
+}
+
+const ROLE_ICONS: Record<string, React.ReactNode> = {
+  CASHIER: <Monitor className="w-4 h-4" />,
+  WAITER: <Smartphone className="w-4 h-4" />,
+  KDS: <ChefHat className="w-4 h-4" />,
+  BAR: <Wine className="w-4 h-4" />,
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  CASHIER: 'Caja',
+  WAITER: 'Mesero',
+  KDS: 'Cocina',
+  BAR: 'Bar',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  active: 'bg-green-500/20 text-green-400',
+  pending: 'bg-amber-500/20 text-amber-400',
+  disabled: 'bg-red-500/20 text-red-400',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active: 'Activo',
+  pending: 'Pendiente',
+  disabled: 'Deshabilitado',
+};
 
 export default function TerminalsPage() {
-  const [terminals, setTerminals] = useState<Terminal[]>([]);
+  const [devices, setDevices] = useState<TerminalDevice[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activationCode, setActivationCode] = useState<ActivationCode | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>('all');
 
-  const fetchTerminals = useCallback(async () => {
+  const fetchDevices = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/terminals');
-      if (!res.ok) throw new Error('Failed to fetch terminals');
+      const res = await fetch('/api/admin/terminals-v2');
+      if (!res.ok) throw new Error('Failed to fetch devices');
       const data = await res.json();
-      setTerminals(data);
+      setDevices(data.devices);
+      setSummary(data.summary);
       setError(null);
     } catch (err) {
       setError('Error al cargar terminales');
-      console.error('Terminals fetch error:', err);
+      console.error('Devices fetch error:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchTerminals();
-  }, [fetchTerminals]);
+    fetchDevices();
+  }, [fetchDevices]);
 
-  const generateActivationCode = async () => {
-    try {
-      setGenerating(true);
-      const res = await fetch('/api/admin/terminals/activate', { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to generate code');
-      const data = await res.json();
-      setActivationCode(data);
-    } catch (err) {
-      setError('Error al generar código');
-      console.error('Activation code error:', err);
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const copyCode = () => {
-    if (activationCode) {
-      navigator.clipboard.writeText(activationCode.code);
-    }
+  const copyCode = (code: string) => {
+    const formatted = `${code.slice(0, 3)}-${code.slice(3)}`;
+    navigator.clipboard.writeText(formatted);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
   };
 
   const isOnline = (lastSeen: string | null) => {
@@ -87,106 +103,67 @@ export default function TerminalsPage() {
     return new Date(lastSeen).getTime() > fiveMinutesAgo;
   };
 
-  const columns: Column<Terminal>[] = [
-    { key: 'terminal_id', label: 'Terminal ID' },
-    {
-      key: 'status',
-      label: 'Conexión',
-      width: '120px',
-      render: (t) => {
-        const online = isOnline(t.last_seen_at);
-        return (
-          <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-              online
-                ? 'bg-green-500/20 text-green-400'
-                : 'bg-zinc-500/20 text-zinc-400'
-            }`}
-          >
-            {online ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-            {online ? 'Online' : 'Offline'}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'last_seen_at',
-      label: 'Última conexión',
-      render: (t) =>
-        t.last_seen_at
-          ? new Date(t.last_seen_at).toLocaleString()
-          : 'Nunca',
-    },
-    {
-      key: 'is_allowed',
-      label: 'Estado',
-      width: '100px',
-      render: (t) => (
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-            t.is_allowed
-              ? 'bg-green-500/20 text-green-400'
-              : 'bg-red-500/20 text-red-400'
-          }`}
-        >
-          {t.is_allowed ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-          {t.is_allowed ? 'Activo' : 'Revocado'}
-        </span>
-      ),
-    },
-  ];
+  const filteredDevices = devices.filter(d => {
+    if (filter === 'all') return true;
+    return d.status === filter;
+  });
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Terminales</h1>
-          <p className="text-zinc-400 mt-1">Gestionar dispositivos conectados</p>
+          <h1 className="text-2xl font-bold">Terminales v2</h1>
+          <p className="text-zinc-400 mt-1">Gestión de dispositivos con device binding</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchTerminals}
-            disabled={loading}
-            className="p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors min-h-[44px] min-w-[44px]"
-            title="Actualizar"
-          >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={generateActivationCode}
-            disabled={generating}
-            className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-          >
-            <Key className="w-4 h-4" />
-            {generating ? 'Generando...' : 'Nuevo Código'}
-          </button>
-        </div>
+        <button
+          onClick={fetchDevices}
+          disabled={loading}
+          className="p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors min-h-[44px] min-w-[44px]"
+          title="Actualizar"
+        >
+          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
 
-      {/* Activation code display */}
-      {activationCode && (
-        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-amber-400 mb-1">Código de Activación</p>
-              <p className="text-2xl font-mono font-bold tracking-wider">
-                {activationCode.code}
-              </p>
-              <p className="text-xs text-zinc-500 mt-1">
-                Expira: {new Date(activationCode.expires_at).toLocaleString()}
-              </p>
-            </div>
-            <button
-              onClick={copyCode}
-              className="p-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 transition-colors min-h-[44px] min-w-[44px]"
-              title="Copiar código"
-            >
-              <Copy className="w-5 h-5 text-amber-400" />
-            </button>
+      {/* Summary Cards */}
+      {summary && (
+        <div className="grid grid-cols-4 gap-4">
+          <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+            <p className="text-zinc-400 text-sm">Total</p>
+            <p className="text-2xl font-bold">{summary.total}</p>
+          </div>
+          <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/30">
+            <p className="text-green-400 text-sm">Activos</p>
+            <p className="text-2xl font-bold text-green-400">{summary.active}</p>
+          </div>
+          <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/30">
+            <p className="text-amber-400 text-sm">Pendientes</p>
+            <p className="text-2xl font-bold text-amber-400">{summary.pending}</p>
+          </div>
+          <div className="p-4 bg-red-500/10 rounded-lg border border-red-500/30">
+            <p className="text-red-400 text-sm">Deshabilitados</p>
+            <p className="text-2xl font-bold text-red-400">{summary.disabled}</p>
           </div>
         </div>
       )}
+
+      {/* Filter Tabs */}
+      <div className="flex gap-2">
+        {['all', 'active', 'pending', 'disabled'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === f
+                ? 'bg-amber-500 text-black'
+                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+            }`}
+          >
+            {f === 'all' ? 'Todos' : STATUS_LABELS[f]}
+          </button>
+        ))}
+      </div>
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -194,16 +171,103 @@ export default function TerminalsPage() {
         </div>
       )}
 
-      {/* Terminals table */}
-      <DataTable
-        data={terminals}
-        columns={columns}
-        filters={filters}
-        searchPlaceholder="Buscar por ID..."
-        searchKeys={['terminal_id']}
-        loading={loading}
-        emptyMessage="No hay terminales registrados"
-      />
+      {/* Devices Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-48 bg-zinc-800/50 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredDevices.map(device => (
+            <div
+              key={device.id}
+              className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700 hover:border-zinc-600 transition-colors"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-zinc-700 rounded-lg">
+                    {ROLE_ICONS[device.role] || <Smartphone className="w-4 h-4" />}
+                  </div>
+                  <div>
+                    <p className="font-medium">{device.device_name}</p>
+                    <p className="text-xs text-zinc-500">{device.terminal_id}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs ${STATUS_COLORS[device.status]}`}>
+                  {STATUS_LABELS[device.status]}
+                </span>
+              </div>
+
+              {/* Info */}
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-400">Rol</span>
+                  <span>{ROLE_LABELS[device.role] || device.role}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-400">Conexión</span>
+                  <span className={`flex items-center gap-1 ${isOnline(device.last_seen_at) ? 'text-green-400' : 'text-zinc-500'}`}>
+                    {isOnline(device.last_seen_at) ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                    {isOnline(device.last_seen_at) ? 'Online' : 'Offline'}
+                  </span>
+                </div>
+                {device.drift_score > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400">Drift Score</span>
+                    <span className={device.drift_score > 50 ? 'text-amber-400' : ''}>{device.drift_score}%</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Activation Code (for pending devices) */}
+              {device.status === 'pending' && device.activation_code && (
+                <div className="mt-3 p-3 bg-amber-500/10 rounded-lg border border-amber-500/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-amber-400 mb-1">Código de Activación</p>
+                      <p className="font-mono font-bold tracking-wider">
+                        {device.activation_code.code.slice(0, 3)}-{device.activation_code.code.slice(3)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => copyCode(device.activation_code!.code)}
+                      className="p-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 transition-colors"
+                      title="Copiar código"
+                    >
+                      {copiedCode === device.activation_code.code ? (
+                        <Check className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4 text-amber-400" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Expira: {new Date(device.activation_code.expires_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
+
+              {/* Bound info (for active devices) */}
+              {device.status === 'active' && device.bound_at && (
+                <div className="mt-3 pt-3 border-t border-zinc-700">
+                  <p className="text-xs text-zinc-500">
+                    Vinculado: {new Date(device.bound_at).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && filteredDevices.length === 0 && (
+        <div className="text-center py-12 text-zinc-500">
+          No hay terminales {filter !== 'all' ? `con estado "${STATUS_LABELS[filter]}"` : ''}
+        </div>
+      )}
     </div>
   );
 }

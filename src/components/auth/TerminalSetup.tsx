@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateDeviceFingerprint, setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import type { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
-import { Monitor, ChefHat, Wine, Loader2, Flame, Package, ArrowRight, ArrowLeft, Settings, Users } from 'lucide-react';
+import { Monitor, ChefHat, Wine, Loader2, Flame, Package, ArrowRight, ArrowLeft, Settings, Users, Sparkles } from 'lucide-react';
 
 interface TerminalSetupProps { onComplete: (config: TerminalConfig) => void; }
 interface TerminalOption { terminal_id: string; role: TerminalRole; label: string; accentColor: string; }
@@ -26,68 +26,342 @@ function generateMeseros(): TerminalOption[] {
   }
   return result;
 }
+
 const MESEROS = generateMeseros();
 const ROLE_CARDS = [
-  { id: 'CAJA_01', role: 'CASHIER' as TerminalRole, title: 'Caja', subtitle: 'Cobros y cierre', icon: Monitor, color: '#10b981', gradient: 'from-emerald-500 to-teal-600', isGroup: false },
-  { id: 'meseros', role: 'WAITER' as TerminalRole, title: 'Meseros', subtitle: '15 terminales', icon: Users, color: '#8b5cf6', gradient: 'from-violet-500 to-purple-600', isGroup: true },
-  { id: 'SPC_HORNO', role: 'KDS' as TerminalRole, title: 'Horno', subtitle: 'Parrilla', icon: Flame, color: '#f97316', gradient: 'from-orange-500 to-red-600', isGroup: false },
-  { id: 'SPC_COCINA', role: 'KDS' as TerminalRole, title: 'Cocina', subtitle: 'Guarniciones', icon: ChefHat, color: '#eab308', gradient: 'from-yellow-500 to-amber-600', isGroup: false },
-  { id: 'SPC_BAR', role: 'BAR' as TerminalRole, title: 'Bar', subtitle: 'Bebidas', icon: Wine, color: '#0ea5e9', gradient: 'from-sky-500 to-blue-600', isGroup: false },
+  { id: 'CAJA_01', role: 'CASHIER' as TerminalRole, title: 'Caja', subtitle: 'Cobros y cierre', icon: Monitor, color: '#10b981', gradient: 'from-emerald-500 to-teal-600', shadowColor: 'shadow-emerald-500/20', isGroup: false },
+  { id: 'meseros', role: 'WAITER' as TerminalRole, title: 'Meseros', subtitle: '15 terminales', icon: Users, color: '#8b5cf6', gradient: 'from-violet-500 to-purple-600', shadowColor: 'shadow-violet-500/20', isGroup: true },
+  { id: 'SPC_HORNO', role: 'KDS' as TerminalRole, title: 'Horno', subtitle: 'Parrilla', icon: Flame, color: '#f97316', gradient: 'from-orange-500 to-red-600', shadowColor: 'shadow-orange-500/20', isGroup: false },
+  { id: 'SPC_COCINA', role: 'KDS' as TerminalRole, title: 'Cocina', subtitle: 'Guarniciones', icon: ChefHat, color: '#eab308', gradient: 'from-yellow-500 to-amber-600', shadowColor: 'shadow-yellow-500/20', isGroup: false },
+  { id: 'SPC_BAR', role: 'BAR' as TerminalRole, title: 'Bar', subtitle: 'Bebidas', icon: Wine, color: '#0ea5e9', gradient: 'from-sky-500 to-blue-600', shadowColor: 'shadow-sky-500/20', isGroup: false },
 ];
+
+// Floating particles for background effect
+function FloatingParticles() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(25)].map((_, i) => (
+        <motion.div
+          key={i}
+          className={`absolute rounded-full ${i % 3 === 0 ? 'w-2 h-2 bg-emerald-500/20' : i % 3 === 1 ? 'w-1.5 h-1.5 bg-teal-500/25' : 'w-1 h-1 bg-cyan-500/30'}`}
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -100 - Math.random() * 100],
+            x: [0, (Math.random() - 0.5) * 50],
+            opacity: [0, 0.8, 0],
+            scale: [0.5, 1, 0.5],
+          }}
+          transition={{
+            duration: 5 + Math.random() * 4,
+            repeat: Infinity,
+            delay: Math.random() * 4,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Animated grid background
+function GridBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03]">
+      <div className="absolute inset-0" style={{
+        backgroundImage: `linear-gradient(rgba(16, 185, 129, 0.5) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(16, 185, 129, 0.5) 1px, transparent 1px)`,
+        backgroundSize: '50px 50px',
+      }} />
+    </div>
+  );
+}
 
 export function TerminalSetup({ onComplete }: TerminalSetupProps) {
   const [view, setView] = useState<ViewMode>('roles');
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState<string | null>(null);
   const [error, setError] = useState('');
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 300); return () => clearTimeout(t); }, []);
+
+  useEffect(() => { 
+    const t = setTimeout(() => setLoading(false), 500); 
+    return () => clearTimeout(t); 
+  }, []);
+
   const handleSelect = async (id: string, role: TerminalRole, label: string) => {
-    setSelecting(id); setError('');
+    if (selecting) return;
+    setSelecting(id); 
+    setError('');
     try {
       const fp = await generateDeviceFingerprint();
-      const cfg: TerminalConfig = { terminal_id: id, tenant_id: TENANT_ID, actor_id: generateActorId(id), device_fingerprint: fp, device_name: label, role, location_id: 'LOC01', is_allowed: true, registered_at: new Date().toISOString() };
-      await new Promise(r => setTimeout(r, 300));
-      setStoredTerminalConfig(cfg); onComplete(cfg);
-    } catch { setError('Error'); setSelecting(null); }
+      const cfg: TerminalConfig = { 
+        terminal_id: id, 
+        tenant_id: TENANT_ID, 
+        actor_id: generateActorId(id), 
+        device_fingerprint: fp, 
+        device_name: label, 
+        role, 
+        location_id: 'LOC01', 
+        is_allowed: true, 
+        registered_at: new Date().toISOString() 
+      };
+      setStoredTerminalConfig(cfg);
+      onComplete(cfg);
+    } catch { 
+      setError('Error al configurar terminal'); 
+      setSelecting(null); 
+    }
   };
-  const handleRole = (c: typeof ROLE_CARDS[0]) => { if (c.isGroup) setView('meseros'); else handleSelect(c.id, c.role, c.title); };
-  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center"><div className="w-12 h-12 border-2 border-zinc-800 border-t-emerald-500 rounded-full animate-spin" /></div>;
+
+  const handleRole = (c: typeof ROLE_CARDS[0]) => { 
+    if (c.isGroup) setView('meseros'); 
+    else handleSelect(c.id, c.role, c.title); 
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-950/30 via-zinc-950 to-zinc-950" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-zinc-800 border-t-emerald-500 rounded-full"
+          />
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col">
-      <header className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-zinc-950 flex flex-col relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/40 via-zinc-950 to-zinc-950" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl" />
+      <GridBackground />
+      <FloatingParticles />
+
+      {/* Header */}
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-2xl sticky top-0 z-40 relative"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-teal-500/5" />
+        <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between relative">
           <div className="flex items-center gap-3">
-            {view === 'meseros' && <button onClick={() => setView('roles')} className="p-2 -ml-2 rounded-lg hover:bg-zinc-800"><ArrowLeft className="w-5 h-5 text-zinc-400" /></button>}
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg"><span className="text-xl"></span></div>
-            <div><h1 className="text-lg font-semibold text-white">PARK POS</h1><p className="text-xs text-zinc-500">{view === 'roles' ? 'Selecciona estacion' : 'Selecciona numero'}</p></div>
+            <AnimatePresence mode="wait">
+              {view === 'meseros' && (
+                <motion.button 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onClick={() => setView('roles')} 
+                  className="p-2 -ml-2 rounded-xl hover:bg-zinc-800/50 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-zinc-400" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+            
+            {/* Logo with glow effect */}
+            <motion.div 
+              className="relative"
+              animate={{ 
+                filter: ['drop-shadow(0 0 10px rgba(16, 185, 129, 0.3))', 'drop-shadow(0 0 20px rgba(16, 185, 129, 0.5))', 'drop-shadow(0 0 10px rgba(16, 185, 129, 0.3))']
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="absolute inset-0 bg-emerald-500/30 blur-2xl rounded-full scale-150" />
+              <img 
+                src="/logo.svg" 
+                alt="PARK POS" 
+                className="w-12 h-12 relative z-10"
+              />
+            </motion.div>
+            
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">
+                <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">PARK</span>
+                <span className="text-white ml-1">POS</span>
+              </h1>
+              <p className="text-xs text-zinc-500">
+                {view === 'roles' ? 'Selecciona tu estación' : 'Selecciona tu número'}
+              </p>
+            </div>
           </div>
-          <a href="/admin" className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800"><Settings className="w-5 h-5" /></a>
+          
+          <motion.a 
+            href="/admin" 
+            whileHover={{ scale: 1.05, rotate: 90 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2.5 rounded-xl text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800/50 transition-all"
+          >
+            <Settings className="w-5 h-5" />
+          </motion.a>
         </div>
-      </header>
-      <main className="flex-1 flex items-center justify-center p-4">
+      </motion.header>
+
+      {/* Main content */}
+      <main className="flex-1 flex items-center justify-center p-4 relative z-10">
         <div className="w-full max-w-lg">
-          <AnimatePresence mode="wait">{view === 'roles' ? <RolesView key="r" selecting={selecting} onSelect={handleRole} /> : <MeserosView key="m" selecting={selecting} onSelect={m => handleSelect(m.terminal_id, m.role, m.label)} />}</AnimatePresence>
-          {error && <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">{error}</div>}
-          {view === 'roles' && <div className="mt-8 flex justify-center"><a href="/inventario" className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white text-sm"><Package className="w-4 h-4" />Inventario<ArrowRight className="w-3 h-3" /></a></div>}
+          <AnimatePresence mode="wait">
+            {view === 'roles' ? (
+              <RolesView key="roles" selecting={selecting} onSelect={handleRole} />
+            ) : (
+              <MeserosView key="meseros" selecting={selecting} onSelect={m => handleSelect(m.terminal_id, m.role, m.label)} />
+            )}
+          </AnimatePresence>
+          
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"
+            >
+              {error}
+            </motion.div>
+          )}
+          
+          {view === 'roles' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="mt-8 flex justify-center"
+            >
+              <motion.a 
+                href="/inventario" 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/30 text-zinc-400 hover:text-emerald-400 text-sm transition-all relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Package className="w-4 h-4 relative z-10" />
+                <span className="relative z-10">Inventario</span>
+                <motion.div
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  <ArrowRight className="w-3 h-3 relative z-10" />
+                </motion.div>
+              </motion.a>
+            </motion.div>
+          )}
         </div>
       </main>
-      <footer className="py-4 text-center"><p className="text-xs text-zinc-600">PARK POS v2.1.1 - UI 2026</p></footer>
+
+      {/* Footer */}
+      <motion.footer 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="py-4 text-center relative z-10"
+      >
+        <p className="text-xs text-zinc-600">
+          <span className="bg-gradient-to-r from-zinc-600 to-zinc-500 bg-clip-text text-transparent">PARK POS</span>
+          <span className="mx-2 text-zinc-700">•</span>
+          <span className="text-zinc-600">v2.1.1</span>
+          <span className="mx-2 text-zinc-700">•</span>
+          <span className="text-zinc-600">Sistema de Punto de Venta</span>
+        </p>
+      </motion.footer>
     </div>
   );
 }
 
 function RolesView({ selecting, onSelect }: { selecting: string | null; onSelect: (c: typeof ROLE_CARDS[0]) => void }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0, x: -20 }} 
+      className="space-y-3"
+    >
+      {/* Title */}
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-6"
+      >
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+            <Sparkles className="w-4 h-4 text-emerald-500" />
+          </motion.div>
+          <span className="text-sm text-zinc-400">¿Qué rol desempeñas hoy?</span>
+          <motion.div animate={{ rotate: [0, -15, 15, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+            <Sparkles className="w-4 h-4 text-emerald-500" />
+          </motion.div>
+        </div>
+      </motion.div>
+
       {ROLE_CARDS.map((c, i) => {
         const Icon = c.icon;
+        const isSelecting = selecting === c.id;
+        
         return (
-          <motion.button key={c.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} onClick={() => onSelect(c)} disabled={selecting !== null} className="group w-full flex items-center gap-4 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-all">
-            <div className={'w-14 h-14 rounded-xl bg-gradient-to-br ' + c.gradient + ' flex items-center justify-center shadow-lg'}>
-              {selecting === c.id ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Icon className="w-6 h-6 text-white" />}
+          <motion.button 
+            key={c.id} 
+            initial={{ opacity: 0, y: 20, scale: 0.95 }} 
+            animate={{ opacity: 1, y: 0, scale: 1 }} 
+            transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }} 
+            onClick={() => onSelect(c)} 
+            disabled={selecting !== null}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="group w-full relative overflow-hidden"
+          >
+            {/* Animated border gradient */}
+            <motion.div 
+              className={`absolute -inset-[1px] bg-gradient-to-r ${c.gradient} rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+              animate={isSelecting ? { opacity: [0.5, 1, 0.5] } : {}}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
+            
+            {/* Glow effect on hover */}
+            <div className={`absolute -inset-4 bg-gradient-to-r ${c.gradient} rounded-3xl blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
+            
+            <div className="relative flex items-center gap-4 p-4 rounded-2xl bg-zinc-900/95 backdrop-blur-sm border border-transparent group-hover:bg-zinc-900/80 transition-all">
+              {/* Icon container with gradient and pulse */}
+              <motion.div 
+                className={`relative w-14 h-14 rounded-xl bg-gradient-to-br ${c.gradient} flex items-center justify-center shadow-lg ${c.shadowColor}`}
+                whileHover={{ rotate: [0, -5, 5, 0] }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                {isSelecting ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Loader2 className="w-6 h-6 text-white" />
+                  </motion.div>
+                ) : (
+                  <Icon className="w-6 h-6 text-white relative z-10" />
+                )}
+              </motion.div>
+              
+              <div className="flex-1 text-left">
+                <h3 className="text-lg font-semibold text-white group-hover:text-emerald-50 transition-colors">
+                  {c.title}
+                </h3>
+                <p className="text-sm text-zinc-500 group-hover:text-zinc-400 transition-colors">{c.subtitle}</p>
+              </div>
+              
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <ArrowRight className="w-5 h-5 text-zinc-600 group-hover:text-emerald-400 transition-colors" />
+              </motion.div>
             </div>
-            <div className="flex-1 text-left"><h3 className="text-lg font-semibold text-white">{c.title}</h3><p className="text-sm text-zinc-500">{c.subtitle}</p></div>
-            <ArrowRight className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400" />
           </motion.button>
         );
       })}
@@ -97,16 +371,85 @@ function RolesView({ selecting, onSelect }: { selecting: string | null; onSelect
 
 function MeserosView({ selecting, onSelect }: { selecting: string | null; onSelect: (m: TerminalOption) => void }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }} 
+      animate={{ opacity: 1, x: 0 }} 
+      exit={{ opacity: 0, x: 20 }}
+    >
+      {/* Title */}
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-6"
+      >
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+            <Users className="w-4 h-4 text-violet-500" />
+          </motion.div>
+          <span className="text-sm text-zinc-400">Selecciona tu número de mesero</span>
+          <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}>
+            <Users className="w-4 h-4 text-violet-500" />
+          </motion.div>
+        </div>
+      </motion.div>
+
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
         {MESEROS.map((m, i) => {
           const n = parseInt(m.terminal_id.replace('MOZO_', ''));
+          const isSelecting = selecting === m.terminal_id;
+          
           return (
-            <motion.button key={m.terminal_id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }} onClick={() => onSelect(m)} disabled={selecting !== null} className="group aspect-square rounded-2xl bg-zinc-900/80 border border-zinc-800 hover:border-zinc-600 flex flex-col items-center justify-center gap-1">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: m.accentColor + '20', color: m.accentColor }}>
-                {selecting === m.terminal_id ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="text-2xl font-bold">{n}</span>}
+            <motion.button 
+              key={m.terminal_id} 
+              initial={{ opacity: 0, scale: 0.5, rotate: -10 }} 
+              animate={{ opacity: 1, scale: 1, rotate: 0 }} 
+              transition={{ delay: i * 0.04, type: "spring", stiffness: 300 }} 
+              onClick={() => onSelect(m)} 
+              disabled={selecting !== null}
+              whileHover={{ scale: 1.08, y: -4, rotate: 2 }}
+              whileTap={{ scale: 0.92 }}
+              className="group aspect-square relative"
+            >
+              {/* Animated glow effect */}
+              <motion.div 
+                className="absolute -inset-1 rounded-2xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity"
+                style={{ backgroundColor: m.accentColor }}
+                animate={isSelecting ? { opacity: [0.3, 0.6, 0.3] } : {}}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              />
+              
+              {/* Border gradient on hover */}
+              <div 
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity p-[1px]"
+                style={{ background: `linear-gradient(135deg, ${m.accentColor}, transparent)` }}
+              >
+                <div className="w-full h-full rounded-2xl bg-zinc-900" />
               </div>
-              <span className="text-xs text-zinc-500">Mesero</span>
+              
+              <div className="relative h-full rounded-2xl bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 group-hover:border-transparent flex flex-col items-center justify-center gap-1 transition-all overflow-hidden">
+                {/* Shine effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+                </div>
+                
+                <motion.div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center transition-all relative z-10" 
+                  style={{ backgroundColor: m.accentColor + '20', color: m.accentColor }}
+                  whileHover={{ scale: 1.1 }}
+                >
+                  {isSelecting ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Loader2 className="w-5 h-5" />
+                    </motion.div>
+                  ) : (
+                    <span className="text-2xl font-bold">{n}</span>
+                  )}
+                </motion.div>
+                <span className="text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors relative z-10">Mesero</span>
+              </div>
             </motion.button>
           );
         })}

@@ -1337,3 +1337,88 @@ model analytics_cache {
   @@id([tenant_id, cache_key])
   @@index([expires_at])
 }
+
+
+// ============================================
+// Terminal Architecture v2 - Device Binding & Security
+// ============================================
+
+model terminal_devices {
+  id                     String    @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  terminal_id            String    @unique
+  tenant_id              String    @db.Uuid
+  role                   String
+  fingerprint_hash       String?
+  fingerprint_salt       String
+  status                 String    @default("pending") // pending, active, disabled
+  bound_at               DateTime? @db.Timestamptz(6)
+  last_seen_at           DateTime  @default(now()) @db.Timestamptz(6)
+  last_fingerprint_check DateTime  @default(now()) @db.Timestamptz(6)
+  drift_score            Int       @default(0)
+  location_id            String
+  device_name            String
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime  @default(now()) @db.Timestamptz(6)
+  
+  activation_codes       activation_codes[]
+  auth_events           auth_events[]
+
+  @@index([tenant_id])
+  @@index([status])
+  @@index([tenant_id, status])
+}
+
+model activation_codes {
+  id          String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  terminal_id String
+  code        String
+  expires_at  DateTime @db.Timestamptz(6)
+  attempts    Int      @default(0)
+  used        Boolean  @default(false)
+  created_by  String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  
+  terminal_device terminal_devices @relation(fields: [terminal_id], references: [terminal_id])
+
+  @@index([code])
+  @@index([terminal_id])
+  @@index([expires_at])
+}
+
+model auth_events {
+  id                String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  tenant_id         String   @db.Uuid
+  terminal_id       String
+  employee_id       String?  @db.Uuid
+  event_type        String   // terminal_created, activation_code_generated, device_activated, login_success, login_failed, logout, session_expired, fingerprint_drift_detected, step_up_auth_required, terminal_disabled, security_alert
+  risk_score        Int?
+  fingerprint_match Int?
+  ip_address        String
+  user_agent        String
+  metadata          Json     @default("{}")
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  
+  terminal_device   terminal_devices @relation(fields: [terminal_id], references: [terminal_id])
+
+  @@index([tenant_id, created_at(sort: Desc)])
+  @@index([terminal_id])
+  @@index([event_type])
+  @@index([tenant_id, event_type, created_at(sort: Desc)])
+}
+
+model security_alerts {
+  id           String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  tenant_id    String   @db.Uuid
+  terminal_id  String
+  alert_type   String
+  severity     String   @default("medium") // low, medium, high, critical
+  message      String
+  acknowledged Boolean  @default(false)
+  acknowledged_by String? @db.Uuid
+  acknowledged_at DateTime? @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, acknowledged])
+  @@index([severity])
+  @@index([tenant_id, severity, acknowledged])
+}
