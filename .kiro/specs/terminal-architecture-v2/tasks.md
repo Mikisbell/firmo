@@ -117,17 +117,17 @@ Este plan implementa la arquitectura mejorada de terminales en fases incremental
   - ✅ Terminal Registry Service implementado
   - ✅ APIs de validación y activación creadas
 
-- [ ] 7. Risk-Based Auth Validator
-  - [ ] 7.1 Implementar risk-validator.ts
+- [x] 7. Risk-Based Auth Validator
+  - [x] 7.1 Implementar risk-validator.ts
     - calculateRiskScore function
     - determineAuthRequirement function
     - _Requirements: 4.4, 4.5_
 
-  - [ ] 7.2 Write property test for risk-based auth requirements
+  - [x] 7.2 Write property test for risk-based auth requirements
     - **Property 9: Risk-Based Authentication Requirements**
     - **Validates: Requirements 4.1, 4.2, 4.3**
 
-  - [ ] 7.3 Write property test for risk score calculation
+  - [x] 7.3 Write property test for risk score calculation
     - **Property 10: Risk Score Calculation Completeness**
     - **Validates: Requirements 4.4, 4.5**
 
