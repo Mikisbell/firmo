@@ -205,10 +205,20 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
+      // Get auth token from session
+      const session = typeof window !== 'undefined' 
+        ? JSON.parse(localStorage.getItem('park_session') || '{}')
+        : {};
+      
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (session.token) {
+        headers['Authorization'] = `Bearer ${session.token}`;
+      }
+
       // Send subscription to server
       const response = await fetch('/api/notifications/subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ subscription: subscription.toJSON() }),
       });
 
@@ -257,10 +267,20 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
         // Unsubscribe from push manager
         await subscription.unsubscribe();
 
+        // Get auth token from session
+        const session = typeof window !== 'undefined' 
+          ? JSON.parse(localStorage.getItem('park_session') || '{}')
+          : {};
+        
+        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+        if (session.token) {
+          headers['Authorization'] = `Bearer ${session.token}`;
+        }
+
         // Remove from server
         await fetch('/api/notifications/subscribe', {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ endpoint: subscription.endpoint }),
         });
       }

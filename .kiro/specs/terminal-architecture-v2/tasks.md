@@ -131,14 +131,14 @@ Este plan implementa la arquitectura mejorada de terminales en fases incremental
     - **Property 10: Risk Score Calculation Completeness**
     - **Validates: Requirements 4.4, 4.5**
 
-- [ ] 8. Session Manager v2
-  - [ ] 8.1 Implementar session-v2.ts
+- [-] 8. Session Manager v2
+  - [x] 8.1 Implementar session-v2.ts
     - createSession con fingerprint y risk score
     - validateSession con checks periódicos
     - updateActivity y auto-logout
     - _Requirements: 5.1, 5.2, 5.3_
 
-  - [ ] 8.2 Write property test for session activity and timeout
+  - [x] 8.2 Write property test for session activity and timeout
     - **Property 11: Session Activity Tracking and Timeout**
     - **Validates: Requirements 5.2, 5.3**
 
