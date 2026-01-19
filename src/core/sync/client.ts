@@ -229,7 +229,7 @@ export class SyncClient {
             : null;
         
         if (!tenantId) {
-            logger.warn('sync.no_tenant', 'No tenant_id available for SSE connection. Set park_pos_tenant_id in localStorage.');
+            logger.debug('sync.no_tenant', 'No tenant_id available for SSE connection. Set park_pos_tenant_id in localStorage.');
             return;
         }
         

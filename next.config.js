@@ -21,6 +21,20 @@ const nextConfig = {
             },
         ];
     },
+
+    // Suppress Zustand deprecation warning from dependencies
+    webpack: (config, { isServer }) => {
+        if (!isServer) {
+            config.ignoreWarnings = [
+                ...(config.ignoreWarnings || []),
+                {
+                    module: /node_modules\/zustand/,
+                    message: /Default export is deprecated/,
+                },
+            ];
+        }
+        return config;
+    },
 };
 
 export default withSerwist(nextConfig);
