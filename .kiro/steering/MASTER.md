@@ -71,6 +71,7 @@
 
 - [x] **Premium Dashboard** → `.kiro/specs/premium-dashboard/` ✅ (98 analytics + notifications tests, Dashboard UI completo)
 - [x] **Delivery Module** → `.kiro/specs/delivery-module/` ✅ (Services, APIs, UIs, Notifications, POS Integration)
+- [x] **Admin Panel CRUD** → `.kiro/specs/admin-panel-crud/` ✅ (Employees & Products CRUD completo, 100% tests passing)
 - [ ] Saga Pattern para flujos complejos
 - [ ] Property-Based Testing
 - [ ] Multi-tenant improvements
@@ -163,6 +164,7 @@ docs/
 | **Flujo Mesero (15 terminales)** | `docs/03-features/FLUJO_MESERO.md` |
 | **Flujo KDS (5 estaciones)** | `docs/03-features/FLUJO_KDS.md` |
 | **Flujo Admin (Panel completo)** | `docs/03-features/FLUJO_ADMIN.md` |
+| **Admin Panel CRUD** | `.kiro/specs/admin-panel-crud/` |
 | **Flujo Offline/Sync** | `docs/03-features/FLUJO_OFFLINE_SYNC.md` |
 | **Flujo Devoluciones** | `docs/03-features/FLUJO_DEVOLUCIONES.md` |
 | **Flujo Descuentos** | `docs/03-features/FLUJO_DESCUENTOS.md` |
@@ -226,5 +228,41 @@ docs/
 
 ---
 
-**Última actualización:** 9 Enero 2026  
-**Próxima tarea pendiente:** P2 - Saga Pattern o Multi-tenant improvements
+**Última actualización:** 19 Enero 2026  
+**Próxima tarea pendiente:** P2 - Saga Pattern o Multi-tenant improvements  
+**Última implementación:** Admin Panel CRUD (Employees & Products) ✅
+
+---
+
+## 🐛 FIXES RECIENTES
+
+### 19 Enero 2026 - Admin Panel CRUD Implementation
+**Implementación:** CRUD completo para Employees y Products en Panel de Administración  
+**Features:**
+- APIs REST con validación Zod
+- Frontend con formularios de creación/edición
+- PIN hashing con SHA-256 + salt
+- Money safety (centavos integer)
+- Audit trail para todas las operaciones
+- Catalog versioning para productos
+- Soft deletes (is_active flag)
+**Tests:** 100% integration tests passing ✅  
+**Archivos:** `.kiro/specs/admin-panel-crud/`  
+**Status:** ✅ COMPLETADO - Listo para producción
+
+### 19 Enero 2026 - KDS Order Submission Fix
+**Problema:** Pedidos del mesero no llegaban a KDS (cocina, bar, parrilla) ni a caja  
+**Causa:** Evento `ORDER_SUBMITTED` no procesado por reducer  
+**Solución:** Agregado case `ORDER_SUBMITTED` en `sale.reducer.ts`  
+**Tests:** 7 unit tests + 5 E2E tests ✅  
+**Archivos:** `.kiro/specs/kds-order-submission-fix/`  
+**Status:** ✅ FIXED - Listo para producción
+
+**Flujo completo ahora funciona:**
+```
+Mesero → Enviar a Cocina → ORDER_SUBMITTED → Reducer procesa → 
+  ├─> KDS Parrilla ve items de PARRILLA
+  ├─> KDS Cocina ve items de COCINA
+  ├─> KDS Bar ve items de BAR
+  └─> Caja ve orden en "Órdenes Pendientes"
+```

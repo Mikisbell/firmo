@@ -7,6 +7,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
+
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
 
 // Validation schema for creating/updating products
 const productSchema = z.object({
@@ -22,10 +26,8 @@ const productSchema = z.object({
 
 export async function GET() {
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
-    
     const products = await prisma.products.findMany({
-      where: { tenant_id: tenantId },
+      where: { tenant_id: TENANT_ID },
       orderBy: { name: 'asc' },
       select: {
         id: true,
@@ -52,7 +54,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
     const body = await request.json();
     
     // Validate input
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     
     // Check for duplicate SKU
     const existing = await prisma.products.findFirst({
-      where: { tenant_id: tenantId, sku: data.sku },
+      where: { tenant_id: TENANT_ID, sku: data.sku },
     });
     
     if (existing) {
@@ -78,27 +79,44 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Create product
-    const product = await prisma.products.create({
-      data: {
-        id: crypto.randomUUID(),
-        tenant_id: tenantId,
-        sku: data.sku,
-        name: data.name,
-        short_name: data.short_name || null,
-        price_cents: data.price_cents,
-        category: data.category,
-        station: data.station,
-        type: data.type,
-        is_active: data.is_active,
-      },
-    });
-    
-    // Increment catalog version
-    await prisma.catalog_meta.upsert({
-      where: { tenant_id: tenantId },
-      update: { catalog_version: { increment: 1 }, updated_at: new Date() },
-      create: { tenant_id: tenantId, catalog_version: 1 },
+    // Create product in transaction with audit trail and catalog version increment
+    const product = await prisma.$transaction(async (tx) => {
+      const newProduct = await tx.products.create({
+        data: {
+          id: randomUUID(),
+          tenant_id: TENANT_ID,
+          sku: data.sku,
+          name: data.name,
+          short_name: data.short_name || null,
+          price_cents: data.price_cents,
+          category: data.category,
+          station: data.station,
+          type: data.type,
+          is_active: data.is_active,
+        },
+      });
+      
+      // Increment catalog version
+      await tx.catalog_meta.upsert({
+        where: { tenant_id: TENANT_ID },
+        update: { catalog_version: { increment: 1 }, updated_at: new Date() },
+        create: { tenant_id: TENANT_ID, catalog_version: 1 },
+      });
+      
+      // Log audit trail
+      await tx.admin_access_logs.create({
+        data: {
+          id: randomUUID(),
+          tenant_id: TENANT_ID,
+          employee_id: ADMIN_ID,
+          action: 'CREATE',
+          resource: 'products',
+          metadata: { record_id: newProduct.id },
+          created_at: new Date(),
+        },
+      });
+      
+      return newProduct;
     });
     
     return NextResponse.json(product, { status: 201 });

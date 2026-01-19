@@ -131,7 +131,7 @@ Este plan implementa la arquitectura mejorada de terminales en fases incremental
     - **Property 10: Risk Score Calculation Completeness**
     - **Validates: Requirements 4.4, 4.5**
 
-- [-] 8. Session Manager v2
+- [x] 8. Session Manager v2
   - [x] 8.1 Implementar session-v2.ts
     - createSession con fingerprint y risk score
     - validateSession con checks periódicos
@@ -142,132 +142,132 @@ Este plan implementa la arquitectura mejorada de terminales en fases incremental
     - **Property 11: Session Activity Tracking and Timeout**
     - **Validates: Requirements 5.2, 5.3**
 
-  - [ ] 8.3 Implementar periodic fingerprint validation
+  - [x] 8.3 Implementar periodic fingerprint validation
     - Check cada 5 minutos
     - Invalidar sesión si fingerprint cambia
     - _Requirements: 5.4, 5.5_
 
-  - [ ] 8.4 Write property test for periodic fingerprint validation
+  - [x] 8.4 Write property test for periodic fingerprint validation
     - **Property 12: Periodic Session Fingerprint Validation**
     - **Validates: Requirements 5.4, 5.5**
 
-  - [ ] 8.5 Implementar single session per employee
+  - [x] 8.5 Implementar single session per employee
     - Invalidar sesiones anteriores al crear nueva
     - _Requirements: 5.6_
 
-  - [ ] 8.6 Write property test for single session enforcement
+  - [x] 8.6 Write property test for single session enforcement
     - **Property 13: Single Session Per Employee**
     - **Validates: Requirements 5.6**
 
-- [ ] 9. Checkpoint - Auth System Complete
+- [x] 9. Checkpoint - Auth System Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Audit Logger
-  - [ ] 10.1 Implementar audit-logger.ts
+- [x] 10. Audit Logger
+  - [x] 10.1 Implementar audit-logger.ts
     - logAuthEvent function
     - createSecurityAlert function
     - queryEvents y queryAlerts
     - _Requirements: 6.1, 6.2, 6.3_
 
-  - [ ] 10.2 Write property test for audit log completeness
+  - [x] 10.2 Write property test for audit log completeness
     - **Property 14: Audit Log Completeness**
     - **Validates: Requirements 6.1, 6.2**
 
-  - [ ] 10.3 Crear API routes para audit queries
+  - [x] 10.3 Crear API routes para audit queries
     - GET /api/admin/audit/events
     - GET /api/admin/audit/alerts
     - _Requirements: 6.4_
 
-- [ ] 11. Offline Auth Cache
-  - [ ] 11.1 Implementar offline-cache.ts
+- [x] 11. Offline Auth Cache
+  - [x] 11.1 Implementar offline-cache.ts
     - cacheCredentials function
     - validateOffline function
     - verifyIntegrity con HMAC
     - _Requirements: 8.1, 8.2, 8.5_
 
-  - [ ] 11.2 Write property test for offline credential caching
+  - [x] 11.2 Write property test for offline credential caching
     - **Property 16: Offline Credential Caching**
     - **Validates: Requirements 8.1, 8.2**
 
-  - [ ] 11.3 Implementar sync de eventos offline
+  - [x] 11.3 Implementar sync de eventos offline
     - getPendingEvents y syncPendingEvents
     - Expiración de cache a 24 horas
     - _Requirements: 8.3, 8.4_
 
-  - [ ] 11.4 Write property test for offline sync and expiry
+  - [x] 11.4 Write property test for offline sync and expiry
     - **Property 17: Offline Cache Expiry and Sync**
     - **Validates: Requirements 8.3, 8.4**
 
-  - [ ] 11.5 Write property test for tamper detection
+  - [x] 11.5 Write property test for tamper detection
     - **Property 18: Cache Tamper Detection**
     - **Validates: Requirements 8.5**
 
-- [ ] 12. Checkpoint - Backend Complete
+- [x] 12. Checkpoint - Backend Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. UI Updates - Terminal Setup
-  - [ ] 13.1 Actualizar TerminalSetup.tsx para usar nuevo sistema
+- [x] 13. UI Updates - Terminal Setup
+  - [x] 13.1 Actualizar TerminalSetup.tsx para usar nuevo sistema
     - Integrar fingerprint-v2
     - Mostrar pantalla de activación si no hay binding
     - _Requirements: 7.1_
 
-  - [ ] 13.2 Crear ActivationCodeInput component
+  - [x] 13.2 Crear ActivationCodeInput component
     - Input para código XXX-XXX
     - Validación en tiempo real
     - _Requirements: 2.6_
 
-  - [ ] 13.3 Actualizar navegación post-setup
+  - [x] 13.3 Actualizar navegación post-setup
     - Usar hard navigation (window.location)
     - Routing correcto por rol
     - _Requirements: 7.2, 7.4_
 
-  - [ ] 13.4 Write property test for navigation route correctness
+  - [x] 13.4 Write property test for navigation route correctness
     - **Property 15: Navigation Route Correctness**
     - **Validates: Requirements 7.2**
 
-- [ ] 14. UI Updates - Auth Provider
-  - [ ] 14.1 Actualizar AuthProvider.tsx para usar session-v2
+- [x] 14. UI Updates - Auth Provider
+  - [x] 14.1 Actualizar AuthProvider.tsx para usar session-v2
     - Integrar risk-based auth
     - Mostrar Step_Up_Auth cuando requerido
     - _Requirements: 4.1, 4.2, 4.3_
 
-  - [ ] 14.2 Crear StepUpAuthModal component
+  - [x] 14.2 Crear StepUpAuthModal component
     - Modal para confirmación de manager
     - _Requirements: 4.2_
 
-  - [ ] 14.3 Actualizar LoginScreen.tsx
+  - [x] 14.3 Actualizar LoginScreen.tsx
     - Mostrar risk level al usuario
     - Integrar con nuevo session manager
     - _Requirements: 4.1_
 
-- [ ] 15. Admin Panel - Terminal Management
-  - [ ] 15.1 Crear página /admin/terminales
+- [x] 15. Admin Panel - Terminal Management
+  - [x] 15.1 Crear página /admin/terminales
     - Lista de terminales con estado
     - Botón para crear nuevo terminal
     - _Requirements: 3.1_
 
-  - [ ] 15.2 Crear TerminalCreateModal
+  - [x] 15.2 Crear TerminalCreateModal
     - Form para crear terminal
     - Mostrar código de activación generado
     - _Requirements: 2.1, 2.6_
 
-  - [ ] 15.3 Crear TerminalDetailPanel
+  - [x] 15.3 Crear TerminalDetailPanel
     - Ver detalles de terminal
     - Opciones: regenerar código, deshabilitar
     - _Requirements: 2.1, 3.3_
 
-- [ ] 16. Admin Panel - Audit Logs
-  - [ ] 16.1 Crear página /admin/auditoria
+- [x] 16. Admin Panel - Audit Logs
+  - [x] 16.1 Crear página /admin/auditoria
     - Lista de eventos con filtros
     - Filtros: fecha, terminal, empleado, tipo
     - _Requirements: 6.4_
 
-  - [ ] 16.2 Crear SecurityAlertsPanel
+  - [x] 16.2 Crear SecurityAlertsPanel
     - Lista de alertas activas
     - Opción para acknowledge
     - _Requirements: 6.3_
 
-- [ ] 17. Final Checkpoint
+- [x] 17. Final Checkpoint
   - Ensure all tests pass, ask the user if questions arise.
   - Verificar flujo completo: crear terminal → activar → login → usar
 

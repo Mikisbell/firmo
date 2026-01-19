@@ -1,7 +1,7 @@
 'use client';
 
 // src/components/auth/LoginScreen.tsx
-// PIN login screen for registered terminals
+// PIN login screen for registered terminals with risk-based authentication
 
 import { useState, useEffect } from 'react';
 import { PinPad } from './PinPad';
@@ -9,15 +9,16 @@ import {
   isLocked, 
   recordPinAttempt,
 } from '@/src/core/auth/pin';
-import { 
-  generateDeviceFingerprint,
-} from '@/src/core/auth/fingerprint';
-import { createSession } from '@/src/core/auth/session';
-import type { TerminalConfig, AuthSession } from '@/src/core/auth/types';
+import { generateFingerprintV2 } from '@/src/core/auth/fingerprint-v2';
+import { createSession, type SecureSession } from '@/src/core/auth/session-v2';
+import { assessRisk, getTimeOfDay, type RiskAssessment } from '@/src/core/auth/risk-validator';
+import { getTerminal, validateTerminal } from '@/src/core/auth/terminal-registry';
+import { calculateSimilarity } from '@/src/core/auth/fingerprint-v2';
+import type { TerminalConfig } from '@/src/core/auth/types';
 
 interface LoginScreenProps {
   terminal: TerminalConfig;
-  onLogin: (session: AuthSession) => void;
+  onLogin: (session: SecureSession, risk: RiskAssessment) => void;
   onTerminalError: () => void;
 }
 
@@ -26,6 +27,7 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
   const [loading, setLoading] = useState(false);
   const [lockStatus, setLockStatus] = useState<{ locked: boolean; remainingMinutes?: number }>({ locked: false });
   const [shiftInfo, setShiftInfo] = useState<{ id: string; opened_at: string } | null>(null);
+  const [riskLevel, setRiskLevel] = useState<'low' | 'medium' | 'high' | null>(null);
 
   useEffect(() => {
     // Check lock status on mount
@@ -44,10 +46,49 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
     
     setLoading(true);
     setError('');
+    setRiskLevel(null);
 
     try {
-      const fingerprint = await generateDeviceFingerprint();
+      // Generate enhanced fingerprint
+      const fingerprint = await generateFingerprintV2();
       
+      // Validate terminal and get device info
+      const terminalDevice = await getTerminal(terminal.terminal_id, terminal.tenant_id);
+      
+      if (!terminalDevice) {
+        setError('Terminal no encontrado');
+        setLoading(false);
+        return;
+      }
+
+      // Calculate fingerprint similarity if terminal is bound
+      let fingerprintMatch = 100; // Default for new devices
+      if (terminalDevice.fingerprint_hash && terminalDevice.bound_at) {
+        // For now, we'll get similarity from the server response
+        // In a full implementation, we'd store signals and compare them
+        fingerprintMatch = 100; // Will be updated by server response
+      }
+
+      // Assess risk
+      const riskFactors = {
+        fingerprintMatch,
+        ipKnown: true, // Will be determined by server
+        timeOfDay: getTimeOfDay(),
+        failedAttempts: 0, // Will be updated if login fails
+        daysSinceLastAuth: 0, // Will be determined by server
+        deviceAge: terminalDevice.bound_at 
+          ? Math.floor((Date.now() - terminalDevice.bound_at.getTime()) / (1000 * 60 * 60 * 24))
+          : 0,
+      };
+
+      const riskAssessment = assessRisk(riskFactors);
+      
+      // Set risk level for UI
+      if (riskAssessment.score < 30) setRiskLevel('low');
+      else if (riskAssessment.score < 70) setRiskLevel('medium');
+      else setRiskLevel('high');
+
+      // Authenticate with server
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,7 +96,13 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
           tenant_id: terminal.tenant_id,
           terminal_id: terminal.terminal_id,
           pin,
-          device_fingerprint: fingerprint,
+          fingerprint: {
+            hash: fingerprint.hash,
+            signals: fingerprint.signals,
+            signalCount: fingerprint.signalCount,
+            timestamp: fingerprint.timestamp,
+          },
+          risk_score: riskAssessment.score,
         }),
       });
 
@@ -81,6 +128,7 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
         } else {
           setError(`PIN incorrecto. ${attemptResult.remainingAttempts} intentos restantes.`);
         }
+        setLoading(false);
         return;
       }
 
@@ -91,17 +139,25 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
         setShiftInfo(data.shift);
       }
 
+      // Update risk assessment with server data
+      if (data.risk_assessment) {
+        riskAssessment.score = data.risk_assessment.score;
+        riskAssessment.factors = data.risk_assessment.factors;
+        riskAssessment.requiredAuth = data.risk_assessment.requiredAuth;
+      }
+
+      // Create session with v2 system
       const session = createSession(
-        terminal,
+        terminalDevice,
         data.employee,
-        data.shift?.id
+        fingerprint,
+        riskAssessment.score
       );
 
-      onLogin(session);
+      onLogin(session, riskAssessment);
     } catch (err) {
       setError('Error de conexión. Verifica tu internet.');
       console.error('Login error:', err);
-    } finally {
       setLoading(false);
     }
   };
@@ -146,6 +202,35 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
         <h2 className="text-xl font-semibold text-white text-center mb-6">
           Ingresa tu PIN
         </h2>
+
+        {/* Risk Level Indicator */}
+        {riskLevel && (
+          <div className={`mb-4 p-3 rounded-lg border ${
+            riskLevel === 'low' ? 'bg-emerald-500/10 border-emerald-500/30' :
+            riskLevel === 'medium' ? 'bg-amber-500/10 border-amber-500/30' :
+            'bg-red-500/10 border-red-500/30'
+          }`}>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">
+                {riskLevel === 'low' ? '🟢' : riskLevel === 'medium' ? '🟡' : '🔴'}
+              </span>
+              <span className={`text-sm font-medium ${
+                riskLevel === 'low' ? 'text-emerald-400' :
+                riskLevel === 'medium' ? 'text-amber-400' :
+                'text-red-400'
+              }`}>
+                Nivel de seguridad: {riskLevel === 'low' ? 'Normal' : riskLevel === 'medium' ? 'Medio' : 'Alto'}
+              </span>
+            </div>
+            {riskLevel !== 'low' && (
+              <p className="text-xs text-zinc-400 mt-1">
+                {riskLevel === 'medium' 
+                  ? 'Puede requerir confirmación adicional'
+                  : 'Se requiere verificación de manager'}
+              </p>
+            )}
+          </div>
+        )}
 
         {lockStatus.locked ? (
           <div className="text-center py-8">

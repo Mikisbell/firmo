@@ -6,3 +6,4 @@ export * from './fingerprint';
 export * from './pin';
 export * from './location';
 export * from './session';
+export * from './audit-logger';

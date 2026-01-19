@@ -138,10 +138,10 @@ const PISOS = [
 | Ver estado de mesa | ✅ Funciona | `useTableStatus.ts` |
 | Crear orden | ✅ Funciona | `order/[tableId]/page.tsx` |
 | Agregar items | ✅ Funciona | `handleAddItem()` |
-| Enviar a cocina | ⚠️ Solo toast | `handleSendToKitchen()` |
-| Modificar cantidad | ❌ No funciona | Botones sin handler |
-| Eliminar item | ❌ No funciona | Botón sin handler |
-| Pedir cuenta | ❌ No existe | - |
+| Enviar a cocina | ✅ **FIXED** | `handleSendToKitchen()` + reducer |
+| Modificar cantidad | ✅ Funciona | Botones con handler |
+| Eliminar item | ✅ Funciona | Botón con handler |
+| Pedir cuenta | ✅ Funciona | `handleCallBill()` |
 | Ver items listos | ❌ No existe | - |
 | Notificaciones | ❌ No existe | - |
 
@@ -200,12 +200,13 @@ FLUJO ESPERADO:
 7. Mesa 12 cambia a azul (ocupada)
 8. Timer empieza a contar
 
-ESTADO ACTUAL: ⚠️ PARCIAL
+ESTADO ACTUAL: ✅ **FIXED (19 Enero 2026)**
 - Crear orden funciona
 - Agregar items funciona
-- ❌ No separa por estación automáticamente
-- ❌ No hay notificación real a KDS
-- ❌ Timer no funciona
+- ✅ Evento ORDER_SUBMITTED procesado por reducer
+- ✅ Items llegan a KDS automáticamente por estación
+- ✅ Caja ve órdenes en lista de pendientes
+- ⚠️ Timer no funciona (pendiente)
 ```
 
 ### ESCENARIO M3: Modificar Pedido Existente
@@ -496,13 +497,13 @@ ESTADO ACTUAL: ❌ NO EXISTE
 
 ### Críticos 🔴
 
-| # | Problema | Impacto | Código |
-|---|----------|---------|--------|
-| 1 | Solo 1 terminal_id | 15 meseros = 1 ID | `order/[tableId]/page.tsx:17` |
-| 2 | Solo 9 mesas | Pollería tiene 50 | `useTableStatus.ts:77` |
-| 3 | Sin notificaciones | Mesero no sabe qué está listo | - |
-| 4 | Sin "Pedir Cuenta" | Proceso manual | - |
-| 5 | Botones no funcionan | +/- y eliminar rotos | `order/[tableId]/page.tsx` |
+| # | Problema | Impacto | Código | Estado |
+|---|----------|---------|--------|--------|
+| 1 | Solo 1 terminal_id | 15 meseros = 1 ID | `order/[tableId]/page.tsx:17` | ⚠️ Pendiente |
+| 2 | Solo 9 mesas | Pollería tiene 50 | `useTableStatus.ts:77` | ⚠️ Pendiente |
+| 3 | Sin notificaciones | Mesero no sabe qué está listo | - | ⚠️ Pendiente |
+| 4 | ~~Pedidos no llegan a KDS~~ | ~~Cocina no ve pedidos~~ | ~~reducer~~ | ✅ **FIXED** |
+| 5 | ~~Pedidos no llegan a Caja~~ | ~~Caja no ve pendientes~~ | ~~reducer~~ | ✅ **FIXED** |
 
 ### Importantes 🟡
 
@@ -621,4 +622,40 @@ interface ItemReadyNotificationPayload {
 
 ---
 
-**Documento creado:** Enero 2026
+## FIXES RECIENTES
+
+### ✅ Fix: Pedidos no llegaban a KDS ni Caja (19 Enero 2026)
+
+**Problema:** Los pedidos creados por meseros no aparecían en las pantallas KDS ni en la lista de órdenes pendientes de caja.
+
+**Causa raíz:** El evento `ORDER_SUBMITTED` se generaba correctamente pero el reducer `sale.reducer.ts` no lo procesaba.
+
+**Solución implementada:**
+1. Agregado case `ORDER_SUBMITTED` en el reducer
+2. Agregado campo `submitted_at` a `SaleLine` para tracking
+3. Items mantienen status `PENDING` para que KDS los vea
+4. Implementación idempotente (replay-safe)
+
+**Archivos modificados:**
+- `src/core/projections/sale.reducer.ts` - Case ORDER_SUBMITTED
+- `src/core/projections/types.ts` - Campo submitted_at
+- `src/core/projections/__tests__/sale.reducer.order-submitted.test.ts` - 7 tests
+- `e2e/waiter-to-kds.spec.ts` - 5 tests E2E
+
+**Flujo completo ahora funciona:**
+```
+Mesero → Enviar a Cocina → ORDER_SUBMITTED → Reducer procesa → 
+  ├─> KDS Parrilla ve items de PARRILLA
+  ├─> KDS Cocina ve items de COCINA
+  ├─> KDS Bar ve items de BAR
+  └─> Caja ve orden en "Órdenes Pendientes"
+```
+
+**Tests:** 7 unit tests + 5 E2E tests ✅  
+**Documentación:** `.kiro/specs/kds-order-submission-fix/`  
+**Status:** ✅ FIXED - Listo para producción
+
+---
+
+**Documento creado:** Enero 2026  
+**Última actualización:** 19 Enero 2026

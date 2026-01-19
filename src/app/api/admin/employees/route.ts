@@ -1,35 +1,26 @@
 /**
- * Employees API - GET and POST
- * 
- * Requirements: 4.2, 4.3, 4.4
+ * Employees API - GET (list) and POST (create)
+ * Requirements: 1.1, 1.2, 1.5, 1.6, 10.1
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { z } from 'zod';
-import { createHash, randomUUID } from 'crypto';
+import { createHash } from 'crypto';
+import { randomUUID } from 'crypto';
 
-const SALT = process.env.PIN_SALT || 'PARK_POS_2026_';
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
+const SALT = 'PARK_POS_2026_'; // Must match seed.ts
 
-// Hash PIN for storage
 function hashPin(pin: string): string {
   return createHash('sha256').update(SALT + pin).digest('hex');
 }
 
-// Validation schema
-const employeeSchema = z.object({
-  name: z.string().min(1).max(100),
-  role: z.enum(['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'DRIVER']),
-  pin: z.string().regex(/^\d{4,6}$/, 'PIN must be 4-6 digits'),
-  is_active: z.boolean().default(true),
-});
-
+// GET - List all employees
 export async function GET() {
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
-    
     const employees = await prisma.employees.findMany({
-      where: { tenant_id: tenantId },
+      where: { tenant_id: TENANT_ID },
       orderBy: { name: 'asc' },
       select: {
         id: true,
@@ -38,7 +29,7 @@ export async function GET() {
         is_active: true,
       },
     });
-    
+
     return NextResponse.json(employees);
   } catch (error) {
     console.error('Employees GET error:', error);
@@ -49,57 +40,85 @@ export async function GET() {
   }
 }
 
+// POST - Create new employee
 export async function POST(request: NextRequest) {
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
     const body = await request.json();
-    
-    // Validate input
-    const parsed = employeeSchema.safeParse(body);
-    if (!parsed.success) {
+    const { name, role, pin, is_active = true } = body;
+
+    // Validate required fields
+    if (!name || !role || !pin) {
       return NextResponse.json(
-        { error: 'Invalid employee data', details: parsed.error.flatten() },
+        { error: 'Faltan campos requeridos: name, role, pin' },
         { status: 400 }
       );
     }
-    
-    const data = parsed.data;
-    const pinHash = hashPin(data.pin);
-    
-    // Check for duplicate PIN within tenant
+
+    // Validate role
+    const validRoles = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'DRIVER', 'BAR'];
+    if (!validRoles.includes(role)) {
+      return NextResponse.json(
+        { error: `Rol inválido. Debe ser uno de: ${validRoles.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate PIN format (4-6 digits)
+    if (!/^\d{4,6}$/.test(pin)) {
+      return NextResponse.json(
+        { error: 'PIN debe ser de 4-6 dígitos' },
+        { status: 400 }
+      );
+    }
+
+    // Hash PIN
+    const pin_hash = hashPin(pin);
+
+    // Check PIN uniqueness
     const existingPin = await prisma.employees.findFirst({
       where: {
-        tenant_id: tenantId,
-        pin_hash: pinHash,
+        tenant_id: TENANT_ID,
+        pin_hash,
         is_active: true,
       },
     });
-    
+
     if (existingPin) {
       return NextResponse.json(
-        { error: 'PIN already in use by another employee' },
+        { error: 'Este PIN ya está en uso' },
         { status: 409 }
       );
     }
-    
-    // Create employee
-    const employee = await prisma.employees.create({
-      data: {
-        id: randomUUID(),
-        tenant_id: tenantId,
-        name: data.name,
-        role: data.role,
-        pin_hash: pinHash,
-        is_active: data.is_active,
-      },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        is_active: true,
-      },
+
+    // Create employee in transaction with audit trail
+    const employee = await prisma.$transaction(async (tx) => {
+      const newEmployee = await tx.employees.create({
+        data: {
+          id: randomUUID(),
+          tenant_id: TENANT_ID,
+          name,
+          role,
+          pin_hash,
+          is_active,
+        },
+      });
+
+      // Log audit trail
+      await tx.admin_access_logs.create({
+        data: {
+          id: randomUUID(),
+          tenant_id: TENANT_ID,
+          employee_id: ADMIN_ID,
+          action: 'CREATE',
+          resource: 'employees',
+          metadata: { record_id: newEmployee.id },
+          created_at: new Date(),
+        },
+      });
+
+      return newEmployee;
     });
-    
+
     return NextResponse.json(employee, { status: 201 });
   } catch (error) {
     console.error('Employees POST error:', error);

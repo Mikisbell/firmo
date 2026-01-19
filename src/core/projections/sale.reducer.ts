@@ -443,6 +443,31 @@ export function applySaleEvent(
             return { state: sale, warnings };
         }
 
+        case "ORDER_SUBMITTED": {
+            const { items_by_station, submitted_at } = e.payload;
+            
+            // Flatten all items from all stations
+            const allSubmittedItems = Object.values(items_by_station).flat();
+            
+            // Mark each item as submitted
+            for (const item of allSubmittedItems) {
+                const line = sale.lines[item.line_id];
+                if (line) {
+                    // Keep status as PENDING so KDS can see it
+                    // Add submitted_at timestamp if not already set (idempotency)
+                    if (!line.submitted_at) {
+                        line.submitted_at = submitted_at;
+                    }
+                    sale.lines[item.line_id] = line;
+                } else {
+                    warnings.push(`ORDER_SUBMITTED: line_id ${item.line_id} not found in order.`);
+                }
+            }
+            
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
         default:
             // Events like SHIFT_* don't affect sale
             return { state: sale, warnings };

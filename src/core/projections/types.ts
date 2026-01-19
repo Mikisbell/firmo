@@ -14,6 +14,7 @@ export type SaleLine = {
     station: string; // Estación de cocina (PARRILLA, COCINA, BAR, etc.)
     // Timestamps for item lifecycle tracking
     created_at?: string;
+    submitted_at?: string | null; // When item was sent to kitchen
     started_cooking_at?: string | null;
     ready_at?: string | null;
     served_at?: string | null;

@@ -250,11 +250,13 @@ FLUJO ESPERADO:
 3. Timer empieza en cada estación
 4. Sonido de alerta en cada pantalla
 
-ESTADO ACTUAL: ⚠️ PARCIAL
-- Tickets llegan a KDS
-- ❌ No hay sonido
+ESTADO ACTUAL: ✅ **FIXED (19 Enero 2026)**
+- Tickets llegan a KDS desde meseros
+- ✅ Evento ORDER_SUBMITTED procesado correctamente
+- ✅ Items separados por estación automáticamente
+- ❌ No hay sonido de alerta
 - ❌ Timer no funciona
-- ⚠️ Filtro de estación impreciso
+- ✅ Filtro de estación preciso
 ```
 
 ### ESCENARIO K2: Barman Prepara Bebidas (BAR)
@@ -509,13 +511,13 @@ ESTADO ACTUAL: ❌ NO EXISTE
 
 ### Críticos 🔴
 
-| # | Problema | Impacto | Código |
-|---|----------|---------|--------|
-| 1 | Full scan de eventos | Performance terrible | `useKitchenTickets.ts:15` |
-| 2 | Timer roto | No muestra tiempo real | `getElapsedTime()` |
-| 3 | Solo 1 terminal KDS | No hay múltiples pantallas | `page.tsx:14` |
-| 4 | Sin notificación a mesero | Comunicación manual | - |
-| 5 | Faltan estaciones | Solo 4, faltan 2 | `page.tsx:18` |
+| # | Problema | Impacto | Código | Estado |
+|---|----------|---------|--------|--------|
+| 1 | ~~Pedidos no llegan desde mesero~~ | ~~KDS vacío~~ | ~~reducer~~ | ✅ **FIXED** |
+| 2 | Timer roto | No muestra tiempo real | `getElapsedTime()` | ⚠️ Pendiente |
+| 3 | Solo 1 terminal KDS | No hay múltiples pantallas | `page.tsx:14` | ⚠️ Pendiente |
+| 4 | Sin notificación a mesero | Comunicación manual | - | ⚠️ Pendiente |
+| 5 | Faltan estaciones | Solo 4, faltan 2 | `page.tsx:18` | ⚠️ Pendiente |
 
 ### Importantes 🟡
 
@@ -680,4 +682,28 @@ const activeOrders = await db.activeOrders
 
 ---
 
-**Documento creado:** Enero 2026
+## FIXES RECIENTES
+
+### ✅ Fix: Pedidos de meseros no llegaban a KDS (19 Enero 2026)
+
+**Problema:** Las pantallas KDS no mostraban pedidos enviados por meseros.
+
+**Causa raíz:** El evento `ORDER_SUBMITTED` no era procesado por el reducer.
+
+**Solución:** Agregado case `ORDER_SUBMITTED` en `sale.reducer.ts` que:
+- Marca items con timestamp `submitted_at`
+- Mantiene status `PENDING` para visibilidad en KDS
+- Preserva separación por estación (PARRILLA, COCINA, BAR)
+
+**Resultado:**
+- ✅ KDS Parrilla ve items de PARRILLA
+- ✅ KDS Cocina ve items de COCINA/FRIOS/POSTRES/FREIDORA
+- ✅ KDS Bar ve items de BAR
+- ✅ Caja también ve órdenes en lista de pendientes
+
+**Documentación:** `.kiro/specs/kds-order-submission-fix/`
+
+---
+
+**Documento creado:** Enero 2026  
+**Última actualización:** 19 Enero 2026

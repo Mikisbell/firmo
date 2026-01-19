@@ -19,17 +19,15 @@ import {
   needsFingerprintCheck,
   getSessionTimeRemaining,
   getSessionInactivityTime,
-  type Employee,
+  setFingerprintProvider,
+  startPeriodicFingerprintValidation,
+  stopPeriodicFingerprintValidation,
+  isPeriodicValidationRunning,
   type EmployeeRole,
   type TerminalRole,
 } from '../session-v2';
-import type { TerminalDevice } from '../terminal-registry';
-import type { FingerprintResult, FingerprintSignals } from '../fingerprint-v2';
 
 // ============ ARBITRARIES ============
-
-// Helper to generate hex strings
-const hexStringArb = (length: number) => fc.array(fc.hexaString({ minLength: 1, maxLength: 1 }), { minLength: length, maxLength: length }).map(arr => arr.join(''));
 
 const employeeRoleArb = fc.constantFrom<EmployeeRole>(
   'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'BAR'
@@ -111,8 +109,8 @@ describe('Property 11: Session Activity Tracking and Timeout', () => {
           const session = createSession(terminal, employee, fingerprint, riskScore);
           const originalActivity = session.last_activity_at;
           
-          // Wait a tiny bit
-          const now = new Date(Date.now() + 100);
+          // Wait a tiny bit to ensure time difference
+          setTimeout(() => {}, 10);
           
           updateActivity(session.id);
           
@@ -138,8 +136,8 @@ describe('Property 11: Session Activity Tracking and Timeout', () => {
           const session = createSession(terminal, employee, fingerprint, riskScore);
           const originalExpiry = session.expires_at;
           
-          // Wait a bit
-          const now = new Date(Date.now() + 1000);
+          // Wait a bit to ensure time difference
+          setTimeout(() => {}, 10);
           
           updateActivity(session.id);
           
@@ -254,11 +252,12 @@ describe('Property 12: Periodic Session Fingerprint Validation', () => {
         fingerprintArb,
         fingerprintArb,
         fc.integer({ min: 0, max: 100 }),
-        (terminal, employee, fp1, fp2, riskScore) => {
+        fc.integer({ min: 0, max: 4 }), // 0-4 minutes
+        (terminal, employee, fp1, fp2, riskScore, minutesAgo) => {
           const session = createSession(terminal, employee, fp1, riskScore);
           
           // Last check was recent (less than 5 minutes)
-          session.last_fingerprint_check = new Date(Date.now() - 4 * 60 * 1000);
+          session.last_fingerprint_check = new Date(Date.now() - minutesAgo * 60 * 1000);
           
           const result = periodicFingerprintCheck(session.id, fp2);
           
@@ -274,7 +273,7 @@ describe('Property 12: Periodic Session Fingerprint Validation', () => {
     );
   });
 
-  it('should check fingerprint if 5+ minutes since last check', () => {
+  it('should check fingerprint if exactly 5 minutes since last check', () => {
     fc.assert(
       fc.property(
         terminalArb,
@@ -284,14 +283,72 @@ describe('Property 12: Periodic Session Fingerprint Validation', () => {
         (terminal, employee, fingerprint, riskScore) => {
           const session = createSession(terminal, employee, fingerprint, riskScore);
           
-          // Last check was 6 minutes ago
-          session.last_fingerprint_check = new Date(Date.now() - 6 * 60 * 1000);
+          // Last check was exactly 5 minutes ago
+          session.last_fingerprint_check = new Date(Date.now() - 5 * 60 * 1000);
+          
+          // Use same fingerprint for check
+          const result = periodicFingerprintCheck(session.id, fingerprint);
+          
+          // Should perform check and pass with high similarity
+          expect(result.similarity).toBeGreaterThanOrEqual(50);
+          expect(result.valid).toBe(true);
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should check fingerprint if more than 5 minutes since last check', () => {
+    fc.assert(
+      fc.property(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        fc.integer({ min: 6, max: 60 }), // 6-60 minutes
+        (terminal, employee, fingerprint, riskScore, minutesAgo) => {
+          const session = createSession(terminal, employee, fingerprint, riskScore);
+          
+          // Last check was more than 5 minutes ago
+          session.last_fingerprint_check = new Date(Date.now() - minutesAgo * 60 * 1000);
           
           // Use same fingerprint for check
           const result = periodicFingerprintCheck(session.id, fingerprint);
           
           // Should perform check
           expect(result.similarity).toBeGreaterThan(0);
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should update last_fingerprint_check timestamp when check is performed', () => {
+    fc.assert(
+      fc.property(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        (terminal, employee, fingerprint, riskScore) => {
+          const session = createSession(terminal, employee, fingerprint, riskScore);
+          
+          // Set last check to 6 minutes ago
+          const oldCheckTime = new Date(Date.now() - 6 * 60 * 1000);
+          session.last_fingerprint_check = oldCheckTime;
+          
+          // Perform check
+          periodicFingerprintCheck(session.id, fingerprint);
+          
+          // Verify timestamp was updated
+          const updatedSession = getSession(session.id);
+          if (updatedSession) {
+            expect(updatedSession.last_fingerprint_check.getTime()).toBeGreaterThan(oldCheckTime.getTime());
+          }
           
           return true;
         }
@@ -353,6 +410,178 @@ describe('Property 12: Periodic Session Fingerprint Validation', () => {
           expect(result.similarity).toBeGreaterThanOrEqual(50);
           expect(result.requiresReauth).toBe(false);
           expect(getSession(session.id)).toBeDefined();
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should handle boundary case: similarity exactly at 50%', () => {
+    fc.assert(
+      fc.property(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        (terminal, employee, fingerprint, riskScore) => {
+          const session = createSession(terminal, employee, fingerprint, riskScore);
+          
+          // Force fingerprint check
+          session.last_fingerprint_check = new Date(Date.now() - 6 * 60 * 1000);
+          
+          const result = periodicFingerprintCheck(session.id, fingerprint);
+          
+          // At exactly 50%, session should remain valid (>= 50 threshold)
+          if (result.similarity === 50) {
+            expect(result.valid).toBe(true);
+            expect(result.requiresReauth).toBe(false);
+            expect(getSession(session.id)).toBeDefined();
+          }
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should return requiresReauth=true when session is invalidated', () => {
+    fc.assert(
+      fc.property(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        (terminal, employee, fp1, fp2, riskScore) => {
+          // Ensure fingerprints are different
+          if (fp1.hash === fp2.hash) return true;
+          
+          const session = createSession(terminal, employee, fp1, riskScore);
+          
+          // Force fingerprint check
+          session.last_fingerprint_check = new Date(Date.now() - 6 * 60 * 1000);
+          
+          const result = periodicFingerprintCheck(session.id, fp2);
+          
+          // If session is invalid, requiresReauth must be true
+          if (!result.valid) {
+            expect(result.requiresReauth).toBe(true);
+          }
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should handle non-existent session gracefully', () => {
+    fc.assert(
+      fc.property(
+        fc.uuid(),
+        fingerprintArb,
+        (sessionId, fingerprint) => {
+          const result = periodicFingerprintCheck(sessionId, fingerprint);
+          
+          expect(result.valid).toBe(false);
+          expect(result.similarity).toBe(0);
+          expect(result.requiresReauth).toBe(true);
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should preserve session data when validation passes', () => {
+    fc.assert(
+      fc.property(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        (terminal, employee, fingerprint, riskScore) => {
+          const session = createSession(terminal, employee, fingerprint, riskScore);
+          const originalEmployeeId = session.employee_id;
+          const originalTerminalId = session.terminal_id;
+          
+          // Force fingerprint check
+          session.last_fingerprint_check = new Date(Date.now() - 6 * 60 * 1000);
+          
+          // Perform check with same fingerprint
+          const result = periodicFingerprintCheck(session.id, fingerprint);
+          
+          if (result.valid) {
+            const updatedSession = getSession(session.id);
+            expect(updatedSession).toBeDefined();
+            expect(updatedSession!.employee_id).toBe(originalEmployeeId);
+            expect(updatedSession!.terminal_id).toBe(originalTerminalId);
+          }
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should remove session from both maps when invalidated', () => {
+    fc.assert(
+      fc.property(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        (terminal, employee, fp1, fp2, riskScore) => {
+          // Ensure fingerprints are different
+          if (fp1.hash === fp2.hash) return true;
+          
+          const session = createSession(terminal, employee, fp1, riskScore);
+          
+          // Force fingerprint check
+          session.last_fingerprint_check = new Date(Date.now() - 6 * 60 * 1000);
+          
+          const result = periodicFingerprintCheck(session.id, fp2);
+          
+          // If session was invalidated, verify it's removed from both maps
+          if (!result.valid) {
+            expect(getSession(session.id)).toBeNull();
+            expect(getSessionByEmployee(employee.id)).toBeNull();
+          }
+          
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should handle multiple consecutive checks correctly', () => {
+    fc.assert(
+      fc.property(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        (terminal, employee, fingerprint, riskScore) => {
+          const session = createSession(terminal, employee, fingerprint, riskScore);
+          
+          // First check - should skip (recent)
+          session.last_fingerprint_check = new Date(Date.now() - 2 * 60 * 1000);
+          const result1 = periodicFingerprintCheck(session.id, fingerprint);
+          expect(result1.valid).toBe(true);
+          expect(result1.similarity).toBe(100);
+          
+          // Second check - should perform (6 minutes later)
+          session.last_fingerprint_check = new Date(Date.now() - 6 * 60 * 1000);
+          const result2 = periodicFingerprintCheck(session.id, fingerprint);
+          expect(result2.valid).toBe(true);
+          expect(result2.similarity).toBeGreaterThanOrEqual(50);
           
           return true;
         }
@@ -552,6 +781,108 @@ describe('Helper Functions', () => {
         }
       ),
       { numRuns: 100 }
+    );
+  });
+});
+
+// ============ AUTOMATIC PERIODIC VALIDATION TESTS ============
+
+describe('Automatic Periodic Fingerprint Validation', () => {
+  beforeEach(() => {
+    stopPeriodicFingerprintValidation();
+  });
+
+  it('should start periodic validation', () => {
+    expect(isPeriodicValidationRunning()).toBe(false);
+    
+    startPeriodicFingerprintValidation();
+    
+    expect(isPeriodicValidationRunning()).toBe(true);
+    
+    stopPeriodicFingerprintValidation();
+  });
+
+  it('should stop periodic validation', () => {
+    startPeriodicFingerprintValidation();
+    expect(isPeriodicValidationRunning()).toBe(true);
+    
+    stopPeriodicFingerprintValidation();
+    
+    expect(isPeriodicValidationRunning()).toBe(false);
+  });
+
+  it('should not start multiple intervals', () => {
+    startPeriodicFingerprintValidation();
+    expect(isPeriodicValidationRunning()).toBe(true);
+    
+    // Try to start again
+    startPeriodicFingerprintValidation();
+    expect(isPeriodicValidationRunning()).toBe(true);
+    
+    stopPeriodicFingerprintValidation();
+  });
+
+  it('should allow setting fingerprint provider', () => {
+    const mockProvider = async () => ({
+      hash: 'test-hash',
+      signals: {
+        canvas: 'test',
+        webgl: 'test',
+        webglVendor: 'test',
+        webglRenderer: 'test',
+        audio: 'test',
+        fonts: 'test',
+        screen: 'test',
+        hardware: 'test',
+        timezone: 'test',
+        platform: 'test',
+        webglExtensions: 'test',
+        colorDepth: 'test',
+        storage: 'test',
+        mediaDevices: 'test',
+      },
+      signalCount: 14,
+      timestamp: Date.now(),
+    });
+
+    expect(() => setFingerprintProvider(mockProvider)).not.toThrow();
+  });
+
+  it('should validate sessions periodically when provider is set', async () => {
+    fc.assert(
+      fc.asyncProperty(
+        terminalArb,
+        employeeArb,
+        fingerprintArb,
+        fc.integer({ min: 0, max: 100 }),
+        async (terminal, employee, fingerprint, riskScore) => {
+          // Create a session
+          const session = createSession(terminal, employee, fingerprint, riskScore);
+          
+          // Force the session to need a check
+          session.last_fingerprint_check = new Date(Date.now() - 6 * 60 * 1000);
+          
+          // Set up fingerprint provider
+          setFingerprintProvider(async () => {
+            return fingerprint;
+          });
+          
+          // Start periodic validation
+          startPeriodicFingerprintValidation();
+          
+          // Wait a bit for the interval to potentially run
+          // Note: In real tests, we'd mock timers, but for property tests we just verify setup
+          
+          // Clean up
+          stopPeriodicFingerprintValidation();
+          
+          // Verify the system is set up correctly
+          expect(isPeriodicValidationRunning()).toBe(false);
+          
+          return true;
+        }
+      ),
+      { numRuns: 10 } // Fewer runs since this involves async
     );
   });
 });

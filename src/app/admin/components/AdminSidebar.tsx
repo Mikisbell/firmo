@@ -27,6 +27,7 @@ import {
   Grid3X3,
   Truck,
   Bike,
+  Shield,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/mesas', label: 'Mesas', icon: Grid3X3, permission: 'manage_config' },
   { href: '/admin/empleados', label: 'Empleados', icon: Users, permission: 'manage_employees' },
   { href: '/admin/terminales', label: 'Terminales', icon: Monitor, permission: 'manage_terminals' },
+  { href: '/admin/auditoria', label: 'Auditoría', icon: Shield, permission: 'manage_terminals' },
   { href: '/admin/promociones', label: 'Promociones', icon: Gift, permission: 'manage_promotions' },
   { href: '/admin/estaciones', label: 'Estaciones KDS', icon: ChefHat, permission: 'manage_stations' },
   { href: '/admin/delivery', label: 'Delivery', icon: Truck, permission: 'manage_config' },

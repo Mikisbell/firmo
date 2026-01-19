@@ -8,7 +8,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, Check, Wifi, WifiOff, Copy, Smartphone, Monitor, ChefHat, Wine } from 'lucide-react';
+import { RefreshCw, Check, Wifi, WifiOff, Copy, Smartphone, Monitor, ChefHat, Wine, Plus, X, Eye } from 'lucide-react';
+import TerminalDetailPanel from '@/src/components/admin/TerminalDetailPanel';
 
 interface ActivationCode {
   code: string;
@@ -68,6 +69,9 @@ export default function TerminalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [selectedTerminalId, setSelectedTerminalId] = useState<string | null>(null);
 
   const fetchDevices = useCallback(async () => {
     try {
@@ -108,6 +112,40 @@ export default function TerminalsPage() {
     return d.status === filter;
   });
 
+  const handleCreateTerminal = async (formData: {
+    terminal_id: string;
+    role: string;
+    location_id: string;
+    device_name: string;
+  }) => {
+    try {
+      setCreating(true);
+      const res = await fetch('/api/admin/terminals-v2/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to create terminal');
+      }
+
+      const data = await res.json();
+      
+      // Show success message with activation code
+      alert(`Terminal creado exitosamente!\n\nCódigo de activación: ${data.activation_code.formatted}\nExpira: ${new Date(data.activation_code.expires_at).toLocaleString()}`);
+      
+      // Refresh list
+      await fetchDevices();
+      setShowCreateModal(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al crear terminal');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -116,14 +154,23 @@ export default function TerminalsPage() {
           <h1 className="text-2xl font-bold">Terminales v2</h1>
           <p className="text-zinc-400 mt-1">Gestión de dispositivos con device binding</p>
         </div>
-        <button
-          onClick={fetchDevices}
-          disabled={loading}
-          className="p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors min-h-[44px] min-w-[44px]"
-          title="Actualizar"
-        >
-          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo Terminal
+          </button>
+          <button
+            onClick={fetchDevices}
+            disabled={loading}
+            className="p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors min-h-[44px] min-w-[44px]"
+            title="Actualizar"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -258,6 +305,15 @@ export default function TerminalsPage() {
                   </p>
                 </div>
               )}
+
+              {/* View Details Button */}
+              <button
+                onClick={() => setSelectedTerminalId(device.terminal_id)}
+                className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg transition-colors text-sm"
+              >
+                <Eye className="w-4 h-4" />
+                Ver Detalles
+              </button>
             </div>
           ))}
         </div>
@@ -268,6 +324,162 @@ export default function TerminalsPage() {
           No hay terminales {filter !== 'all' ? `con estado "${STATUS_LABELS[filter]}"` : ''}
         </div>
       )}
+
+      {/* Create Terminal Modal */}
+      {showCreateModal && (
+        <CreateTerminalModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreateTerminal}
+          creating={creating}
+        />
+      )}
+
+      {/* Terminal Detail Panel */}
+      {selectedTerminalId && (
+        <TerminalDetailPanel
+          terminalId={selectedTerminalId}
+          onClose={() => setSelectedTerminalId(null)}
+          onUpdate={fetchDevices}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============ CREATE TERMINAL MODAL ============
+
+interface CreateTerminalModalProps {
+  onClose: () => void;
+  onCreate: (data: {
+    terminal_id: string;
+    role: string;
+    location_id: string;
+    device_name: string;
+  }) => void;
+  creating: boolean;
+}
+
+function CreateTerminalModal({ onClose, onCreate, creating }: CreateTerminalModalProps) {
+  const [formData, setFormData] = useState({
+    terminal_id: '',
+    role: 'CAJA',
+    location_id: 'MAIN',
+    device_name: '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onCreate(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 rounded-lg border border-zinc-700 max-w-md w-full">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-zinc-700">
+          <h2 className="text-lg font-bold">Crear Nuevo Terminal</h2>
+          <button
+            onClick={onClose}
+            disabled={creating}
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* Terminal ID */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              ID del Terminal <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.terminal_id}
+              onChange={(e) => setFormData({ ...formData, terminal_id: e.target.value.toUpperCase() })}
+              placeholder="CAJA_01, MOZO_01, etc."
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-amber-500"
+              required
+              disabled={creating}
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Formato: CAJA_01, MOZO_01, SPC_HORNO, etc.
+            </p>
+          </div>
+
+          {/* Role */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Rol <span className="text-red-400">*</span>
+            </label>
+            <select
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-amber-500"
+              required
+              disabled={creating}
+            >
+              <option value="CAJA">Caja (CASHIER)</option>
+              <option value="MOZO">Mesero (WAITER)</option>
+              <option value="KDS_COCINA">Cocina (KDS)</option>
+              <option value="KDS_HORNO">Horno (KDS)</option>
+              <option value="KDS_BAR">Bar (KDS)</option>
+            </select>
+          </div>
+
+          {/* Device Name */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Nombre del Dispositivo <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.device_name}
+              onChange={(e) => setFormData({ ...formData, device_name: e.target.value })}
+              placeholder="iPad Caja Principal, Tablet Mesero 1, etc."
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-amber-500"
+              required
+              disabled={creating}
+            />
+          </div>
+
+          {/* Location ID */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Ubicación <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.location_id}
+              onChange={(e) => setFormData({ ...formData, location_id: e.target.value.toUpperCase() })}
+              placeholder="MAIN, SALON_1, COCINA, etc."
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-amber-500"
+              required
+              disabled={creating}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={creating}
+              className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={creating}
+              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {creating ? 'Creando...' : 'Crear Terminal'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

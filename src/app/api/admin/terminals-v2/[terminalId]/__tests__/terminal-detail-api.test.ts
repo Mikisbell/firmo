@@ -1,0 +1,291 @@
+/**
+ * Terminal Detail API Tests
+ * 
+ * Requirements: 2.1, 3.1, 3.3 (Terminal Architecture v2)
+ */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { GET } from '../route';
+import { POST as RegenerateCode } from '../regenerate-code/route';
+import { PATCH as UpdateStatus } from '../status/route';
+import prisma from '@/src/core/db/prisma';
+
+// Mock Prisma
+vi.mock('@/src/core/db/prisma', () => ({
+  __esModule: true,
+  default: {
+    terminal_devices: {
+      findFirst: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    activation_codes: {
+      findMany: vi.fn(),
+      updateMany: vi.fn(),
+      create: vi.fn(),
+    },
+  },
+}));
+
+// Mock logger
+vi.mock('@/src/core/observability/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+describe('Terminal Detail API', () => {
+  const mockTerminal = {
+    id: '1',
+    terminal_id: 'CAJA_01',
+    tenant_id: 'test-tenant',
+    role: 'CAJA',
+    status: 'active',
+    device_name: 'iPad Caja Principal',
+    location_id: 'MAIN',
+    fingerprint_hash: 'abc123',
+    fingerprint_salt: 'salt123',
+    bound_at: new Date('2024-01-15T10:00:00Z'),
+    last_seen_at: new Date(),
+    last_fingerprint_check: new Date(),
+    drift_score: 5,
+    created_at: new Date('2024-01-15T09:00:00Z'),
+    updated_at: new Date('2024-01-15T10:00:00Z'),
+  };
+
+  const mockActivationCodes = [
+    {
+      id: '1',
+      terminal_id: 'CAJA_01',
+      code: '123456',
+      expires_at: new Date('2024-01-15T09:15:00Z'),
+      attempts: 1,
+      used: true,
+      created_by: 'admin',
+      created_at: new Date('2024-01-15T09:00:00Z'),
+    },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.TENANT_ID = 'test-tenant';
+  });
+
+  describe('GET /api/admin/terminals-v2/[terminalId]', () => {
+    it('should return terminal details with activation codes', async () => {
+      (prisma.terminal_devices.findFirst as any).mockResolvedValue(mockTerminal);
+      (prisma.activation_codes.findMany as any).mockResolvedValue(mockActivationCodes);
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01');
+      const response = await GET(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.terminal.terminal_id).toBe('CAJA_01');
+      expect(data.terminal.device_name).toBe('iPad Caja Principal');
+      expect(data.activation_codes).toHaveLength(1);
+      expect(data.current_code).toBeNull(); // All codes are used or expired
+    });
+
+    it('should return current active code if available', async () => {
+      const activeCode = {
+        ...mockActivationCodes[0],
+        id: '2',
+        code: '789012',
+        expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+        used: false,
+      };
+
+      (prisma.terminal_devices.findFirst as any).mockResolvedValue(mockTerminal);
+      (prisma.activation_codes.findMany as any).mockResolvedValue([
+        ...mockActivationCodes,
+        activeCode,
+      ]);
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01');
+      const response = await GET(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(data.current_code).toBeDefined();
+      expect(data.current_code.code).toBe('789012');
+      expect(data.current_code.used).toBe(false);
+    });
+
+    it('should return 404 if terminal not found', async () => {
+      (prisma.terminal_devices.findFirst as any).mockResolvedValue(null);
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/INVALID');
+      const response = await GET(request, { params: { terminalId: 'INVALID' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe('Terminal no encontrado');
+    });
+
+    it('should handle database errors', async () => {
+      (prisma.terminal_devices.findFirst as any).mockRejectedValue(
+        new Error('Database error')
+      );
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01');
+      const response = await GET(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to fetch terminal details');
+    });
+  });
+
+  describe('POST /api/admin/terminals-v2/[terminalId]/regenerate-code', () => {
+    it('should generate new activation code', async () => {
+      const newCode = {
+        id: '2',
+        terminal_id: 'CAJA_01',
+        code: '999888',
+        expires_at: new Date(Date.now() + 15 * 60 * 1000),
+        attempts: 0,
+        used: false,
+        created_by: 'admin',
+        created_at: new Date(),
+      };
+
+      (prisma.activation_codes.updateMany as any).mockResolvedValue({ count: 1 });
+      (prisma.activation_codes.create as any).mockResolvedValue(newCode);
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/regenerate-code', {
+        method: 'POST',
+      });
+      const response = await RegenerateCode(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.code.code).toBe('999888');
+      expect(data.code.formatted).toBe('999-888');
+      expect(data.code.expires_at).toBeDefined();
+
+      // Should invalidate existing codes
+      expect(prisma.activation_codes.updateMany).toHaveBeenCalledWith({
+        where: {
+          terminal_id: 'CAJA_01',
+          used: false,
+        },
+        data: {
+          used: true,
+        },
+      });
+    });
+
+    it('should handle errors during code generation', async () => {
+      (prisma.activation_codes.updateMany as any).mockRejectedValue(
+        new Error('Database error')
+      );
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/regenerate-code', {
+        method: 'POST',
+      });
+      const response = await RegenerateCode(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to regenerate activation code');
+    });
+  });
+
+  describe('PATCH /api/admin/terminals-v2/[terminalId]/status', () => {
+    it('should update terminal status to disabled', async () => {
+      (prisma.terminal_devices.updateMany as any).mockResolvedValue({ count: 1 });
+      (prisma.terminal_devices.findFirst as any).mockResolvedValue({
+        ...mockTerminal,
+        status: 'disabled',
+      });
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'disabled' }),
+      });
+      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.terminal.status).toBe('disabled');
+
+      expect(prisma.terminal_devices.updateMany).toHaveBeenCalledWith({
+        where: {
+          terminal_id: 'CAJA_01',
+          tenant_id: 'test-tenant',
+        },
+        data: { status: 'disabled' },
+      });
+    });
+
+    it('should update terminal status to active', async () => {
+      (prisma.terminal_devices.updateMany as any).mockResolvedValue({ count: 1 });
+      (prisma.terminal_devices.findFirst as any).mockResolvedValue({
+        ...mockTerminal,
+        status: 'active',
+      });
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'active' }),
+      });
+      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.terminal.status).toBe('active');
+    });
+
+    it('should reject invalid status values', async () => {
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'invalid' }),
+      });
+      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('Invalid status');
+    });
+
+    it('should return 404 if terminal not found', async () => {
+      (prisma.terminal_devices.updateMany as any).mockResolvedValue({ count: 0 });
+      (prisma.terminal_devices.findFirst as any).mockResolvedValue(null);
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/INVALID/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'disabled' }),
+      });
+      const response = await UpdateStatus(request, { params: { terminalId: 'INVALID' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe('Terminal no encontrado');
+    });
+
+    it('should handle database errors', async () => {
+      (prisma.terminal_devices.updateMany as any).mockRejectedValue(
+        new Error('Database error')
+      );
+
+      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'disabled' }),
+      });
+      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to update terminal status');
+    });
+  });
+});

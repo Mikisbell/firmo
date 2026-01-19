@@ -1,5 +1,104 @@
 # Changelog
 
+## [1.7.3] - 2026-01-19
+### Admin Panel CRUD - Employees & Products ✅ COMPLETADO
+
+**Implementación completa de CRUD para Employees y Products en el Panel de Administración.**
+
+### Added - Employees CRUD
+- **API Endpoints**:
+  - `POST /api/admin/employees` - Crear empleado con PIN hasheado
+  - `GET /api/admin/employees/[id]` - Obtener empleado por ID
+  - `PUT /api/admin/employees/[id]` - Actualizar empleado (name, role, is_active)
+  - `DELETE /api/admin/employees/[id]` - Soft delete (is_active = false)
+
+- **Frontend Pages**:
+  - `/admin/empleados/nuevo` - Formulario de creación
+  - `/admin/empleados/[id]` - Formulario de edición
+
+- **Security Features**:
+  - PIN hashing con SHA-256 + salt 'PARK_POS_2026_'
+  - PIN uniqueness validation per tenant
+  - PIN NO editable después de creación (security requirement)
+  - PIN nunca devuelto en GET requests
+
+### Added - Products CRUD
+- **API Endpoints**:
+  - `POST /api/admin/products` - Crear producto con catalog version increment
+  - `GET /api/admin/products/[id]` - Obtener producto por ID
+  - `PUT /api/admin/products/[id]` - Actualizar producto con catalog version increment
+  - `DELETE /api/admin/products/[id]` - Soft delete (is_active = false)
+
+- **Frontend Pages**:
+  - `/admin/productos/nuevo` - Formulario de creación
+  - `/admin/productos/[id]` - Formulario de edición
+
+- **Money Safety**:
+  - Price stored as INTEGER centavos (NEVER float)
+  - Price conversion: decimal display ↔ centavos storage
+  - Validation: z.number().int().nonnegative()
+
+### Added - Shared Components
+- **`src/app/admin/components/ModalForm.tsx`**: Reusable modal form component
+- **`src/lib/api-utils.ts`**: API error handling utilities
+
+### Added - Audit Trail
+- All CRUD operations logged to `admin_access_logs`
+- Metadata includes: record_id, changes, timestamp
+- Transactional operations (CRUD + audit log)
+
+### Added - Catalog Versioning
+- Products CREATE/UPDATE increment `catalog_meta.catalog_version`
+- Enables cache invalidation for terminals
+- Transactional with product operations
+
+### Added - Integration Tests
+- **`scripts/test-admin-crud.ts`**: Complete integration test suite
+  - Employees: CREATE, READ, UPDATE, SOFT DELETE ✅
+  - Products: CREATE, READ, UPDATE, SOFT DELETE ✅
+  - Audit Trail: Logging verification ✅
+  - Catalog Version: Increment verification ✅
+  - **Result: 100% PASS**
+
+### Added - Documentation
+- **`.kiro/specs/admin-panel-crud/requirements.md`**: 10 requirements with EARS criteria
+- **`.kiro/specs/admin-panel-crud/design.md`**: Complete architecture and design
+- **`.kiro/specs/admin-panel-crud/tasks.md`**: 14 implementation tasks
+- **`.kiro/specs/admin-panel-crud/VERIFICATION.md`**: Field-by-field verification
+- **`.kiro/specs/admin-panel-crud/ALIGNMENT-REPORT.md`**: Executive summary with test results
+
+### Changed
+- **`docs/AUDITORIA_PANEL_ADMIN.md`**: Updated from 45% to 64% completion
+  - Employees module: 100% complete
+  - Products module: 100% complete
+
+### Validation Rules
+- **Employees**:
+  - PIN: 4-6 digits, unique per tenant
+  - Role: OWNER, ADMIN, MANAGER, CASHIER, WAITER, KITCHEN, DRIVER, BAR
+  - Name: required, non-empty
+  
+- **Products**:
+  - SKU: unique per tenant
+  - Price: integer centavos, >= 0
+  - Category: POLLOS, PARRILLAS, BEBIDAS, EXTRAS, POSTRES, COMBOS
+  - Station: PARRILLA, COCINA, BAR, HORNO, POSTRES, EMPAQUE
+
+### Security & Data Integrity
+- ✅ Tenant isolation on all queries
+- ✅ Soft deletes only (no hard deletes)
+- ✅ Transactional operations (atomicity guaranteed)
+- ✅ Audit trail for all operations
+- ✅ PIN security (hashed, not editable, not returned)
+- ✅ Money safety (integer centavos only)
+
+### Tests Status
+- Integration tests: 100% PASS
+- All CRUD operations verified
+- Frontend-Backend-Database alignment verified
+
+---
+
 ## [1.7.2] - 2026-01-09
 ### Branded Types Migration - Phase 1
 

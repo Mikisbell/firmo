@@ -59,6 +59,95 @@ const FINGERPRINT_DRIFT_THRESHOLD = 50;       // Below this requires re-auth (Re
 const sessions = new Map<string, SecureSession>();
 const employeeSessions = new Map<string, string>(); // employee_id -> session_id
 
+// ============ PERIODIC FINGERPRINT VALIDATION ============
+
+let periodicCheckInterval: NodeJS.Timeout | null = null;
+let fingerprintProvider: (() => Promise<FingerprintResult>) | null = null;
+
+/**
+ * Set the fingerprint provider for periodic checks
+ * This should be called by the client to provide the current fingerprint
+ */
+export function setFingerprintProvider(provider: () => Promise<FingerprintResult>): void {
+  fingerprintProvider = provider;
+}
+
+/**
+ * Start periodic fingerprint validation for all active sessions
+ * Checks every 5 minutes (Requirement 5.4)
+ */
+export function startPeriodicFingerprintValidation(): void {
+  if (periodicCheckInterval) {
+    logger.warn('PERIODIC_CHECK_ALREADY_RUNNING', 'Periodic fingerprint validation already running');
+    return;
+  }
+
+  // Check every 5 minutes
+  periodicCheckInterval = setInterval(async () => {
+    if (!fingerprintProvider) {
+      logger.warn('PERIODIC_CHECK_NO_PROVIDER', 'No fingerprint provider set, skipping periodic check');
+      return;
+    }
+
+    const activeSessions = Array.from(sessions.values());
+    
+    if (activeSessions.length === 0) {
+      return;
+    }
+
+    logger.info('PERIODIC_CHECK_STARTED', 'Starting periodic fingerprint validation', {
+      session_count: activeSessions.length,
+    });
+
+    try {
+      const currentFingerprint = await fingerprintProvider();
+
+      for (const session of activeSessions) {
+        // Check if this session needs validation
+        if (!needsFingerprintCheck(session)) {
+          continue;
+        }
+
+        const result = periodicFingerprintCheck(session.id, currentFingerprint);
+        
+        if (!result.valid) {
+          logger.warn('PERIODIC_CHECK_FAILED', 'Session invalidated by periodic fingerprint check', {
+            session_id: session.id,
+            employee_id: session.employee_id,
+            similarity: result.similarity,
+          });
+        }
+      }
+    } catch (error) {
+      logger.error('PERIODIC_CHECK_ERROR', 'Error during periodic fingerprint validation', error as Error, {
+        session_count: activeSessions.length,
+      });
+    }
+  }, FINGERPRINT_CHECK_INTERVAL_MINUTES * 60 * 1000);
+
+  logger.info('PERIODIC_CHECK_STARTED', 'Periodic fingerprint validation started', {
+    interval_minutes: FINGERPRINT_CHECK_INTERVAL_MINUTES,
+  });
+}
+
+/**
+ * Stop periodic fingerprint validation
+ */
+export function stopPeriodicFingerprintValidation(): void {
+  if (periodicCheckInterval) {
+    clearInterval(periodicCheckInterval);
+    periodicCheckInterval = null;
+    logger.info('PERIODIC_CHECK_STOPPED', 'Periodic fingerprint validation stopped');
+  }
+}
+
+/**
+ * Check if periodic validation is running
+ */
+export function isPeriodicValidationRunning(): boolean {
+  return periodicCheckInterval !== null;
+}
+
 // ============ SESSION MANAGER ============
 
 /**
