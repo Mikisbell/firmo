@@ -217,7 +217,7 @@ export function periodicFingerprintCheck(
   try {
     storedSignals = JSON.parse(session.fingerprint_signals_at_login);
   } catch {
-    logger.error('FINGERPRINT_CHECK_ERROR', 'Failed to parse stored fingerprint signals', null, {
+    logger.error('FINGERPRINT_CHECK_ERROR', 'Failed to parse stored fingerprint signals', undefined, {
       session_id: sessionId,
     });
     return { valid: false, similarity: 0, requiresReauth: true };
