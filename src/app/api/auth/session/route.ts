@@ -63,12 +63,23 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        return NextResponse.json({
+        // Create response with httpOnly cookie
+        const response = NextResponse.json({
             success: true,
-            token: result.token,
             employee: result.employee,
             expiresAt: result.expiresAt?.toISOString(),
         });
+
+        // Set httpOnly cookie with JWT token
+        response.cookies.set('auth_token', result.token!, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 30 * 60, // 30 minutes
+            path: '/',
+        });
+
+        return response;
     } catch (error) {
         if (error instanceof z.ZodError) {
             return NextResponse.json(
@@ -90,15 +101,20 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
     try {
+        // Try to get token from cookie first, fallback to Authorization header for backwards compatibility
+        const cookieToken = request.cookies.get('auth_token')?.value;
         const authHeader = request.headers.get('authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
+        const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+        
+        const token = cookieToken || headerToken;
+        
+        if (!token) {
             return NextResponse.json(
                 { error: 'Token no proporcionado' },
                 { status: 401 }
             );
         }
 
-        const token = authHeader.slice(7);
         const tokenResult = await validateToken(token);
 
         if (!tokenResult.valid || !tokenResult.payload) {
@@ -141,42 +157,50 @@ export async function GET(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
     try {
+        // Try to get token from cookie first, fallback to Authorization header
+        const cookieToken = request.cookies.get('auth_token')?.value;
         const authHeader = request.headers.get('authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return NextResponse.json(
-                { error: 'Token no proporcionado' },
-                { status: 401 }
+        const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+        
+        const token = cookieToken || headerToken;
+        
+        if (!token) {
+            // No token, just clear cookie and return success
+            const response = NextResponse.json({ success: true });
+            response.cookies.delete('auth_token');
+            return response;
+        }
+
+        const tokenResult = await validateToken(token);
+
+        if (tokenResult.valid && tokenResult.payload) {
+            // Revoke session
+            await revokeSession(prisma, tokenResult.payload.sid);
+
+            // Log logout
+            await logAdminAccess(
+                prisma,
+                tokenResult.payload.tid,
+                tokenResult.payload.sub,
+                'LOGOUT',
+                {
+                    ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
+                    userAgent: request.headers.get('user-agent') || undefined,
+                }
             );
         }
 
-        const token = authHeader.slice(7);
-        const tokenResult = await validateToken(token);
-
-        if (!tokenResult.valid || !tokenResult.payload) {
-            return NextResponse.json({ success: true }); // Already invalid
-        }
-
-        // Revoke session
-        await revokeSession(prisma, tokenResult.payload.sid);
-
-        // Log logout
-        await logAdminAccess(
-            prisma,
-            tokenResult.payload.tid,
-            tokenResult.payload.sub,
-            'LOGOUT',
-            {
-                ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
-                userAgent: request.headers.get('user-agent') || undefined,
-            }
-        );
-
-        return NextResponse.json({ success: true });
+        // Clear cookie
+        const response = NextResponse.json({ success: true });
+        response.cookies.delete('auth_token');
+        return response;
     } catch (error) {
         console.error('Logout error:', error);
-        return NextResponse.json(
+        const response = NextResponse.json(
             { error: 'Error interno del servidor' },
             { status: 500 }
         );
+        response.cookies.delete('auth_token');
+        return response;
     }
 }

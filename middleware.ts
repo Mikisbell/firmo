@@ -1,0 +1,87 @@
+/**
+ * Next.js Middleware
+ * 
+ * Validates JWT tokens from httpOnly cookies for admin routes
+ * Adds user information to request headers for downstream use
+ */
+
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { validateToken } from '@/src/core/auth/auth.service';
+
+// Routes that require authentication
+const PROTECTED_ROUTES = ['/admin'];
+
+// Routes that should skip authentication (public or have their own auth)
+const PUBLIC_ROUTES = ['/api/auth', '/pos', '/mozo', '/cocina', '/caja', '/bar', '/inventario'];
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Skip public routes
+  if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
+
+  // Check if route requires authentication
+  const requiresAuth = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
+  
+  if (!requiresAuth) {
+    return NextResponse.next();
+  }
+
+  // Get token from cookie
+  const token = request.cookies.get('auth_token')?.value;
+
+  if (!token) {
+    // No token, redirect to login
+    const loginUrl = new URL('/admin', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  try {
+    // Validate token
+    const tokenResult = await validateToken(token);
+
+    if (!tokenResult.valid || !tokenResult.payload) {
+      // Invalid token, clear cookie and redirect to login
+      const response = NextResponse.redirect(new URL('/admin', request.url));
+      response.cookies.delete('auth_token');
+      return response;
+    }
+
+    // Token is valid, add user info to headers for downstream use
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-id', tokenResult.payload.sub);
+    requestHeaders.set('x-user-role', tokenResult.payload.role);
+    requestHeaders.set('x-user-name', tokenResult.payload.name || '');
+    requestHeaders.set('x-tenant-id', tokenResult.payload.tid);
+    requestHeaders.set('x-session-id', tokenResult.payload.sid);
+
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  } catch (error) {
+    console.error('Middleware auth error:', error);
+    // On error, clear cookie and redirect to login
+    const response = NextResponse.redirect(new URL('/admin', request.url));
+    response.cookies.delete('auth_token');
+    return response;
+  }
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};

@@ -4,9 +4,10 @@
  * Admin Layout
  * Layout principal del panel de administración con sidebar y header
  * Incluye autenticación por PIN y manejo de permisos
+ * Uses httpOnly cookies for secure authentication
  * 
  * Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 10.1, 10.2, 10.3
- * UX Improvements: Toast notifications (P0)
+ * UX Improvements: Toast notifications (P0), httpOnly cookies (P0 - SECURITY)
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -43,20 +44,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const storedSession = localStorage.getItem('admin_session');
-        if (storedSession) {
-          const session = JSON.parse(storedSession);
-          // Validate token is not expired
-          if (session.expiresAt && new Date(session.expiresAt) > new Date()) {
-            setEmployee(session.employee);
-            setPermissions(ROLE_PERMISSIONS[session.employee.role as AdminRole] || null);
+        // Check if we have a valid session cookie by calling the session API
+        const response = await fetch('/api/auth/session', {
+          method: 'GET',
+          credentials: 'include', // Important: include cookies
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.valid && data.employee) {
+            setEmployee(data.employee);
+            setPermissions(ROLE_PERMISSIONS[data.employee.role as AdminRole] || null);
             setIsAuthenticated(true);
-          } else {
-            // Session expired, clear it
-            localStorage.removeItem('admin_session');
-            if (!isStandaloneRoute) {
-              setShowPinModal(true);
-            }
+          } else if (!isStandaloneRoute) {
+            setShowPinModal(true);
           }
         } else if (!isStandaloneRoute) {
           setShowPinModal(true);
@@ -91,26 +92,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, []);
 
-  const handleAuthSuccess = useCallback((emp: AuthEmployee, token: string) => {
+  const handleAuthSuccess = useCallback((emp: AuthEmployee) => {
     setEmployee(emp);
     setPermissions(ROLE_PERMISSIONS[emp.role as AdminRole] || null);
     setIsAuthenticated(true);
     setShowPinModal(false);
-
-    // Store session
-    const session = {
-      employee: emp,
-      token,
-      expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutes
-    };
-    localStorage.setItem('admin_session', JSON.stringify(session));
   }, []);
 
-  const handleLogout = useCallback(() => {
-    setEmployee(null);
-    setPermissions(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('admin_session');
+  const handleLogout = useCallback(async () => {
+    try {
+      // Call logout API to clear cookie and revoke session
+      await fetch('/api/auth/session', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setEmployee(null);
+      setPermissions(null);
+      setIsAuthenticated(false);
+      setShowPinModal(true);
+    }
   }, []);
 
   // For standalone routes, just render children

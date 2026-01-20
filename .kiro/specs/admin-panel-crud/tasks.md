@@ -237,7 +237,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Add audit trail logging to PUT /api/admin/config with old and new values
     - _Requirements: 5.3, 10.13_
 
-- [ ] 10. Complete frontend forms
+- [x] 10. Complete frontend forms
   - [x] 10.1 Add Promotion create/edit modal forms
     - Add modal form to src/app/admin/promociones/page.tsx
     - Implement date pickers for starts_at and ends_at
@@ -247,7 +247,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Add loading states and error handling
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.7, 3.9, 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 10.2 Make Configuration page editable
+  - [x] 10.2 Make Configuration page editable
     - Modify src/app/admin/configuracion/page.tsx to make fields editable
     - Add form with current configuration values
     - Add validation for all fields
@@ -374,7 +374,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Configurar tema oscuro, posición top-right, auto-dismiss 5s ✅
     - _Referencia: SOLUCIONES_IMPLEMENTACION.md #1_
 
-  - [x] 16.2 Reemplazar alerts con toasts en todos los módulos
+  - [-] 16.2 Reemplazar alerts con toasts en todos los módulos
     - Reemplazar alert() en Employees pages (nuevo, [id]) ✅
     - Reemplazar alert() en Products pages (nuevo, [id]) - EN PROGRESO
     - Reemplazar alert() en Promotions pages (nuevo, [id]) - PENDIENTE
@@ -429,7 +429,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - _Referencia: ANALISIS_UX_ARQUITECTURA.md #6.1_
 
 - [ ] 19. Migrar a httpOnly Cookies (P0 - CRÍTICO - SEGURIDAD)
-  - [ ] 19.1 Actualizar backend auth
+  - [x] 19.1 Actualizar backend auth
     - Instalar `npm install jose` si no está instalado
     - Modificar src/app/api/auth/login/route.ts
     - Usar cookies().set() con httpOnly, secure, sameSite flags
@@ -437,7 +437,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Configurar maxAge 30 minutos
     - _Referencia: SOLUCIONES_IMPLEMENTACION.md #8_
 
-  - [ ] 19.2 Crear middleware de autenticación
+  - [x] 19.2 Crear middleware de autenticación
     - Crear/actualizar src/middleware.ts
     - Verificar JWT con jwtVerify de jose
     - Agregar user info a headers (x-user-id, x-user-role)
@@ -445,7 +445,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Aplicar a rutas /admin/*
     - _Referencia: ANALISIS_UX_ARQUITECTURA.md #8.1_
 
-  - [ ] 19.3 Remover localStorage
+  - [x] 19.3 Remover localStorage
     - Eliminar localStorage.setItem('admin_session')
     - Eliminar localStorage.getItem('admin_session')
     - Actualizar componentes que usan session

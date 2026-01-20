@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package, DollarSign } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
@@ -82,9 +83,16 @@ export default function NewProductPage() {
         throw new Error(data.error || 'Error al crear producto');
       }
 
+      toast.success('Producto creado exitosamente', {
+        description: `${form.name} ha sido agregado al catálogo`,
+      });
       router.push('/admin/productos');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar');
+      const errorMessage = err instanceof Error ? err.message : 'Error al guardar';
+      setError(errorMessage);
+      toast.error('Error al crear producto', {
+        description: errorMessage,
+      });
     } finally {
       setSaving(false);
     }

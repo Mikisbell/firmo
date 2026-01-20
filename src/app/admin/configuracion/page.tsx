@@ -19,7 +19,7 @@ interface TenantSettings {
 }
 
 export default function ConfigurationPage() {
-  // Get role from localStorage (set by admin layout)
+  // Get role from session API (httpOnly cookie)
   const [userRole, setUserRole] = useState<string | null>(null);
   const canEditFiscal = userRole?.toUpperCase() === 'OWNER';
   
@@ -30,19 +30,31 @@ export default function ConfigurationPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    const session = localStorage.getItem('admin_session');
-    if (session) {
+    const fetchSession = async () => {
       try {
-        const parsed = JSON.parse(session);
-        setUserRole(parsed.role);
-      } catch {}
-    }
+        const res = await fetch('/api/auth/session', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.valid && data.employee) {
+            setUserRole(data.employee.role);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch session:', error);
+      }
+    };
+    fetchSession();
   }, []);
 
   const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/config');
+      const res = await fetch('/api/admin/config', {
+        credentials: 'include',
+      });
       if (!res.ok) throw new Error('Failed to fetch');
       setSettings(await res.json());
       setError(null);
@@ -63,6 +75,20 @@ export default function ConfigurationPage() {
       setError('RUC debe tener exactamente 11 dígitos');
       return;
     }
+
+    // Validate tax rate range
+    if (settings.tax_rate !== undefined && (settings.tax_rate < 0 || settings.tax_rate > 100)) {
+      setError('La tasa de IGV debe estar entre 0 y 100');
+      return;
+    }
+
+    // Confirmation dialog for critical settings (tax rate changes)
+    if (canEditFiscal && settings.tax_rate !== undefined) {
+      const confirmed = window.confirm(
+        `¿Está seguro de cambiar la tasa de IGV a ${settings.tax_rate}%?\n\nEsto afectará todos los cálculos de impuestos en el sistema.`
+      );
+      if (!confirmed) return;
+    }
     
     try {
       setSaving(true);
@@ -70,6 +96,7 @@ export default function ConfigurationPage() {
       const res = await fetch('/api/admin/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(settings),
       });
       if (!res.ok) {

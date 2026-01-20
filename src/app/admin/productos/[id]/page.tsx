@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package, DollarSign, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
@@ -132,9 +133,16 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         throw new Error(data.error || 'Error al actualizar producto');
       }
 
+      toast.success('Producto actualizado', {
+        description: `${form.name} ha sido actualizado exitosamente`,
+      });
       router.push('/admin/productos');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar');
+      const errorMessage = err instanceof Error ? err.message : 'Error al guardar';
+      setError(errorMessage);
+      toast.error('Error al actualizar producto', {
+        description: errorMessage,
+      });
     } finally {
       setSaving(false);
     }
@@ -154,9 +162,15 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         throw new Error(data.error || 'Error al desactivar producto');
       }
 
+      toast.success('Producto desactivado', {
+        description: 'El producto ya no aparecerá en el catálogo',
+      });
       router.push('/admin/productos');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al eliminar');
+      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar';
+      toast.error('Error al desactivar producto', {
+        description: errorMessage,
+      });
     }
   };
 

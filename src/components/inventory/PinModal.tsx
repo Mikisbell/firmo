@@ -3,6 +3,7 @@
 // PIN Modal for inventory operations
 // Validates employee PIN and role before allowing access
 // Uses JWT-based authentication with lockout protection
+// Token is stored in httpOnly cookie for security
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,33 +12,10 @@ import { X, Lock, AlertTriangle } from 'lucide-react';
 
 export type InventoryRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'KITCHEN';
 
-// Token storage key
-const AUTH_TOKEN_KEY = 'park_pos_auth_token';
-
-interface AuthSession {
-  token: string;
-  employee: { id: string; name: string; role: string };
-  expiresAt: string;
-}
-
-// Helper to get/set token
-export function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(AUTH_TOKEN_KEY);
-}
-
-export function setAuthToken(session: AuthSession): void {
-  localStorage.setItem(AUTH_TOKEN_KEY, session.token);
-}
-
-export function clearAuthToken(): void {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-}
-
 interface PinModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (employee: { id: string; name: string; role: string }, token: string) => void;
+  onSuccess: (employee: { id: string; name: string; role: string }) => void;
   allowedRoles: InventoryRole[];
   title?: string;
 }
@@ -85,6 +63,7 @@ export function PinModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin, allowedRoles }),
+        credentials: 'include', // Important: include cookies
       });
 
       const data = await response.json();
@@ -98,13 +77,8 @@ export function PinModal({
         return;
       }
 
-      // Store token and notify success
-      setAuthToken({ 
-        token: data.token, 
-        employee: data.employee, 
-        expiresAt: data.expiresAt 
-      });
-      onSuccess(data.employee, data.token);
+      // Token is now in httpOnly cookie, just notify success with employee data
+      onSuccess(data.employee);
     } catch (err) {
       setError('Error de conexión');
       console.error('PIN verification error:', err);
