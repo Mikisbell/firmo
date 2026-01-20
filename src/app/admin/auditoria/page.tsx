@@ -59,6 +59,8 @@ const EVENT_TYPE_LABELS: Record<AuthEventType, string> = {
   session_expired: 'Sesión Expirada',
   fingerprint_drift_detected: 'Drift Detectado',
   step_up_auth_required: 'Auth Adicional',
+  step_up_auth_success: 'Auth Adicional Exitosa',
+  step_up_auth_failed: 'Auth Adicional Fallida',
   terminal_disabled: 'Terminal Deshabilitado',
   security_alert: 'Alerta de Seguridad',
 };
@@ -73,6 +75,8 @@ const EVENT_TYPE_COLORS: Record<AuthEventType, string> = {
   session_expired: 'bg-amber-500/20 text-amber-400',
   fingerprint_drift_detected: 'bg-orange-500/20 text-orange-400',
   step_up_auth_required: 'bg-amber-500/20 text-amber-400',
+  step_up_auth_success: 'bg-green-500/20 text-green-400',
+  step_up_auth_failed: 'bg-red-500/20 text-red-400',
   terminal_disabled: 'bg-red-500/20 text-red-400',
   security_alert: 'bg-red-500/20 text-red-400',
 };
@@ -87,6 +91,8 @@ const EVENT_TYPE_ICONS: Record<AuthEventType, React.ReactNode> = {
   session_expired: <Clock className="w-3 h-3" />,
   fingerprint_drift_detected: <AlertTriangle className="w-3 h-3" />,
   step_up_auth_required: <AlertTriangle className="w-3 h-3" />,
+  step_up_auth_success: <CheckCircle className="w-3 h-3" />,
+  step_up_auth_failed: <XCircle className="w-3 h-3" />,
   terminal_disabled: <XCircle className="w-3 h-3" />,
   security_alert: <AlertTriangle className="w-3 h-3" />,
 };

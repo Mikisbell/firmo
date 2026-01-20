@@ -6,14 +6,17 @@
  * Incluye autenticación por PIN y manejo de permisos
  * 
  * Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 10.1, 10.2, 10.3
+ * UX Improvements: Toast notifications (P0)
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
+import { Toaster } from 'sonner';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
 import { PinModal } from '@/src/components/inventory/PinModal';
 import { ROLE_PERMISSIONS, AdminRole, AdminPermissions } from './lib/permissions';
+import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 
 interface AuthEmployee {
   id: string;
@@ -141,9 +144,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Authenticated - show full layout
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex">
-      {/* Sidebar */}
-      <AdminSidebar 
+    <ErrorBoundary>
+      <div className="min-h-screen bg-zinc-950 text-white flex">
+        {/* Toast Notifications */}
+        <Toaster 
+          position="top-right"
+          theme="dark"
+          richColors
+          closeButton
+          duration={5000}
+        />
+
+        {/* Sidebar */}
+        <AdminSidebar 
         permissions={permissions ? {
           view_dashboard: permissions.view_dashboard,
           manage_products: permissions.manage_products,
@@ -171,5 +184,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </main>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

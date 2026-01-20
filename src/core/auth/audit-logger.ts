@@ -19,6 +19,8 @@ export type AuthEventType =
   | 'session_expired'
   | 'fingerprint_drift_detected'
   | 'step_up_auth_required'
+  | 'step_up_auth_success'
+  | 'step_up_auth_failed'
   | 'terminal_disabled'
   | 'security_alert';
 

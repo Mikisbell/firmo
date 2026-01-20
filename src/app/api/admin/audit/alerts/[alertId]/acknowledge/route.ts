@@ -24,10 +24,10 @@ import { acknowledgeAlert } from '@/src/core/auth/audit-logger';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { alertId: string } }
+  { params }: { params: Promise<{ alertId: string }> }
 ) {
   try {
-    const { alertId } = params;
+    const { alertId } = await params;
     
     if (!alertId) {
       return NextResponse.json(

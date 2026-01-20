@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/logger';
 import { logAuthEvent } from '@/src/core/auth/audit-logger';
+import { hashPin } from '@/src/core/auth/auth.service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,13 +23,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Hash the PIN before comparing
+    const pinHash = hashPin(pin);
+
     // Find manager/admin employees
     const managers = await prisma.employees.findMany({
       where: {
         role: {
           in: ['ADMIN', 'MANAGER'],
         },
-        pin: pin,
+        pin_hash: pinHash,
       },
     });
 

@@ -1,6 +1,6 @@
 /**
- * Employee API - GET, PUT, DELETE for single employee
- * Requirements: 1.3, 1.4, 1.6, 10.2, 10.3
+ * Employees API - GET, PUT, DELETE for single employee
+ * Requirements: 1.3, 1.4, 10.2, 10.3
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,25 +8,18 @@ import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
 
-// GET - Fetch single employee
+// GET - Get single employee
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const employee = await prisma.employees.findFirst({
       where: {
-        id: params.id,
+        id,
         tenant_id: TENANT_ID,
-      },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        is_active: true,
-        created_at: true,
       },
     });
 
@@ -47,36 +40,20 @@ export async function GET(
   }
 }
 
-// PUT - Update employee (name, role, is_active only - no PIN changes)
+// PUT - Update employee
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { name, role, is_active } = body;
-
-    // Validate required fields
-    if (!name || !role) {
-      return NextResponse.json(
-        { error: 'Faltan campos requeridos: name, role' },
-        { status: 400 }
-      );
-    }
-
-    // Validate role
-    const validRoles = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'DRIVER', 'BAR'];
-    if (!validRoles.includes(role)) {
-      return NextResponse.json(
-        { error: `Rol inválido. Debe ser uno de: ${validRoles.join(', ')}` },
-        { status: 400 }
-      );
-    }
 
     // Check employee exists
     const existing = await prisma.employees.findFirst({
       where: {
-        id: params.id,
+        id,
         tenant_id: TENANT_ID,
       },
     });
@@ -88,14 +65,25 @@ export async function PUT(
       );
     }
 
+    // Validate role if provided
+    if (role) {
+      const validRoles = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'DRIVER', 'BAR'];
+      if (!validRoles.includes(role)) {
+        return NextResponse.json(
+          { error: `Rol inválido. Debe ser uno de: ${validRoles.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update employee in transaction with audit trail
-    const employee = await prisma.$transaction(async (tx) => {
-      const updated = await tx.employees.update({
-        where: { id: params.id },
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedEmployee = await tx.employees.update({
+        where: { id },
         data: {
-          name,
-          role,
-          is_active: is_active ?? existing.is_active,
+          ...(name && { name }),
+          ...(role && { role }),
+          ...(typeof is_active === 'boolean' && { is_active }),
         },
       });
 
@@ -104,21 +92,21 @@ export async function PUT(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: '00000000-0000-0000-0000-000000000001',
           action: 'UPDATE',
           resource: 'employees',
-          metadata: {
-            record_id: params.id,
+          metadata: { 
+            record_id: id,
             changes: { name, role, is_active },
           },
           created_at: new Date(),
         },
       });
 
-      return updated;
+      return updatedEmployee;
     });
 
-    return NextResponse.json(employee);
+    return NextResponse.json(updated);
   } catch (error) {
     console.error('Employee PUT error:', error);
     return NextResponse.json(
@@ -130,14 +118,15 @@ export async function PUT(
 
 // DELETE - Soft delete employee
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Check employee exists
     const existing = await prisma.employees.findFirst({
       where: {
-        id: params.id,
+        id,
         tenant_id: TENANT_ID,
       },
     });
@@ -152,7 +141,7 @@ export async function DELETE(
     // Soft delete in transaction with audit trail
     await prisma.$transaction(async (tx) => {
       await tx.employees.update({
-        where: { id: params.id },
+        where: { id },
         data: { is_active: false },
       });
 
@@ -161,10 +150,10 @@ export async function DELETE(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: '00000000-0000-0000-0000-000000000001',
           action: 'DELETE',
           resource: 'employees',
-          metadata: { record_id: params.id },
+          metadata: { record_id: id },
           created_at: new Date(),
         },
       });

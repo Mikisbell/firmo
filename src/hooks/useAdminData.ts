@@ -1,0 +1,120 @@
+/**
+ * Hooks reutilizables para operaciones CRUD en el Admin Panel
+ * 
+ * useAdminData: Hook para fetch de datos con manejo de loading/error
+ * useAdminMutation: Hook para mutaciones (POST, PUT, DELETE)
+ * 
+ * Referencia: SOLUCIONES_IMPLEMENTACION.md #2
+ * UX Improvement: P0 - Elimina duplicación de código de fetch
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+
+interface UseAdminDataOptions {
+  autoFetch?: boolean;
+  onSuccess?: (data: unknown) => void;
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Hook para fetch de datos con manejo automático de estados
+ * 
+ * @example
+ * const { data: employees, loading, error, refetch } = useAdminData<Employee>(
+ *   '/api/admin/employees'
+ * );
+ */
+export function useAdminData<T>(
+  endpoint: string,
+  options: UseAdminDataOptions = {}
+) {
+  const { autoFetch = true, onSuccess, onError } = options;
+  
+  const [data, setData] = useState<T[]>([]);
+  const [loading, setLoading] = useState(autoFetch);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const res = await fetch(endpoint);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Error al cargar datos' }));
+        throw new Error(errorData.error || `Error ${res.status}: ${res.statusText}`);
+      }
+      
+      const result = await res.json();
+      setData(result);
+      onSuccess?.(result);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar datos';
+      setError(errorMessage);
+      onError?.(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, [endpoint, onSuccess, onError]);
+
+  useEffect(() => {
+    if (autoFetch) {
+      fetchData();
+    }
+  }, [autoFetch, fetchData]);
+
+  return { 
+    data, 
+    loading, 
+    error, 
+    refetch: fetchData,
+    setData, // Para actualizaciones optimistas
+  };
+}
+
+/**
+ * Hook para mutaciones (POST, PUT, DELETE) con manejo de estados
+ * 
+ * @example
+ * const { mutate: createEmployee, loading: creating } = useAdminMutation<Employee>(
+ *   '/api/admin/employees',
+ *   'POST'
+ * );
+ * 
+ * await createEmployee({ name: 'Juan', role: 'WAITER', pin: '1234' });
+ */
+export function useAdminMutation<T = unknown>(
+  endpoint: string,
+  method: 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'POST'
+) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const mutate = useCallback(async (data?: T) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const res = await fetch(endpoint, {
+        method,
+        headers: data ? { 'Content-Type': 'application/json' } : undefined,
+        body: data ? JSON.stringify(data) : undefined,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Error en la operación' }));
+        throw new Error(errorData.error || `Error ${res.status}: ${res.statusText}`);
+      }
+
+      return method === 'DELETE' ? null : await res.json();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error en la operación';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [endpoint, method]);
+
+  return { mutate, loading, error };
+}

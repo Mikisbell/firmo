@@ -56,6 +56,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const tenantId = process.env.TENANT_ID || 'default';
+    const adminId = '00000000-0000-0000-0000-000000000001';
     const body = await request.json();
     
     const parsed = promotionSchema.safeParse(body);
@@ -65,18 +66,36 @@ export async function POST(request: NextRequest) {
     
     const data = parsed.data;
     
-    const promotion = await prisma.promotions.create({
-      data: {
-        id: crypto.randomUUID(),
-        tenant_id: tenantId,
-        name: data.name,
-        type: data.type,
-        value: data.value,
-        rules: data.rules ? JSON.parse(JSON.stringify(data.rules)) : {},
-        starts_at: new Date(data.starts_at),
-        ends_at: new Date(data.ends_at),
-        is_active: data.is_active,
-      },
+    // Create promotion in transaction with audit trail
+    const promotion = await prisma.$transaction(async (tx) => {
+      const newPromotion = await tx.promotions.create({
+        data: {
+          id: crypto.randomUUID(),
+          tenant_id: tenantId,
+          name: data.name,
+          type: data.type,
+          value: data.value,
+          rules: data.rules ? JSON.parse(JSON.stringify(data.rules)) : {},
+          starts_at: new Date(data.starts_at),
+          ends_at: new Date(data.ends_at),
+          is_active: data.is_active,
+        },
+      });
+
+      // Log audit trail
+      await tx.admin_access_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          tenant_id: tenantId,
+          employee_id: adminId,
+          action: 'CREATE',
+          resource: 'promotions',
+          metadata: { record_id: newPromotion.id },
+          created_at: new Date(),
+        },
+      });
+
+      return newPromotion;
     });
     
     return NextResponse.json(promotion, { status: 201 });

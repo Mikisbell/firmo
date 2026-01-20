@@ -32,15 +32,34 @@ export const DriverService = {
     }
 
     const id = crypto.randomUUID();
+    const adminId = '00000000-0000-0000-0000-000000000001';
 
-    const driver = await prisma.drivers.create({
-      data: {
-        id,
-        tenant_id: tenantId,
-        name: name.trim(),
-        phone: phone?.trim() || null,
-        is_active: true,
-      },
+    // Create driver in transaction with audit trail
+    const driver = await prisma.$transaction(async (tx) => {
+      const newDriver = await tx.drivers.create({
+        data: {
+          id,
+          tenant_id: tenantId,
+          name: name.trim(),
+          phone: phone?.trim() || null,
+          is_active: true,
+        },
+      });
+
+      // Log audit trail
+      await tx.admin_access_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          tenant_id: tenantId,
+          employee_id: adminId,
+          action: 'CREATE',
+          resource: 'drivers',
+          metadata: { record_id: newDriver.id },
+          created_at: new Date(),
+        },
+      });
+
+      return newDriver;
     });
 
     return mapToDriver(driver);
@@ -61,12 +80,35 @@ export const DriverService = {
       throw new DriverServiceError('Driver not found', 'NOT_FOUND', 404);
     }
 
-    const updated = await prisma.drivers.update({
-      where: { id: driverId },
-      data: {
-        ...(data.name && { name: data.name.trim() }),
-        ...(data.phone !== undefined && { phone: data.phone?.trim() || null }),
-      },
+    const adminId = '00000000-0000-0000-0000-000000000001';
+
+    // Update driver in transaction with audit trail
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedDriver = await tx.drivers.update({
+        where: { id: driverId },
+        data: {
+          ...(data.name && { name: data.name.trim() }),
+          ...(data.phone !== undefined && { phone: data.phone?.trim() || null }),
+        },
+      });
+
+      // Log audit trail
+      await tx.admin_access_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          tenant_id: driver.tenant_id,
+          employee_id: adminId,
+          action: 'UPDATE',
+          resource: 'drivers',
+          metadata: {
+            record_id: driverId,
+            changes: data,
+          },
+          created_at: new Date(),
+        },
+      });
+
+      return updatedDriver;
     });
 
     return mapToDriver(updated);
@@ -84,9 +126,29 @@ export const DriverService = {
       throw new DriverServiceError('Driver not found', 'NOT_FOUND', 404);
     }
 
-    const updated = await prisma.drivers.update({
-      where: { id: driverId },
-      data: { is_active: false },
+    const adminId = '00000000-0000-0000-0000-000000000001';
+
+    // Deactivate driver in transaction with audit trail
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedDriver = await tx.drivers.update({
+        where: { id: driverId },
+        data: { is_active: false },
+      });
+
+      // Log audit trail
+      await tx.admin_access_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          tenant_id: driver.tenant_id,
+          employee_id: adminId,
+          action: 'DELETE',
+          resource: 'drivers',
+          metadata: { record_id: driverId },
+          created_at: new Date(),
+        },
+      });
+
+      return updatedDriver;
     });
 
     return mapToDriver(updated);

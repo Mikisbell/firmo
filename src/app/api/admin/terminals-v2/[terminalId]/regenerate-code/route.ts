@@ -11,11 +11,11 @@ import { NextResponse } from 'next/server';
 import { generateActivationCode, formatActivationCode } from '@/src/core/auth/terminal-registry';
 
 export async function POST(
-  request: Request,
-  { params }: { params: { terminalId: string } }
+  _request: Request,
+  { params }: { params: Promise<{ terminalId: string }> }
 ) {
   try {
-    const { terminalId } = params;
+    const { terminalId } = await params;
     // Use ADMIN employee ID as created_by (TODO: Get from session)
     const ADMIN_ID = "00000000-0000-0000-0000-000000000001";
     const createdBy = ADMIN_ID;

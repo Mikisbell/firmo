@@ -1,29 +1,16 @@
 /**
- * Products API - GET and POST
- * 
- * Requirements: 3.2, 3.3
+ * Products API - GET (list) and POST (create)
+ * Requirements: 2.1, 2.2, 2.5, 2.6, 2.7, 2.8, 10.4
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { z } from 'zod';
 import { randomUUID } from 'crypto';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
 
-// Validation schema for creating/updating products
-const productSchema = z.object({
-  sku: z.string().min(1).max(50),
-  name: z.string().min(1).max(100),
-  short_name: z.string().max(30).nullable().optional(),
-  price_cents: z.number().int().min(0), // Always integer, never float
-  category: z.string().min(1),
-  station: z.string().min(1),
-  type: z.enum(['SIMPLE', 'COMBO']).default('SIMPLE'),
-  is_active: z.boolean().default(true),
-});
-
+// GET - List all products
 export async function GET() {
   try {
     const products = await prisma.products.findMany({
@@ -41,7 +28,7 @@ export async function GET() {
         is_active: true,
       },
     });
-    
+
     return NextResponse.json(products);
   } catch (error) {
     console.error('Products GET error:', error);
@@ -52,57 +39,101 @@ export async function GET() {
   }
 }
 
+// POST - Create new product
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Validate input
-    const parsed = productSchema.safeParse(body);
-    if (!parsed.success) {
+    const { sku, name, short_name, price_cents, category, station, type = 'SIMPLE', is_active = true } = body;
+
+    // Validate required fields
+    if (!sku || !name || price_cents === undefined || !category || !station) {
       return NextResponse.json(
-        { error: 'Invalid product data', details: parsed.error.flatten() },
+        { error: 'Faltan campos requeridos: sku, name, price_cents, category, station' },
         { status: 400 }
       );
     }
-    
-    const data = parsed.data;
-    
-    // Check for duplicate SKU
-    const existing = await prisma.products.findFirst({
-      where: { tenant_id: TENANT_ID, sku: data.sku },
-    });
-    
-    if (existing) {
+
+    // Validate price is integer
+    if (!Number.isInteger(price_cents) || price_cents < 0) {
       return NextResponse.json(
-        { error: 'SKU already exists' },
+        { error: 'price_cents debe ser un número entero positivo' },
+        { status: 400 }
+      );
+    }
+
+    // Validate category
+    const validCategories = ['POLLOS', 'PARRILLAS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS'];
+    if (!validCategories.includes(category)) {
+      return NextResponse.json(
+        { error: `Categoría inválida. Debe ser uno de: ${validCategories.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate station
+    const validStations = ['PARRILLA', 'COCINA', 'BAR', 'HORNO', 'POSTRES', 'EMPAQUE'];
+    if (!validStations.includes(station)) {
+      return NextResponse.json(
+        { error: `Estación inválida. Debe ser uno de: ${validStations.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate type
+    const validTypes = ['SIMPLE', 'COMBO'];
+    if (!validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: `Tipo inválido. Debe ser uno de: ${validTypes.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Check SKU uniqueness
+    const existingSku = await prisma.products.findFirst({
+      where: {
+        tenant_id: TENANT_ID,
+        sku,
+      },
+    });
+
+    if (existingSku) {
+      return NextResponse.json(
+        { error: 'Este SKU ya está en uso' },
         { status: 409 }
       );
     }
-    
+
     // Create product in transaction with audit trail and catalog version increment
     const product = await prisma.$transaction(async (tx) => {
       const newProduct = await tx.products.create({
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          sku: data.sku,
-          name: data.name,
-          short_name: data.short_name || null,
-          price_cents: data.price_cents,
-          category: data.category,
-          station: data.station,
-          type: data.type,
-          is_active: data.is_active,
+          sku,
+          name,
+          short_name: short_name || null,
+          price_cents,
+          category,
+          station,
+          type,
+          is_active,
         },
       });
-      
+
       // Increment catalog version
       await tx.catalog_meta.upsert({
         where: { tenant_id: TENANT_ID },
-        update: { catalog_version: { increment: 1 }, updated_at: new Date() },
-        create: { tenant_id: TENANT_ID, catalog_version: 1 },
+        create: {
+          tenant_id: TENANT_ID,
+          catalog_version: 1,
+          updated_at: new Date(),
+        },
+        update: {
+          catalog_version: { increment: 1 },
+          updated_at: new Date(),
+        },
       });
-      
+
       // Log audit trail
       await tx.admin_access_logs.create({
         data: {
@@ -115,10 +146,10 @@ export async function POST(request: NextRequest) {
           created_at: new Date(),
         },
       });
-      
+
       return newProduct;
     });
-    
+
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error('Products POST error:', error);

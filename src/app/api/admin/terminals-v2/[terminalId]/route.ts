@@ -13,12 +13,12 @@ import { NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { terminalId: string } }
+  _request: Request,
+  { params }: { params: Promise<{ terminalId: string }> }
 ) {
   try {
+    const { terminalId } = await params;
     const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-    const { terminalId } = params;
 
     // Get terminal device
     const terminal = await prisma.terminal_devices.findFirst({

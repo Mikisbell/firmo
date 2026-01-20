@@ -36,6 +36,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const tenantId = process.env.TENANT_ID || 'default';
+    const adminId = '00000000-0000-0000-0000-000000000001';
     const body = await request.json();
     
     const parsed = configSchema.safeParse(body);
@@ -45,15 +46,52 @@ export async function PUT(request: NextRequest) {
     
     const data = parsed.data;
     
-    // Note: In production, check if user has manage_fiscal permission for tax_rate
-    const settings = await prisma.tenant_settings.update({
+    // Get old values for audit trail
+    const oldSettings = await prisma.tenant_settings.findUnique({
       where: { tenant_id: tenantId },
-      data: {
-        legal_name: data.legal_name,
-        ruc: data.ruc || null,
-        address_text: data.address_text || null,
-        updated_at: new Date(),
-      },
+    });
+
+    if (!oldSettings) {
+      return NextResponse.json({ error: 'Settings not found' }, { status: 404 });
+    }
+    
+    // Update settings in transaction with audit trail
+    const settings = await prisma.$transaction(async (tx) => {
+      const updated = await tx.tenant_settings.update({
+        where: { tenant_id: tenantId },
+        data: {
+          legal_name: data.legal_name,
+          ruc: data.ruc || null,
+          address_text: data.address_text || null,
+          updated_at: new Date(),
+        },
+      });
+
+      // Log audit trail with old and new values
+      await tx.admin_access_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          tenant_id: tenantId,
+          employee_id: adminId,
+          action: 'UPDATE',
+          resource: 'config',
+          metadata: {
+            old_values: {
+              legal_name: oldSettings.legal_name,
+              ruc: oldSettings.ruc,
+              address_text: oldSettings.address_text,
+            },
+            new_values: {
+              legal_name: data.legal_name,
+              ruc: data.ruc || null,
+              address_text: data.address_text || null,
+            },
+          },
+          created_at: new Date(),
+        },
+      });
+
+      return updated;
     });
     
     return NextResponse.json(settings);

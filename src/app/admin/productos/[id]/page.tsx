@@ -2,15 +2,16 @@
 
 /**
  * Edit Product Page
- * Requirements: 2.3, 2.9, 6.1, 6.2, 6.3, 6.4, 6.5
+ * Form to edit product with all fields
+ * 
+ * Requirements: 2.3, 2.4, 2.9, 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { handleApiCall, formatApiError } from '@/src/lib/api-utils';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Package, DollarSign, Trash2 } from 'lucide-react';
 
-const CATEGORIES = [
+const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
   { value: 'PARRILLAS', label: 'Parrillas' },
   { value: 'BEBIDAS', label: 'Bebidas' },
@@ -19,7 +20,7 @@ const CATEGORIES = [
   { value: 'COMBOS', label: 'Combos' },
 ];
 
-const STATIONS = [
+const STATION_OPTIONS = [
   { value: 'PARRILLA', label: 'Parrilla' },
   { value: 'COCINA', label: 'Cocina' },
   { value: 'BAR', label: 'Bar' },
@@ -28,7 +29,7 @@ const STATIONS = [
   { value: 'EMPAQUE', label: 'Empaque' },
 ];
 
-const TYPES = [
+const TYPE_OPTIONS = [
   { value: 'SIMPLE', label: 'Simple' },
   { value: 'COMBO', label: 'Combo' },
 ];
@@ -45,49 +46,49 @@ interface Product {
   is_active: boolean;
 }
 
-export default function EditProductPage() {
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const params = useParams();
-  const productId = params.id as string;
-
+  const [productId, setProductId] = useState<string | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [form, setForm] = useState({
     sku: '',
     name: '',
     short_name: '',
-    price_cents: 0,
-    category: 'POLLOS',
-    station: 'PARRILLA',
-    type: 'SIMPLE',
+    price_soles: '',
+    category: '',
+    station: '',
+    type: '',
     is_active: true,
   });
-  const [priceDisplay, setPriceDisplay] = useState('0.00');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    params.then(p => setProductId(p.id));
+  }, [params]);
+
+  useEffect(() => {
+    if (!productId) return;
+    
     const fetchProduct = async () => {
       try {
-        setLoading(true);
-        const data = await handleApiCall<Product>(`/api/admin/products/${productId}`, {
-          method: 'GET',
-        });
+        const res = await fetch(`/api/admin/products/${productId}`);
+        if (!res.ok) throw new Error('Producto no encontrado');
+        const data = await res.json();
         setProduct(data);
         setForm({
           sku: data.sku,
           name: data.name,
           short_name: data.short_name || '',
-          price_cents: data.price_cents,
+          price_soles: (data.price_cents / 100).toFixed(2),
           category: data.category,
           station: data.station,
           type: data.type,
           is_active: data.is_active,
         });
-        // Convert centavos to decimal display
-        setPriceDisplay((data.price_cents / 100).toFixed(2));
       } catch (err) {
-        setError(formatApiError(err));
+        setError(err instanceof Error ? err.message : 'Error al cargar producto');
       } finally {
         setLoading(false);
       }
@@ -96,260 +97,298 @@ export default function EditProductPage() {
     fetchProduct();
   }, [productId]);
 
-  const handlePriceChange = (value: string) => {
-    // Remove non-numeric characters except decimal point
-    const cleaned = value.replace(/[^\d.]/g, '');
-    
-    // Ensure only one decimal point
-    const parts = cleaned.split('.');
-    const formatted = parts.length > 2 
-      ? `${parts[0]}.${parts.slice(1).join('')}` 
-      : cleaned;
-    
-    setPriceDisplay(formatted);
-    
-    // Convert to centavos (integer)
-    const cents = Math.round(parseFloat(formatted || '0') * 100);
-    setForm({ ...form, price_cents: cents });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!productId) return;
+    
     setSaving(true);
     setError(null);
 
     try {
-      // Client-side validation
-      if (!form.sku.trim()) {
-        throw new Error('El SKU es requerido');
+      // Convert price from soles to centavos (integer)
+      const price_cents = Math.round(parseFloat(form.price_soles) * 100);
+
+      if (isNaN(price_cents) || price_cents < 0) {
+        throw new Error('Precio inválido');
       }
 
-      if (!form.name.trim()) {
-        throw new Error('El nombre es requerido');
-      }
-
-      if (form.price_cents < 0) {
-        throw new Error('El precio debe ser mayor o igual a 0');
-      }
-
-      await handleApiCall(`/api/admin/products/${productId}`, {
+      const res = await fetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...form,
+          sku: form.sku,
+          name: form.name,
           short_name: form.short_name || null,
+          price_cents,
+          category: form.category,
+          station: form.station,
+          type: form.type,
+          is_active: form.is_active,
         }),
       });
 
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error al actualizar producto');
+      }
+
       router.push('/admin/productos');
     } catch (err) {
-      setError(formatApiError(err));
+      setError(err instanceof Error ? err.message : 'Error al guardar');
     } finally {
       setSaving(false);
     }
   };
 
+  const handleDelete = async () => {
+    if (!productId) return;
+    if (!confirm('¿Desactivar este producto? No aparecerá en el catálogo.')) return;
+
+    try {
+      const res = await fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error al desactivar producto');
+      }
+
+      router.push('/admin/productos');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al eliminar');
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+      <div className="flex items-center justify-center h-64">
+        <div className="text-zinc-400">Cargando...</div>
       </div>
     );
   }
 
-  if (!product) {
+  if (error && !product) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-          Producto no encontrado
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold">Error</h1>
         </div>
-        <button
-          onClick={() => router.back()}
-          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
-        >
-          Volver
-        </button>
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+          {error}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold">Editar Producto</h1>
-          <p className="text-zinc-400 mt-1">Modificar información del producto</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold">Editar Producto</h1>
+            <p className="text-zinc-400 mt-1">{product?.name}</p>
+          </div>
         </div>
+        <button
+          onClick={handleDelete}
+          className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          Desactivar
+        </button>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-6">
-        {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-            {error}
-          </div>
-        )}
+      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
-        {/* SKU and Price */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              SKU *
-            </label>
-            <input
-              type="text"
-              value={form.sku}
-              onChange={(e) => setForm({ ...form, sku: e.target.value })}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none transition-colors"
-              placeholder="Ej: POLLO-1/4"
-              required
-              maxLength={50}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Precio (S/) *
-            </label>
-            <input
-              type="text"
-              value={priceDisplay}
-              onChange={(e) => handlePriceChange(e.target.value)}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none transition-colors"
-              placeholder="0.00"
-              required
-            />
-            <p className="text-xs text-zinc-500 mt-1">
-              Centavos: {form.price_cents}
-            </p>
-          </div>
-        </div>
+          {/* SKU and Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                <Package className="w-4 h-4 inline mr-1" />
+                SKU *
+              </label>
+              <input
+                type="text"
+                value={form.sku}
+                onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                placeholder="Ej: POLLO-1/4"
+                required
+                maxLength={50}
+              />
+              <p className="text-xs text-zinc-500 mt-1">
+                Código único del producto
+              </p>
+            </div>
 
-        {/* Name */}
-        <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
-            Nombre *
-          </label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none transition-colors"
-            placeholder="Ej: 1/4 Pollo a la Brasa"
-            required
-            maxLength={100}
-          />
-        </div>
-
-        {/* Short Name */}
-        <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
-            Nombre Corto (opcional)
-          </label>
-          <input
-            type="text"
-            value={form.short_name}
-            onChange={(e) => setForm({ ...form, short_name: e.target.value })}
-            className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none transition-colors"
-            placeholder="Ej: 1/4 Pollo"
-            maxLength={30}
-          />
-          <p className="text-xs text-zinc-500 mt-1">
-            Nombre abreviado para tickets y pantallas
-          </p>
-        </div>
-
-        {/* Category, Station, Type */}
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Categoría *
-            </label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none transition-colors"
-              required
-            >
-              {CATEGORIES.map(cat => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Nombre completo *
+              </label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                placeholder="Ej: 1/4 Pollo a la Brasa"
+                required
+                maxLength={100}
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Estación *
-            </label>
-            <select
-              value={form.station}
-              onChange={(e) => setForm({ ...form, station: e.target.value })}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none transition-colors"
-              required
-            >
-              {STATIONS.map(station => (
-                <option key={station.value} value={station.value}>
-                  {station.label}
-                </option>
-              ))}
-            </select>
+
+          {/* Short name and Price */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Nombre corto (opcional)
+              </label>
+              <input
+                type="text"
+                value={form.short_name}
+                onChange={(e) => setForm({ ...form, short_name: e.target.value })}
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                placeholder="Ej: 1/4 Pollo"
+                maxLength={30}
+              />
+              <p className="text-xs text-zinc-500 mt-1">
+                Para mostrar en pantallas pequeñas
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                <DollarSign className="w-4 h-4 inline mr-1" />
+                Precio (S/) *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.price_soles}
+                onChange={(e) => setForm({ ...form, price_soles: e.target.value })}
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                placeholder="0.00"
+                required
+              />
+              <p className="text-xs text-zinc-500 mt-1">
+                Se almacena en centavos (entero)
+              </p>
+            </div>
           </div>
+
+          {/* Category and Station */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Categoría *
+              </label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                required
+              >
+                {CATEGORY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Estación de preparación *
+              </label>
+              <select
+                value={form.station}
+                onChange={(e) => setForm({ ...form, station: e.target.value })}
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                required
+              >
+                {STATION_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Type */}
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Tipo *
+              Tipo de producto *
             </label>
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none transition-colors"
+              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
               required
             >
-              {TYPES.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
+              {TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Active Status */}
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.is_active}
-            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-            className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500"
-          />
-          <span className="text-sm text-zinc-300">Producto activo</span>
-        </label>
+          {/* Active status */}
+          <div className="flex items-center gap-3 p-4 bg-zinc-800/50 rounded-lg">
+            <input
+              type="checkbox"
+              id="is_active"
+              checked={form.is_active}
+              onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+              className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500"
+            />
+            <label htmlFor="is_active" className="text-sm cursor-pointer">
+              Producto activo (visible en el catálogo)
+            </label>
+          </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t border-zinc-800">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            disabled={saving}
-            className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            {saving ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
-        </div>
-      </form>
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t border-zinc-800">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

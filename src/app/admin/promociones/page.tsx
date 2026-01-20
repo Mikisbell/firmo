@@ -6,8 +6,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Check, X, Calendar, Percent } from 'lucide-react';
+import { Plus, Check, X, Calendar, Percent, Edit, Trash2 } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
+import Link from 'next/link';
 
 interface Promotion {
   id: string;
@@ -59,6 +60,23 @@ export default function PromotionsPage() {
 
   const isExpired = (endsAt: string) => new Date(endsAt) < new Date();
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Desactivar esta promoción?')) return;
+
+    try {
+      const res = await fetch(`/api/admin/promotions/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error al desactivar');
+      }
+      fetchPromotions();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al eliminar');
+    }
+  };
+
   const columns: Column<Promotion>[] = [
     { key: 'name', label: 'Nombre' },
     {
@@ -98,6 +116,29 @@ export default function PromotionsPage() {
         </span>
       ),
     },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      width: '120px',
+      render: (p) => (
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/promociones/${p.id}`}
+            className="p-1.5 hover:bg-zinc-800 rounded transition-colors"
+            title="Editar"
+          >
+            <Edit className="w-4 h-4" />
+          </Link>
+          <button
+            onClick={() => handleDelete(p.id)}
+            className="p-1.5 hover:bg-red-500/10 text-red-400 rounded transition-colors"
+            title="Desactivar"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -107,10 +148,10 @@ export default function PromotionsPage() {
           <h1 className="text-2xl font-bold">Promociones</h1>
           <p className="text-zinc-400 mt-1">Gestionar ofertas y descuentos</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]">
+        <Link href="/admin/promociones/nuevo" className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]">
           <Plus className="w-4 h-4" />
           Nueva Promoción
-        </button>
+        </Link>
       </div>
       {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">{error}</div>}
       <DataTable data={promotions} columns={columns} filters={filters} searchPlaceholder="Buscar..." searchKeys={['name']} loading={loading} emptyMessage="No hay promociones" />

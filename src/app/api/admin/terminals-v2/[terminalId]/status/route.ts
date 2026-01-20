@@ -13,11 +13,11 @@ import { logger } from '@/src/core/observability/logger';
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { terminalId: string } }
+  { params }: { params: Promise<{ terminalId: string }> }
 ) {
   try {
+    const { terminalId } = await params;
     const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-    const { terminalId } = params;
     const body = await request.json();
     const { status } = body;
 
