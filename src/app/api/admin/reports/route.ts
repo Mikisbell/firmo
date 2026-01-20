@@ -75,6 +75,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Reports GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch report' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al obtener reporte' }, { status: 500 });
   }
 }

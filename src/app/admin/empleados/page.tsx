@@ -7,10 +7,10 @@
  * Requirements: 4.1, 4.2
  */
 
-import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Check, X, Shield } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
+import { useAdminData } from '@/src/hooks/useAdminData';
 
 interface Employee {
   id: string;
@@ -51,29 +51,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function EmployeesPage() {
   const router = useRouter();
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchEmployees = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/employees');
-      if (!res.ok) throw new Error('Failed to fetch employees');
-      const data = await res.json();
-      setEmployees(data);
-      setError(null);
-    } catch (err) {
-      setError('Error al cargar empleados');
-      console.error('Employees fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
+  const { data: employees, loading, error } = useAdminData<Employee>('/api/admin/employees');
 
   const columns: Column<Employee>[] = [
     { key: 'name', label: 'Nombre' },
@@ -153,7 +131,7 @@ export default function EmployeesPage() {
 
       {/* Employees table */}
       <DataTable
-        data={employees}
+        data={employees || []}
         columns={columns}
         filters={filters}
         searchPlaceholder="Buscar por nombre..."

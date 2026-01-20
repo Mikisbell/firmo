@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       // Sending to another employee requires ADMIN or OWNER role
       if (!['ADMIN', 'OWNER'].includes(session.role)) {
         return NextResponse.json(
-          { error: 'Admin role required to send test to other employees' },
+          { error: 'Se requiere rol de administrador para enviar prueba a otros empleados' },
           { status: 403 }
         );
       }
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     if (result.sent === 0 && result.failed === 0) {
       return NextResponse.json({
         success: false,
-        message: 'No active subscriptions found for this employee',
+        message: 'No se encontraron suscripciones activas para este empleado',
         sent: 0,
         failed: 0,
       });
@@ -51,15 +51,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: result.sent > 0,
       message: result.sent > 0 
-        ? `Test notification sent to ${result.sent} device(s)` 
-        : 'Failed to send test notification',
+        ? `Notificación de prueba enviada a ${result.sent} dispositivo(s)` 
+        : 'Error al enviar notificación de prueba',
       sent: result.sent,
       failed: result.failed,
     });
   } catch (error) {
     console.error('[API] Test notification error:', error);
     return NextResponse.json(
-      { error: 'Failed to send test notification' },
+      { error: 'Error al enviar notificación de prueba' },
       { status: 500 }
     );
   }

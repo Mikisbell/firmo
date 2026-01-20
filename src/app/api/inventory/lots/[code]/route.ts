@@ -37,7 +37,7 @@ export async function GET(
 
     if (!tenantId) {
       return NextResponse.json(
-        { error: 'tenant_id is required' },
+        { error: 'Se requiere tenant_id' },
         { status: 400 }
       );
     }
@@ -53,7 +53,7 @@ export async function GET(
 
     if (!inventory) {
       return NextResponse.json(
-        { error: 'inventory_not_found' },
+        { error: 'Inventario no encontrado' },
         { status: 404 }
       );
     }
@@ -134,7 +134,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching inventory lots:', error);
     return NextResponse.json(
-      { error: 'internal_error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

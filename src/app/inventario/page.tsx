@@ -213,13 +213,13 @@ export default function InventarioPage() {
     };
   }, [addToast]);
 
-  const handleAuthSuccess = (emp: AuthEmployee, _token: string) => {
+  const handleAuthSuccess = useCallback((emp: AuthEmployee) => {
     setEmployee(emp);
     setIsAuthenticated(true);
     setShowPinModal(false);
     loadStats();
     addToast('success', `Bienvenido, ${emp.name}`);
-  };
+  }, [addToast]);
 
   const loadStats = async () => {
     try {

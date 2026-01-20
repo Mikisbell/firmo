@@ -255,8 +255,8 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Add loading states and error handling
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 11. Implement permission enforcement across all modules
-  - [ ] 11.1 Add role-based access control middleware
+- [-] 11. Implement permission enforcement across all modules
+  - [x] 11.1 Add role-based access control middleware
     - Create middleware to check ADMIN/MANAGER roles
     - Apply to all POST, PUT, DELETE, PATCH endpoints
     - Return 403 for unauthorized requests
@@ -374,7 +374,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Configurar tema oscuro, posición top-right, auto-dismiss 5s ✅
     - _Referencia: SOLUCIONES_IMPLEMENTACION.md #1_
 
-  - [-] 16.2 Reemplazar alerts con toasts en todos los módulos
+  - [x] 16.2 Reemplazar alerts con toasts en todos los módulos
     - Reemplazar alert() en Employees pages (nuevo, [id]) ✅
     - Reemplazar alert() en Products pages (nuevo, [id]) - EN PROGRESO
     - Reemplazar alert() en Promotions pages (nuevo, [id]) - PENDIENTE
@@ -403,7 +403,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Tipado completo con TypeScript generics ✅
     - _Referencia: SOLUCIONES_IMPLEMENTACION.md #2_
 
-  - [ ] 17.3 Migrar páginas a usar hooks
+  - [x] 17.3 Migrar páginas a usar hooks
     - Migrar Employees pages a useAdminData/useAdminMutation
     - Migrar Products pages a useAdminData/useAdminMutation
     - Migrar Promotions pages a useAdminData/useAdminMutation

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
 
 const AssignDriverSchema = z.object({
-  driverId: z.string().uuid('Invalid driver ID'),
+  driverId: z.string().uuid('ID de repartidor inválido'),
 });
 
 export async function PATCH(
@@ -21,7 +21,7 @@ export async function PATCH(
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation error', details: parsed.error.flatten() },
+        { error: 'Error de validación', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -37,7 +37,7 @@ export async function PATCH(
     }
     console.error('Error assigning driver:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

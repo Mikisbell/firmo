@@ -1,10 +1,10 @@
 // Script para crear un pedido de prueba con items de cocina y bar
 
-const TENANT_ID = "00000000-0000-0000-0000-000000000001";
+const TEST_ORDER_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const TERM_ID = "waiter_1";
 const ACTOR_ID = "00000000-0000-0000-0000-000000000003";
 
-const API_URL = "http://localhost:3000/api/events/ingest";
+const INGEST_API_URL = "http://localhost:3000/api/events/ingest";
 const API_SECRET = "park_secret_mvp_2025";
 
 function uuid() {
@@ -28,7 +28,7 @@ async function createTestOrder() {
         {
             event_id: uuid(),
             event_type: "ORDER_CREATED",
-            tenant_id: TENANT_ID,
+            tenant_id: TEST_ORDER_TENANT_ID,
             terminal_id: TERM_ID,
             terminal_sequence: baseSeq,
             actor_id: ACTOR_ID,
@@ -59,7 +59,7 @@ async function createTestOrder() {
         {
             event_id: uuid(),
             event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TENANT_ID,
+            tenant_id: TEST_ORDER_TENANT_ID,
             terminal_id: TERM_ID,
             terminal_sequence: baseSeq + 1,
             actor_id: ACTOR_ID,
@@ -86,7 +86,7 @@ async function createTestOrder() {
         {
             event_id: uuid(),
             event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TENANT_ID,
+            tenant_id: TEST_ORDER_TENANT_ID,
             terminal_id: TERM_ID,
             terminal_sequence: baseSeq + 2,
             actor_id: ACTOR_ID,
@@ -113,7 +113,7 @@ async function createTestOrder() {
         {
             event_id: uuid(),
             event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TENANT_ID,
+            tenant_id: TEST_ORDER_TENANT_ID,
             terminal_id: TERM_ID,
             terminal_sequence: baseSeq + 3,
             actor_id: ACTOR_ID,
@@ -140,7 +140,7 @@ async function createTestOrder() {
         {
             event_id: uuid(),
             event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TENANT_ID,
+            tenant_id: TEST_ORDER_TENANT_ID,
             terminal_id: TERM_ID,
             terminal_sequence: baseSeq + 4,
             actor_id: ACTOR_ID,
@@ -176,7 +176,7 @@ async function createTestOrder() {
     console.log(`     - 2x Cusqueña (BAR)\n`);
 
     const body = {
-        tenant_id: TENANT_ID,
+        tenant_id: TEST_ORDER_TENANT_ID,
         terminal_id: TERM_ID,
         from_terminal_sequence: baseSeq,
         to_terminal_sequence: baseSeq + 4,
@@ -184,7 +184,7 @@ async function createTestOrder() {
     };
 
     try {
-        const res = await fetch(API_URL, {
+        const res = await fetch(INGEST_API_URL, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",

@@ -6,12 +6,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DriverService, DriverServiceError } from '@/src/core/delivery';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 const TENANT_ID = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
 
 const CreateDriverSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  phone: z.string().min(9, 'Phone must be at least 9 characters').optional(),
+  name: z.string().min(1, 'El nombre es requerido'),
+  phone: z.string().min(9, 'El teléfono debe tener al menos 9 caracteres').optional(),
 });
 
 export async function GET() {
@@ -21,20 +22,26 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching drivers:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const body = await request.json();
     const parsed = CreateDriverSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation error', details: parsed.error.flatten() },
+        { error: 'Error de validación', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -55,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
     console.error('Error creating driver:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

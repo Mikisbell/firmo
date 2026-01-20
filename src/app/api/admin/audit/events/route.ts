@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         filters.event_type = eventType as AuthEventType;
       } else {
         return NextResponse.json(
-          { error: `Invalid event_type. Must be one of: ${validEventTypes.join(', ')}` },
+          { error: `Tipo de evento inválido. Debe ser uno de: ${validEventTypes.join(', ')}` },
           { status: 400 }
         );
       }
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       const date = new Date(startDate);
       if (isNaN(date.getTime())) {
         return NextResponse.json(
-          { error: 'Invalid start_date format. Use ISO 8601 format (e.g., 2026-01-01T00:00:00Z)' },
+          { error: 'Formato de start_date inválido. Use formato ISO 8601 (ej: 2026-01-01T00:00:00Z)' },
           { status: 400 }
         );
       }
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       const date = new Date(endDate);
       if (isNaN(date.getTime())) {
         return NextResponse.json(
-          { error: 'Invalid end_date format. Use ISO 8601 format (e.g., 2026-01-01T00:00:00Z)' },
+          { error: 'Formato de end_date inválido. Use formato ISO 8601 (ej: 2026-01-01T00:00:00Z)' },
           { status: 400 }
         );
       }
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
       const limitNum = parseInt(limit, 10);
       if (isNaN(limitNum) || limitNum < 1 || limitNum > 1000) {
         return NextResponse.json(
-          { error: 'Invalid limit. Must be a number between 1 and 1000' },
+          { error: 'Límite inválido. Debe ser un número entre 1 y 1000' },
           { status: 400 }
         );
       }
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Audit events GET error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch audit events' },
+      { error: 'Error al obtener eventos de auditoría' },
       { status: 500 }
     );
   }

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const preferences = await notificationService.getPreferences(
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[API] Get preferences error:', error);
     return NextResponse.json(
-      { error: 'Failed to get preferences' },
+      { error: 'Error al obtener preferencias' },
       { status: 500 }
     );
   }
@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -55,7 +55,7 @@ export async function PATCH(request: NextRequest) {
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { error: 'No valid preferences to update' },
+        { error: 'No hay preferencias válidas para actualizar' },
         { status: 400 }
       );
     }
@@ -70,7 +70,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error('[API] Update preferences error:', error);
     return NextResponse.json(
-      { error: 'Failed to update preferences' },
+      { error: 'Error al actualizar preferencias' },
       { status: 500 }
     );
   }

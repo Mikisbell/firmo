@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DriverService, DriverServiceError } from '@/src/core/delivery';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 const UpdateDriverSchema = z.object({
   name: z.string().min(1).optional(),
@@ -30,7 +31,7 @@ export async function GET(
     }
     console.error('Error fetching driver:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -40,6 +41,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -47,7 +54,7 @@ export async function PATCH(
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation error', details: parsed.error.flatten() },
+        { error: 'Error de validación', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -82,7 +89,7 @@ export async function PATCH(
     }
     console.error('Error updating driver:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

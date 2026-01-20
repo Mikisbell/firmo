@@ -39,7 +39,7 @@ export async function GET() {
     })));
   } catch (error) {
     console.error('Zones GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch zones' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al obtener zonas' }, { status: 500 });
   }
 }
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const parsed = zoneSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid zone data', details: parsed.error.flatten() },
+        { error: 'Datos de zona inválidos', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     });
     
     if (existing) {
-      return NextResponse.json({ error: 'Zone code already exists' }, { status: 409 });
+      return NextResponse.json({ error: 'El código de zona ya existe' }, { status: 409 });
     }
     
     const zone = await prisma.zones.create({
@@ -80,6 +80,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(zone, { status: 201 });
   } catch (error) {
     console.error('Zones POST error:', error);
-    return NextResponse.json({ error: 'Failed to create zone' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al crear zona' }, { status: 500 });
   }
 }

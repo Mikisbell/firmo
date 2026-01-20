@@ -7,13 +7,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { createHash } from 'crypto';
 import { randomUUID } from 'crypto';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { checkRateLimit, RATE_LIMIT_CONFIGS } from '@/src/lib/rate-limit-response';
+import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts
 
 function hashPin(pin: string): string {
   return createHash('sha256').update(SALT + pin).digest('hex');
+}
+
+// OPTIONS - Handle CORS preflight
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  return handleCorsPreflightRequest(origin);
 }
 
 // GET - List all employees
@@ -34,7 +42,7 @@ export async function GET() {
   } catch (error) {
     console.error('Employees GET error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch employees' },
+      { error: 'Error al obtener empleados' },
       { status: 500 }
     );
   }
@@ -42,6 +50,18 @@ export async function GET() {
 
 // POST - Create new employee
 export async function POST(request: NextRequest) {
+  // ✅ PASO 1: Rate limiting (10 requests por minuto)
+  const rateLimitResponse = await checkRateLimit(request, RATE_LIMIT_CONFIGS.MUTATION);
+  if (rateLimitResponse) {
+    return rateLimitResponse; // Retorna 429 si excede el límite
+  }
+
+  // ✅ PASO 2: Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const body = await request.json();
     const { name, role, pin, is_active = true } = body;
@@ -108,7 +128,7 @@ export async function POST(request: NextRequest) {
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'employees',
           metadata: { record_id: newEmployee.id },
@@ -123,7 +143,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Employees POST error:', error);
     return NextResponse.json(
-      { error: 'Failed to create employee' },
+      { error: 'Error al crear empleado' },
       { status: 500 }
     );
   }

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
 
 const FailSchema = z.object({
-  reason: z.string().min(1, 'Failure reason is required'),
+  reason: z.string().min(1, 'La razón del fallo es requerida'),
 });
 
 export async function PATCH(
@@ -21,7 +21,7 @@ export async function PATCH(
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation error', details: parsed.error.flatten() },
+        { error: 'Error de validación', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -37,7 +37,7 @@ export async function PATCH(
     }
     console.error('Error failing delivery:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

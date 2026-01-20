@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
     if (!terminalId || !tenantId) {
         return NextResponse.json(
-            { error: "terminal_id and tenant_id required" },
+            { error: "Se requieren terminal_id y tenant_id" },
             { status: 400 }
         );
     }
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
         if (!range) {
             return NextResponse.json(
-                { error: "No range allocated", needs_allocation: true },
+                { error: "No hay rango asignado", needs_allocation: true },
                 { status: 404 }
             );
         }
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
     } catch (error) {
         console.error("[Range API] GET error:", error);
         return NextResponse.json(
-            { error: "Failed to get range" },
+            { error: "Error al obtener rango" },
             { status: 500 }
         );
     }
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
         if (!terminal_id || !tenant_id) {
             return NextResponse.json(
-                { error: "terminal_id and tenant_id required" },
+                { error: "Se requieren terminal_id y tenant_id" },
                 { status: 400 }
             );
         }
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error("[Range API] POST error:", error);
         return NextResponse.json(
-            { error: "Failed to allocate range" },
+            { error: "Error al asignar rango" },
             { status: 500 }
         );
     }

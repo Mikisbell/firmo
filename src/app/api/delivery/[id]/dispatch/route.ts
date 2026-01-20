@@ -22,7 +22,7 @@ export async function PATCH(
     }
     console.error('Error dispatching delivery:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

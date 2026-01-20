@@ -15,7 +15,7 @@ export async function GET() {
   } catch (error) {
     console.error('Analytics comparison error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

@@ -12,10 +12,10 @@ const TENANT_ID = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001
 
 const CreateDeliverySchema = z.object({
   orderId: z.string().uuid(),
-  addressText: z.string().min(10, 'Address must be at least 10 characters'),
+  addressText: z.string().min(10, 'La dirección debe tener al menos 10 caracteres'),
   addressReference: z.string().optional(),
-  customerPhone: z.string().min(9, 'Phone must be at least 9 characters'),
-  deliveryFee: z.number().int().min(0, 'Delivery fee must be non-negative'),
+  customerPhone: z.string().min(9, 'El teléfono debe tener al menos 9 caracteres'),
+  deliveryFee: z.number().int().min(0, 'El costo de envío debe ser no negativo'),
   estimatedDeliveryAt: z.string().datetime().optional(),
   addressId: z.string().uuid().optional(),
 });
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation error', details: parsed.error.flatten() },
+        { error: 'Error de validación', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
     console.error('Error creating delivery:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching deliveries:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

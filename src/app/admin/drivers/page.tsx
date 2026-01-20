@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { DriverForm } from './components/DriverForm';
+import { toast } from 'sonner';
 
 interface Driver {
   id: string;
@@ -48,33 +49,58 @@ export default function DriversPage() {
         body: JSON.stringify({ is_active: !driver.is_active }),
       });
       if (res.ok) {
+        toast.success(
+          driver.is_active ? 'Motorizado desactivado' : 'Motorizado activado',
+          {
+            description: `${driver.name} ha sido ${driver.is_active ? 'desactivado' : 'activado'}`,
+          }
+        );
         await fetchDrivers();
+      } else {
+        throw new Error('Error al actualizar estado');
       }
     } catch (err) {
-      console.error('Error toggling driver:', err);
+      toast.error('Error al actualizar motorizado', {
+        description: err instanceof Error ? err.message : 'Error desconocido',
+      });
     }
   };
 
   const handleSave = async (data: { name: string; phone?: string }) => {
     try {
+      let res;
       if (editingDriver) {
-        await fetch(`/api/drivers/${editingDriver.id}`, {
+        res = await fetch(`/api/drivers/${editingDriver.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
       } else {
-        await fetch('/api/drivers', {
+        res = await fetch('/api/drivers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
       }
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al guardar');
+      }
+      
+      toast.success(
+        editingDriver ? 'Motorizado actualizado' : 'Motorizado creado',
+        {
+          description: `${data.name} ha sido ${editingDriver ? 'actualizado' : 'agregado'} exitosamente`,
+        }
+      );
       setShowForm(false);
       setEditingDriver(null);
       await fetchDrivers();
     } catch (err) {
-      console.error('Error saving driver:', err);
+      toast.error('Error al guardar motorizado', {
+        description: err instanceof Error ? err.message : 'Error desconocido',
+      });
     }
   };
 

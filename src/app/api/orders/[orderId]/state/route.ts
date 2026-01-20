@@ -16,7 +16,7 @@ export async function GET(
   // Auth check
   const secret = req.headers.get("x-api-secret");
   if (secret !== process.env.PARK_API_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
   try {
@@ -25,7 +25,7 @@ export async function GET(
     });
 
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -52,6 +52,6 @@ export async function GET(
     });
   } catch (e) {
     console.error("[OrderState] Error fetching order:", e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

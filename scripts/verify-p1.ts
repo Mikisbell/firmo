@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const API_URL = "http://localhost:3000/api/events/ingest";
+const VERIFY_API_URL = "http://localhost:3000/api/events/ingest";
 const API_SECRET = "park_secret_mvp_2025";
 
 async function verify() {
@@ -37,7 +37,7 @@ async function verify() {
 
         // 3. Send to API
         console.log("🚀 Sending POST /api/events/ingest...");
-        const res = await fetch(API_URL, {
+        const res = await fetch(VERIFY_API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

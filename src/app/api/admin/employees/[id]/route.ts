@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
@@ -34,7 +35,7 @@ export async function GET(
   } catch (error) {
     console.error('Employee GET error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch employee' },
+      { error: 'Error al obtener empleado' },
       { status: 500 }
     );
   }
@@ -45,6 +46,12 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -92,7 +99,7 @@ export async function PUT(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: '00000000-0000-0000-0000-000000000001',
+          employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'employees',
           metadata: { 
@@ -110,7 +117,7 @@ export async function PUT(
   } catch (error) {
     console.error('Employee PUT error:', error);
     return NextResponse.json(
-      { error: 'Failed to update employee' },
+      { error: 'Error al actualizar empleado' },
       { status: 500 }
     );
   }
@@ -118,9 +125,15 @@ export async function PUT(
 
 // DELETE - Soft delete employee
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const { id } = await params;
     // Check employee exists
@@ -150,7 +163,7 @@ export async function DELETE(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: '00000000-0000-0000-0000-000000000001',
+          employee_id: authResult.user.id,
           action: 'DELETE',
           resource: 'employees',
           metadata: { record_id: id },
@@ -163,7 +176,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Employee DELETE error:', error);
     return NextResponse.json(
-      { error: 'Failed to delete employee' },
+      { error: 'Error al eliminar empleado' },
       { status: 500 }
     );
   }

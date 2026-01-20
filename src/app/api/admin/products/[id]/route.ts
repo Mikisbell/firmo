@@ -6,9 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
 
 // GET - Get single product
 export async function GET(
@@ -35,7 +35,7 @@ export async function GET(
   } catch (error) {
     console.error('Product GET error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch product' },
+      { error: 'Error al obtener producto' },
       { status: 500 }
     );
   }
@@ -46,6 +46,12 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -160,7 +166,7 @@ export async function PUT(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'products',
           metadata: { 
@@ -178,7 +184,7 @@ export async function PUT(
   } catch (error) {
     console.error('Product PUT error:', error);
     return NextResponse.json(
-      { error: 'Failed to update product' },
+      { error: 'Error al actualizar producto' },
       { status: 500 }
     );
   }
@@ -186,9 +192,15 @@ export async function PUT(
 
 // DELETE - Soft delete product
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const { id } = await params;
     // Check product exists
@@ -218,7 +230,7 @@ export async function DELETE(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: authResult.user.id,
           action: 'DELETE',
           resource: 'products',
           metadata: { record_id: id },
@@ -231,7 +243,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Product DELETE error:', error);
     return NextResponse.json(
-      { error: 'Failed to delete product' },
+      { error: 'Error al eliminar producto' },
       { status: 500 }
     );
   }

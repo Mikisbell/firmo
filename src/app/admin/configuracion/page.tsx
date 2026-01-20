@@ -5,8 +5,10 @@
  * Requirements: 8.1, 8.2, 8.3
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Building2, Receipt, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAdminData, useAdminMutation } from '@/src/hooks/useAdminData';
 
 interface TenantSettings {
   tenant_id: string;
@@ -23,10 +25,11 @@ export default function ConfigurationPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const canEditFiscal = userRole?.toUpperCase() === 'OWNER';
   
-  const [settings, setSettings] = useState<TenantSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data: settingsArray, loading, error: fetchError, refetch } = useAdminData<TenantSettings>('/api/admin/config');
+  const { mutate: updateConfig, loading: saving, error: saveError } = useAdminMutation<TenantSettings>('/api/admin/config', 'PUT');
+  
+  const settings = settingsArray && settingsArray.length > 0 ? settingsArray[0] : null;
+  const [form, setForm] = useState<TenantSettings | null>(null);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -49,68 +52,57 @@ export default function ConfigurationPage() {
     fetchSession();
   }, []);
 
-  const fetchSettings = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/config', {
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Failed to fetch');
-      setSettings(await res.json());
-      setError(null);
-    } catch {
-      setError('Error al cargar configuración');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (settings) {
+      setForm(settings);
     }
-  }, []);
-
-  useEffect(() => { fetchSettings(); }, [fetchSettings]);
+  }, [settings]);
 
   const handleSave = async () => {
-    if (!settings) return;
+    if (!form) return;
     
     // Validate RUC (11 digits)
-    if (settings.ruc && !/^\d{11}$/.test(settings.ruc)) {
-      setError('RUC debe tener exactamente 11 dígitos');
+    if (form.ruc && !/^\d{11}$/.test(form.ruc)) {
+      const errorMsg = 'RUC debe tener exactamente 11 dígitos';
+      toast.error('Validación fallida', {
+        description: errorMsg,
+      });
       return;
     }
 
     // Validate tax rate range
-    if (settings.tax_rate !== undefined && (settings.tax_rate < 0 || settings.tax_rate > 100)) {
-      setError('La tasa de IGV debe estar entre 0 y 100');
+    if (form.tax_rate !== undefined && (form.tax_rate < 0 || form.tax_rate > 100)) {
+      const errorMsg = 'La tasa de IGV debe estar entre 0 y 100';
+      toast.error('Validación fallida', {
+        description: errorMsg,
+      });
       return;
     }
 
     // Confirmation dialog for critical settings (tax rate changes)
-    if (canEditFiscal && settings.tax_rate !== undefined) {
+    if (canEditFiscal && form.tax_rate !== undefined) {
       const confirmed = window.confirm(
-        `¿Está seguro de cambiar la tasa de IGV a ${settings.tax_rate}%?\n\nEsto afectará todos los cálculos de impuestos en el sistema.`
+        `¿Está seguro de cambiar la tasa de IGV a ${form.tax_rate}%?\n\nEsto afectará todos los cálculos de impuestos en el sistema.`
       );
       if (!confirmed) return;
     }
     
     try {
-      setSaving(true);
-      setError(null);
-      const res = await fetch('/api/admin/config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(settings),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
-      }
+      await updateConfig(form);
       setSuccess(true);
+      toast.success('Configuración guardada', {
+        description: 'Los cambios han sido aplicados exitosamente',
+      });
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar');
-    } finally {
-      setSaving(false);
+      refetch();
+    } catch (error) {
+      toast.error('Error al guardar configuración', {
+        description: error instanceof Error ? error.message : 'Error desconocido',
+      });
     }
   };
+
+  const error = fetchError || saveError;
 
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" /></div>;
@@ -133,15 +125,15 @@ export default function ConfigurationPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-zinc-400 mb-1">Razón Social</label>
-              <input type="text" value={settings?.legal_name || ''} onChange={(e) => setSettings((s) => s ? { ...s, legal_name: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" />
+              <input type="text" value={form?.legal_name || ''} onChange={(e) => setForm((s) => s ? { ...s, legal_name: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" />
             </div>
             <div>
               <label className="block text-sm text-zinc-400 mb-1">RUC (11 dígitos)</label>
-              <input type="text" value={settings?.ruc || ''} onChange={(e) => setSettings((s) => s ? { ...s, ruc: e.target.value } : s)} maxLength={11} pattern="\d{11}" className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px] font-mono" />
+              <input type="text" value={form?.ruc || ''} onChange={(e) => setForm((s) => s ? { ...s, ruc: e.target.value } : s)} maxLength={11} pattern="\d{11}" className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px] font-mono" />
             </div>
             <div>
               <label className="block text-sm text-zinc-400 mb-1">Dirección</label>
-              <input type="text" value={settings?.address_text || ''} onChange={(e) => setSettings((s) => s ? { ...s, address_text: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" />
+              <input type="text" value={form?.address_text || ''} onChange={(e) => setForm((s) => s ? { ...s, address_text: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" />
             </div>
           </div>
         </div>
@@ -151,7 +143,7 @@ export default function ConfigurationPage() {
           <h2 className="font-medium flex items-center gap-2 mb-4"><Receipt className="w-4 h-4" />Configuración Fiscal {!canEditFiscal && <span className="text-xs text-amber-400">(Solo OWNER)</span>}</h2>
           <div>
             <label className="block text-sm text-zinc-400 mb-1">Tasa de IGV (%)</label>
-            <input type="number" value={settings?.tax_rate || 18} onChange={(e) => setSettings((s) => s ? { ...s, tax_rate: Number(e.target.value) } : s)} disabled={!canEditFiscal} min={0} max={100} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px] disabled:opacity-50" />
+            <input type="number" value={form?.tax_rate || 18} onChange={(e) => setForm((s) => s ? { ...s, tax_rate: Number(e.target.value) } : s)} disabled={!canEditFiscal} min={0} max={100} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px] disabled:opacity-50" />
           </div>
         </div>
       </div>

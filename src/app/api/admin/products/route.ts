@@ -6,9 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
 
 // GET - List all products
 export async function GET() {
@@ -33,7 +33,7 @@ export async function GET() {
   } catch (error) {
     console.error('Products GET error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      { error: 'Error al obtener productos' },
       { status: 500 }
     );
   }
@@ -41,6 +41,12 @@ export async function GET() {
 
 // POST - Create new product
 export async function POST(request: NextRequest) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const body = await request.json();
     const { sku, name, short_name, price_cents, category, station, type = 'SIMPLE', is_active = true } = body;
@@ -139,7 +145,7 @@ export async function POST(request: NextRequest) {
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'products',
           metadata: { record_id: newProduct.id },
@@ -154,7 +160,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Products POST error:', error);
     return NextResponse.json(
-      { error: 'Failed to create product' },
+      { error: 'Error al crear producto' },
       { status: 500 }
     );
   }

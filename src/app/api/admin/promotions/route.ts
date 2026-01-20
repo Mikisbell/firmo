@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 const promotionSchema = z.object({
   name: z.string().min(1).max(100),
@@ -49,19 +50,24 @@ export async function GET() {
     return NextResponse.json(promotions);
   } catch (error) {
     console.error('Promotions GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch promotions' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al obtener promociones' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const tenantId = process.env.TENANT_ID || 'default';
-    const adminId = '00000000-0000-0000-0000-000000000001';
     const body = await request.json();
     
     const parsed = promotionSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid data', details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten() }, { status: 400 });
     }
     
     const data = parsed.data;
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
         data: {
           id: crypto.randomUUID(),
           tenant_id: tenantId,
-          employee_id: adminId,
+          employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'promotions',
           metadata: { record_id: newPromotion.id },
@@ -101,6 +107,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(promotion, { status: 201 });
   } catch (error) {
     console.error('Promotions POST error:', error);
-    return NextResponse.json({ error: 'Failed to create promotion' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al crear promoción' }, { status: 500 });
   }
 }

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (!from || !to) {
       return NextResponse.json(
-        { error: 'Missing from/to date parameters' },
+        { error: 'Faltan parámetros de fecha from/to' },
         { status: 400 }
       );
     }
@@ -28,14 +28,14 @@ export async function GET(request: NextRequest) {
 
     if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
       return NextResponse.json(
-        { error: 'Invalid date format. Use YYYY-MM-DD' },
+        { error: 'Formato de fecha inválido. Use YYYY-MM-DD' },
         { status: 400 }
       );
     }
 
     if (fromDate > toDate) {
       return NextResponse.json(
-        { error: 'from date must be before to date' },
+        { error: 'La fecha from debe ser anterior a la fecha to' },
         { status: 400 }
       );
     }
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const daysDiff = (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24);
     if (daysDiff > 90) {
       return NextResponse.json(
-        { error: 'Date range cannot exceed 90 days' },
+        { error: 'El rango de fechas no puede exceder 90 días' },
         { status: 400 }
       );
     }
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Analytics history error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

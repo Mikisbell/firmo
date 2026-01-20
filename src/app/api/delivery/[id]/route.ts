@@ -15,7 +15,7 @@ export async function GET(
 
     if (!delivery) {
       return NextResponse.json(
-        { error: 'Delivery not found', code: 'NOT_FOUND' },
+        { error: 'Entrega no encontrada', code: 'NOT_FOUND' },
         { status: 404 }
       );
     }
@@ -24,7 +24,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching delivery:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

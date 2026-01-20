@@ -12,7 +12,7 @@ export async function GET() {
   
   if (!publicKey) {
     return NextResponse.json(
-      { error: 'VAPID key not configured' },
+      { error: 'Clave VAPID no configurada' },
       { status: 503 }
     );
   }

@@ -5,10 +5,12 @@
  * Requirements: 6.1, 6.2, 6.3
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Plus, Check, X, Calendar, Percent, Edit, Trash2 } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { useAdminData } from '@/src/hooks/useAdminData';
 
 interface Promotion {
   id: string;
@@ -38,29 +40,11 @@ const filters: FilterConfig[] = [
 ];
 
 export default function PromotionsPage() {
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchPromotions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/promotions');
-      if (!res.ok) throw new Error('Failed to fetch');
-      setPromotions(await res.json());
-      setError(null);
-    } catch {
-      setError('Error al cargar promociones');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchPromotions(); }, [fetchPromotions]);
+  const { data: promotions, loading, error, refetch } = useAdminData<Promotion>('/api/admin/promotions');
 
   const isExpired = (endsAt: string) => new Date(endsAt) < new Date();
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm('¿Desactivar esta promoción?')) return;
 
     try {
@@ -71,11 +55,17 @@ export default function PromotionsPage() {
         const data = await res.json();
         throw new Error(data.error || 'Error al desactivar');
       }
-      fetchPromotions();
+      toast.success('Promoción desactivada', {
+        description: 'La promoción ha sido desactivada exitosamente',
+      });
+      refetch();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al eliminar');
+      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar';
+      toast.error('Error al desactivar promoción', {
+        description: errorMessage,
+      });
     }
-  };
+  }, [refetch]);
 
   const columns: Column<Promotion>[] = [
     { key: 'name', label: 'Nombre' },
@@ -154,7 +144,7 @@ export default function PromotionsPage() {
         </Link>
       </div>
       {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">{error}</div>}
-      <DataTable data={promotions} columns={columns} filters={filters} searchPlaceholder="Buscar..." searchKeys={['name']} loading={loading} emptyMessage="No hay promociones" />
+      <DataTable data={promotions || []} columns={columns} filters={filters} searchPlaceholder="Buscar..." searchKeys={['name']} loading={loading} emptyMessage="No hay promociones" />
     </div>
   );
 }

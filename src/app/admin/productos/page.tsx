@@ -7,10 +7,10 @@
  * Requirements: 3.1, 3.2
  */
 
-import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Check, X } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
+import { useAdminData } from '@/src/hooks/useAdminData';
 
 interface Product {
   id: string;
@@ -55,29 +55,7 @@ const filters: FilterConfig[] = [
 
 export default function ProductsPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/products');
-      if (!res.ok) throw new Error('Failed to fetch products');
-      const data = await res.json();
-      setProducts(data);
-      setError(null);
-    } catch (err) {
-      setError('Error al cargar productos');
-      console.error('Products fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  const { data: products, loading, error } = useAdminData<Product>('/api/admin/products');
 
   const formatPrice = (cents: number) => `S/ ${(cents / 100).toFixed(2)}`;
 
@@ -155,7 +133,7 @@ export default function ProductsPage() {
 
       {/* Products table */}
       <DataTable
-        data={products}
+        data={products || []}
         columns={columns}
         filters={filters}
         searchPlaceholder="Buscar por nombre o SKU..."

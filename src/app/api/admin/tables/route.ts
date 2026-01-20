@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     })));
   } catch (error) {
     console.error('Tables GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch tables' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al obtener mesas' }, { status: 500 });
   }
 }
 
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const parsed = tableSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid table data', details: parsed.error.flatten() },
+        { error: 'Datos de mesa inválidos', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     });
     
     if (existing) {
-      return NextResponse.json({ error: 'Table number already exists' }, { status: 409 });
+      return NextResponse.json({ error: 'El número de mesa ya existe' }, { status: 409 });
     }
     
     // Validate zone exists if provided
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         where: { id: data.zone_id, tenant_id: tenantId },
       });
       if (!zone) {
-        return NextResponse.json({ error: 'Zone not found' }, { status: 400 });
+        return NextResponse.json({ error: 'Zona no encontrada' }, { status: 400 });
       }
     }
     
@@ -138,6 +138,6 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Tables POST error:', error);
-    return NextResponse.json({ error: 'Failed to create table' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al crear mesa' }, { status: 500 });
   }
 }

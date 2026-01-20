@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     // Validate subscription data
     if (!body.subscription || !body.subscription.endpoint || !body.subscription.keys) {
       return NextResponse.json(
-        { error: 'Invalid subscription data' },
+        { error: 'Datos de suscripción inválidos' },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     // Validate keys are present
     if (!subscription.keys.p256dh || !subscription.keys.auth) {
       return NextResponse.json(
-        { error: 'Missing subscription keys (p256dh, auth)' },
+        { error: 'Faltan claves de suscripción (p256dh, auth)' },
         { status: 400 }
       );
     }
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[API] Subscribe error:', error);
     return NextResponse.json(
-      { error: 'Failed to subscribe' },
+      { error: 'Error al suscribirse' },
       { status: 500 }
     );
   }
@@ -67,14 +67,14 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const body = await request.json();
     
     if (!body.endpoint) {
       return NextResponse.json(
-        { error: 'Missing endpoint' },
+        { error: 'Falta endpoint' },
         { status: 400 }
       );
     }
@@ -89,7 +89,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('[API] Unsubscribe error:', error);
     return NextResponse.json(
-      { error: 'Failed to unsubscribe' },
+      { error: 'Error al desuscribirse' },
       { status: 500 }
     );
   }

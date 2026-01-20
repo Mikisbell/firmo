@@ -7,9 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
 
 const promotionSchema = z.object({
   name: z.string().min(1).max(100),
@@ -20,7 +20,7 @@ const promotionSchema = z.object({
   ends_at: z.string().datetime(),
   is_active: z.boolean().default(true),
 }).refine(data => new Date(data.starts_at) < new Date(data.ends_at), {
-  message: 'Start date must be before end date',
+  message: 'La fecha de inicio debe ser anterior a la fecha de fin',
   path: ['starts_at'],
 });
 
@@ -49,7 +49,7 @@ export async function GET(
   } catch (error) {
     console.error('Promotion GET error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch promotion' },
+      { error: 'Error al obtener promoción' },
       { status: 500 }
     );
   }
@@ -60,6 +60,12 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -107,7 +113,7 @@ export async function PUT(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'promotions',
           metadata: {
@@ -125,7 +131,7 @@ export async function PUT(
   } catch (error) {
     console.error('Promotion PUT error:', error);
     return NextResponse.json(
-      { error: 'Failed to update promotion' },
+      { error: 'Error al actualizar promoción' },
       { status: 500 }
     );
   }
@@ -133,9 +139,15 @@ export async function PUT(
 
 // DELETE - Soft delete promotion
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
     const { id } = await params;
     // Check promotion exists
@@ -162,7 +174,7 @@ export async function DELETE(
         data: {
           id: randomUUID(),
           tenant_id: TENANT_ID,
-          employee_id: ADMIN_ID,
+          employee_id: authResult.user.id,
           action: 'DELETE',
           resource: 'promotions',
           metadata: { record_id: id },
@@ -175,7 +187,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Promotion DELETE error:', error);
     return NextResponse.json(
-      { error: 'Failed to delete promotion' },
+      { error: 'Error al eliminar promoción' },
       { status: 500 }
     );
   }

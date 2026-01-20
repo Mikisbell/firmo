@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     if (!tenantId) {
       return NextResponse.json(
-        { error: 'tenant_id is required' },
+        { error: 'Se requiere tenant_id' },
         { status: 400 }
       );
     }
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching inventory stock:', error);
     return NextResponse.json(
-      { error: 'internal_error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

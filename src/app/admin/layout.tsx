@@ -4,7 +4,7 @@
  * Admin Layout
  * Layout principal del panel de administración con sidebar y header
  * Incluye autenticación por PIN y manejo de permisos
- * Uses httpOnly cookies for secure authentication
+ * Uses httpOnly cookies for secure authentication via AuthContext
  * 
  * Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 10.1, 10.2, 10.3
  * UX Improvements: Toast notifications (P0), httpOnly cookies (P0 - SECURITY)
@@ -16,8 +16,8 @@ import { Toaster } from 'sonner';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
 import { PinModal } from '@/src/components/inventory/PinModal';
-import { ROLE_PERMISSIONS, AdminRole, AdminPermissions } from './lib/permissions';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 interface AuthEmployee {
   id: string;
@@ -28,51 +28,21 @@ interface AuthEmployee {
 // Rutas que no requieren el layout completo (ya tienen su propia autenticación)
 const STANDALONE_ROUTES = ['/inventario'];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, isLoading, employee, permissions, login, logout } = useAuth();
   const [showPinModal, setShowPinModal] = useState(false);
-  const [employee, setEmployee] = useState<AuthEmployee | null>(null);
-  const [permissions, setPermissions] = useState<AdminPermissions | null>(null);
   const [isOnline, setIsOnline] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Check if current route is standalone
   const isStandaloneRoute = STANDALONE_ROUTES.some(route => pathname.startsWith(route));
 
-  // Check for existing session on mount
+  // Show PIN modal if not authenticated and not loading
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        // Check if we have a valid session cookie by calling the session API
-        const response = await fetch('/api/auth/session', {
-          method: 'GET',
-          credentials: 'include', // Important: include cookies
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.valid && data.employee) {
-            setEmployee(data.employee);
-            setPermissions(ROLE_PERMISSIONS[data.employee.role as AdminRole] || null);
-            setIsAuthenticated(true);
-          } else if (!isStandaloneRoute) {
-            setShowPinModal(true);
-          }
-        } else if (!isStandaloneRoute) {
-          setShowPinModal(true);
-        }
-      } catch {
-        if (!isStandaloneRoute) {
-          setShowPinModal(true);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkSession();
-  }, [isStandaloneRoute]);
+    if (!isLoading && !isAuthenticated && !isStandaloneRoute) {
+      setShowPinModal(true);
+    }
+  }, [isLoading, isAuthenticated, isStandaloneRoute]);
 
   // Online/offline detection
   useEffect(() => {
@@ -93,28 +63,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   const handleAuthSuccess = useCallback((emp: AuthEmployee) => {
-    setEmployee(emp);
-    setPermissions(ROLE_PERMISSIONS[emp.role as AdminRole] || null);
-    setIsAuthenticated(true);
+    login(emp);
     setShowPinModal(false);
-  }, []);
+  }, [login]);
 
   const handleLogout = useCallback(async () => {
-    try {
-      // Call logout API to clear cookie and revoke session
-      await fetch('/api/auth/session', {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setEmployee(null);
-      setPermissions(null);
-      setIsAuthenticated(false);
-      setShowPinModal(true);
-    }
-  }, []);
+    await logout();
+    setShowPinModal(true);
+  }, [logout]);
 
   // For standalone routes, just render children
   if (isStandaloneRoute) {
@@ -160,33 +116,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Sidebar */}
         <AdminSidebar 
-        permissions={permissions ? {
-          view_dashboard: permissions.view_dashboard,
-          manage_products: permissions.manage_products,
-          manage_employees: permissions.manage_employees,
-          manage_terminals: permissions.manage_terminals,
-          manage_promotions: permissions.manage_promotions,
-          manage_stations: permissions.manage_stations,
-          manage_config: permissions.manage_config,
-          view_reports: permissions.view_reports,
-        } : undefined}
-      />
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
-        {/* Header */}
-        <AdminHeader
-          employee={employee}
-          isOnline={isOnline}
-          onLogout={handleLogout}
+          permissions={permissions ? {
+            view_dashboard: permissions.view_dashboard,
+            manage_products: permissions.manage_products,
+            manage_employees: permissions.manage_employees,
+            manage_terminals: permissions.manage_terminals,
+            manage_promotions: permissions.manage_promotions,
+            manage_stations: permissions.manage_stations,
+            manage_config: permissions.manage_config,
+            view_reports: permissions.view_reports,
+          } : undefined}
         />
 
-        {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          {children}
-        </main>
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+          {/* Header */}
+          <AdminHeader
+            employee={employee}
+            isOnline={isOnline}
+            onLogout={handleLogout}
+          />
+
+          {/* Page content */}
+          <main className="flex-1 p-4 lg:p-6 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
     </ErrorBoundary>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthProvider>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </AuthProvider>
   );
 }

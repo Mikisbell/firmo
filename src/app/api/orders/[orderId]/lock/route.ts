@@ -25,7 +25,7 @@ export async function GET(
 
   if (!tenantId || !terminalId) {
     return NextResponse.json(
-      { error: "Missing tenant_id or terminal_id" },
+      { error: "Faltan tenant_id o terminal_id" },
       { status: 400 }
     );
   }
@@ -46,14 +46,14 @@ export async function POST(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
   const { tenant_id, terminal_id, action = "acquire" } = body;
 
   if (!tenant_id || !terminal_id) {
     return NextResponse.json(
-      { error: "Missing tenant_id or terminal_id" },
+      { error: "Faltan tenant_id o terminal_id" },
       { status: 400 }
     );
   }
@@ -80,7 +80,7 @@ export async function DELETE(
 
   if (!tenantId || !terminalId) {
     return NextResponse.json(
-      { error: "Missing tenant_id or terminal_id" },
+      { error: "Faltan tenant_id o terminal_id" },
       { status: 400 }
     );
   }

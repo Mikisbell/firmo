@@ -3,7 +3,6 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/src/core/db/prisma";
 import { ingestRequestSchema, type ParkEvent } from "@/src/core/domain/events";
 import { validateEvent, type ValidationResult } from "@/src/core/validation";
-import { checkRateLimit } from "@/src/core/middleware/rate-limit";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
@@ -232,11 +231,6 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 }
 
 export async function POST(req: Request) {
-    // Get IP for rate limiting
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
-        || req.headers.get("x-real-ip") 
-        || "unknown";
-
     // Security: Validate API Secret
     const secret = req.headers.get("x-api-secret");
     if (secret !== process.env.PARK_API_SECRET) {
@@ -268,29 +262,8 @@ export async function POST(req: Request) {
     // Register notification handlers for this tenant (idempotent)
     registerNotificationHandlers(tenant_id);
 
-    // Rate Limiting Check
-    const rateLimit = checkRateLimit(tenant_id, terminal_id, ip);
-    if (!rateLimit.allowed) {
-        return NextResponse.json(
-            {
-                accepted: false,
-                error: {
-                    error_code: "RATE_LIMIT_EXCEEDED",
-                    severity: "WARN",
-                    message: "Demasiadas solicitudes. Intenta de nuevo.",
-                    user_action: `Espera ${rateLimit.retryAfter} segundos antes de reintentar.`,
-                    retryable: true,
-                    context: { retry_after: rateLimit.retryAfter },
-                },
-            },
-            {
-                status: 429,
-                headers: {
-                    "Retry-After": String(rateLimit.retryAfter),
-                },
-            }
-        );
-    }
+    // Note: Rate limiting for this endpoint is handled at infrastructure level
+    // (e.g., Vercel Edge Config, Cloudflare) due to high throughput requirements
 
     // Fast path: empty batch
     if (events.length === 0) {

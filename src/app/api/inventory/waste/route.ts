@@ -99,7 +99,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
       return NextResponse.json(
         { 
           success: false, 
-          error: 'validation_error', 
+          error: 'Error de validación', 
           details: validation.error.issues 
         },
         { status: 400 }
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
   } catch (error) {
     console.error('Error recording waste:', error);
     return NextResponse.json(
-      { success: false, error: 'internal_error' },
+      { success: false, error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
