@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
 const promotionSchema = z.object({
   name: z.string().min(1).max(100),
@@ -18,10 +19,17 @@ const promotionSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const tenantId = process.env.TENANT_ID || 'default';
     const now = new Date();
+    
+    // Parse pagination parameters
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
+    // Parse filter parameters
+    const isActiveParam = request.nextUrl.searchParams.get('is_active');
+    const isActive = isActiveParam === 'true' ? true : isActiveParam === 'false' ? false : undefined;
     
     // Auto-deactivate expired promotions
     await prisma.promotions.updateMany({
@@ -33,9 +41,21 @@ export async function GET() {
       data: { is_active: false },
     });
     
+    // Build where clause
+    const where: any = { tenant_id: tenantId };
+    if (isActive !== undefined) {
+      where.is_active = isActive;
+    }
+    
+    // Get total count
+    const total = await prisma.promotions.count({ where });
+    
+    // Get paginated promotions
     const promotions = await prisma.promotions.findMany({
-      where: { tenant_id: tenantId },
+      where,
       orderBy: { starts_at: 'desc' },
+      skip: params.skip,
+      take: params.limit,
       select: {
         id: true,
         name: true,
@@ -47,7 +67,7 @@ export async function GET() {
       },
     });
     
-    return NextResponse.json(promotions);
+    return NextResponse.json(createPaginatedResponse(promotions, total, params));
   } catch (error) {
     console.error('Promotions GET error:', error);
     return NextResponse.json({ error: 'Error al obtener promociones' }, { status: 500 });

@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
 const tableSchema = z.object({
   number: z.string().min(1).max(20),
@@ -28,10 +29,14 @@ export async function GET(request: NextRequest) {
     const tenantId = process.env.TENANT_ID || 'default';
     const locationId = process.env.LOCATION_ID || 'default';
     
-    const { searchParams } = new URL(request.url);
-    const zoneId = searchParams.get('zone_id');
-    const activeOnly = searchParams.get('active') === 'true';
+    // Parse pagination parameters
+    const params = parsePaginationParams(request.nextUrl.searchParams);
     
+    // Parse filter parameters
+    const zoneId = request.nextUrl.searchParams.get('zone_id');
+    const activeOnly = request.nextUrl.searchParams.get('active') === 'true';
+    
+    // Build where clause
     const where: Record<string, unknown> = {
       tenant_id: tenantId,
       location_id: locationId,
@@ -40,15 +45,21 @@ export async function GET(request: NextRequest) {
     if (zoneId) where.zone_id = zoneId;
     if (activeOnly) where.is_active = true;
     
+    // Get total count
+    const total = await prisma.tables.count({ where });
+    
+    // Get paginated tables
     const tables = await prisma.tables.findMany({
       where,
       orderBy: [{ zone_id: 'asc' }, { number: 'asc' }],
+      skip: params.skip,
+      take: params.limit,
       include: {
         zones: { select: { id: true, code: true, name: true, color: true } },
       },
     });
     
-    return NextResponse.json(tables.map(t => ({
+    const items = tables.map(t => ({
       id: t.id,
       number: t.number,
       display_name: t.display_name,
@@ -68,7 +79,9 @@ export async function GET(request: NextRequest) {
         name: t.zones.name,
         color: t.zones.color,
       } : null,
-    })));
+    }));
+    
+    return NextResponse.json(createPaginatedResponse(items, total, params));
   } catch (error) {
     console.error('Tables GET error:', error);
     return NextResponse.json({ error: 'Error al obtener mesas' }, { status: 500 });

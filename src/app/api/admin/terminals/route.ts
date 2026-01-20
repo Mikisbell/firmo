@@ -4,16 +4,29 @@
  * Requirements: 5.1
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const tenantId = process.env.TENANT_ID || 'default';
     
+    // Parse pagination parameters
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
+    // Build where clause
+    const where = { tenant_id: tenantId };
+    
+    // Get total count
+    const total = await prisma.terminals.count({ where });
+    
+    // Get paginated terminals
     const terminals = await prisma.terminals.findMany({
-      where: { tenant_id: tenantId },
+      where,
       orderBy: { terminal_id: 'asc' },
+      skip: params.skip,
+      take: params.limit,
       select: {
         id: true,
         terminal_id: true,
@@ -23,7 +36,7 @@ export async function GET() {
       },
     });
     
-    return NextResponse.json(terminals);
+    return NextResponse.json(createPaginatedResponse(terminals, total, params));
   } catch (error) {
     console.error('Terminals GET error:', error);
     return NextResponse.json(

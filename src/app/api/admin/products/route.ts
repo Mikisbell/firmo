@@ -7,15 +7,43 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
 const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
-// GET - List all products
-export async function GET() {
+// GET - List all products with pagination
+export async function GET(request: NextRequest) {
   try {
+    // Parse pagination parameters
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
+    // Parse filter parameters
+    const isActiveParam = request.nextUrl.searchParams.get('is_active');
+    const isActive = isActiveParam === 'true' ? true : isActiveParam === 'false' ? false : undefined;
+    const category = request.nextUrl.searchParams.get('category');
+    const station = request.nextUrl.searchParams.get('station');
+
+    // Build where clause
+    const where: any = { tenant_id: TENANT_ID };
+    if (isActive !== undefined) {
+      where.is_active = isActive;
+    }
+    if (category) {
+      where.category = category;
+    }
+    if (station) {
+      where.station = station;
+    }
+
+    // Get total count
+    const total = await prisma.products.count({ where });
+
+    // Get paginated products
     const products = await prisma.products.findMany({
-      where: { tenant_id: TENANT_ID },
+      where,
       orderBy: { name: 'asc' },
+      skip: params.skip,
+      take: params.limit,
       select: {
         id: true,
         sku: true,
@@ -29,7 +57,8 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(products);
+    // Return paginated response
+    return NextResponse.json(createPaginatedResponse(products, total, params));
   } catch (error) {
     console.error('Products GET error:', error);
     return NextResponse.json(
