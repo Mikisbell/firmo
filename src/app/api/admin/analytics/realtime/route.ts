@@ -4,22 +4,100 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { getRealtimeMetrics } from '@/src/core/analytics/analytics.service';
+import { RealtimeAnalyticsQuerySchema } from '@/src/core/admin/schemas/analytics.schema';
+import { ZodError } from 'zod';
+import { withRequestLogging } from '@/src/core/middleware/request-logger';
+import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
+import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
+import { metrics } from '@/src/core/observability/metrics';
 
-export async function GET(request: NextRequest) {
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+async function handleGET(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  const log = createRequestLogger(requestId);
+  
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
-    const { searchParams } = new URL(request.url);
-    const shiftId = searchParams.get('shift_id') || undefined;
+    log.info({ operation: 'get_realtime_analytics' }, 'Getting realtime analytics');
+    
+    // Parse and validate query parameters with Zod
+    const queryParams = Object.fromEntries(request.nextUrl.searchParams);
+    const validatedQuery = RealtimeAnalyticsQuerySchema.parse(queryParams);
 
-    const metrics = await getRealtimeMetrics(tenantId, shiftId);
+    // Generate cache key
+    const cacheKey = generateCacheKey(
+      'analytics:realtime',
+      validatedQuery.shift_id ?? 'current'
+    );
 
-    return NextResponse.json(metrics);
+    // Try to get from cache (short TTL for realtime data)
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      log.info({
+        operation: 'get_realtime_analytics_cache_hit',
+        cacheKey,
+        durationMs: Date.now() - startTime,
+      }, 'Realtime analytics retrieved from cache');
+      return NextResponse.json(cached);
+    }
+
+    // Get metrics from service
+    const serviceStart = Date.now();
+    const analyticsMetrics = await getRealtimeMetrics(TENANT_ID, validatedQuery.shift_id);
+    logPerformance('service_get_realtime_metrics', Date.now() - serviceStart);
+
+    // Cache for 10 seconds (realtime data changes frequently)
+    await cache.set(cacheKey, analyticsMetrics, 10);
+
+    // Record business metrics
+    metrics.increment('analytics_realtime_requests_total', {
+      tenant_id: TENANT_ID,
+    });
+
+    log.info({
+      operation: 'get_realtime_analytics_success',
+      shiftId: validatedQuery.shift_id,
+      cached: true,
+      durationMs: Date.now() - startTime,
+    }, 'Realtime analytics retrieved successfully');
+
+    return NextResponse.json(analyticsMetrics);
   } catch (error) {
-    console.error('Analytics realtime error:', error);
+    if (error instanceof ZodError) {
+      log.warn({
+        operation: 'get_realtime_analytics_validation_error',
+        errors: error.errors,
+      }, 'Invalid query parameters');
+      
+      return NextResponse.json(
+        {
+          error: 'Parámetros de consulta inválidos',
+          details: error.errors.map((e) => ({
+            field: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+    
+    log.error({
+      operation: 'get_realtime_analytics_error',
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : String(error),
+    }, 'Failed to get realtime analytics');
+    
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
 }
+
+export const GET = withRequestLogging(handleGET);

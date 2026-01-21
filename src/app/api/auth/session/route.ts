@@ -1,12 +1,13 @@
 /**
  * Session API
  * GET - Check if session is valid
+ * POST - Validate PIN and create session (for inventory/admin operations)
  * DELETE - Logout (revoke session and clear cookie)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { validateToken, validateSession, revokeSession, logAdminAccess } from '@/src/core/auth/auth.service';
+import { validateToken, validateSession, revokeSession, logAdminAccess, authenticate } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 
 // Handle CORS preflight request
@@ -67,6 +68,74 @@ export async function GET(request: NextRequest) {
     console.error('Session check error:', error);
     return NextResponse.json(
       { valid: false, error: 'Error al verificar sesión' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/auth/session
+ * Validate PIN and create temporary session for inventory/admin operations
+ * Used by PinModal for role-based access control
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { pin, allowedRoles } = body;
+
+    if (!pin || !allowedRoles || !Array.isArray(allowedRoles)) {
+      return NextResponse.json(
+        { error: 'PIN y roles requeridos' },
+        { status: 400 }
+      );
+    }
+
+    // Get tenant ID from terminal config or default
+    const tenantId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'; // TODO: Get from request context
+
+    // Get IP and user agent
+    const metadata = {
+      ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+          request.headers.get('x-real-ip') || 
+          'unknown',
+      userAgent: request.headers.get('user-agent') || 'unknown',
+      terminalId: 'admin-panel',
+    };
+
+    // Authenticate with PIN
+    const authResult = await authenticate(prisma, tenantId, pin, allowedRoles, metadata);
+
+    if (!authResult.success) {
+      return NextResponse.json(
+        { 
+          error: authResult.error || 'PIN inválido',
+          errorCode: authResult.errorCode,
+          lockoutUntil: authResult.lockoutUntil,
+        },
+        { status: 401 }
+      );
+    }
+
+    // Set httpOnly cookie with token
+    const response = NextResponse.json({
+      success: true,
+      employee: authResult.employee,
+    });
+
+    // Set secure httpOnly cookie
+    response.cookies.set('auth_token', authResult.token!, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 8, // 8 hours
+      path: '/',
+    });
+
+    return response;
+  } catch (error) {
+    console.error('PIN validation error:', error);
+    return NextResponse.json(
+      { error: 'Error al validar PIN' },
       { status: 500 }
     );
   }

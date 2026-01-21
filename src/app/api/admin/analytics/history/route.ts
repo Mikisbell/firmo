@@ -4,14 +4,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import prisma from '@/src/core/db/prisma';
 import type { RealtimeMetrics } from '@/src/core/analytics/types';
 import { asCentavos, type PaymentMethod, type Centavos } from '@/src/core/types/shared';
+import { ZodError } from 'zod';
+import { withRequestLogging } from '@/src/core/middleware/request-logger';
+import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
+import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
+import { metrics } from '@/src/core/observability/metrics';
 
-export async function GET(request: NextRequest) {
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+async function handleGET(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  const log = createRequestLogger(requestId);
+  
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
-    const { searchParams } = new URL(request.url);
+    log.info({ operation: 'get_history_analytics' }, 'Getting history analytics');
+    
+    const { searchParams } = request.nextUrl;
     const from = searchParams.get('from');
     const to = searchParams.get('to');
 
@@ -49,10 +62,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Generate cache key
+    const cacheKey = generateCacheKey('analytics:history', from, to);
+
+    // Try to get from cache
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      log.info({
+        operation: 'get_history_analytics_cache_hit',
+        cacheKey,
+        durationMs: Date.now() - startTime,
+      }, 'History analytics retrieved from cache');
+      return NextResponse.json(cached);
+    }
+
     // Get daily summaries if available, otherwise calculate from orders
+    const dbStart = Date.now();
     const summaries = await prisma.daily_sales_summary.findMany({
       where: {
-        tenant_id: tenantId,
+        tenant_id: TENANT_ID,
         business_date: {
           gte: fromDate,
           lte: toDate,
@@ -60,9 +88,13 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { business_date: 'asc' },
     });
+    logPerformance('db_query_history', Date.now() - dbStart, { 
+      count: summaries.length,
+      days: daysDiff,
+    });
 
     // Convert to RealtimeMetrics format
-    const metrics: Partial<RealtimeMetrics>[] = summaries.map(s => ({
+    const metricsData: Partial<RealtimeMetrics>[] = summaries.map(s => ({
       total_sales_cents: asCentavos(s.net_sales_cents),
       orders_count: s.orders_count,
       avg_ticket_cents: asCentavos(s.orders_count > 0 
@@ -75,12 +107,39 @@ export async function GET(request: NextRequest) {
       last_updated: s.created_at.toISOString(),
     }));
 
-    return NextResponse.json(metrics);
+    // Cache for 10 minutes (historical data doesn't change)
+    await cache.set(cacheKey, metricsData, 600);
+
+    // Record business metrics
+    metrics.increment('analytics_history_requests_total', {
+      tenant_id: TENANT_ID,
+    });
+
+    log.info({
+      operation: 'get_history_analytics_success',
+      from,
+      to,
+      daysCount: summaries.length,
+      cached: true,
+      durationMs: Date.now() - startTime,
+    }, 'History analytics retrieved successfully');
+
+    return NextResponse.json(metricsData);
   } catch (error) {
-    console.error('Analytics history error:', error);
+    log.error({
+      operation: 'get_history_analytics_error',
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : String(error),
+    }, 'Failed to get history analytics');
+    
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
 }
+
+export const GET = withRequestLogging(handleGET);

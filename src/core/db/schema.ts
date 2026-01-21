@@ -48,6 +48,20 @@ export interface CatalogItemEntity {
     tax_rate: number;
 }
 
+export interface SagaLogEntity {
+    saga_id: string;
+    tenant_id: string;
+    saga_name: string;
+    status: string;
+    context: any;
+    steps: any[];
+    started_at: string;
+    completed_at?: string;
+    error?: string;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface ProjectionEntity {
     key: string;
     data: any;
@@ -76,6 +90,7 @@ export class ParkDB extends Dexie {
     catalog_items!: EntityTable<CatalogItemEntity, 'id'>;
     projections!: EntityTable<ProjectionEntity, 'key'>;
     snapshots!: EntityTable<SnapshotEntity, 'id'>;
+    saga_logs!: EntityTable<SagaLogEntity, 'saga_id'>;
 
     constructor() {
         super(DB_NAME);
@@ -132,6 +147,17 @@ export class ParkDB extends Dexie {
             catalog_versions: '[tenant_id+version], active',
             catalog_items: 'id, product_id, name',
             snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at'
+        });
+
+        // Version 6: Added saga_logs table for saga pattern persistence
+        this.version(6).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, aggregate_id, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, product_id, name',
+            snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
+            saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]'
         });
     }
 }

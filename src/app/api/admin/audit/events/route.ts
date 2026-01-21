@@ -3,122 +3,73 @@
  * 
  * Task 10.3 - Terminal Architecture v2
  * Requirements: 6.4
- * 
- * Supports filtering by:
- * - date range (start_date, end_date)
- * - terminal_id
- * - employee_id
- * - event_type
- * - limit
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { queryEvents, type EventFilters, type AuthEventType } from '@/src/core/auth/audit-logger';
+import { randomUUID } from 'crypto';
+import { queryEvents, type EventFilters } from '@/src/core/auth/audit-logger';
+import { AuditEventsQuerySchema } from '@/src/core/admin/schemas/audit.schema';
+import { ZodError } from 'zod';
+import { withRequestLogging } from '@/src/core/middleware/request-logger';
+import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
+import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
+import { metrics } from '@/src/core/observability/metrics';
 
-/**
- * GET /api/admin/audit/events
- * 
- * Query authentication events with filters
- * 
- * Query parameters:
- * - terminal_id (optional): Filter by terminal ID
- * - employee_id (optional): Filter by employee ID
- * - event_type (optional): Filter by event type
- * - start_date (optional): Start date (ISO 8601)
- * - end_date (optional): End date (ISO 8601)
- * - limit (optional): Maximum number of results (default: 100)
- * 
- * Example:
- * GET /api/admin/audit/events?terminal_id=CAJA_01&start_date=2026-01-01T00:00:00Z&limit=50
- */
-export async function GET(request: NextRequest) {
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+async function handleGET(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  const log = createRequestLogger(requestId);
+  
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
-    const { searchParams } = new URL(request.url);
+    log.info({ operation: 'get_audit_events' }, 'Getting audit events');
+    
+    // Parse and validate query parameters with Zod
+    const queryParams = Object.fromEntries(request.nextUrl.searchParams);
+    const validatedQuery = AuditEventsQuerySchema.parse(queryParams);
 
-    // Build filters from query parameters
+    // Generate cache key
+    const cacheKey = generateCacheKey(
+      'audit:events',
+      validatedQuery.terminal_id ?? 'all',
+      validatedQuery.employee_id ?? 'all',
+      validatedQuery.event_type ?? 'all',
+      validatedQuery.start_date ?? 'all',
+      validatedQuery.end_date ?? 'all',
+      validatedQuery.limit ?? 100
+    );
+
+    // Try to get from cache
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      log.info({
+        operation: 'get_audit_events_cache_hit',
+        cacheKey,
+        durationMs: Date.now() - startTime,
+      }, 'Audit events retrieved from cache');
+      return NextResponse.json(cached);
+    }
+
+    // Build filters
     const filters: EventFilters = {
-      tenant_id: tenantId,
+      tenant_id: TENANT_ID,
+      terminal_id: validatedQuery.terminal_id,
+      employee_id: validatedQuery.employee_id,
+      event_type: validatedQuery.event_type as any,
+      start_date: validatedQuery.start_date ? new Date(validatedQuery.start_date) : undefined,
+      end_date: validatedQuery.end_date ? new Date(validatedQuery.end_date) : undefined,
+      limit: validatedQuery.limit,
     };
 
-    // Optional filters
-    const terminalId = searchParams.get('terminal_id');
-    if (terminalId) {
-      filters.terminal_id = terminalId;
-    }
-
-    const employeeId = searchParams.get('employee_id');
-    if (employeeId) {
-      filters.employee_id = employeeId;
-    }
-
-    const eventType = searchParams.get('event_type');
-    if (eventType) {
-      // Validate event type
-      const validEventTypes: AuthEventType[] = [
-        'terminal_created',
-        'activation_code_generated',
-        'device_activated',
-        'login_success',
-        'login_failed',
-        'logout',
-        'session_expired',
-        'fingerprint_drift_detected',
-        'step_up_auth_required',
-        'terminal_disabled',
-        'security_alert',
-      ];
-      
-      if (validEventTypes.includes(eventType as AuthEventType)) {
-        filters.event_type = eventType as AuthEventType;
-      } else {
-        return NextResponse.json(
-          { error: `Tipo de evento inválido. Debe ser uno de: ${validEventTypes.join(', ')}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    const startDate = searchParams.get('start_date');
-    if (startDate) {
-      const date = new Date(startDate);
-      if (isNaN(date.getTime())) {
-        return NextResponse.json(
-          { error: 'Formato de start_date inválido. Use formato ISO 8601 (ej: 2026-01-01T00:00:00Z)' },
-          { status: 400 }
-        );
-      }
-      filters.start_date = date;
-    }
-
-    const endDate = searchParams.get('end_date');
-    if (endDate) {
-      const date = new Date(endDate);
-      if (isNaN(date.getTime())) {
-        return NextResponse.json(
-          { error: 'Formato de end_date inválido. Use formato ISO 8601 (ej: 2026-01-01T00:00:00Z)' },
-          { status: 400 }
-        );
-      }
-      filters.end_date = date;
-    }
-
-    const limit = searchParams.get('limit');
-    if (limit) {
-      const limitNum = parseInt(limit, 10);
-      if (isNaN(limitNum) || limitNum < 1 || limitNum > 1000) {
-        return NextResponse.json(
-          { error: 'Límite inválido. Debe ser un número entre 1 y 1000' },
-          { status: 400 }
-        );
-      }
-      filters.limit = limitNum;
-    }
-
     // Query events
+    const serviceStart = Date.now();
     const events = await queryEvents(filters);
+    logPerformance('service_query_audit_events', Date.now() - serviceStart, {
+      count: events.length,
+    });
 
-    return NextResponse.json({
+    const response = {
       events,
       count: events.length,
       filters: {
@@ -129,12 +80,60 @@ export async function GET(request: NextRequest) {
         end_date: filters.end_date?.toISOString(),
         limit: filters.limit ?? 100,
       },
+    };
+
+    // Cache for 2 minutes (audit data doesn't change often)
+    await cache.set(cacheKey, response, 120);
+
+    // Record business metrics
+    metrics.increment('audit_events_requests_total', {
+      tenant_id: TENANT_ID,
     });
+    metrics.set('audit_events_count', events.length, {
+      tenant_id: TENANT_ID,
+    });
+
+    log.info({
+      operation: 'get_audit_events_success',
+      eventsCount: events.length,
+      cached: true,
+      durationMs: Date.now() - startTime,
+    }, 'Audit events retrieved successfully');
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Audit events GET error:', error);
+    if (error instanceof ZodError) {
+      log.warn({
+        operation: 'get_audit_events_validation_error',
+        errors: error.errors,
+      }, 'Invalid query parameters');
+      
+      return NextResponse.json(
+        {
+          error: 'Parámetros de consulta inválidos',
+          details: error.errors.map((e) => ({
+            field: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+    
+    log.error({
+      operation: 'get_audit_events_error',
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : String(error),
+    }, 'Failed to get audit events');
+    
     return NextResponse.json(
       { error: 'Error al obtener eventos de auditoría' },
       { status: 500 }
     );
   }
 }
+
+export const GET = withRequestLogging(handleGET);

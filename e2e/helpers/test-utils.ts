@@ -132,3 +132,175 @@ export function uuid(): string {
     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
   });
 }
+
+/**
+ * Setup Waiter Terminal with Session
+ * Configures localStorage with waiter terminal and session data
+ */
+export async function setupWaiterTerminal(page: Page) {
+    await page.goto("/");
+    
+    await page.evaluate(({ tenantId }) => {
+        // Terminal configuration
+        const terminalConfig = {
+            terminal_id: "waiter_test_1",
+            tenant_id: tenantId,
+            device_fingerprint: "test-fingerprint-waiter-" + Date.now(),
+            device_name: "Test Waiter Terminal",
+            role: "WAITER",
+            location_id: "LOC01",
+            is_allowed: true,
+            registered_at: new Date().toISOString(),
+        };
+        localStorage.setItem('park_terminal_config', JSON.stringify(terminalConfig));
+        
+        // Session
+        const session = {
+            employee_id: "00000000-0000-0000-0000-000000000002",
+            role: "WAITER",
+            terminal_id: "waiter_test_1",
+            logged_in_at: new Date().toISOString(),
+            pin_verified: true,
+        };
+        localStorage.setItem('park_session', JSON.stringify(session));
+    }, { tenantId: TENANT_ID });
+    
+    // Seed test data in IndexedDB
+    await page.evaluate(async ({ tenantId }) => {
+        // Open IndexedDB
+        const dbName = 'park_pos_db';
+        const request = indexedDB.open(dbName, 1);
+        
+        await new Promise((resolve, reject) => {
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+            
+            request.onupgradeneeded = (event: any) => {
+                const db = event.target.result;
+                
+                // Create stores if they don't exist
+                if (!db.objectStoreNames.contains('events')) {
+                    db.createObjectStore('events', { keyPath: 'event_id' });
+                }
+                if (!db.objectStoreNames.contains('catalog')) {
+                    db.createObjectStore('catalog', { keyPath: 'id' });
+                }
+            };
+        });
+        
+        const db = request.result as IDBDatabase;
+        
+        // Add test products to catalog
+        const catalogTx = db.transaction(['catalog'], 'readwrite');
+        const catalogStore = catalogTx.objectStore('catalog');
+        
+        const testProducts = [
+            {
+                id: 'prod-pollo',
+                name: 'Pollo',
+                price_cents: 3500,
+                category: 'PLATOS',
+                station: 'PARRILLA',
+                is_active: true,
+            },
+            {
+                id: 'prod-papas',
+                name: 'Papas',
+                price_cents: 800,
+                category: 'ACOMPAÑAMIENTOS',
+                station: 'COCINA',
+                is_active: true,
+            },
+            {
+                id: 'prod-gaseosa',
+                name: 'Gaseosa',
+                price_cents: 500,
+                category: 'BEBIDAS',
+                station: 'BAR',
+                is_active: true,
+            },
+        ];
+        
+        for (const product of testProducts) {
+            catalogStore.put(product);
+        }
+        
+        await new Promise((resolve, reject) => {
+            catalogTx.oncomplete = () => resolve(undefined);
+            catalogTx.onerror = () => reject(catalogTx.error);
+        });
+        
+        db.close();
+    }, { tenantId: TENANT_ID });
+    
+    await page.waitForLoadState("networkidle");
+}
+
+/**
+ * Setup KDS Terminal with Session
+ * Configures localStorage with KDS terminal data for specific station
+ */
+export async function setupKDSTerminal(page: Page, station: string) {
+    await page.goto("/");
+    
+    await page.evaluate(({ station, tenantId }) => {
+        const terminalConfig = {
+            terminal_id: `kds_${station.toLowerCase()}`,
+            tenant_id: tenantId,
+            device_fingerprint: `test-fingerprint-kds-${station}-` + Date.now(),
+            device_name: `Test KDS ${station}`,
+            role: "COOK",
+            station: station,
+            location_id: "LOC01",
+            is_allowed: true,
+            registered_at: new Date().toISOString(),
+        };
+        localStorage.setItem('park_terminal_config', JSON.stringify(terminalConfig));
+        
+        // Session for KDS
+        const session = {
+            employee_id: "00000000-0000-0000-0000-000000000003",
+            role: "COOK",
+            terminal_id: `kds_${station.toLowerCase()}`,
+            logged_in_at: new Date().toISOString(),
+            pin_verified: true,
+        };
+        localStorage.setItem('park_session', JSON.stringify(session));
+    }, { station, tenantId: TENANT_ID });
+    
+    await page.waitForLoadState("networkidle");
+}
+
+/**
+ * Setup Cashier Terminal with Session
+ * Configures localStorage with cashier terminal data
+ */
+export async function setupCashierTerminal(page: Page) {
+    await page.goto("/");
+    
+    await page.evaluate(({ tenantId }) => {
+        const terminalConfig = {
+            terminal_id: "cashier_test_1",
+            tenant_id: tenantId,
+            device_fingerprint: "test-fingerprint-cashier-" + Date.now(),
+            device_name: "Test Cashier Terminal",
+            role: "CASHIER",
+            location_id: "LOC01",
+            is_allowed: true,
+            registered_at: new Date().toISOString(),
+        };
+        localStorage.setItem('park_terminal_config', JSON.stringify(terminalConfig));
+        
+        // Session for Cashier
+        const session = {
+            employee_id: "00000000-0000-0000-0000-000000000004",
+            role: "CASHIER",
+            terminal_id: "cashier_test_1",
+            logged_in_at: new Date().toISOString(),
+            pin_verified: true,
+        };
+        localStorage.setItem('park_session', JSON.stringify(session));
+    }, { tenantId: TENANT_ID });
+    
+    await page.waitForLoadState("networkidle");
+}

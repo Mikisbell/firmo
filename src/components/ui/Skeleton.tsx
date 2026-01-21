@@ -188,3 +188,88 @@ export function PageSkeleton({ children }: { children?: React.ReactNode }) {
 }
 
 export default Skeleton;
+
+/**
+ * Skeleton for paginated list items (2026 Modern)
+ * Used with infinite scroll and virtual lists
+ */
+export function ListItemSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-4 rounded-lg border border-zinc-800 bg-zinc-900/50">
+      <Skeleton className="w-12 h-12 rounded-lg flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="w-3/4 h-4 rounded" />
+        <Skeleton className="w-1/2 h-3 rounded" />
+      </div>
+      <Skeleton className="w-20 h-8 rounded-lg" />
+    </div>
+  );
+}
+
+/**
+ * Skeleton for paginated list
+ */
+export function PaginatedListSkeleton({ count = 10 }: { count?: number }) {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <ListItemSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Skeleton for infinite scroll loading indicator
+ */
+export function InfiniteScrollLoader() {
+  return (
+    <div className="flex items-center justify-center p-6">
+      <div className="flex flex-col items-center gap-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <p className="text-sm text-zinc-400">Cargando más...</p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Skeleton for table row (admin panels)
+ */
+export function TableRowSkeleton() {
+  return (
+    <tr className="border-b border-zinc-800">
+      <td className="p-4"><Skeleton className="w-8 h-4 rounded" /></td>
+      <td className="p-4"><Skeleton className="w-32 h-4 rounded" /></td>
+      <td className="p-4"><Skeleton className="w-24 h-4 rounded" /></td>
+      <td className="p-4"><Skeleton className="w-20 h-4 rounded" /></td>
+      <td className="p-4"><Skeleton className="w-16 h-8 rounded-lg" /></td>
+    </tr>
+  );
+}
+
+/**
+ * Skeleton for admin table
+ */
+export function AdminTableSkeleton({ rows = 10 }: { rows?: number }) {
+  return (
+    <div className="rounded-lg border border-zinc-800 overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-zinc-900/50">
+          <tr className="border-b border-zinc-800">
+            <th className="p-4 text-left"><Skeleton className="w-12 h-4 rounded" /></th>
+            <th className="p-4 text-left"><Skeleton className="w-20 h-4 rounded" /></th>
+            <th className="p-4 text-left"><Skeleton className="w-16 h-4 rounded" /></th>
+            <th className="p-4 text-left"><Skeleton className="w-16 h-4 rounded" /></th>
+            <th className="p-4 text-left"><Skeleton className="w-20 h-4 rounded" /></th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: rows }).map((_, i) => (
+            <TableRowSkeleton key={i} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

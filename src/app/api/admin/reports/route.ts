@@ -4,13 +4,43 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import prisma from '@/src/core/db/prisma';
+import { ReportsQuerySchema } from '@/src/core/admin/schemas/reports.schema';
+import { ZodError } from 'zod';
+import { withRequestLogging } from '@/src/core/middleware/request-logger';
+import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
+import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
+import { metrics } from '@/src/core/observability/metrics';
 
-export async function GET(request: NextRequest) {
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+async function handleGET(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  const log = createRequestLogger(requestId);
+  
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
-    const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || 'daily';
+    log.info({ operation: 'get_reports' }, 'Getting reports');
+    
+    // Parse and validate query parameters with Zod
+    const queryParams = Object.fromEntries(request.nextUrl.searchParams);
+    const validatedQuery = ReportsQuerySchema.parse(queryParams);
+    const period = validatedQuery.period ?? 'daily';
+
+    // Generate cache key
+    const cacheKey = generateCacheKey('reports', period);
+
+    // Try to get from cache
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      log.info({
+        operation: 'get_reports_cache_hit',
+        cacheKey,
+        durationMs: Date.now() - startTime,
+      }, 'Reports retrieved from cache');
+      return NextResponse.json(cached);
+    }
     
     // Calculate date range
     const now = new Date();
@@ -28,9 +58,10 @@ export async function GET(request: NextRequest) {
     }
     
     // Get orders in period
+    const dbStart = Date.now();
     const orders = await prisma.orders.findMany({
       where: {
-        tenant_id: tenantId,
+        tenant_id: TENANT_ID,
         created_at: { gte: startDate },
         order_status: 'CONFIRMED',
       },
@@ -39,6 +70,10 @@ export async function GET(request: NextRequest) {
         discount_cents: true,
         checks: true,
       },
+    });
+    logPerformance('db_query_reports', Date.now() - dbStart, {
+      ordersCount: orders.length,
+      period,
     });
     
     // Calculate totals
@@ -64,17 +99,65 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-    
-    return NextResponse.json({
+
+    const response = {
       period,
       sales_net: salesNet,
       discounts,
       tips,
       order_count: orders.length,
       by_payment_method: Object.entries(paymentTotals).map(([method, total]) => ({ method, total })),
+    };
+
+    // Cache for 5 minutes
+    await cache.set(cacheKey, response, 300);
+
+    // Record business metrics
+    metrics.increment('reports_requests_total', {
+      tenant_id: TENANT_ID,
+      period,
     });
+
+    log.info({
+      operation: 'get_reports_success',
+      period,
+      ordersCount: orders.length,
+      salesNet,
+      cached: true,
+      durationMs: Date.now() - startTime,
+    }, 'Reports retrieved successfully');
+    
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Reports GET error:', error);
+    if (error instanceof ZodError) {
+      log.warn({
+        operation: 'get_reports_validation_error',
+        errors: error.errors,
+      }, 'Invalid query parameters');
+      
+      return NextResponse.json(
+        {
+          error: 'Parámetros de consulta inválidos',
+          details: error.errors.map((e) => ({
+            field: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+    
+    log.error({
+      operation: 'get_reports_error',
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : String(error),
+    }, 'Failed to get reports');
+    
     return NextResponse.json({ error: 'Error al obtener reporte' }, { status: 500 });
   }
 }
+
+export const GET = withRequestLogging(handleGET);

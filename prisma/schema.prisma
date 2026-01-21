@@ -1422,3 +1422,21 @@ model security_alerts {
   @@index([severity])
   @@index([tenant_id, severity, acknowledged])
 }
+
+model saga_logs {
+  saga_id      String   @id @db.Uuid
+  tenant_id    String   @db.Uuid
+  saga_name    String
+  status       String   // PENDING, IN_PROGRESS, COMPLETED, COMPENSATING, COMPENSATED, FAILED
+  context      Json
+  steps        Json     // Array of SagaStepResult
+  started_at   DateTime @db.Timestamptz(6)
+  completed_at DateTime? @db.Timestamptz(6)
+  error        String?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([tenant_id, status])
+  @@index([tenant_id, saga_name, created_at(sort: Desc)])
+  @@index([status, started_at])
+}

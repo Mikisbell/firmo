@@ -1,9 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { createHash } from "crypto";
+import { DEFAULT_TENANT_ID, DEFAULT_LOCATION_ID } from "../src/core/config/location";
 
 const prisma = new PrismaClient();
 
-const TENANT_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+const TENANT_ID = DEFAULT_TENANT_ID;
 const SALT = 'PARK_POS_2026_'; // Must match src/core/auth/pin.ts
 
 // UUIDs fijos para employees - DEBEN coincidir con src/core/config/terminal.ts
@@ -166,7 +167,7 @@ async function main() {
         { code: "VIP", name: "Zona VIP", color: "#9C27B0", tables: 3 },
     ];
 
-    const locationId = uuid();
+    const locationId = DEFAULT_LOCATION_ID;
     
     // Create default location first
     const location = await prisma.locations.upsert({

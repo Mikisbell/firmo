@@ -4,57 +4,107 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import prisma from '@/src/core/db/prisma';
-import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { UpdateConfigSchema } from '@/src/core/admin/schemas/config.schema';
+import { ZodError } from 'zod';
+import { withRequestLogging } from '@/src/core/middleware/request-logger';
+import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
+import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
+import { metrics } from '@/src/core/observability/metrics';
 
-const configSchema = z.object({
-  legal_name: z.string().min(1).max(200),
-  ruc: z.string().regex(/^\d{11}$/, 'El RUC debe tener 11 dígitos').nullable().optional(),
-  address_text: z.string().max(500).nullable().optional(),
-  tax_rate: z.number().min(0).max(100).optional(),
-});
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
-export async function GET() {
+async function handleGET(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  const log = createRequestLogger(requestId);
+  
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
+    log.info({ operation: 'get_config' }, 'Getting config');
     
+    // Generate cache key
+    const cacheKey = generateCacheKey('config', TENANT_ID);
+
+    // Try to get from cache
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      log.info({
+        operation: 'get_config_cache_hit',
+        cacheKey,
+        durationMs: Date.now() - startTime,
+      }, 'Config retrieved from cache');
+      return NextResponse.json(cached);
+    }
+
+    // Get config from DB
+    const dbStart = Date.now();
     const settings = await prisma.tenant_settings.findUnique({
-      where: { tenant_id: tenantId },
+      where: { tenant_id: TENANT_ID },
     });
+    logPerformance('db_query_config', Date.now() - dbStart);
     
     if (!settings) {
       return NextResponse.json({ error: 'Configuración no encontrada' }, { status: 404 });
     }
+
+    // Cache for 10 minutes (config doesn't change often)
+    await cache.set(cacheKey, settings, 600);
+
+    // Record business metrics
+    metrics.increment('config_requests_total', {
+      tenant_id: TENANT_ID,
+    });
+
+    log.info({
+      operation: 'get_config_success',
+      cached: true,
+      durationMs: Date.now() - startTime,
+    }, 'Config retrieved successfully');
     
     return NextResponse.json(settings);
   } catch (error) {
-    console.error('Config GET error:', error);
+    log.error({
+      operation: 'get_config_error',
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : String(error),
+    }, 'Failed to get config');
+    
     return NextResponse.json({ error: 'Error al obtener configuración' }, { status: 500 });
   }
 }
 
-export async function PUT(request: NextRequest) {
+export const GET = withRequestLogging(handleGET);
+
+async function handlePUT(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  
   // Validate admin authentication and authorization
   const authResult = await requireAdminAuth(request);
   if (!authResult.authorized) {
     return authResult.response;
   }
 
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
+
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
+    log.info({ operation: 'update_config' }, 'Updating config');
+    
     const body = await request.json();
     
-    const parsed = configSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten() }, { status: 400 });
-    }
-    
-    const data = parsed.data;
-    
+    // Validate with Zod
+    const validatedData = UpdateConfigSchema.parse(body);
+
     // Get old values for audit trail
     const oldSettings = await prisma.tenant_settings.findUnique({
-      where: { tenant_id: tenantId },
+      where: { tenant_id: TENANT_ID },
     });
 
     if (!oldSettings) {
@@ -62,13 +112,14 @@ export async function PUT(request: NextRequest) {
     }
     
     // Update settings in transaction with audit trail
+    const txStart = Date.now();
     const settings = await prisma.$transaction(async (tx) => {
       const updated = await tx.tenant_settings.update({
-        where: { tenant_id: tenantId },
+        where: { tenant_id: TENANT_ID },
         data: {
-          legal_name: data.legal_name,
-          ruc: data.ruc || null,
-          address_text: data.address_text || null,
+          legal_name: validatedData.legal_name,
+          ruc: validatedData.ruc || null,
+          address_text: validatedData.address_text || null,
           updated_at: new Date(),
         },
       });
@@ -76,8 +127,8 @@ export async function PUT(request: NextRequest) {
       // Log audit trail with old and new values
       await tx.admin_access_logs.create({
         data: {
-          id: crypto.randomUUID(),
-          tenant_id: tenantId,
+          id: randomUUID(),
+          tenant_id: TENANT_ID,
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'config',
@@ -88,9 +139,9 @@ export async function PUT(request: NextRequest) {
               address_text: oldSettings.address_text,
             },
             new_values: {
-              legal_name: data.legal_name,
-              ruc: data.ruc || null,
-              address_text: data.address_text || null,
+              legal_name: validatedData.legal_name,
+              ruc: validatedData.ruc || null,
+              address_text: validatedData.address_text || null,
             },
           },
           created_at: new Date(),
@@ -99,10 +150,58 @@ export async function PUT(request: NextRequest) {
 
       return updated;
     });
+    logPerformance('db_transaction_update_config', Date.now() - txStart);
+
+    // Invalidate config cache
+    await cache.invalidatePattern('config:*');
+
+    // Record business metrics
+    metrics.increment('config_updates_total', {
+      tenant_id: TENANT_ID,
+    });
+
+    // Log audit event
+    logAudit('UPDATE', 'config', authResult.user.id, {
+      changes: Object.keys(validatedData),
+    });
+
+    log.info({
+      operation: 'update_config_success',
+      durationMs: Date.now() - startTime,
+    }, 'Config updated successfully');
     
     return NextResponse.json(settings);
   } catch (error) {
-    console.error('Config PUT error:', error);
+    if (error instanceof ZodError) {
+      log.warn({
+        operation: 'update_config_validation_error',
+        errors: error.errors,
+      }, 'Invalid config data');
+      
+      return NextResponse.json(
+        {
+          error: 'Datos inválidos',
+          details: error.errors.map((e) => ({
+            field: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+    
+    log.error({
+      operation: 'update_config_error',
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : String(error),
+      durationMs: Date.now() - startTime,
+    }, 'Failed to update config');
+    
     return NextResponse.json({ error: 'Error al actualizar configuración' }, { status: 500 });
   }
 }
+
+export const PUT = withRequestLogging(handlePUT);

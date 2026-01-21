@@ -84,7 +84,7 @@ export default function TablesPage() {
     }
   };
 
-  const zoneOptions = zones.map(z => ({ value: z.id, label: z.name }));
+  const zoneOptions = (zones && Array.isArray(zones) ? zones : []).map(z => ({ value: z.id, label: z.name }));
   
   const filters: FilterConfig[] = [
     { key: 'zone_id', label: 'Zona', options: zoneOptions },
@@ -189,7 +189,7 @@ export default function TablesPage() {
 
       {/* Zone summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {zones.map(zone => (
+        {(zones && Array.isArray(zones) ? zones : []).map(zone => (
           <div 
             key={zone.id}
             className="p-3 rounded-lg border border-zinc-800"

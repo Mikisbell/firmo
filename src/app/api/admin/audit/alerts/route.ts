@@ -3,119 +3,73 @@
  * 
  * Task 10.3 - Terminal Architecture v2
  * Requirements: 6.4
- * 
- * Supports filtering by:
- * - date range (start_date, end_date)
- * - terminal_id
- * - severity
- * - acknowledged status
- * - limit
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { queryAlerts, type AlertFilters, type AlertSeverity } from '@/src/core/auth/audit-logger';
+import { randomUUID } from 'crypto';
+import { queryAlerts, type AlertFilters } from '@/src/core/auth/audit-logger';
+import { AuditAlertsQuerySchema } from '@/src/core/admin/schemas/audit.schema';
+import { ZodError } from 'zod';
+import { withRequestLogging } from '@/src/core/middleware/request-logger';
+import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
+import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
+import { metrics } from '@/src/core/observability/metrics';
 
-/**
- * GET /api/admin/audit/alerts
- * 
- * Query security alerts with filters
- * 
- * Query parameters:
- * - terminal_id (optional): Filter by terminal ID
- * - severity (optional): Filter by severity (low, medium, high, critical)
- * - acknowledged (optional): Filter by acknowledged status (true/false)
- * - start_date (optional): Start date (ISO 8601)
- * - end_date (optional): End date (ISO 8601)
- * - limit (optional): Maximum number of results (default: 100)
- * 
- * Example:
- * GET /api/admin/audit/alerts?severity=critical&acknowledged=false&limit=20
- */
-export async function GET(request: NextRequest) {
+const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+async function handleGET(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  const log = createRequestLogger(requestId);
+  
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
-    const { searchParams } = new URL(request.url);
+    log.info({ operation: 'get_audit_alerts' }, 'Getting audit alerts');
+    
+    // Parse and validate query parameters with Zod
+    const queryParams = Object.fromEntries(request.nextUrl.searchParams);
+    const validatedQuery = AuditAlertsQuerySchema.parse(queryParams);
 
-    // Build filters from query parameters
+    // Generate cache key
+    const cacheKey = generateCacheKey(
+      'audit:alerts',
+      validatedQuery.terminal_id ?? 'all',
+      validatedQuery.severity ?? 'all',
+      validatedQuery.acknowledged !== undefined ? String(validatedQuery.acknowledged) : 'all',
+      validatedQuery.start_date ?? 'all',
+      validatedQuery.end_date ?? 'all',
+      validatedQuery.limit ?? 100
+    );
+
+    // Try to get from cache
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      log.info({
+        operation: 'get_audit_alerts_cache_hit',
+        cacheKey,
+        durationMs: Date.now() - startTime,
+      }, 'Audit alerts retrieved from cache');
+      return NextResponse.json(cached);
+    }
+
+    // Build filters
     const filters: AlertFilters = {
-      tenant_id: tenantId,
+      tenant_id: TENANT_ID,
+      terminal_id: validatedQuery.terminal_id,
+      severity: validatedQuery.severity as any,
+      acknowledged: validatedQuery.acknowledged,
+      start_date: validatedQuery.start_date ? new Date(validatedQuery.start_date) : undefined,
+      end_date: validatedQuery.end_date ? new Date(validatedQuery.end_date) : undefined,
+      limit: validatedQuery.limit,
     };
 
-    // Optional filters
-    const terminalId = searchParams.get('terminal_id');
-    if (terminalId) {
-      filters.terminal_id = terminalId;
-    }
-
-    const severity = searchParams.get('severity');
-    if (severity) {
-      // Validate severity
-      const validSeverities: AlertSeverity[] = ['low', 'medium', 'high', 'critical'];
-      
-      if (validSeverities.includes(severity as AlertSeverity)) {
-        filters.severity = severity as AlertSeverity;
-      } else {
-        return NextResponse.json(
-          { error: `Invalid severity. Must be one of: ${validSeverities.join(', ')}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    const acknowledged = searchParams.get('acknowledged');
-    if (acknowledged !== null) {
-      if (acknowledged === 'true') {
-        filters.acknowledged = true;
-      } else if (acknowledged === 'false') {
-        filters.acknowledged = false;
-      } else {
-        return NextResponse.json(
-          { error: 'Invalid acknowledged value. Must be "true" or "false"' },
-          { status: 400 }
-        );
-      }
-    }
-
-    const startDate = searchParams.get('start_date');
-    if (startDate) {
-      const date = new Date(startDate);
-      if (isNaN(date.getTime())) {
-        return NextResponse.json(
-          { error: 'Invalid start_date format. Use ISO 8601 format (e.g., 2026-01-01T00:00:00Z)' },
-          { status: 400 }
-        );
-      }
-      filters.start_date = date;
-    }
-
-    const endDate = searchParams.get('end_date');
-    if (endDate) {
-      const date = new Date(endDate);
-      if (isNaN(date.getTime())) {
-        return NextResponse.json(
-          { error: 'Invalid end_date format. Use ISO 8601 format (e.g., 2026-01-01T00:00:00Z)' },
-          { status: 400 }
-        );
-      }
-      filters.end_date = date;
-    }
-
-    const limit = searchParams.get('limit');
-    if (limit) {
-      const limitNum = parseInt(limit, 10);
-      if (isNaN(limitNum) || limitNum < 1 || limitNum > 1000) {
-        return NextResponse.json(
-          { error: 'Invalid limit. Must be a number between 1 and 1000' },
-          { status: 400 }
-        );
-      }
-      filters.limit = limitNum;
-    }
-
     // Query alerts
+    const serviceStart = Date.now();
     const alerts = await queryAlerts(filters);
+    logPerformance('service_query_audit_alerts', Date.now() - serviceStart, {
+      count: alerts.length,
+    });
 
-    return NextResponse.json({
+    const response = {
       alerts,
       count: alerts.length,
       filters: {
@@ -126,12 +80,72 @@ export async function GET(request: NextRequest) {
         end_date: filters.end_date?.toISOString(),
         limit: filters.limit ?? 100,
       },
+    };
+
+    // Cache for 1 minute (alerts are time-sensitive)
+    await cache.set(cacheKey, response, 60);
+
+    // Record business metrics
+    metrics.increment('audit_alerts_requests_total', {
+      tenant_id: TENANT_ID,
     });
+    metrics.set('audit_alerts_count', alerts.length, {
+      tenant_id: TENANT_ID,
+    });
+    
+    // Count by severity
+    const criticalCount = alerts.filter(a => a.severity === 'critical').length;
+    const highCount = alerts.filter(a => a.severity === 'high').length;
+    metrics.set('audit_alerts_critical', criticalCount, {
+      tenant_id: TENANT_ID,
+    });
+    metrics.set('audit_alerts_high', highCount, {
+      tenant_id: TENANT_ID,
+    });
+
+    log.info({
+      operation: 'get_audit_alerts_success',
+      alertsCount: alerts.length,
+      criticalCount,
+      highCount,
+      cached: true,
+      durationMs: Date.now() - startTime,
+    }, 'Audit alerts retrieved successfully');
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Security alerts GET error:', error);
+    if (error instanceof ZodError) {
+      log.warn({
+        operation: 'get_audit_alerts_validation_error',
+        errors: error.errors,
+      }, 'Invalid query parameters');
+      
+      return NextResponse.json(
+        {
+          error: 'Parámetros de consulta inválidos',
+          details: error.errors.map((e) => ({
+            field: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+    
+    log.error({
+      operation: 'get_audit_alerts_error',
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : String(error),
+    }, 'Failed to get audit alerts');
+    
     return NextResponse.json(
-      { error: 'Failed to fetch security alerts' },
+      { error: 'Error al obtener alertas de seguridad' },
       { status: 500 }
     );
   }
 }
+
+export const GET = withRequestLogging(handleGET);

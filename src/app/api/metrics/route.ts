@@ -1,28 +1,36 @@
 /**
- * Prometheus Metrics Endpoint
- * 
- * Exposes metrics in Prometheus format for scraping.
- * GET /api/metrics - Returns all metrics
- * GET /api/metrics?format=json - Returns metrics as JSON summary
+ * Metrics Endpoint
+ * Exposes Prometheus-compatible metrics
  */
 
-import { NextResponse } from 'next/server';
-import { getPrometheusMetrics, getMetricsSummary } from '@/src/core/observability/metrics';
+import { NextRequest, NextResponse } from 'next/server';
+import { metrics } from '@/src/core/observability/metrics';
 
-export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const format = searchParams.get('format');
+/**
+ * GET /api/metrics
+ * Returns metrics in Prometheus format
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const format = request.nextUrl.searchParams.get('format') || 'prometheus';
     
     if (format === 'json') {
-        return NextResponse.json(getMetricsSummary());
-    }
-    
-    // Default: Prometheus format
-    const metrics = getPrometheusMetrics();
-    
-    return new NextResponse(metrics, {
+      // Return JSON format
+      const metricsData = metrics.getMetricsJSON();
+      return NextResponse.json(metricsData);
+    } else {
+      // Return Prometheus format
+      const prometheusMetrics = metrics.getMetrics();
+      return new NextResponse(prometheusMetrics, {
         headers: {
-            'Content-Type': 'text/plain; charset=utf-8',
+          'Content-Type': 'text/plain; version=0.0.4',
         },
-    });
+      });
+    }
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Error al obtener métricas' },
+      { status: 500 }
+    );
+  }
 }

@@ -59,6 +59,11 @@ export function DataTable<T extends { id: string }>({
 
   // Filter and search data
   const filteredData = useMemo(() => {
+    // Defensive: ensure data is an array
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
+    
     let result = [...data];
 
     // Apply search

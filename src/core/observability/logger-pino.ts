@@ -1,0 +1,175 @@
+/**
+ * Enhanced Logger with Pino
+ * Production-grade structured logging with performance optimizations
+ * 
+ * Features:
+ * - JSON structured logs
+ * - Request ID tracking
+ * - Performance monitoring
+ * - Pretty printing in development
+ * - Compatible with existing logger interface
+ */
+
+import pino from 'pino';
+import type { LogContext } from './logger';
+
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isTest = process.env.NODE_ENV === 'test';
+
+/**
+ * Base Pino logger instance
+ */
+const pinoLogger = pino({
+  level: process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info'),
+  
+  // Pretty printing in development
+  transport: isDevelopment && !isTest
+    ? {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'SYS:standard',
+          ignore: 'pid,hostname',
+          singleLine: false,
+          messageFormat: '{event} - {message}',
+        },
+      }
+    : undefined,
+  
+  // Custom formatters
+  formatters: {
+    level: (label) => ({ level: label }),
+  },
+  
+  // Base context
+  base: {
+    env: process.env.NODE_ENV,
+    service: 'park-pos-admin',
+  },
+  
+  // Timestamp
+  timestamp: pino.stdTimeFunctions.isoTime,
+});
+
+/**
+ * Enhanced logger compatible with existing interface
+ */
+export const enhancedLogger = {
+  debug(event: string, message: string, context?: LogContext): void {
+    pinoLogger.debug({ event, ...context }, message);
+  },
+  
+  info(event: string, message: string, context?: LogContext): void {
+    pinoLogger.info({ event, ...context }, message);
+  },
+  
+  warn(event: string, message: string, context?: LogContext): void {
+    pinoLogger.warn({ event, ...context }, message);
+  },
+  
+  error(event: string, message: string, error?: Error, context?: LogContext): void {
+    if (error) {
+      pinoLogger.error(
+        { 
+          event, 
+          error: {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          },
+          ...context 
+        }, 
+        message
+      );
+    } else {
+      pinoLogger.error({ event, ...context }, message);
+    }
+  },
+  
+  /**
+   * Create a child logger with preset context
+   */
+  child(baseContext: LogContext) {
+    const childLogger = pinoLogger.child(baseContext);
+    
+    return {
+      debug: (event: string, message: string, context?: LogContext) =>
+        childLogger.debug({ event, ...context }, message),
+      info: (event: string, message: string, context?: LogContext) =>
+        childLogger.info({ event, ...context }, message),
+      warn: (event: string, message: string, context?: LogContext) =>
+        childLogger.warn({ event, ...context }, message),
+      error: (event: string, message: string, error?: Error, context?: LogContext) => {
+        if (error) {
+          childLogger.error(
+            { 
+              event, 
+              error: {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+              },
+              ...context 
+            }, 
+            message
+          );
+        } else {
+          childLogger.error({ event, ...context }, message);
+        }
+      },
+    };
+  },
+};
+
+/**
+ * Create a request logger with request ID
+ */
+export function createRequestLogger(
+  requestId: string,
+  userId?: string,
+  additionalContext?: Record<string, any>
+) {
+  return pinoLogger.child({
+    requestId,
+    userId,
+    ...additionalContext,
+  });
+}
+
+/**
+ * Log performance metrics
+ */
+export function logPerformance(
+  operation: string,
+  durationMs: number,
+  metadata?: Record<string, any>
+) {
+  pinoLogger.info({
+    type: 'performance',
+    operation,
+    durationMs,
+    ...metadata,
+  }, `Performance: ${operation} took ${durationMs}ms`);
+}
+
+/**
+ * Log audit event
+ */
+export function logAudit(
+  action: string,
+  resource: string,
+  userId: string,
+  metadata?: Record<string, any>
+) {
+  pinoLogger.info({
+    type: 'audit',
+    action,
+    resource,
+    userId,
+    timestamp: new Date().toISOString(),
+    ...metadata,
+  }, `Audit: ${action} on ${resource} by ${userId}`);
+}
+
+// Export raw pino logger for advanced use cases
+export { pinoLogger };

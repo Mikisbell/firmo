@@ -48,7 +48,7 @@ export type Order = z.infer<typeof OrderCreatedPayload>;
 // Aggregate Types
 // ============================================================================
 
-export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON"]);
+export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON", "SAGA"]);
 
 // ============================================================================
 // Base Envelope (all events have this structure)
@@ -313,6 +313,85 @@ const CatalogVersionBumpedPayload = z.object({
 });
 
 // ============================================================================
+// SAGA Events (P2)
+// ============================================================================
+
+// Saga status enum
+export const SagaStatusSchema = z.enum(["IN_PROGRESS", "COMPLETED", "COMPENSATED", "FAILED"]);
+export type SagaStatus = z.infer<typeof SagaStatusSchema>;
+
+// Saga step status enum
+export const SagaStepStatusSchema = z.enum(["PENDING", "COMPLETED", "FAILED", "COMPENSATED"]);
+export type SagaStepStatus = z.infer<typeof SagaStepStatusSchema>;
+
+// SAGA_STARTED - Saga execution begins
+const SagaStartedPayload = z.object({
+    saga_id: uuidSchema,
+    saga_type: z.string().min(1), // e.g., "COMPLETE_SALE", "VOID_SALE", "APPLY_PROMOTION"
+    context: z.record(z.unknown()), // Saga-specific context data
+    timeout_ms: z.number().int().positive().optional(),
+});
+
+// SAGA_STEP_COMPLETED - Individual saga step succeeds
+const SagaStepCompletedPayload = z.object({
+    saga_id: uuidSchema,
+    saga_type: z.string().min(1),
+    step_name: z.string().min(1),
+    step_index: z.number().int().nonnegative(),
+    result: z.record(z.unknown()).optional(), // Step result data
+    attempts: z.number().int().positive().default(1),
+});
+
+// SAGA_STEP_FAILED - Individual saga step fails
+const SagaStepFailedPayload = z.object({
+    saga_id: uuidSchema,
+    saga_type: z.string().min(1),
+    step_name: z.string().min(1),
+    step_index: z.number().int().nonnegative(),
+    error_code: z.string().min(1),
+    error_message: z.string().min(1),
+    error_transient: z.boolean(), // true if error is retryable
+    attempts: z.number().int().positive(),
+});
+
+// SAGA_STEP_COMPENSATED - Compensating transaction executes
+const SagaStepCompensatedPayload = z.object({
+    saga_id: uuidSchema,
+    saga_type: z.string().min(1),
+    step_name: z.string().min(1),
+    step_index: z.number().int().nonnegative(),
+    compensation_attempts: z.number().int().positive().default(1),
+});
+
+// SAGA_COMPLETED - All saga steps complete successfully
+const SagaCompletedPayload = z.object({
+    saga_id: uuidSchema,
+    saga_type: z.string().min(1),
+    completed_steps: z.array(z.string()).min(1),
+    duration_ms: z.number().int().nonnegative(),
+});
+
+// SAGA_COMPENSATED - Saga rolled back successfully
+const SagaCompensatedPayload = z.object({
+    saga_id: uuidSchema,
+    saga_type: z.string().min(1),
+    failed_step: z.string().min(1),
+    compensated_steps: z.array(z.string()),
+    duration_ms: z.number().int().nonnegative(),
+});
+
+// SAGA_FAILED - Saga failed and compensation failed
+const SagaFailedPayload = z.object({
+    saga_id: uuidSchema,
+    saga_type: z.string().min(1),
+    failed_step: z.string().min(1),
+    error_code: z.string().min(1),
+    error_message: z.string().min(1),
+    requires_manual_intervention: z.boolean().default(false),
+    duration_ms: z.number().int().nonnegative(),
+});
+
+// ============================================================================
 // Discriminated Union of All Events
 // ============================================================================
 
@@ -434,6 +513,43 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("CATALOG"),
         payload: CatalogVersionBumpedPayload,
     }),
+
+    // SAGA events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SAGA_STARTED"),
+        aggregate_type: z.literal("SAGA"),
+        payload: SagaStartedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SAGA_STEP_COMPLETED"),
+        aggregate_type: z.literal("SAGA"),
+        payload: SagaStepCompletedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SAGA_STEP_FAILED"),
+        aggregate_type: z.literal("SAGA"),
+        payload: SagaStepFailedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SAGA_STEP_COMPENSATED"),
+        aggregate_type: z.literal("SAGA"),
+        payload: SagaStepCompensatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SAGA_COMPLETED"),
+        aggregate_type: z.literal("SAGA"),
+        payload: SagaCompletedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SAGA_COMPENSATED"),
+        aggregate_type: z.literal("SAGA"),
+        payload: SagaCompensatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SAGA_FAILED"),
+        aggregate_type: z.literal("SAGA"),
+        payload: SagaFailedPayload,
+    }),
 ]);
 
 // ============================================================================
@@ -457,6 +573,15 @@ export type RequestCheckEvent = Extract<ParkEvent, { event_type: "REQUEST_CHECK"
 export type OrderSubmittedEvent = Extract<ParkEvent, { event_type: "ORDER_SUBMITTED" }>;
 export type OrderItemQtyChangedEvent = Extract<ParkEvent, { event_type: "ORDER_ITEM_QTY_CHANGED" }>;
 export type OrderItemVoidedEvent = Extract<ParkEvent, { event_type: "ORDER_ITEM_VOIDED" }>;
+
+// Saga event types
+export type SagaStartedEvent = Extract<ParkEvent, { event_type: "SAGA_STARTED" }>;
+export type SagaStepCompletedEvent = Extract<ParkEvent, { event_type: "SAGA_STEP_COMPLETED" }>;
+export type SagaStepFailedEvent = Extract<ParkEvent, { event_type: "SAGA_STEP_FAILED" }>;
+export type SagaStepCompensatedEvent = Extract<ParkEvent, { event_type: "SAGA_STEP_COMPENSATED" }>;
+export type SagaCompletedEvent = Extract<ParkEvent, { event_type: "SAGA_COMPLETED" }>;
+export type SagaCompensatedEvent = Extract<ParkEvent, { event_type: "SAGA_COMPENSATED" }>;
+export type SagaFailedEvent = Extract<ParkEvent, { event_type: "SAGA_FAILED" }>;
 
 // ============================================================================
 // Ingest Request Schema

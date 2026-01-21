@@ -15,11 +15,20 @@ const PROTECTED_ROUTES = ['/admin'];
 // Routes that should skip authentication (public or have their own auth)
 const PUBLIC_ROUTES = ['/api/auth', '/pos', '/mozo', '/cocina', '/caja', '/bar', '/inventario'];
 
+// API routes that handle their own authentication (should not be redirected)
+const API_ROUTES_WITH_OWN_AUTH = ['/api/admin', '/api/inventory'];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip public routes
   if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
+
+  // Skip API routes that handle their own authentication
+  // These routes should return 401 JSON, not redirect
+  if (API_ROUTES_WITH_OWN_AUTH.some(route => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
@@ -34,7 +43,7 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
 
   if (!token) {
-    // No token, redirect to login
+    // No token, redirect to login (only for UI pages, not APIs)
     const loginUrl = new URL('/admin', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);

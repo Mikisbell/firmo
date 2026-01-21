@@ -12,8 +12,6 @@ import {
 import { generateFingerprintV2 } from '@/src/core/auth/fingerprint-v2';
 import { createSession, type SecureSession } from '@/src/core/auth/session-v2';
 import { assessRisk, getTimeOfDay, type RiskAssessment } from '@/src/core/auth/risk-validator';
-import { getTerminal, validateTerminal } from '@/src/core/auth/terminal-registry';
-import { calculateSimilarity } from '@/src/core/auth/fingerprint-v2';
 import type { TerminalConfig } from '@/src/core/auth/types';
 
 interface LoginScreenProps {
@@ -52,33 +50,14 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
       // Generate enhanced fingerprint
       const fingerprint = await generateFingerprintV2();
       
-      // Validate terminal and get device info
-      const terminalDevice = await getTerminal(terminal.terminal_id, terminal.tenant_id);
-      
-      if (!terminalDevice) {
-        setError('Terminal no encontrado');
-        setLoading(false);
-        return;
-      }
-
-      // Calculate fingerprint similarity if terminal is bound
-      let fingerprintMatch = 100; // Default for new devices
-      if (terminalDevice.fingerprint_hash && terminalDevice.bound_at) {
-        // For now, we'll get similarity from the server response
-        // In a full implementation, we'd store signals and compare them
-        fingerprintMatch = 100; // Will be updated by server response
-      }
-
-      // Assess risk
+      // Assess risk with basic factors (server will enhance)
       const riskFactors = {
-        fingerprintMatch,
+        fingerprintMatch: 100, // Will be determined by server
         ipKnown: true, // Will be determined by server
         timeOfDay: getTimeOfDay(),
         failedAttempts: 0, // Will be updated if login fails
         daysSinceLastAuth: 0, // Will be determined by server
-        deviceAge: terminalDevice.bound_at 
-          ? Math.floor((Date.now() - terminalDevice.bound_at.getTime()) / (1000 * 60 * 60 * 24))
-          : 0,
+        deviceAge: 0, // Will be determined by server
       };
 
       const riskAssessment = assessRisk(riskFactors);
@@ -146,7 +125,25 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
         riskAssessment.requiredAuth = data.risk_assessment.requiredAuth;
       }
 
-      // Create session with v2 system
+      // Create session with v2 system using terminal config
+      const terminalDevice = {
+        id: terminal.terminal_id,
+        terminal_id: terminal.terminal_id,
+        tenant_id: terminal.tenant_id,
+        role: terminal.role as any,
+        fingerprint_hash: null,
+        fingerprint_salt: '',
+        status: 'active' as const,
+        bound_at: null,
+        last_seen_at: new Date(),
+        last_fingerprint_check: new Date(),
+        drift_score: 0,
+        location_id: terminal.location_id || 'LOC01',
+        device_name: terminal.device_name || terminal.terminal_id,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
       const session = createSession(
         terminalDevice,
         data.employee,
