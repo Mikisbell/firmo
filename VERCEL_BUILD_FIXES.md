@@ -83,7 +83,11 @@ export async function GET(
 - ✅ Fixed getHourlySales call - removed unused date parameter
 - ✅ Function signature: `getHourlySales(tenantId: string)` (no date param)
 
+### Fix 4: Top Products Function Call (Commit: ecd1496)
+- ✅ Fixed getTopProducts call - removed unused date_from/date_to parameters
+- ✅ Function signature: `getTopProducts(tenantId: string, limit?: number)` (no date params)
+
 ---
 
 **Status**: ✅ LISTO PARA VERCEL BUILD
-**Última actualización**: 22 Enero 2026 - 02:45 AM
+**Última actualización**: 22 Enero 2026 - 02:50 AM
