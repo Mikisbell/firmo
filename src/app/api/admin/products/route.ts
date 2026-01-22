@@ -38,7 +38,7 @@ async function handleGET(request: NextRequest) {
       'products',
       params.page,
       params.limit,
-      validatedQuery.is_active ?? 'all',
+      validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all',
       validatedQuery.category ?? 'all',
       validatedQuery.station ?? 'all'
     );

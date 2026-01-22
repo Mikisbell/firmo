@@ -38,7 +38,7 @@ async function handleGET(request: NextRequest) {
       'promotions',
       params.page,
       params.limit,
-      validatedQuery.is_active ?? 'all',
+      validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all',
       validatedQuery.type ?? 'all'
     );
 
