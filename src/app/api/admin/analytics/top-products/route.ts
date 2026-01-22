@@ -50,9 +50,7 @@ async function handleGET(request: NextRequest) {
     const serviceStart = Date.now();
     const products = await getTopProducts(
       TENANT_ID, 
-      validatedQuery.limit ?? 10,
-      validatedQuery.date_from,
-      validatedQuery.date_to
+      validatedQuery.limit ?? 10
     );
     logPerformance('service_get_top_products', Date.now() - serviceStart);
 
