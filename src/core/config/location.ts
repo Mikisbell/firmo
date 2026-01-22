@@ -1,6 +1,8 @@
 /**
  * Location and Tenant Configuration
  * 
+ * DEPRECATED: Use getTenantId() from @/src/core/config/tenant instead for tenant ID
+ * 
  * Centralized constants for default location and tenant IDs.
  * These must match the values used in seed data.
  */
@@ -10,6 +12,7 @@ export const DEFAULT_LOCATION_ID = 'loc-00000000-0000-0000-0000-000000000001';
 
 /**
  * Get tenant ID from environment or use default
+ * @deprecated Use getTenantId() from @/src/core/config/tenant instead
  */
 export function getTenantId(): string {
   return process.env.TENANT_ID || DEFAULT_TENANT_ID;
@@ -21,3 +24,4 @@ export function getTenantId(): string {
 export function getLocationId(): string {
   return process.env.LOCATION_ID || DEFAULT_LOCATION_ID;
 }
+
