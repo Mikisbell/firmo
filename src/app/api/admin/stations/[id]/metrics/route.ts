@@ -83,7 +83,8 @@ export async function GET(
 
     return NextResponse.json(metrics);
   } catch (error) {
-    pinoLogger.error({ error, stationId: params.id }, 'Error fetching station metrics');
+    const resolvedParams = await params;
+    pinoLogger.error({ error, stationId: resolvedParams.id }, 'Error fetching station metrics');
 
     return NextResponse.json(
       {
