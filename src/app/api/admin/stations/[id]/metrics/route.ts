@@ -39,10 +39,7 @@ export async function GET(
     // Verify admin authentication
     const authResult = await verifyAdminAuth(request);
     if (!authResult.authorized) {
-      return NextResponse.json(
-        { error: authResult.error || 'Unauthorized' },
-        { status: 401 }
-      );
+      return authResult.response;
     }
 
     pinoLogger.info({ stationId: id }, 'Fetching station metrics');
