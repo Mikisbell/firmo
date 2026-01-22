@@ -282,9 +282,9 @@ export async function generateAlertsForAllStations(tenantId: string): Promise<nu
     select: { id: true },
   });
 
-  let totalAlerts = 0;
+  const totalAlerts = 0;
 
-  for (const station of stations) {
+  for (const _station of stations) {
     // Would need to calculate metrics for each station
     // and call generateAlertsForStation
     // This is left as a future enhancement

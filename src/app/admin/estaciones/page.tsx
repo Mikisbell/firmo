@@ -7,7 +7,7 @@
  * Requirements: KDS stations management
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Monitor, AlertTriangle, Clock, TrendingUp } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
@@ -32,7 +32,7 @@ interface Order {
   status: 'PENDING' | 'COOKING' | 'READY';
 }
 
-interface Alert {
+interface _Alert {
   id: string;
   station: string;
   message: string;
@@ -463,7 +463,7 @@ function OrdersModalWithData({
   );
 }
 
-function OrdersModal({
+function _OrdersModal({
   station,
   orders,
   onClose,
@@ -747,12 +747,20 @@ function GlobalStatsCard({ stations }: { stations: Station[] }) {
   const [avgTime, setAvgTime] = useState(0);
   const [globalEfficiency, setGlobalEfficiency] = useState(0);
   
-  // Fetch metrics for each active station
-  const stationMetrics = activeStations.map(station => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { metrics } = useStationMetrics({ stationId: station.id });
-    return metrics;
-  });
+  // Fetch metrics for all stations (hooks must be called unconditionally)
+  const station1Metrics = useStationMetrics({ stationId: activeStations[0]?.id || '' });
+  const station2Metrics = useStationMetrics({ stationId: activeStations[1]?.id || '' });
+  const station3Metrics = useStationMetrics({ stationId: activeStations[2]?.id || '' });
+  const station4Metrics = useStationMetrics({ stationId: activeStations[3]?.id || '' });
+  const station5Metrics = useStationMetrics({ stationId: activeStations[4]?.id || '' });
+  
+  const stationMetrics = [
+    station1Metrics.metrics,
+    station2Metrics.metrics,
+    station3Metrics.metrics,
+    station4Metrics.metrics,
+    station5Metrics.metrics,
+  ].filter((m, idx) => idx < activeStations.length && m !== null);
   
   // Calculate aggregates when metrics change
   useEffect(() => {
