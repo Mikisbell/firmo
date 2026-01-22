@@ -7,8 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const TENANT_ID = getTenantId();
 
 // GET - Get single product
 export async function GET(

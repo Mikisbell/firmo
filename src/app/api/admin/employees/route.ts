@@ -17,8 +17,9 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics, MetricNames } from '@/src/core/observability/metrics';
+import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const TENANT_ID = getTenantId();
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts
 
 function hashPin(pin: string): string {

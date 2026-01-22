@@ -8,8 +8,9 @@ import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const TENANT_ID = getTenantId();
 
 const promotionSchema = z.object({
   name: z.string().min(1).max(100),
