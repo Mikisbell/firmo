@@ -87,7 +87,18 @@ export async function GET(
 - ✅ Fixed getTopProducts call - removed unused date_from/date_to parameters
 - ✅ Function signature: `getTopProducts(tenantId: string, limit?: number)` (no date params)
 
+### Fix 5: Boolean to String in generateCacheKey (Commits: df286b3, ec45c33)
+- ✅ Fixed employees route - `String(is_active)` conversion
+- ✅ Fixed products route - `String(is_active)` conversion
+- ✅ Fixed promotions route - `String(is_active)` conversion
+- ✅ Issue: `generateCacheKey` expects string values, boolean caused type error
+
+### Fix 6: verifyAdminAuth Return Type (Commit: 15d5727)
+- ✅ Fixed metrics route - return `authResult.response` instead of creating new response
+- ✅ Pattern: When `!authResult.authorized`, return `authResult.response` directly
+- ✅ Other files already using correct pattern
+
 ---
 
 **Status**: ✅ LISTO PARA VERCEL BUILD
-**Última actualización**: 22 Enero 2026 - 02:50 AM
+**Última actualización**: 22 Enero 2026 - 03:15 AM
