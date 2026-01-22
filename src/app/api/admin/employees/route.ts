@@ -52,7 +52,7 @@ async function handleGET(request: NextRequest) {
       'employees',
       params.page,
       params.limit,
-      validatedQuery.is_active ?? 'all'
+      validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all'
     );
 
     // Try to get from cache
