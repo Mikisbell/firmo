@@ -54,8 +54,9 @@ export default function TablesPage() {
         zonesRes.json(),
       ]);
       
-      setTables(tablesData);
-      setZones(zonesData);
+      // API returns paginated response: { items: [...], pagination: {...} }
+      setTables(tablesData.items || tablesData);
+      setZones(zonesData.items || zonesData);
       setError(null);
     } catch (err) {
       setError('Error al cargar datos');

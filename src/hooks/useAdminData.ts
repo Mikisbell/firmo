@@ -46,8 +46,10 @@ export function useAdminData<T>(
       }
       
       const result = await res.json();
-      setData(result);
-      onSuccess?.(result);
+      // Handle paginated responses: { items: [...], pagination: {...} }
+      const dataArray = result.items || result.data || result;
+      setData(Array.isArray(dataArray) ? dataArray : []);
+      onSuccess?.(dataArray);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al cargar datos';
       setError(errorMessage);

@@ -118,3 +118,8 @@ export async function requireAdminAuth(
 
   return { authorized: true, user: authResult.user };
 }
+
+/**
+ * Alias for requireAdminAuth for backward compatibility
+ */
+export const verifyAdminAuth = requireAdminAuth;
