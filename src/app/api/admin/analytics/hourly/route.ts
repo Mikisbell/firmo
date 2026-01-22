@@ -48,7 +48,7 @@ async function handleGET(request: NextRequest) {
 
     // Get metrics from service
     const serviceStart = Date.now();
-    const hourlySales = await getHourlySales(TENANT_ID, validatedQuery.date);
+    const hourlySales = await getHourlySales(TENANT_ID);
     logPerformance('service_get_hourly_sales', Date.now() - serviceStart);
 
     const response = { hourly: hourlySales };
