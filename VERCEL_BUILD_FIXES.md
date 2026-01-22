@@ -79,7 +79,11 @@ export async function GET(
 - ✅ Added await for params Promise
 - ✅ Fixed error handlers
 
+### Fix 3: Analytics Function Call (Commit: 5d44036)
+- ✅ Fixed getHourlySales call - removed unused date parameter
+- ✅ Function signature: `getHourlySales(tenantId: string)` (no date param)
+
 ---
 
 **Status**: ✅ LISTO PARA VERCEL BUILD
-**Última actualización**: 22 Enero 2026 - 02:30 AM
+**Última actualización**: 22 Enero 2026 - 02:45 AM
