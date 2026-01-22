@@ -45,10 +45,10 @@ interface StationOrder {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50', 10);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
@@ -163,8 +163,9 @@ export async function GET(
       hasMore,
     });
   } catch (error) {
+    const resolvedParams = await params;
     pinoLogger.error(
-      { error, stationId: params.id },
+      { error, stationId: resolvedParams.id },
       'Error fetching station orders'
     );
 

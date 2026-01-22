@@ -12,7 +12,7 @@ import { verifyAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication
@@ -22,7 +22,7 @@ export async function POST(
     }
 
     const { user } = authResult;
-    const alertId = params.id;
+    const { id: alertId } = await params;
 
     // Check if alert exists and belongs to tenant
     const alert = await prisma.station_alerts.findFirst({

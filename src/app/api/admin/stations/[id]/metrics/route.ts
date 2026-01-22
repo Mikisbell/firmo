@@ -31,10 +31,10 @@ import { verifyAdminAuth } from '@/src/core/middleware/admin-auth';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Verify admin authentication
     const authResult = await verifyAdminAuth(request);
