@@ -17,7 +17,7 @@ export interface StationAlert {
   id: string;
   stationId: string;
   stationName: string;
-  stationType: string;
+  stationCode: string;
   message: string;
   severity: AlertSeverity;
   metricType: MetricType;

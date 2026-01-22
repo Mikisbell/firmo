@@ -60,10 +60,10 @@ export async function POST(
           select: {
             id: true,
             name: true,
-            type: true,
+            code: true,
           },
         },
-        dismissed_by_employee: {
+        employees: {
           select: {
             id: true,
             name: true,
@@ -77,17 +77,17 @@ export async function POST(
       id: updatedAlert.id,
       stationId: updatedAlert.station_id,
       stationName: updatedAlert.stations.name,
-      stationType: updatedAlert.stations.type,
+      stationCode: updatedAlert.stations.code,
       message: updatedAlert.message,
       severity: updatedAlert.severity,
       metricType: updatedAlert.metric_type,
       metricValue: updatedAlert.metric_value,
-      threshold: updatedAlert.threshold,
+      threshold: updatedAlert.threshold_value,
       isDismissed: updatedAlert.is_dismissed,
       dismissedAt: updatedAlert.dismissed_at?.toISOString() || null,
-      dismissedBy: updatedAlert.dismissed_by_employee ? {
-        id: updatedAlert.dismissed_by_employee.id,
-        name: updatedAlert.dismissed_by_employee.name,
+      dismissedBy: updatedAlert.employees ? {
+        id: updatedAlert.employees.id,
+        name: updatedAlert.employees.name,
       } : null,
       createdAt: updatedAlert.created_at.toISOString(),
     };

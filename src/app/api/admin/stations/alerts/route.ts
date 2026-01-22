@@ -52,10 +52,10 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            type: true,
+            code: true,
           },
         },
-        dismissed_by_employee: {
+        employees: {
           select: {
             id: true,
             name: true,
@@ -72,17 +72,17 @@ export async function GET(request: NextRequest) {
       id: alert.id,
       stationId: alert.station_id,
       stationName: alert.stations.name,
-      stationType: alert.stations.type,
+      stationCode: alert.stations.code,
       message: alert.message,
       severity: alert.severity,
       metricType: alert.metric_type,
       metricValue: alert.metric_value,
-      threshold: alert.threshold,
+      threshold: alert.threshold_value,
       isDismissed: alert.is_dismissed,
       dismissedAt: alert.dismissed_at?.toISOString() || null,
-      dismissedBy: alert.dismissed_by_employee ? {
-        id: alert.dismissed_by_employee.id,
-        name: alert.dismissed_by_employee.name,
+      dismissedBy: alert.employees ? {
+        id: alert.employees.id,
+        name: alert.employees.name,
       } : null,
       createdAt: alert.created_at.toISOString(),
     }));
