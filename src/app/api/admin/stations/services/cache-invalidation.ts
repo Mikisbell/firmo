@@ -9,12 +9,21 @@
 import { cache } from '@/src/core/cache/redis.service';
 import { INVALIDATION_PATTERNS } from './cache-keys';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
-import type { DomainEvent } from '@/src/core/domain/events';
+
+interface CacheInvalidationEvent {
+  type: string;
+  payload: {
+    stationId?: string;
+    tenantId?: string;
+    items?: Array<{ stationId?: string }>;
+    [key: string]: any;
+  };
+}
 
 /**
  * Invalidate cache based on event type
  */
-export async function invalidateCacheForEvent(event: DomainEvent): Promise<void> {
+export async function invalidateCacheForEvent(event: CacheInvalidationEvent): Promise<void> {
   try {
     const { type, payload } = event;
 

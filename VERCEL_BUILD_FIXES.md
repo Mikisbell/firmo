@@ -113,7 +113,14 @@ export async function GET(
   - `src/app/admin/estaciones/hooks/useStationAlerts.ts`
 - ✅ Issue: Code was referencing fields that don't exist in Prisma schema
 
+### Fix 9: Missing Export - DomainEvent
+- ✅ Fixed import error in `cache-invalidation.ts`
+- ✅ Removed non-existent `DomainEvent` import
+- ✅ Created local `CacheInvalidationEvent` interface with proper types
+- ✅ Issue: `DomainEvent` doesn't exist in events.ts (correct type is `ParkEvent`)
+- ✅ File: `src/app/api/admin/stations/services/cache-invalidation.ts`
+
 ---
 
 **Status**: ✅ LISTO PARA VERCEL BUILD
-**Última actualización**: 22 Enero 2026 - 03:45 AM
+**Última actualización**: 22 Enero 2026 - 04:00 AM
