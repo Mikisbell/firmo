@@ -120,7 +120,40 @@ export async function GET(
 - ✅ Issue: `DomainEvent` doesn't exist in events.ts (correct type is `ParkEvent`)
 - ✅ File: `src/app/api/admin/stations/services/cache-invalidation.ts`
 
+### Fix 10: Boolean to String in Tables Route
+- ✅ Fixed tables route - `String(validatedQuery.active)` conversion
+- ✅ Pattern: `validatedQuery.active !== undefined ? String(validatedQuery.active) : 'all'`
+- ✅ Issue: `generateCacheKey` expects string values, boolean caused type error
+- ✅ File: `src/app/api/admin/tables/route.ts` (line 46)
+- ✅ Same issue as Fix 5, but in tables route instead of employees/products/promotions
+
+### Fix 11: Zod Schema - .partial() on ZodEffects
+- ✅ Fixed promotion schema - `.partial()` doesn't work on `ZodEffects`
+- ✅ Solution: Extract base schema, apply `.refine()` only to create schema
+- ✅ Pattern: `BaseSchema` → `CreateSchema = BaseSchema.refine()` → `UpdateSchema = BaseSchema.partial()`
+- ✅ Issue: `CreatePromotionSchema.partial()` failed because `.refine()` returns `ZodEffects`, not `ZodObject`
+- ✅ File: `src/core/admin/schemas/promotion.schema.ts`
+
+### Fix 12: Missing Export - ./sagas Module
+- ✅ Fixed saga index.ts - removed non-existent `./sagas` export
+- ✅ Issue: `export * from './sagas'` but `sagas.ts` file doesn't exist
+- ✅ File: `src/core/saga/index.ts`
+
+### Fix 13: Dexie .update() Type Error
+- ✅ Fixed saga repository - changed `.update()` to `.put()` for full object replacement
+- ✅ Pattern: Use `.put()` when replacing entire object, `.update()` for partial updates
+- ✅ Issue: Dexie's `.update()` expects partial object, not full `SagaLogEntity`
+- ✅ Files: `src/core/saga/repository.ts` (5 methods: recordStepCompletion, recordCompensation, markCompleted, markFailed, markCompensated)
+
+### Fix 14: Logger.error Signature
+- ✅ Fixed saga repository - corrected logger.error call signature
+- ✅ Pattern: `logger.error(event, message, error, context)` - error is 3rd param, not in context
+- ✅ Issue: Passed error in context object instead of as separate Error parameter
+- ✅ File: `src/core/saga/repository.ts` (markFailed method)
+
 ---
 
-**Status**: ✅ LISTO PARA VERCEL BUILD
-**Última actualización**: 22 Enero 2026 - 04:00 AM
+**Status**: ✅ BUILD PASSING - ALL ERRORS FIXED
+**Última actualización**: 22 Enero 2026 - 04:55 AM
+**Total Fixes**: 14 TypeScript errors corregidos
+**Build Result**: ✅ SUCCESS - 89 static pages generated, 0 errors

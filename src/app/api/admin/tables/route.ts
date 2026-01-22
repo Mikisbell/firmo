@@ -43,7 +43,7 @@ async function handleGET(request: NextRequest) {
       params.page,
       params.limit,
       validatedQuery.zone_id ?? 'all',
-      validatedQuery.active ?? 'all'
+      validatedQuery.active !== undefined ? String(validatedQuery.active) : 'all'
     );
 
     // Try to get from cache

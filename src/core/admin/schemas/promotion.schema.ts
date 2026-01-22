@@ -22,7 +22,7 @@ export type PromotionType = z.infer<typeof PromotionTypeSchema>;
  * Create Promotion Schema
  * Validates data for creating a new promotion
  */
-export const CreatePromotionSchema = z.object({
+const BasePromotionSchema = z.object({
   name: z
     .string()
     .min(1, 'Nombre es requerido')
@@ -41,7 +41,9 @@ export const CreatePromotionSchema = z.object({
     .string()
     .datetime('Fecha de fin inválida'),
   is_active: z.boolean().default(true),
-}).refine(
+});
+
+export const CreatePromotionSchema = BasePromotionSchema.refine(
   (data) => new Date(data.ends_at) > new Date(data.starts_at),
   {
     message: 'Fecha de fin debe ser posterior a fecha de inicio',
@@ -55,7 +57,7 @@ export type CreatePromotionDTO = z.infer<typeof CreatePromotionSchema>;
  * Update Promotion Schema
  * All fields are optional for partial updates
  */
-export const UpdatePromotionSchema = CreatePromotionSchema.partial();
+export const UpdatePromotionSchema = BasePromotionSchema.partial();
 
 export type UpdatePromotionDTO = z.infer<typeof UpdatePromotionSchema>;
 

@@ -78,7 +78,7 @@ export class SagaLogRepository {
     entry.status = 'IN_PROGRESS';
     entry.updatedAt = new Date();
 
-    await db.saga_logs.update(sagaId, this.toEntity(entry));
+    await db.saga_logs.put(this.toEntity(entry));
 
     logger.debug('SAGA_STEP_COMPLETED', 'Saga step completed', {
       sagaId,
@@ -114,7 +114,7 @@ export class SagaLogRepository {
       entry.error = error.message;
     }
 
-    await db.saga_logs.update(sagaId, this.toEntity(entry));
+    await db.saga_logs.put(this.toEntity(entry));
 
     logger.debug('SAGA_STEP_COMPENSATED', 'Saga step compensated', {
       sagaId,
@@ -137,7 +137,7 @@ export class SagaLogRepository {
     entry.completedAt = new Date();
     entry.updatedAt = new Date();
 
-    await db.saga_logs.update(sagaId, this.toEntity(entry));
+    await db.saga_logs.put(this.toEntity(entry));
 
     logger.info('SAGA_COMPLETED', 'Saga completed successfully', {
       sagaId,
@@ -161,12 +161,11 @@ export class SagaLogRepository {
     entry.updatedAt = new Date();
     entry.error = error.message;
 
-    await db.saga_logs.update(sagaId, this.toEntity(entry));
+    await db.saga_logs.put(this.toEntity(entry));
 
-    logger.error('SAGA_FAILED', 'Saga failed', {
+    logger.error('SAGA_FAILED', 'Saga failed', error, {
       sagaId,
       sagaName: entry.sagaName,
-      error: error.message,
     });
   }
 
@@ -184,7 +183,7 @@ export class SagaLogRepository {
     entry.completedAt = new Date();
     entry.updatedAt = new Date();
 
-    await db.saga_logs.update(sagaId, this.toEntity(entry));
+    await db.saga_logs.put(this.toEntity(entry));
 
     logger.info('SAGA_COMPENSATED', 'Saga compensated successfully', {
       sagaId,
