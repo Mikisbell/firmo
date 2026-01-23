@@ -3,8 +3,9 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+const TENANT_ID = getTenantId();
 
 export async function GET() {
   try {

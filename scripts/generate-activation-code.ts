@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { generateActivationCode, formatActivationCode } from "../src/core/auth/terminal-registry";
+import { getAdminEmployeeId } from "../src/core/config/employees";
 
 const prisma = new PrismaClient();
 
@@ -43,7 +44,7 @@ async function main() {
   console.log(`   Estado: ${terminal.status}\n`);
 
   // Use ADMIN employee ID as created_by
-  const ADMIN_ID = "00000000-0000-0000-0000-000000000001";
+  const ADMIN_ID = getAdminEmployeeId();
 
   // Generate new activation code
   const code = await generateActivationCode(terminalId, ADMIN_ID);

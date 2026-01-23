@@ -1,25 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import { createHash } from "crypto";
 import { DEFAULT_TENANT_ID, DEFAULT_LOCATION_ID } from "../src/core/config/location";
+import { getDefaultEmployees, getAdminEmployeeId, DEFAULT_EMPLOYEE_IDS as EMPLOYEE_IDS } from "../src/core/config/employees";
 
 const prisma = new PrismaClient();
 
 const TENANT_ID = DEFAULT_TENANT_ID;
 const SALT = 'PARK_POS_2026_'; // Must match src/core/auth/pin.ts
-
-// UUIDs fijos para employees - DEBEN coincidir con src/core/config/terminal.ts
-const EMPLOYEE_IDS = {
-    ADMIN: "00000000-0000-0000-0000-000000000001",
-    CASHIER_MARIA: "00000000-0000-0000-0000-000000000002",
-    WAITER_CARLOS: "00000000-0000-0000-0000-000000000003",
-    KITCHEN_LUIS: "00000000-0000-0000-0000-000000000004",
-    PARRILLA_PEDRO: "00000000-0000-0000-0000-000000000005",
-    BAR_JORGE: "00000000-0000-0000-0000-000000000006",
-    MANAGER_ROSA: "00000000-0000-0000-0000-000000000007",
-    WAITER_ANA: "00000000-0000-0000-0000-000000000008",
-    WAITER_CARMEN: "00000000-0000-0000-0000-000000000009",
-    DELIVERY_MIGUEL: "00000000-0000-0000-0000-000000000010",
-};
 
 function hashPin(pin: string): string {
     return createHash("sha256").update(SALT + pin).digest("hex");
@@ -49,19 +36,8 @@ async function main() {
         },
     });
 
-    // 2. EMPLOYEES (con UUIDs fijos para coincidir con terminal.ts)
-    const employees = [
-        { id: EMPLOYEE_IDS.ADMIN, name: "Admin Principal", role: "ADMIN", pin: "1234" },
-        { id: EMPLOYEE_IDS.CASHIER_MARIA, name: "María García", role: "CASHIER", pin: "1111" },
-        { id: EMPLOYEE_IDS.WAITER_CARLOS, name: "Carlos López", role: "WAITER", pin: "2222" },
-        { id: EMPLOYEE_IDS.WAITER_ANA, name: "Ana Torres", role: "WAITER", pin: "3333" },
-        { id: EMPLOYEE_IDS.PARRILLA_PEDRO, name: "Pedro Ruiz", role: "KITCHEN", pin: "4444" },
-        { id: EMPLOYEE_IDS.KITCHEN_LUIS, name: "Luis Mendoza", role: "KITCHEN", pin: "5555" },
-        { id: EMPLOYEE_IDS.MANAGER_ROSA, name: "Rosa Flores", role: "MANAGER", pin: "0000" },
-        { id: EMPLOYEE_IDS.BAR_JORGE, name: "Jorge Díaz", role: "BAR", pin: "6666" },
-        { id: EMPLOYEE_IDS.WAITER_CARMEN, name: "Carmen Vega", role: "WAITER", pin: "7777" },
-        { id: EMPLOYEE_IDS.DELIVERY_MIGUEL, name: "Miguel Soto", role: "DELIVERY", pin: "8888" },
-    ];
+    // 2. EMPLOYEES - Using centralized configuration
+    const employees = getDefaultEmployees();
 
     for (const emp of employees) {
         // First try to find existing employee by name

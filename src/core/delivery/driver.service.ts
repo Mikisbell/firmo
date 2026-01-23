@@ -6,6 +6,7 @@
 import prisma from '@/src/core/db/prisma';
 import { Driver, DriverWithStatus, DriverStatus, DeliveryOrder } from './types';
 import { asCentavos } from '@/src/core/types/shared';
+import { getAdminEmployeeId } from '@/src/core/config/employees';
 
 export class DriverServiceError extends Error {
   constructor(
@@ -32,7 +33,7 @@ export const DriverService = {
     }
 
     const id = crypto.randomUUID();
-    const adminId = '00000000-0000-0000-0000-000000000001';
+    const adminId = getAdminEmployeeId();
 
     // Create driver in transaction with audit trail
     const driver = await prisma.$transaction(async (tx) => {
@@ -80,7 +81,7 @@ export const DriverService = {
       throw new DriverServiceError('Driver not found', 'NOT_FOUND', 404);
     }
 
-    const adminId = '00000000-0000-0000-0000-000000000001';
+    const adminId = getAdminEmployeeId();
 
     // Update driver in transaction with audit trail
     const updated = await prisma.$transaction(async (tx) => {
@@ -126,7 +127,7 @@ export const DriverService = {
       throw new DriverServiceError('Driver not found', 'NOT_FOUND', 404);
     }
 
-    const adminId = '00000000-0000-0000-0000-000000000001';
+    const adminId = getAdminEmployeeId();
 
     // Deactivate driver in transaction with audit trail
     const updated = await prisma.$transaction(async (tx) => {

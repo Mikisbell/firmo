@@ -3,13 +3,16 @@
 
 import { PrismaClient } from '@prisma/client';
 import { createHash } from 'crypto';
+import { getTenantId } from '../src/core/config/tenant';
+import { getEmployeeIds } from '../src/core/config/employees';
 
 const prisma = new PrismaClient();
 
-const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
-const CASHIER_ID = '00000000-0000-0000-0000-000000000002';
-const WAITER_ID = '00000000-0000-0000-0000-000000000003';
+const TENANT_ID = getTenantId();
+const EMPLOYEE_IDS = getEmployeeIds();
+const ADMIN_ID = EMPLOYEE_IDS.ADMIN;
+const CASHIER_ID = EMPLOYEE_IDS.CASHIER_MARIA;
+const WAITER_ID = EMPLOYEE_IDS.WAITER_CARLOS;
 
 async function main() {
   console.log('🌱 Seeding Terminal Architecture v2 data...\n');

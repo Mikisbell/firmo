@@ -4,8 +4,9 @@
 
 import { NextResponse } from 'next/server';
 import { DriverService } from '@/src/core/delivery';
+import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
+const TENANT_ID = getTenantId();
 
 export async function GET() {
   try {

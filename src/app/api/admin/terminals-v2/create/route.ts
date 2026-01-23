@@ -6,6 +6,8 @@
 
 import { NextResponse } from 'next/server';
 import { createTerminal, type CreateTerminalInput } from '@/src/core/auth/terminal-registry';
+import { getTenantId } from '@/src/core/config/tenant';
+import { getAdminEmployeeId } from '@/src/core/config/employees';
 
 export async function POST(req: Request) {
   try {
@@ -29,10 +31,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const tenantId = getTenantId();
     
     // Use ADMIN employee ID as created_by (TODO: Get from session)
-    const ADMIN_ID = "00000000-0000-0000-0000-000000000001";
+    const ADMIN_ID = getAdminEmployeeId();
     const createdBy = ADMIN_ID;
 
     const input: CreateTerminalInput = {

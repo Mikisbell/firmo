@@ -9,6 +9,7 @@
 
 import { NextResponse } from 'next/server';
 import { generateActivationCode, formatActivationCode } from '@/src/core/auth/terminal-registry';
+import { getAdminEmployeeId } from '@/src/core/config/employees';
 
 export async function POST(
   _request: Request,
@@ -17,7 +18,7 @@ export async function POST(
   try {
     const { terminalId } = await params;
     // Use ADMIN employee ID as created_by (TODO: Get from session)
-    const ADMIN_ID = "00000000-0000-0000-0000-000000000001";
+    const ADMIN_ID = getAdminEmployeeId();
     const createdBy = ADMIN_ID;
 
     // Generate new activation code

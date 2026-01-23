@@ -7,8 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
 import { asCentavos } from '@/src/core/types/shared';
+import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
+const TENANT_ID = getTenantId();
 
 const CreateDeliverySchema = z.object({
   orderId: z.string().uuid(),
