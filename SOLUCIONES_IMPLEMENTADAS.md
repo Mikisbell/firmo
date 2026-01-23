@@ -531,8 +531,11 @@ npm run build
 - [x] **20 archivos migrados a getTenantId()** ✅
 - [x] **Script de migración automática creado** ✅
 - [x] **.env.local para desarrollo local** ✅
-- [x] **Employee IDs centralizados** ✅ NUEVO
-- [x] **12 archivos migrados a getAdminEmployeeId()** ✅ NUEVO
+- [x] **Employee IDs centralizados** ✅
+- [x] **12 archivos migrados a getAdminEmployeeId()** ✅
+- [x] **6 archivos adicionales migrados a getTenantId()** ✅ NUEVO
+- [x] **Análisis completo de proyecto completado** ✅ NUEVO
+- [x] **Documentación de Vercel creada** ✅ NUEVO
 - [ ] Variables configuradas en Vercel (PENDIENTE)
 - [ ] Credenciales rotadas (PENDIENTE)
 - [ ] Deploy a producción (PENDIENTE)

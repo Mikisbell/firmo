@@ -11,6 +11,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { getTenantId } from '@/src/core/config/tenant';
 
 export async function GET(
   _request: Request,
@@ -18,7 +19,7 @@ export async function GET(
 ) {
   try {
     const { terminalId } = await params;
-    const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const tenantId = getTenantId();
 
     // Get terminal device
     const terminal = await prisma.terminal_devices.findFirst({

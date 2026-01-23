@@ -7,6 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
+import { getTenantId } from '@/src/core/config/tenant';
+import { getLocationId } from '@/src/core/config/location';
 
 const updateTableSchema = z.object({
   number: z.string().min(1).max(20).optional(),
@@ -28,7 +30,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const tenantId = process.env.TENANT_ID || 'default';
+    const tenantId = getTenantId();
     
     const table = await prisma.tables.findFirst({
       where: { id, tenant_id: tenantId },
@@ -57,8 +59,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const tenantId = process.env.TENANT_ID || 'default';
-    const locationId = process.env.LOCATION_ID || 'default';
+    const tenantId = getTenantId();
+    const locationId = getLocationId();
     const body = await request.json();
     
     const parsed = updateTableSchema.safeParse(body);
@@ -132,7 +134,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const tenantId = process.env.TENANT_ID || 'default';
+    const tenantId = getTenantId();
     
     const existing = await prisma.tables.findFirst({
       where: { id, tenant_id: tenantId },

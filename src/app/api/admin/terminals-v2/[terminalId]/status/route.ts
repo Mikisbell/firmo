@@ -10,6 +10,8 @@
 import { NextResponse } from 'next/server';
 import { updateTerminalStatus, type TerminalStatus } from '@/src/core/auth/terminal-registry';
 import { logger } from '@/src/core/observability/logger';
+import { getTenantId } from '@/src/core/config/tenant';
+import prisma from '@/src/core/db/prisma';
 
 export async function PATCH(
   request: Request,
@@ -17,7 +19,7 @@ export async function PATCH(
 ) {
   try {
     const { terminalId } = await params;
-    const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const tenantId = getTenantId();
     const body = await request.json();
     const { status } = body;
 

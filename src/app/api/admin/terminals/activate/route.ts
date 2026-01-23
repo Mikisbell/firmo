@@ -7,10 +7,11 @@
 
 import { NextResponse } from 'next/server';
 import { createActivationCode } from '../activation-codes';
+import { getTenantId } from '@/src/core/config/tenant';
 
 export async function POST() {
   try {
-    const tenantId = process.env.TENANT_ID || 'default';
+    const tenantId = getTenantId();
     
     const { code, expiresAt } = createActivationCode(tenantId);
     

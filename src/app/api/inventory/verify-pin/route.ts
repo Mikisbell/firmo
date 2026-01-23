@@ -10,8 +10,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { authenticate } from '@/src/core/auth/auth.service';
+import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = process.env.DEFAULT_TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const TENANT_ID = getTenantId();
 
 const RequestSchema = z.object({
   pin: z.string().min(4).max(6),
