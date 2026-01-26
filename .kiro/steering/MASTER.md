@@ -228,13 +228,30 @@ docs/
 
 ---
 
-**Última actualización:** 19 Enero 2026  
+**Última actualización:** 26 Enero 2026  
 **Próxima tarea pendiente:** P2 - Todos los specs completados ✅ - Listo para implementación  
-**Última implementación:** Multi-tenant Improvements Spec ✅
+**Última implementación:** Admin Login PIN 1234 Fix ✅
 
 ---
 
 ## 🐛 FIXES RECIENTES
+
+### 26 Enero 2026 - Admin Login PIN 1234 Fix ✅
+**Problema:** Login admin panel fallaba con "PIN inválido" usando PIN 1234  
+**Causa:** SALT mismatch entre seed script y servidor  
+**Detalles:**
+- Seed script usaba: `SALT = 'PARK_POS_2026_'`
+- Servidor leía de `.env.local`: `PIN_SALT="dev-pin-salt-for-local-testing-only-change-in-production"`
+- Hashes diferentes = autenticación fallida
+**Solución:**
+- Actualizado `.env.local` con `PIN_SALT="PARK_POS_2026_"`
+- Actualizado `.env` con `PIN_SALT="PARK_POS_2026_"` y `JWT_SECRET`
+- Limpiado lockout (2 intentos fallidos)
+- Removido debug logging de producción
+**Tests:** 100% pasando ✅  
+**Archivos:** `.env`, `.env.local`, `src/core/auth/auth.service.ts`, `src/app/api/auth/session/route.ts`, `SOLUCION_LOGIN_ADMIN_FINAL.md`  
+**Impacto:** 🔴 CRÍTICO - Bloqueaba acceso al admin panel  
+**Status:** ✅ SOLUCIONADO - Login funciona correctamente con PIN 1234
 
 ### 21 Enero 2026 - Fix Crítico: Prisma en Navegador ✅
 **Problema:** Error fatal que bloqueaba autenticación completa  
