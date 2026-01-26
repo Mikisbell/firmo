@@ -50,7 +50,7 @@ try {
 
     // Try to connect
     redis.connect().catch(() => {
-      pinoLogger.warn('Redis not available, using in-memory cache');
+      pinoLogger.debug('Redis not available, using in-memory cache');
       redis = null;
       inMemoryCache = new Map();
     });
@@ -59,7 +59,7 @@ try {
     inMemoryCache = new Map();
   }
 } catch (error) {
-  pinoLogger.warn({ error }, 'Redis initialization failed, using in-memory cache');
+  pinoLogger.debug({ error }, 'Redis initialization failed, using in-memory cache');
   redis = null;
   inMemoryCache = new Map();
 }
