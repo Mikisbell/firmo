@@ -25,12 +25,13 @@ let inMemoryCache: Map<string, { value: any; expiresAt: number }> | null = null;
 
 // Initialize Redis connection
 try {
-  if (!isTest) {
-    redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  if (!isTest && process.env.REDIS_URL) {
+    // Only attempt Redis connection if REDIS_URL is explicitly configured
+    redis = new Redis(process.env.REDIS_URL, {
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
         if (times > 3) {
-          pinoLogger.error({ times }, 'Redis connection failed, falling back to in-memory cache');
+          pinoLogger.info({ times }, 'Redis connection failed, falling back to in-memory cache');
           return null; // Stop retrying
         }
         return Math.min(times * 100, 2000);
@@ -39,7 +40,7 @@ try {
     });
 
     redis.on('error', (error) => {
-      pinoLogger.error({ error: error.message }, 'Redis error, using in-memory cache');
+      pinoLogger.info({ error: error.message }, 'Redis error, using in-memory cache');
       redis = null;
       inMemoryCache = new Map();
     });
@@ -50,16 +51,19 @@ try {
 
     // Try to connect
     redis.connect().catch(() => {
-      pinoLogger.debug('Redis not available, using in-memory cache');
+      pinoLogger.info('Redis not available, using in-memory cache (this is OK for MVP)');
       redis = null;
       inMemoryCache = new Map();
     });
   } else {
-    // Use in-memory cache for tests
+    // Use in-memory cache for tests or when REDIS_URL is not configured (MVP mode)
     inMemoryCache = new Map();
+    if (!isTest && !process.env.REDIS_URL) {
+      pinoLogger.info('REDIS_URL not configured, using in-memory cache (this is OK for MVP)');
+    }
   }
 } catch (error) {
-  pinoLogger.debug({ error }, 'Redis initialization failed, using in-memory cache');
+  pinoLogger.info({ error }, 'Redis initialization failed, using in-memory cache (this is OK for MVP)');
   redis = null;
   inMemoryCache = new Map();
 }
