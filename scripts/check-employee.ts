@@ -1,38 +1,55 @@
-import { PrismaClient } from '@prisma/client';
-import { hashPin } from '../src/core/auth/pin';
+// scripts/check-employee.ts
+// Check employee details
 
-const prisma = new PrismaClient();
+import prisma from '../src/core/db/prisma';
+import { hashPin } from '../src/core/auth/auth.service';
 
-async function check() {
-    // Check terminals
-    const terminals = await prisma.terminals.findMany({ take: 10 });
-    console.log("=== TERMINALS ===");
-    terminals.forEach(t => {
-        console.log(`  ${t.terminal_id} | station: ${t.station_id} | allowed: ${t.is_allowed}`);
+async function checkEmployee() {
+    console.log('\n👤 CHECKING EMPLOYEE DETAILS\n');
+    console.log('============================================================\n');
+
+    const testPin = '1234';
+    const expectedHash = hashPin(testPin);
+
+    console.log(`Expected PIN hash for "1234": ${expectedHash}\n`);
+
+    // Find all employees with this PIN hash
+    const employees = await prisma.employees.findMany({
+        where: {
+            pin_hash: expectedHash,
+        },
     });
 
-    // Check employees with PIN 1234
-    const pin1234Hash = await hashPin('1234');
-    console.log("\n=== PIN 1234 HASH ===");
-    console.log(`  Hash: ${pin1234Hash}`);
+    console.log(`Found ${employees.length} employee(s) with PIN 1234:\n`);
 
-    const employees = await prisma.employees.findMany({ 
-        where: { is_active: true },
-        take: 10 
-    });
-    console.log("\n=== EMPLOYEES (first 10) ===");
-    employees.forEach(e => {
-        console.log(`  ${e.name} | ${e.role} | pin_hash: ${e.pin_hash?.slice(0, 20)}...`);
+    for (const emp of employees) {
+        console.log(`Name: ${emp.name}`);
+        console.log(`ID: ${emp.id}`);
+        console.log(`Tenant ID: ${emp.tenant_id}`);
+        console.log(`Role: ${emp.role}`);
+        console.log(`Active: ${emp.is_active}`);
+        console.log(`PIN Hash: ${emp.pin_hash}`);
+        console.log('');
+    }
+
+    // Also check what tenant_id is being used in login attempts
+    const recentAttempt = await prisma.login_attempts.findFirst({
+        orderBy: { created_at: 'desc' },
     });
 
-    // Find employee with PIN 1234
-    const emp1234 = await prisma.employees.findFirst({
-        where: { pin_hash: pin1234Hash, is_active: true }
-    });
-    console.log("\n=== EMPLOYEE WITH PIN 1234 ===");
-    console.log(emp1234 ? `  Found: ${emp1234.name}` : "  NOT FOUND");
+    if (recentAttempt) {
+        console.log('Most recent login attempt:');
+        console.log(`   Tenant ID: ${recentAttempt.tenant_id}`);
+        console.log(`   PIN Hash: ${recentAttempt.pin_hash}`);
+        console.log('');
+    }
+
+    console.log('============================================================\n');
 
     await prisma.$disconnect();
 }
 
-check();
+checkEmployee().catch((error) => {
+    console.error('Error checking employee:', error);
+    process.exit(1);
+});
