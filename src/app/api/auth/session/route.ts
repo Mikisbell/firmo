@@ -83,13 +83,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { pin, allowedRoles } = body;
 
-    // DEBUG: Log what we received
-    console.log('[SESSION API] Received request:');
-    console.log('  PIN:', pin);
-    console.log('  PIN type:', typeof pin);
-    console.log('  PIN length:', pin?.length);
-    console.log('  Allowed roles:', allowedRoles);
-
     if (!pin || !allowedRoles || !Array.isArray(allowedRoles)) {
       return NextResponse.json(
         { error: 'PIN y roles requeridos' },

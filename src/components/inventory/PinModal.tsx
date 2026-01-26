@@ -55,14 +55,24 @@ export function PinModal({
       return; // Still locked out
     }
 
+    // DEBUG: Log what we're sending
+    console.log('[PinModal] Submitting PIN:');
+    console.log('  PIN value:', pin);
+    console.log('  PIN type:', typeof pin);
+    console.log('  PIN length:', pin.length);
+    console.log('  Allowed roles:', allowedRoles);
+
     setError('');
     setLoading(true);
 
     try {
+      const requestBody = { pin, allowedRoles };
+      console.log('[PinModal] Request body:', JSON.stringify(requestBody));
+
       const response = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin, allowedRoles }),
+        body: JSON.stringify(requestBody),
         credentials: 'include', // Important: include cookies
       });
 

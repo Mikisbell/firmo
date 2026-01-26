@@ -324,6 +324,7 @@ export async function authenticate(
 
     // 1. Check lockout
     const lockout = await isLockedOut(prisma, tenantId, pinHash);
+    
     if (lockout.locked) {
         await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
         return {
