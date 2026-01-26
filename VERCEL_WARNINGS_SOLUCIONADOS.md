@@ -16,12 +16,24 @@ and will be removed in Prisma 7. Please migrate to a Prisma config file.
 ```
 
 **Solución Implementada:**
-- ✅ Creado `prisma.config.ts` con configuración oficial de Prisma 7
+- ✅ Creado `prisma.config.ts` con `defineConfig` de Prisma
 - ✅ Eliminada configuración deprecated de `package.json`
 - ✅ Migración oficial según documentación de Prisma
+- ✅ Usa `migrations.seed` en lugar de `seed` directo
+
+**Archivo Creado:**
+```typescript
+import { defineConfig } from 'prisma/config';
+
+export default defineConfig({
+  migrations: {
+    seed: 'npx tsx prisma/seed.ts',
+  },
+});
+```
 
 **Archivos Modificados:**
-- `prisma.config.ts` (nuevo)
+- `prisma.config.ts` (nuevo, con defineConfig)
 - `package.json` (eliminado `prisma.seed`)
 
 **Resultado:** ✅ Warning eliminado permanentemente
@@ -130,7 +142,8 @@ Route (app)                              Size     First Load JS
 ## 📝 Archivos Modificados
 
 1. **prisma.config.ts** (nuevo)
-   - Configuración oficial de Prisma 7
+   - Configuración oficial de Prisma con `defineConfig`
+   - Usa `migrations.seed` para el comando de seed
    - Reemplaza `package.json#prisma`
 
 2. **eslint.config.mjs**
