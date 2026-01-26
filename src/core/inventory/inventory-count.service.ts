@@ -233,7 +233,7 @@ export async function approveInventoryCount(
       return { success: false, adjustments_made: 0, total_difference_cents: unsafeCentavos(0), errors: [`Invalid status: ${count.status}`] };
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       for (const item of count.inventory_count_items) {
         const differenceQty = Number(item.difference_qty);
         

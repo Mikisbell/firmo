@@ -65,7 +65,7 @@ export async function confirmGoodsReceipt(
     }
 
     // 2. Process each item in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       for (const item of receipt.goods_receipt_items) {
         const quantityReceived = Number(item.quantity_received);
         const quantityRejected = Number(item.quantity_rejected);

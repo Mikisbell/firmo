@@ -277,7 +277,7 @@ export async function POST(req: Request) {
 
         const acceptedEvents: ParkEvent[] = [];
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             for (const ev of events as ParkEvent[]) {
                 // 1. VALIDATE business rules FIRST
                 const validation: ValidationResult = await validateEvent(tx, ev);
@@ -344,7 +344,7 @@ export async function POST(req: Request) {
                             actor_role_snapshot: ev.actor_role_snapshot ?? null,
                             terminal_id: ev.terminal_id,
                             payload_version: ev.schema_version,
-                            payload: ev.payload as Prisma.InputJsonValue,
+                            payload: ev.payload as any,
                         },
                     });
                 } catch (e: unknown) {
@@ -375,7 +375,7 @@ export async function POST(req: Request) {
                         id: crypto.randomUUID(),
                         tenant_id: ev.tenant_id,
                         event_id: ev.event_id,
-                        payload: ev as unknown as Prisma.InputJsonValue,
+                        payload: ev as any,
                     },
                 });
 

@@ -36,7 +36,7 @@ export const DriverService = {
     const adminId = getAdminEmployeeId();
 
     // Create driver in transaction with audit trail
-    const driver = await prisma.$transaction(async (tx) => {
+    const driver = await prisma.$transaction(async (tx: any) => {
       const newDriver = await tx.drivers.create({
         data: {
           id,
@@ -84,7 +84,7 @@ export const DriverService = {
     const adminId = getAdminEmployeeId();
 
     // Update driver in transaction with audit trail
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: any) => {
       const updatedDriver = await tx.drivers.update({
         where: { id: driverId },
         data: {
@@ -130,7 +130,7 @@ export const DriverService = {
     const adminId = getAdminEmployeeId();
 
     // Deactivate driver in transaction with audit trail
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: any) => {
       const updatedDriver = await tx.drivers.update({
         where: { id: driverId },
         data: { is_active: false },

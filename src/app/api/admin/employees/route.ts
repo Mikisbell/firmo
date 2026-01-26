@@ -207,7 +207,7 @@ async function handlePOST(request: NextRequest) {
 
     // Create employee in transaction with audit trail
     const txStart = Date.now();
-    const employee = await prisma.$transaction(async (tx) => {
+    const employee = await prisma.$transaction(async (tx: any) => {
       const newEmployee = await tx.employees.create({
         data: {
           id: randomUUID(),

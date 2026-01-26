@@ -114,7 +114,7 @@ async function handlePUT(request: NextRequest) {
     
     // Update settings in transaction with audit trail
     const txStart = Date.now();
-    const settings = await prisma.$transaction(async (tx) => {
+    const settings = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.tenant_settings.update({
         where: { tenant_id: TENANT_ID },
         data: {

@@ -95,7 +95,7 @@ async function handleGET(request: NextRequest) {
     });
 
     // Get driver names for the deliveries
-    const driverIds = [...new Set(deliveries.map(d => d.driver_id).filter(Boolean))] as string[];
+    const driverIds = [...new Set(deliveries.map((d: any) => d.driver_id).filter(Boolean))] as string[];
     const drivers = driverIds.length > 0
       ? await prisma.drivers.findMany({
           where: { id: { in: driverIds } },
@@ -103,10 +103,10 @@ async function handleGET(request: NextRequest) {
         })
       : [];
 
-    const driverMap = new Map(drivers.map(d => [d.id, d.name]));
+    const driverMap = new Map(drivers.map((d: any) => [d.id, d.name]));
 
     // Enrich deliveries with driver names
-    const enrichedDeliveries = deliveries.map(d => ({
+    const enrichedDeliveries = deliveries.map((d: any) => ({
       ...d,
       driver_name: d.driver_id ? driverMap.get(d.driver_id) || null : null,
     }));

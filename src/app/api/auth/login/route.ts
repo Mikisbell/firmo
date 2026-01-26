@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
       success: true,
       employee: authResult.employee,
       shift: activeShift ? {
-        id: activeShift.id,
-        opened_at: activeShift.opened_at.toISOString(),
-        opened_by: activeShift.opened_by,
+        id: (activeShift as any).id,
+        opened_at: (activeShift as any).opened_at.toISOString(),
+        opened_by: (activeShift as any).opened_by,
       } : null,
     });
 

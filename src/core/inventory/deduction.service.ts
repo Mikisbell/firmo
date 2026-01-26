@@ -1,6 +1,7 @@
 // src/core/inventory/deduction.service.ts
 // Inventory Deduction Service - Schema Completeness Fase 5
 import { PrismaClient, Prisma } from "@prisma/client";
+import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/src/core/observability/logger';
 
 export interface DeductionIngredient {
@@ -74,7 +75,7 @@ export async function deductInventoryForOrder(
     }
 
     // 2. Process each ingredient in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       for (const ingredient of ingredients) {
         // Skip optional ingredients for now
         if (ingredient.is_optional) continue;
@@ -114,7 +115,7 @@ export async function deductInventoryForOrder(
             tenant_id: tenantId,
             inventory_id: inventory.id,
             movement_type: "OUT",
-            quantity: new Prisma.Decimal(-deductQty),
+            quantity: new Decimal(-deductQty),
             reference_id: orderId,
             reason: `Venta: Orden ${orderId}, Item ${lineId}`,
           },
@@ -143,8 +144,8 @@ export async function deductInventoryForOrder(
               sku: ingredient.inventory_code,
               alert_type: "OUT_OF_STOCK",
               severity: "CRITICAL",
-              current_qty: new Prisma.Decimal(newStock),
-              threshold_qty: new Prisma.Decimal(0),
+              current_qty: new Decimal(newStock),
+              threshold_qty: new Decimal(0),
             },
           });
         } else if (inventory.min_stock && newStock < Number(inventory.min_stock)) {
@@ -164,7 +165,7 @@ export async function deductInventoryForOrder(
               sku: ingredient.inventory_code,
               alert_type: "LOW_STOCK",
               severity: "HIGH",
-              current_qty: new Prisma.Decimal(newStock),
+              current_qty: new Decimal(newStock),
               threshold_qty: inventory.min_stock,
             },
           });
@@ -241,7 +242,7 @@ export async function reverseDeduction(
       return { success: true };
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       for (const ingredient of ingredients) {
         if (ingredient.is_optional) continue;
 
@@ -273,7 +274,7 @@ export async function reverseDeduction(
             tenant_id: tenantId,
             inventory_id: inventory.id,
             movement_type: "ADJUST",
-            quantity: new Prisma.Decimal(returnQty),
+            quantity: new Decimal(returnQty),
             reference_id: orderId,
             reason: `Reversión: Orden ${orderId}, Item ${lineId} anulado`,
           },

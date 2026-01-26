@@ -73,7 +73,7 @@ export async function recordWaste(
     const cost_cents = unsafeCentavos(Math.round(quantity * (inventory.cost_cents || 0)));
 
     // 2. Create waste log and update inventory in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Create WasteLog
       const wasteLog = await tx.waste_logs.create({
         data: {

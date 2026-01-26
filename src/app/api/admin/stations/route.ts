@@ -209,7 +209,7 @@ async function handlePOST(request: NextRequest) {
 
     // Create station in transaction with audit trail
     const txStart = Date.now();
-    const station = await prisma.$transaction(async (tx) => {
+    const station = await prisma.$transaction(async (tx: any) => {
       const newStation = await tx.stations.create({
         data: {
           id: randomUUID(),

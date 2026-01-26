@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause
-    const where: Prisma.inventoryWhereInput = {
+    const where: any = {
       tenant_id: tenantId,
     };
 

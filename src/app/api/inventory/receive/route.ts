@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import { randomUUID } from 'crypto';
 import { validateInventoryAuth, createAuthErrorResponse } from '@/src/core/middleware/inventory-auth';
 import { logGoodsReceipt, logInventoryFailure } from '@/src/core/inventory/audit.service';
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
     }
 
     // 4. Execute in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 4a. Find or create inventory record
       let inventory = await tx.inventory.findFirst({
         where: {
@@ -123,9 +124,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
             code: input.inventory_code,
             name: input.inventory_code,
             unit: 'UND',
-            stock: new Prisma.Decimal(0),
+            stock: new Decimal(0),
             location_id: input.location_id,
-            theoretical_stock: new Prisma.Decimal(0),
+            theoretical_stock: new Decimal(0),
           },
         });
       }
@@ -148,9 +149,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
             create: [{
               id: crypto.randomUUID(),
               inventory_code: input.inventory_code,
-              quantity_ordered: new Prisma.Decimal(input.quantity),
-              quantity_received: new Prisma.Decimal(input.quantity),
-              quantity_rejected: new Prisma.Decimal(0),
+              quantity_ordered: new Decimal(input.quantity),
+              quantity_received: new Decimal(input.quantity),
+              quantity_rejected: new Decimal(0),
               unit_cost_cents: input.unit_cost_cents,
               lot_number: input.lot_number,
               expiry_date: input.expiry_date ? new Date(input.expiry_date) : null,
@@ -166,7 +167,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
           tenant_id: input.tenant_id,
           inventory_id: inventory.id,
           movement_type: 'IN',
-          quantity: new Prisma.Decimal(input.quantity),
+          quantity: new Decimal(input.quantity),
           reference_id: goodsReceipt.id,
           reason: `Recepción: ${receiptNumber}${input.invoice_number ? ` - Factura: ${input.invoice_number}` : ''}`,
           actor_id: input.actor_id,

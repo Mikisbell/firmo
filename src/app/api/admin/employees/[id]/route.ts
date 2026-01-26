@@ -85,7 +85,7 @@ export async function PUT(
     }
 
     // Update employee in transaction with audit trail
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: any) => {
       const updatedEmployee = await tx.employees.update({
         where: { id },
         data: {

@@ -189,7 +189,7 @@ async function handlePOST(request: NextRequest) {
 
     // Create promotion in transaction with audit trail
     const txStart = Date.now();
-    const promotion = await prisma.$transaction(async (tx) => {
+    const promotion = await prisma.$transaction(async (tx: any) => {
       const newPromotion = await tx.promotions.create({
         data: {
           id: randomUUID(),

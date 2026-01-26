@@ -331,9 +331,9 @@ async function logConflict(
         expected_revision: data.expected_revision,
         actual_revision: data.actual_revision,
         terminal_id: data.terminal_id,
-        local_state: data.local_state as Prisma.InputJsonValue,
-        server_state: data.server_state as Prisma.InputJsonValue,
-        merged_state: data.merged_state as Prisma.InputJsonValue,
+        local_state: data.local_state as any,
+        server_state: data.server_state as any,
+        merged_state: data.merged_state as any,
         resolved_by: data.resolved_by,
       }
     });

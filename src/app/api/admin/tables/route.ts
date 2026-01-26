@@ -223,7 +223,7 @@ async function handlePOST(request: NextRequest) {
 
     // Create table in transaction with audit trail
     const txStart = Date.now();
-    const table = await prisma.$transaction(async (tx) => {
+    const table = await prisma.$transaction(async (tx: any) => {
       const newTable = await tx.tables.create({
         data: {
           id: randomUUID(),

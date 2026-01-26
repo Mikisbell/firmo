@@ -196,7 +196,7 @@ async function handlePOST(request: NextRequest) {
 
     // Create product in transaction with audit trail and catalog version increment
     const txStart = Date.now();
-    const product = await prisma.$transaction(async (tx) => {
+    const product = await prisma.$transaction(async (tx: any) => {
       const newProduct = await tx.products.create({
         data: {
           id: randomUUID(),

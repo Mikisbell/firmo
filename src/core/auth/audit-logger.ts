@@ -142,7 +142,7 @@ export async function logAuthEvent(event: CreateAuthEventInput): Promise<AuthEve
         fingerprint_match: event.fingerprint_match ?? null,
         ip_address: event.ip_address,
         user_agent: event.user_agent,
-        metadata: (event.metadata ?? {}) as Prisma.InputJsonValue,
+        metadata: (event.metadata ?? {}) as any,
       },
     });
 

@@ -68,7 +68,7 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                     }
                 }
 
-                let match = null;
+                let match: string | null = null;
                 for (const ord of openOrders.values()) {
                     if (ord.table === tableId && ord.status !== "DONE") {
                         match = ord.id;

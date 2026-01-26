@@ -202,7 +202,7 @@ async function handlePOST(request: NextRequest) {
 
     // Create zone in transaction with audit trail
     const txStart = Date.now();
-    const zone = await prisma.$transaction(async (tx) => {
+    const zone = await prisma.$transaction(async (tx: any) => {
       const newZone = await tx.zones.create({
         data: {
           id: randomUUID(),

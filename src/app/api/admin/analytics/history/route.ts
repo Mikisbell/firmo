@@ -95,7 +95,7 @@ async function handleGET(request: NextRequest) {
     });
 
     // Convert to RealtimeMetrics format
-    const metricsData: Partial<RealtimeMetrics>[] = summaries.map(s => ({
+    const metricsData: Partial<RealtimeMetrics>[] = summaries.map((s: any) => ({
       total_sales_cents: asCentavos(s.net_sales_cents),
       orders_count: s.orders_count,
       avg_ticket_cents: asCentavos(s.orders_count > 0 
