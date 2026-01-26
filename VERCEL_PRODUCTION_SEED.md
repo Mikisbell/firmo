@@ -47,7 +47,7 @@ npm install -g dotenv-cli
 npx dotenv -e .env.production -- npm run seed:prod
 ```
 
-#### 4. Verificar
+#### 4. Verificar el seed
 
 Deberías ver una salida como esta:
 
@@ -94,6 +94,31 @@ Deberías ver una salida como esta:
    • Terminals: 3
 
 🚀 You can now login to the admin panel with PIN: 1234
+```
+
+#### 5. (Opcional) Verificar con script de verificación
+
+Para confirmar que todo se creó correctamente:
+
+```bash
+npx dotenv -e .env.production -- npm run verify:prod
+```
+
+Esto te mostrará un reporte detallado de todos los datos creados.
+
+#### 6. Probar login en Vercel
+
+1. Ve a tu app en Vercel: `https://tu-app.vercel.app/admin`
+2. Selecciona rol: **ADMIN**
+3. Ingresa PIN: **1234**
+4. Deberías poder acceder al panel de administración
+
+#### 7. Limpiar (IMPORTANTE)
+
+Una vez que confirmes que funciona, elimina el archivo con credenciales:
+
+```bash
+rm .env.production
 ```
 
 ### Opción 2: Crear API endpoint (Alternativa más segura)
@@ -184,6 +209,65 @@ rm .env.production
 
 ## 🧪 Verificar que funcionó
 
+### Opción 1: Script de verificación (Recomendado)
+
+```bash
+npx dotenv -e .env.production -- npm run verify:prod
+```
+
+Esto te mostrará un reporte completo:
+
+```
+🔍 Verifying production database seed...
+
+1️⃣  Checking ADMIN employee...
+   ✅ Admin found: Admin Principal (Role: ADMIN)
+   🔑 Can login with PIN: 1234
+
+2️⃣  Checking tenant settings...
+   ✅ Tenant found: PARK POS
+
+3️⃣  Checking location...
+   ✅ Location found: Sucursal Principal
+
+4️⃣  Checking stations...
+   ✅ 5 stations found
+      • Parrilla
+      • Cocina
+      • Bar
+      • Fríos
+      • Postres
+
+5️⃣  Checking products...
+   ✅ 10 products found
+
+6️⃣  Checking tables...
+   ✅ 10 tables found
+
+7️⃣  Checking terminals...
+   ✅ 3 terminals found
+      • CAJA_01
+      • SPC_HORNO
+      • MOZO_01
+
+8️⃣  Checking terminal devices...
+   ✅ 3 terminal devices found
+      • CAJA_01 (active)
+      • SPC_HORNO (active)
+      • MOZO_01 (active)
+
+============================================================
+✅ ALL CHECKS PASSED!
+============================================================
+
+🚀 You can now login to the admin panel:
+   • URL: https://your-app.vercel.app/admin
+   • Role: ADMIN
+   • PIN: 1234
+```
+
+### Opción 2: Probar login directamente
+
 1. Ve a tu app en Vercel: `https://tu-app.vercel.app/admin`
 2. Selecciona rol: **ADMIN**
 3. Ingresa PIN: **1234**
@@ -235,9 +319,10 @@ Asegúrate de que tu usuario de base de datos tenga permisos de escritura.
 ## 📚 Archivos Relacionados
 
 - **Script de seed:** `scripts/seed-production.ts`
+- **Script de verificación:** `scripts/verify-production-seed.ts`
 - **Configuración de empleados:** `src/core/config/employees.ts`
 - **Configuración de location:** `src/core/config/location.ts`
-- **Package.json:** Script `seed:prod` agregado
+- **Package.json:** Scripts `seed:prod` y `verify:prod` agregados
 
 ## 🔄 Agregar más datos después
 
