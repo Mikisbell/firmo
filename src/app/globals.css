@@ -1,15 +1,47 @@
 @import "tailwindcss";
 
+@theme {
+  /* Semantic Color System */
+  --color-park-black: #09090b;
+  --color-park-surface: #18181b;
+  --color-park-border: #27272a;
+  --color-park-text: #e4e4e7;
+  --color-park-muted: #a1a1aa;
+
+  /* Brand Identity */
+  --color-park-brand-50: #ecfdf5;
+  --color-park-brand-500: #10b981;
+  --color-park-brand-600: #059669;
+  --color-park-brand-900: #064e3b;
+  --color-park-brand-glow: rgba(16, 185, 129, 0.5);
+
+  /* Animations */
+  --animate-in: fadeIn 0.2s ease-out;
+  --animate-out: fadeOut 0.2s ease-in;
+  --animate-slide-up: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
 @layer utilities {
   .glass {
     background-color: rgba(24, 24, 27, 0.6);
-    /* bg-park-surface/60 */
     backdrop-filter: blur(24px);
-    /* backdrop-blur-xl */
     border: 1px solid rgba(255, 255, 255, 0.05);
-    /* border-white/5 */
     box-shadow: 0 20px 25px -5px cubic-bezier(0, 0, 0, 1), 0 8px 10px -6px cubic-bezier(0, 0, 0, 1);
-    /* shadow-xl */
   }
 
   .glass-hover {
