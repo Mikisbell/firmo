@@ -145,6 +145,17 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
   useEffect(() => {
     if (!session) return;
 
+    const handleLogout = () => {
+      if (session) {
+        logoutV2(session.id);
+      }
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      stopPeriodicFingerprintValidation();
+      setSession(null);
+      setRiskAssessment(null);
+      setNeedsLogin(true);
+    };
+
     const interval = setInterval(() => {
       const validation = validateSessionV2(session.id);
       

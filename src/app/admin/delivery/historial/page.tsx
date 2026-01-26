@@ -41,7 +41,7 @@ export default function DeliveryHistoryPage() {
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -63,7 +63,7 @@ export default function DeliveryHistoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateFrom, dateTo, status, driverId, offset]);
 
   useEffect(() => {
     fetch('/api/drivers')
@@ -74,6 +74,7 @@ export default function DeliveryHistoryPage() {
 
   useEffect(() => {
     fetchHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo, status, driverId, offset]);
 
   const handleFilter = () => {

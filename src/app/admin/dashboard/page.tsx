@@ -117,7 +117,7 @@ export default function AnalyticsDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isHistorical, selectedDate]);
 
   useEffect(() => {
     fetchData();

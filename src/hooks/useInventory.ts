@@ -551,8 +551,11 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
 
     return () => {
       clearInterval(interval);
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
+      // Copy ref value to variable for cleanup
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const retryTimeout = retryTimeoutRef.current;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
       }
     };
   }, [isOnline, pendingEventsCount, syncPendingEvents]);

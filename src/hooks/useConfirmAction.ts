@@ -45,9 +45,11 @@ export function useConfirmAction(): UseConfirmActionReturn {
   }, []);
 
   const handleConfirm = useCallback(() => {
-    state.onConfirm?.();
+    if (state.onConfirm) {
+      state.onConfirm();
+    }
     setState(initialState);
-  }, [state.onConfirm]);
+  }, [state]);
 
   return {
     state,

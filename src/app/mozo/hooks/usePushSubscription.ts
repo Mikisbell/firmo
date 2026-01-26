@@ -76,6 +76,55 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
 
   // Check initial state on mount
   useEffect(() => {
+    const checkSubscription = async () => {
+      if (!isPushSupported()) {
+        setState(prev => ({
+          ...prev,
+          permission: 'unsupported',
+          isLoading: false,
+        }));
+        return;
+      }
+
+      try {
+        setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+        // Get current permission
+        const permission = Notification.permission as PermissionState;
+
+        // Get service worker registration
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+
+        // Fetch VAPID public key from server
+        let vapidKey = null;
+        try {
+          const response = await fetch('/api/notifications/vapid-key');
+          if (response.ok) {
+            const data = await response.json();
+            vapidKey = data.publicKey || null;
+          }
+        } catch {
+          console.warn('[Push] Could not fetch VAPID key');
+        }
+
+        setState({
+          permission,
+          isSubscribed: !!subscription,
+          isLoading: false,
+          error: null,
+          vapidPublicKey: vapidKey,
+        });
+      } catch (error) {
+        console.error('[Push] Error checking subscription:', error);
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Error al verificar suscripción',
+        }));
+      }
+    };
+
     checkSubscription();
   }, []);
 

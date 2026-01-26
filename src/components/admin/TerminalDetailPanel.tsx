@@ -105,9 +105,10 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
   // Fetch terminal details
   useEffect(() => {
     fetchDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [terminalId]);
 
-  const fetchDetails = async () => {
+  const fetchDetails = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/admin/terminals-v2/${terminalId}`);
@@ -121,7 +122,7 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
     } finally {
       setLoading(false);
     }
-  };
+  }, [terminalId]);
 
   const copyCode = (code: string) => {
     const formatted = `${code.slice(0, 3)}-${code.slice(3)}`;
