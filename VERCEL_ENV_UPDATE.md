@@ -96,7 +96,7 @@ Click **Save**
 
 ---
 
-#### Variable 2: LOCATION_ID
+#### Variable 2: LOCATION_ID ⚠️ IMPORTANTE
 ```
 Key:    LOCATION_ID
 Value:  loc-00000000-0000-0000-0000-000000000001
@@ -106,6 +106,13 @@ Environments:
 ☑️ Preview
 ☑️ Development
 ```
+
+**⚠️ CRÍTICO:** Si ya tienes `LOCATION_ID` configurado con otro valor (como `bfd72044-130d-40cc-acdf-6abb94c97f7c`), debes **EDITARLO** y cambiarlo a `loc-00000000-0000-0000-0000-000000000001`. 
+
+Este valor DEBE coincidir con el que está en tu base de datos. Si usas un valor diferente, la app no encontrará las zonas, mesas, ni configuración.
+
+Para editar: Click en los 3 puntos (⋮) → Edit → Cambiar valor → Save
+
 Click **Save**
 
 ---
@@ -184,6 +191,12 @@ Marca cada paso cuando lo completes:
 
 ### Error: "SECURITY ERROR: PIN_SALT must be configured"
 **Solución:** Verifica que agregaste PIN_SALT en Vercel Environment Variables
+
+### App no encuentra zonas/mesas o datos
+**Solución:** 
+1. Verifica que `LOCATION_ID` sea exactamente: `loc-00000000-0000-0000-0000-000000000001`
+2. Si tenías otro valor, EDÍTALO (no crees uno nuevo)
+3. Este valor DEBE coincidir con tu base de datos
 
 ### Login no funciona después de configurar
 **Solución:** 
