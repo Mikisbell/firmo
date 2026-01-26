@@ -1,6 +1,7 @@
 // src/core/inventory/inventory-count.service.ts
 // Inventory Count Service - Schema Completeness Fase 4
 import { PrismaClient, Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import { unsafeCentavos, type Centavos } from "@/src/core/types/shared";
 
 export type CountType = "FULL" | "PARTIAL" | "SPOT";
@@ -54,7 +55,7 @@ export async function startInventoryCount(
 
   try {
     // 1. Get inventory items to count
-    const whereClause: Prisma.inventoryWhereInput = { tenant_id };
+    const whereClause: any = { tenant_id };
     if (inventory_codes && inventory_codes.length > 0) {
       whereClause.code = { in: inventory_codes };
     }
@@ -83,8 +84,8 @@ export async function startInventoryCount(
             id: crypto.randomUUID(),
             inventory_code: inv.code,
             expected_qty: inv.stock,
-            counted_qty: new Prisma.Decimal(0), // To be filled during count
-            difference_qty: new Prisma.Decimal(0),
+            counted_qty: new Decimal(0), // To be filled during count
+            difference_qty: new Decimal(0),
             unit_cost_cents: inv.cost_cents || 0,
             difference_value_cents: 0,
           })),
@@ -141,8 +142,8 @@ export async function updateCountItems(
         await prisma.inventory_count_items.update({
           where: { id: countItem.id },
           data: {
-            counted_qty: new Prisma.Decimal(item.counted_qty),
-            difference_qty: new Prisma.Decimal(differenceQty),
+            counted_qty: new Decimal(item.counted_qty),
+            difference_qty: new Decimal(differenceQty),
             difference_value_cents: differenceValueCents,
             notes: item.notes,
           },
@@ -256,7 +257,7 @@ export async function approveInventoryCount(
             tenant_id,
             inventory_id: inventory.id,
             movement_type: "ADJUST",
-            quantity: new Prisma.Decimal(differenceQty),
+            quantity: new Decimal(differenceQty),
             reference_id: inventory_count_id,
             reason: `Conteo: ${item.notes || "Ajuste por conteo físico"}`,
           },

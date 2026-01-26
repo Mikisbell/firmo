@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get active shift (if terminal_id provided)
-    let activeShift = null;
+    let activeShift = null as any;
     if (data.terminal_id) {
       activeShift = await prisma.shifts.findFirst({
         where: {
@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
       success: true,
       employee: authResult.employee,
       shift: activeShift ? {
-        id: (activeShift as any).id,
-        opened_at: (activeShift as any).opened_at.toISOString(),
-        opened_by: (activeShift as any).opened_by,
+        id: activeShift.id,
+        opened_at: activeShift.opened_at.toISOString(),
+        opened_by: activeShift.opened_by,
       } : null,
     });
 

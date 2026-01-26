@@ -1,6 +1,7 @@
 // src/core/inventory/waste.service.ts
 // Waste Log Service - Schema Completeness Fase 4
 import { PrismaClient, Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import { unsafeCentavos, type Centavos } from "@/src/core/types/shared";
 
 export type WasteReasonCode =
@@ -82,7 +83,7 @@ export async function recordWaste(
           location_id,
           shift_id,
           inventory_code,
-          quantity: new Prisma.Decimal(quantity),
+          quantity: new Decimal(quantity),
           unit,
           reason_code,
           reason_detail,
@@ -101,7 +102,7 @@ export async function recordWaste(
           tenant_id,
           inventory_id: inventory.id,
           movement_type: "WASTE",
-          quantity: new Prisma.Decimal(-quantity),
+          quantity: new Decimal(-quantity),
           reference_id: wasteLog.id,
           reason: `Merma: ${reason_code}${reason_detail ? ` - ${reason_detail}` : ""}`,
         },

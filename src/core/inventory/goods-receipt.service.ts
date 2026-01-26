@@ -1,6 +1,7 @@
 // src/core/inventory/goods-receipt.service.ts
 // Goods Receipt Service - Schema Completeness Fase 3
 import { PrismaClient, Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import type { Centavos } from "@/src/core/types/shared";
 
 export interface GoodsReceiptItemInput {
@@ -87,9 +88,9 @@ export async function confirmGoodsReceipt(
               code: item.inventory_code,
               name: item.inventory_code, // Default name
               unit: "UND",
-              stock: new Prisma.Decimal(0),
+              stock: new Decimal(0),
               location_id,
-              theoretical_stock: new Prisma.Decimal(0),
+              theoretical_stock: new Decimal(0),
             },
           });
         }
@@ -102,7 +103,7 @@ export async function confirmGoodsReceipt(
               tenant_id,
               inventory_id: inventory.id,
               movement_type: "IN",
-              quantity: new Prisma.Decimal(quantityReceived),
+              quantity: new Decimal(quantityReceived),
               reference_id: goods_receipt_id,
               reason: `Recepción: ${receipt.receipt_number}`,
             },
@@ -128,7 +129,7 @@ export async function confirmGoodsReceipt(
               tenant_id,
               location_id,
               inventory_code: item.inventory_code,
-              quantity: new Prisma.Decimal(quantityRejected),
+              quantity: new Decimal(quantityRejected),
               unit: "UND",
               reason_code: "REJECTED_ON_RECEIPT",
               reason_detail: item.rejection_reason,
@@ -147,7 +148,7 @@ export async function confirmGoodsReceipt(
               tenant_id,
               inventory_id: inventory.id,
               movement_type: "WASTE",
-              quantity: new Prisma.Decimal(-quantityRejected),
+              quantity: new Decimal(-quantityRejected),
               reference_id: goods_receipt_id,
               reason: `Rechazado en recepción: ${item.rejection_reason || "Sin razón"}`,
             },
@@ -222,9 +223,9 @@ export async function createGoodsReceipt(
           create: input.items.map((item) => ({
             id: crypto.randomUUID(),
             inventory_code: item.inventory_code,
-            quantity_ordered: new Prisma.Decimal(item.quantity_ordered),
-            quantity_received: new Prisma.Decimal(item.quantity_received),
-            quantity_rejected: new Prisma.Decimal(item.quantity_rejected || 0),
+            quantity_ordered: new Decimal(item.quantity_ordered),
+            quantity_received: new Decimal(item.quantity_received),
+            quantity_rejected: new Decimal(item.quantity_rejected || 0),
             rejection_reason: item.rejection_reason,
             unit_cost_cents: item.unit_cost_cents,
             lot_number: item.lot_number,
