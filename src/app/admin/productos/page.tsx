@@ -8,7 +8,7 @@
  */
 
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Check, X } from 'lucide-react';
+import { Plus, Edit2, Check, X, Package } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { ProductImage } from '@/src/core/types/product-images';
@@ -62,6 +62,27 @@ export default function ProductsPage() {
   const formatPrice = (cents: number) => `S/ ${(cents / 100).toFixed(2)}`;
 
   const columns: Column<Product>[] = [
+    {
+      key: 'image',
+      label: '',
+      width: '60px',
+      render: (p) => {
+        const primaryImage = p.images?.[0];
+        return (
+          <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-800 flex items-center justify-center">
+            {primaryImage ? (
+              <img
+                src={primaryImage.thumbnail_url}
+                alt={p.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Package className="w-5 h-5 text-zinc-600" />
+            )}
+          </div>
+        );
+      },
+    },
     { key: 'sku', label: 'SKU', width: '100px' },
     { key: 'name', label: 'Nombre' },
     {

@@ -11,6 +11,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package, DollarSign, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ImageUpload } from '../components/ImageUpload';
+import type { ProductImage } from '@/src/core/types/product-images';
 
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
@@ -45,6 +47,7 @@ interface Product {
   station: string;
   type: string;
   is_active: boolean;
+  images: ProductImage[];
 }
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -61,6 +64,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     type: '',
     is_active: true,
   });
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +83,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         if (!res.ok) throw new Error('Producto no encontrado');
         const data = await res.json();
         setProduct(data);
+        setImages(data.images || []);
         setForm({
           sku: data.sku,
           name: data.name,
@@ -113,6 +119,51 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         throw new Error('Precio inválido');
       }
 
+      // Step 1: Delete removed images
+      if (imagesToDelete.length > 0) {
+        const deletePromises = imagesToDelete.map(async (imageId) => {
+          const deleteRes = await fetch(`/api/admin/products/images/${imageId}?product_id=${productId}`, {
+            method: 'DELETE',
+          });
+          if (!deleteRes.ok) {
+            console.error(`Failed to delete image ${imageId}`);
+          }
+        });
+        await Promise.all(deletePromises);
+      }
+
+      // Step 2: Upload new images
+      const newImages = images.filter((img: any) => img.file);
+      if (newImages.length > 0) {
+        const uploadPromises = newImages.map(async (img: any) => {
+          const formData = new FormData();
+          formData.append('file', img.file);
+          formData.append('product_id', productId);
+
+          const uploadRes = await fetch('/api/admin/products/images', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadRes.ok) {
+            const errorData = await uploadRes.json();
+            throw new Error(`Error uploading image: ${errorData.error}`);
+          }
+        });
+        await Promise.all(uploadPromises);
+      }
+
+      // Step 3: Update image order if changed
+      const imageIds = images.map((img: any) => img.id).filter((id: string) => !id.startsWith('temp-'));
+      if (imageIds.length > 0) {
+        await fetch(`/api/admin/products/${productId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ images: imageIds }),
+        });
+      }
+
+      // Step 4: Update product data
       const res = await fetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -382,6 +433,29 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             <label htmlFor="is_active" className="text-sm cursor-pointer">
               Producto activo (visible en el catálogo)
             </label>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-3">
+              Imágenes del producto
+            </label>
+            <ImageUpload
+              productId={productId || undefined}
+              existingImages={images}
+              onImagesChange={(newImages) => {
+                // Track deleted images
+                const existingIds = images.map(img => img.id);
+                const newIds = newImages.map((img: any) => img.id);
+                const deleted = existingIds.filter(id => !newIds.includes(id));
+                setImagesToDelete(prev => [...new Set([...prev, ...deleted])]);
+                setImages(newImages);
+              }}
+              disabled={saving}
+            />
+            <p className="text-xs text-zinc-500 mt-2">
+              La primera imagen será la imagen principal del producto
+            </p>
           </div>
 
           {/* Actions */}

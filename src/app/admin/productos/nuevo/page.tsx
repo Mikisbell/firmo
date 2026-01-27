@@ -11,6 +11,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { ImageUpload } from '../components/ImageUpload';
+import type { ProductImage } from '@/src/core/types/product-images';
 
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
@@ -47,6 +49,7 @@ export default function NewProductPage() {
     type: 'SIMPLE',
     is_active: true,
   });
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +66,7 @@ export default function NewProductPage() {
         throw new Error('Precio inválido');
       }
 
+      // Step 1: Create product
       const res = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,8 +87,33 @@ export default function NewProductPage() {
         throw new Error(data.error || 'Error al crear producto');
       }
 
+      const createdProduct = await res.json();
+
+      // Step 2: Upload images if any
+      if (images.length > 0) {
+        const uploadPromises = images.map(async (img: any) => {
+          if (!img.file) return; // Skip existing images (shouldn't happen in create)
+
+          const formData = new FormData();
+          formData.append('file', img.file);
+          formData.append('product_id', createdProduct.id);
+
+          const uploadRes = await fetch('/api/admin/products/images', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadRes.ok) {
+            const errorData = await uploadRes.json();
+            throw new Error(`Error uploading image: ${errorData.error}`);
+          }
+        });
+
+        await Promise.all(uploadPromises);
+      }
+
       toast.success('Producto creado exitosamente', {
-        description: `${form.name} ha sido agregado al catálogo`,
+        description: `${form.name} ha sido agregado al catálogo${images.length > 0 ? ` con ${images.length} imagen(es)` : ''}`,
       });
       router.push('/admin/productos');
     } catch (err) {
@@ -270,6 +299,20 @@ export default function NewProductPage() {
             <label htmlFor="is_active" className="text-sm cursor-pointer">
               Producto activo (visible en el catálogo)
             </label>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-3">
+              Imágenes del producto (opcional)
+            </label>
+            <ImageUpload
+              onImagesChange={setImages}
+              disabled={saving}
+            />
+            <p className="text-xs text-zinc-500 mt-2">
+              La primera imagen será la imagen principal del producto
+            </p>
           </div>
 
           {/* Actions */}
