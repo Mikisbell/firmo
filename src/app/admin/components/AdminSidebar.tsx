@@ -5,6 +5,11 @@
  * Navigation lateral para el panel de administración
  * Responsive: colapsa a hamburger en móvil
  * 
+ * P0 Improvements (27 Enero 2026):
+ * - Badges de notificaciones (Auditoría, Delivery)
+ * - Tooltips en desktop para labels completos
+ * - Icono consistente (Lucide Store en vez de emoji)
+ * 
  * Requirements: 2.1, 10.1, 10.3
  */
 
@@ -28,13 +33,17 @@ import {
   Truck,
   Bike,
   Shield,
+  Store,
 } from 'lucide-react';
+import { Tooltip } from '@/src/components/ui/Tooltip';
+import { useSidebarBadges } from '../hooks/useSidebarBadges';
 
 export interface NavItem {
   href: string;
   label: string;
   icon: React.ElementType;
   permission?: string;
+  badgeKey?: 'auditoria' | 'delivery';
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -43,10 +52,10 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/mesas', label: 'Mesas', icon: Grid3X3, permission: 'manage_config' },
   { href: '/admin/empleados', label: 'Empleados', icon: Users, permission: 'manage_employees' },
   { href: '/admin/terminales', label: 'Terminales', icon: Monitor, permission: 'manage_terminals' },
-  { href: '/admin/auditoria', label: 'Auditoría', icon: Shield, permission: 'manage_terminals' },
+  { href: '/admin/auditoria', label: 'Auditoría', icon: Shield, permission: 'manage_terminals', badgeKey: 'auditoria' },
   { href: '/admin/promociones', label: 'Promociones', icon: Gift, permission: 'manage_promotions' },
   { href: '/admin/estaciones', label: 'Estaciones KDS', icon: ChefHat, permission: 'manage_stations' },
-  { href: '/admin/delivery', label: 'Delivery', icon: Truck, permission: 'manage_config' },
+  { href: '/admin/delivery', label: 'Delivery', icon: Truck, permission: 'manage_config', badgeKey: 'delivery' },
   { href: '/admin/drivers', label: 'Motorizados', icon: Bike, permission: 'manage_employees' },
   { href: '/inventario', label: 'Inventario', icon: Warehouse, permission: 'manage_products' },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, permission: 'manage_config' },
@@ -60,6 +69,7 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ permissions }: AdminSidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const badges = useSidebarBadges();
 
   const filteredItems = NAV_ITEMS.filter(item => {
     if (!item.permission) return true;
@@ -70,6 +80,11 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
   const isActive = (href: string) => {
     if (href === '/admin') return pathname === '/admin';
     return pathname.startsWith(href);
+  };
+
+  const getBadgeCount = (item: NavItem): number => {
+    if (!item.badgeKey) return 0;
+    return badges[item.badgeKey] || 0;
   };
 
   return (
@@ -108,7 +123,7 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800">
           <Link href="/admin" className="flex items-center gap-2">
-            <span className="text-xl">🍗</span>
+            <Store className="w-6 h-6 text-amber-500" />
             <span className="font-bold text-lg">PARK POS</span>
           </Link>
           <button
@@ -124,23 +139,42 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
         <nav className="p-4 space-y-1">
           {filteredItems.map((item) => {
             const active = isActive(item.href);
+            const badgeCount = getBadgeCount(item);
+            
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`
-                  flex items-center gap-3 px-3 py-3 rounded-lg transition-colors
-                  min-h-[44px]
-                  ${active
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                  }
-                `}
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </Link>
+              <Tooltip key={item.href} content={item.label} disabled={isOpen}>
+                <Link
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-3 py-3 rounded-lg transition-colors
+                    min-h-[44px] relative
+                    ${active
+                      ? 'bg-amber-500/20 text-amber-400'
+                      : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                    }
+                  `}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium flex-1">{item.label}</span>
+                  
+                  {/* Badge */}
+                  {badgeCount > 0 && (
+                    <span 
+                      className="
+                        flex items-center justify-center
+                        min-w-[20px] h-5 px-1.5
+                        text-xs font-bold
+                        bg-red-500 text-white
+                        rounded-full
+                      "
+                      aria-label={`${badgeCount} notificaciones`}
+                    >
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                </Link>
+              </Tooltip>
             );
           })}
         </nav>

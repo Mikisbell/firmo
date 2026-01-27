@@ -52,3 +52,6 @@ export type { ConfirmActionProps } from './ConfirmAction';
 // Orientation Hint
 export { OrientationHint } from './OrientationHint';
 export type { OrientationHintProps } from './OrientationHint';
+
+// Tooltip
+export { Tooltip } from './Tooltip';
