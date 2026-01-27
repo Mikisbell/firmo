@@ -142,7 +142,7 @@ This implementation plan breaks down the Products P1 Improvements feature into d
   - Write property tests for Properties 23-33
   - **Validates:** Requirements 3.1-3.13, 6.1-6.9, Properties 23-33
 
-- [ ] 11. CSV API Endpoints
+- [-] 11. CSV API Endpoints
   - Create `GET /api/admin/products/export` endpoint
   - Create `POST /api/admin/products/import` endpoint
   - Create `GET /api/admin/products/template` endpoint
