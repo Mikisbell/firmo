@@ -89,6 +89,7 @@ async function handleGET(request: NextRequest) {
         station: true,
         type: true,
         is_active: true,
+        images: true,
       },
     });
     logPerformance('db_query_products', Date.now() - queryStart, { 

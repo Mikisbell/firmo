@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Check, X } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
+import { ProductImage } from '@/src/core/types/product-images';
 
 interface Product {
   id: string;
@@ -22,6 +23,7 @@ interface Product {
   station: string;
   type: string;
   is_active: boolean;
+  images: ProductImage[];
 }
 
 const CATEGORY_OPTIONS = [
