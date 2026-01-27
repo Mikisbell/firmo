@@ -75,8 +75,9 @@ export default function AdminHeader({ employee, isOnline = true, onLogout }: Adm
           )}
         </div>
 
-        {/* Notifications (placeholder) */}
+        {/* Notifications */}
         <button
+          onClick={() => router.push('/admin/notificaciones')}
           className="p-2 hover:bg-zinc-800 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center relative"
           aria-label="Notificaciones"
         >
