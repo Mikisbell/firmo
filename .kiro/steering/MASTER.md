@@ -191,6 +191,7 @@ docs/
 4. **Validar siempre** — usar getDiagnostics después de cambios
 5. **Actualizar checklist** — marcar `[x]` al completar
 6. **🔴 PRISMA NAMING** — Usar nombres EXACTOS del schema.prisma (NO camelCase automático)
+7. **🔴 PROBAR ANTES DE PUSH** — SIEMPRE ejecutar `npm run build` y `npm run dev` localmente ANTES de hacer git push
 
 ---
 
