@@ -119,22 +119,24 @@ export class BulkOperationsService {
             },
           });
 
-          // Create audit log entry
-          await tx.admin_access_logs.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: tenantId,
-              employee_id: userId,
-              action: 'BULK_UPDATE',
-              resource: 'products',
-              metadata: {
-                product_ids: batch,
-                updates,
-                count: batch.length,
+          // Create audit log entry (only if userId is valid UUID)
+          if (userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+            await tx.admin_access_logs.create({
+              data: {
+                id: randomUUID(),
+                tenant_id: tenantId,
+                employee_id: userId,
+                action: 'BULK_UPDATE',
+                resource: 'products',
+                metadata: {
+                  product_ids: batch,
+                  updates,
+                  count: batch.length,
+                },
+                created_at: new Date(),
               },
-              created_at: new Date(),
-            },
-          });
+            });
+          }
 
           return products;
         });
@@ -227,26 +229,28 @@ export class BulkOperationsService {
       userId
     );
 
-    // Update audit log action to BULK_DELETE
-    try {
-      await prisma.admin_access_logs.updateMany({
-        where: {
-          tenant_id: tenantId,
-          employee_id: userId,
-          action: 'BULK_UPDATE',
-          created_at: {
-            gte: new Date(startTime),
+    // Update audit log action to BULK_DELETE (only if userId is valid UUID)
+    if (userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+      try {
+        await prisma.admin_access_logs.updateMany({
+          where: {
+            tenant_id: tenantId,
+            employee_id: userId,
+            action: 'BULK_UPDATE',
+            created_at: {
+              gte: new Date(startTime),
+            },
           },
-        },
-        data: {
-          action: 'BULK_DELETE',
-        },
-      });
-    } catch (error) {
-      log.warn({
-        operation: 'bulk_delete_audit_update_error',
-        error: error instanceof Error ? error.message : String(error),
-      }, 'Failed to update audit log action');
+          data: {
+            action: 'BULK_DELETE',
+          },
+        });
+      } catch (error) {
+        log.warn({
+          operation: 'bulk_delete_audit_update_error',
+          error: error instanceof Error ? error.message : String(error),
+        }, 'Failed to update audit log action');
+      }
     }
 
     const duration = Date.now() - startTime;
