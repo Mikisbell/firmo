@@ -116,7 +116,7 @@ export function fromPrismaProduct(prismaProduct: PrismaProduct): Product {
   return {
     ...prismaProduct,
     images: Array.isArray(prismaProduct.images) 
-      ? (prismaProduct.images as ProductImage[])
+      ? (prismaProduct.images as unknown as ProductImage[])
       : [],
     price_cents: unsafeCentavos(prismaProduct.price_cents),
   };

@@ -7,8 +7,8 @@
 
 ## 📊 Estado General
 
-**Progreso:** 🟢 30% (3/10 tareas completadas)  
-**Tiempo Estimado Restante:** ~9.5 días  
+**Progreso:** 🟢 40% (4/10 tareas completadas)  
+**Tiempo Estimado Restante:** ~8 días  
 **Bloqueadores:** Ninguno
 
 ---
@@ -149,6 +149,78 @@ withMetadata(product)
 - TypeScript diagnostics: ✅ Sin errores
 - Build de producción: ✅ 90 páginas generadas
 - Tests: 20+ test cases creados
+
+**Tiempo Invertido:** ~2 horas
+
+---
+
+### 4. Image Storage Service ✅
+
+**Completado:** 27 Enero 2026
+
+**Cambios Realizados:**
+- ✅ Creado `src/core/images/image.service.ts` con funcionalidad completa
+- ✅ Implementada optimización de imágenes con Sharp
+  - Genera 3 versiones: original (max 1920x1920), medium (800x800), thumbnail (200x200)
+  - Convierte todas las imágenes a WEBP con calidad 85
+  - Mantiene aspect ratio, no upscalea imágenes pequeñas
+- ✅ Implementada integración con Supabase Storage
+  - Upload a paths tenant-scoped: `{tenant_id}/products/{product_id}/{image_id}.webp`
+  - Genera URLs públicas para todas las versiones
+  - Implementa delete de imágenes individuales y por producto
+- ✅ Validación de file signature (magic bytes) para prevenir fake extensions
+- ✅ Retry logic con exponential backoff (3 intentos)
+- ✅ 32 tests unitarios pasando (100%)
+
+**Archivos Creados:**
+- `src/core/images/image.service.ts` (nuevo)
+- `src/core/images/__tests__/image.service.test.ts` (nuevo)
+- `src/core/images/index.ts` (nuevo)
+
+**Funciones Principales:**
+```typescript
+// Upload de imagen con optimización
+uploadImage(file, tenantId, productId, uploadedBy): Promise<UploadedImage>
+
+// Delete de imagen individual
+deleteImage(imageId, tenantId, productId): Promise<void>
+
+// Delete de todas las imágenes de un producto
+deleteProductImages(productId, tenantId, images): Promise<void>
+
+// Optimización de imagen
+optimizeImage(buffer, options): Promise<Buffer>
+
+// Generación de 3 versiones
+generateImageVersions(buffer): Promise<{original, medium, thumbnail}>
+
+// Validación de archivo
+validateFile(file): {valid: boolean, error?: string}
+
+// Validación de file signature
+validateFileSignature(buffer, mimeType): boolean
+```
+
+**Características:**
+- Validación completa (formato, tamaño, file signature)
+- Optimización automática con Sharp
+- 3 versiones generadas (original, medium, thumbnail)
+- Conversión a WEBP para compresión óptima
+- Retry logic para uploads fallidos
+- Tenant-scoped storage paths
+- Error handling robusto
+
+**Validación:**
+- TypeScript diagnostics: ✅ Sin errores
+- Build de producción: ✅ 90 páginas generadas exitosamente
+- Tests unitarios: ✅ 32/32 pasando (100%)
+- Cobertura: File validation, signature validation, optimization, version generation, edge cases
+
+**Dependencias Instaladas:**
+- `sharp` - Image processing
+- `papaparse` - CSV parsing (para tareas futuras)
+- `@supabase/supabase-js` - Supabase client
+- `@types/papaparse` - TypeScript types
 
 **Tiempo Invertido:** ~2 horas
 
