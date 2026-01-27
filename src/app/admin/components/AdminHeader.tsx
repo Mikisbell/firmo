@@ -14,10 +14,10 @@ import {
   User,
   LogOut,
   ChevronDown,
-  Bell,
   Wifi,
   WifiOff,
 } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 interface AdminHeaderProps {
   employee: {
@@ -76,15 +76,7 @@ export default function AdminHeader({ employee, isOnline = true, onLogout }: Adm
         </div>
 
         {/* Notifications */}
-        <button
-          onClick={() => router.push('/admin/notificaciones')}
-          className="p-2 hover:bg-zinc-800 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center relative"
-          aria-label="Notificaciones"
-        >
-          <Bell className="w-5 h-5" />
-          {/* Badge for unread notifications */}
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+        <NotificationBell />
 
         {/* User dropdown */}
         <div className="relative">

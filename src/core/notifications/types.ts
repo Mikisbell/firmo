@@ -74,3 +74,58 @@ export enum NotificationErrorCode {
   INVALID_PAYLOAD = 'NOTIF_004',
   PREFERENCE_BLOCKED = 'NOTIF_005',
 }
+
+// ============ ADMIN NOTIFICATIONS ============
+
+export type AdminNotificationType = 'OPERATIONAL' | 'BUSINESS' | 'INFO';
+export type AdminNotificationPriority = 'HIGH' | 'MEDIUM' | 'LOW';
+export type AdminNotificationCategory = 
+  | 'KDS' 
+  | 'INVENTORY' 
+  | 'TERMINAL' 
+  | 'PAYMENT' 
+  | 'EMPLOYEE' 
+  | 'SYSTEM'
+  | 'DELIVERY';
+
+export interface AdminNotificationAction {
+  type: 'NAVIGATE' | 'MODAL' | 'API_CALL';
+  target: string;
+  label: string;
+}
+
+export interface AdminNotification {
+  id: string;
+  tenant_id: string;
+  type: AdminNotificationType;
+  priority: AdminNotificationPriority;
+  category: AdminNotificationCategory;
+  title: string;
+  message: string;
+  read: boolean;
+  viewed: boolean;
+  actionable: boolean;
+  action?: AdminNotificationAction;
+  metadata?: Record<string, any>;
+  created_at: string;
+  read_at?: string;
+  expires_at?: string;
+}
+
+export interface CreateAdminNotificationInput {
+  tenant_id: string;
+  type: AdminNotificationType;
+  priority: AdminNotificationPriority;
+  category: AdminNotificationCategory;
+  title: string;
+  message: string;
+  actionable?: boolean;
+  action?: AdminNotificationAction;
+  metadata?: Record<string, any>;
+}
+
+export interface AdminNotificationStats {
+  total: number;
+  unread: number;
+  hasCritical: boolean;
+}

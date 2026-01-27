@@ -1,111 +1,92 @@
 /**
- * GET /api/admin/notifications/status - Get subscription status for all employees
- * 
- * Requirements: 7.1, 7.2
+ * Admin Notifications Status API
+ * GET - Get subscription status for all employees
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
-import * as notificationService from '@/src/core/notifications/notification.service';
-import { withRequestLogging } from '@/src/core/middleware/request-logger';
-import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
-import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
-import { metrics } from '@/src/core/observability/metrics';
+import { getSessionFromRequest } from '@/src/core/auth/auth.service';
+import type { EmployeeSubscriptionStatus } from '@/src/core/notifications/types';
 
-async function handleGET(request: NextRequest) {
-  const requestId = randomUUID();
-  const startTime = Date.now();
-  const log = createRequestLogger(requestId);
-  
+export async function GET(request: NextRequest) {
   try {
-    log.info({ operation: 'get_notification_status' }, 'Getting notification status');
-    
+    // Authenticate
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
     }
 
-    // Require ADMIN or OWNER role
-    if (!['ADMIN', 'OWNER'].includes(session.role)) {
+    // Check role
+    if (!['ADMIN', 'MANAGER'].includes(session.role)) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
+        { error: 'Acceso denegado. Se requiere rol de ADMIN o MANAGER.' },
         { status: 403 }
       );
     }
 
-    // Generate cache key
-    const cacheKey = generateCacheKey('notifications:status', session.tenantId);
+    // Get all employees with their subscription status
+    const employees = await prisma.employees.findMany({
+      where: {
+        tenant_id: session.tenantId,
+        is_active: true,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
 
-    // Try to get from cache
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      log.info({
-        operation: 'get_notification_status_cache_hit',
-        cacheKey,
-        durationMs: Date.now() - startTime,
-      }, 'Notification status retrieved from cache');
-      return NextResponse.json(cached);
+    // Get all push subscriptions
+    const subscriptions = await prisma.push_subscriptions.findMany({
+      where: {
+        tenant_id: session.tenantId,
+      },
+      select: {
+        employee_id: true,
+        last_used_at: true,
+      },
+    });
+
+    // Create a map of employee_id -> last_used_at
+    const subscriptionMap = new Map<string, Date>();
+    for (const sub of subscriptions) {
+      const existing = subscriptionMap.get(sub.employee_id);
+      if (!existing || sub.last_used_at > existing) {
+        subscriptionMap.set(sub.employee_id, sub.last_used_at);
+      }
     }
 
-    // Get subscription status
-    const serviceStart = Date.now();
-    const status = await notificationService.getSubscriptionStatus(session.tenantId);
-    logPerformance('service_get_notification_status', Date.now() - serviceStart);
+    // Build response
+    const now = new Date();
+    const employeeStatuses: EmployeeSubscriptionStatus[] = employees.map((emp) => {
+      const lastActive = subscriptionMap.get(emp.id);
+      const daysInactive = lastActive
+        ? Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
 
-    // Add warning flag for inactive subscriptions (> 7 days)
-    const statusWithWarnings = status.map(s => ({
-      ...s,
-      needs_attention: s.has_subscription && s.days_inactive > 7,
-    }));
-
-    const response = {
-      employees: statusWithWarnings,
-      summary: {
-        total: status.length,
-        subscribed: status.filter(s => s.has_subscription).length,
-        not_subscribed: status.filter(s => !s.has_subscription).length,
-        inactive_warning: status.filter(s => s.has_subscription && s.days_inactive > 7).length,
-      },
-      vapid_configured: !!notificationService.getVapidPublicKey(),
-    };
-
-    // Cache for 2 minutes
-    await cache.set(cacheKey, response, 120);
-
-    // Record business metrics
-    metrics.increment('notification_status_requests_total', {
-      tenant_id: session.tenantId,
-    });
-    metrics.set('notification_subscriptions_total', response.summary.subscribed, {
-      tenant_id: session.tenantId,
+      return {
+        employee_id: emp.id,
+        employee_name: emp.name,
+        has_subscription: subscriptionMap.has(emp.id),
+        last_active: lastActive ? lastActive.toISOString() : null,
+        days_inactive: daysInactive,
+      };
     });
 
-    log.info({
-      operation: 'get_notification_status_success',
-      employeesCount: status.length,
-      subscribedCount: response.summary.subscribed,
-      cached: true,
-      durationMs: Date.now() - startTime,
-    }, 'Notification status retrieved successfully');
-
-    return NextResponse.json(response);
+    return NextResponse.json({
+      employees: employeeStatuses,
+    });
   } catch (error) {
-    log.error({
-      operation: 'get_notification_status_error',
-      error: error instanceof Error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      } : String(error),
-    }, 'Failed to get notification status');
-    
+    console.error('Error getting notification status:', error);
     return NextResponse.json(
-      { error: 'Failed to get notification status' },
+      { error: 'Error al obtener estado de notificaciones' },
       { status: 500 }
     );
   }
 }
-
-export const GET = withRequestLogging(handleGET);

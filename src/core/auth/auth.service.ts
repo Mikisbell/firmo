@@ -428,19 +428,43 @@ export interface SessionInfo {
 /**
  * Extract and validate session from NextRequest
  * Returns null if not authenticated
+ * 
+ * Checks for token in this order:
+ * 1. httpOnly cookie 'auth_token' (used by admin panel)
+ * 2. Authorization header 'Bearer <token>' (used by API clients)
  */
 export async function getSessionFromRequest(
-    request: { headers: { get(name: string): string | null } },
+    request: { 
+        headers: { get(name: string): string | null };
+        cookies?: { get(name: string): { value: string } | undefined };
+    },
     prismaClient: PrismaClientType
 ): Promise<SessionInfo | null> {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    // Try to get token from cookie first (admin panel)
+    let token: string | null = null;
+    
+    if (request.cookies) {
+        const cookieToken = request.cookies.get('auth_token');
+        if (cookieToken) {
+            token = cookieToken.value;
+        }
+    }
+    
+    // Fallback to Authorization header (API clients)
+    if (!token) {
+        const authHeader = request.headers.get('authorization');
+        if (authHeader?.startsWith('Bearer ')) {
+            token = authHeader.slice(7);
+        }
+    }
+
+    // No token found
+    if (!token) {
         return null;
     }
 
-    const token = authHeader.slice(7);
+    // Validate token
     const tokenResult = await validateToken(token);
-
     if (!tokenResult.valid || !tokenResult.payload) {
         return null;
     }

@@ -36,13 +36,28 @@ export default function NotificacionesAdminPage() {
   const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/notifications/status');
-      if (!res.ok) throw new Error('Error al cargar estado');
+      const res = await fetch('/api/admin/notifications/status', {
+        credentials: 'include', // Include httpOnly cookies for authentication
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        
+        if (res.status === 401) {
+          throw new Error('No autenticado. Por favor, inicia sesión nuevamente.');
+        } else if (res.status === 403) {
+          throw new Error('Acceso denegado. Se requiere rol de ADMIN u OWNER.');
+        } else {
+          throw new Error(errorData.error || 'Error al cargar estado');
+        }
+      }
+      
       const data = await res.json();
       setEmployees(data.employees || []);
       setError(null);
     } catch (err) {
-      setError('Error al cargar estado de notificaciones');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar estado de notificaciones';
+      setError(errorMessage);
       console.error('Notification status error:', err);
     } finally {
       setLoading(false);
@@ -61,6 +76,7 @@ export default function NotificacionesAdminPage() {
       const res = await fetch('/api/notifications/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include httpOnly cookies for authentication
         body: JSON.stringify({ employee_id: employeeId }),
       });
 

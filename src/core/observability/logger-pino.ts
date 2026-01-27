@@ -14,42 +14,45 @@ import pino from 'pino';
 import type { LogContext } from './logger';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
-const isTest = process.env.NODE_ENV === 'test';
 
 /**
  * Base Pino logger instance
+ * Disabled in development to avoid worker thread issues in Next.js
  */
-const pinoLogger = pino({
-  level: process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info'),
-  
-  // Pretty printing in development
-  transport: isDevelopment && !isTest
-    ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'SYS:standard',
-          ignore: 'pid,hostname',
-          singleLine: false,
-          messageFormat: '{event} - {message}',
+const pinoLogger = isDevelopment
+  ? {
+      // Simple console logger for development
+      debug: (obj: any, msg?: string) => {
+        if (process.env.LOG_LEVEL === 'debug') {
+          console.log('[DEBUG]', msg || '', obj);
+        }
+      },
+      info: (obj: any, msg?: string) => console.log('[INFO]', msg || '', obj),
+      warn: (obj: any, msg?: string) => console.warn('[WARN]', msg || '', obj),
+      error: (obj: any, msg?: string) => console.error('[ERROR]', msg || '', obj),
+      child: (context: any) => ({
+        debug: (obj: any, msg?: string) => {
+          if (process.env.LOG_LEVEL === 'debug') {
+            console.log('[DEBUG]', msg || '', { ...context, ...obj });
+          }
         },
-      }
-    : undefined,
-  
-  // Custom formatters
-  formatters: {
-    level: (label) => ({ level: label }),
-  },
-  
-  // Base context
-  base: {
-    env: process.env.NODE_ENV,
-    service: 'park-pos-admin',
-  },
-  
-  // Timestamp
-  timestamp: pino.stdTimeFunctions.isoTime,
-});
+        info: (obj: any, msg?: string) => console.log('[INFO]', msg || '', { ...context, ...obj }),
+        warn: (obj: any, msg?: string) => console.warn('[WARN]', msg || '', { ...context, ...obj }),
+        error: (obj: any, msg?: string) => console.error('[ERROR]', msg || '', { ...context, ...obj }),
+      }),
+    }
+  : pino({
+      level: process.env.LOG_LEVEL || 'info',
+      transport: undefined,
+      formatters: {
+        level: (label) => ({ level: label }),
+      },
+      base: {
+        env: process.env.NODE_ENV,
+        service: 'park-pos-admin',
+      },
+      timestamp: pino.stdTimeFunctions.isoTime,
+    });
 
 /**
  * Enhanced logger compatible with existing interface

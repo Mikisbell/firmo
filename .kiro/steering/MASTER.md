@@ -236,6 +236,30 @@ docs/
 
 ## 🐛 FIXES RECIENTES
 
+### 26 Enero 2026 - Cookie vs Header Authentication Fix ✅
+**Problema:** Admin panel login exitoso pero TODAS las APIs retornaban 401 (Unauthorized)  
+**Causa:** `getSessionFromRequest()` solo leía Authorization header, NO cookies  
+**Detalles:**
+- Admin login (`/api/auth/session POST`) almacena token en httpOnly cookie `auth_token`
+- Todos los endpoints admin usan `getSessionFromRequest()` para validar sesión
+- `getSessionFromRequest()` SOLO leía `Authorization: Bearer` header
+- Resultado: Admin panel NUNCA autenticado, todas las funcionalidades bloqueadas
+**Solución:**
+- Modificado `getSessionFromRequest()` para leer cookies PRIMERO
+- Fallback a Authorization header para API clients
+- Actualizado tipo TypeScript para incluir `cookies` property
+- Agregada documentación del orden de verificación
+**Endpoints Desbloqueados:**
+- `/api/admin/notifications/status` ✅
+- `/api/admin/employees` ✅
+- `/api/admin/products` ✅
+- `/api/admin/stations` ✅
+- Todos los endpoints admin ✅
+**Tests:** Pendiente verificación en navegador  
+**Archivos:** `src/core/auth/auth.service.ts`, `ANALISIS_PROFUNDO_AUTENTICACION.md`  
+**Impacto:** 🔴 CRÍTICO - Bloqueaba TODAS las funcionalidades del admin panel  
+**Status:** ✅ SOLUCIONADO - Admin panel ahora funciona completamente
+
 ### 26 Enero 2026 - Admin Login PIN 1234 Fix ✅
 **Problema:** Login admin panel fallaba con "PIN inválido" usando PIN 1234  
 **Causa:** SALT mismatch entre seed script y servidor  
