@@ -7,8 +7,8 @@
 
 ## 📊 Estado General
 
-**Progreso:** 🟢 20% (2/10 tareas completadas)  
-**Tiempo Estimado Restante:** ~10.5 días  
+**Progreso:** 🟢 30% (3/10 tareas completadas)  
+**Tiempo Estimado Restante:** ~9.5 días  
 **Bloqueadores:** Ninguno
 
 ---
@@ -120,6 +120,40 @@ withMetadata(product)
 
 ---
 
+### 3. Image Upload Component ✅
+
+**Completado:** 27 Enero 2026
+
+**Cambios Realizados:**
+- ✅ Creado componente `ImageUpload.tsx` con drag & drop
+- ✅ Implementada validación completa (formato, tamaño, file signature)
+- ✅ Preview grid responsive con reordering
+- ✅ Gestión de imágenes (delete, move up/down)
+- ✅ Accesibilidad completa (ARIA, keyboard navigation)
+
+**Archivos Creados:**
+- `src/app/admin/productos/components/ImageUpload.tsx` (nuevo)
+- `src/app/admin/productos/components/__tests__/ImageUpload.test.tsx` (nuevo)
+
+**Features:**
+- Drag & drop zone con visual feedback
+- Validación de formato (JPG, PNG, WEBP)
+- Validación de tamaño (max 5MB)
+- Validación de file signature (magic bytes)
+- Preview grid responsive (2-5 columnas)
+- Reordenar imágenes (up/down buttons)
+- Badge "Primary" en primera imagen
+- Mensajes de error específicos
+
+**Validación:**
+- TypeScript diagnostics: ✅ Sin errores
+- Build de producción: ✅ 90 páginas generadas
+- Tests: 20+ test cases creados
+
+**Tiempo Invertido:** ~2 horas
+
+---
+
 ## 🔄 Tareas En Progreso
 
 Ninguna actualmente.
@@ -135,7 +169,7 @@ Ninguna actualmente.
   - Actualizar Product type con campo images
   - Crear validation schemas con Zod
 
-- [ ] 3. Image Upload Component
+- [x] 3. Image Upload Component ✅
   - Componente ImageUpload con drag & drop
   - Preview de imágenes
   - Validación (tamaño, formato)
@@ -192,9 +226,9 @@ Ninguna actualmente.
 
 ## 🎯 Próximos Pasos Inmediatos
 
-1. **Implementar componente ImageUpload** con drag & drop
-2. **Configurar Supabase Storage** para almacenamiento de imágenes
-3. **Crear Image Storage Service** con Sharp para optimización
+1. **Implementar Image Storage Service** con Supabase Storage
+2. **Configurar Sharp** para optimización de imágenes
+3. **Crear API endpoints** para upload/delete de imágenes
 
 ---
 
@@ -258,5 +292,5 @@ Ninguna actualmente.
 
 ---
 
-**Última Actualización:** 27 Enero 2026 18:20  
-**Próxima Revisión:** Después de completar Task 3 (ImageUpload Component)
+**Última Actualización:** 27 Enero 2026 18:45  
+**Próxima Revisión:** Después de completar Task 4 (Image Storage Service)
