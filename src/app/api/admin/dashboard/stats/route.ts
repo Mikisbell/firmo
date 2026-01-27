@@ -179,6 +179,7 @@ async function handleGET(request: NextRequest) {
     
     // Terminal offline alerts
     terminalsOffline.forEach(terminal => {
+      if (!terminal.last_seen_at) return; // Skip if no last_seen_at
       const hoursOffline = Math.floor((Date.now() - new Date(terminal.last_seen_at).getTime()) / (1000 * 60 * 60));
       alerts.push({
         id: `terminal-${terminal.terminal_id}`,
