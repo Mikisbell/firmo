@@ -748,6 +748,7 @@ model products {
   type        String   @default("SIMPLE")
   components  Json?
   recipe      Json?
+  images      Json     @default("[]")
   is_active   Boolean  @default(true)
   version     Int      @default(1)
   updated_at  DateTime @default(now()) @db.Timestamptz(6)
