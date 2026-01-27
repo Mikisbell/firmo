@@ -7,10 +7,10 @@
 
 ## 📊 Estado General
 
-**Progreso:** 🟢 40% (4/10 tareas completadas)  
-**Tiempo Estimado Restante:** ~8 días  
+**Progreso:** 🟢 50% (5/10 tareas completadas)  
+**Tiempo Estimado Restante:** ~7 días  
 **Bloqueadores:** Ninguno  
-**Última Prueba:** ✅ Stress tests completados (27/27 passing - 100%) ⭐
+**Última Tarea:** ✅ Task 5 - Update Product APIs for Images completada
 
 ---
 
@@ -239,6 +239,76 @@ validateFileSignature(buffer, mimeType): boolean
 
 ---
 
+### 5. Update Product APIs for Images ✅
+
+**Completado:** 27 Enero 2026
+
+**Cambios Realizados:**
+- ✅ Creado `POST /api/admin/products/images` para upload de imágenes
+- ✅ Creado `DELETE /api/admin/products/images/[id]` para delete de imágenes
+- ✅ Actualizado `PUT /api/admin/products/[id]` para soportar reordering
+- ✅ Actualizado `UploadedImage` type con `uploaded_at` y `uploaded_by`
+
+**Archivos Creados:**
+- `src/app/api/admin/products/images/route.ts` (nuevo)
+- `src/app/api/admin/products/images/[id]/route.ts` (nuevo)
+
+**Archivos Modificados:**
+- `src/app/api/admin/products/[id]/route.ts` (agregado soporte para images)
+- `src/core/images/image.service.ts` (actualizado UploadedImage type)
+
+**Endpoints Implementados:**
+```typescript
+// Upload imagen
+POST /api/admin/products/images
+Body: multipart/form-data { file, product_id }
+Response: ProductImage
+
+// Delete imagen
+DELETE /api/admin/products/images/{id}?product_id={productId}
+Response: { success: true }
+
+// Reorder imágenes
+PUT /api/admin/products/{id}
+Body: { images: ProductImage[] }
+Response: Product
+```
+
+**Features:**
+- Upload con optimización automática (3 versiones)
+- Delete con cleanup de storage (3 versiones)
+- Reordering de imágenes
+- Cache invalidation
+- Audit trail completo
+- Catalog versioning
+- Metrics (uploads, deletes)
+- Error handling robusto
+
+**Validaciones:**
+- Límite de 5 imágenes por producto
+- Formato válido (JPG, PNG, WEBP)
+- Tamaño máximo 5MB
+- File signature validation
+- Producto debe existir
+- Imagen debe existir (para delete)
+
+**Soluciones Técnicas:**
+- Uso de `$queryRaw` y `$executeRaw` para evitar problemas de tipos Prisma
+- Export directo de handler para endpoints con params
+- Transacciones atómicas para consistencia
+
+**Validación:**
+- TypeScript diagnostics: ✅ Sin errores
+- Property 7 (Transaction Atomicity): ✅ Implementado
+- Property 8 (Image Reordering): ✅ Implementado
+- Property 9 (Image Deletion Cleanup): ✅ Implementado
+
+**Tiempo Invertido:** ~45 minutos
+
+**Documentación:** `PRODUCTOS_P1_TASK5_COMPLETADO.md`
+
+---
+
 ## 🔄 Tareas En Progreso
 
 Ninguna actualmente.
@@ -260,13 +330,13 @@ Ninguna actualmente.
   - Validación (tamaño, formato)
   - Progress indicator
 
-- [ ] 4. Image Storage Service
+- [x] 4. Image Storage Service ✅
   - Integración con Supabase Storage
   - Upload de imágenes
   - Generación de URLs públicas
   - Manejo de errores
 
-- [ ] 5. Update Product APIs for Images
+- [x] 5. Update Product APIs for Images ✅
   - Modificar POST /api/admin/products
   - Modificar PUT /api/admin/products/[id]
   - Agregar DELETE para imágenes individuales
@@ -311,9 +381,9 @@ Ninguna actualmente.
 
 ## 🎯 Próximos Pasos Inmediatos
 
-1. **Implementar Image Storage Service** con Supabase Storage
-2. **Configurar Sharp** para optimización de imágenes
-3. **Crear API endpoints** para upload/delete de imágenes
+1. **Task 6: Update Product Form UI**
+2. **Integrar ImageUpload component** en formulario de productos
+3. **Conectar con APIs** de upload/delete/reorder
 
 ---
 
@@ -377,5 +447,5 @@ Ninguna actualmente.
 
 ---
 
-**Última Actualización:** 27 Enero 2026 18:45  
-**Próxima Revisión:** Después de completar Task 4 (Image Storage Service)
+**Última Actualización:** 27 Enero 2026 20:30  
+**Próxima Revisión:** Después de completar Task 6 (Update Product Form UI)
