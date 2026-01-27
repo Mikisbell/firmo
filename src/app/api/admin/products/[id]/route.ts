@@ -1,6 +1,7 @@
 /**
  * Products API - GET, PUT, DELETE for single product
- * Requirements: 2.3, 2.4, 2.7, 10.5, 10.6
+ * Requirements: 2.3, 2.4, 2.7, 10.5, 10.6, 1.10 (images)
+ * Properties: 8 (image reordering)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,6 +9,10 @@ import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
+import { cache } from '@/src/core/cache/redis.service';
+import { ImageReorderRequestSchema } from '@/src/core/admin/schemas/product-image.schema';
+import type { ProductImage } from '@/src/core/types/product-images';
+import { ZodError } from 'zod';
 
 const TENANT_ID = getTenantId();
 
@@ -56,7 +61,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { sku, name, short_name, price_cents, category, station, type, is_active } = body;
+    const { sku, name, short_name, price_cents, category, station, type, is_active, images } = body;
 
     // Check product exists
     const existing = await prisma.products.findFirst({
@@ -114,6 +119,26 @@ export async function PUT(
       }
     }
 
+    // Validate images if provided (for reordering)
+    if (images !== undefined) {
+      try {
+        ImageReorderRequestSchema.parse({ images });
+      } catch (error) {
+        if (error instanceof ZodError) {
+          return NextResponse.json(
+            {
+              error: 'Imágenes inválidas',
+              details: error.errors.map((e) => ({
+                field: e.path.join('.'),
+                message: e.message,
+              })),
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // Check SKU uniqueness if changing SKU
     if (sku && sku !== existing.sku) {
       const existingSku = await prisma.products.findFirst({
@@ -145,6 +170,10 @@ export async function PUT(
           ...(station && { station }),
           ...(type && { type }),
           ...(typeof is_active === 'boolean' && { is_active }),
+          ...(images !== undefined && { images: images as any }),
+          version: { increment: 1 },
+          updated_at: new Date(),
+          updated_by: authResult.user.id,
         },
       });
 
@@ -180,6 +209,9 @@ export async function PUT(
 
       return updatedProduct;
     });
+
+    // Invalidate cache
+    await cache.invalidatePattern('products:*');
 
     return NextResponse.json(updated);
   } catch (error) {

@@ -28,6 +28,8 @@ export interface UploadedImage {
   medium_url: string;
   size_bytes: number;
   format: 'webp';
+  uploaded_at: string;
+  uploaded_by: string;
 }
 
 export interface OptimizeOptions {
@@ -357,6 +359,8 @@ export async function uploadImage(
     medium_url: mediumUrl,
     size_bytes: versions.original.size,
     format: 'webp',
+    uploaded_at: new Date().toISOString(),
+    uploaded_by: uploadedBy,
   };
 }
 
