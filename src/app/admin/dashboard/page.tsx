@@ -117,7 +117,13 @@ export default function AnalyticsDashboardPage() {
         avg_service_time_minutes: 0,
         orders_per_hour: 0,
         stations: [],
-        sales_by_payment_method: {},
+        sales_by_payment_method: {
+          CASH: unsafeCentavos(0),
+          YAPE: unsafeCentavos(0),
+          PLIN: unsafeCentavos(0),
+          CARD: unsafeCentavos(0),
+          TRANSFER: unsafeCentavos(0),
+        },
         business_date: selectedDate,
         shift_id: null,
       });
@@ -149,7 +155,13 @@ export default function AnalyticsDashboardPage() {
         avg_service_time_minutes: 0,
         orders_per_hour: 0,
         stations: [],
-        sales_by_payment_method: {},
+        sales_by_payment_method: {
+          CASH: unsafeCentavos(0),
+          YAPE: unsafeCentavos(0),
+          PLIN: unsafeCentavos(0),
+          CARD: unsafeCentavos(0),
+          TRANSFER: unsafeCentavos(0),
+        },
         business_date: selectedDate,
         shift_id: null,
       });
