@@ -120,7 +120,7 @@ This implementation plan breaks down the Products P1 Improvements feature into d
 
 ### Phase 3: CSV Import/Export (3 days)
 
-- [ ] 10. CSV Service
+- [x] 10. CSV Service
   - Create `src/core/services/csv.service.ts`
   - Implement PapaParse integration for parsing/generation
   - Implement CSV export

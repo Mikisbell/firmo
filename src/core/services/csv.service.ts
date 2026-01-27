@@ -74,12 +74,12 @@ export interface CSVValidationError {
 /**
  * Valid Categories
  */
-const VALID_CATEGORIES = ['POLLOS', 'PARRILLAS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS'];
+const VALID_CATEGORIES = ['POLLOS', 'PARRILLAS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS', 'GUARNICIONES'];
 
 /**
  * Valid Stations
  */
-const VALID_STATIONS = ['PARRILLA', 'COCINA', 'BAR', 'HORNO', 'POSTRES', 'EMPAQUE'];
+const VALID_STATIONS = ['PARRILLA', 'COCINA', 'BAR', 'HORNO', 'POSTRES', 'EMPAQUE', 'FRIOS'];
 
 /**
  * Valid Product Types
