@@ -74,7 +74,7 @@ async function handleGET(request: NextRequest) {
     // Record business metrics
     metrics.increment('products_csv_exported_total', {
       tenant_id: TENANT_ID,
-      product_count: productCount,
+      product_count: String(productCount),
     });
 
     // Log audit event
