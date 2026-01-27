@@ -3,7 +3,7 @@
  * Type definitions for bulk product operations
  */
 
-import type { ProductCategory, ProductStation } from './product';
+import type { ProductCategory, ProductStation } from '../admin/schemas/product.schema';
 
 /**
  * Bulk operation types

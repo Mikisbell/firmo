@@ -23,10 +23,13 @@ const TENANT_ID = getTenantId();
 // DELETE - Remove image from product
 async function handleDELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const requestId = randomUUID();
   const startTime = Date.now();
+  
+  // Await params (Next.js 15 requirement)
+  const params = await context.params;
   
   // Validate admin authentication
   const authResult = await requireAdminAuth(request);
@@ -39,7 +42,7 @@ async function handleDELETE(
   });
 
   try {
-    const imageId = context.params.id;
+    const imageId = params.id;
     log.info({ 
       operation: 'delete_product_image',
       imageId,
