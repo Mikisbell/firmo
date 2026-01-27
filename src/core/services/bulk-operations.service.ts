@@ -90,8 +90,12 @@ export class BulkOperationsService {
             ...updates,
             version: { increment: 1 },
             updated_at: new Date(),
-            updated_by: userId,
           };
+          
+          // Only set updated_by if userId is a valid UUID
+          if (userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+            updateData.updated_by = userId;
+          }
 
           await tx.products.updateMany({
             where: {
