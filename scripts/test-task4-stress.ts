@@ -84,7 +84,7 @@ async function testFrontend() {
   // Test 1.1: ImageUpload component exists
   try {
     const start = Date.now();
-    const ImageUpload = await import('../src/app/admin/productos/components/ImageUpload');
+    await import('../src/app/admin/productos/components/ImageUpload');
     const duration = Date.now() - start;
     logTest('Frontend', 'ImageUpload component imports', 'PASS', duration);
   } catch (error) {
@@ -96,7 +96,10 @@ async function testFrontend() {
     const start = Date.now();
     const imageTypes = await import('../src/core/types/product-images');
     const productTypes = await import('../src/core/types/product');
-    const hasTypes = imageTypes.IMAGE_CONSTANTS && productTypes.getPrimaryImage && productTypes.hasImages;
+    const hasTypes = 
+      typeof imageTypes.IMAGE_CONSTANTS !== 'undefined' && 
+      typeof productTypes.getPrimaryImage === 'function' && 
+      typeof productTypes.hasImages === 'function';
     const duration = Date.now() - start;
     if (hasTypes) {
       logTest('Frontend', 'ProductImage types exported', 'PASS', duration);
@@ -367,11 +370,12 @@ async function testDatabase() {
   // Test 3.3: Products table has images column
   try {
     const start = Date.now();
-    const product = await prisma.products.findFirst({
-      select: { id: true, images: true },
-    });
+    const result = await prisma.$queryRaw<Array<{ id: string; images: any }>>`
+      SELECT id, images FROM products LIMIT 1
+    `;
     const duration = Date.now() - start;
-    if (product !== null) {
+    if (result.length > 0) {
+      const product = result[0];
       logTest('Database', 'Products table has images column', 'PASS', duration, undefined, 
         `Images type: ${typeof product.images}, Value: ${JSON.stringify(product.images)}`);
     } else {
@@ -400,8 +404,11 @@ async function testDatabase() {
   // Test 3.5: Can update product with images
   try {
     const start = Date.now();
-    const testProduct = await prisma.products.findFirst();
-    if (testProduct) {
+    const testProductResult = await prisma.$queryRaw<Array<{ id: string; images: any }>>`
+      SELECT id, images FROM products LIMIT 1
+    `;
+    if (testProductResult.length > 0) {
+      const testProduct = testProductResult[0];
       const mockImages: ProductImage[] = [
         {
           id: 'test-img-1',
@@ -416,25 +423,26 @@ async function testDatabase() {
         },
       ];
       
-      await prisma.products.update({
-        where: { id: testProduct.id },
-        data: { images: mockImages as any },
-      });
+      await prisma.$executeRaw`
+        UPDATE products 
+        SET images = ${JSON.stringify(mockImages)}::jsonb
+        WHERE id = ${testProduct.id}::uuid
+      `;
       
-      const updated = await prisma.products.findUnique({
-        where: { id: testProduct.id },
-        select: { images: true },
-      });
+      const updatedResult = await prisma.$queryRaw<Array<{ images: any }>>`
+        SELECT images FROM products WHERE id = ${testProduct.id}::uuid
+      `;
       
       const duration = Date.now() - start;
       
       // Restore original state
-      await prisma.products.update({
-        where: { id: testProduct.id },
-        data: { images: testProduct.images },
-      });
+      await prisma.$executeRaw`
+        UPDATE products 
+        SET images = ${JSON.stringify(testProduct.images)}::jsonb
+        WHERE id = ${testProduct.id}::uuid
+      `;
       
-      if (updated && Array.isArray(updated.images) && updated.images.length > 0) {
+      if (updatedResult.length > 0 && Array.isArray(updatedResult[0].images) && updatedResult[0].images.length > 0) {
         logTest('Database', 'Can update product with images', 'PASS', duration);
       } else {
         logTest('Database', 'Can update product with images', 'FAIL', duration, 'Update failed');
@@ -477,7 +485,8 @@ async function testTypes() {
   // Test 4.1: ProductImage type structure
   try {
     const start = Date.now();
-    const mockImage: ProductImage = {
+    // Test that ProductImage type compiles correctly
+    const _mockImage: ProductImage = {
       id: 'test-id',
       url: 'https://example.com/image.webp',
       thumbnail_url: 'https://example.com/thumb.webp',
@@ -497,7 +506,7 @@ async function testTypes() {
   // Test 4.2: Product type with images
   try {
     const start = Date.now();
-    const Product = await import('../src/core/types/product');
+    await import('../src/core/types/product');
     const duration = Date.now() - start;
     logTest('Types', 'Product type exports', 'PASS', duration);
   } catch (error) {
@@ -556,7 +565,7 @@ async function testPerformance() {
   // Test 5.2: Batch image processing (5 images)
   try {
     const start = Date.now();
-    const promises = [];
+    const promises: Promise<{ original: any; medium: any; thumbnail: any }>[] = [];
     for (let i = 0; i < 5; i++) {
       const buffer = await createTestImageBuffer(1000, 1000);
       promises.push(generateImageVersions(buffer));
@@ -572,10 +581,9 @@ async function testPerformance() {
   // Test 5.3: Database query performance
   try {
     const start = Date.now();
-    await prisma.products.findMany({
-      take: 100,
-      select: { id: true, name: true, images: true },
-    });
+    await prisma.$queryRaw`
+      SELECT id, name, images FROM products LIMIT 100
+    `;
     const duration = Date.now() - start;
     if (duration < 1000) {
       logTest('Performance', 'Query 100 products with images <1s', 'PASS', duration);
