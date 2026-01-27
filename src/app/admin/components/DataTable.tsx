@@ -12,7 +12,7 @@ import { Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 
 export interface Column<T> {
   key: keyof T | string;
-  label: string;
+  label: string | React.ReactNode;
   render?: (item: T) => React.ReactNode;
   sortable?: boolean;
   width?: string;
