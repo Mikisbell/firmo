@@ -34,17 +34,15 @@ async function testRealExport() {
     
     // Verify CSV format
     console.log('\n2. Verifying CSV format...');
-    const headers = lines[0].split(',');
-    const expectedHeaders = ['sku', 'name', 'short_name', 'price', 'category', 'station', 'type', 'is_active'];
+    const headerLine = lines[0].trim();
+    const expectedHeaderLine = 'sku,name,short_name,price,category,station,type,is_active';
     
-    const headersMatch = expectedHeaders.every(h => headers.includes(h));
-    if (headersMatch) {
-      console.log('   ✅ Headers correct:', headers.join(', '));
+    if (headerLine === expectedHeaderLine) {
+      console.log('   ✅ Headers correct:', headerLine);
     } else {
-      console.log('   ⚠️  Headers check:');
-      console.log('   Expected:', expectedHeaders.join(', '));
-      console.log('   Got:', headers.join(', '));
-      console.log('   Note: Headers may be correct but in different order');
+      console.log('   ❌ Headers mismatch!');
+      console.log('   Expected:', expectedHeaderLine);
+      console.log('   Got:', headerLine);
     }
     
     // Show sample rows
@@ -111,8 +109,7 @@ async function testRealExport() {
       let roundTripSuccess = true;
       
       sampleRows.forEach((row, index) => {
-        // Compare with parsed rows, not raw CSV lines
-        // (PapaParse handles quoted fields correctly)
+        // Verify all required fields are present
         if (!row.sku || row.sku.trim() === '') {
           console.log(`   ❌ Empty SKU at row ${index + 1}`);
           roundTripSuccess = false;
@@ -121,10 +118,23 @@ async function testRealExport() {
           console.log(`   ❌ Empty name at row ${index + 1}`);
           roundTripSuccess = false;
         }
+        if (!row.price || isNaN(Number(row.price))) {
+          console.log(`   ❌ Invalid price at row ${index + 1}`);
+          roundTripSuccess = false;
+        }
+        if (!row.category) {
+          console.log(`   ❌ Empty category at row ${index + 1}`);
+          roundTripSuccess = false;
+        }
+        if (!row.station) {
+          console.log(`   ❌ Empty station at row ${index + 1}`);
+          roundTripSuccess = false;
+        }
       });
       
       if (roundTripSuccess) {
         console.log('   ✅ Round-trip successful - data integrity maintained');
+        console.log(`   ✅ Verified ${sampleRows.length} sample rows`);
       }
     } else {
       console.log('   ⚠️  Not enough rows for round-trip test');
