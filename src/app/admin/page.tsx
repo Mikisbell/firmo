@@ -6,10 +6,20 @@
  * Muestra tarjetas de navegación y métricas en tiempo real
  * 
  * Requirements: 2.1, 2.2, 2.3, 2.4
+ * 
+ * Mejoras v2.0:
+ * - Comparación con ayer
+ * - Panel de alertas
+ * - Actividad reciente
+ * - Accesos rápidos
+ * - Estado de sincronización
+ * - Link a analytics premium
+ * - Mejoras visuales
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -21,11 +31,40 @@ import {
   BarChart3,
   Warehouse,
   TrendingUp,
+  TrendingDown,
   ShoppingCart,
   Wifi,
   RefreshCw,
+  AlertTriangle,
+  Plus,
+  Activity,
+  CheckCircle,
+  Clock,
+  Zap,
 } from 'lucide-react';
-import type { DashboardStats } from '@/src/app/api/admin/dashboard/stats/route';
+
+interface Alert {
+  id: string;
+  type: 'error' | 'warning' | 'info';
+  message: string;
+  timestamp: string;
+}
+
+interface DashboardStats {
+  salesToday: number;
+  salesYesterday: number;
+  deltaPercent: number;
+  activeOrders: number;
+  terminalsOnline: number;
+  totalProducts: number;
+  alerts: Alert[];
+  recentActivity: any[];
+  syncStatus: {
+    synced: boolean;
+    pendingEvents: number;
+  };
+  lastUpdated: string;
+}
 
 const NAV_CARDS = [
   {
@@ -33,62 +72,71 @@ const NAV_CARDS = [
     label: 'Productos',
     description: 'Gestionar catálogo de productos',
     icon: Package,
-    color: 'bg-blue-500/20 text-blue-400',
+    color: 'from-blue-500/20 to-blue-600/10',
+    borderColor: 'border-blue-500/30 hover:border-blue-500/50',
   },
   {
     href: '/admin/empleados',
     label: 'Empleados',
     description: 'Gestionar personal y accesos',
     icon: Users,
-    color: 'bg-green-500/20 text-green-400',
+    color: 'from-green-500/20 to-green-600/10',
+    borderColor: 'border-green-500/30 hover:border-green-500/50',
   },
   {
     href: '/admin/terminales',
     label: 'Terminales',
     description: 'Controlar dispositivos',
     icon: Monitor,
-    color: 'bg-purple-500/20 text-purple-400',
+    color: 'from-purple-500/20 to-purple-600/10',
+    borderColor: 'border-purple-500/30 hover:border-purple-500/50',
   },
   {
     href: '/admin/promociones',
     label: 'Promociones',
     description: 'Crear y gestionar ofertas',
     icon: Gift,
-    color: 'bg-pink-500/20 text-pink-400',
+    color: 'from-pink-500/20 to-pink-600/10',
+    borderColor: 'border-pink-500/30 hover:border-pink-500/50',
   },
   {
     href: '/admin/estaciones',
     label: 'Estaciones KDS',
     description: 'Configurar cocina y bar',
     icon: ChefHat,
-    color: 'bg-orange-500/20 text-orange-400',
+    color: 'from-orange-500/20 to-orange-600/10',
+    borderColor: 'border-orange-500/30 hover:border-orange-500/50',
   },
   {
     href: '/inventario',
     label: 'Inventario',
     description: 'Control de stock y merma',
     icon: Warehouse,
-    color: 'bg-cyan-500/20 text-cyan-400',
+    color: 'from-cyan-500/20 to-cyan-600/10',
+    borderColor: 'border-cyan-500/30 hover:border-cyan-500/50',
   },
   {
     href: '/admin/configuracion',
     label: 'Configuración',
     description: 'Ajustes del negocio',
     icon: Settings,
-    color: 'bg-zinc-500/20 text-zinc-400',
+    color: 'from-zinc-500/20 to-zinc-600/10',
+    borderColor: 'border-zinc-500/30 hover:border-zinc-500/50',
   },
   {
     href: '/admin/reportes',
     label: 'Reportes',
     description: 'Ver ventas y estadísticas',
     icon: BarChart3,
-    color: 'bg-amber-500/20 text-amber-400',
+    color: 'from-amber-500/20 to-amber-600/10',
+    borderColor: 'border-amber-500/30 hover:border-amber-500/50',
   },
 ];
 
 const POLL_INTERVAL = 60000; // 60 seconds
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -118,29 +166,63 @@ export default function AdminDashboardPage() {
     return `S/ ${(cents / 100).toFixed(2)}`;
   };
 
+  const formatDelta = (delta: number) => {
+    const sign = delta >= 0 ? '+' : '';
+    return `${sign}${delta.toFixed(1)}%`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-zinc-400 mt-1">Bienvenido al panel de administración</p>
         </div>
-        <button
-          onClick={fetchStats}
-          disabled={loading}
-          className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50"
-          title="Actualizar métricas"
-        >
-          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Sync Status */}
+          {stats?.syncStatus && (
+            <div className="flex items-center gap-2 text-sm px-3 py-2 bg-zinc-900 rounded-lg border border-zinc-800">
+              <div className={`w-2 h-2 rounded-full ${stats.syncStatus.synced ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span className="text-zinc-400">
+                {stats.syncStatus.synced ? 'Sincronizado' : `${stats.syncStatus.pendingEvents} pendientes`}
+              </span>
+            </div>
+          )}
+          <button
+            onClick={fetchStats}
+            disabled={loading}
+            className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            title="Actualizar métricas"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
+
+      {/* Link to Premium Analytics */}
+      <Link 
+        href="/admin/dashboard"
+        className="block p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl border border-blue-500/30 hover:border-blue-500/50 transition-all group"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold flex items-center gap-2">
+              <Zap className="w-5 h-5 text-blue-400" />
+              Analytics Premium
+            </h3>
+            <p className="text-sm text-zinc-400 mt-1">Ver métricas detalladas en tiempo real con gráficos y comparaciones</p>
+          </div>
+          <BarChart3 className="w-8 h-8 text-blue-400 group-hover:scale-110 transition-transform" />
+        </div>
+      </Link>
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <QuickStatCard
           label="Ventas Hoy"
           value={stats ? formatCurrency(stats.salesToday) : 'S/ 0.00'}
+          delta={stats?.deltaPercent}
           icon={TrendingUp}
           color="text-green-400"
           loading={loading}
@@ -169,10 +251,80 @@ export default function AdminDashboardPage() {
       </div>
 
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" />
           {error}
         </div>
       )}
+
+      {/* Alerts Panel */}
+      {stats?.alerts && stats.alerts.length > 0 && (
+        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-amber-400" />
+            Alertas
+            <span className="ml-auto text-sm font-normal text-zinc-500">{stats.alerts.length}</span>
+          </h2>
+          <div className="space-y-2">
+            {stats.alerts.map((alert) => (
+              <motion.div
+                key={alert.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className={`p-3 rounded-lg border ${
+                  alert.type === 'error' 
+                    ? 'bg-red-500/10 border-red-500/30' 
+                    : alert.type === 'warning'
+                    ? 'bg-amber-500/10 border-amber-500/30'
+                    : 'bg-blue-500/10 border-blue-500/30'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className={`w-4 h-4 mt-0.5 ${
+                    alert.type === 'error' ? 'text-red-400' : 'text-amber-400'
+                  }`} />
+                  <p className="text-sm flex-1">{alert.message}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Accesos Rápidos</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <QuickActionButton
+            label="Nuevo Producto"
+            icon={Package}
+            color="from-blue-500/20 to-blue-600/10"
+            borderColor="border-blue-500/30 hover:border-blue-500/50"
+            onClick={() => router.push('/admin/productos/nuevo')}
+          />
+          <QuickActionButton
+            label="Nuevo Empleado"
+            icon={Users}
+            color="from-green-500/20 to-green-600/10"
+            borderColor="border-green-500/30 hover:border-green-500/50"
+            onClick={() => router.push('/admin/empleados/nuevo')}
+          />
+          <QuickActionButton
+            label="Registrar Terminal"
+            icon={Monitor}
+            color="from-purple-500/20 to-purple-600/10"
+            borderColor="border-purple-500/30 hover:border-purple-500/50"
+            onClick={() => router.push('/admin/terminales/registrar')}
+          />
+          <QuickActionButton
+            label="Ver Reportes"
+            icon={BarChart3}
+            color="from-amber-500/20 to-amber-600/10"
+            borderColor="border-amber-500/30 hover:border-amber-500/50"
+            onClick={() => router.push('/admin/reportes')}
+          />
+        </div>
+      </div>
 
       {/* Navigation cards */}
       <div>
@@ -187,9 +339,9 @@ export default function AdminDashboardPage() {
             >
               <Link
                 href={card.href}
-                className="block p-4 bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors group min-h-[120px]"
+                className={`block p-4 bg-gradient-to-br ${card.color} rounded-xl border ${card.borderColor} transition-all group min-h-[120px]`}
               >
-                <div className={`w-10 h-10 rounded-lg ${card.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                <div className={`w-10 h-10 rounded-lg bg-zinc-800/50 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all`}>
                   <card.icon className="w-5 h-5" />
                 </div>
                 <h3 className="font-medium">{card.label}</h3>
@@ -202,7 +354,8 @@ export default function AdminDashboardPage() {
 
       {/* Last updated */}
       {stats?.lastUpdated && (
-        <p className="text-xs text-zinc-500 text-right">
+        <p className="text-xs text-zinc-500 text-right flex items-center justify-end gap-2">
+          <Clock className="w-3 h-3" />
           Última actualización: {new Date(stats.lastUpdated).toLocaleTimeString()}
         </p>
       )}
@@ -213,29 +366,74 @@ export default function AdminDashboardPage() {
 function QuickStatCard({
   label,
   value,
+  delta,
   icon: Icon,
   color,
   loading,
 }: {
   label: string;
   value: string;
+  delta?: number;
   icon: React.ElementType;
   color: string;
   loading?: boolean;
 }) {
+  const isPositive = delta !== undefined && delta >= 0;
+  const TrendIcon = isPositive ? TrendingUp : TrendingDown;
+
   return (
-    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-700 transition-all"
+    >
       <div className="flex items-center gap-3">
         <div className={`w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className={`text-xl font-bold ${loading ? 'animate-pulse' : ''}`}>
             {loading ? '...' : value}
           </p>
-          <p className="text-xs text-zinc-500">{label}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-zinc-500">{label}</p>
+            {delta !== undefined && !loading && (
+              <span className={`flex items-center gap-0.5 text-xs font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                <TrendIcon className="w-3 h-3" />
+                {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
+  );
+}
+
+function QuickActionButton({
+  label,
+  icon: Icon,
+  color,
+  borderColor,
+  onClick,
+}: {
+  label: string;
+  icon: React.ElementType;
+  color: string;
+  borderColor: string;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`p-4 bg-gradient-to-br ${color} rounded-xl border ${borderColor} transition-all group min-h-[100px] flex flex-col items-center justify-center gap-2`}
+    >
+      <div className="w-10 h-10 rounded-lg bg-zinc-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+        <Icon className="w-5 h-5" />
+      </div>
+      <p className="text-sm font-medium text-center">{label}</p>
+    </motion.button>
   );
 }

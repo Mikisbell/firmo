@@ -19,10 +19,33 @@ const TENANT_ID = getTenantId();
 
 export interface DashboardStats {
   salesToday: number;
+  salesYesterday: number;
+  deltaPercent: number;
   activeOrders: number;
   terminalsOnline: number;
   totalProducts: number;
+  alerts: Alert[];
+  recentActivity: Activity[];
+  syncStatus: {
+    synced: boolean;
+    pendingEvents: number;
+  };
   lastUpdated: string;
+}
+
+export interface Alert {
+  id: string;
+  type: 'error' | 'warning' | 'info';
+  message: string;
+  timestamp: string;
+}
+
+export interface Activity {
+  id: string;
+  type: 'order' | 'product' | 'employee' | 'terminal';
+  message: string;
+  timestamp: string;
+  icon: string;
 }
 
 async function handleGET(request: NextRequest) {
@@ -62,15 +85,27 @@ async function handleGET(request: NextRequest) {
     }
     
     const businessDate = getBusinessDate(new Date());
+    const yesterday = new Date(businessDate);
+    yesterday.setDate(yesterday.getDate() - 1);
     
     // Get all stats in parallel
     const dbStart = Date.now();
-    const [salesResult, activeOrders, terminalsOnline, totalProducts] = await Promise.all([
+    const [salesResult, salesYesterday, activeOrders, terminalsOnline, terminalsOffline, totalProducts, outOfStockProducts, pendingEvents] = await Promise.all([
       // Today's sales
       prisma.orders.aggregate({
         where: {
           tenant_id: TENANT_ID,
           business_date: new Date(businessDate),
+          order_status: 'CONFIRMED',
+        },
+        _sum: { total_cents: true },
+      }).catch(() => ({ _sum: { total_cents: 0 } })),
+      
+      // Yesterday's sales
+      prisma.orders.aggregate({
+        where: {
+          tenant_id: TENANT_ID,
+          business_date: yesterday,
           order_status: 'CONFIRMED',
         },
         _sum: { total_cents: true },
@@ -93,6 +128,17 @@ async function handleGET(request: NextRequest) {
         },
       }).catch(() => 0),
       
+      // Terminals offline (last seen > 2 hours ago)
+      prisma.terminals.findMany({
+        where: {
+          tenant_id: TENANT_ID,
+          is_allowed: true,
+          last_seen_at: { lt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+        },
+        select: { terminal_id: true, last_seen_at: true },
+        take: 5,
+      }).catch(() => []),
+      
       // Total active products
       prisma.products.count({
         where: {
@@ -100,14 +146,84 @@ async function handleGET(request: NextRequest) {
           is_active: true,
         },
       }).catch(() => 0),
+      
+      // Out of stock products
+      prisma.products.findMany({
+        where: {
+          tenant_id: TENANT_ID,
+          is_active: false,
+        },
+        select: { name: true },
+        take: 3,
+      }).catch(() => []),
+      
+      // Pending events (from outbox)
+      prisma.event_outbox.count({
+        where: {
+          tenant_id: TENANT_ID,
+          published_at: null,
+        },
+      }).catch(() => 0),
     ]);
     logPerformance('db_query_dashboard_stats', Date.now() - dbStart);
     
+    // Calculate delta
+    const salesTodayValue = salesResult._sum?.total_cents || 0;
+    const salesYesterdayValue = salesYesterday._sum?.total_cents || 0;
+    const deltaPercent = salesYesterdayValue > 0 
+      ? ((salesTodayValue - salesYesterdayValue) / salesYesterdayValue) * 100 
+      : 0;
+    
+    // Build alerts
+    const alerts: Alert[] = [];
+    
+    // Terminal offline alerts
+    terminalsOffline.forEach(terminal => {
+      const hoursOffline = Math.floor((Date.now() - new Date(terminal.last_seen_at).getTime()) / (1000 * 60 * 60));
+      alerts.push({
+        id: `terminal-${terminal.terminal_id}`,
+        type: 'warning',
+        message: `Terminal ${terminal.terminal_id} offline hace ${hoursOffline} horas`,
+        timestamp: new Date().toISOString(),
+      });
+    });
+    
+    // Out of stock alerts
+    outOfStockProducts.forEach(product => {
+      alerts.push({
+        id: `stock-${product.name}`,
+        type: 'warning',
+        message: `${product.name} agotado`,
+        timestamp: new Date().toISOString(),
+      });
+    });
+    
+    // Sync status alert
+    if (pendingEvents > 10) {
+      alerts.push({
+        id: 'sync-pending',
+        type: 'warning',
+        message: `${pendingEvents} eventos pendientes de sincronizar`,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    
+    // Recent activity (mock for now - would come from audit log)
+    const recentActivity: Activity[] = [];
+    
     const stats: DashboardStats = {
-      salesToday: salesResult._sum?.total_cents || 0,
+      salesToday: salesTodayValue,
+      salesYesterday: salesYesterdayValue,
+      deltaPercent: Math.round(deltaPercent * 10) / 10,
       activeOrders,
       terminalsOnline,
       totalProducts,
+      alerts: alerts.slice(0, 5), // Max 5 alerts
+      recentActivity,
+      syncStatus: {
+        synced: pendingEvents === 0,
+        pendingEvents,
+      },
       lastUpdated: new Date().toISOString(),
     };
 
