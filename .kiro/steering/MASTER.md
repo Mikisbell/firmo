@@ -236,6 +236,30 @@ docs/
 
 ## 🐛 FIXES RECIENTES
 
+### 26 Enero 2026 - Analytics Dashboard Error Handling ✅
+**Problema:** Dashboard de analytics fallaba completamente cuando APIs no tenían datos  
+**Causa:** `Promise.all` bloqueaba todo si 1 API fallaba, sin empty states ni mensajes útiles  
+**Detalles:**
+- Dashboard hacía 4 llamadas API en paralelo (realtime, comparison, top-products, hourly)
+- Si cualquier API fallaba → TODO el dashboard fallaba
+- Base de datos vacía = dashboard completamente roto
+- Error genérico sin contexto ni solución
+**Solución:**
+- Cambiado `Promise.all` a `Promise.allSettled` para fallos independientes
+- Agregados defaults inteligentes para todas las métricas (0, arrays vacíos)
+- Implementados 3 empty states con iconos y mensajes útiles
+- Mejorado mensaje de error: ámbar (warning) con tip accionable
+- Dashboard ahora siempre renderiza, incluso con DB vacía
+**Características:**
+- ✅ Graceful degradation (cada API independiente)
+- ✅ Empty states informativos con iconos grandes
+- ✅ Mensaje contextual: "Ejecuta el seed script"
+- ✅ Dashboard resiliente y user-friendly
+**Tests:** TypeScript diagnostics pasando ✅  
+**Archivos:** `src/app/admin/dashboard/page.tsx`, `ANALYTICS_DASHBOARD_ERROR_HANDLING.md`  
+**Impacto:** 🟡 MEDIO - Mejora UX significativamente, especialmente en desarrollo  
+**Status:** ✅ SOLUCIONADO - Dashboard funciona con o sin datos
+
 ### 26 Enero 2026 - Vercel Build Error: NotificationBell ✅
 **Problema:** Build de Vercel fallaba con "Module not found: Can't resolve './NotificationBell'"  
 **Causa:** Commit anterior eliminó `NotificationBell.tsx` pero `AdminHeader.tsx` todavía lo importaba  
