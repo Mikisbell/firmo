@@ -126,6 +126,7 @@ export default function AnalyticsDashboardPage() {
         },
         business_date: selectedDate,
         shift_id: null,
+        last_updated: new Date().toISOString(),
       });
       setComparison(comparisonData);
       setTopProducts(topData?.products || []);
@@ -164,6 +165,7 @@ export default function AnalyticsDashboardPage() {
         },
         business_date: selectedDate,
         shift_id: null,
+        last_updated: new Date().toISOString(),
       });
       setComparison(null);
       setTopProducts([]);
