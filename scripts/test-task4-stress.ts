@@ -357,7 +357,7 @@ async function testDatabase() {
   // Test 3.2: Products table exists
   try {
     const start = Date.now();
-    const count = await prisma.product.count();
+    const count = await prisma.products.count();
     const duration = Date.now() - start;
     logTest('Database', 'Products table exists', 'PASS', duration, undefined, `${count} products found`);
   } catch (error) {
@@ -367,7 +367,7 @@ async function testDatabase() {
   // Test 3.3: Products table has images column
   try {
     const start = Date.now();
-    const product = await prisma.product.findFirst({
+    const product = await prisma.products.findFirst({
       select: { id: true, images: true },
     });
     const duration = Date.now() - start;
@@ -400,7 +400,7 @@ async function testDatabase() {
   // Test 3.5: Can update product with images
   try {
     const start = Date.now();
-    const testProduct = await prisma.product.findFirst();
+    const testProduct = await prisma.products.findFirst();
     if (testProduct) {
       const mockImages: ProductImage[] = [
         {
@@ -416,12 +416,12 @@ async function testDatabase() {
         },
       ];
       
-      await prisma.product.update({
+      await prisma.products.update({
         where: { id: testProduct.id },
         data: { images: mockImages as any },
       });
       
-      const updated = await prisma.product.findUnique({
+      const updated = await prisma.products.findUnique({
         where: { id: testProduct.id },
         select: { images: true },
       });
@@ -429,7 +429,7 @@ async function testDatabase() {
       const duration = Date.now() - start;
       
       // Restore original state
-      await prisma.product.update({
+      await prisma.products.update({
         where: { id: testProduct.id },
         data: { images: testProduct.images },
       });
@@ -509,7 +509,7 @@ async function testTypes() {
     const start = Date.now();
     const schemas = await import('../src/core/admin/schemas/product-image.schema');
     const validImage = {
-      id: 'test-id',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       url: 'https://example.com/image.webp',
       thumbnail_url: 'https://example.com/thumb.webp',
       medium_url: 'https://example.com/medium.webp',
@@ -517,7 +517,7 @@ async function testTypes() {
       format: 'webp',
       order: 0,
       uploaded_at: new Date().toISOString(),
-      uploaded_by: 'user-id',
+      uploaded_by: '550e8400-e29b-41d4-a716-446655440001',
     };
     const result = schemas.ProductImageSchema.safeParse(validImage);
     const duration = Date.now() - start;
@@ -572,7 +572,7 @@ async function testPerformance() {
   // Test 5.3: Database query performance
   try {
     const start = Date.now();
-    await prisma.product.findMany({
+    await prisma.products.findMany({
       take: 100,
       select: { id: true, name: true, images: true },
     });
