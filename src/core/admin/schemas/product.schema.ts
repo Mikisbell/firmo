@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import { ProductImagesArraySchema } from './product-image.schema';
 
 /**
  * Product Category Enum
@@ -70,6 +71,7 @@ export const CreateProductSchema = z.object({
   station: ProductStationSchema,
   type: ProductTypeSchema.default('SIMPLE').optional(),
   is_active: z.boolean().default(true).optional(),
+  images: ProductImagesArraySchema.optional().default([]),
 });
 
 export type CreateProductDTO = z.infer<typeof CreateProductSchema>;

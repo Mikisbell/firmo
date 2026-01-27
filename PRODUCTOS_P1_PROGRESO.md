@@ -7,8 +7,8 @@
 
 ## 📊 Estado General
 
-**Progreso:** 🟢 10% (1/10 tareas completadas)  
-**Tiempo Estimado Restante:** ~11 días  
+**Progreso:** 🟢 20% (2/10 tareas completadas)  
+**Tiempo Estimado Restante:** ~10.5 días  
 **Bloqueadores:** Ninguno
 
 ---
@@ -51,6 +51,75 @@ images: [
 
 ---
 
+### 2. TypeScript Types for Images ✅
+
+**Completado:** 27 Enero 2026
+
+**Cambios Realizados:**
+- ✅ Creado `src/core/types/product-images.ts` con interfaces completas
+- ✅ Creado `src/core/admin/schemas/product-image.schema.ts` con validación Zod
+- ✅ Actualizado `src/core/admin/schemas/product.schema.ts` para incluir images
+- ✅ Creado `src/core/types/product.ts` con utilidades y helpers
+- ✅ Agregados tests unitarios (23 tests pasando)
+
+**Archivos Creados:**
+- `src/core/types/product-images.ts` (nuevo)
+- `src/core/admin/schemas/product-image.schema.ts` (nuevo)
+- `src/core/types/product.ts` (nuevo)
+- `src/core/types/__tests__/product-images.test.ts` (nuevo)
+- `src/core/types/__tests__/product.test.ts` (nuevo)
+
+**Archivos Modificados:**
+- `src/core/admin/schemas/product.schema.ts` (agregado campo images)
+
+**Tipos Principales:**
+```typescript
+// ProductImage - Imagen individual
+interface ProductImage {
+  id: string;
+  url: string;
+  thumbnail_url: string;
+  medium_url: string;
+  size_bytes: number;
+  format: 'webp';
+  order: number;
+  uploaded_at: string;
+  uploaded_by: string;
+}
+
+// Product - Producto con imágenes
+interface Product {
+  // ... campos existentes
+  images: ProductImage[];
+  price_cents: Centavos; // Branded type
+}
+
+// Helpers disponibles
+getPrimaryImage(product)
+getPrimaryImageThumbnail(product)
+hasImages(product)
+canAddMoreImages(product)
+formatProductPrice(price_cents)
+withMetadata(product)
+```
+
+**Validación Zod:**
+- ProductImageSchema - Valida estructura de imagen
+- ProductImagesArraySchema - Valida array completo (max 5, orders únicos)
+- ImageUploadRequestSchema - Valida requests de upload
+- ImageDeleteRequestSchema - Valida requests de delete
+- ImageReorderRequestSchema - Valida reordenamiento
+
+**Constantes:**
+- MAX_FILE_SIZE: 5MB
+- MAX_IMAGES_PER_PRODUCT: 5
+- ACCEPTED_MIME_TYPES: JPG, PNG, WEBP
+- SIZES: Original (1920x1920), Medium (800x800), Thumbnail (200x200)
+
+**Tests:** 23 tests unitarios pasando ✅
+
+---
+
 ## 🔄 Tareas En Progreso
 
 Ninguna actualmente.
@@ -61,7 +130,7 @@ Ninguna actualmente.
 
 ### Fase 1: Image Management (5 días)
 
-- [ ] 2. TypeScript Types for Images
+- [x] 2. TypeScript Types for Images ✅
   - Crear interfaces ProductImage, ImageUploadResponse
   - Actualizar Product type con campo images
   - Crear validation schemas con Zod
@@ -123,9 +192,9 @@ Ninguna actualmente.
 
 ## 🎯 Próximos Pasos Inmediatos
 
-1. **Crear tipos TypeScript** para imágenes
-2. **Implementar componente ImageUpload** con drag & drop
-3. **Configurar Supabase Storage** para almacenamiento de imágenes
+1. **Implementar componente ImageUpload** con drag & drop
+2. **Configurar Supabase Storage** para almacenamiento de imágenes
+3. **Crear Image Storage Service** con Sharp para optimización
 
 ---
 
@@ -189,5 +258,5 @@ Ninguna actualmente.
 
 ---
 
-**Última Actualización:** 27 Enero 2026 16:45  
-**Próxima Revisión:** Después de completar Fase 1
+**Última Actualización:** 27 Enero 2026 18:20  
+**Próxima Revisión:** Después de completar Task 3 (ImageUpload Component)
