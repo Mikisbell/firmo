@@ -2,16 +2,19 @@
 
 /**
  * Products Management Page
- * Lista de productos con búsqueda, filtros y CRUD
+ * Lista de productos con búsqueda, filtros, CRUD y operaciones masivas
  * 
- * Requirements: 3.1, 3.2
+ * Requirements: 2.1, 2.2, 2.3, 3.1, 3.2
+ * Properties: 10, 11
  */
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Check, X, Package } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { ProductImage } from '@/src/core/types/product-images';
+import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 
 interface Product {
   id: string;
@@ -57,11 +60,55 @@ const filters: FilterConfig[] = [
 
 export default function ProductsPage() {
   const router = useRouter();
-  const { data: products, loading, error } = useAdminData<Product>('/api/admin/products');
+  const { data: products, loading, error, refetch } = useAdminData<Product>('/api/admin/products');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Clear selection when products change
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [products]);
 
   const formatPrice = (cents: number) => `S/ ${(cents / 100).toFixed(2)}`;
 
+  const toggleSelection = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === products?.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(products?.map((p) => p.id) || []);
+    }
+  };
+
   const columns: Column<Product>[] = [
+    {
+      key: 'checkbox',
+      label: (
+        <input
+          type="checkbox"
+          checked={selectedIds.length === products?.length && products.length > 0}
+          onChange={toggleSelectAll}
+          className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 checked:bg-amber-500 checked:border-amber-500"
+        />
+      ),
+      width: '50px',
+      render: (p) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.includes(p.id)}
+          onChange={(e) => {
+            e.stopPropagation();
+            toggleSelection(p.id);
+          }}
+          onClick={(e) => e.stopPropagation()}
+          className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 checked:bg-amber-500 checked:border-amber-500"
+        />
+      ),
+    },
     {
       key: 'image',
       label: '',
@@ -165,6 +212,19 @@ export default function ProductsPage() {
         emptyMessage="No hay productos"
         onRowClick={(p) => router.push(`/admin/productos/${p.id}`)}
       />
+
+      {/* Bulk Actions Toolbar */}
+      <BulkActionsToolbar
+        selectedIds={selectedIds}
+        onClearSelection={() => setSelectedIds([])}
+        onActionComplete={() => {
+          refetch();
+          setSelectedIds([]);
+        }}
+      />
+
+      {/* Bottom padding for fixed toolbar */}
+      {selectedIds.length > 0 && <div className="h-20" />}
     </div>
   );
 }
