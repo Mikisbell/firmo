@@ -33,6 +33,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import type { RealtimeMetrics, StationMetrics, TopProduct, ComparisonMetrics, HourlySales } from '@/src/core/analytics/types';
+import { unsafeCentavos } from '@/src/core/types/shared';
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
@@ -107,9 +108,9 @@ export default function AnalyticsDashboardPage() {
 
       // Set data with defaults for missing sections
       setMetrics(metricsData || {
-        total_sales_cents: 0,
+        total_sales_cents: unsafeCentavos(0),
         orders_count: 0,
-        avg_ticket_cents: 0,
+        avg_ticket_cents: unsafeCentavos(0),
         tables_occupied: 0,
         tables_free: 0,
         table_turnover: 0,
@@ -139,9 +140,9 @@ export default function AnalyticsDashboardPage() {
       console.error('Analytics fetch error:', err);
       // Set empty defaults so page still renders
       setMetrics({
-        total_sales_cents: 0,
+        total_sales_cents: unsafeCentavos(0),
         orders_count: 0,
-        avg_ticket_cents: 0,
+        avg_ticket_cents: unsafeCentavos(0),
         tables_occupied: 0,
         tables_free: 0,
         table_turnover: 0,
