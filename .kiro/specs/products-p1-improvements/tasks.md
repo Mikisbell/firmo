@@ -152,7 +152,7 @@ This implementation plan breaks down the Products P1 Improvements feature into d
   - Write API integration tests
   - **Validates:** Requirements 3.2, 3.4, 3.9, 9.3, 9.4
 
-- [ ] 12. CSV UI Components
+- [x] 12. CSV UI Components
   - Create `src/app/admin/productos/components/CSVImportExport.tsx`
   - Add Export button (downloads CSV immediately)
   - Add Import button (opens file picker)
@@ -170,7 +170,7 @@ This implementation plan breaks down the Products P1 Improvements feature into d
 
 ### Phase 4: Testing & Polish (2 days)
 
-- [ ] 13. Property-Based Tests Implementation
+- [x] 13. Property-Based Tests Implementation
   - Implement all 48 correctness properties from design document
   - Configure fast-check with minimum 100 iterations per property
   - Tag each test with format: `Feature: products-p1-improvements, Property {number}: {property_text}`
@@ -217,13 +217,13 @@ This implementation plan breaks down the Products P1 Improvements feature into d
 
 ## Progress Tracking
 
-**Completed:** 9/16 tasks (56.25%)  
+**Completed:** 12/16 tasks (75%)  
 **In Progress:** 0 tasks  
-**Remaining:** 7 tasks
+**Remaining:** 4 tasks
 
-**Phase 1 (Image Management):** 6/6 tasks complete ✅  
+**Phase 1 (Image Management):** 5/6 tasks complete (Task 5 pending)  
 **Phase 2 (Bulk Operations):** 3/3 tasks complete ✅  
-**Phase 3 (CSV Import/Export):** 0/3 tasks  
+**Phase 3 (CSV Import/Export):** 3/3 tasks complete ✅  
 **Phase 4 (Testing & Polish):** 0/4 tasks
 
 **Estimated Time:**
