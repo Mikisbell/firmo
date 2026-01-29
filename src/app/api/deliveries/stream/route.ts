@@ -1,0 +1,283 @@
+/**
+ * SSE API Endpoint
+ * 
+ * Server-Sent Events endpoint for real-time delivery updates.
+ * Supports initial state synchronization and Last-Event-ID for reconnection.
+ * 
+ * Requirements: 1.2, 1.6
+ */
+
+import { NextRequest } from 'next/server';
+import { sseConnectionManager } from '@/src/core/delivery/sse-connection-manager';
+import { sseBroadcaster } from '@/src/core/delivery/sse-broadcaster';
+import { logger } from '@/src/core/observability/logger';
+import { v4 as uuidv4 } from 'uuid';
+import prisma from '@/src/core/db/prisma';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
+ * GET /api/deliveries/stream
+ * 
+ * Establishes an SSE connection for real-time delivery updates.
+ * 
+ * Query Parameters:
+ * - restaurantId: Optional filter for specific restaurant
+ * - driverId: Optional filter for specific driver
+ * 
+ * Headers:
+ * - Last-Event-ID: Optional, for reconnection with missed events
+ */
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const restaurantId = searchParams.get('restaurantId') || undefined;
+  const driverId = searchParams.get('driverId') || undefined;
+  const lastEventId = request.headers.get('Last-Event-ID') || undefined;
+  
+  const clientId = uuidv4();
+  
+  logger.info({
+    clientId,
+    restaurantId,
+    driverId,
+    lastEventId
+  }, 'SSE connection request');
+  
+  // Create a ReadableStream for SSE
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        // Add client to connection manager
+        await sseConnectionManager.addClient(
+          clientId,
+          controller,
+          restaurantId,
+          driverId
+        );
+        
+        // Send initial connection message
+        const encoder = new TextEncoder();
+        const connectionMessage = encoder.encode(
+          `data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`
+        );
+        controller.enqueue(connectionMessage);
+        
+        // Send initial state (all active deliveries)
+        await sendInitialState(controller, restaurantId, driverId);
+        
+        // If Last-Event-ID is provided, send missed events
+        if (lastEventId) {
+          await sendMissedEvents(controller, lastEventId, restaurantId, driverId);
+        }
+        
+        logger.info({
+          clientId,
+          restaurantId,
+          driverId
+        }, 'SSE connection established');
+      } catch (error) {
+        logger.error({
+          clientId,
+          error
+        }, 'Error establishing SSE connection');
+        
+        try {
+          controller.error(error);
+        } catch {
+          // Controller may already be closed
+        }
+      }
+    },
+    
+    async cancel() {
+      // Client disconnected
+      await sseConnectionManager.removeClient(clientId);
+      
+      logger.info({
+        clientId,
+        restaurantId,
+        driverId
+      }, 'SSE connection closed by client');
+    }
+  });
+  
+  // Return SSE response with appropriate headers
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no', // Disable nginx buffering
+    },
+  });
+}
+
+/**
+ * Send initial state of all active deliveries to a new client
+ * 
+ * @param controller - ReadableStream controller
+ * @param restaurantId - Optional restaurant filter
+ * @param driverId - Optional driver filter
+ */
+async function sendInitialState(
+  controller: ReadableStreamDefaultController,
+  restaurantId?: string,
+  driverId?: string
+): Promise<void> {
+  try {
+    // Query active deliveries from database
+    const where: any = {
+      status: {
+        in: ['PENDING', 'ASSIGNED', 'DISPATCHED']
+      }
+    };
+    
+    if (restaurantId) {
+      where.tenant_id = restaurantId;
+    }
+    
+    if (driverId) {
+      where.driver_id = driverId;
+    }
+    
+    const activeDeliveries = await prisma.delivery_orders.findMany({
+      where,
+      include: {
+        driver: {
+          select: {
+            id: true,
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    });
+    
+    // Send initial state as a single event
+    const encoder = new TextEncoder();
+    const initialStateMessage = encoder.encode(
+      `event: initial_state\n` +
+      `data: ${JSON.stringify({
+        deliveries: activeDeliveries,
+        timestamp: new Date().toISOString(),
+        count: activeDeliveries.length
+      })}\n\n`
+    );
+    
+    controller.enqueue(initialStateMessage);
+    
+    logger.debug({
+      deliveryCount: activeDeliveries.length,
+      restaurantId,
+      driverId
+    }, 'Sent initial state to SSE client');
+  } catch (error) {
+    logger.error({
+      error,
+      restaurantId,
+      driverId
+    }, 'Error sending initial state');
+  }
+}
+
+/**
+ * Send missed events to a reconnecting client
+ * 
+ * This is a simplified implementation. In production, you would:
+ * 1. Store recent events in Redis with TTL
+ * 2. Query events after lastEventId
+ * 3. Send them in order
+ * 
+ * @param controller - ReadableStream controller
+ * @param lastEventId - Last event ID received by client
+ * @param restaurantId - Optional restaurant filter
+ * @param driverId - Optional driver filter
+ */
+async function sendMissedEvents(
+  controller: ReadableStreamDefaultController,
+  lastEventId: string,
+  restaurantId?: string,
+  driverId?: string
+): Promise<void> {
+  try {
+    // Parse lastEventId to get timestamp
+    // Format: timestamp-counter-uuid
+    const parts = lastEventId.split('-');
+    if (parts.length < 1) {
+      logger.warn({ lastEventId }, 'Invalid Last-Event-ID format');
+      return;
+    }
+    
+    const lastTimestamp = parseInt(parts[0], 10);
+    if (isNaN(lastTimestamp)) {
+      logger.warn({ lastEventId }, 'Invalid timestamp in Last-Event-ID');
+      return;
+    }
+    
+    const lastDate = new Date(lastTimestamp);
+    
+    // Query recent delivery updates from database
+    // In production, this would query a dedicated events table or Redis
+    const where: any = {
+      updated_at: {
+        gt: lastDate
+      }
+    };
+    
+    if (restaurantId) {
+      where.tenant_id = restaurantId;
+    }
+    
+    if (driverId) {
+      where.driver_id = driverId;
+    }
+    
+    const recentUpdates = await prisma.delivery_orders.findMany({
+      where,
+      include: {
+        driver: {
+          select: {
+            id: true,
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        updated_at: 'asc'
+      },
+      take: 50 // Limit to prevent overwhelming the client
+    });
+    
+    // Send each update as a separate event
+    const encoder = new TextEncoder();
+    for (const delivery of recentUpdates) {
+      const eventMessage = encoder.encode(
+        `event: order_updated\n` +
+        `data: ${JSON.stringify({
+          delivery,
+          timestamp: delivery.updated_at.toISOString()
+        })}\n\n`
+      );
+      controller.enqueue(eventMessage);
+    }
+    
+    logger.info({
+      lastEventId,
+      missedEvents: recentUpdates.length,
+      restaurantId,
+      driverId
+    }, 'Sent missed events to reconnecting SSE client');
+  } catch (error) {
+    logger.error({
+      error,
+      lastEventId,
+      restaurantId,
+      driverId
+    }, 'Error sending missed events');
+  }
+}

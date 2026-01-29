@@ -268,6 +268,86 @@ export const deliveryRedisService = {
   },
 
   /**
+   * Add member to a set
+   */
+  async sadd(key: string, member: string): Promise<void> {
+    try {
+      if (deliveryRedis) {
+        await deliveryRedis.sadd(key, member);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        const set = existing ? new Set(JSON.parse(existing.value)) : new Set();
+        set.add(member);
+        inMemoryStore.set(key, {
+          value: JSON.stringify(Array.from(set)),
+          expiresAt: Date.now() + 3600000, // 1 hour default
+        });
+      }
+    } catch (error) {
+      pinoLogger.error({ error, key, member }, 'Failed to add to Redis set');
+      throw error;
+    }
+  },
+
+  /**
+   * Remove member from a set
+   */
+  async srem(key: string, member: string): Promise<void> {
+    try {
+      if (deliveryRedis) {
+        await deliveryRedis.srem(key, member);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        if (!existing) return;
+        
+        const set = new Set(JSON.parse(existing.value));
+        set.delete(member);
+        inMemoryStore.set(key, {
+          value: JSON.stringify(Array.from(set)),
+          expiresAt: existing.expiresAt,
+        });
+      }
+    } catch (error) {
+      pinoLogger.error({ error, key, member }, 'Failed to remove from Redis set');
+      throw error;
+    }
+  },
+
+  /**
+   * Set expiration on a key
+   */
+  async expire(key: string, seconds: number): Promise<void> {
+    try {
+      if (deliveryRedis) {
+        await deliveryRedis.expire(key, seconds);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        if (existing) {
+          existing.expiresAt = Date.now() + seconds * 1000;
+        }
+      }
+    } catch (error) {
+      pinoLogger.error({ error, key, seconds }, 'Failed to set Redis expiration');
+      throw error;
+    }
+  },
+
+  /**
+   * Unsubscribe from a channel
+   */
+  async unsubscribe(channel: string): Promise<void> {
+    try {
+      if (deliveryRedis) {
+        await deliveryRedis.unsubscribe(channel);
+      }
+      // In-memory mode doesn't support pub/sub
+    } catch (error) {
+      pinoLogger.error({ error, channel }, 'Failed to unsubscribe from Redis channel');
+      throw error;
+    }
+  },
+
+  /**
    * Check if Redis is available
    */
   isAvailable(): boolean {

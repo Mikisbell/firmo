@@ -123,7 +123,7 @@ CREATE UNIQUE INDEX "delivery_metrics_tenant_id_date_hour_key" ON "delivery_metr
 CREATE INDEX "delivery_metrics_tenant_id_date_idx" ON "delivery_metrics"("tenant_id", "date");
 
 -- AddForeignKey
-ALTER TABLE "location_history" ADD CONSTRAINT "location_history_driver_id_fkey" FOREIGN KEY ("driver_id") REFERENCES "drivers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "location_history" ADD CONSTRAINT "location_history_driver_id_fkey" FOREIGN KEY ("driver_id") REFERENCES "employees"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "delivery_orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -132,7 +132,7 @@ ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_order_id_fkey"
 ALTER TABLE "assignment_logs" ADD CONSTRAINT "assignment_logs_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "delivery_orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "assignment_logs" ADD CONSTRAINT "assignment_logs_driver_id_fkey" FOREIGN KEY ("driver_id") REFERENCES "drivers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "assignment_logs" ADD CONSTRAINT "assignment_logs_driver_id_fkey" FOREIGN KEY ("driver_id") REFERENCES "employees"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "eta_predictions" ADD CONSTRAINT "eta_predictions_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "delivery_orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

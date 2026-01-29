@@ -235,6 +235,9 @@ model delivery_orders {
   delivery_addresses    delivery_addresses? @relation(fields: [address_id], references: [id])
   drivers               drivers?            @relation(fields: [driver_id], references: [id])
   orders                orders              @relation(fields: [order_id], references: [id])
+  whatsapp_messages     whatsapp_messages[]
+  assignment_logs       assignment_logs[]
+  eta_predictions       eta_predictions[]
 
   @@index([tenant_id, driver_id, status])
   @@index([tenant_id, status])
@@ -262,12 +265,14 @@ model delivery_zones {
 }
 
 model drivers {
-  id              String            @id @db.Uuid
-  tenant_id       String            @db.Uuid
-  name            String
-  phone           String?
-  is_active       Boolean           @default(true)
-  delivery_orders delivery_orders[]
+  id               String             @id @db.Uuid
+  tenant_id        String             @db.Uuid
+  name             String
+  phone            String?
+  is_active        Boolean            @default(true)
+  delivery_orders  delivery_orders[]
+  location_history location_history[]
+  assignment_logs  assignment_logs[]
 
   @@index([tenant_id, is_active])
 }
@@ -1522,18 +1527,18 @@ model location_history {
 }
 
 model whatsapp_messages {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id        String            @db.Uuid
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id        String          @db.Uuid
   phone_number    String
   template_name   String
   message_body    String
-  status          String            @default("QUEUED")
+  status          String          @default("QUEUED")
   twilio_sid      String?
   error_message   String?
-  sent_at         DateTime?         @db.Timestamptz(6)
-  delivered_at    DateTime?         @db.Timestamptz(6)
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  delivery_orders delivery_orders   @relation(fields: [order_id], references: [id])
+  sent_at         DateTime?       @db.Timestamptz(6)
+  delivered_at    DateTime?       @db.Timestamptz(6)
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  delivery_orders delivery_orders @relation(fields: [order_id], references: [id])
 
   @@index([order_id])
   @@index([phone_number, created_at(sort: Desc)])
@@ -1551,9 +1556,9 @@ model assignment_weights {
 }
 
 model assignment_logs {
-  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id           String            @db.Uuid
-  driver_id          String            @db.Uuid
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id           String          @db.Uuid
+  driver_id          String          @db.Uuid
   assignment_score   Float
   distance_score     Float
   workload_score     Float
@@ -1561,17 +1566,17 @@ model assignment_logs {
   distance_km        Float
   current_orders     Int
   performance_rating Float
-  created_at         DateTime          @default(now()) @db.Timestamptz(6)
-  delivery_orders    delivery_orders   @relation(fields: [order_id], references: [id])
-  drivers            drivers           @relation(fields: [driver_id], references: [id])
+  created_at         DateTime        @default(now()) @db.Timestamptz(6)
+  delivery_orders    delivery_orders @relation(fields: [order_id], references: [id])
+  drivers            drivers         @relation(fields: [driver_id], references: [id])
 
   @@index([order_id])
   @@index([driver_id, created_at(sort: Desc)])
 }
 
 model eta_predictions {
-  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id            String            @db.Uuid
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id            String          @db.Uuid
   predicted_minutes   Int
   confidence_interval String
   confidence          Float
@@ -1580,8 +1585,8 @@ model eta_predictions {
   weather_adjustment  Float
   driver_adjustment   Float
   actual_minutes      Int?
-  created_at          DateTime          @default(now()) @db.Timestamptz(6)
-  delivery_orders     delivery_orders   @relation(fields: [order_id], references: [id])
+  created_at          DateTime        @default(now()) @db.Timestamptz(6)
+  delivery_orders     delivery_orders @relation(fields: [order_id], references: [id])
 
   @@index([order_id, created_at(sort: Desc)])
 }
