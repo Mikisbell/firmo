@@ -1,197 +1,375 @@
-# ✅ Productos P1 - Stress Tests Fixed
+# 🔧 PRODUCTOS P1 - FIXES PARA STRESS TESTS
 
-**Fecha:** 27 Enero 2026  
-**Status:** ✅ **COMPLETADO**  
-**Resultado Final:** 27/27 tests passing (100%) ⭐
-
----
-
-## 🎯 Problema Inicial
-
-El usuario reportó que algunos tests de estrés estaban fallando:
-
-```
-⚠️ Database: 50% passing (3/6) - Script context issues, not production code
-⚠️ Types: 66.7% passing (2/3) - UUID validation working correctly
-⚠️ Performance: 66.7% passing (2/3) - Script context issue
-```
-
-**Causa Raíz:** El Prisma client no tenía los tipos actualizados para el campo `images` porque `npx prisma generate` fallaba con error EPERM (permisos de Windows).
+**Fecha:** 29 Enero 2026  
+**Problema:** Stress tests revelaron 2 problemas críticos  
+**Status:** SOLUCIONES DOCUMENTADAS
 
 ---
 
-## 🔧 Fixes Aplicados
+## 🎯 PROBLEMAS IDENTIFICADOS
 
-### Fix 1: Database Tests - Raw Queries
-**Problema:** Prisma typed queries fallaban porque el campo `images` no existía en los tipos  
-**Solución:** Reemplazar typed queries con `$queryRaw` y `$executeRaw`
+### 1. CSV Import Lento (5000 rows = 8 minutos)
+### 2. Database Connection Pool Agotado (50 queries concurrentes)
 
-**Cambios:**
+---
+
+## 🔧 FIX 1: OPTIMIZAR CSV IMPORT
+
+### Problema Actual
+
 ```typescript
-// ANTES (fallaba)
-const product = await prisma.products.findFirst({
-  select: { id: true, images: true },
+// ❌ LENTO: 3 queries por producto
+for (const product of batch) {
+  // Query 1: Insert product
+  await prisma.products.create({ data: product });
+  
+  // Query 2: Insert catalog version
+  await prisma.catalog_versions.create({ ... });
+  
+  // Query 3: Insert audit log
+  await prisma.audit_log.create({ ... });
+}
+
+// Resultado: 5000 productos × 3 queries = 15,000 queries
+// Performance: 10 ops/sec (477 segundos)
+```
+
+### Solución: Bulk Inserts
+
+```typescript
+// ✅ RÁPIDO: Bulk inserts
+async function importCSVBatch(batch: ProductInput[]) {
+  return await prisma.$transaction(async (tx) => {
+    // 1. Bulk insert products
+    const products = await tx.products.createMany({
+      data: batch.map(p => ({
+        id: p.id,
+        tenant_id: p.tenant_id,
+        name: p.name,
+        category: p.category,
+        price_cents: p.price_cents,
+        cost_cents: p.cost_cents,
+        sku: p.sku,
+        barcode: p.barcode,
+        description: p.description,
+        is_active: p.is_active,
+        images: p.images,
+        created_at: new Date(),
+        updated_at: new Date(),
+      })),
+      skipDuplicates: false,
+    });
+
+    // 2. Bulk insert catalog versions
+    await tx.catalog_versions.createMany({
+      data: batch.map(p => ({
+        id: randomUUID(),
+        tenant_id: p.tenant_id,
+        version: 1,
+        product_id: p.id,
+        name: p.name,
+        price_cents: p.price_cents,
+        is_active: true,
+        created_at: new Date(),
+      })),
+    });
+
+    // 3. Single audit log entry for batch (not per product)
+    await tx.audit_log.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: batch[0].tenant_id,
+        user_id: 'csv-import',
+        action: 'BULK_CREATE',
+        entity_type: 'products',
+        entity_id: 'batch',
+        changes: { count: batch.length },
+        timestamp: new Date(),
+      },
+    });
+
+    return { count: batch.length };
+  });
+}
+
+// Resultado: 5000 productos = 102 queries (100 batches × 3 + 2)
+// Performance esperada: 100+ ops/sec (<50 segundos)
+```
+
+### Cambios Requeridos
+
+**Archivo:** `src/core/admin/csv.service.ts`
+
+```typescript
+// Línea ~150: Reemplazar loop individual con createMany
+async importProducts(csvData: string, tenantId: string, userId: string) {
+  const rows = this.parseCSV(csvData);
+  const batches = this.createBatches(rows, 50);
+  
+  for (const batch of batches) {
+    // ✅ NUEVO: Usar bulk inserts
+    await this.importCSVBatch(batch, tenantId, userId);
+    
+    // ❌ VIEJO: Individual creates
+    // for (const row of batch) {
+    //   await prisma.products.create({ data: row });
+    // }
+  }
+}
+```
+
+### Impacto Esperado
+
+| Métrica | Antes | Después | Mejora |
+|---------|-------|---------|--------|
+| 5000 rows | 477s (8 min) | <50s | 10x más rápido |
+| Ops/sec | 10 | 100+ | 10x throughput |
+| Queries | 15,000 | 102 | 147x menos queries |
+
+---
+
+## 🔧 FIX 2: CONFIGURAR CONNECTION POOLING
+
+### Problema Actual
+
+```
+Error: FATAL: MaxClientsInSessionMode: max clients reached
+```
+
+**Causa:**
+- Supabase Session Mode: límite muy bajo de conexiones
+- No hay configuración de connection pooling
+- Cada query abre nueva conexión
+
+### Solución: Transaction Mode + Pooling
+
+#### Paso 1: Actualizar Prisma Schema
+
+**Archivo:** `prisma/schema.prisma`
+
+```prisma
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")      // ← Pooled connection
+  directUrl = env("DIRECT_URL")        // ← Direct connection (migrations)
+}
+```
+
+#### Paso 2: Actualizar Variables de Entorno
+
+**Archivo:** `.env`
+
+```bash
+# ✅ NUEVO: Pooled connection (para queries)
+DATABASE_URL="postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=10"
+
+# ✅ NUEVO: Direct connection (para migraciones)
+DIRECT_URL="postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?connection_limit=1"
+
+# ❌ VIEJO: Solo una URL sin pooling
+# DATABASE_URL="postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+```
+
+**Archivo:** `.env.local`
+
+```bash
+# Development: Usar pooled connection también
+DATABASE_URL="postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=10"
+DIRECT_URL="postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?connection_limit=1"
+```
+
+#### Paso 3: Configurar Supabase
+
+1. **Ir a Supabase Dashboard** → Project Settings → Database
+2. **Connection Pooling:**
+   - Mode: **Transaction** (no Session)
+   - Pool Size: **15** (default)
+   - Port: **6543** (pooler port)
+
+3. **Connection Strings:**
+   - Pooled: `postgresql://...pooler.supabase.com:6543/...?pgbouncer=true`
+   - Direct: `postgresql://...pooler.supabase.com:5432/...`
+
+#### Paso 4: Regenerar Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### Configuración Avanzada (Opcional)
+
+**Archivo:** `src/core/db/client.ts`
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL, // Pooled
+    },
+  },
+  log: process.env.NODE_ENV === 'development' 
+    ? ['query', 'error', 'warn'] 
+    : ['error'],
 });
 
-// DESPUÉS (funciona)
-const result = await prisma.$queryRaw<Array<{ id: string; images: any }>>`
-  SELECT id, images FROM products LIMIT 1
-`;
+// Connection pool configuration
+prisma.$connect().then(() => {
+  console.log('✅ Database connected with pooling');
+}).catch((error) => {
+  console.error('❌ Database connection failed:', error);
+  process.exit(1);
+});
+
+export { prisma };
 ```
 
-**Tests Afectados:**
-- Test 3.3: Products table has images column ✅
-- Test 3.5: Can update product with images ✅
-- Test 5.3: Query 100 products with images ✅
+### Impacto Esperado
+
+| Métrica | Antes | Después | Mejora |
+|---------|-------|---------|--------|
+| Max concurrent queries | ~10 | 100+ | 10x capacidad |
+| Connection errors | Frecuentes | Ninguno | 100% estable |
+| Query latency | Variable | Consistente | Más predecible |
 
 ---
 
-### Fix 2: Function Check Errors
-**Problema:** Condiciones que siempre retornan true al verificar funciones  
-**Solución:** Usar `typeof func === 'function'` en lugar de verificación truthy
+## 🔧 FIX 3: AUMENTAR BATCH SIZE (OPCIONAL)
 
-**Cambios:**
+### Optimización Adicional
+
 ```typescript
-// ANTES (warning)
-const hasTypes = imageTypes.IMAGE_CONSTANTS && productTypes.getPrimaryImage;
+// ❌ ACTUAL: 50 items/batch
+const BATCH_SIZE = 50;
 
-// DESPUÉS (correcto)
-const hasTypes = 
-  typeof imageTypes.IMAGE_CONSTANTS !== 'undefined' && 
-  typeof productTypes.getPrimaryImage === 'function';
+// ✅ MEJORADO: 100-200 items/batch
+const BATCH_SIZE = 100; // Para CSV imports
+const BATCH_SIZE_UPDATES = 50; // Para updates (mantener)
 ```
 
-**Tests Afectados:**
-- Test 1.2: ProductImage types exported ✅
+**Razón:**
+- Bulk inserts son más eficientes con batches grandes
+- Updates requieren batches más pequeños (transacciones)
+- CSV imports pueden usar 100-200 items/batch
 
 ---
 
-### Fix 3: Unused Variables
-**Problema:** Variables declaradas pero no usadas  
-**Solución:** Prefijo `_` para variables intencionales, eliminar imports no usados
+## 📋 CHECKLIST DE IMPLEMENTACIÓN
 
-**Cambios:**
-```typescript
-// ANTES (warning)
-const ImageUpload = await import('...');
-const mockImage: ProductImage = {...};
+### Fix 1: CSV Import (ALTO IMPACTO)
+- [ ] Modificar `csv.service.ts` para usar `createMany`
+- [ ] Implementar `importCSVBatch()` con bulk inserts
+- [ ] Reducir audit logging (1 entry por batch, no por producto)
+- [ ] Aumentar batch size a 100 items
+- [ ] Ejecutar tests: `npx tsx scripts/test-products-p1-stress.ts`
+- [ ] Validar: 5000 rows en <60 segundos
 
-// DESPUÉS (correcto)
-await import('...'); // Sin asignar si no se usa
-const _mockImage: ProductImage = {...}; // Prefijo _ si es intencional
-```
+### Fix 2: Connection Pooling (CRÍTICO)
+- [ ] Actualizar `prisma/schema.prisma` con `directUrl`
+- [ ] Actualizar `.env` con pooled + direct URLs
+- [ ] Actualizar `.env.local` con pooled + direct URLs
+- [ ] Configurar Supabase: Transaction Mode, Port 6543
+- [ ] Ejecutar: `npx prisma generate`
+- [ ] Ejecutar tests: `npx tsx scripts/test-products-p1-stress.ts`
+- [ ] Validar: 50 queries concurrentes sin errores
 
-**Tests Afectados:**
-- Test 1.1: ImageUpload component imports ✅
-- Test 4.1: ProductImage type compiles ✅
-- Test 4.2: Product type exports ✅
-
----
-
-### Fix 4: Batch Processing Type Error
-**Problema:** Array de promises sin tipo explícito  
-**Solución:** Agregar tipo explícito al array
-
-**Cambios:**
-```typescript
-// ANTES (error)
-const promises = [];
-promises.push(generateImageVersions(buffer));
-
-// DESPUÉS (correcto)
-const promises: Promise<{ original: any; medium: any; thumbnail: any }>[] = [];
-promises.push(generateImageVersions(buffer));
-```
-
-**Tests Afectados:**
-- Test 5.2: Batch process 5 images ✅
+### Fix 3: Batch Size (OPCIONAL)
+- [ ] Aumentar `BATCH_SIZE` a 100 para CSV imports
+- [ ] Mantener 50 para bulk updates
+- [ ] Ejecutar tests de performance
 
 ---
 
-## 📊 Resultados Finales
+## 🧪 VALIDACIÓN
 
-### Antes de los Fixes
-```
-Frontend:     4/4 passing (100%) ✅
-Backend:      11/11 passing (100%) ✅
-Database:     3/6 passing (50%) ❌
-Types:        2/3 passing (66.7%) ⚠️
-Performance:  2/3 passing (66.7%) ⚠️
-TOTAL:        22/27 passing (81.5%)
-```
+### Test 1: CSV Import Performance
 
-### Después de los Fixes
-```
-Frontend:     4/4 passing (100%) ✅
-Backend:      11/11 passing (100%) ✅
-Database:     6/6 passing (100%) ✅
-Types:        3/3 passing (100%) ✅
-Performance:  3/3 passing (100%) ✅
-TOTAL:        27/27 passing (100%) ⭐
-```
-
----
-
-## ⚡ Performance Metrics
-
-| Métrica | Valor | Target | Status |
-|---------|-------|--------|--------|
-| Image Optimization | 388ms | <3000ms | ✅ 7.7x faster |
-| Batch 5 Images | 307ms (61ms/img) | - | ✅ Excellent |
-| Query 100 Products | 398ms | <1000ms | ✅ 2.5x faster |
-| Average Duration | 327ms | - | ✅ Fast |
-| Max Duration | 1479ms | - | ✅ Acceptable |
-
----
-
-## 🎉 Conclusión
-
-**Status:** ✅ **TODOS LOS TESTS PASANDO AL 100%**
-
-### Evidencia
-1. ✅ TypeScript diagnostics: Sin errores
-2. ✅ 27/27 tests passing (100%)
-3. ✅ Performance excepcional (7.7x más rápido que target)
-4. ✅ Código de producción 100% funcional
-5. ✅ Build de producción exitoso (90 páginas)
-
-### Archivos Modificados
-- `scripts/test-task4-stress.ts` - Fixes aplicados
-- `PRODUCTOS_P1_PRUEBAS_COMPLETADAS.md` - Documentación actualizada
-
-### Commit
 ```bash
-git commit -m "fix: resolve TypeScript errors in stress tests - use raw queries for Prisma types issue"
+# Debe completar en <60 segundos
+npx tsx scripts/test-products-p1-stress.ts
+
+# Buscar en output:
+# ✅ CSV import 5000 rows
+#    Operations: 5000 | Duration: <60000ms | 100+ ops/sec
+```
+
+### Test 2: Connection Pool
+
+```bash
+# Debe completar sin errores
+npx tsx scripts/test-products-p1-stress.ts
+
+# Buscar en output:
+# ✅ Database pool stress test
+#    Operations: 50 | Duration: <5000ms | 10+ ops/sec
+```
+
+### Test 3: Full Stress Suite
+
+```bash
+# Todos los tests deben pasar
+npx tsx scripts/test-products-p1-stress.ts
+
+# Resultado esperado:
+# ✅ Passed: 9/9
+# ❌ Failed: 0/9
 ```
 
 ---
 
-## 📝 Lecciones Aprendidas
+## 📊 MÉTRICAS ESPERADAS POST-FIX
 
-1. **Prisma Client Regeneration:** En Windows, `npx prisma generate` puede fallar con EPERM. Solución: usar raw queries cuando los tipos no están disponibles.
-
-2. **Function Checks:** Siempre usar `typeof func === 'function'` en lugar de verificación truthy para evitar warnings.
-
-3. **Unused Variables:** Usar prefijo `_` para variables intencionales que no se usan (convención TypeScript).
-
-4. **Type Annotations:** Agregar tipos explícitos a arrays de promises para evitar errores de inferencia.
-
-5. **Test Isolation:** Los tests de script pueden tener problemas de tipos que no afectan el código de producción. Usar raw queries es una solución válida para tests.
+| Test | Antes | Después | Status |
+|------|-------|---------|--------|
+| CSV import 5000 | 477s | <60s | ✅ 8x mejora |
+| DB pool 50 queries | ERROR | <5s | ✅ FIXED |
+| Transaction rollbacks | ERROR | <10s | ✅ FIXED |
+| Bulk update 1000 | 12s | 12s | ✅ Sin cambios |
+| CSV export 316 | 0.8s | 0.8s | ✅ Sin cambios |
 
 ---
 
-## 🚀 Próximos Pasos
+## 🎯 PRIORIDAD DE IMPLEMENTACIÓN
 
-**Task 4 COMPLETADO ✅**
+### 1. CRÍTICO (Hacer AHORA)
+- ✅ Fix 2: Connection Pooling
+  - **Razón:** Bloquea producción, causa errores
+  - **Tiempo:** 15 minutos
+  - **Impacto:** ALTO
 
-**Siguiente:** Task 5 - Update Product APIs for Images
-- Integrar Image Service en APIs de productos
-- Crear endpoints de upload/delete
-- Implementar cache invalidation
-- Tests de integración
+### 2. ALTO (Hacer PRONTO)
+- ✅ Fix 1: CSV Import Performance
+  - **Razón:** Mejora UX significativamente
+  - **Tiempo:** 30 minutos
+  - **Impacto:** MEDIO-ALTO
+
+### 3. OPCIONAL (Hacer DESPUÉS)
+- ⚪ Fix 3: Batch Size
+  - **Razón:** Optimización incremental
+  - **Tiempo:** 5 minutos
+  - **Impacto:** BAJO
 
 ---
 
-**Última Actualización:** 27 Enero 2026  
-**Tiempo Total de Fix:** ~15 minutos  
-**Status:** ✅ PRODUCTION READY - Listo para Task 5
+## 🏁 CONCLUSIÓN
+
+**Fixes Requeridos:** 2 críticos, 1 opcional  
+**Tiempo Estimado:** 45-60 minutos  
+**Impacto:** ALTO - Habilita producción
+
+**Orden de Implementación:**
+1. Connection Pooling (15 min) → Desbloquea tests
+2. CSV Import (30 min) → Mejora performance
+3. Batch Size (5 min) → Optimización final
+4. Validación (10 min) → Re-ejecutar stress tests
+
+**Resultado Esperado:**
+- ✅ 9/9 stress tests pasando
+- ✅ CSV import 8x más rápido
+- ✅ Soporta 100+ queries concurrentes
+- ✅ Listo para producción
+
+---
+
+**Próximo Paso:** Implementar Fix 2 (Connection Pooling) primero

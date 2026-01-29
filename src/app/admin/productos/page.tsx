@@ -15,6 +15,7 @@ import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { ProductImage } from '@/src/core/types/product-images';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
+import { CSVImportExport } from './components/CSVImportExport';
 
 interface Product {
   id: string;
@@ -186,13 +187,17 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-bold">Productos</h1>
           <p className="text-zinc-400 mt-1">Gestionar catálogo de productos</p>
         </div>
-        <button
-          onClick={() => router.push('/admin/productos/nuevo')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Producto
-        </button>
+        <div className="flex items-center gap-2">
+          <CSVImportExport onImportComplete={refetch} />
+          <button
+            onClick={() => router.push('/admin/productos/nuevo')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Nuevo Producto</span>
+            <span className="sm:hidden">Nuevo</span>
+          </button>
+        </div>
       </div>
 
       {error && (

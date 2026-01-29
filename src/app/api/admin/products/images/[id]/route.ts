@@ -1,7 +1,7 @@
 /**
- * Product Image API - DELETE (remove image)
+ * Product Images API - DELETE (remove image)
  * Requirements: 1.10, 4.8
- * Properties: 5, 9
+ * Properties: 9
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -14,8 +14,6 @@ import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { getTenantId } from '@/src/core/config/tenant';
 import { deleteImage } from '@/src/core/images/image.service';
-import { ImageDeleteRequestSchema } from '@/src/core/admin/schemas/product-image.schema';
-import { ZodError } from 'zod';
 import type { ProductImage } from '@/src/core/types/product-images';
 
 const TENANT_ID = getTenantId();
@@ -23,13 +21,10 @@ const TENANT_ID = getTenantId();
 // DELETE - Remove image from product
 async function handleDELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  
-  // Await params (Next.js 15 requirement)
-  const params = await context.params;
   
   // Validate admin authentication
   const authResult = await requireAdminAuth(request);
@@ -42,58 +37,26 @@ async function handleDELETE(
   });
 
   try {
-    const imageId = params.id;
+    const { id: imageId } = await params;
+    
     log.info({ 
       operation: 'delete_product_image',
       imageId,
     }, 'Deleting product image');
-    
-    // Get product_id from query params
-    const productId = request.nextUrl.searchParams.get('product_id');
-    
-    if (!productId) {
-      return NextResponse.json(
-        { error: 'No se proporcionó product_id' },
-        { status: 400 }
-      );
-    }
 
-    // Validate request data
-    const validatedData = ImageDeleteRequestSchema.parse({
-      image_id: imageId,
-      product_id: productId,
-    });
-
-    // Check if product exists and has the image
-    const productResult = await prisma.$queryRaw<Array<{ id: string; images: any }>>`
-      SELECT id, images FROM products 
-      WHERE id = ${validatedData.product_id}::uuid 
-      AND tenant_id = ${TENANT_ID}::uuid
+    // Find product with this image
+    const productsResult = await prisma.$queryRaw<Array<{ id: string; images: any; version: number }>>`
+      SELECT id, images, version FROM products 
+      WHERE tenant_id = ${TENANT_ID}::uuid
+      AND images @> ${JSON.stringify([{ id: imageId }])}::jsonb
       LIMIT 1
     `;
 
-    if (productResult.length === 0) {
+    if (productsResult.length === 0) {
       log.warn({
         operation: 'delete_product_image_not_found',
-        productId: validatedData.product_id,
-      }, 'Product not found');
-      
-      return NextResponse.json(
-        { error: 'Producto no encontrado' },
-        { status: 404 }
-      );
-    }
-
-    const product = productResult[0];
-    const currentImages = (product.images as ProductImage[]) || [];
-    const imageToDelete = currentImages.find(img => img.id === validatedData.image_id);
-
-    if (!imageToDelete) {
-      log.warn({
-        operation: 'delete_product_image_not_found',
-        productId: validatedData.product_id,
-        imageId: validatedData.image_id,
-      }, 'Image not found in product');
+        imageId,
+      }, 'Image not found in any product');
       
       return NextResponse.json(
         { error: 'Imagen no encontrada' },
@@ -101,36 +64,49 @@ async function handleDELETE(
       );
     }
 
-    // Delete image from storage
+    const product = productsResult[0];
+    const currentImages = (product.images as ProductImage[]) || [];
+    const imageToDelete = currentImages.find(img => img.id === imageId);
+
+    if (!imageToDelete) {
+      return NextResponse.json(
+        { error: 'Imagen no encontrada' },
+        { status: 404 }
+      );
+    }
+
+    // Delete from storage
     const deleteStart = Date.now();
-    await deleteImage(
-      validatedData.image_id,
-      TENANT_ID,
-      validatedData.product_id
-    );
-    logPerformance('image_delete_from_storage', Date.now() - deleteStart, {
-      imageId: validatedData.image_id,
-    });
+    try {
+      await deleteImage(imageToDelete.url, TENANT_ID, product.id);
+      logPerformance('image_delete_from_storage', Date.now() - deleteStart, {
+        imageId,
+      });
+    } catch (storageError) {
+      log.warn({
+        operation: 'delete_product_image_storage_error',
+        imageId,
+        error: storageError instanceof Error ? storageError.message : String(storageError),
+      }, 'Failed to delete image from storage, continuing with database cleanup');
+      // Continue with database cleanup even if storage deletion fails
+    }
 
     // Update product - remove image and reorder remaining
     const txStart = Date.now();
     await prisma.$transaction(async (tx: any) => {
       // Remove image and reorder
-      const remainingImages = currentImages
-        .filter(img => img.id !== validatedData.image_id)
-        .map((img, index) => ({
-          ...img,
-          order: index, // Reorder sequentially
-        }));
+      const updatedImages = currentImages
+        .filter(img => img.id !== imageId)
+        .map((img, index) => ({ ...img, order: index }));
 
       // Update product
       await tx.$executeRaw`
         UPDATE products 
-        SET images = ${JSON.stringify(remainingImages)}::jsonb,
+        SET images = ${JSON.stringify(updatedImages)}::jsonb,
             version = version + 1,
             updated_at = NOW(),
             updated_by = ${authResult.user.id}::uuid
-        WHERE id = ${validatedData.product_id}::uuid
+        WHERE id = ${product.id}::uuid
       `;
 
       // Increment catalog version
@@ -156,9 +132,9 @@ async function handleDELETE(
           action: 'UPDATE',
           resource: 'products',
           metadata: {
-            record_id: validatedData.product_id,
+            record_id: product.id,
             action: 'delete_image',
-            image_id: validatedData.image_id,
+            image_id: imageId,
           },
           created_at: new Date(),
         },
@@ -176,41 +152,20 @@ async function handleDELETE(
 
     // Log audit event
     logAudit('UPDATE', 'products', authResult.user.id, {
-      productId: validatedData.product_id,
+      productId: product.id,
       action: 'delete_image',
-      imageId: validatedData.image_id,
+      imageId,
     });
 
     log.info({
       operation: 'delete_product_image_success',
-      productId: validatedData.product_id,
-      imageId: validatedData.image_id,
+      productId: product.id,
+      imageId,
       durationMs: Date.now() - startTime,
     }, 'Product image deleted successfully');
 
-    return NextResponse.json({
-      success: true,
-      message: 'Imagen eliminada correctamente',
-    });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
-    if (error instanceof ZodError) {
-      log.warn({
-        operation: 'delete_product_image_validation_error',
-        errors: error.errors,
-      }, 'Invalid delete data');
-      
-      return NextResponse.json(
-        {
-          error: 'Datos inválidos',
-          details: error.errors.map((e) => ({
-            field: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
-    
     log.error({
       operation: 'delete_product_image_error',
       error: error instanceof Error ? {
@@ -228,4 +183,4 @@ async function handleDELETE(
   }
 }
 
-export { handleDELETE as DELETE };
+export const DELETE = withRequestLogging(handleDELETE);
