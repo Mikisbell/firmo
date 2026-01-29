@@ -29,7 +29,7 @@ const BATCH_SIZE = 50;
 export class BulkOperationsService {
   /**
    * Bulk update products
-   * Updates multiple products with the same changes in a transaction
+   * Updates multiple products with the same changes in a single atomic transaction
    * 
    * @param productIds - Array of product IDs to update
    * @param updates - Fields to update
@@ -56,34 +56,34 @@ export class BulkOperationsService {
     const failures: BulkOperationFailure[] = [];
     let successCount = 0;
 
-    // Process in batches
-    const batches = this.createBatches(productIds, BATCH_SIZE);
+    try {
+      // Execute ENTIRE operation in a SINGLE transaction for atomicity
+      await prisma.$transaction(async (tx: any) => {
+        // FIRST: Validate ALL products exist BEFORE making any changes
+        const allProducts = await tx.products.findMany({
+          where: {
+            id: { in: productIds },
+            tenant_id: tenantId,
+          },
+          select: {
+            id: true,
+            sku: true,
+            version: true,
+          },
+        });
 
-    for (const batch of batches) {
-      try {
-        const batchStart = Date.now();
-        
-        // Execute batch update in transaction
-        const result = await prisma.$transaction(async (tx: any) => {
-          // Get products to update (with current version for optimistic locking)
-          const products = await tx.products.findMany({
-            where: {
-              id: { in: batch },
-              tenant_id: tenantId,
-            },
-            select: {
-              id: true,
-              sku: true,
-              version: true,
-            },
-          });
+        // Check if ALL products exist
+        if (allProducts.length !== productIds.length) {
+          const foundIds = new Set(allProducts.map((p: any) => p.id));
+          const missingIds = productIds.filter(id => !foundIds.has(id));
+          throw new Error(`Products not found: ${missingIds.join(', ')}`);
+        }
 
-          // Check if all products exist
-          if (products.length !== batch.length) {
-            const foundIds = new Set(products.map((p: any) => p.id));
-            const missingIds = batch.filter(id => !foundIds.has(id));
-            throw new Error(`Products not found: ${missingIds.join(', ')}`);
-          }
+        // Process in batches for performance (but within same transaction)
+        const batches = this.createBatches(productIds, BATCH_SIZE);
+
+        for (const batch of batches) {
+          const batchStart = Date.now();
 
           // Update products
           const updateData: any = {
@@ -105,76 +105,77 @@ export class BulkOperationsService {
             data: updateData,
           });
 
-          // Increment catalog version
-          await tx.catalog_meta.upsert({
-            where: { tenant_id: tenantId },
-            create: {
-              tenant_id: tenantId,
-              catalog_version: 1,
-              updated_at: new Date(),
-            },
-            update: {
-              catalog_version: { increment: 1 },
-              updated_at: new Date(),
-            },
-          });
-
-          // Create audit log entry (only if userId is valid UUID)
-          if (userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
-            await tx.admin_access_logs.create({
-              data: {
-                id: randomUUID(),
-                tenant_id: tenantId,
-                employee_id: userId,
-                action: 'BULK_UPDATE',
-                resource: 'products',
-                metadata: {
-                  product_ids: batch,
-                  updates,
-                  count: batch.length,
-                },
-                created_at: new Date(),
-              },
-            });
-          }
-
-          return products;
-        });
-
-        successCount += result.length;
-        logPerformance('bulk_update_batch', Date.now() - batchStart, {
-          batchSize: batch.length,
-        });
-
-      } catch (error) {
-        // Record failures for this batch
-        log.error({
-          operation: 'bulk_update_batch_error',
-          batch,
-          error: error instanceof Error ? error.message : String(error),
-        }, 'Batch update failed');
-
-        // Get product SKUs for error reporting
-        const products = await prisma.products.findMany({
-          where: {
-            id: { in: batch },
-            tenant_id: tenantId,
-          },
-          select: { id: true, sku: true },
-        });
-
-        for (const product of products) {
-          failures.push({
-            product_id: product.id,
-            sku: product.sku,
-            error: error instanceof Error ? error.message : 'Unknown error',
+          logPerformance('bulk_update_batch', Date.now() - batchStart, {
+            batchSize: batch.length,
           });
         }
+
+        // Increment catalog version
+        await tx.catalog_meta.upsert({
+          where: { tenant_id: tenantId },
+          create: {
+            tenant_id: tenantId,
+            catalog_version: 1,
+            updated_at: new Date(),
+          },
+          update: {
+            catalog_version: { increment: 1 },
+            updated_at: new Date(),
+          },
+        });
+
+        // Create audit log entry (only if userId is valid UUID)
+        if (userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+          await tx.admin_access_logs.create({
+            data: {
+              id: randomUUID(),
+              tenant_id: tenantId,
+              employee_id: userId,
+              action: 'BULK_UPDATE',
+              resource: 'products',
+              metadata: {
+                product_ids: productIds,
+                updates,
+                count: productIds.length,
+              },
+              created_at: new Date(),
+            },
+          });
+        }
+      });
+
+      // If we reach here, ALL updates succeeded
+      successCount = productIds.length;
+
+    } catch (error) {
+      // Transaction failed - ALL updates rolled back
+      log.error({
+        operation: 'bulk_update_error',
+        error: error instanceof Error ? error.message : String(error),
+      }, 'Bulk update failed - transaction rolled back');
+
+      // Get product SKUs for error reporting
+      const products = await prisma.products.findMany({
+        where: {
+          id: { in: productIds },
+          tenant_id: tenantId,
+        },
+        select: { id: true, sku: true },
+      });
+
+      for (const product of products) {
+        failures.push({
+          product_id: product.id,
+          sku: product.sku,
+          error: error instanceof Error ? error.message : 'Transaction rolled back',
+        });
       }
     }
 
-    // Invalidate cache
-    await cache.invalidatePattern('products:*');
+    // Invalidate cache (only if there were successful updates)
+    if (successCount > 0) {
+      await cache.invalidatePattern('products:*');
+    }
 
     const duration = Date.now() - startTime;
     const result: BulkOperationResult = {
