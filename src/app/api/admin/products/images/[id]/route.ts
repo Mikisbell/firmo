@@ -8,7 +8,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
@@ -19,7 +18,7 @@ import type { ProductImage } from '@/src/core/types/product-images';
 const TENANT_ID = getTenantId();
 
 // DELETE - Remove image from product
-async function handleDELETE(
+export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -182,5 +181,3 @@ async function handleDELETE(
     );
   }
 }
-
-export const DELETE = withRequestLogging(handleDELETE);
