@@ -1500,3 +1500,105 @@ model station_alerts {
   @@index([station_id], map: "idx_station_alerts_station_id")
   @@index([tenant_id], map: "idx_station_alerts_tenant_id")
 }
+
+// ============================================
+// Delivery 2026 Modernization Tables
+// ============================================
+
+model location_history {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driver_id  String   @db.Uuid
+  latitude   Float
+  longitude  Float
+  accuracy   Float
+  speed      Float?
+  heading    Float?
+  timestamp  DateTime @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  drivers    drivers  @relation(fields: [driver_id], references: [id])
+
+  @@index([driver_id, timestamp])
+  @@index([timestamp])
+}
+
+model whatsapp_messages {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id        String            @db.Uuid
+  phone_number    String
+  template_name   String
+  message_body    String
+  status          String            @default("QUEUED")
+  twilio_sid      String?
+  error_message   String?
+  sent_at         DateTime?         @db.Timestamptz(6)
+  delivered_at    DateTime?         @db.Timestamptz(6)
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  delivery_orders delivery_orders   @relation(fields: [order_id], references: [id])
+
+  @@index([order_id])
+  @@index([phone_number, created_at(sort: Desc)])
+}
+
+model assignment_weights {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String   @unique @db.Uuid
+  distance    Float    @default(0.4)
+  workload    Float    @default(0.3)
+  performance Float    @default(0.3)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id])
+}
+
+model assignment_logs {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id           String            @db.Uuid
+  driver_id          String            @db.Uuid
+  assignment_score   Float
+  distance_score     Float
+  workload_score     Float
+  performance_score  Float
+  distance_km        Float
+  current_orders     Int
+  performance_rating Float
+  created_at         DateTime          @default(now()) @db.Timestamptz(6)
+  delivery_orders    delivery_orders   @relation(fields: [order_id], references: [id])
+  drivers            drivers           @relation(fields: [driver_id], references: [id])
+
+  @@index([order_id])
+  @@index([driver_id, created_at(sort: Desc)])
+}
+
+model eta_predictions {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id            String            @db.Uuid
+  predicted_minutes   Int
+  confidence_interval String
+  confidence          Float
+  base_time           Float
+  traffic_adjustment  Float
+  weather_adjustment  Float
+  driver_adjustment   Float
+  actual_minutes      Int?
+  created_at          DateTime          @default(now()) @db.Timestamptz(6)
+  delivery_orders     delivery_orders   @relation(fields: [order_id], references: [id])
+
+  @@index([order_id, created_at(sort: Desc)])
+}
+
+model delivery_metrics {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id              String   @db.Uuid
+  date                   DateTime @db.Date
+  hour                   Int
+  active_deliveries      Int
+  completed_deliveries   Int
+  failed_deliveries      Int
+  avg_delivery_time      Float
+  avg_driver_utilization Float
+  avg_customer_rating    Float?
+  created_at             DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, date, hour])
+  @@index([tenant_id, date])
+}
