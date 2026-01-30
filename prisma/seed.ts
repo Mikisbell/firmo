@@ -71,8 +71,10 @@ async function main() {
         { code: "PARRILLA", name: "Parrilla" },
         { code: "COCINA", name: "Cocina Caliente" },
         { code: "BAR", name: "Bar" },
+        { code: "HORNO", name: "Horno" },
         { code: "FRIOS", name: "Platos Fríos" },
         { code: "POSTRES", name: "Postres" },
+        { code: "EMPAQUE", name: "Empaque y Delivery" },
     ];
 
     for (const st of stations) {
@@ -204,6 +206,7 @@ async function main() {
         { terminal_id: "SPC_HORNO", role: "KDS" },
         { terminal_id: "SPC_COCINA", role: "KDS" },
         { terminal_id: "SPC_BAR", role: "KDS" },
+        { terminal_id: "SPC_EMPAQUE", role: "KDS" },
         { terminal_id: "MOZO_01", role: "WAITER" },
         { terminal_id: "MOZO_02", role: "WAITER" },
         { terminal_id: "MOZO_03", role: "WAITER" },
@@ -256,6 +259,7 @@ async function main() {
         { name: "Impresora Parrilla", station_code: "PARRILLA", connection_type: "LAN" },
         { name: "Impresora Cocina", station_code: "COCINA", connection_type: "LAN" },
         { name: "Impresora Bar", station_code: "BAR", connection_type: "LAN" },
+        { name: "Impresora Empaque", station_code: "EMPAQUE", connection_type: "LAN" },
     ];
 
     for (const p of printers) {
@@ -678,6 +682,7 @@ async function main() {
         { terminal_id: "SPC_HORNO", role: "KDS", status: "active", device_name: "Horno/Parrilla", location_id: "LOC01" },
         { terminal_id: "SPC_COCINA", role: "KDS", status: "active", device_name: "Cocina", location_id: "LOC01" },
         { terminal_id: "SPC_BAR", role: "BAR", status: "active", device_name: "Bar", location_id: "LOC01" },
+        { terminal_id: "SPC_EMPAQUE", role: "KDS", status: "active", device_name: "Empaque y Delivery", location_id: "LOC01" },
         { terminal_id: "MOZO_01", role: "WAITER", status: "active", device_name: "Mesero 1", location_id: "LOC01" },
         { terminal_id: "MOZO_02", role: "WAITER", status: "active", device_name: "Mesero 2", location_id: "LOC01" },
         { terminal_id: "MOZO_03", role: "WAITER", status: "pending", device_name: "Mesero 3", location_id: "LOC01" }, // Pending activation
@@ -802,7 +807,7 @@ async function main() {
     console.log(`   - GR-001: Recepción completa (2kg papa rechazada)`);
     console.log(`   - Recipes: Pollo entero, 1/2, 1/4, Papas grande/mediana`);
     console.log(`\n🔐 Terminal Architecture v2:`);
-    console.log(`   - Active terminals: CAJA_01, SPC_HORNO, SPC_COCINA, SPC_BAR, MOZO_01, MOZO_02`);
+    console.log(`   - Active terminals: CAJA_01, SPC_HORNO, SPC_COCINA, SPC_BAR, SPC_EMPAQUE, MOZO_01, MOZO_02`);
     console.log(`   - Pending activation: MOZO_03, MOZO_05 (check activation_codes table)`);
     console.log(`   - Disabled: MOZO_04`);
 }

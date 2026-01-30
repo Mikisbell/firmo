@@ -415,6 +415,33 @@ export interface RealtimeMetrics {
   customerSatisfaction: number; // 0-5
 }
 
+/**
+ * Analytics metrics (alias for RealtimeMetrics)
+ */
+export type AnalyticsMetrics = RealtimeMetrics;
+
+/**
+ * Driver performance score
+ */
+export interface DriverPerformanceScore {
+  driverId: DriverId;
+  onTimeRate: number; // 0-1
+  averageRating: number; // 0-5
+  averageDeliveryTime: number; // minutes
+  totalDeliveries: number;
+  score: number; // 0-100
+}
+
+/**
+ * Demand forecast result
+ */
+export interface ForecastResult {
+  timestamp: Date;
+  predictedVolume: number;
+  confidence: number; // 0-1
+  historicalAverage: number;
+}
+
 // ============================================
 // Delivery Order Types
 // ============================================

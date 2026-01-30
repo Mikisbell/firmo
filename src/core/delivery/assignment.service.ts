@@ -268,15 +268,14 @@ async function getAvailableDrivers(
   tenantId: TenantId
 ): Promise<Driver[]> {
   try {
-    // Get drivers from database
-    const dbDrivers = await prisma.employees.findMany({
+    // Get drivers from database (drivers table, not employees)
+    const dbDrivers = await prisma.drivers.findMany({
       where: {
         tenant_id: tenantId,
-        role: 'DRIVER',
         is_active: true,
       },
       include: {
-        delivery_orders_delivery_orders_driver_idToemployees: {
+        delivery_orders: {
           where: {
             status: {
               in: ['ASSIGNED', 'DISPATCHED'],
@@ -293,7 +292,7 @@ async function getAvailableDrivers(
     const drivers: Driver[] = [];
 
     for (const dbDriver of dbDrivers) {
-      const activeOrders = dbDriver.delivery_orders_delivery_orders_driver_idToemployees.map(
+      const activeOrders = dbDriver.delivery_orders.map(
         (o) => o.id as OrderId
       );
 
@@ -442,24 +441,83 @@ export async function assignDriver(
   orderId: OrderId
 ): Promise<Driver | null> {
   try {
-    // Get order details
+    // Get order details with related order info
     const order = await prisma.delivery_orders.findUnique({
       where: { id: orderId },
+      include: {
+        orders: {
+          include: {
+            customers: true,
+            locations: true,
+          },
+        },
+      },
     });
 
     if (!order) {
       throw new Error(`Order ${orderId} not found`);
     }
 
+    if (!order.orders) {
+      throw new Error(`Order ${orderId} has no associated order (order_id: ${order.order_id})`);
+    }
+
+    // Get restaurant location from the order's location
+    const restaurantLocation: Location = order.orders.locations?.address
+      ? (() => {
+          const parts = order.orders.locations.address.split(',');
+          return {
+            latitude: parts.length >= 2 ? parseFloat(parts[0]) : 0,
+            longitude: parts.length >= 2 ? parseFloat(parts[1]) : 0,
+            accuracy: 10,
+            timestamp: new Date(),
+          };
+        })()
+      : {
+          latitude: 0,
+          longitude: 0,
+          accuracy: 10,
+          timestamp: new Date(),
+        };
+
+    // Parse delivery location from address_text
+    // Format: "lat,lng" or just address text
+    let deliveryLocation: Location;
+    try {
+      const parts = order.address_text.split(',');
+      if (parts.length >= 2 && !isNaN(parseFloat(parts[0])) && !isNaN(parseFloat(parts[1]))) {
+        deliveryLocation = {
+          latitude: parseFloat(parts[0]),
+          longitude: parseFloat(parts[1]),
+          accuracy: 10, // Default accuracy
+          timestamp: new Date(),
+        };
+      } else {
+        deliveryLocation = {
+          latitude: 0,
+          longitude: 0,
+          accuracy: 10,
+          timestamp: new Date(),
+        };
+      }
+    } catch {
+      deliveryLocation = {
+        latitude: 0,
+        longitude: 0,
+        accuracy: 10,
+        timestamp: new Date(),
+      };
+    }
+
     // Convert to DeliveryOrder type
     const deliveryOrder: DeliveryOrder = {
       id: order.id as OrderId,
       tenantId: order.tenant_id as TenantId,
-      orderNumber: parseInt(order.order_id || '0'),
-      customerName: order.customer_name,
+      orderNumber: order.orders.order_number,
+      customerName: order.orders.customers?.name || 'Unknown',
       customerPhone: order.customer_phone,
-      pickupLocation: JSON.parse(order.pickup_location || '{}') as Location,
-      deliveryLocation: JSON.parse(order.delivery_address) as Location,
+      pickupLocation: restaurantLocation,
+      deliveryLocation: deliveryLocation,
       driverId: order.driver_id as DriverId | undefined,
       status: order.status as any,
       estimatedDeliveryAt: order.estimated_delivery_at ?? undefined,
@@ -470,7 +528,7 @@ export async function assignDriver(
       failureReason: order.failure_reason ?? undefined,
       deliveryTimeMins: order.delivery_time_mins ?? undefined,
       createdAt: order.created_at,
-      updatedAt: order.updated_at,
+      updatedAt: order.created_at, // Use created_at as fallback since updated_at doesn't exist
     };
 
     // Get available drivers
@@ -680,24 +738,82 @@ export async function handleRejection(
       }
     );
 
-    // Get order details
+    // Get order details with related order info
     const order = await prisma.delivery_orders.findUnique({
       where: { id: orderId },
+      include: {
+        orders: {
+          include: {
+            customers: true,
+            locations: true,
+          },
+        },
+      },
     });
 
     if (!order) {
       throw new Error(`Order ${orderId} not found`);
     }
 
+    if (!order.orders) {
+      throw new Error(`Order ${orderId} has no associated order (order_id: ${order.order_id})`);
+    }
+
+    // Get restaurant location from the order's location
+    const restaurantLocation: Location = order.orders.locations?.address
+      ? (() => {
+          const parts = order.orders.locations.address.split(',');
+          return {
+            latitude: parts.length >= 2 ? parseFloat(parts[0]) : 0,
+            longitude: parts.length >= 2 ? parseFloat(parts[1]) : 0,
+            accuracy: 10,
+            timestamp: new Date(),
+          };
+        })()
+      : {
+          latitude: 0,
+          longitude: 0,
+          accuracy: 10,
+          timestamp: new Date(),
+        };
+
+    // Parse delivery location from address_text
+    let deliveryLocation: Location;
+    try {
+      const parts = order.address_text.split(',');
+      if (parts.length >= 2 && !isNaN(parseFloat(parts[0])) && !isNaN(parseFloat(parts[1]))) {
+        deliveryLocation = {
+          latitude: parseFloat(parts[0]),
+          longitude: parseFloat(parts[1]),
+          accuracy: 10, // Default accuracy
+          timestamp: new Date(),
+        };
+      } else {
+        deliveryLocation = {
+          latitude: 0,
+          longitude: 0,
+          accuracy: 10,
+          timestamp: new Date(),
+        };
+      }
+    } catch {
+      deliveryLocation = {
+        latitude: 0,
+        longitude: 0,
+        accuracy: 10,
+        timestamp: new Date(),
+      };
+    }
+
     // Convert to DeliveryOrder type
     const deliveryOrder: DeliveryOrder = {
       id: order.id as OrderId,
       tenantId: order.tenant_id as TenantId,
-      orderNumber: parseInt(order.order_id || '0'),
-      customerName: order.customer_name,
+      orderNumber: order.orders.order_number,
+      customerName: order.orders.customers?.name || 'Unknown',
       customerPhone: order.customer_phone,
-      pickupLocation: JSON.parse(order.pickup_location || '{}') as Location,
-      deliveryLocation: JSON.parse(order.delivery_address) as Location,
+      pickupLocation: restaurantLocation,
+      deliveryLocation: deliveryLocation,
       driverId: order.driver_id as DriverId | undefined,
       status: order.status as any,
       estimatedDeliveryAt: order.estimated_delivery_at ?? undefined,
@@ -708,7 +824,7 @@ export async function handleRejection(
       failureReason: order.failure_reason ?? undefined,
       deliveryTimeMins: order.delivery_time_mins ?? undefined,
       createdAt: order.created_at,
-      updatedAt: order.updated_at,
+      updatedAt: order.created_at, // Use created_at as fallback since updated_at doesn't exist
     };
 
     // Get available drivers (excluding rejected driver)

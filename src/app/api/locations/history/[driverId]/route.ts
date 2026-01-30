@@ -13,9 +13,9 @@ import { toDriverId } from '@/src/core/delivery/types-2026';
 import { logger } from '@/src/core/observability/logger';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     driverId: string;
-  };
+  }>;
 }
 
 /**
@@ -43,7 +43,7 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { driverId } = params;
+    const { driverId } = await params;
     const { searchParams } = new URL(request.url);
 
     const startDateStr = searchParams.get('startDate');
@@ -98,9 +98,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       count: locations.length,
     });
   } catch (error) {
-    logger.error('Failed to get location history', {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error('LOCATION_HISTORY_ERROR', 'Failed to get location history', error instanceof Error ? error : undefined);
 
     return NextResponse.json(
       {

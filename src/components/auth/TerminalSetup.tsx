@@ -46,6 +46,11 @@ function getRoleRoute(terminalId: string, role: TerminalRole): string {
     return '/bar';
   }
   
+  // SPC_EMPAQUE → /cocina/empaque
+  if (terminalId === 'SPC_EMPAQUE') {
+    return '/cocina/empaque';
+  }
+  
   // Fallback based on role
   switch (role) {
     case 'CASHIER':
@@ -83,6 +88,7 @@ const ROLE_CARDS = [
   { id: 'SPC_HORNO', role: 'KDS' as TerminalRole, title: 'Horno', subtitle: 'Parrilla', icon: Flame, color: '#f97316', gradient: 'from-orange-500 to-red-600', shadowColor: 'shadow-orange-500/20', isGroup: false },
   { id: 'SPC_COCINA', role: 'KDS' as TerminalRole, title: 'Cocina', subtitle: 'Guarniciones', icon: ChefHat, color: '#eab308', gradient: 'from-yellow-500 to-amber-600', shadowColor: 'shadow-yellow-500/20', isGroup: false },
   { id: 'SPC_BAR', role: 'BAR' as TerminalRole, title: 'Bar', subtitle: 'Bebidas', icon: Wine, color: '#0ea5e9', gradient: 'from-sky-500 to-blue-600', shadowColor: 'shadow-sky-500/20', isGroup: false },
+  { id: 'SPC_EMPAQUE', role: 'KDS' as TerminalRole, title: 'Empaque', subtitle: 'Delivery', icon: Package, color: '#10b981', gradient: 'from-emerald-500 to-green-600', shadowColor: 'shadow-emerald-500/20', isGroup: false },
 ];
 
 // Floating particles for background effect

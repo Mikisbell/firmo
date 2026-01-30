@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { subscribe } from '@/core/delivery/push.service';
-import { toDriverId, toTenantId } from '@/core/delivery/types-2026';
+import { subscribe } from '@/src/core/delivery/push.service';
+import { toDriverId, toTenantId } from '@/src/core/delivery/types-2026';
 
 export async function POST(request: NextRequest) {
   try {

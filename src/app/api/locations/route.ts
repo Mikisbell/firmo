@@ -77,9 +77,7 @@ export async function POST(request: NextRequest) {
       message: 'Location updated successfully',
     });
   } catch (error) {
-    logger.error('Failed to update location', {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error('LOCATION_UPDATE_ERROR', 'Failed to update location', error instanceof Error ? error : undefined);
 
     if (error instanceof Error && error.message.includes('Invalid coordinates')) {
       return NextResponse.json(
@@ -144,9 +142,7 @@ export async function GET(request: NextRequest) {
       count: drivers.length,
     });
   } catch (error) {
-    logger.error('Failed to get driver locations', {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error('DRIVER_LOCATIONS_ERROR', 'Failed to get driver locations', error instanceof Error ? error : undefined);
 
     return NextResponse.json(
       {

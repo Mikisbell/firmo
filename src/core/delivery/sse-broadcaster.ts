@@ -10,7 +10,7 @@
 
 import { deliveryRedisService } from './redis-connection';
 import { sseConnectionManager, SSEClient } from './sse-connection-manager';
-import { DeliveryEvent } from './types-2026';
+import { DeliveryEvent, TenantId, DriverId } from './types-2026';
 import { logger } from '@/src/core/observability/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -44,7 +44,11 @@ export class SSEBroadcaster {
     );
     
     if (clients.length === 0) {
-      logger.debug({ event }, 'No clients to broadcast to');
+      logger.debug('SSE_NO_CLIENTS', 'No clients to broadcast to', { 
+        restaurantId: event.restaurantId,
+        driverId: event.driverId,
+        eventType: event.type
+      });
       return;
     }
     
@@ -64,12 +68,16 @@ export class SSEBroadcaster {
         JSON.stringify(event)
       );
     } catch (error) {
-      logger.error({ error, event }, 'Failed to publish event to Redis');
+      logger.error('SSE_REDIS_PUBLISH_ERROR', 'Failed to publish event to Redis', error as Error, {
+        restaurantId: event.restaurantId,
+        driverId: event.driverId,
+        eventType: event.type
+      });
     }
     
     const latency = Date.now() - startTime;
     
-    logger.info({
+    logger.info('SSE_BROADCAST_COMPLETE', 'Broadcast event to SSE clients', {
       eventId: event.id,
       eventType: event.type,
       totalClients: clients.length,
@@ -78,15 +86,15 @@ export class SSEBroadcaster {
       latencyMs: latency,
       restaurantId: event.restaurantId,
       driverId: event.driverId
-    }, 'Broadcast event to SSE clients');
+    });
     
     // Validate latency requirement (< 500ms)
     if (latency > 500) {
-      logger.warn({
+      logger.warn('SSE_LATENCY_EXCEEDED', 'SSE broadcast latency exceeded 500ms threshold', {
         eventId: event.id,
         latencyMs: latency,
         threshold: 500
-      }, 'SSE broadcast latency exceeded 500ms threshold');
+      });
     }
   }
   
@@ -111,17 +119,16 @@ export class SSEBroadcaster {
       
       client.controller.enqueue(encoded);
       
-      logger.debug({
+      logger.debug('SSE_CLIENT_SENT', 'Sent event to SSE client', {
         clientId,
         eventId: event.id,
         eventType: event.type
-      }, 'Sent event to SSE client');
+      });
     } catch (error) {
-      logger.error({
+      logger.error('SSE_CLIENT_SEND_ERROR', 'Failed to send event to SSE client', error as Error, {
         clientId,
-        eventId: event.id,
-        error
-      }, 'Failed to send event to SSE client');
+        eventId: event.id
+      });
       
       // Remove failed client
       await sseConnectionManager.removeClient(clientId);
@@ -219,24 +226,26 @@ export class SSEBroadcaster {
               clients.map(client => this.sendToClient(client.id, event))
             );
             
-            logger.debug({
+            logger.debug('SSE_REDIS_EVENT_RECEIVED', 'Received event from Redis Pub/Sub', {
               eventId: event.id,
               eventType: event.type,
               localClients: clients.length
-            }, 'Received event from Redis Pub/Sub');
+            });
           } catch (error) {
-            logger.error({ error, message }, 'Error processing Redis Pub/Sub message');
+            logger.error('SSE_REDIS_MESSAGE_ERROR', 'Error processing Redis Pub/Sub message', error as Error, {
+              message
+            });
           }
         }
       );
       
       this.subscriptionActive = true;
       
-      logger.info({
+      logger.info('SSE_REDIS_SUBSCRIPTION_STARTED', 'Started Redis Pub/Sub subscription for SSE broadcasting', {
         channel: this.REDIS_CHANNEL
-      }, 'Started Redis Pub/Sub subscription for SSE broadcasting');
+      });
     } catch (error) {
-      logger.error({ error }, 'Failed to start Redis Pub/Sub subscription');
+      logger.error('SSE_REDIS_SUBSCRIPTION_ERROR', 'Failed to start Redis Pub/Sub subscription', error as Error);
       // Continue without Redis Pub/Sub (single-instance mode)
     }
   }
@@ -249,9 +258,9 @@ export class SSEBroadcaster {
       try {
         await deliveryRedisService.unsubscribe(this.REDIS_CHANNEL);
         this.subscriptionActive = false;
-        logger.info('Stopped Redis Pub/Sub subscription');
+        logger.info('SSE_REDIS_SUBSCRIPTION_STOPPED', 'Stopped Redis Pub/Sub subscription');
       } catch (error) {
-        logger.error({ error }, 'Error stopping Redis Pub/Sub subscription');
+        logger.error('SSE_REDIS_UNSUBSCRIBE_ERROR', 'Error stopping Redis Pub/Sub subscription', error as Error);
       }
     }
   }
@@ -286,8 +295,8 @@ export const sseBroadcaster = new SSEBroadcaster();
 export async function broadcastDeliveryEvent(
   type: DeliveryEvent['type'],
   data: Record<string, unknown>,
-  restaurantId?: string,
-  driverId?: string
+  restaurantId?: TenantId,
+  driverId?: DriverId
 ): Promise<void> {
   const event: DeliveryEvent = {
     id: '', // Will be generated by broadcaster

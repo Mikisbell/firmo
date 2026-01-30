@@ -11,8 +11,8 @@
  */
 
 import webpush from 'web-push';
-import { prisma } from '@/lib/prisma';
-import { getRedisClient } from './redis-connection';
+import prisma from '@/src/core/db/prisma';
+import { deliveryRedisService } from './redis-connection';
 import type {
   PushNotification,
   PushSubscription,
@@ -345,7 +345,7 @@ export async function queueNotification(
   driverId: DriverId,
   notification: PushNotification
 ): Promise<void> {
-  const redis = getRedisClient();
+  const redis = deliveryRedisService;
   const queueKey = `push:queue:${tenantId}:${driverId}`;
 
   const queueItem = {
@@ -375,7 +375,7 @@ export async function processQueue(
   tenantId: TenantId,
   driverId: DriverId
 ): Promise<void> {
-  const redis = getRedisClient();
+  const redis = deliveryRedisService;
   const queueKey = `push:queue:${tenantId}:${driverId}`;
 
   // Get all queued notifications
@@ -412,7 +412,7 @@ export async function processQueue(
  * This should be called periodically (e.g., every 10 seconds)
  */
 export async function processAllQueues(): Promise<void> {
-  const redis = getRedisClient();
+  const redis = deliveryRedisService;
 
   // Get all queue keys
   const keys = await redis.keys('push:queue:*');

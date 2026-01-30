@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
       driverId
     );
     
-    logger.info({
+    logger.info('TEST_DELIVERY_EVENT_BROADCAST', 'Test delivery event broadcast', {
       type,
       restaurantId,
       driverId,
       dataKeys: Object.keys(data)
-    }, 'Test delivery event broadcast');
+    });
     
     return NextResponse.json({
       success: true,
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    logger.error({ error }, 'Error broadcasting test delivery event');
+    logger.error('TEST_DELIVERY_EVENT_ERROR', 'Error broadcasting test delivery event', error instanceof Error ? error : undefined);
     
     return NextResponse.json(
       { 

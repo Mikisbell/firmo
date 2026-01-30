@@ -37,12 +37,12 @@ export async function GET(request: NextRequest) {
   
   const clientId = uuidv4();
   
-  logger.info({
+  logger.info('SSE_CONNECTION_REQUEST', 'SSE connection request', {
     clientId,
     restaurantId,
     driverId,
     lastEventId
-  }, 'SSE connection request');
+  });
   
   // Create a ReadableStream for SSE
   const stream = new ReadableStream({
@@ -71,16 +71,15 @@ export async function GET(request: NextRequest) {
           await sendMissedEvents(controller, lastEventId, restaurantId, driverId);
         }
         
-        logger.info({
+        logger.info('SSE_CONNECTION_ESTABLISHED', 'SSE connection established', {
           clientId,
           restaurantId,
           driverId
-        }, 'SSE connection established');
+        });
       } catch (error) {
-        logger.error({
-          clientId,
-          error
-        }, 'Error establishing SSE connection');
+        logger.error('SSE_CONNECTION_ERROR', 'Error establishing SSE connection', error instanceof Error ? error : undefined, {
+          clientId
+        });
         
         try {
           controller.error(error);
@@ -94,11 +93,11 @@ export async function GET(request: NextRequest) {
       // Client disconnected
       await sseConnectionManager.removeClient(clientId);
       
-      logger.info({
+      logger.info('SSE_CONNECTION_CLOSED', 'SSE connection closed by client', {
         clientId,
         restaurantId,
         driverId
-      }, 'SSE connection closed by client');
+      });
     }
   });
   
@@ -144,7 +143,7 @@ async function sendInitialState(
     const activeDeliveries = await prisma.delivery_orders.findMany({
       where,
       include: {
-        driver: {
+        drivers: {
           select: {
             id: true,
             name: true,
@@ -170,17 +169,16 @@ async function sendInitialState(
     
     controller.enqueue(initialStateMessage);
     
-    logger.debug({
+    logger.debug('SSE_INITIAL_STATE_SENT', 'Sent initial state to SSE client', {
       deliveryCount: activeDeliveries.length,
       restaurantId,
       driverId
-    }, 'Sent initial state to SSE client');
+    });
   } catch (error) {
-    logger.error({
-      error,
+    logger.error('SSE_INITIAL_STATE_ERROR', 'Error sending initial state', error instanceof Error ? error : undefined, {
       restaurantId,
       driverId
-    }, 'Error sending initial state');
+    });
   }
 }
 
@@ -208,13 +206,13 @@ async function sendMissedEvents(
     // Format: timestamp-counter-uuid
     const parts = lastEventId.split('-');
     if (parts.length < 1) {
-      logger.warn({ lastEventId }, 'Invalid Last-Event-ID format');
+      logger.warn('SSE_INVALID_LAST_EVENT_ID', 'Invalid Last-Event-ID format', { lastEventId });
       return;
     }
     
     const lastTimestamp = parseInt(parts[0], 10);
     if (isNaN(lastTimestamp)) {
-      logger.warn({ lastEventId }, 'Invalid timestamp in Last-Event-ID');
+      logger.warn('SSE_INVALID_TIMESTAMP', 'Invalid timestamp in Last-Event-ID', { lastEventId });
       return;
     }
     
@@ -239,7 +237,7 @@ async function sendMissedEvents(
     const recentUpdates = await prisma.delivery_orders.findMany({
       where,
       include: {
-        driver: {
+        drivers: {
           select: {
             id: true,
             name: true,
@@ -248,7 +246,7 @@ async function sendMissedEvents(
         }
       },
       orderBy: {
-        updated_at: 'asc'
+        created_at: 'desc' // Use created_at since updated_at doesn't exist
       },
       take: 50 // Limit to prevent overwhelming the client
     });
@@ -260,24 +258,23 @@ async function sendMissedEvents(
         `event: order_updated\n` +
         `data: ${JSON.stringify({
           delivery,
-          timestamp: delivery.updated_at.toISOString()
+          timestamp: delivery.created_at.toISOString() // Use created_at since updated_at doesn't exist
         })}\n\n`
       );
       controller.enqueue(eventMessage);
     }
     
-    logger.info({
+    logger.info('SSE_MISSED_EVENTS_SENT', 'Sent missed events to reconnecting SSE client', {
       lastEventId,
       missedEvents: recentUpdates.length,
       restaurantId,
       driverId
-    }, 'Sent missed events to reconnecting SSE client');
+    });
   } catch (error) {
-    logger.error({
-      error,
+    logger.error('SSE_MISSED_EVENTS_ERROR', 'Error sending missed events', error instanceof Error ? error : undefined, {
       lastEventId,
       restaurantId,
       driverId
-    }, 'Error sending missed events');
+    });
   }
 }

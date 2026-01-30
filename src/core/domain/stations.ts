@@ -8,15 +8,18 @@ export const STATIONS = {
     POSTRES: "POSTRES",
     FREIDORA: "FREIDORA",
     BAR: "BAR",
+    HORNO: "HORNO",
+    EMPAQUE: "EMPAQUE",
 } as const;
 
 export type StationCode = typeof STATIONS[keyof typeof STATIONS];
 
 // Grupos de estaciones por pantalla KDS
 export const STATION_GROUPS = {
-    HORNO: [STATIONS.PARRILLA] as StationCode[],
+    HORNO: [STATIONS.PARRILLA, STATIONS.HORNO] as StationCode[],
     COCINA: [STATIONS.COCINA, STATIONS.FRIOS, STATIONS.POSTRES, STATIONS.FREIDORA] as StationCode[],
     BAR: [STATIONS.BAR] as StationCode[],
+    EMPAQUE: [STATIONS.EMPAQUE] as StationCode[],
 } as const;
 
 export type StationGroup = keyof typeof STATION_GROUPS;

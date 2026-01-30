@@ -46,6 +46,11 @@ export const TERMINAL_CONFIG = {
         actor_id: EMPLOYEE_IDS.BAR_JORGE,
         role: "KITCHEN",
     },
+    SPC_EMPAQUE: {
+        terminal_id: "SPC_EMPAQUE",
+        actor_id: EMPLOYEE_IDS.KITCHEN_LUIS, // Can use same employee or create new one
+        role: "KITCHEN",
+    },
 } as const;
 
 export type TerminalId = keyof typeof TERMINAL_CONFIG;

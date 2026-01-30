@@ -66,12 +66,16 @@ export class SSEConnectionManager {
     await deliveryRedisService.sadd(redisKey, clientId);
     await deliveryRedisService.expire(redisKey, this.REDIS_TTL_SECONDS);
     
-    logger.info({
-      clientId,
-      restaurantId,
-      driverId,
-      totalClients: this.clients.size
-    }, 'SSE client connected');
+    logger.info(
+      'sse.client.connected',
+      'SSE client connected',
+      {
+        clientId,
+        restaurantId,
+        driverId,
+        totalClients: this.clients.size
+      }
+    );
   }
   
   /**
@@ -90,7 +94,7 @@ export class SSEConnectionManager {
       client.controller.close();
     } catch (error) {
       // Stream may already be closed
-      logger.debug({ clientId, error }, 'Error closing SSE stream');
+      logger.debug('sse.stream.close.error', 'Error closing SSE stream', { clientId });
     }
     
     // Remove from memory
@@ -100,13 +104,17 @@ export class SSEConnectionManager {
     const redisKey = this.getRedisKey(client.restaurantId);
     await deliveryRedisService.srem(redisKey, clientId);
     
-    logger.info({
-      clientId,
-      restaurantId: client.restaurantId,
-      driverId: client.driverId,
-      connectionDuration: Date.now() - client.connectedAt.getTime(),
-      totalClients: this.clients.size
-    }, 'SSE client disconnected');
+    logger.info(
+      'sse.client.disconnected',
+      'SSE client disconnected',
+      {
+        clientId,
+        restaurantId: client.restaurantId,
+        driverId: client.driverId,
+        connectionDuration: Date.now() - client.connectedAt.getTime(),
+        totalClients: this.clients.size
+      }
+    );
   }
   
   /**
@@ -162,7 +170,7 @@ export class SSEConnectionManager {
         client.controller.enqueue(heartbeat);
         client.lastHeartbeat = now;
       } catch (error) {
-        logger.warn({ clientId, error }, 'Failed to send heartbeat');
+        logger.warn('sse.heartbeat.failed', 'Failed to send heartbeat', { clientId });
         failedClients.push(clientId);
       }
     }
@@ -173,10 +181,14 @@ export class SSEConnectionManager {
     }
     
     if (failedClients.length > 0) {
-      logger.info({
-        removedClients: failedClients.length,
-        remainingClients: this.clients.size
-      }, 'Removed failed clients after heartbeat');
+      logger.info(
+        'sse.heartbeat.cleanup',
+        'Removed failed clients after heartbeat',
+        {
+          removedClients: failedClients.length,
+          remainingClients: this.clients.size
+        }
+      );
     }
   }
   
@@ -201,10 +213,14 @@ export class SSEConnectionManager {
     }
     
     if (staleClients.length > 0) {
-      logger.info({
-        removedClients: staleClients.length,
-        remainingClients: this.clients.size
-      }, 'Cleaned up stale SSE connections');
+      logger.info(
+        'sse.cleanup.stale',
+        'Cleaned up stale SSE connections',
+        {
+          removedClients: staleClients.length,
+          remainingClients: this.clients.size
+        }
+      );
     }
   }
   
@@ -218,13 +234,17 @@ export class SSEConnectionManager {
     
     this.heartbeatInterval = setInterval(() => {
       this.sendHeartbeat().catch(error => {
-        logger.error({ error }, 'Error in heartbeat interval');
+        logger.error('sse.heartbeat.interval.error', 'Error in heartbeat interval', error);
       });
     }, this.HEARTBEAT_INTERVAL_MS);
     
-    logger.info({
-      intervalMs: this.HEARTBEAT_INTERVAL_MS
-    }, 'Started SSE heartbeat interval');
+    logger.info(
+      'sse.heartbeat.started',
+      'Started SSE heartbeat interval',
+      {
+        intervalMs: this.HEARTBEAT_INTERVAL_MS
+      }
+    );
   }
   
   /**
@@ -237,13 +257,17 @@ export class SSEConnectionManager {
     
     this.cleanupInterval = setInterval(() => {
       this.cleanupStaleConnections().catch(error => {
-        logger.error({ error }, 'Error in cleanup interval');
+        logger.error('sse.cleanup.interval.error', 'Error in cleanup interval', error);
       });
     }, this.CLEANUP_INTERVAL_MS);
     
-    logger.info({
-      intervalMs: this.CLEANUP_INTERVAL_MS
-    }, 'Started SSE cleanup interval');
+    logger.info(
+      'sse.cleanup.started',
+      'Started SSE cleanup interval',
+      {
+        intervalMs: this.CLEANUP_INTERVAL_MS
+      }
+    );
   }
   
   /**
@@ -266,7 +290,7 @@ export class SSEConnectionManager {
       await this.removeClient(clientId);
     }
     
-    logger.info('SSE connection manager shut down');
+    logger.info('sse.shutdown', 'SSE connection manager shut down');
   }
   
   /**

@@ -333,6 +333,227 @@ export const deliveryRedisService = {
   },
 
   /**
+   * Increment a key value
+   */
+  async incr(key: string): Promise<number> {
+    try {
+      if (deliveryRedis) {
+        return await deliveryRedis.incr(key);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        const currentValue = existing ? parseInt(existing.value, 10) : 0;
+        const newValue = currentValue + 1;
+        inMemoryStore.set(key, {
+          value: newValue.toString(),
+          expiresAt: existing?.expiresAt || Date.now() + 3600000,
+        });
+        return newValue;
+      }
+      return 0;
+    } catch (error) {
+      pinoLogger.error({ error, key }, 'Failed to increment Redis key');
+      throw error;
+    }
+  },
+
+  /**
+   * Decrement a key value
+   */
+  async decr(key: string): Promise<number> {
+    try {
+      if (deliveryRedis) {
+        return await deliveryRedis.decr(key);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        const currentValue = existing ? parseInt(existing.value, 10) : 0;
+        const newValue = Math.max(0, currentValue - 1);
+        inMemoryStore.set(key, {
+          value: newValue.toString(),
+          expiresAt: existing?.expiresAt || Date.now() + 3600000,
+        });
+        return newValue;
+      }
+      return 0;
+    } catch (error) {
+      pinoLogger.error({ error, key }, 'Failed to decrement Redis key');
+      throw error;
+    }
+  },
+
+  /**
+   * Increment a hash field
+   */
+  async hincrby(key: string, field: string, increment: number): Promise<number> {
+    try {
+      if (deliveryRedis) {
+        return await deliveryRedis.hincrby(key, field, increment);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        const hash = existing ? JSON.parse(existing.value) : {};
+        const currentValue = hash[field] ? parseInt(hash[field], 10) : 0;
+        const newValue = currentValue + increment;
+        hash[field] = newValue.toString();
+        inMemoryStore.set(key, {
+          value: JSON.stringify(hash),
+          expiresAt: existing?.expiresAt || Date.now() + 3600000,
+        });
+        return newValue;
+      }
+      return 0;
+    } catch (error) {
+      pinoLogger.error({ error, key, field, increment }, 'Failed to increment Redis hash field');
+      throw error;
+    }
+  },
+
+  /**
+   * Get all fields and values from a hash
+   */
+  async hgetall(key: string): Promise<Record<string, string>> {
+    try {
+      if (deliveryRedis) {
+        return await deliveryRedis.hgetall(key);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        if (!existing) return {};
+        
+        // Check expiration
+        if (Date.now() > existing.expiresAt) {
+          inMemoryStore.delete(key);
+          return {};
+        }
+        
+        return JSON.parse(existing.value);
+      }
+      return {};
+    } catch (error) {
+      pinoLogger.error({ error, key }, 'Failed to get Redis hash');
+      throw error;
+    }
+  },
+
+  /**
+   * Get a range of elements from a list
+   */
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    try {
+      if (deliveryRedis) {
+        return await deliveryRedis.lrange(key, start, stop);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        if (!existing) return [];
+        
+        // Check expiration
+        if (Date.now() > existing.expiresAt) {
+          inMemoryStore.delete(key);
+          return [];
+        }
+        
+        const list = JSON.parse(existing.value);
+        
+        // Handle negative indices
+        const actualStart = start < 0 ? Math.max(0, list.length + start) : start;
+        const actualStop = stop < 0 ? list.length + stop + 1 : stop + 1;
+        
+        return list.slice(actualStart, actualStop);
+      }
+      return [];
+    } catch (error) {
+      pinoLogger.error({ error, key, start, stop }, 'Failed to get Redis list range');
+      throw error;
+    }
+  },
+
+  /**
+   * Remove elements from a list
+   */
+  async lrem(key: string, count: number, value: string): Promise<number> {
+    try {
+      if (deliveryRedis) {
+        return await deliveryRedis.lrem(key, count, value);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        if (!existing) return 0;
+        
+        const list = JSON.parse(existing.value);
+        let removed = 0;
+        
+        if (count > 0) {
+          // Remove first N occurrences
+          for (let i = 0; i < list.length && removed < count; i++) {
+            if (list[i] === value) {
+              list.splice(i, 1);
+              removed++;
+              i--;
+            }
+          }
+        } else if (count < 0) {
+          // Remove last N occurrences
+          for (let i = list.length - 1; i >= 0 && removed < Math.abs(count); i--) {
+            if (list[i] === value) {
+              list.splice(i, 1);
+              removed++;
+            }
+          }
+        } else {
+          // Remove all occurrences
+          const originalLength = list.length;
+          const filtered = list.filter((item: string) => item !== value);
+          removed = originalLength - filtered.length;
+          list.length = 0;
+          list.push(...filtered);
+        }
+        
+        inMemoryStore.set(key, {
+          value: JSON.stringify(list),
+          expiresAt: existing.expiresAt,
+        });
+        
+        return removed;
+      }
+      return 0;
+    } catch (error) {
+      pinoLogger.error({ error, key, count, value }, 'Failed to remove from Redis list');
+      throw error;
+    }
+  },
+
+  /**
+   * Get element from list by index
+   */
+  async lindex(key: string, index: number): Promise<string | null> {
+    try {
+      if (deliveryRedis) {
+        return await deliveryRedis.lindex(key, index);
+      } else if (inMemoryStore) {
+        const existing = inMemoryStore.get(key);
+        if (!existing) return null;
+        
+        // Check expiration
+        if (Date.now() > existing.expiresAt) {
+          inMemoryStore.delete(key);
+          return null;
+        }
+        
+        const list = JSON.parse(existing.value);
+        
+        // Handle negative indices
+        const actualIndex = index < 0 ? list.length + index : index;
+        
+        if (actualIndex < 0 || actualIndex >= list.length) {
+          return null;
+        }
+        
+        return list[actualIndex];
+      }
+      return null;
+    } catch (error) {
+      pinoLogger.error({ error, key, index }, 'Failed to get Redis list element');
+      throw error;
+    }
+  },
+
+  /**
    * Unsubscribe from a channel
    */
   async unsubscribe(channel: string): Promise<void> {
