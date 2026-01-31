@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { validateToken } from '@/src/core/auth/auth.service';
+import { rateLimitMiddleware } from '@/src/middleware/rate-limit';
 
 // Routes that require authentication
 const PROTECTED_ROUTES = ['/admin'];
@@ -19,6 +20,12 @@ const PUBLIC_ROUTES = ['/api/auth', '/pos', '/mozo', '/cocina', '/caja', '/bar',
 const API_ROUTES_WITH_OWN_AUTH = ['/api/admin', '/api/inventory'];
 
 export async function middleware(request: NextRequest) {
+  // Apply rate limiting first
+  const rateLimitResult = await rateLimitMiddleware(request);
+  if (rateLimitResult) {
+    return rateLimitResult;
+  }
+  
   const { pathname } = request.nextUrl;
 
   // Skip public routes

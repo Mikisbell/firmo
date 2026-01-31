@@ -11,7 +11,7 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
     reactStrictMode: true,
     
-    // CORS Configuration
+    // Security Headers Configuration
     async headers() {
         return [
             {
@@ -32,7 +32,41 @@ const nextConfig = {
                     },
                     {
                         key: 'Access-Control-Max-Age',
-                        value: '86400', // 24 hours
+                        value: '3600', // Reduced to 1 hour for security
+                    },
+                ],
+            },
+            {
+                // Apply security headers to all routes
+                source: '/(.*)',
+                headers: [
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY',
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=()',
+                    },
+                    {
+                        key: 'X-XSS-Protection',
+                        value: '1; mode=block',
+                    },
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains; preload',
+                    },
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.push.apple.com https://updates.push.services.mozilla.com; frame-ancestors 'none';",
                     },
                 ],
             },

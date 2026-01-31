@@ -57,3 +57,7 @@ public/sw.js
 public/sw.js.map
 public/swe-worker-*.js
 public/workbox-*.js
+node_modules/
+.env
+.env.local
+.env.production
