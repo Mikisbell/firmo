@@ -9,7 +9,6 @@
  */
 
 import bcrypt from 'bcrypt';
-import { generateToken as generateRandomToken } from './crypto-utils';
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 import { createSession, generateToken as generateJWT } from './auth.service';
 
@@ -121,7 +120,7 @@ export async function storeMFAChallenge(
 ): Promise<void> {
     await prisma.mfa_challenges.create({
         data: {
-            id: generateRandomToken(16),
+            id: crypto.randomUUID(),
             tenant_id: tenantId,
             employee_id: employeeId,
             challenge,
@@ -221,7 +220,7 @@ export async function recordLoginAttempt(
 ): Promise<void> {
     await prisma.login_attempts.create({
         data: {
-            id: generateRandomToken(16),
+            id: crypto.randomUUID(),
             tenant_id: tenantId,
             employee_id: employeeId,
             success,
@@ -240,7 +239,7 @@ export async function generateRefreshToken(
     employeeId: string,
     tenantId: string
 ): Promise<{ token: string; tokenId: string }> {
-    const tokenId = generateRandomToken(32);
+    const tokenId = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_DURATION_MS);
     
     const refreshTokenSecret = new TextEncoder().encode(REFRESH_TOKEN_SECRET);
@@ -372,7 +371,7 @@ export async function authenticate(
     await recordLoginAttempt(prisma, tenantId, true, employee.id, { ...metadata, mfaVerified: false });
 
     // Create session and tokens
-    const tokenHash = generateRandomToken(32);
+    const tokenHash = crypto.randomUUID();
     const sessionId = await createSession(prisma, tenantId, employee.id, tokenHash, metadata);
     const { token } = await generateJWT(employee, tenantId, sessionId);
     const { token: refreshToken, tokenId } = await generateRefreshToken(employee.id, tenantId);
@@ -439,7 +438,7 @@ export async function authenticateWithMFA(
     await recordLoginAttempt(prisma, tenantId, true, employeeId, { ...metadata, mfaVerified: true, attemptType: 'mfa' });
 
     // Create session and tokens
-    const tokenHash = generateRandomToken(32);
+    const tokenHash = crypto.randomUUID();
     const sessionId = await createSession(prisma, tenantId, employeeId, tokenHash, metadata);
     const { token } = await generateJWT(employee, tenantId, sessionId);
     const { token: refreshToken, tokenId } = await generateRefreshToken(employeeId, tenantId);

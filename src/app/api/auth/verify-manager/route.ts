@@ -9,8 +9,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/logger';
 import { logAuthEvent } from '@/src/core/auth/audit-logger';
-import { hashPin } from '@/src/core/auth/crypto-utils';
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -23,8 +21,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Dynamic import to avoid Edge Runtime issues
+    const { hashPin } = await import('@/src/core/auth/crypto-utils');
+    
     // Hash the PIN before comparing
-    const pinHash = hashPin(pin);
+    const pinHash = await hashPin(pin);
 
     // Find manager/admin employees
     const managers = await prisma.employees.findMany({

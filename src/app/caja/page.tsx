@@ -36,8 +36,6 @@ import {
   Settings,
   Printer
 } from 'lucide-react';
-import { useOfflineStatus } from '@/src/hooks/useOffline';
-
 // ============ TYPES ============
 
 interface Order {
