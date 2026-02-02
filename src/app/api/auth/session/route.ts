@@ -135,14 +135,23 @@ export async function POST(request: NextRequest) {
       employee: authResult.employee,
     });
 
+    console.log('[Session API] Setting cookie:');
+    console.log('  Token exists:', !!authResult.token);
+    console.log('  Token length:', authResult.token?.length);
+
     // Set secure httpOnly cookie
-    response.cookies.set('auth_token', authResult.token!, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 8, // 8 hours
-      path: '/',
-    });
+    if (authResult.token) {
+      response.cookies.set('auth_token', authResult.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 8, // 8 hours
+        path: '/',
+      });
+      console.log('[Session API] Cookie set successfully');
+    } else {
+      console.log('[Session API] ⚠️  Token is undefined!');
+    }
 
     return response;
   } catch (error) {
