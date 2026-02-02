@@ -11,7 +11,6 @@
  */
 
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
-import { hashPin, verifyPin, generateToken as generateRandomToken, generateTokenHash } from './crypto-utils';
 
 type PrismaClientType = any;
 
@@ -110,9 +109,11 @@ export async function recordLoginAttempt(
     employeeId?: string,
     metadata?: { ip?: string; userAgent?: string; terminalId?: string }
 ): Promise<void> {
+    const { generateToken: generateRandomToken } = await import('./crypto-utils');
+    
     await prisma.login_attempts.create({
         data: {
-            id: generateRandomToken(16),
+            id: await generateRandomToken(16),
             tenant_id: tenantId,
             employee_id: employeeId,
             pin_hash: pinHash,
@@ -140,9 +141,11 @@ export async function logAdminAccess(
         details?: Record<string, string | number | boolean | null>;
     }
 ): Promise<void> {
+    const { generateToken: generateRandomToken } = await import('./crypto-utils');
+    
     await prisma.admin_access_logs.create({
         data: {
-            id: generateRandomToken(16),
+            id: await generateRandomToken(16),
             tenant_id: tenantId,
             employee_id: employeeId,
             action,
@@ -212,7 +215,9 @@ export async function createSession(
     tokenHash: string,
     metadata?: { ip?: string; userAgent?: string; terminalId?: string }
 ): Promise<string> {
-    const sessionId = generateRandomToken(16);
+    const { generateToken: generateRandomToken } = await import('./crypto-utils');
+    
+    const sessionId = await generateRandomToken(16);
     
     await prisma.sessions.create({
         data: {
@@ -311,7 +316,9 @@ export async function authenticate(
     allowedRoles: string[],
     metadata?: { ip?: string; userAgent?: string; terminalId?: string }
 ): Promise<AuthResult> {
-    const pinHash = hashPin(pin);
+    const { hashPin, generateTokenHash } = await import('./crypto-utils');
+    
+    const pinHash = await hashPin(pin);
 
     // 1. Check lockout
     const lockout = await isLockedOut(prisma, tenantId, pinHash);
@@ -379,7 +386,7 @@ export async function authenticate(
     // 5. Success - create session and token
     await recordLoginAttempt(prisma, tenantId, pinHash, true, employee.id, metadata);
 
-    const tokenHash = generateTokenHash();
+    const tokenHash = await generateTokenHash();
     const sessionId = await createSession(prisma, tenantId, employee.id, tokenHash, metadata);
     const { token, expiresAt } = await generateToken(employee, tenantId, sessionId);
 

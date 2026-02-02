@@ -5,11 +5,17 @@
  * Services implement the business logic and orchestration layer.
  */
 
-export { OrderService, orderService, CreateOrderInput, OrderResult } from './order.service';
-export { PromotionService, promotionService, ApplyPromotionInput, ValidationResult } from './promotion.service';
+export { OrderService, orderService } from './order.service';
+export type { CreateOrderInput, OrderResult } from './order.service';
+
+export { PromotionService, promotionService } from './promotion.service';
+export type { ApplyPromotionInput, ValidationResult } from './promotion.service';
+
 export {
   InvoiceService,
   invoiceService,
+} from './invoice.service';
+export type {
   EmitInvoiceInput,
   VoidInvoiceInput,
   GenerateCreditNoteInput,
@@ -25,15 +31,13 @@ export {
 export {
   PaymentService,
   paymentService,
+} from './payment.service';
+export type {
   ProcessPaymentInput,
   PaymentResult,
   VoidPaymentInput,
   VoidPaymentResult,
-  SplitPaymentInput,
-  SplitPaymentEntry,
-  SplitPaymentResult,
   PaymentMethodConfig,
-  ChangeCalculation,
 } from './payment.service';
 
 // Future services to implement:
@@ -43,36 +47,32 @@ export {
 export {
   InventoryService,
   inventoryService,
-  GetStockInput,
-  StockResult,
-  DeductStockInput,
-  DeductStockItem,
-  AdjustStockInput,
-  ReceiveStockInput,
-  ReceiveStockItem,
-  RecordWasteInput,
-  StockAlertResult,
-  AlertSeverity,
-  StockStatus,
+} from './inventory.service';
+export type {
+  StockInfo,
+  DeductionItem,
+  DeductionResult,
+  AdjustmentInput,
+  AdjustmentResult,
+  ReceiptItem,
+  ReceiptInput,
+  ReceiptResult,
+  WasteInput,
+  WasteResult,
+  StockAlert,
+  InventoryFilters,
 } from './inventory.service';
 
 export {
   DeliveryService,
-  deliveryService,
-  CreateDeliveryInput,
-  AddressInput,
-  DeliveryResult,
-  AssignDriverInput,
-  AssignDriverResult,
-  UpdateDeliveryStatusInput,
-  DeliveryStatusUpdateResult,
-  LocationInput,
-  LocationUpdateResult,
-  ETAResult,
-  RouteOptimizationResult,
-  DeliveryStop,
-  OptimizedRoute,
+} from './delivery.service';
+export type {
   DeliveryStatus,
-  DeliveryMetrics,
-  DriverMetrics,
+  GeoCoordinates,
+  DeliveryAddress,
+  CreateDeliveryInput,
+  DeliveryResult,
+  ETAResult,
+  OptimizedRoute,
+  LocationTrack,
 } from './delivery.service';

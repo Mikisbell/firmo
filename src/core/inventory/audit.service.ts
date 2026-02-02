@@ -7,6 +7,7 @@
  * @module audit.service
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/src/core/db/prisma';
 import type { Centavos } from '@/src/core/types/shared';
 
@@ -39,7 +40,7 @@ export interface AuditLogEntry {
 export async function logInventoryAudit(entry: AuditLogEntry): Promise<string> {
   const log = await prisma.admin_access_logs.create({
     data: {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       tenant_id: entry.tenant_id,
       employee_id: entry.actor_id,
       action: entry.action,

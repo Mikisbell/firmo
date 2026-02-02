@@ -449,7 +449,11 @@ class EnhancedETACalculator {
     confidence: number;
     type: 'EXPRESS' | 'STANDARD' | 'ECONOMY';
   }> {
-    const alternatives = [];
+    const alternatives: Array<{
+      minutes: number;
+      confidence: number;
+      type: 'EXPRESS' | 'STANDARD' | 'ECONOMY';
+    }> = [];
 
     // Express: Faster but more expensive
     alternatives.push({

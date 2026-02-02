@@ -173,6 +173,10 @@ class WhatsAppBusinessService {
    * Send delivery driver assignment notification
    */
   async sendDriverAssignment(data: DeliveryNotificationData): Promise<MessageAnalytics> {
+    if (!data.driverPhone) {
+      throw new Error('Driver phone is required for driver assignment notification');
+    }
+
     const templateName = 'driver_assignment_v1';
     const templateData = {
       driver_name: data.driverName,
@@ -213,7 +217,7 @@ class WhatsAppBusinessService {
       templateData: promotionData,
     };
 
-    const results = [];
+    const results: MessageAnalytics[] = [];
     
     // Send to each phone number (would use bulk API in production)
     for (const phoneNumber of phoneNumbers) {
@@ -272,7 +276,7 @@ class WhatsAppBusinessService {
     message: string,
     mediaUrl?: string
   ): Promise<MessageAnalytics[]> {
-    const results = [];
+    const results: MessageAnalytics[] = [];
     
     for (const phoneNumber of phoneNumbers) {
       const textMessage: WhatsAppMessage = {
@@ -307,22 +311,14 @@ class WhatsAppBusinessService {
         type: message.type,
         ...(message.type === 'text' && {
           text: { body: message.content },
-          ...(message.mediaUrl && {
-            text: { 
-              body: message.content,
-              preview_url: message.mediaUrl 
-            }
-          }),
-        },
+        }),
         ...(message.type === 'template' && {
           template: {
             name: message.templateName,
             language: 'es', // Default to Spanish
-            components: this.buildTemplateComponents(message.templateData, message.interactiveButtons),
+            components: this.buildTemplateComponents(message.templateData || {}, message.interactiveButtons),
           },
         }),
-      },
-
         // Optional metadata
         ...(message.type === 'template' && {
           application_metadata: {
@@ -714,13 +710,18 @@ class WhatsAppBusinessService {
       }));
 
     // Error breakdown
-    const errors = logs
+    const errorMap = logs
       .filter(log => log.status === 'failed' && log.errorReason)
       .reduce((acc, log) => {
         const errorType = log.errorReason || 'unknown';
         acc[errorType] = (acc[errorType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
+
+    const errors = Object.entries(errorMap).map(([type, count]) => ({
+      type,
+      count,
+    }));
 
     return {
       totalSent,

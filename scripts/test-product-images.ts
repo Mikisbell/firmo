@@ -3,6 +3,7 @@
  * Verifica que el campo images funciona correctamente
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import prisma from '../src/core/db/prisma';
 import { getTenantId } from '../src/core/config/tenant';
 
@@ -25,7 +26,7 @@ async function testProductImages() {
       
       const newProduct = await prisma.products.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: TENANT_ID,
           sku: 'TEST-IMG-001',
           name: 'Producto de Prueba con Imágenes',

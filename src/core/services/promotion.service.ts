@@ -7,10 +7,10 @@
 
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, DomainError, ValidationError, ConflictError } from '@/core/result';
-import { withTransaction } from '@/core/db/enhanced-prisma';
-import { CacheService } from '@/core/cache/redis.service';
-import { pinoLogger } from '@/core/observability/logger-pino';
+import { Result, ok, err, DomainError, ValidationError, ConflictError } from '@/src/core/result';
+import { CacheService } from '@/src/core/cache/redis.service';
+import { pinoLogger } from '@/src/core/observability/logger-pino';
+import { withTransaction } from '@/src/core/db/transaction';
 
 export interface ApplyPromotionInput {
   tenantId: string;
@@ -224,7 +224,7 @@ export class PromotionService {
     }
 
     // Invalidate caches
-    await this.cache.delete(`order:${input.tenantId}:${input.orderId}`);
+    await this.cache.del(`order:${input.tenantId}:${input.orderId}`);
 
     pinoLogger.info(
       {
@@ -334,7 +334,7 @@ export class PromotionService {
       ));
     }
 
-    await this.cache.delete(`order:${tenantId}:${orderId}`);
+    await this.cache.del(`order:${tenantId}:${orderId}`);
 
     return ok({
       orderId,
@@ -415,7 +415,7 @@ export class PromotionService {
       ));
     }
 
-    await this.cache.delete(`order:${tenantId}:${orderId}`);
+    await this.cache.del(`order:${tenantId}:${orderId}`);
 
     return ok({
       orderId,

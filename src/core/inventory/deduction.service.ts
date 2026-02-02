@@ -1,5 +1,6 @@
 // src/core/inventory/deduction.service.ts
 // Inventory Deduction Service - Schema Completeness Fase 5
+import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient, Prisma } from "@prisma/client";
 import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/src/core/observability/logger';
@@ -111,7 +112,7 @@ export async function deductInventoryForOrder(
         // 5. Create InventoryLog
         await tx.inventory_log.create({
           data: {
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             tenant_id: tenantId,
             inventory_id: inventory.id,
             movement_type: "OUT",
@@ -138,7 +139,7 @@ export async function deductInventoryForOrder(
           // Create stock alert in database
           await tx.stock_alerts.create({
             data: {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               tenant_id: tenantId,
               location_id: locationId,
               sku: ingredient.inventory_code,
@@ -159,7 +160,7 @@ export async function deductInventoryForOrder(
           // Create stock alert in database
           await tx.stock_alerts.create({
             data: {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               tenant_id: tenantId,
               location_id: locationId,
               sku: ingredient.inventory_code,
@@ -270,7 +271,7 @@ export async function reverseDeduction(
         // Create reversal log
         await tx.inventory_log.create({
           data: {
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             tenant_id: tenantId,
             inventory_id: inventory.id,
             movement_type: "ADJUST",

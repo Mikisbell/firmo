@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 const VERIFY_API_URL = "http://localhost:3000/api/events/ingest";
@@ -15,19 +16,19 @@ async function verify() {
         // 2. Prepare Test Event
         const tenantId = "00000000-0000-0000-0000-111111111111"; // Valid UUID
         const testEvent = {
-            event_id: crypto.randomUUID(),
+            event_id: uuidv4(),
             event_type: "ORDER_CREATED",
             aggregate_type: "ORDER",
-            aggregate_id: crypto.randomUUID(),
+            aggregate_id: uuidv4(),
             tenant_id: tenantId,
             terminal_id: "verifier_script",
             terminal_sequence: Date.now(),
-            correlation_id: crypto.randomUUID(), // Added
+            correlation_id: uuidv4(), // Added
             occurred_at: new Date().toISOString(),
             actor_id: "00000000-0000-0000-0000-000000000000",
             schema_version: 1,
             payload: {
-                order_id: crypto.randomUUID(),
+                order_id: uuidv4(),
                 order_number: 9999,
                 order_type: "DINE_IN",
                 items: [],

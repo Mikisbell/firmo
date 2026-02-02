@@ -10,6 +10,7 @@
 
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
+import { v4 as uuidv4 } from 'uuid';
 import { applySaleEvent, createOrderFromEvent } from "../sale.reducer";
 import type { ParkEvent } from "@/src/core/domain/events";
 
@@ -22,10 +23,10 @@ function makeOrderCreatedEvent(overrides: Partial<{
     order_number: number;
     order_type: "DINE_IN" | "TAKEOUT" | "DELIVERY";
 }> = {}): Extract<ParkEvent, { event_type: "ORDER_CREATED" }> {
-    const order_id = overrides.order_id || crypto.randomUUID();
+    const order_id = overrides.order_id || uuidv4();
     return {
-        event_id: crypto.randomUUID(),
-        tenant_id: crypto.randomUUID(),
+        event_id: uuidv4(),
+        tenant_id: uuidv4(),
         terminal_id: "T001",
         terminal_sequence: 1,
         occurred_at: new Date().toISOString(),
@@ -33,7 +34,7 @@ function makeOrderCreatedEvent(overrides: Partial<{
         aggregate_id: order_id,
         correlation_id: order_id,
         causation_id: null,
-        actor_id: crypto.randomUUID(),
+        actor_id: uuidv4(),
         actor_role_snapshot: "CASHIER",
         schema_version: 1,
         payload_version: 1,
@@ -71,8 +72,8 @@ function makeItemAddedEvent(
     } = {}
 ): ParkEvent {
     return {
-        event_id: crypto.randomUUID(),
-        tenant_id: crypto.randomUUID(),
+        event_id: uuidv4(),
+        tenant_id: uuidv4(),
         terminal_id: "T001",
         terminal_sequence: seq,
         occurred_at: new Date().toISOString(),
@@ -80,16 +81,16 @@ function makeItemAddedEvent(
         aggregate_id: order_id,
         correlation_id: order_id,
         causation_id: null,
-        actor_id: crypto.randomUUID(),
+        actor_id: uuidv4(),
         actor_role_snapshot: "CASHIER",
         schema_version: 1,
         payload_version: 1,
         event_type: "ORDER_ITEM_ADDED",
         payload: {
             order_id,
-            line: {
-                line_id: item.line_id || crypto.randomUUID(),
-                product_id: item.product_id || crypto.randomUUID(),
+                line: {
+                line_id: item.line_id || uuidv4(),
+                product_id: item.product_id || uuidv4(),
                 sku: "SKU001",
                 name: item.name || "Test Product",
                 qty: item.qty || 1,
@@ -192,10 +193,10 @@ describe("sale.reducer Property Tests", () => {
                     const createEvent = makeOrderCreatedEvent();
                     let sale = createOrderFromEvent(createEvent);
                     
-                    // Create a single item event with fixed line_id
-                    const lineId = crypto.randomUUID();
-                    const itemEvent = makeItemAddedEvent(sale.order_id, 2, {
-                        line_id: lineId,
+            // Create a single item event with fixed line_id
+            const lineId = uuidv4();
+            const itemEvent = makeItemAddedEvent(sale.order_id, 2, {
+                line_id: lineId,
                         qty,
                         unit_price_cents: price,
                     });

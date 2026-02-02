@@ -1,3 +1,5 @@
+'use server';
+
 /**
  * Crypto utilities
  * 
@@ -14,27 +16,29 @@ const SALT = process.env.PIN_SALT || 'PARK_POS_2026_';
 /**
  * Hash a PIN using SHA256 + salt
  */
-export function hashPin(pin: string): string {
+export async function hashPin(pin: string): Promise<string> {
   return createHash('sha256').update(SALT + pin).digest('hex');
 }
 
 /**
  * Verify a PIN against a hash
  */
-export function verifyPin(pin: string, hash: string): boolean {
-  return hashPin(pin) === hash;
+export async function verifyPin(pin: string, hash: string): Promise<boolean> {
+  const computed = await hashPin(pin);
+  return computed === hash;
 }
 
 /**
  * Generate a random token
  */
-export function generateToken(length: number = 32): string {
+export async function generateToken(length: number = 32): Promise<string> {
   return randomBytes(length).toString('hex');
 }
 
 /**
  * Generate a token hash (for session tokens)
  */
-export function generateTokenHash(): string {
-  return createHash('sha256').update(generateToken(32)).digest('hex');
+export async function generateTokenHash(): Promise<string> {
+  const token = await generateToken(32);
+  return createHash('sha256').update(token).digest('hex');
 }

@@ -9,6 +9,7 @@
 
 import { logger } from '@/src/core/observability/logger';
 import type { TerminalDevice } from './terminal-registry';
+import { v4 as uuidv4 } from 'uuid';
 
 // ============ TYPES ============
 
@@ -277,7 +278,7 @@ export async function validateOffline(
 
     // Add to pending events for sync
     await addPendingEvent({
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       terminal_id: terminalId,
       employee_id: employeeId,
       event_type: 'login_success',
@@ -294,7 +295,7 @@ export async function validateOffline(
 
     // Add to pending events for sync
     await addPendingEvent({
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       terminal_id: terminalId,
       employee_id: employeeId,
       event_type: 'login_failed',

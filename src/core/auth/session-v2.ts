@@ -11,6 +11,7 @@ import { logger } from '@/src/core/observability/logger';
 import type { FingerprintResult } from './fingerprint-v2';
 import { calculateSimilarity } from './fingerprint-v2';
 import type { TerminalDevice } from './terminal-registry';
+import { v4 as uuidv4 } from 'uuid';
 
 // ============ TYPES ============
 
@@ -160,7 +161,7 @@ export function createSession(
   fingerprint: FingerprintResult,
   riskScore: number
 ): SecureSession {
-  const sessionId = crypto.randomUUID();
+  const sessionId = uuidv4();
   const now = new Date();
   const expiresAt = new Date(now.getTime() + SESSION_TIMEOUT_MINUTES * 60 * 1000);
 

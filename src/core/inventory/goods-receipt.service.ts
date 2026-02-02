@@ -1,5 +1,6 @@
 // src/core/inventory/goods-receipt.service.ts
 // Goods Receipt Service - Schema Completeness Fase 3
+import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient, Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import type { Centavos } from "@/src/core/types/shared";
@@ -83,7 +84,7 @@ export async function confirmGoodsReceipt(
           // Create inventory record if it doesn't exist
           inventory = await tx.inventory.create({
             data: {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               tenant_id,
               code: item.inventory_code,
               name: item.inventory_code, // Default name
@@ -99,7 +100,7 @@ export async function confirmGoodsReceipt(
         if (quantityReceived > 0) {
           await tx.inventory_log.create({
             data: {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               tenant_id,
               inventory_id: inventory.id,
               movement_type: "IN",
@@ -125,7 +126,7 @@ export async function confirmGoodsReceipt(
         if (quantityRejected > 0) {
           await tx.waste_logs.create({
             data: {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               tenant_id,
               location_id,
               inventory_code: item.inventory_code,
@@ -144,7 +145,7 @@ export async function confirmGoodsReceipt(
           // Also create InventoryLog for waste tracking
           await tx.inventory_log.create({
             data: {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               tenant_id,
               inventory_id: inventory.id,
               movement_type: "WASTE",
@@ -211,7 +212,7 @@ export async function createGoodsReceipt(
   try {
     const receipt = await prisma.goods_receipts.create({
       data: {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         tenant_id: input.tenant_id,
         location_id: input.location_id,
         purchase_order_id: input.purchase_order_id,
@@ -221,7 +222,7 @@ export async function createGoodsReceipt(
         notes: input.notes,
         goods_receipt_items: {
           create: input.items.map((item) => ({
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             inventory_code: item.inventory_code,
             quantity_ordered: new Decimal(item.quantity_ordered),
             quantity_received: new Decimal(item.quantity_received),

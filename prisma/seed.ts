@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { createHash } from "crypto";
+import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_TENANT_ID, DEFAULT_LOCATION_ID } from "../src/core/config/location";
 import { getDefaultEmployees, getAdminEmployeeId, DEFAULT_EMPLOYEE_IDS as EMPLOYEE_IDS } from "../src/core/config/employees";
 
@@ -13,7 +14,7 @@ function hashPin(pin: string): string {
 }
 
 function uuid(): string {
-    return crypto.randomUUID();
+    return uuidv4();
 }
 
 async function main() {

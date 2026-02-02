@@ -76,7 +76,9 @@ export default function TerminalsPage() {
   const fetchDevices = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/terminals-v2');
+      const res = await fetch('/api/admin/terminals-v2', {
+        credentials: 'include',
+      });
       if (!res.ok) throw new Error('Failed to fetch devices');
       const data = await res.json();
       setDevices(data.devices);
@@ -123,6 +125,7 @@ export default function TerminalsPage() {
       const res = await fetch('/api/admin/terminals-v2/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 

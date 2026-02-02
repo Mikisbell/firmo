@@ -23,10 +23,10 @@ function getClientIdentifier(request: NextRequest): string {
   const userId = request.headers.get('x-user-id');
   if (userId) return userId;
   
-  // Fallback to IP address
+  // Fallback to IP address from headers
   const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0] : request.ip;
-  return ip || 'unknown';
+  const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || 'unknown';
+  return ip;
 }
 
 function isRateLimited(identifier: string, isAuthRoute = false): boolean {

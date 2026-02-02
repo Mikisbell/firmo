@@ -1,4 +1,5 @@
 // Script para crear un pedido de prueba con items de cocina y bar
+import { v4 as uuidv4 } from 'uuid';
 
 const TEST_ORDER_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const TERM_ID = "waiter_1";
@@ -8,7 +9,7 @@ const INGEST_API_URL = "http://localhost:3000/api/events/ingest";
 const API_SECRET = "park_secret_mvp_2025";
 
 function uuid() {
-    return crypto.randomUUID();
+    return uuidv4();
 }
 
 async function createTestOrder() {

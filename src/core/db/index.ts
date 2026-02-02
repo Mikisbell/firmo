@@ -8,3 +8,4 @@ export {
     clearAllLocalData,
     type CleanupResult,
 } from './cleanup';
+export { withTransaction, type TransactionOptions } from './transaction';

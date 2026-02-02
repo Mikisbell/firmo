@@ -7,6 +7,7 @@ import prisma from '@/src/core/db/prisma';
 import { Driver, DriverWithStatus, DriverStatus, DeliveryOrder } from './types';
 import { asCentavos } from '@/src/core/types/shared';
 import { getAdminEmployeeId } from '@/src/core/config/employees';
+import { v4 as uuidv4 } from 'uuid';
 
 export class DriverServiceError extends Error {
   constructor(
@@ -32,7 +33,7 @@ export const DriverService = {
       throw new DriverServiceError('Name is required', 'VALIDATION_ERROR');
     }
 
-    const id = crypto.randomUUID();
+    const id = uuidv4();
     const adminId = getAdminEmployeeId();
 
     // Create driver in transaction with audit trail
@@ -50,7 +51,7 @@ export const DriverService = {
       // Log audit trail
       await tx.admin_access_logs.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: tenantId,
           employee_id: adminId,
           action: 'CREATE',
@@ -96,7 +97,7 @@ export const DriverService = {
       // Log audit trail
       await tx.admin_access_logs.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: driver.tenant_id,
           employee_id: adminId,
           action: 'UPDATE',
@@ -139,7 +140,7 @@ export const DriverService = {
       // Log audit trail
       await tx.admin_access_logs.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: driver.tenant_id,
           employee_id: adminId,
           action: 'DELETE',

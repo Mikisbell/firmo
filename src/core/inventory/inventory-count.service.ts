@@ -1,5 +1,6 @@
 // src/core/inventory/inventory-count.service.ts
 // Inventory Count Service - Schema Completeness Fase 4
+import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient, Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { unsafeCentavos, type Centavos } from "@/src/core/types/shared";
@@ -72,7 +73,7 @@ export async function startInventoryCount(
     // 2. Create count with items
     const count = await prisma.inventory_counts.create({
       data: {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         tenant_id,
         location_id,
         count_date: new Date(),
@@ -81,7 +82,7 @@ export async function startInventoryCount(
         counted_by,
         inventory_count_items: {
           create: inventoryItems.map((inv) => ({
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             inventory_code: inv.code,
             expected_qty: inv.stock,
             counted_qty: new Decimal(0), // To be filled during count
@@ -253,7 +254,7 @@ export async function approveInventoryCount(
         // Create adjustment log
         await tx.inventory_log.create({
           data: {
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             tenant_id,
             inventory_id: inventory.id,
             movement_type: "ADJUST",

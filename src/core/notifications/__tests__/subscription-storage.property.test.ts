@@ -11,6 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
+import { v4 as uuidv4 } from 'uuid';
 
 // Mock prisma
 const mockPrisma = {
@@ -76,7 +77,7 @@ describe('Property 6: Subscription Storage Integrity', () => {
       }
       
       const newSub: StoredSubscription = {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         tenant_id: args.create.tenant_id,
         employee_id: args.create.employee_id,
         endpoint: args.create.endpoint,

@@ -11,6 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import * as fc from 'fast-check';
+import { v4 as uuidv4 } from 'uuid';
 import type { NotificationPayload, NotificationType, PushSubscription } from '../types';
 
 // Track console logs
@@ -157,8 +158,8 @@ describe('Property 10: Graceful Failure on Missing Subscription', () => {
         async (tenantId, role, payload) => {
           // Employees without subscriptions
           const employees = [
-            { id: crypto.randomUUID(), subscriptions: [] },
-            { id: crypto.randomUUID(), subscriptions: [] },
+            { id: uuidv4(), subscriptions: [] },
+            { id: uuidv4(), subscriptions: [] },
           ];
 
           // Should not throw
@@ -185,8 +186,8 @@ describe('Property 10: Graceful Failure on Missing Subscription', () => {
         async (tenantId, role, payload) => {
           // Employees without subscriptions
           const employees = [
-            { id: crypto.randomUUID(), subscriptions: [] },
-            { id: crypto.randomUUID(), subscriptions: [] },
+            { id: uuidv4(), subscriptions: [] },
+            { id: uuidv4(), subscriptions: [] },
           ];
 
           const result = await sendToRoleWithNoSubscriptions(tenantId, role, payload as NotificationPayload, employees);

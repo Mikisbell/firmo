@@ -8,7 +8,7 @@ import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { randomUUID } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import { validateInventoryAuth, createAuthErrorResponse } from '@/src/core/middleware/inventory-auth';
 import { logWasteRecorded, logInventoryFailure } from '@/src/core/inventory/audit.service';
 import { asCentavos } from '@/src/core/types/shared';
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
       // 7a. Create WasteLog
       const wasteLog = await tx.waste_logs.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: input.tenant_id,
           location_id: input.location_id,
           inventory_code: input.inventory_code,
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
       // 7b. Create InventoryLog
       const inventoryLog = await tx.inventory_log.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: input.tenant_id,
           inventory_id: inventory.id,
           movement_type: 'WASTE',
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
       });
 
       // 7d. Create immutable event
-      const eventId = randomUUID();
+      const eventId = uuidv4();
       await tx.events.create({
         data: {
           id: eventId,

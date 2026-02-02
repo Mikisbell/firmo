@@ -3,11 +3,14 @@
  * 
  * Validates JWT tokens from httpOnly cookies for admin routes
  * Adds user information to request headers for downstream use
+ * 
+ * Uses Edge Runtime compatible JWT validation (Web Crypto API)
+ * Node.js crypto operations are kept out of middleware
  */
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { validateToken } from '@/src/core/auth/auth.service';
+import { validateTokenMiddleware, extractToken } from '@/src/core/auth/middleware-auth';
 import { rateLimitMiddleware } from '@/src/middleware/rate-limit';
 
 // Routes that require authentication
@@ -46,8 +49,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get token from cookie
-  const token = request.cookies.get('auth_token')?.value;
+  // Get token using Edge-compatible extraction
+  const token = extractToken(request);
 
   if (!token) {
     // No token, redirect to login (only for UI pages, not APIs)
@@ -57,8 +60,9 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Validate token
-    const tokenResult = await validateToken(token);
+    // Validate token using Edge Runtime compatible function
+    // This uses Web Crypto API via jose - NO Node.js crypto
+    const tokenResult = await validateTokenMiddleware(token);
 
     if (!tokenResult.valid || !tokenResult.payload) {
       // Invalid token, clear cookie and redirect to login

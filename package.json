@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "seed:prod": "tsx scripts/seed-production.ts",
-    "verify:prod": "tsx scripts/verify-production-seed.ts"
+    "verify:prod": "tsx scripts/verify-production-seed.ts",
+    "diagnose:terminals": "tsx scripts/diagnose-terminals.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.1",
@@ -20,6 +21,7 @@
     "@supabase/supabase-js": "^2.93.1",
     "@tensorflow/tfjs": "^4.22.0",
     "@types/react-window": "^1.8.8",
+    "axios": "^1.13.4",
     "bcrypt": "^5.1.1",
     "clsx": "^2.1.1",
     "dexie": "^4.0.11",

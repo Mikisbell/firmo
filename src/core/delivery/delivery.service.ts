@@ -13,6 +13,7 @@ import {
 } from './types';
 import { notifyDeliveryAssigned } from './notification-handlers';
 import { asCentavos } from '@/src/core/types/shared';
+import { v4 as uuidv4 } from 'uuid';
 
 export class DeliveryServiceError extends Error {
   constructor(
@@ -30,7 +31,7 @@ export const DeliveryService = {
    * Crear un nuevo delivery order
    */
   async createDeliveryOrder(input: CreateDeliveryInput): Promise<DeliveryOrder> {
-    const id = crypto.randomUUID();
+    const id = uuidv4();
     
     const delivery = await prisma.delivery_orders.create({
       data: {

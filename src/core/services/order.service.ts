@@ -14,10 +14,10 @@
 
 import { PrismaClient, Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, DomainError, ValidationError, NotFoundError } from '@/core/result';
-import { withTransaction, QueryMonitor } from '@/core/db/enhanced-prisma';
-import { CacheService } from '@/core/cache/redis.service';
-import { pinoLogger } from '@/core/observability/logger-pino';
+import { Result, ok, err, DomainError, ValidationError, NotFoundError } from '@/src/core/result';
+import { CacheService } from '@/src/core/cache/redis.service';
+import { pinoLogger } from '@/src/core/observability/logger-pino';
+import { withTransaction } from '@/src/core/db/transaction';
 
 // Types
 export interface CreateOrderInput {
@@ -194,17 +194,12 @@ export class OrderService {
     }
 
     // Query database
-    const order = await QueryMonitor.measure(
-      'getOrder',
-      async () => {
-        return await this.prisma.orders.findFirst({
-          where: {
-            id: orderId,
-            tenant_id: tenantId,
-          },
-        });
-      }
-    );
+    const order = await this.prisma.orders.findFirst({
+      where: {
+        id: orderId,
+        tenant_id: tenantId,
+      },
+    });
 
     if (!order) {
       return err(new NotFoundError('Order', orderId));
@@ -303,7 +298,7 @@ export class OrderService {
     }
 
     // Invalidate cache
-    await this.cache.delete(`order:${tenantId}:${orderId}`);
+    await this.cache.del(`order:${tenantId}:${orderId}`);
 
     const result: OrderResult = {
       id: txResult.data.id,
@@ -444,7 +439,7 @@ export class OrderService {
 
   private async invalidateOrderCaches(tenantId: string): Promise<void> {
     // Invalidate active orders list
-    await this.cache.deletePattern(`orders:active:${tenantId}:*`);
+    await this.cache.invalidatePattern(`orders:active:${tenantId}:*`);
   }
 }
 

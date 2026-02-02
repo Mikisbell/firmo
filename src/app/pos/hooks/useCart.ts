@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { v4 as uuidv4 } from "uuid";
 
 // ============================================================================
 // Types
@@ -64,7 +65,7 @@ export const useCart = create<CartState>()(
                         items: [
                             ...state.items,
                             {
-                                id: crypto.randomUUID(),
+                                id: uuidv4(),
                                 productId: product.id,
                                 name: product.name,
                                 price: product.price,

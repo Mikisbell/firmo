@@ -1,5 +1,6 @@
 // src/core/inventory/waste.service.ts
 // Waste Log Service - Schema Completeness Fase 4
+import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient, Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { unsafeCentavos, type Centavos } from "@/src/core/types/shared";
@@ -78,7 +79,7 @@ export async function recordWaste(
       // Create WasteLog
       const wasteLog = await tx.waste_logs.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id,
           location_id,
           shift_id,
@@ -98,7 +99,7 @@ export async function recordWaste(
       // Create InventoryLog
       await tx.inventory_log.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id,
           inventory_id: inventory.id,
           movement_type: "WASTE",

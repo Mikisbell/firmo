@@ -6,6 +6,7 @@ import { validateEvent, type ValidationResult } from "@/src/core/validation";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
+import { v4 as uuidv4 } from 'uuid';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -372,7 +373,7 @@ export async function POST(req: Request) {
                 // Add to outbox (ATOMIC with event insert)
                 await tx.event_outbox.create({
                     data: {
-                        id: crypto.randomUUID(),
+                        id: uuidv4(),
                         tenant_id: ev.tenant_id,
                         event_id: ev.event_id,
                         payload: ev as any,

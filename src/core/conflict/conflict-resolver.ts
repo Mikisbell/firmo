@@ -1,6 +1,7 @@
 // src/core/conflict/conflict-resolver.ts
 // Conflict Resolution Service for PARK POS Multi-Terminal
 
+import { v4 as uuidv4 } from 'uuid';
 import { Prisma } from "@prisma/client";
 import type { ParkEvent } from "@/src/core/domain/events";
 import { conflictLogger, logger } from "@/src/core/observability/logger";
@@ -321,7 +322,7 @@ async function logConflict(
     // Ver docs/02-architecture/PRISMA_NAMING.md para convención de nombres
     await tx.conflict_logs.create({
       data: {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         tenant_id: data.tenant_id,
         aggregate_type: data.aggregate_type,
         aggregate_id: data.aggregate_id,

@@ -11,6 +11,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { v4 as uuidv4 } from 'uuid';
 
 // Tipos de eventos de inventario
 type InventoryEventType = 'GOODS_RECEIVED' | 'WASTE_RECORDED' | 'INVENTORY_ADJUSTED' | 'INVENTORY_DEDUCTED';
@@ -48,7 +49,7 @@ function createAuditEvent(
   payload: Record<string, unknown>
 ): AuditEvent {
   return {
-    event_id: crypto.randomUUID(),
+    event_id: uuidv4(),
     tenant_id: tenantId,
     occurred_at: new Date().toISOString(),
     actor_id: actorId,

@@ -7,8 +7,8 @@
  * @module core/integrations/sunat
  */
 
-import { pinoLogger } from '@/core/observability/logger-pino';
-import { Result, ok, err, DomainError } from '@/core/result';
+import { pinoLogger } from '@/src/core/observability/logger-pino';
+import { Result, ok, err, DomainError } from '@/src/core/result';
 
 // SUNAT Configuration
 const SUNAT_CONFIG = {

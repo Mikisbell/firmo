@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 const RegisterSchema = z.object({
   activation_code: z.string().min(8),
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     // Create terminal
     const terminal = await prisma.terminals.create({
       data: {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         tenant_id: tenantId,
         terminal_id: terminalId,
         device_secret_hash: data.device_fingerprint,

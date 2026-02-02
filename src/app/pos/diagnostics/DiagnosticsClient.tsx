@@ -6,6 +6,7 @@ import { getSyncClient } from "@/src/core/sync/client";
 import { useProjections } from "@/src/core/projections/useProjections";
 import { BackupSection } from "./BackupSection";
 import { DEFAULT_TENANT_ID } from "@/src/core/config/terminal";
+import { v4 as uuidv4 } from "uuid";
 
 // Si no tienes esto aún, no pasa nada: lo intentamos igual.
 async function tryPersist(): Promise<{ supported: boolean; granted: boolean | null }> {
@@ -76,16 +77,16 @@ export default function DiagnosticsClient() {
                 tenant_id,
                 terminal_id,
                 terminal_sequence: nextSeq,
-                event_id: crypto.randomUUID(),
+                event_id: uuidv4(),
                 event_type: "ORDER_CREATED", // Use valid event type
                 schema_version: 1,
                 occurred_at: now,
                 aggregate_type: "ORDER",
-                aggregate_id: crypto.randomUUID(),
+                aggregate_id: uuidv4(),
                 correlation_id: `corr_${nextSeq}`,
                 causation_id: null,
                 payload: {
-                    order_id: crypto.randomUUID(),
+                    order_id: uuidv4(),
                     order_number: nextSeq,
                     order_type: "DINE_IN",
                     items: []

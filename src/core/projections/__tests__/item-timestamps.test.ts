@@ -9,6 +9,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { v4 as uuidv4 } from 'uuid';
 import { applySaleEvent, createOrderFromEvent } from '../sale.reducer';
 import type { ParkEvent } from '@/src/core/domain/events';
 
@@ -17,13 +18,13 @@ const TERMINAL_ID = 'terminal-001';
 
 function createBaseEnvelope(seq: number, occurredAt: string): Omit<ParkEvent, 'event_type' | 'payload' | 'aggregate_type'> {
   return {
-    event_id: crypto.randomUUID(),
+    event_id: uuidv4(),
     tenant_id: TENANT_ID,
     terminal_id: TERMINAL_ID,
     terminal_sequence: seq,
     occurred_at: occurredAt,
-    aggregate_id: crypto.randomUUID(),
-    correlation_id: crypto.randomUUID(),
+    aggregate_id: uuidv4(),
+    correlation_id: uuidv4(),
     schema_version: 1,
     payload_version: 1,
   };
@@ -88,7 +89,7 @@ describe('Item Timestamps by Status - Property Tests', () => {
         (baseDate: Date) => {
           if (isNaN(baseDate.getTime())) return true;
           
-          const orderId = crypto.randomUUID();
+          const orderId = uuidv4();
           const lineId = 'line-001';
           const createTime = baseDate.toISOString();
           const cookingTime = new Date(baseDate.getTime() + 60000).toISOString(); // 1 min later
@@ -116,7 +117,7 @@ describe('Item Timestamps by Status - Property Tests', () => {
         (baseDate: Date) => {
           if (isNaN(baseDate.getTime())) return true;
           
-          const orderId = crypto.randomUUID();
+          const orderId = uuidv4();
           const lineId = 'line-001';
           const createTime = baseDate.toISOString();
           const readyTime = new Date(baseDate.getTime() + 120000).toISOString(); // 2 min later
@@ -144,7 +145,7 @@ describe('Item Timestamps by Status - Property Tests', () => {
         (baseDate: Date) => {
           if (isNaN(baseDate.getTime())) return true;
           
-          const orderId = crypto.randomUUID();
+          const orderId = uuidv4();
           const lineId = 'line-001';
           const createTime = baseDate.toISOString();
           const doneTime = new Date(baseDate.getTime() + 180000).toISOString(); // 3 min later
@@ -166,7 +167,7 @@ describe('Item Timestamps by Status - Property Tests', () => {
 
   // Property 3.4: Full lifecycle maintains all timestamps
   it('should maintain all timestamps through full lifecycle', () => {
-    const orderId = crypto.randomUUID();
+    const orderId = uuidv4();
     const lineId = 'line-001';
     const baseTime = new Date('2025-01-15T12:00:00Z');
     
@@ -207,7 +208,7 @@ describe('Item Timestamps by Status - Property Tests', () => {
 
   // Property 3.5: Timestamps are monotonically increasing in normal flow
   it('should have monotonically increasing timestamps in normal flow', () => {
-    const orderId = crypto.randomUUID();
+    const orderId = uuidv4();
     const lineId = 'line-001';
     const baseTime = new Date('2025-01-15T12:00:00Z');
     

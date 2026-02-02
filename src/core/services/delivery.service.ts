@@ -52,11 +52,11 @@
  * ```
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/src/core/db/prisma';
-import { Result, ok, err, DomainError, NotFoundError, ValidationError, ConflictError } from '@/core/result';
-import { withTransaction } from '@/core/db/enhanced-prisma';
+import { Result, ok, err, DomainError, NotFoundError, ValidationError, ConflictError } from '@/src/core/result';
 import { eventBus } from '@/src/core/infra/event-bus';
-import { whatsappService } from '@/core/delivery/whatsapp.service';
+import { whatsappService } from '@/src/core/delivery/whatsapp.service';
 import { 
   OrderId, 
   DriverId, 
@@ -66,7 +66,7 @@ import {
   toOrderId,
   toDriverId,
   toTenantId 
-} from '@/core/delivery/types-2026';
+} from '@/src/core/delivery/types-2026';
 import type { PrismaClient } from '@prisma/client';
 
 // ============================================
@@ -565,7 +565,7 @@ async function publishDeliveryEvent(
   payload: Record<string, unknown>
 ): Promise<void> {
   const event = {
-    event_id: crypto.randomUUID(),
+    event_id: uuidv4(),
     tenant_id: tenantId,
     terminal_id: 'delivery-service',
     terminal_sequence: 0,
@@ -573,7 +573,7 @@ async function publishDeliveryEvent(
     aggregate_type: 'ORDER' as const,
     aggregate_id: payload.order_id as string,
     event_type: eventType,
-    correlation_id: crypto.randomUUID(),
+    correlation_id: uuidv4(),
     payload_version: 1,
     payload,
   };
@@ -689,7 +689,7 @@ export class DeliveryServiceClass {
       return err(new ValidationError('Customer phone is required'));
     }
 
-    return await withTransaction(prisma, async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       // Verify order exists
       const order = await tx.orders.findUnique({
         where: { id: input.orderId },
@@ -705,7 +705,7 @@ export class DeliveryServiceClass {
       }
 
       // Create delivery
-      const deliveryId = crypto.randomUUID();
+      const deliveryId = uuidv4();
       const delivery = await tx.delivery_orders.create({
         data: {
           id: deliveryId,
@@ -753,7 +753,7 @@ export class DeliveryServiceClass {
       return err(new ValidationError('deliveryId and driverId are required'));
     }
 
-    return await withTransaction(prisma, async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       // Get delivery with lock
       const delivery = await tx.delivery_orders.findUnique({
         where: { id: deliveryId },
@@ -825,7 +825,7 @@ export class DeliveryServiceClass {
       );
 
       // Send WhatsApp notification (async, don't block)
-      whatsappService.sendOrderAssigned(deliveryId).catch((error) => {
+      whatsappService.sendOrderAssigned(toOrderId(deliveryId)).catch((error) => {
         console.warn('Failed to send WhatsApp notification:', error);
       });
 
@@ -872,7 +872,7 @@ export class DeliveryServiceClass {
       return err(new ValidationError('deliveryId is required'));
     }
 
-    return await withTransaction(prisma, async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       const delivery = await tx.delivery_orders.findUnique({
         where: { id: deliveryId },
       });
@@ -1037,7 +1037,7 @@ export class DeliveryServiceClass {
       return err(new ValidationError('lat and lng must be valid numbers'));
     }
 
-    return await withTransaction(prisma, async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       const delivery = await tx.delivery_orders.findUnique({
         where: { id: deliveryId },
       });
@@ -1323,10 +1323,10 @@ export class DeliveryServiceClass {
     switch (status) {
       case DeliveryStatus.PICKED_UP:
       case DeliveryStatus.IN_TRANSIT:
-        await whatsappService.sendOrderDispatched(deliveryId);
+        await whatsappService.sendOrderDispatched(toOrderId(deliveryId));
         break;
       case DeliveryStatus.DELIVERED:
-        await whatsappService.sendOrderDelivered(deliveryId);
+        await whatsappService.sendOrderDelivered(toOrderId(deliveryId));
         break;
       case DeliveryStatus.FAILED:
         // Get failure reason from delivery
@@ -1334,7 +1334,7 @@ export class DeliveryServiceClass {
           where: { id: deliveryId },
         });
         if (delivery?.failure_reason) {
-          await whatsappService.sendOrderFailed(deliveryId, delivery.failure_reason);
+          await whatsappService.sendOrderFailed(toOrderId(deliveryId), delivery.failure_reason);
         }
         break;
     }

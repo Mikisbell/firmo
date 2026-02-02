@@ -520,6 +520,27 @@ model invoices {
   @@index([tenant_id, created_at(sort: Desc)])
 }
 
+model payments {
+  id              String   @id @db.Uuid
+  tenant_id       String   @db.Uuid
+  order_id        String   @db.Uuid
+  check_id        String
+  amount_cents    Int
+  payment_method  String
+  reference       String?
+  status          String   @default("COMPLETED")
+  processed_at    DateTime @db.Timestamptz(6)
+  processed_by    String?  @db.Uuid
+  shift_id        String?  @db.Uuid
+  terminal_id     String
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, order_id])
+  @@index([tenant_id, check_id])
+  @@index([tenant_id, created_at(sort: Desc)])
+}
+}
+
 model login_attempts {
   id          String   @id @db.Uuid
   tenant_id   String   @db.Uuid

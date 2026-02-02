@@ -111,7 +111,9 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
   const fetchDetails = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/admin/terminals-v2/${terminalId}`);
+      const res = await fetch(`/api/admin/terminals-v2/${terminalId}`, {
+        credentials: 'include',
+      });
       if (!res.ok) throw new Error('Failed to fetch terminal details');
       const data = await res.json();
       setData(data);
@@ -140,6 +142,7 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
       setActionLoading('regenerate');
       const res = await fetch(`/api/admin/terminals-v2/${terminalId}/regenerate-code`, {
         method: 'POST',
+        credentials: 'include',
       });
 
       if (!res.ok) {
@@ -174,6 +177,7 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
       const res = await fetch(`/api/admin/terminals-v2/${terminalId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus }),
       });
 
@@ -202,11 +206,13 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
       setActionLoading('unbind');
       const res = await fetch(`/api/admin/terminals-v2/${terminalId}/unbind`, {
         method: 'POST',
+        credentials: 'include',
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to unbind terminal');
+        const errorDetails = data.details ? `\n\nDetalles: ${JSON.stringify(data.details, null, 2)}` : '';
+        throw new Error((data.error || 'Failed to unbind terminal') + errorDetails);
       }
 
       const result = await res.json();

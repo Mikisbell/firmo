@@ -8,7 +8,7 @@ import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { randomUUID } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import { validateInventoryAuth, createAuthErrorResponse } from '@/src/core/middleware/inventory-auth';
 import { logGoodsReceipt, logInventoryFailure } from '@/src/core/inventory/audit.service';
 import { asCentavos } from '@/src/core/types/shared';
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
       if (!inventory) {
         inventory = await tx.inventory.create({
           data: {
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             tenant_id: input.tenant_id,
             code: input.inventory_code,
             name: input.inventory_code,
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
       // 4c. Create GoodsReceipt
       const goodsReceipt = await tx.goods_receipts.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: input.tenant_id,
           location_id: input.location_id,
           receipt_number: receiptNumber,
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
           notes: input.notes,
           goods_receipt_items: {
             create: [{
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               inventory_code: input.inventory_code,
               quantity_ordered: new Decimal(input.quantity),
               quantity_received: new Decimal(input.quantity),
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
       // 4d. Create InventoryLog
       const inventoryLog = await tx.inventory_log.create({
         data: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           tenant_id: input.tenant_id,
           inventory_id: inventory.id,
           movement_type: 'IN',
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
       });
 
       // 4f. Create immutable event
-      const eventId = randomUUID();
+      const eventId = uuidv4();
       await tx.events.create({
         data: {
           id: eventId,

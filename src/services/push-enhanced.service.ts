@@ -118,9 +118,11 @@ class EnhancedPushService {
 
     try {
       const result = await webpush.sendNotification(
-        subscription.endpoint,
+        {
+          endpoint: subscription.endpoint,
+          keys: subscription.keys,
+        },
         payload,
-        subscription.keys,
         pushOptions
       );
 
@@ -544,7 +546,7 @@ class EnhancedPushService {
     }, {} as Record<string, number>);
     
     const mostUsedTemplate = Object.entries(templateCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || '';
+      .sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0] || '';
 
     // Error breakdown
     const errorBreakdown = logs.reduce((acc, log) => {

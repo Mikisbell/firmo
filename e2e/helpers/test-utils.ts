@@ -2,6 +2,7 @@
  * E2E Test Utilities for PARK POS
  */
 import { Page } from '@playwright/test';
+import { v4 as uuidv4 } from 'uuid';
 
 export const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 export const API_SECRET = 'park_secret_mvp_2025';
@@ -67,7 +68,7 @@ export async function loginWithPin(page: Page, pin: string) {
  */
 export async function createOrderViaAPI(orderId: string, orderNumber: number, items: any[] = []) {
   const event = {
-    event_id: crypto.randomUUID(),
+    event_id: uuidv4(),
     event_type: 'ORDER_CREATED',
     tenant_id: TENANT_ID,
     terminal_id: TERMINALS.CAJA,
@@ -76,14 +77,14 @@ export async function createOrderViaAPI(orderId: string, orderNumber: number, it
     aggregate_id: orderId,
     schema_version: 1,
     terminal_sequence: 1,
-    correlation_id: crypto.randomUUID(),
+    correlation_id: uuidv4(),
     payload: {
       order_id: orderId,
       order_number: orderNumber,
       order_type: 'DINE_IN',
       items: items,
       checks: [{ 
-        check_id: crypto.randomUUID(), 
+        check_id: uuidv4(), 
         lines: items,
         payment: { status: 'UNPAID', payments: [] },
         total_cents: items.reduce((sum: number, i: any) => sum + (i.price_cents * i.qty), 0),

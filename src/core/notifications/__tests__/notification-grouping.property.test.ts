@@ -9,6 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
+import { v4 as uuidv4 } from 'uuid';
 
 // Track notifications sent
 let notificationsSent: Array<{
@@ -221,7 +222,7 @@ describe('Property 9: Notification Grouping', () => {
           // Ensure different orders
           fc.pre(orderId1 !== orderId2);
 
-          const itemId2 = crypto.randomUUID();
+          const itemId2 = uuidv4();
 
           // Setup mock data for two orders with items embedded
           mockOrders.set(orderId1, {
@@ -272,11 +273,11 @@ describe('Property 9: Notification Grouping', () => {
   it('Property 9.4: Grouping window resets on new item', async () => {
     const { handleItemReady } = await import('../event-handlers');
 
-    const tenantId = crypto.randomUUID();
-    const orderId = crypto.randomUUID();
-    const waiterId = crypto.randomUUID();
-    const itemId1 = crypto.randomUUID();
-    const itemId2 = crypto.randomUUID();
+    const tenantId = uuidv4();
+    const orderId = uuidv4();
+    const waiterId = uuidv4();
+    const itemId1 = uuidv4();
+    const itemId2 = uuidv4();
 
     // Setup mock data with both items in the order
     mockOrders.set(orderId, {
@@ -323,10 +324,10 @@ describe('Property 9: Notification Grouping', () => {
   it('Property 9.5: Pending count is zero after flush', async () => {
     const { handleItemReady, getPendingNotificationsCount, flushPendingNotifications } = await import('../event-handlers');
 
-    const tenantId = crypto.randomUUID();
-    const orderId = crypto.randomUUID();
-    const waiterId = crypto.randomUUID();
-    const itemId = crypto.randomUUID();
+    const tenantId = uuidv4();
+    const orderId = uuidv4();
+    const waiterId = uuidv4();
+    const itemId = uuidv4();
 
     mockOrders.set(orderId, {
       id: orderId,

@@ -561,7 +561,7 @@ class AdvancedAnalyticsEngine {
       {
         id: 'revenue-widget',
         type: 'metric',
-        title: 'Today\\'s Revenue',
+        title: "Today's Revenue",
         size: 'medium',
         position: { x: 0, y: 0 },
         config: {
@@ -570,6 +570,7 @@ class AdvancedAnalyticsEngine {
           change: 12.5, // Placeholder - would calculate from comparison
           period: 'today',
         },
+        data: metrics.sales,
         refreshInterval: 60, // 1 minute
       },
       {
@@ -584,6 +585,7 @@ class AdvancedAnalyticsEngine {
           change: 8.3,
           period: 'today',
         },
+        data: { totalOrders: metrics.sales.totalOrders },
         refreshInterval: 60,
       },
       {
@@ -594,13 +596,13 @@ class AdvancedAnalyticsEngine {
         position: { x: 0, y: 1 },
         config: {
           type: 'line',
-          data: Object.entries(metrics.sales.revenueByHour).map(([hour, revenue]) => ({
-            x: hour,
-            y: revenue / 100, // Convert to dollars
-          })),
           backgroundColor: '#2563eb',
           borderColor: '#1e40af',
         },
+        data: Object.entries(metrics.sales.revenueByHour).map(([hour, revenue]) => ({
+          x: hour,
+          y: revenue / 100, // Convert to dollars
+        })),
         refreshInterval: 300, // 5 minutes
       },
       {
@@ -615,12 +617,12 @@ class AdvancedAnalyticsEngine {
             { key: 'quantity', label: 'Sold' },
             { key: 'revenue', label: 'Revenue' },
           ],
-          data: metrics.sales.topProducts.map(product => ({
-            name: product.name,
-            quantity: product.quantity,
-            revenue: `$${(product.revenue / 100).toFixed(2)}`,
-          })),
         },
+        data: metrics.sales.topProducts.map(product => ({
+          name: product.name,
+          quantity: product.quantity,
+          revenue: `${(product.revenue / 100).toFixed(2)}`,
+        })),
         refreshInterval: 600, // 10 minutes
       },
       {
@@ -638,6 +640,7 @@ class AdvancedAnalyticsEngine {
             danger: 70,
           },
         },
+        data: metrics.delivery,
         refreshInterval: 300,
       },
     ];
@@ -647,7 +650,7 @@ class AdvancedAnalyticsEngine {
    * Generate business insights
    */
   private generateInsights(metrics: AnalyticsMetrics): string[] {
-    const insights = [];
+    const insights: string[] = [];
 
     // Sales insights
     if (metrics.sales.averageTicket > 50) {

@@ -9,6 +9,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
+import { v4 as uuidv4 } from 'uuid';
 import { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
 
 // Mock localStorage
@@ -64,7 +65,7 @@ function createOrderEvent(
     terminal_id: config.terminal_id,
     actor_id: config.terminal_id, // For waiter, actor_id = terminal_id
     payload: {
-      order_id: crypto.randomUUID(),
+      order_id: uuidv4(),
       table_number: tableNumber,
     },
   };

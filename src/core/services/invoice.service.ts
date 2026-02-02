@@ -15,10 +15,10 @@
 
 import { PrismaClient, Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, DomainError, ValidationError, NotFoundError, ConflictError, ForbiddenError } from '@/core/result';
-import { withTransaction, QueryMonitor } from '@/core/db/enhanced-prisma';
-import { CacheService } from '@/core/cache/redis.service';
-import { pinoLogger } from '@/core/observability/logger-pino';
+import { Result, ok, err, DomainError, ValidationError, NotFoundError, ConflictError, ForbiddenError } from '@/src/core/result';
+import { CacheService } from '@/src/core/cache/redis.service';
+import { pinoLogger } from '@/src/core/observability/logger-pino';
+import { withTransaction } from '@/src/core/db/transaction';
 
 // ============================================================================
 // Tipos y Enums
@@ -503,17 +503,12 @@ export class InvoiceService {
     }
 
     // Consultar base de datos
-    const invoice = await QueryMonitor.measure(
-      'getInvoice',
-      async () => {
-        return await this.prisma.invoices.findFirst({
-          where: {
-            id: invoiceId,
-            tenant_id: tenantId,
-          },
-        });
-      }
-    );
+    const invoice = await this.prisma.invoices.findFirst({
+      where: {
+        id: invoiceId,
+        tenant_id: tenantId,
+      },
+    });
 
     if (!invoice) {
       return err(new NotFoundError('Invoice', invoiceId));
@@ -1208,17 +1203,3 @@ export class InvoiceService {
 export const invoiceService = new InvoiceService(
   new PrismaClient()
 );
-
-// Re-export types for consumers
-export {
-  EmitInvoiceInput,
-  VoidInvoiceInput,
-  GenerateCreditNoteInput,
-  InvoiceResult,
-  CreditNoteResult,
-  SunatStatusResult,
-  PaymentSummary,
-  InvoiceType,
-  InvoiceStatus,
-  SunatStatus,
-};

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -205,6 +205,14 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
         setPendingTerminal({ id, role, label });
         setView('activation');
         setSelecting(null);
+        return;
+      }
+
+      // If 403 Forbidden (fingerprint mismatch - likely HTTP vs HTTPS issue)
+      // Redirect to simple activation page
+      if (validateResponse.status === 403) {
+        console.log('Fingerprint mismatch detected, redirecting to simple activation...');
+        window.location.href = `/simple-activate?terminal=${encodeURIComponent(id)}&role=${encodeURIComponent(role)}&label=${encodeURIComponent(label)}`;
         return;
       }
 

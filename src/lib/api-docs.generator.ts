@@ -35,9 +35,12 @@ export interface OpenAPIDocument {
   }>;
   security: Array<{
     type: string;
-    scheme: string;
+    scheme?: string;
     bearerFormat?: string;
     description: string;
+    in?: string;
+    name?: string;
+    [key: string]: any;
   }>;
   paths: Record<string, any>;
   components: {
@@ -133,7 +136,8 @@ All errors follow this standard format:
       components: {
         schemas,
         securitySchemes: security.reduce((acc, scheme) => {
-          acc[scheme.name] = scheme;
+          const name = (scheme as any).name || scheme.scheme;
+          acc[name] = scheme;
           return acc;
         }, {}),
         responses: this.generateStandardResponses(),
@@ -887,9 +891,12 @@ All errors follow this standard format:
    */
   private generateSecuritySchemes(): Array<{
     type: string;
-    scheme: string;
+    scheme?: string;
     bearerFormat?: string;
     description: string;
+    in?: string;
+    name?: string;
+    [key: string]: any;
   }> {
     return [
       {

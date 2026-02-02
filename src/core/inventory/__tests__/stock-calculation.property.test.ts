@@ -11,6 +11,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { v4 as uuidv4 } from 'uuid';
 
 // Tipos de movimiento
 type MovementType = 'IN' | 'OUT' | 'WASTE' | 'ADJUST';
@@ -124,7 +125,7 @@ const balancedEventsArb = fc.array(eventArb, { minLength: 1, maxLength: 50 }).ma
   if (totalOut > totalIn) {
     // Agregar entrada para balancear
     events.push({
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       type: 'IN',
       quantity: totalOut - totalIn + 100,
       timestamp: 0, // Al inicio
