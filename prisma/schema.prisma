@@ -1629,3 +1629,82 @@ model delivery_metrics {
   @@unique([tenant_id, date, hour])
   @@index([tenant_id, date])
 }
+
+// ============================================
+// Security: Multi-Factor Authentication
+// ============================================
+
+model active_sessions {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id         String    @db.Uuid
+  employee_id       String    @db.Uuid
+  terminal_id       String
+  device_id         String    @db.Uuid
+  session_token     String    @unique
+  ip_address        String
+  user_agent        String?
+  location_lat      Decimal?  @db.Decimal(10, 7)
+  location_lng      Decimal?  @db.Decimal(10, 7)
+  started_at        DateTime  @default(now()) @db.Timestamptz(6)
+  last_activity_at  DateTime  @default(now()) @db.Timestamptz(6)
+  ended_at          DateTime? @db.Timestamptz(6)
+  is_active         Boolean   @default(true)
+  is_suspicious     Boolean   @default(false)
+  blocked_reason    String?
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, employee_id, is_active])
+  @@index([terminal_id, is_active])
+  @@index([ip_address])
+}
+
+model session_alerts {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id       String    @db.Uuid
+  employee_id     String    @db.Uuid
+  alert_type      String
+  reason          String
+  ip_address      String?
+  location_lat    Decimal?  @db.Decimal(10, 7)
+  location_lng    Decimal?  @db.Decimal(10, 7)
+  is_resolved     Boolean   @default(false)
+  resolved_by     String?   @db.Uuid
+  resolved_at     DateTime? @db.Timestamptz(6)
+  resolution_notes String?
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, alert_type, is_resolved])
+  @@index([employee_id, created_at(sort: Desc)])
+  @@index([created_at(sort: Desc)])
+}
+
+model transaction_limits {
+  id                          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                   String   @db.Uuid
+  employee_id                 String   @db.Uuid
+  max_transactions_per_hour   Int      @default(100)
+  max_transactions_per_day    Int      @default(500)
+  max_amount_per_transaction  Int      @default(100000)
+  max_price_changes_per_hour  Int      @default(20)
+  max_refunds_per_day         Int      @default(10)
+  created_at                  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, employee_id])
+}
+
+model session_audit_log {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String   @db.Uuid
+  employee_id String   @db.Uuid
+  action      String
+  resource    String?
+  ip_address  String?
+  session_id  String?  @db.Uuid
+  details     Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, employee_id, created_at(sort: Desc)])
+  @@index([action, created_at(sort: Desc)])
+  @@index([created_at(sort: Desc)])
+}
