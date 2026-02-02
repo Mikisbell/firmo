@@ -9,8 +9,9 @@
  */
 
 import bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
+import { generateToken as generateRandomToken } from './crypto-utils';
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { createSession, generateToken as generateJWT } from './auth.service';
 
 type PrismaClientType = any;
 
@@ -57,7 +58,7 @@ export interface RefreshTokenPayload extends JWTPayload {
 export interface AuthResult {
     success: boolean;
     error?: string;
-    errorCode?: 'INVALID_PIN' | 'ACCOUNT_LOCKED' | 'ROLE_NOT_ALLOWED' | 'INACTIVE_EMPLOYEE' | 'MFA_REQUIRED';
+    errorCode?: 'INVALID_PIN' | 'ACCOUNT_LOCKED' | 'ROLE_NOT_ALLOWED' | 'INACTIVE_EMPLOYEE' | 'MFA_REQUIRED' | 'INVALID_MFA' | 'EMPLOYEE_NOT_FOUND';
     token?: string;
     refreshToken?: string;
     employee?: {
@@ -120,7 +121,7 @@ export async function storeMFAChallenge(
 ): Promise<void> {
     await prisma.mfa_challenges.create({
         data: {
-            id: randomBytes(16).toString('hex'),
+            id: generateRandomToken(16),
             tenant_id: tenantId,
             employee_id: employeeId,
             challenge,
@@ -208,8 +209,8 @@ export async function isLockedOut(
 export async function recordLoginAttempt(
     prisma: PrismaClientType,
     tenantId: string,
-    employeeId?: string,
     success: boolean,
+    employeeId?: string,
     metadata?: { 
         ip?: string; 
         userAgent?: string; 
@@ -220,7 +221,7 @@ export async function recordLoginAttempt(
 ): Promise<void> {
     await prisma.login_attempts.create({
         data: {
-            id: randomBytes(16).toString('hex'),
+            id: generateRandomToken(16),
             tenant_id: tenantId,
             employee_id: employeeId,
             success,
@@ -239,7 +240,7 @@ export async function generateRefreshToken(
     employeeId: string,
     tenantId: string
 ): Promise<{ token: string; tokenId: string }> {
-    const tokenId = randomBytes(32).toString('hex');
+    const tokenId = generateRandomToken(32);
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_DURATION_MS);
     
     const refreshTokenSecret = new TextEncoder().encode(REFRESH_TOKEN_SECRET);
@@ -317,7 +318,7 @@ export async function authenticate(
     const lockout = await isLockedOut(prisma, tenantId, employee.id);
     
     if (lockout.locked) {
-        await recordLoginAttempt(prisma, tenantId, employee.id, false, metadata);
+        await recordLoginAttempt(prisma, tenantId, false, employee.id, metadata);
         return {
             success: false,
             error: `Cuenta bloqueada. Intenta de nuevo en ${Math.ceil((lockout.until!.getTime() - Date.now()) / 60000)} minutos.`,
@@ -330,7 +331,7 @@ export async function authenticate(
     const pinValid = await verifyPin(pin, employee.pin_hash);
     
     if (!pinValid) {
-        await recordLoginAttempt(prisma, tenantId, employee.id, false, { ...metadata, attemptType: 'password' });
+        await recordLoginAttempt(prisma, tenantId, false, employee.id, { ...metadata, attemptType: 'password' });
         const remaining = MAX_FAILED_ATTEMPTS - lockout.attempts - 1;
         return {
             success: false,
@@ -343,7 +344,7 @@ export async function authenticate(
 
     // Check role
     if (!allowedRoles.includes(employee.role)) {
-        await recordLoginAttempt(prisma, tenantId, employee.id, false, metadata);
+        await recordLoginAttempt(prisma, tenantId, false, employee.id, metadata);
         return {
             success: false,
             error: `Rol ${employee.role} no autorizado para esta operación.`,
@@ -368,12 +369,12 @@ export async function authenticate(
     }
 
     // Complete authentication
-    await recordLoginAttempt(prisma, tenantId, employee.id, true, { ...metadata, mfaVerified: false });
+    await recordLoginAttempt(prisma, tenantId, true, employee.id, { ...metadata, mfaVerified: false });
 
     // Create session and tokens
-    const tokenHash = randomBytes(32).toString('hex');
+    const tokenHash = generateRandomToken(32);
     const sessionId = await createSession(prisma, tenantId, employee.id, tokenHash, metadata);
-    const { token } = await generateToken(employee, tenantId, sessionId);
+    const { token } = await generateJWT(employee, tenantId, sessionId);
     const { token: refreshToken, tokenId } = await generateRefreshToken(employee.id, tenantId);
 
     // Store refresh token
@@ -435,12 +436,12 @@ export async function authenticateWithMFA(
     }
 
     // Complete authentication with MFA
-    await recordLoginAttempt(prisma, tenantId, employeeId, true, { ...metadata, mfaVerified: true, attemptType: 'mfa' });
+    await recordLoginAttempt(prisma, tenantId, true, employeeId, { ...metadata, mfaVerified: true, attemptType: 'mfa' });
 
     // Create session and tokens
-    const tokenHash = randomBytes(32).toString('hex');
+    const tokenHash = generateRandomToken(32);
     const sessionId = await createSession(prisma, tenantId, employeeId, tokenHash, metadata);
-    const { token } = await generateToken(employee, tenantId, sessionId, true);
+    const { token } = await generateJWT(employee, tenantId, sessionId);
     const { token: refreshToken, tokenId } = await generateRefreshToken(employeeId, tenantId);
 
     // Store refresh token
@@ -469,7 +470,7 @@ export async function authenticateWithMFA(
 }
 
 // Keep existing functions for backward compatibility
-export { validateToken, createSession, validateSession, revokeSession, revokeAllSessions, logAdminAccess };
+// export { validateToken, createSession, validateSession, revokeSession, revokeAllSessions, logAdminAccess };
 export const AUTH_CONFIG = {
     MAX_FAILED_ATTEMPTS,
     LOCKOUT_DURATION_MS,

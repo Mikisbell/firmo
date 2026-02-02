@@ -1,7 +1,7 @@
 // scripts/test-pin-hashes.ts
 // Test different PIN values to find what produces the hash in login attempts
 
-import { hashPin } from '../src/core/auth/auth.service';
+import { hashPin } from '../src/core/auth/crypto-utils';
 
 const targetHash = '507032afc09bf538e5e9caccd7171c45deb59f318c326312a4f8a19e331ab690';
 

@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         credit_notes: {
           select: {
             id: true,
-            credit_note_number: true,
+            number: true,
             series: true,
             status: true,
           },

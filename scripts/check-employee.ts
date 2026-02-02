@@ -2,7 +2,7 @@
 // Check employee details
 
 import prisma from '../src/core/db/prisma';
-import { hashPin } from '../src/core/auth/auth.service';
+import { hashPin } from '../src/core/auth/crypto-utils';
 
 async function checkEmployee() {
     console.log('\n👤 CHECKING EMPLOYEE DETAILS\n');

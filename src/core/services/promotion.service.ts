@@ -375,7 +375,7 @@ export class PromotionService {
             promotion_id: null,
             discount_cents: 0,
             total_cents: subtotal,
-            promotion_snapshot: null,
+            promotion_snapshot: undefined,
             updated_at: new Date(),
           },
         });

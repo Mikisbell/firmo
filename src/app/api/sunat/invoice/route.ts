@@ -91,9 +91,6 @@ export async function POST(request: NextRequest) {
         id: order_id, 
         tenant_id: tenantId,
       },
-      include: {
-        checks: true,
-      },
     });
 
     if (!order) {
@@ -201,11 +198,10 @@ export async function POST(request: NextRequest) {
               id: uuidv4(),
               tenant_id: tenantId,
               invoice_id: invoiceId,
-              sunat_code: '0', // Success code
-              sunat_description: 'La Comprobante fue registrada exitosamente',
+              response_code: '0', // Success code
+              response_message: 'La Comprobante fue registrada exitosamente',
               cdr_xml: '<CDR>Mock CDR for development</CDR>',
               hash: `HASH-${invoiceNumber}`,
-              received_at: new Date(),
             },
           });
           

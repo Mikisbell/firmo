@@ -88,9 +88,8 @@ export async function POST(request: NextRequest) {
         id: creditNoteId,
         tenant_id: tenantId,
         invoice_id: invoice_id,
-        credit_note_type: invoice.invoice_type === 'BOLETA' ? 'NOTA_CREDITO_BOLETA' : 'NOTA_CREDITO_FACTURA',
         series: `N${invoice.series?.charAt(0) || 'B'}001`, // NC001 for credit notes
-        credit_note_number: creditNoteNumber,
+        number: creditNoteNumber,
         reason: reason,
         total_cents: invoice.total_cents,
         status: 'ISSUED',
@@ -169,15 +168,15 @@ async function getNextCreditNoteNumber(tenantId: string, series: string): Promis
       created_at: 'desc',
     },
     select: {
-      credit_note_number: true,
+      number: true,
     },
   });
 
-  if (!lastCreditNote?.credit_note_number) {
+  if (!lastCreditNote?.number) {
     return '00000001';
   }
 
-  const lastNumber = parseInt(lastCreditNote.credit_note_number, 10);
+  const lastNumber = parseInt(lastCreditNote.number, 10);
   const nextNumber = lastNumber + 1;
   return nextNumber.toString().padStart(8, '0');
 }

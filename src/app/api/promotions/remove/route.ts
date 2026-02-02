@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         promotion_id: null,
         discount_cents: 0,
         total_cents: newTotal,
-        promotion_snapshot: null,
+        promotion_snapshot: undefined,
       },
     });
 

@@ -10,8 +10,8 @@
  * @module auth.service
  */
 
-import { createHash, randomBytes } from 'crypto';
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { hashPin, verifyPin, generateToken as generateRandomToken, generateTokenHash } from './crypto-utils';
 
 type PrismaClientType = any;
 
@@ -48,7 +48,7 @@ export interface AuthPayload extends JWTPayload {
 export interface AuthResult {
     success: boolean;
     error?: string;
-    errorCode?: 'INVALID_PIN' | 'ACCOUNT_LOCKED' | 'ROLE_NOT_ALLOWED' | 'INACTIVE_EMPLOYEE';
+    errorCode?: 'INVALID_PIN' | 'ACCOUNT_LOCKED' | 'ROLE_NOT_ALLOWED' | 'INACTIVE_EMPLOYEE' | 'MFA_REQUIRED' | 'INVALID_MFA';
     token?: string;
     employee?: {
         id: string;
@@ -63,13 +63,6 @@ export interface TokenValidationResult {
     valid: boolean;
     error?: string;
     payload?: AuthPayload;
-}
-
-/**
- * Hash a PIN using SHA256 + salt
- */
-export function hashPin(pin: string): string {
-    return createHash('sha256').update(SALT + pin).digest('hex');
 }
 
 /**
@@ -119,7 +112,7 @@ export async function recordLoginAttempt(
 ): Promise<void> {
     await prisma.login_attempts.create({
         data: {
-            id: randomBytes(16).toString('hex'),
+            id: generateRandomToken(16),
             tenant_id: tenantId,
             employee_id: employeeId,
             pin_hash: pinHash,
@@ -149,7 +142,7 @@ export async function logAdminAccess(
 ): Promise<void> {
     await prisma.admin_access_logs.create({
         data: {
-            id: randomBytes(16).toString('hex'),
+            id: generateRandomToken(16),
             tenant_id: tenantId,
             employee_id: employeeId,
             action,
@@ -219,7 +212,7 @@ export async function createSession(
     tokenHash: string,
     metadata?: { ip?: string; userAgent?: string; terminalId?: string }
 ): Promise<string> {
-    const sessionId = randomBytes(16).toString('hex');
+    const sessionId = generateRandomToken(16);
     
     await prisma.sessions.create({
         data: {
@@ -386,7 +379,7 @@ export async function authenticate(
     // 5. Success - create session and token
     await recordLoginAttempt(prisma, tenantId, pinHash, true, employee.id, metadata);
 
-    const tokenHash = createHash('sha256').update(randomBytes(32)).digest('hex');
+    const tokenHash = generateTokenHash();
     const sessionId = await createSession(prisma, tenantId, employee.id, tokenHash, metadata);
     const { token, expiresAt } = await generateToken(employee, tenantId, sessionId);
 

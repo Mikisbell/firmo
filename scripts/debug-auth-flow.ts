@@ -2,7 +2,7 @@
 // Debug the complete authentication flow
 
 import prisma from '../src/core/db/prisma';
-import { hashPin } from '../src/core/auth/auth.service';
+import { hashPin } from '../src/core/auth/crypto-utils';
 
 const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const TEST_PIN = '1234';
