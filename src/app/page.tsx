@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getStoredTerminalConfig, clearTerminalConfig } from '@/src/core/auth/fingerprint';
+import { getOrCreateDeviceId } from '@/src/core/auth/device-id';
 import { TerminalSetup } from '@/src/components/auth/TerminalSetup';
 import type { TerminalConfig } from '@/src/core/auth/types';
 import { ArrowRight, RefreshCw, Sparkles } from 'lucide-react';
@@ -61,13 +62,43 @@ export default function HomePage() {
     const [navigating, setNavigating] = useState(false);
 
     useEffect(() => {
-        const stored = getStoredTerminalConfig();
-        if (stored?.terminal_id) {
-            setConfig(stored);
-        } else {
-            setShowSetup(true);
-        }
-        setChecking(false);
+        const checkSession = async () => {
+            const stored = getStoredTerminalConfig();
+            
+            if (stored?.terminal_id) {
+                // Validate device_id binding
+                const deviceId = getOrCreateDeviceId();
+                
+                try {
+                    const response = await fetch('/api/terminals/validate-device', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            device_id: deviceId,
+                            terminal_id: stored.terminal_id,
+                        }),
+                    });
+                    
+                    if (response.ok) {
+                        // Device is bound to this terminal - session is valid
+                        setConfig(stored);
+                    } else {
+                        // Device not bound or mismatch - need to re-activate
+                        clearTerminalConfig();
+                        setShowSetup(true);
+                    }
+                } catch (err) {
+                    console.error('Device validation error:', err);
+                    // On error, still show the stored config but allow change
+                    setConfig(stored);
+                }
+            } else {
+                setShowSetup(true);
+            }
+            setChecking(false);
+        };
+        
+        checkSession();
     }, []);
 
     const handleSetupComplete = (newConfig: TerminalConfig) => {

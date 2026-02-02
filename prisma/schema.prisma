@@ -1395,6 +1395,7 @@ model terminal_devices {
   id                     String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   terminal_id            String             @unique
   tenant_id              String             @db.Uuid
+  device_id              String?            @unique
   role                   String
   fingerprint_hash       String?
   fingerprint_salt       String
@@ -1413,6 +1414,7 @@ model terminal_devices {
   @@index([tenant_id])
   @@index([status])
   @@index([tenant_id, status])
+  @@index([device_id])
 }
 
 model activation_codes {

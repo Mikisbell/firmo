@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateDeviceFingerprint, setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import { generateFingerprintV2, type FingerprintResult } from '@/src/core/auth/fingerprint-v2';
+import { getOrCreateDeviceId } from '@/src/core/auth/device-id';
 import type { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
 import { Monitor, ChefHat, Wine, Loader2, Flame, Package, ArrowRight, ArrowLeft, Settings, Users, Sparkles, Key } from 'lucide-react';
 
@@ -159,26 +160,28 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
   }, []);
 
   const handleSelect = async (id: string, role: TerminalRole, label: string) => {
-    if (selecting || !fingerprint) return;
+    if (selecting) return;
     setSelecting(id); 
     setError('');
     
     try {
-      // Check if this terminal is already bound to this device
-      const validateResponse = await fetch('/api/terminals/validate', {
+      // Get or create device ID
+      const deviceId = getOrCreateDeviceId();
+      
+      // Check if device is already bound to a terminal
+      const validateResponse = await fetch('/api/terminals/validate-device', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          device_id: deviceId,
           terminal_id: id,
-          tenant_id: TENANT_ID,
-          fingerprint,
         }),
       });
 
       if (validateResponse.ok) {
-        // Terminal is already bound and validated - proceed directly
+        // Device is already bound to this terminal - proceed directly
         const { terminal } = await validateResponse.json();
-        const oldFp = await generateDeviceFingerprint(); // For backward compatibility
+        const oldFp = await generateDeviceFingerprint();
         const cfg: TerminalConfig = { 
           terminal_id: id, 
           tenant_id: TENANT_ID, 
@@ -192,32 +195,15 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
         };
         setStoredTerminalConfig(cfg);
         
-        // Use hard navigation to role-specific route (Requirement 7.2, 7.4)
+        // Use hard navigation to role-specific route
         const targetRoute = getRoleRoute(id, role);
         window.location.href = targetRoute;
         return;
       }
 
-      const validateData = await validateResponse.json();
-      
-      // If requires reactivation, show activation code screen
-      if (validateData.requiresReactivation || validateResponse.status === 401) {
-        setPendingTerminal({ id, role, label });
-        setView('activation');
-        setSelecting(null);
-        return;
-      }
-
-      // If 403 Forbidden (fingerprint mismatch - likely HTTP vs HTTPS issue)
-      // Redirect to simple activation page
-      if (validateResponse.status === 403) {
-        console.log('Fingerprint mismatch detected, redirecting to simple activation...');
-        window.location.href = `/simple-activate?terminal=${encodeURIComponent(id)}&role=${encodeURIComponent(role)}&label=${encodeURIComponent(label)}`;
-        return;
-      }
-
-      // Other errors
-      setError(validateData.error || 'Error al validar terminal');
+      // If not bound, show activation code screen
+      setPendingTerminal({ id, role, label });
+      setView('activation');
       setSelecting(null);
     } catch (err) {
       console.error('Terminal validation error:', err);
@@ -227,19 +213,23 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
   };
 
   const handleActivation = async (code: string) => {
-    if (!fingerprint || !pendingTerminal) return;
+    if (!pendingTerminal) return;
     
     setSelecting('activating');
     setError('');
 
     try {
-      const response = await fetch('/api/terminals/activate', {
+      // Get or create device ID
+      const deviceId = getOrCreateDeviceId();
+      
+      // Use the new activate-simple endpoint with device_id
+      const response = await fetch('/api/terminals/activate-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code,
-          tenant_id: TENANT_ID,
-          fingerprint,
+          terminal_id: pendingTerminal.id,
+          code: code.replace(/-/g, ''), // Remove formatting
+          device_id: deviceId,
         }),
       });
 
@@ -254,20 +244,20 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
       // Activation successful - create config and navigate
       const oldFp = await generateDeviceFingerprint(); // For backward compatibility
       const cfg: TerminalConfig = {
-        terminal_id: data.terminal.terminal_id,
+        terminal_id: pendingTerminal.id,
         tenant_id: TENANT_ID,
-        actor_id: generateActorId(data.terminal.terminal_id),
+        actor_id: generateActorId(pendingTerminal.id),
         device_fingerprint: oldFp,
-        device_name: data.terminal.device_name,
-        role: data.terminal.role,
-        location_id: data.terminal.location_id,
+        device_name: pendingTerminal.label,
+        role: pendingTerminal.role,
+        location_id: 'LOC01',
         is_allowed: true,
         registered_at: new Date().toISOString(),
       };
       setStoredTerminalConfig(cfg);
       
       // Use hard navigation to role-specific route (Requirement 7.2, 7.4)
-      const targetRoute = getRoleRoute(data.terminal.terminal_id, data.terminal.role);
+      const targetRoute = getRoleRoute(pendingTerminal.id, pendingTerminal.role);
       window.location.href = targetRoute;
     } catch (err) {
       console.error('Activation error:', err);

@@ -5,6 +5,13 @@
  * for HTTP/non-secure contexts
  * 
  * POST /api/terminals/activate-simple
+ * 
+ * Body:
+ * {
+ *   terminal_id: string,
+ *   code: string (6 digits, format: XXX-XXX or XXXXXX),
+ *   device_id: string (UUID from localStorage)
+ * }
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -25,30 +32,21 @@ function generateUUID(): string {
   });
 }
 
-/**
- * Generate a fallback fingerprint hash for simple activation
- * This creates a unique device fingerprint based on terminal info
- */
-function generateSimpleFingerprint(terminalId: string, salt: string): string {
-  const data = `${terminalId}:${salt}:${Date.now()}:${Math.random()}`;
-  return crypto.createHash('sha256').update(data).digest('hex');
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { terminal_id, code, fingerprint } = body;
+    const { terminal_id, code, device_id } = body;
     
     console.log('[ACTIVATE-SIMPLE] Request received:', { 
       terminal_id, 
       code_provided: !!code,
-      fingerprint_provided: !!fingerprint 
+      device_id_provided: !!device_id,
     });
 
     // Validate required fields
-    if (!terminal_id || !code) {
+    if (!terminal_id || !code || !device_id) {
       return NextResponse.json(
-        { error: 'Faltan campos requeridos: terminal_id, code' },
+        { error: 'Faltan campos requeridos: terminal_id, code, device_id' },
         { status: 400 }
       );
     }
@@ -97,19 +95,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate fallback fingerprint hash for simple activation
-    const fallbackFingerprint = generateSimpleFingerprint(terminal_id, terminal.fingerprint_salt);
-    
-    console.log('[ACTIVATE-SIMPLE] Generating fallback fingerprint:', {
-      terminal_id,
-      fingerprint_preview: fallbackFingerprint.substring(0, 20) + '...'
-    });
-
-    // Activate terminal with fallback fingerprint
+    // Activate terminal with device_id binding
     await prisma.terminal_devices.update({
       where: { id: terminal.id },
       data: {
-        fingerprint_hash: fallbackFingerprint,
+        device_id: device_id,
         status: 'active',
         bound_at: new Date(),
         last_seen_at: new Date(),
@@ -123,28 +113,35 @@ export async function POST(request: NextRequest) {
       data: { used: true },
     });
 
-    // Log event
-    await prisma.events.create({
-      data: {
-        id: generateUUID(),
-        tenant_id: tenantId,
-        occurred_at: new Date(),
-        type: 'TERMINAL_ACTIVATED_SIMPLE',
-        entity_type: 'TERMINAL',
-        entity_id: terminal.id,
-        actor_id: generateUUID(), // Generate valid UUID instead of 'system' string
-        actor_role_snapshot: 'SYSTEM',
-        terminal_id,
-        payload: {
+    // Log event (optional - don't fail if event creation fails)
+    try {
+      await prisma.events.create({
+        data: {
+          id: generateUUID(),
+          tenant_id: tenantId,
+          occurred_at: new Date(),
+          type: 'TERMINAL_ACTIVATED_SIMPLE',
+          entity_type: 'TERMINAL',
+          entity_id: terminal.id,
+          actor_id: generateUUID(),
+          actor_role_snapshot: 'SYSTEM',
           terminal_id,
-          activation_method: 'simple',
-          reason: 'Non-secure context fallback',
+          payload: {
+            terminal_id,
+            device_id,
+            activation_method: 'simple',
+            reason: 'Device binding with activation code',
+          },
         },
-      },
-    });
+      });
+    } catch (eventError) {
+      console.warn('[ACTIVATE-SIMPLE] Warning: Failed to create event:', eventError);
+      // Don't fail the activation if event creation fails
+    }
 
     logger.info('TERMINAL_ACTIVATED_SIMPLE', 'Terminal activated via simple method', {
       terminal_id,
+      device_id,
       tenant_id: tenantId,
     });
 
