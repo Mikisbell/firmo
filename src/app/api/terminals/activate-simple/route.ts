@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         type: 'TERMINAL_ACTIVATED_SIMPLE',
         entity_type: 'TERMINAL',
         entity_id: terminal.id,
-        actor_id: 'system',
+        actor_id: generateUUID(), // Generate valid UUID instead of 'system' string
         actor_role_snapshot: 'SYSTEM',
         terminal_id,
         payload: {
