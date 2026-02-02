@@ -1661,16 +1661,48 @@ model active_sessions {
 }
 
 model device_mac_addresses {
-  mac_address  String    @id
-  tenant_id    String    @db.Uuid
+  mac_address  String    @db.VarChar(17)
   employee_id  String    @db.Uuid
+  terminal_id  String    @default("00000000-0000-0000-0000-000000000000") @db.Uuid  // Special UUID = valid for any terminal
+  
+  tenant_id    String    @db.Uuid
+  location_id  String?   @db.Uuid
+  
+  trust_level  String    @default("UNKNOWN")         // TRUSTED, UNKNOWN, BLOCKED
+  
   first_seen   DateTime  @default(now()) @db.Timestamptz(6)
   last_seen    DateTime  @default(now()) @db.Timestamptz(6)
+  access_count Int       @default(1)
   is_active    Boolean   @default(true)
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
 
+  // Composite primary key: (mac_address, employee_id, terminal_id)
+  // terminal_id = 00000000-0000-0000-0000-000000000000 means valid for any terminal
+  @@id([mac_address, employee_id, terminal_id])
   @@index([tenant_id, employee_id])
+  @@index([terminal_id])
   @@index([employee_id, last_seen(sort: Desc)])
+  @@index([trust_level])
+  @@index([mac_address])
+}
+
+model terminal_mac_registry {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id       String    @db.Uuid
+  terminal_id     String    @db.Uuid
+  mac_address     String    @db.VarChar(17)
+  employee_id     String    @db.Uuid
+  
+  first_seen      DateTime  @default(now()) @db.Timestamptz(6)
+  last_seen       DateTime  @default(now()) @db.Timestamptz(6)
+  access_count    Int       @default(1)
+  is_authorized   Boolean   @default(true)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([terminal_id, mac_address])
+  @@index([employee_id, terminal_id])
+  @@index([is_authorized])
+  @@index([terminal_id, last_seen(sort: Desc)])
 }
 
 model session_alerts {

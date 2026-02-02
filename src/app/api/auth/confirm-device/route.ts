@@ -1,12 +1,17 @@
 /**
- * Device Confirmation API
- * POST - Confirm a new device and register its MAC address
+ * Device Confirmation API - Hybrid Model
+ * POST - Confirm a new device and register its MAC address (per employee + terminal)
+ * 
+ * Implements hybrid model:
+ * - Registers MAC for specific employee
+ * - Optionally registers for specific terminal (if provided)
+ * - If no terminal_id provided, MAC is valid for any terminal
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
-import { registerMAC } from '@/src/core/security/mac-validator';
+import { registerMAC } from '@/src/core/security/mac-validator-hybrid';
 import {
   createActiveSession,
   closeAllSessionsExcept,
@@ -22,6 +27,7 @@ export async function POST(request: NextRequest) {
       sessionToken, // From previous login attempt
       macAddress,
       confirmationCode,
+      terminalId, // Optional: if provided, MAC is registered for this terminal only
       location,
     } = body;
 
@@ -54,13 +60,15 @@ export async function POST(request: NextRequest) {
 
     const employeeId = sessionData.employee_id;
 
-    // Register the MAC address
-    await registerMAC(tenantId, employeeId, macAddress);
+    // Register the MAC address (hybrid model)
+    // If terminalId is provided, MAC is registered for that terminal only
+    // If not provided, MAC is registered for any terminal (special UUID)
+    await registerMAC(tenantId, employeeId, macAddress, terminalId);
 
     // Create a new active session with the confirmed MAC
     const sessionContext: SessionContext = {
       employeeId,
-      terminalId: sessionData.terminal_id,
+      terminalId: terminalId || sessionData.terminal_id,
       deviceId: sessionData.device_id,
       macAddress,
       ipAddress,
@@ -83,6 +91,7 @@ export async function POST(request: NextRequest) {
       ipAddress,
       {
         macAddress,
+        terminalId: terminalId || 'ANY_TERMINAL',
         sessionId,
       }
     );
@@ -93,6 +102,8 @@ export async function POST(request: NextRequest) {
       sessionToken: newSessionToken,
       sessionId,
       message: 'Dispositivo confirmado exitosamente',
+      macAddress,
+      registeredFor: terminalId ? `Terminal ${terminalId}` : 'Cualquier terminal',
     });
 
     // Set httpOnly cookie

@@ -14,6 +14,7 @@ export interface MACValidationResult {
 
 /**
  * Validates if a MAC address is known and belongs to the employee
+ * NOTE: This is the legacy simple validator. Use mac-validator-hybrid.ts for hybrid model.
  */
 export async function validateMAC(
   tenantId: string,
@@ -29,9 +30,12 @@ export async function validateMAC(
 
   const normalizedMAC = normalizeMACAddress(currentMAC);
 
-  // Check if MAC is registered
-  const knownMAC = await prisma.device_mac_addresses.findUnique({
-    where: { mac_address: normalizedMAC },
+  // Check if MAC is registered (for any terminal)
+  const knownMAC = await prisma.device_mac_addresses.findFirst({
+    where: {
+      mac_address: normalizedMAC,
+      tenant_id: tenantId,
+    },
   });
 
   if (!knownMAC) {
@@ -61,8 +65,12 @@ export async function validateMAC(
   }
 
   // MAC is valid - update last_seen
-  await prisma.device_mac_addresses.update({
-    where: { mac_address: normalizedMAC },
+  await prisma.device_mac_addresses.updateMany({
+    where: {
+      mac_address: normalizedMAC,
+      employee_id: employeeId,
+      tenant_id: tenantId,
+    },
     data: {
       last_seen: new Date(),
     },
@@ -73,6 +81,7 @@ export async function validateMAC(
 
 /**
  * Register a new MAC address for an employee
+ * NOTE: This is the legacy simple validator. Use mac-validator-hybrid.ts for hybrid model.
  */
 export async function registerMAC(
   tenantId: string,
@@ -82,8 +91,11 @@ export async function registerMAC(
   const normalizedMAC = normalizeMACAddress(macAddress);
 
   // Check if MAC is already registered to another employee
-  const existingMAC = await prisma.device_mac_addresses.findUnique({
-    where: { mac_address: normalizedMAC },
+  const existingMAC = await prisma.device_mac_addresses.findFirst({
+    where: {
+      mac_address: normalizedMAC,
+      tenant_id: tenantId,
+    },
   });
 
   if (existingMAC && existingMAC.employee_id !== employeeId) {
@@ -92,13 +104,22 @@ export async function registerMAC(
     );
   }
 
-  // Register or update MAC
+  // Register or update MAC (for any terminal - use special UUID)
+  const ANY_TERMINAL_ID = '00000000-0000-0000-0000-000000000000';
+  
   await prisma.device_mac_addresses.upsert({
-    where: { mac_address: normalizedMAC },
+    where: {
+      mac_address_employee_id_terminal_id: {
+        mac_address: normalizedMAC,
+        employee_id: employeeId,
+        terminal_id: ANY_TERMINAL_ID,
+      },
+    },
     create: {
       mac_address: normalizedMAC,
       tenant_id: tenantId,
       employee_id: employeeId,
+      terminal_id: ANY_TERMINAL_ID,
       first_seen: new Date(),
       last_seen: new Date(),
       is_active: true,
@@ -116,7 +137,7 @@ export async function registerMAC(
 export async function deactivateMAC(macAddress: string): Promise<void> {
   const normalizedMAC = normalizeMACAddress(macAddress);
 
-  await prisma.device_mac_addresses.update({
+  await prisma.device_mac_addresses.updateMany({
     where: { mac_address: normalizedMAC },
     data: {
       is_active: false,

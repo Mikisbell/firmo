@@ -10,36 +10,36 @@
   - [x] 1.1.5 Run migrations: `npx prisma migrate deploy`
   - [x] 1.1.6 Regenerate Prisma: `npx prisma generate`
 
-- [ ] 1.2 Create device_mac_addresses table (HYBRID - Detecta dispositivos + terminales)
-  - [ ] 1.2.1 Create migration for device_mac_addresses (HYBRID schema)
-  - [ ] 1.2.2 Add columns: mac_address, employee_id, terminal_id (NULL = any), trust_level
-  - [ ] 1.2.3 Add composite PRIMARY KEY: (mac_address, employee_id, COALESCE(terminal_id, '00000000...'))
-  - [ ] 1.2.4 Add indexes: (tenant_id, employee_id), (terminal_id), (employee_id, last_seen DESC), (trust_level)
-  - [ ] 1.2.5 Run migration: `npx prisma migrate deploy`
-  - [ ] 1.2.6 Regenerate Prisma: `npx prisma generate`
+- [x] 1.2 Create device_mac_addresses table (HYBRID - Detecta dispositivos + terminales)
+  - [x] 1.2.1 Create migration for device_mac_addresses (HYBRID schema)
+  - [x] 1.2.2 Add columns: mac_address, employee_id, terminal_id (NULL = any), trust_level
+  - [x] 1.2.3 Add composite PRIMARY KEY: (mac_address, employee_id, COALESCE(terminal_id, '00000000...'))
+  - [x] 1.2.4 Add indexes: (tenant_id, employee_id), (terminal_id), (employee_id, last_seen DESC), (trust_level)
+  - [x] 1.2.5 Run migration: `npx prisma migrate deploy`
+  - [x] 1.2.6 Regenerate Prisma: `npx prisma generate`
 
-- [ ] 1.2b Create terminal_mac_registry table (NEW - Auditoría de acceso por terminal)
-  - [ ] 1.2b.1 Create migration for terminal_mac_registry
-  - [ ] 1.2b.2 Add columns: id, terminal_id, mac_address, employee_id, access_count, is_authorized
-  - [ ] 1.2b.3 Add indexes: (terminal_id, mac_address), (employee_id, terminal_id), (is_authorized)
-  - [ ] 1.2b.4 Run migration: `npx prisma migrate deploy`
-  - [ ] 1.2b.5 Regenerate Prisma: `npx prisma generate`
+- [x] 1.2b Create terminal_mac_registry table (NEW - Auditoría de acceso por terminal)
+  - [x] 1.2b.1 Create migration for terminal_mac_registry
+  - [x] 1.2b.2 Add columns: id, terminal_id, mac_address, employee_id, access_count, is_authorized
+  - [x] 1.2b.3 Add indexes: (terminal_id, mac_address), (employee_id, terminal_id), (is_authorized)
+  - [x] 1.2b.4 Run migration: `npx prisma migrate deploy`
+  - [x] 1.2b.5 Regenerate Prisma: `npx prisma generate`
 
-- [ ] 1.3 Create MAC detection service (NEW)
-  - [ ] 1.3.1 Create src/core/security/mac-detector.ts
-  - [ ] 1.3.2 Implement WebRTC-based MAC detection
-  - [ ] 1.3.3 Add fallback to Device ID if MAC unavailable
-  - [ ] 1.3.4 Add MAC validation logic
-  - [ ] 1.3.5 Add MAC registration logic
+- [x] 1.3 Create MAC detection service (NEW)
+  - [x] 1.3.1 Create src/core/security/mac-detector.ts
+  - [x] 1.3.2 Implement WebRTC-based MAC detection
+  - [x] 1.3.3 Add fallback to Device ID if MAC unavailable
+  - [x] 1.3.4 Add MAC validation logic
+  - [x] 1.3.5 Add MAC registration logic
 
-- [ ] 1.3b Create hybrid MAC validator (HYBRID - Detecta dispositivos + terminales)
-  - [ ] 1.3b.1 Create src/core/security/mac-validator-hybrid.ts
-  - [ ] 1.3b.2 Implement validateMAC() - Hybrid check (employee + terminal)
-  - [ ] 1.3b.3 Implement checkTerminalAuthorization() - Terminal access audit
-  - [ ] 1.3b.4 Implement registerMAC() - Register with terminal_id (optional)
-  - [ ] 1.3b.5 Implement blockMAC() - Block device
-  - [ ] 1.3b.6 Implement getDevicesByEmployee() - List employee's devices
-  - [ ] 1.3b.7 Implement getTerminalAccessLog() - Audit trail per terminal
+- [x] 1.3b Create hybrid MAC validator (HYBRID - Detecta dispositivos + terminales)
+  - [x] 1.3b.1 Create src/core/security/mac-validator-hybrid.ts
+  - [x] 1.3b.2 Implement validateMAC() - Hybrid check (employee + terminal)
+  - [x] 1.3b.3 Implement checkTerminalAuthorization() - Terminal access audit
+  - [x] 1.3b.4 Implement registerMAC() - Register with terminal_id (optional)
+  - [x] 1.3b.5 Implement blockMAC() - Block device
+  - [x] 1.3b.6 Implement getDevicesByEmployee() - List employee's devices
+  - [x] 1.3b.7 Implement getTerminalAccessLog() - Audit trail per terminal
 
 - [x] 1.4 Create security validation services (MODIFIED)
   - [x] 1.4.1 Create src/core/security/session-validator.ts ✅
@@ -48,19 +48,19 @@
   - [x] 1.4.4 Create src/core/security/rate-limiter.ts ✅
   - [x] 1.4.5 Create src/core/security/alert-service.ts ✅
 
-- [ ] 1.5 Update login endpoint (MODIFIED - Hybrid validation)
-  - [ ] 1.5.1 Update POST /api/auth/login to use HYBRID MAC validation
-  - [ ] 1.5.2 Add MAC detection (WebRTC)
-  - [ ] 1.5.3 Add HYBRID MAC validation (employee + terminal)
-  - [ ] 1.5.4 Add terminal authorization check
-  - [ ] 1.5.5 Add simultaneous login detection (unchanged)
-  - [ ] 1.5.6 Create active_sessions record with MAC + terminal_id
-  - [ ] 1.5.7 Generate session_token
-  - [ ] 1.5.8 Keep IP logging for auditoría (not validation)
-  - [ ] 1.5.9 Handle warnings (DIFFERENT_TERMINAL) - Allow with alert
+- [x] 1.5 Update login endpoint (MODIFIED - Hybrid validation)
+  - [x] 1.5.1 Update POST /api/auth/login to use HYBRID MAC validation
+  - [x] 1.5.2 Add MAC detection (WebRTC)
+  - [x] 1.5.3 Add HYBRID MAC validation (employee + terminal)
+  - [x] 1.5.4 Add terminal authorization check
+  - [x] 1.5.5 Add simultaneous login detection (unchanged)
+  - [x] 1.5.6 Create active_sessions record with MAC + terminal_id
+  - [x] 1.5.7 Generate session_token
+  - [x] 1.5.8 Keep IP logging for auditoría (not validation)
+  - [x] 1.5.9 Handle warnings (DIFFERENT_TERMINAL) - Allow with alert
 
-- [ ] 1.6 Create new endpoints (MODIFIED - Hybrid support)
-  - [ ] 1.6.1 POST /api/auth/confirm-device (with terminal_id support)
+- [x] 1.6 Create new endpoints (MODIFIED - Hybrid support)
+  - [x] 1.6.1 POST /api/auth/confirm-device (with terminal_id support)
   - [ ] 1.6.2 POST /api/auth/logout
   - [ ] 1.6.3 POST /api/auth/validate-session
   - [ ] 1.6.4 GET /api/admin/security/devices (list all devices)

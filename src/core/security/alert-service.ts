@@ -9,7 +9,9 @@ export type AlertType =
   | 'PRICE_CHANGE_LIMIT'
   | 'REFUND_LIMIT_EXCEEDED'
   | 'NEW_DEVICE'
-  | 'BLOCKED_DEVICE';
+  | 'BLOCKED_DEVICE'
+  | 'DEVICE_MISMATCH'
+  | 'UNAUTHORIZED_TERMINAL_ACCESS';
 
 export interface AlertContext {
   employeeId: string;
@@ -151,6 +153,8 @@ export async function getAlertStats(
     REFUND_LIMIT_EXCEEDED: 0,
     NEW_DEVICE: 0,
     BLOCKED_DEVICE: 0,
+    DEVICE_MISMATCH: 0,
+    UNAUTHORIZED_TERMINAL_ACCESS: 0,
   };
 
   let unresolved = 0;

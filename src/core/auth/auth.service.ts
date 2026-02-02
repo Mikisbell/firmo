@@ -318,12 +318,22 @@ export async function authenticate(
 ): Promise<AuthResult> {
     const { hashPin, generateTokenHash } = await import('./crypto-utils');
     
+    console.log('[authenticate] Starting authentication');
+    console.log('  PIN received:', pin);
+    console.log('  PIN type:', typeof pin);
+    console.log('  PIN length:', pin?.length);
+    console.log('  Tenant ID:', tenantId);
+    console.log('  Allowed roles:', allowedRoles);
+    
     const pinHash = await hashPin(pin);
+    console.log('  PIN hash calculated:', pinHash);
 
     // 1. Check lockout
     const lockout = await isLockedOut(prisma, tenantId, pinHash);
+    console.log('  Lockout check:', { locked: lockout.locked, attempts: lockout.attempts });
     
     if (lockout.locked) {
+        console.log('[authenticate] Account is locked');
         await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
         return {
             success: false,
@@ -334,6 +344,7 @@ export async function authenticate(
     }
 
     // 2. Find employee
+    console.log('[authenticate] Searching for employee with PIN hash...');
     const employee = await prisma.employees.findFirst({
         where: {
             tenant_id: tenantId,
@@ -347,7 +358,15 @@ export async function authenticate(
         },
     });
 
+    console.log('  Employee found:', employee?.name || 'NOT FOUND');
+    if (employee) {
+        console.log('  Employee ID:', employee.id);
+        console.log('  Employee role:', employee.role);
+        console.log('  Employee active:', employee.is_active);
+    }
+
     if (!employee) {
+        console.log('[authenticate] Employee not found - invalid PIN');
         await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
         const remaining = MAX_FAILED_ATTEMPTS - lockout.attempts - 1;
         return {
@@ -361,6 +380,7 @@ export async function authenticate(
 
     // 3. Check if active
     if (!employee.is_active) {
+        console.log('[authenticate] Employee is inactive');
         await recordLoginAttempt(prisma, tenantId, pinHash, false, employee.id, metadata);
         return {
             success: false,
@@ -370,7 +390,13 @@ export async function authenticate(
     }
 
     // 4. Check role
+    console.log('[authenticate] Checking role authorization...');
+    console.log('  Employee role:', employee.role);
+    console.log('  Allowed roles:', allowedRoles);
+    console.log('  Role allowed:', allowedRoles.includes(employee.role));
+    
     if (!allowedRoles.includes(employee.role)) {
+        console.log('[authenticate] Role not allowed');
         await recordLoginAttempt(prisma, tenantId, pinHash, false, employee.id, metadata);
         await logAdminAccess(prisma, tenantId, employee.id, 'ACCESS_DENIED', {
             ...metadata,
@@ -384,11 +410,14 @@ export async function authenticate(
     }
 
     // 5. Success - create session and token
+    console.log('[authenticate] Authentication successful - creating session and token');
     await recordLoginAttempt(prisma, tenantId, pinHash, true, employee.id, metadata);
 
     const tokenHash = await generateTokenHash();
     const sessionId = await createSession(prisma, tenantId, employee.id, tokenHash, metadata);
     const { token, expiresAt } = await generateToken(employee, tenantId, sessionId);
+
+    console.log('[authenticate] Session created:', { sessionId, expiresAt });
 
     await logAdminAccess(prisma, tenantId, employee.id, 'LOGIN', metadata);
 

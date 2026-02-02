@@ -1,6 +1,10 @@
 /**
- * Secure Login API with Multi-Factor Security
- * POST - Login with IP, location, and device validation
+ * Secure Login API with Hybrid MAC Detection
+ * POST - Login with MAC address, terminal, and device validation
+ * 
+ * Implements hybrid model:
+ * - Device level: MAC per employee (detects stolen devices)
+ * - Terminal level: MAC per terminal (detects unauthorized terminal access)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -14,11 +18,15 @@ import {
   SessionContext,
 } from '@/src/core/security/session-validator';
 import { getDeviceIdentifier } from '@/src/core/security/mac-detector';
-import { validateMAC, registerMAC, logMACAccess } from '@/src/core/security/mac-validator';
 import { validateLocation, logLocationAccess } from '@/src/core/security/location-validator';
 import { createAlert } from '@/src/core/security/alert-service';
 import { logAction } from '@/src/core/security/rate-limiter';
 import { getClientIP } from '@/src/core/security/ip-validator';
+import {
+  validateMAC,
+  checkTerminalAuthorization,
+  registerMAC,
+} from '@/src/core/security/mac-validator-hybrid';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +34,7 @@ export async function POST(request: NextRequest) {
     const {
       pin,
       deviceId,
+      terminalId = 'TERMINAL_01',
       ipAddress: clientIP,
       location,
       allowedRoles = ['ADMIN', 'MANAGER'],
@@ -47,7 +56,7 @@ export async function POST(request: NextRequest) {
     const metadata = {
       ip: ipToUse,
       userAgent,
-      terminalId: 'terminal',
+      terminalId,
     };
 
     const authResult = await authenticate(
@@ -81,7 +90,7 @@ export async function POST(request: NextRequest) {
     const simultaneousCheck = await detectSimultaneousLogin(
       tenantId,
       employeeId,
-      'terminal',
+      terminalId,
       deviceId
     );
 
@@ -121,8 +130,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Validar MAC address
-    const macValidation = await validateMAC(tenantId, employeeId, macAddress);
+    // 4. HYBRID VALIDATION: Validar MAC (nivel dispositivo + terminal)
+    const macValidation = await validateMAC(
+      tenantId,
+      employeeId,
+      macAddress,
+      terminalId
+    );
 
     if (!macValidation.isValid) {
       // MAC desconocida - requiere confirmación
@@ -141,42 +155,67 @@ export async function POST(request: NextRequest) {
           ipAddress: ipToUse,
         });
 
-        // Log del acceso
-        await logMACAccess(tenantId, employeeId, macAddress, 'UNKNOWN');
-
         return NextResponse.json(
           {
             error: 'UNKNOWN_DEVICE',
             message: 'Dispositivo no reconocido. Se requiere confirmación.',
             requiresConfirmation: true,
             confirmationCode,
-            macAddress, // Para que el cliente pueda confirmar
+            macAddress,
           },
           { status: 403 }
         );
       }
 
-      // MAC bloqueada o inactiva
+      // MAC bloqueada o pertenece a otro empleado
+      const alertType = macValidation.reason === 'DEVICE_MISMATCH' 
+        ? 'DEVICE_MISMATCH' 
+        : 'BLOCKED_DEVICE';
+
       await createAlert(tenantId, {
         employeeId,
-        alertType: 'BLOCKED_DEVICE',
+        alertType,
         reason: macValidation.reason || 'Dispositivo bloqueado',
         ipAddress: ipToUse,
       });
 
       return NextResponse.json(
         {
-          error: 'BLOCKED_DEVICE',
-          message: 'Este dispositivo ha sido bloqueado',
+          error: macValidation.reason,
+          message: macValidation.reason === 'DEVICE_MISMATCH'
+            ? 'Este dispositivo está registrado para otro empleado'
+            : 'Este dispositivo ha sido bloqueado',
         },
         { status: 403 }
       );
     }
 
-    // Log del acceso exitoso
-    await logMACAccess(tenantId, employeeId, macAddress, 'VALID');
+    // 5. HYBRID VALIDATION: Verificar autorización de terminal
+    const terminalAuth = await checkTerminalAuthorization(
+      tenantId,
+      terminalId,
+      macAddress,
+      employeeId
+    );
 
-    // 5. Validar ubicación
+    if (!terminalAuth.isAuthorized) {
+      await createAlert(tenantId, {
+        employeeId,
+        alertType: 'UNAUTHORIZED_TERMINAL_ACCESS',
+        reason: `Acceso no autorizado a terminal ${terminalId}`,
+        ipAddress: ipToUse,
+      });
+
+      return NextResponse.json(
+        {
+          error: 'UNAUTHORIZED_TERMINAL',
+          message: 'Acceso no autorizado a esta terminal',
+        },
+        { status: 403 }
+      );
+    }
+
+    // 6. Validar ubicación (si se proporciona)
     if (location) {
       const locationValidation = await validateLocation(
         tenantId,
@@ -207,10 +246,10 @@ export async function POST(request: NextRequest) {
       await logLocationAccess(tenantId, employeeId, location, ipToUse);
     }
 
-    // 6. Crear sesión activa
+    // 7. Crear sesión activa con MAC + terminal_id
     const sessionContext: SessionContext = {
       employeeId,
-      terminalId: 'terminal',
+      terminalId,
       deviceId,
       macAddress,
       ipAddress: ipToUse,
@@ -223,10 +262,10 @@ export async function POST(request: NextRequest) {
       sessionContext
     );
 
-    // 7. Cerrar otras sesiones del mismo empleado
+    // 8. Cerrar otras sesiones del mismo empleado
     await closeAllSessionsExcept(tenantId, employeeId, sessionToken);
 
-    // 8. Log de acción
+    // 9. Log de acción
     await logAction(
       tenantId,
       employeeId,
@@ -236,17 +275,19 @@ export async function POST(request: NextRequest) {
       {
         deviceId,
         macAddress,
+        terminalId,
         location,
         sessionId,
       }
     );
 
-    // 9. Retornar respuesta exitosa
+    // 10. Retornar respuesta exitosa
     const response = NextResponse.json({
       success: true,
       sessionToken,
       sessionId,
       employee: authResult.employee,
+      warning: macValidation.warning, // DIFFERENT_TERMINAL si aplica
     });
 
     // Set httpOnly cookie

@@ -84,7 +84,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { pin, allowedRoles } = body;
 
+    console.log('[Session API] POST request received');
+    console.log('  PIN:', pin);
+    console.log('  PIN type:', typeof pin);
+    console.log('  PIN length:', pin?.length);
+    console.log('  Allowed roles:', allowedRoles);
+
     if (!pin || !allowedRoles || !Array.isArray(allowedRoles)) {
+      console.log('[Session API] Validation failed - missing PIN or roles');
       return NextResponse.json(
         { error: 'PIN y roles requeridos' },
         { status: 400 }
@@ -93,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     // Get tenant ID from centralized config
     const tenantId = getTenantId();
+    console.log('[Session API] Tenant ID:', tenantId);
 
     // Get IP and user agent
     const metadata = {
@@ -103,8 +111,12 @@ export async function POST(request: NextRequest) {
       terminalId: 'admin-panel',
     };
 
+    console.log('[Session API] Metadata:', metadata);
+
     // Authenticate with PIN
+    console.log('[Session API] Calling authenticate()...');
     const authResult = await authenticate(prisma, tenantId, pin, allowedRoles, metadata);
+    console.log('[Session API] Auth result:', { success: authResult.success, error: authResult.error });
 
     if (!authResult.success) {
       return NextResponse.json(
