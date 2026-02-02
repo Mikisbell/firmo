@@ -98,6 +98,9 @@ const nextConfig = {
         }
         return config;
     },
+    
+    // Turbopack configuration (empty to silence warning)
+    turbopack: {},
 };
 
 export default withSerwist(nextConfig);

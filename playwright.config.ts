@@ -13,6 +13,8 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    browserName: 'chromium',
+    executablePath: '/home/mateo/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome',
   },
 
   projects: [

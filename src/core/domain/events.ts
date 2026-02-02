@@ -48,7 +48,7 @@ export type Order = z.infer<typeof OrderCreatedPayload>;
 // Aggregate Types
 // ============================================================================
 
-export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON", "SAGA"]);
+export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON", "SAGA", "INVENTORY"]);
 
 // ============================================================================
 // Base Envelope (all events have this structure)
@@ -284,6 +284,47 @@ const CheckItemsUpdatedPayload = z.object({
 });
 
 // ============================================================================
+// PROMOTION Events (P1)
+// ============================================================================
+
+const PromotionAppliedTentativePayload = z.object({
+    order_id: uuidSchema,
+    promotion_id: uuidSchema,
+    source: z.enum(["ORDER_SCREEN", "CATALOG", "MANUAL"]),
+    applied_at: isoDateSchema,
+});
+
+const PromotionValidatedAppliedPayload = z.object({
+    order_id: uuidSchema,
+    promotion_id: uuidSchema,
+    promotion_snapshot: z.object({
+        id: uuidSchema,
+        name: z.string(),
+        type: z.enum(["PERCENT", "FIXED", "HAPPY_HOUR", "2X1", "COMBO"]),
+        value: z.number().int(),
+    }),
+    recalculated_totals: z.object({
+        subtotal_cents: positiveCentsSchema,
+        discount_cents: positiveCentsSchema,
+        total_cents: positiveCentsSchema,
+    }),
+    validated_at: isoDateSchema,
+    validated_by: uuidSchema,
+});
+
+const PromotionRemovedPayload = z.object({
+    order_id: uuidSchema,
+    promotion_id: uuidSchema,
+    reason: z.enum(["USER_REQUEST", "EXPIRED", "INVALID", "STACKING_NOT_ALLOWED"]),
+    previous_totals: z.object({
+        subtotal_cents: positiveCentsSchema,
+        discount_cents: positiveCentsSchema,
+        total_cents: positiveCentsSchema,
+    }),
+    removed_at: isoDateSchema,
+});
+
+// ============================================================================
 // INVOICE Events (P0)
 // ============================================================================
 
@@ -304,6 +345,63 @@ const InvoiceVoidedPayload = z.object({
 });
 
 // ============================================================================
+// REFUND Events (P1)
+// ============================================================================
+
+const RefundIssuedPayload = z.object({
+    refund_id: uuidSchema,
+    order_id: uuidSchema,
+    check_id: z.string().min(1),
+    invoice_id: uuidSchema.nullish(),
+    type: z.enum(["FULL", "PARTIAL", "ITEM"]),
+    reason_code: z.enum(["CUSTOMER_REQUEST", "ORDER_ERROR", "QUALITY_ISSUE", "LATE_DELIVERY", "WRONG_ITEM", "OTHER"]),
+    reason_detail: z.string().nullish(),
+    original_amount: positiveCentsSchema,
+    refund_amount: positiveCentsSchema,
+    refund_method: PaymentMethodSchema,
+    items: z.array(z.object({
+        line_id: z.string().min(1),
+        product_id: z.string().min(1),
+        name: z.string(),
+        qty: z.number().int().positive(),
+        unit_price_cents: positiveCentsSchema,
+        refund_cents: positiveCentsSchema,
+    })).nullish(),
+    issued_by: uuidSchema,
+    issued_at: isoDateSchema,
+});
+
+// ============================================================================
+// DELIVERY Events (P1)
+// ============================================================================
+
+const DeliveryAssignedPayload = z.object({
+    order_id: uuidSchema,
+    driver_id: uuidSchema.nullish(),
+    courier_type: z.enum(["OWN", "APP"]),
+    app_name: z.string().nullish(),
+    assigned_at: isoDateSchema,
+});
+
+const DeliveryStatusChangedPayload = z.object({
+    order_id: uuidSchema,
+    from: z.enum(["PENDING_ASSIGN", "ASSIGNED", "PICKED_UP", "DELIVERED", "FAILED"]),
+    to: z.enum(["PENDING_ASSIGN", "ASSIGNED", "PICKED_UP", "DELIVERED", "FAILED"]),
+    changed_at: isoDateSchema,
+    location: z.object({
+        lat: z.number(),
+        lng: z.number(),
+    }).nullish(),
+});
+
+const HandoffStatusChangedPayload = z.object({
+    order_id: uuidSchema,
+    from: z.enum(["WAITING", "PACKING", "READY_FOR_PICKUP", "OUT_FOR_DELIVERY", "DELIVERED"]),
+    to: z.enum(["WAITING", "PACKING", "READY_FOR_PICKUP", "OUT_FOR_DELIVERY", "DELIVERED"]),
+    changed_at: isoDateSchema,
+});
+
+// ============================================================================
 // CATALOG Events (P0)
 // ============================================================================
 
@@ -311,6 +409,21 @@ const CatalogVersionBumpedPayload = z.object({
     catalog_version: z.number().int().positive(),
     reason: z.string().optional(),
 });
+
+// ============================================================================
+// INVENTORY Events (P1)
+// ============================================================================
+
+// Import inventory event payloads from inventory-events module
+import {
+    PurchaseOrderCreatedPayload,
+    PurchaseOrderStatusChangedPayload,
+    GoodsReceivedPayload,
+    InventoryAdjustedPayload,
+    WasteRecordedPayload,
+    InventoryCountCompletedPayload,
+    InventoryDeductedPayload,
+} from "./inventory-events";
 
 // ============================================================================
 // SAGA Events (P2)
@@ -495,6 +608,23 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         }),
     }),
 
+    // PROMOTION events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PROMOTION_APPLIED_TENTATIVE"),
+        aggregate_type: z.literal("ORDER"),
+        payload: PromotionAppliedTentativePayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PROMOTION_VALIDATED_APPLIED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: PromotionValidatedAppliedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PROMOTION_REMOVED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: PromotionRemovedPayload,
+    }),
+
     // INVOICE events
     BaseEnvelopeSchema.extend({
         event_type: z.literal("INVOICE_ISSUED"),
@@ -505,6 +635,13 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("INVOICE_VOIDED"),
         aggregate_type: z.literal("INVOICE"),
         payload: InvoiceVoidedPayload,
+    }),
+
+    // REFUND events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("REFUND_ISSUED"),
+        aggregate_type: z.literal("INVOICE"),
+        payload: RefundIssuedPayload,
     }),
 
     // CATALOG events
@@ -550,6 +687,60 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("SAGA"),
         payload: SagaFailedPayload,
     }),
+
+    // INVENTORY events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PURCHASE_ORDER_CREATED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: PurchaseOrderCreatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PURCHASE_ORDER_STATUS_CHANGED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: PurchaseOrderStatusChangedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("GOODS_RECEIVED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: GoodsReceivedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("INVENTORY_ADJUSTED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: InventoryAdjustedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("WASTE_RECORDED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: WasteRecordedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("INVENTORY_COUNT_COMPLETED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: InventoryCountCompletedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("INVENTORY_DEDUCTED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: InventoryDeductedPayload,
+    }),
+
+    // DELIVERY events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("DELIVERY_ASSIGNED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: DeliveryAssignedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("DELIVERY_STATUS_CHANGED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: DeliveryStatusChangedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("HANDOFF_STATUS_CHANGED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: HandoffStatusChangedPayload,
+    }),
 ]);
 
 // ============================================================================
@@ -569,10 +760,8 @@ export type CheckItemsUpdatedEvent = Extract<ParkEvent, { event_type: "CHECK_ITE
 export type CheckPaymentAddedEvent = Extract<ParkEvent, { event_type: "CHECK_PAYMENT_ADDED" }>;
 export type CheckMarkedPaidEvent = Extract<ParkEvent, { event_type: "CHECK_MARKED_PAID" }>;
 export type InvoiceIssuedEvent = Extract<ParkEvent, { event_type: "INVOICE_ISSUED" }>;
-export type RequestCheckEvent = Extract<ParkEvent, { event_type: "REQUEST_CHECK" }>;
-export type OrderSubmittedEvent = Extract<ParkEvent, { event_type: "ORDER_SUBMITTED" }>;
-export type OrderItemQtyChangedEvent = Extract<ParkEvent, { event_type: "ORDER_ITEM_QTY_CHANGED" }>;
-export type OrderItemVoidedEvent = Extract<ParkEvent, { event_type: "ORDER_ITEM_VOIDED" }>;
+export type InvoiceVoidedEvent = Extract<ParkEvent, { event_type: "INVOICE_VOIDED" }>;
+export type RefundIssuedEvent = Extract<ParkEvent, { event_type: "REFUND_ISSUED" }>;
 
 // Saga event types
 export type SagaStartedEvent = Extract<ParkEvent, { event_type: "SAGA_STARTED" }>;
@@ -582,6 +771,25 @@ export type SagaStepCompensatedEvent = Extract<ParkEvent, { event_type: "SAGA_ST
 export type SagaCompletedEvent = Extract<ParkEvent, { event_type: "SAGA_COMPLETED" }>;
 export type SagaCompensatedEvent = Extract<ParkEvent, { event_type: "SAGA_COMPENSATED" }>;
 export type SagaFailedEvent = Extract<ParkEvent, { event_type: "SAGA_FAILED" }>;
+
+// Promotion event types
+export type PromotionAppliedTentativeEvent = Extract<ParkEvent, { event_type: "PROMOTION_APPLIED_TENTATIVE" }>;
+export type PromotionValidatedAppliedEvent = Extract<ParkEvent, { event_type: "PROMOTION_VALIDATED_APPLIED" }>;
+export type PromotionRemovedEvent = Extract<ParkEvent, { event_type: "PROMOTION_REMOVED" }>;
+
+// Inventory event types
+export type PurchaseOrderCreatedEvent = Extract<ParkEvent, { event_type: "PURCHASE_ORDER_CREATED" }>;
+export type PurchaseOrderStatusChangedEvent = Extract<ParkEvent, { event_type: "PURCHASE_ORDER_STATUS_CHANGED" }>;
+export type GoodsReceivedEvent = Extract<ParkEvent, { event_type: "GOODS_RECEIVED" }>;
+export type InventoryAdjustedEvent = Extract<ParkEvent, { event_type: "INVENTORY_ADJUSTED" }>;
+export type WasteRecordedEvent = Extract<ParkEvent, { event_type: "WASTE_RECORDED" }>;
+export type InventoryCountCompletedEvent = Extract<ParkEvent, { event_type: "INVENTORY_COUNT_COMPLETED" }>;
+export type InventoryDeductedEvent = Extract<ParkEvent, { event_type: "INVENTORY_DEDUCTED" }>;
+
+// Delivery event types
+export type DeliveryAssignedEvent = Extract<ParkEvent, { event_type: "DELIVERY_ASSIGNED" }>;
+export type DeliveryStatusChangedEvent = Extract<ParkEvent, { event_type: "DELIVERY_STATUS_CHANGED" }>;
+export type HandoffStatusChangedEvent = Extract<ParkEvent, { event_type: "HANDOFF_STATUS_CHANGED" }>;
 
 // ============================================================================
 // Ingest Request Schema

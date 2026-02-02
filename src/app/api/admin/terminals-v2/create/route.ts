@@ -2,15 +2,24 @@
  * Terminal Devices API v2 - POST (Create)
  * 
  * Requirements: 3.1 (Terminal Architecture v2)
+ * Updated: 01 Febrero 2026 - Added admin authentication from session
  */
 
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { createTerminal, type CreateTerminalInput } from '@/src/core/auth/terminal-registry';
 import { getTenantId } from '@/src/core/config/tenant';
-import { getAdminEmployeeId } from '@/src/core/config/employees';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Validate admin authentication and get user from session
+    const authResult = await requireAdminAuth(req);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    const { user } = authResult;
     const body = await req.json();
     const { terminal_id, role, location_id, device_name } = body;
 
@@ -33,9 +42,8 @@ export async function POST(req: Request) {
 
     const tenantId = getTenantId();
     
-    // Use ADMIN employee ID as created_by (TODO: Get from session)
-    const ADMIN_ID = getAdminEmployeeId();
-    const createdBy = ADMIN_ID;
+    // Use authenticated user's ID as created_by (from session)
+    const createdBy = user.id;
 
     const input: CreateTerminalInput = {
       terminal_id,

@@ -17,15 +17,16 @@ type PrismaClientType = any;
 // Enhanced Security Configuration
 const SALT_ROUNDS = 12; // bcrypt salt rounds
 const JWT_SECRET_STRING = process.env.JWT_SECRET;
-if (!JWT_SECRET_STRING && process.env.NODE_ENV === 'production') {
-    throw new Error('SECURITY ERROR: JWT_SECRET must be configured in production environment');
+if (!JWT_SECRET_STRING) {
+    throw new Error('SECURITY ERROR: JWT_SECRET must be configured');
 }
-const JWT_SECRET = new TextEncoder().encode(
-    JWT_SECRET_STRING || 'park-pos-jwt-secret-dev-only-DO-NOT-USE-IN-PRODUCTION'
-);
+const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
 
 // Separate secrets for different token types
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || JWT_SECRET_STRING;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+if (!REFRESH_TOKEN_SECRET) {
+    throw new Error('SECURITY ERROR: REFRESH_TOKEN_SECRET must be configured');
+}
 
 const JWT_ISSUER = 'park-pos';
 const JWT_AUDIENCE = 'park-pos-client';

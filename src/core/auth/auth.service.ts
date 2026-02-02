@@ -22,14 +22,12 @@ if (!process.env.PIN_SALT && process.env.NODE_ENV === 'production') {
     throw new Error('SECURITY ERROR: PIN_SALT must be configured in production environment');
 }
 
-// CRITICAL: JWT_SECRET must be configured in production
+// CRITICAL: JWT_SECRET must be configured
 const JWT_SECRET_STRING = process.env.JWT_SECRET;
-if (!JWT_SECRET_STRING && process.env.NODE_ENV === 'production') {
-    throw new Error('SECURITY ERROR: JWT_SECRET must be configured in production environment');
+if (!JWT_SECRET_STRING) {
+    throw new Error('SECURITY ERROR: JWT_SECRET must be configured');
 }
-const JWT_SECRET = new TextEncoder().encode(
-    JWT_SECRET_STRING || 'park-pos-jwt-secret-dev-only-DO-NOT-USE-IN-PRODUCTION'
-);
+const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
 const JWT_ISSUER = 'park-pos';
 const JWT_AUDIENCE = 'park-pos-client';
 

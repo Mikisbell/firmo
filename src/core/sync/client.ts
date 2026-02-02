@@ -407,9 +407,11 @@ export class SyncClient {
         let resp: IngestResponse;
         try {
             resp = await syncCircuitBreaker.execute(async () => {
-                const apiSecret = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_SECRET
-                    ? process.env.NEXT_PUBLIC_API_SECRET
-                    : "park_secret_mvp_2025"; // Fallback for development
+                const apiSecret = process.env?.NEXT_PUBLIC_API_SECRET;
+                
+                if (!apiSecret) {
+                    throw new Error('SECURITY ERROR: NEXT_PUBLIC_API_SECRET must be configured');
+                }
                 
                 const r = await fetch(this.endpoint, {
                     method: "POST",

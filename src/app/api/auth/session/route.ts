@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { validateToken, validateSession, revokeSession, logAdminAccess, authenticate } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
+import { getTenantId } from '@/src/core/config/tenant';
 
 // Handle CORS preflight request
 export async function OPTIONS(request: NextRequest) {
@@ -90,8 +91,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get tenant ID from terminal config or default
-    const tenantId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'; // TODO: Get from request context
+    // Get tenant ID from centralized config
+    const tenantId = getTenantId();
 
     // Get IP and user agent
     const metadata = {
