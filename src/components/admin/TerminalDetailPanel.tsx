@@ -191,6 +191,36 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
     }
   };
 
+  const handleUnbind = async () => {
+    if (!data || data.terminal.status === 'pending') return;
+
+    if (!confirm('¿Está seguro de desvincular este terminal?\n\nEl dispositivo actual se desvinculará y se podrá activar en un nuevo dispositivo.')) {
+      return;
+    }
+
+    try {
+      setActionLoading('unbind');
+      const res = await fetch(`/api/admin/terminals-v2/${terminalId}/unbind`, {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to unbind terminal');
+      }
+
+      const result = await res.json();
+      alert(`Terminal desvinculado exitosamente.\n\nSe ha generado un nuevo código de activación para vincular un nuevo dispositivo.`);
+
+      await fetchDetails();
+      onUpdate();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al desvincular terminal');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const isOnline = (lastSeen: string | null) => {
     if (!lastSeen) return false;
     const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
@@ -482,6 +512,26 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
                 <PowerOff className="w-4 h-4" />
               )}
               {terminal.status === 'disabled' ? 'Habilitar' : 'Deshabilitar'}
+            </button>
+          )}
+
+          {terminal.status !== 'pending' && terminal.status !== 'disabled' && (
+            <button
+              onClick={handleUnbind}
+              disabled={actionLoading !== null}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+              title="Desvincular dispositivo y permitir reactivación en nuevo dispositivo"
+            >
+              {actionLoading === 'unbind' ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  Desvincular
+                </>
+              )}
             </button>
           )}
 
