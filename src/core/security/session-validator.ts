@@ -12,6 +12,7 @@ export interface SessionContext {
   employeeId: string;
   terminalId: string;
   deviceId: string;
+  macAddress: string;
   ipAddress: string;
   userAgent?: string;
   location?: {
@@ -67,6 +68,7 @@ export async function createActiveSession(
       terminal_id: context.terminalId,
       device_id: context.deviceId,
       session_token: sessionToken,
+      mac_address: context.macAddress,
       ip_address: context.ipAddress,
       user_agent: context.userAgent,
       location_lat: context.location?.lat,

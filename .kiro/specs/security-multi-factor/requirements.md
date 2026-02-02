@@ -10,12 +10,24 @@ Mi solución de Device ID tiene vulnerabilidades críticas:
 4. **Sin auditoría**: No se registra quién accedió, cuándo, desde dónde
 5. **Sin límites**: Hacker puede hacer transacciones ilimitadas
 
+## Problema Adicional: IP Validation es Demasiado Agresiva
+
+**Contexto:** Pollería con tráfico intenso. Empleados necesitan acceso INMEDIATO.
+
+**Problema Real:** Validación de IP en cada login causa fricción innecesaria:
+- IP cambia cada 24h (DHCP lease)
+- IP cambia si router se reinicia
+- IP cambia si empleado se conecta a WiFi diferente
+- Resultado: Empleados bloqueados cada día → Negocio pierde dinero
+
+**Solución:** Usar MAC address como identificador principal (estable, hardware-bound)
+
 ## Requisitos
 
 ### 1. Sesiones Activas (Requirement 1.1-1.5)
 
 **1.1 Tabla de Sesiones**
-- Registrar cada login con: device_id, IP, ubicación, timestamp
+- Registrar cada login con: device_id, MAC address, IP, timestamp
 - Marcar sesiones como activas/inactivas
 - Auditoría completa de acceso
 
@@ -24,18 +36,20 @@ Mi solución de Device ID tiene vulnerabilidades críticas:
 - Rechazar nuevo login O cerrar sesión anterior
 - Alertar al admin
 
-**1.3 Validación de IP**
-- Registrar IP de cada sesión
-- Si IP cambia → validar contexto
-- Si IP es sospechosa → alertar
+**1.3 Validación de MAC Address (REEMPLAZA IP Validation)**
+- Registrar MAC address de cada sesión
+- Si MAC es desconocido → requiere confirmación
+- Si MAC pertenece a otro empleado → alerta
+- MAC es estable (no cambia cada día)
 
-**1.4 Validación de Ubicación**
+**1.4 Validación de Ubicación (OPCIONAL)**
 - Calcular distancia entre ubicaciones
 - Si viaje es imposible (>900 km/h) → rechazar
 - Registrar ubicación en cada sesión
+- **NOTA:** Usar solo como validación secundaria, no primaria
 
 **1.5 Auditoría de Sesiones**
-- Registrar: quién, cuándo, desde dónde, qué hizo
+- Registrar: quién, cuándo, desde dónde (MAC), qué hizo
 - Historial completo de accesos
 - Exportable para auditoría
 

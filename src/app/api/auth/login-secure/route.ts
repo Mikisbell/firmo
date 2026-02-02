@@ -13,10 +13,12 @@ import {
   closeAllSessionsExcept,
   SessionContext,
 } from '@/src/core/security/session-validator';
-import { validateIP, getClientIP, logIPAccess } from '@/src/core/security/ip-validator';
+import { getDeviceIdentifier } from '@/src/core/security/mac-detector';
+import { validateMAC, registerMAC, logMACAccess } from '@/src/core/security/mac-validator';
 import { validateLocation, logLocationAccess } from '@/src/core/security/location-validator';
 import { createAlert } from '@/src/core/security/alert-service';
 import { logAction } from '@/src/core/security/rate-limiter';
+import { getClientIP } from '@/src/core/security/ip-validator';
 
 export async function POST(request: NextRequest) {
   try {
@@ -106,33 +108,75 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Validar IP
-    const ipValidation = await validateIP(tenantId, employeeId, ipToUse);
-    if (ipValidation.isSuspicious) {
-      // Crear alerta
+    // 3. Detectar MAC address del dispositivo
+    const { identifier: macAddress } = await getDeviceIdentifier();
+
+    if (!macAddress) {
+      return NextResponse.json(
+        {
+          error: 'MAC_DETECTION_FAILED',
+          message: 'No se pudo detectar la dirección MAC del dispositivo',
+        },
+        { status: 400 }
+      );
+    }
+
+    // 4. Validar MAC address
+    const macValidation = await validateMAC(tenantId, employeeId, macAddress);
+
+    if (!macValidation.isValid) {
+      // MAC desconocida - requiere confirmación
+      if (macValidation.reason === 'UNKNOWN_MAC') {
+        // Generar código de confirmación
+        const confirmationCode = Math.random()
+          .toString(36)
+          .substring(2, 8)
+          .toUpperCase();
+
+        // Crear alerta
+        await createAlert(tenantId, {
+          employeeId,
+          alertType: 'NEW_DEVICE',
+          reason: `Nuevo dispositivo detectado: ${macAddress}`,
+          ipAddress: ipToUse,
+        });
+
+        // Log del acceso
+        await logMACAccess(tenantId, employeeId, macAddress, 'UNKNOWN');
+
+        return NextResponse.json(
+          {
+            error: 'UNKNOWN_DEVICE',
+            message: 'Dispositivo no reconocido. Se requiere confirmación.',
+            requiresConfirmation: true,
+            confirmationCode,
+            macAddress, // Para que el cliente pueda confirmar
+          },
+          { status: 403 }
+        );
+      }
+
+      // MAC bloqueada o inactiva
       await createAlert(tenantId, {
         employeeId,
-        alertType: 'SUSPICIOUS_IP',
-        reason: ipValidation.reason || 'IP sospechosa detectada',
+        alertType: 'BLOCKED_DEVICE',
+        reason: macValidation.reason || 'Dispositivo bloqueado',
         ipAddress: ipToUse,
       });
 
-      // Log del acceso
-      await logIPAccess(tenantId, employeeId, ipToUse, userAgent);
-
-      // Retornar error pero permitir confirmación
       return NextResponse.json(
         {
-          error: 'SUSPICIOUS_IP',
-          message: 'Acceso desde IP sospechosa',
-          requiresConfirmation: true,
-          confirmationCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          error: 'BLOCKED_DEVICE',
+          message: 'Este dispositivo ha sido bloqueado',
         },
         { status: 403 }
       );
     }
 
-    // 4. Validar ubicación
+    // Log del acceso exitoso
+    await logMACAccess(tenantId, employeeId, macAddress, 'VALID');
+
+    // 5. Validar ubicación
     if (location) {
       const locationValidation = await validateLocation(
         tenantId,
@@ -163,11 +207,12 @@ export async function POST(request: NextRequest) {
       await logLocationAccess(tenantId, employeeId, location, ipToUse);
     }
 
-    // 5. Crear sesión activa
+    // 6. Crear sesión activa
     const sessionContext: SessionContext = {
       employeeId,
       terminalId: 'terminal',
       deviceId,
+      macAddress,
       ipAddress: ipToUse,
       userAgent,
       location,
@@ -178,10 +223,10 @@ export async function POST(request: NextRequest) {
       sessionContext
     );
 
-    // 6. Cerrar otras sesiones del mismo empleado
+    // 7. Cerrar otras sesiones del mismo empleado
     await closeAllSessionsExcept(tenantId, employeeId, sessionToken);
 
-    // 7. Log de acción
+    // 8. Log de acción
     await logAction(
       tenantId,
       employeeId,
@@ -190,12 +235,13 @@ export async function POST(request: NextRequest) {
       ipToUse,
       {
         deviceId,
+        macAddress,
         location,
         sessionId,
       }
     );
 
-    // 8. Retornar respuesta exitosa
+    // 9. Retornar respuesta exitosa
     const response = NextResponse.json({
       success: true,
       sessionToken,

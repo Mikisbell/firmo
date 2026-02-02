@@ -7,7 +7,9 @@ export type AlertType =
   | 'IMPOSSIBLE_TRAVEL'
   | 'RATE_LIMIT_EXCEEDED'
   | 'PRICE_CHANGE_LIMIT'
-  | 'REFUND_LIMIT_EXCEEDED';
+  | 'REFUND_LIMIT_EXCEEDED'
+  | 'NEW_DEVICE'
+  | 'BLOCKED_DEVICE';
 
 export interface AlertContext {
   employeeId: string;
@@ -147,6 +149,8 @@ export async function getAlertStats(
     RATE_LIMIT_EXCEEDED: 0,
     PRICE_CHANGE_LIMIT: 0,
     REFUND_LIMIT_EXCEEDED: 0,
+    NEW_DEVICE: 0,
+    BLOCKED_DEVICE: 0,
   };
 
   let unresolved = 0;

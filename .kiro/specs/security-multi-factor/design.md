@@ -1,4 +1,4 @@
-# Design: Multi-Factor Security & Session Management
+# Design: Multi-Factor Security & Session Management (MAC-Based)
 
 ## Arquitectura
 
@@ -6,8 +6,8 @@
 ┌─────────────────────────────────────────────────────────┐
 │ Frontend (TerminalSetup.tsx, page.tsx)                  │
 ├─────────────────────────────────────────────────────────┤
-│ 1. Obtener IP + ubicación (geolocation API)             │
-│ 2. Enviar: device_id + IP + ubicación + PIN             │
+│ 1. Detectar MAC address (WebRTC)                        │
+│ 2. Enviar: device_id + MAC + PIN                        │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -15,12 +15,11 @@
 ├─────────────────────────────────────────────────────────┤
 │ 1. Validar PIN                                          │
 │ 2. Validar device_id                                    │
-│ 3. Validar IP (¿es sospechosa?)                         │
-│ 4. Validar ubicación (¿viaje imposible?)                │
-│ 5. Detectar acceso simultáneo                           │
-│ 6. Crear sesión en active_sessions                      │
-│ 7. Generar session_token                                │
-│ 8. Registrar en audit_log                               │
+│ 3. Validar MAC address (¿es conocido?)                  │
+│ 4. Detectar acceso simultáneo                           │
+│ 5. Crear sesión en active_sessions                      │
+│ 6. Generar session_token                                │
+│ 7. Registrar en audit_log                               │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -28,13 +27,17 @@
 ├─────────────────────────────────────────────────────────┤
 │ active_sessions:                                        │
 │   - id, employee_id, terminal_id, device_id             │
-│   - ip_address, location_lat, location_lng              │
+│   - mac_address, ip_address (logging only)              │
 │   - session_token, started_at, last_activity_at         │
 │   - is_active, is_suspicious, blocked_reason            │
 │                                                         │
+│ device_mac_addresses:                                   │
+│   - mac_address (PRIMARY), employee_id                  │
+│   - first_seen, last_seen, is_active                    │
+│                                                         │
 │ security_alerts:                                        │
 │   - id, type, employee_id, reason                       │
-│   - ip_address, location, timestamp                     │
+│   - mac_address, ip_address, timestamp                  │
 │   - is_resolved, resolved_by, resolved_at              │
 │                                                         │
 │ transaction_limits:                                     │
@@ -43,13 +46,36 @@
 │                                                         │
 │ audit_log:                                              │
 │   - id, employee_id, action, resource                   │
-│   - ip_address, timestamp, details                      │
+│   - mac_address, ip_address, timestamp, details         │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ## Tablas Nuevas
 
-### active_sessions
+### device_mac_addresses (NUEVA - Reemplaza IP validation)
+
+```sql
+CREATE TABLE device_mac_addresses (
+  mac_address STRING PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  employee_id UUID NOT NULL,
+  
+  -- Timestamps
+  first_seen TIMESTAMP DEFAULT NOW(),
+  last_seen TIMESTAMP DEFAULT NOW(),
+  
+  -- Estado
+  is_active BOOLEAN DEFAULT true,
+  
+  -- Auditoría
+  created_at TIMESTAMP DEFAULT NOW(),
+  
+  INDEX(tenant_id, employee_id),
+  INDEX(employee_id, last_seen DESC)
+);
+```
+
+### active_sessions (MODIFICADA)
 
 ```sql
 CREATE TABLE active_sessions (
@@ -60,11 +86,10 @@ CREATE TABLE active_sessions (
   device_id UUID NOT NULL,
   session_token STRING UNIQUE NOT NULL,
   
-  -- Contexto de acceso
-  ip_address STRING NOT NULL,
+  -- Contexto de acceso (MAC es primario, IP es logging)
+  mac_address STRING NOT NULL,
+  ip_address STRING,  -- Solo para logging/auditoría
   user_agent STRING,
-  location_lat DECIMAL(10, 7),
-  location_lng DECIMAL(10, 7),
   
   -- Timestamps
   started_at TIMESTAMP DEFAULT NOW(),
@@ -82,24 +107,23 @@ CREATE TABLE active_sessions (
   INDEX(tenant_id, employee_id, is_active),
   INDEX(terminal_id, is_active),
   INDEX(session_token),
-  INDEX(ip_address)
+  INDEX(mac_address)
 );
 ```
 
-### security_alerts
+### security_alerts (SIN CAMBIOS)
 
 ```sql
 CREATE TABLE security_alerts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL,
   employee_id UUID NOT NULL,
-  alert_type STRING NOT NULL,  -- SIMULTANEOUS_LOGIN, SUSPICIOUS_IP, IMPOSSIBLE_TRAVEL, RATE_LIMIT_EXCEEDED
+  alert_type STRING NOT NULL,  -- SIMULTANEOUS_LOGIN, UNKNOWN_DEVICE, DEVICE_MISMATCH, RATE_LIMIT_EXCEEDED
   
   -- Detalles
   reason STRING NOT NULL,
+  mac_address STRING,
   ip_address STRING,
-  location_lat DECIMAL(10, 7),
-  location_lng DECIMAL(10, 7),
   
   -- Resolución
   is_resolved BOOLEAN DEFAULT false,
@@ -116,7 +140,7 @@ CREATE TABLE security_alerts (
 );
 ```
 
-### transaction_limits
+### transaction_limits (SIN CAMBIOS)
 
 ```sql
 CREATE TABLE transaction_limits (
@@ -138,7 +162,7 @@ CREATE TABLE transaction_limits (
 );
 ```
 
-### audit_log
+### audit_log (MODIFICADA)
 
 ```sql
 CREATE TABLE audit_log (
@@ -148,8 +172,9 @@ CREATE TABLE audit_log (
   action STRING NOT NULL,  -- LOGIN, LOGOUT, TRANSACTION, PRICE_CHANGE, REFUND
   resource STRING,  -- order_id, product_id, etc
   
-  -- Contexto
-  ip_address STRING,
+  -- Contexto (MAC es primario)
+  mac_address STRING,
+  ip_address STRING,  -- Solo para logging
   session_id UUID,
   
   -- Detalles
@@ -159,13 +184,14 @@ CREATE TABLE audit_log (
   
   INDEX(tenant_id, employee_id, created_at DESC),
   INDEX(action, created_at DESC),
-  INDEX(created_at DESC)
+  INDEX(created_at DESC),
+  INDEX(mac_address)
 );
 ```
 
 ## Endpoints Nuevos
 
-### POST /api/auth/login (Mejorado)
+### POST /api/auth/login (Mejorado con MAC)
 
 ```typescript
 Request:
@@ -173,8 +199,7 @@ Request:
   terminal_id: "CAJA_01",
   pin: "1234",
   device_id: "uuid-device",
-  ip_address: "192.168.1.100",
-  location: { lat: -12.0464, lng: -77.0428 }
+  mac_address: "AA:BB:CC:DD:EE:FF",  // ← NUEVO (MAC address)
 }
 
 Response (Éxito):
@@ -190,48 +215,48 @@ Response (Fallo - Acceso Simultáneo):
   success: false,
   error: "SIMULTANEOUS_LOGIN",
   message: "Ya hay una sesión activa en otro dispositivo",
-  existing_session: {
+  existingSession: {
     device_id: "uuid-otro",
-    ip_address: "192.168.1.50",
+    mac_address: "AA:BB:CC:DD:EE:FF",
     started_at: "2026-02-02T10:00:00Z"
   }
 }
 
-Response (Fallo - IP Sospechosa):
+Response (Fallo - MAC Desconocido):
 {
   success: false,
-  error: "SUSPICIOUS_IP",
-  message: "Acceso desde IP sospechosa",
+  error: "UNKNOWN_DEVICE",
+  message: "Dispositivo desconocido",
   requires_confirmation: true,
   confirmation_code: "123456"  // Enviar por email
 }
 
-Response (Fallo - Viaje Imposible):
+Response (Fallo - MAC Pertenece a Otro Empleado):
 {
   success: false,
-  error: "IMPOSSIBLE_TRAVEL",
-  message: "Viaje imposible entre ubicaciones",
-  last_location: { lat, lng, timestamp }
+  error: "DEVICE_MISMATCH",
+  message: "Este dispositivo está registrado a otro empleado",
 }
 ```
 
-### POST /api/auth/confirm-suspicious-login
+### POST /api/auth/confirm-device
 
 ```typescript
 Request:
 {
   confirmation_code: "123456",
-  session_token: "token-xyz"
+  session_token: "token-xyz",
+  mac_address: "AA:BB:CC:DD:EE:FF"
 }
 
 Response:
 {
   success: true,
-  message: "Acceso confirmado"
+  message: "Dispositivo confirmado"
 }
 ```
 
-### GET /api/admin/security/sessions
+### GET /api/admin/security/sessions (SIN CAMBIOS)
 
 ```typescript
 Response:
@@ -242,8 +267,8 @@ Response:
       employee: { id, name },
       terminal: { id, name },
       device_id: "uuid",
-      ip_address: "192.168.1.100",
-      location: { lat, lng },
+      mac_address: "AA:BB:CC:DD:EE:FF",
+      ip_address: "192.168.1.100",  // Solo para referencia
       started_at: "2026-02-02T10:00:00Z",
       last_activity_at: "2026-02-02T10:30:00Z",
       is_suspicious: false
@@ -252,102 +277,41 @@ Response:
 }
 ```
 
-### POST /api/admin/security/sessions/[sessionId]/revoke
-
-```typescript
-Request:
-{
-  reason: "Acceso sospechoso"
-}
-
-Response:
-{
-  success: true,
-  message: "Sesión revocada"
-}
-```
-
-### GET /api/admin/security/alerts
-
-```typescript
-Response:
-{
-  alerts: [
-    {
-      id: "alert-1",
-      type: "SIMULTANEOUS_LOGIN",
-      employee: { id, name },
-      reason: "Acceso simultáneo desde 2 dispositivos",
-      ip_address: "192.168.1.100",
-      created_at: "2026-02-02T10:05:00Z",
-      is_resolved: false
-    }
-  ]
-}
-```
-
 ## Validaciones
 
-### 1. Validación de IP
+### 1. Validación de MAC Address (REEMPLAZA IP validation)
 
 ```typescript
-const validateIP = async (
+const validateMAC = async (
   employeeId: string,
-  currentIP: string
-): Promise<{ is_suspicious: boolean; reason?: string }> => {
-  const lastSession = await getLastSession(employeeId);
+  currentMAC: string
+): Promise<{ isValid: boolean; reason?: string }> => {
+  const knownMAC = await prisma.device_mac_addresses.findUnique({
+    where: { mac_address: currentMAC },
+  });
   
-  if (!lastSession) {
-    return { is_suspicious: false };
-  }
-  
-  // Si IP es diferente, es sospechosa
-  if (lastSession.ip_address !== currentIP) {
+  if (!knownMAC) {
+    // MAC desconocido → Requiere confirmación
     return {
-      is_suspicious: true,
-      reason: `IP diferente: ${lastSession.ip_address} → ${currentIP}`
+      isValid: false,
+      reason: `MAC desconocido: ${currentMAC}`,
     };
   }
   
-  return { is_suspicious: false };
-};
-```
-
-### 2. Validación de Ubicación
-
-```typescript
-const validateLocation = async (
-  employeeId: string,
-  currentLocation: { lat: number; lng: number }
-): Promise<{ is_valid: boolean; reason?: string }> => {
-  const lastSession = await getLastSession(employeeId);
-  
-  if (!lastSession || !lastSession.location_lat) {
-    return { is_valid: true };
-  }
-  
-  const distance = calculateDistance(
-    lastSession.location_lat,
-    lastSession.location_lng,
-    currentLocation.lat,
-    currentLocation.lng
-  );
-  
-  const timeDiff = (Date.now() - lastSession.last_activity_at) / 1000 / 60; // minutos
-  const maxDistance = (timeDiff / 60) * 900; // 900 km/h
-  
-  if (distance > maxDistance) {
+  if (knownMAC.employee_id !== employeeId) {
+    // MAC pertenece a otro empleado → Alerta
     return {
-      is_valid: false,
-      reason: `Viaje imposible: ${distance}km en ${timeDiff}min`
+      isValid: false,
+      reason: `MAC pertenece a otro empleado`,
     };
   }
   
-  return { is_valid: true };
+  // MAC válido → Acceso sin fricción
+  return { isValid: true };
 };
 ```
 
-### 3. Detección de Acceso Simultáneo
+### 2. Detección de Acceso Simultáneo (SIN CAMBIOS)
 
 ```typescript
 const detectSimultaneousLogin = async (
@@ -375,7 +339,7 @@ const detectSimultaneousLogin = async (
 };
 ```
 
-### 4. Rate Limiting
+### 3. Rate Limiting (SIN CAMBIOS)
 
 ```typescript
 const checkRateLimit = async (
@@ -403,17 +367,23 @@ const checkRateLimit = async (
 1. **Acceso simultáneo es rechazado**
    - Si empleado tiene sesión activa → nuevo login falla
 
-2. **IP sospechosa es detectada**
-   - Si IP es diferente → requiere confirmación
+2. **MAC desconocido requiere confirmación**
+   - Si MAC no está registrado → requiere confirmación
 
-3. **Viaje imposible es rechazado**
-   - Si distancia > velocidad máxima → login falla
+3. **MAC perteneciente a otro empleado es rechazado**
+   - Si MAC pertenece a otro empleado → login falla
 
-4. **Rate limiting funciona**
+4. **MAC conocido permite acceso sin fricción**
+   - Si MAC está registrado → acceso inmediato
+
+5. **Rate limiting funciona**
    - Si transacciones > límite → acción bloqueada
 
-5. **Auditoría es completa**
-   - Cada acción registra: quién, cuándo, desde dónde
+6. **Auditoría es completa**
+   - Cada acción registra: quién, cuándo, MAC, qué hizo
 
-6. **Alertas son inmediatas**
-   - Acceso sospechoso → alerta al admin en <1 segundo
+7. **IP es logging, no validación**
+   - IP se registra para auditoría
+   - IP NO se usa para bloquear acceso
+   - MAC es el identificador principal
+

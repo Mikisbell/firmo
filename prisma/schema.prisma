@@ -1641,6 +1641,7 @@ model active_sessions {
   terminal_id       String
   device_id         String    @db.Uuid
   session_token     String    @unique
+  mac_address       String
   ip_address        String
   user_agent        String?
   location_lat      Decimal?  @db.Decimal(10, 7)
@@ -1655,7 +1656,21 @@ model active_sessions {
 
   @@index([tenant_id, employee_id, is_active])
   @@index([terminal_id, is_active])
+  @@index([mac_address])
   @@index([ip_address])
+}
+
+model device_mac_addresses {
+  mac_address  String    @id
+  tenant_id    String    @db.Uuid
+  employee_id  String    @db.Uuid
+  first_seen   DateTime  @default(now()) @db.Timestamptz(6)
+  last_seen    DateTime  @default(now()) @db.Timestamptz(6)
+  is_active    Boolean   @default(true)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, employee_id])
+  @@index([employee_id, last_seen(sort: Desc)])
 }
 
 model session_alerts {
@@ -1664,6 +1679,7 @@ model session_alerts {
   employee_id     String    @db.Uuid
   alert_type      String
   reason          String
+  mac_address     String?
   ip_address      String?
   location_lat    Decimal?  @db.Decimal(10, 7)
   location_lng    Decimal?  @db.Decimal(10, 7)
@@ -1676,6 +1692,7 @@ model session_alerts {
   @@index([tenant_id, alert_type, is_resolved])
   @@index([employee_id, created_at(sort: Desc)])
   @@index([created_at(sort: Desc)])
+  @@index([mac_address])
 }
 
 model transaction_limits {
@@ -1699,6 +1716,7 @@ model session_audit_log {
   employee_id String   @db.Uuid
   action      String
   resource    String?
+  mac_address String?
   ip_address  String?
   session_id  String?  @db.Uuid
   details     Json?
@@ -1707,4 +1725,5 @@ model session_audit_log {
   @@index([tenant_id, employee_id, created_at(sort: Desc)])
   @@index([action, created_at(sort: Desc)])
   @@index([created_at(sort: Desc)])
+  @@index([mac_address])
 }
