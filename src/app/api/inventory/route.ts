@@ -52,15 +52,30 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Filter low stock if requested
+    // Convert Decimal fields to numbers and filter low stock if requested
+    const convertedItems = items.map(item => ({
+      ...item,
+      stock: Number(item.stock),
+      min_stock: item.min_stock ? Number(item.min_stock) : null,
+    })) as any[];
+
     if (lowStockOnly) {
-      items = items.filter(item => 
+      const filtered = convertedItems.filter(item => 
         item.min_stock && item.stock <= item.min_stock
       );
+      return NextResponse.json({
+        data: filtered,
+        pagination: {
+          skip,
+          take,
+          total: filtered.length,
+          hasMore: false,
+        },
+      });
     }
 
     return NextResponse.json({
-      data: items,
+      data: convertedItems,
       pagination: {
         skip,
         take,
