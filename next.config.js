@@ -1,4 +1,3 @@
-import pkg from 'minimatch';
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
