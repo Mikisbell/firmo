@@ -539,7 +539,6 @@ model payments {
   @@index([tenant_id, check_id])
   @@index([tenant_id, created_at(sort: Desc)])
 }
-}
 
 model login_attempts {
   id          String   @id @db.Uuid
