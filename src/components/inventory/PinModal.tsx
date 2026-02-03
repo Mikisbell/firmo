@@ -76,20 +76,35 @@ export function PinModal({
         credentials: 'include', // Important: include cookies
       });
 
+      console.log('[PinModal] Response received:');
+      console.log('  Status:', response.status);
+      console.log('  OK:', response.ok);
+      console.log('  Headers:', {
+        contentType: response.headers.get('content-type'),
+        setCookie: response.headers.get('set-cookie'),
+      });
+
       const data = await response.json();
+      console.log('[PinModal] Response data:', data);
 
       if (!response.ok) {
         // Handle lockout
         if (data.errorCode === 'ACCOUNT_LOCKED' && data.lockoutUntil) {
           setLockoutUntil(new Date(data.lockoutUntil));
         }
+        console.log('[PinModal] Authentication failed:', data.error);
         setError(data.error || 'PIN inválido');
         return;
       }
 
       // Token is now in httpOnly cookie, just notify success with employee data
+      console.log('[PinModal] Authentication successful!');
+      console.log('  Employee:', data.employee);
+      console.log('[PinModal] Calling onSuccess()...');
       onSuccess(data.employee);
+      console.log('[PinModal] onSuccess() completed');
     } catch (err) {
+      console.error('[PinModal] Error:', err);
       setError('Error de conexión');
       console.error('PIN verification error:', err);
     } finally {

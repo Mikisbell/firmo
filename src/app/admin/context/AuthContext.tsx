@@ -77,9 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Login function (called after successful PIN authentication)
   const login = useCallback((emp: AuthEmployee) => {
+    console.log('[AuthContext] login() called with:', emp);
     setEmployee(emp);
+    console.log('[AuthContext] setEmployee() called');
     setPermissions(ROLE_PERMISSIONS[emp.role as AdminRole] || null);
+    console.log('[AuthContext] setPermissions() called');
     setIsAuthenticated(true);
+    console.log('[AuthContext] setIsAuthenticated(true) called');
   }, []);
 
   // Logout function

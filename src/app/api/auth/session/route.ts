@@ -149,6 +149,14 @@ export async function POST(request: NextRequest) {
         path: '/',
       });
       console.log('[Session API] Cookie set successfully');
+      console.log('[Session API] Cookie config:', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 8,
+        path: '/',
+        NODE_ENV: process.env.NODE_ENV,
+      });
     } else {
       console.log('[Session API] ⚠️  Token is undefined!');
     }

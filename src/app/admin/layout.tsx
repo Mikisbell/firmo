@@ -63,8 +63,11 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleAuthSuccess = useCallback((emp: AuthEmployee) => {
+    console.log('[AdminLayout] handleAuthSuccess called with:', emp);
     login(emp);
+    console.log('[AdminLayout] login() called, setting showPinModal to false');
     setShowPinModal(false);
+    console.log('[AdminLayout] showPinModal set to false');
   }, [login]);
 
   const handleLogout = useCallback(async () => {
