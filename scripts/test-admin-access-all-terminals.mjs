@@ -2,6 +2,11 @@
 
 /**
  * Test that ADMIN can access any terminal with PIN 1234
+ * 
+ * This test verifies that:
+ * 1. ADMIN (PIN 1234) can login to any terminal
+ * 2. Non-existent terminals are OK for ADMIN (bypass validation)
+ * 3. ADMIN gets proper JWT token in httpOnly cookie
  */
 
 const BASE_URL = 'http://localhost:3000';
@@ -16,10 +21,15 @@ async function testAdminAccess() {
     { id: 'BAR-01', name: 'Bar 1', role: 'BAR' },
   ];
 
-  const tenantId = '00000000-0000-0000-0000-000000000000';
+  // Use the correct tenant ID where employees are stored
+  const tenantId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
   const adminPin = '1234';
 
   console.log(`Testing with ADMIN PIN: ${adminPin}\n`);
+  console.log('Expected: ADMIN should access ANY terminal, even if not registered\n');
+
+  let successCount = 0;
+  let failCount = 0;
 
   for (const terminal of terminals) {
     console.log(`📝 Testing access to ${terminal.name} (${terminal.id})`);
@@ -40,21 +50,36 @@ async function testAdminAccess() {
       if (response.ok) {
         console.log(`   ✅ SUCCESS`);
         console.log(`   Employee: ${data.employee.name} (${data.employee.role})`);
-        console.log(`   Terminal: ${terminal.id}\n`);
+        console.log(`   Terminal: ${terminal.id}`);
+        console.log(`   Cookie set: ${response.headers.get('set-cookie') ? 'YES' : 'NO'}\n`);
+        successCount++;
       } else {
         console.log(`   ❌ FAILED - Status ${response.status}`);
         console.log(`   Error: ${data.error}\n`);
+        failCount++;
       }
     } catch (error) {
       console.log(`   ❌ ERROR: ${error.message}\n`);
+      failCount++;
     }
   }
 
-  console.log('\n✅ Test complete!');
-  console.log('\nExpected behavior:');
-  console.log('- ADMIN should be able to access ANY terminal with PIN 1234');
-  console.log('- Each terminal should return the ADMIN employee data');
-  console.log('- No role mismatch errors should occur');
+  console.log('\n' + '='.repeat(50));
+  console.log(`Results: ${successCount} passed, ${failCount} failed`);
+  console.log('='.repeat(50));
+
+  if (failCount === 0) {
+    console.log('\n✅ All tests passed!');
+    console.log('\nADMIN can now:');
+    console.log('- Access Caja with PIN 1234');
+    console.log('- Access Mesero with PIN 1234');
+    console.log('- Access Cocina with PIN 1234');
+    console.log('- Access Bar with PIN 1234');
+    console.log('- Access ANY terminal with PIN 1234');
+  } else {
+    console.log('\n❌ Some tests failed. Check the errors above.');
+  }
 }
 
 testAdminAccess();
+

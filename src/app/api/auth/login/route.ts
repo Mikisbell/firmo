@@ -1,6 +1,7 @@
 // src/app/api/auth/login/route.ts
 // API to authenticate employee with PIN
 // Now with JWT tokens and httpOnly cookies for secure authentication
+// ADMIN users can access any terminal without terminal validation
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
@@ -24,56 +25,22 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('[Login API] POST request received');
+    console.log('  Body:', JSON.stringify(body));
+    
     const data = LoginSchema.parse(body);
+    console.log('[Login API] Schema validation passed');
 
     // Get metadata for audit
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
                request.headers.get('x-real-ip') || 
                'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
+    
+    console.log('[Login API] Metadata:', { ip, userAgent, terminal_id: data.terminal_id });
 
-    // If terminal_id is provided, verify terminal (for POS terminals)
-    if (data.terminal_id) {
-      const terminal = await prisma.terminals.findUnique({
-        where: {
-          tenant_id_terminal_id: {
-            tenant_id: data.tenant_id,
-            terminal_id: data.terminal_id,
-          },
-        },
-      });
-
-      if (!terminal) {
-        return NextResponse.json(
-          { error: 'Terminal no registrado' },
-          { status: 401 }
-        );
-      }
-
-      if (!terminal.is_allowed) {
-        return NextResponse.json(
-          { error: 'Terminal desactivado. Contacte al administrador.' },
-          { status: 403 }
-        );
-      }
-
-      // Verify device fingerprint if provided
-      if (data.device_fingerprint && terminal.device_secret_hash && 
-          terminal.device_secret_hash !== data.device_fingerprint) {
-        return NextResponse.json(
-          { error: 'Dispositivo no reconocido' },
-          { status: 403 }
-        );
-      }
-
-      // Update terminal last seen
-      await prisma.terminals.update({
-        where: { id: terminal.id },
-        data: { last_seen_at: new Date() },
-      });
-    }
-
-    // Authenticate with JWT and session
+    // Step 1: Authenticate user with PIN
+    console.log('[Login API] Step 1: Authenticating user with PIN');
     const authResult = await authenticate(
       prisma,
       data.tenant_id,
@@ -87,20 +54,91 @@ export async function POST(request: NextRequest) {
     );
 
     if (!authResult.success) {
+      console.log('[Login API] Authentication failed:', authResult.error);
       return NextResponse.json(
         { error: authResult.error },
         { status: 401 }
       );
     }
 
-    // ADMIN can access any terminal with their PIN
-    // This is a security feature: admins can override and access any terminal
-    if (authResult.employee?.role === 'ADMIN') {
-      console.log('[Login] ADMIN access detected - allowing access to any terminal');
-      // Admin is allowed to access any terminal, no additional checks needed
+    console.log('[Login API] Authentication successful');
+    console.log('  Employee:', authResult.employee?.name);
+    console.log('  Role:', authResult.employee?.role);
+
+    // Step 2: Validate terminal (if provided)
+    // ADMIN users bypass terminal validation - they can access any terminal
+    const isAdmin = authResult.employee?.role === 'ADMIN';
+    console.log('[Login API] Step 2: Terminal validation');
+    console.log('  Is Admin:', isAdmin);
+    console.log('  Terminal ID:', data.terminal_id);
+
+    if (data.terminal_id && !isAdmin) {
+      // Non-admin users must have a registered terminal
+      console.log('[Login API] Validating terminal for non-admin user');
+      const terminal = await prisma.terminals.findUnique({
+        where: {
+          tenant_id_terminal_id: {
+            tenant_id: data.tenant_id,
+            terminal_id: data.terminal_id,
+          },
+        },
+      });
+
+      if (!terminal) {
+        console.log('[Login API] Terminal not found:', data.terminal_id);
+        return NextResponse.json(
+          { error: 'Terminal no registrado' },
+          { status: 401 }
+        );
+      }
+
+      if (!terminal.is_allowed) {
+        console.log('[Login API] Terminal is disabled');
+        return NextResponse.json(
+          { error: 'Terminal desactivado. Contacte al administrador.' },
+          { status: 403 }
+        );
+      }
+
+      // Verify device fingerprint if provided
+      if (data.device_fingerprint && terminal.device_secret_hash && 
+          terminal.device_secret_hash !== data.device_fingerprint) {
+        console.log('[Login API] Device fingerprint mismatch');
+        return NextResponse.json(
+          { error: 'Dispositivo no reconocido' },
+          { status: 403 }
+        );
+      }
+
+      // Update terminal last seen
+      await prisma.terminals.update({
+        where: { id: terminal.id },
+        data: { last_seen_at: new Date() },
+      });
+
+      console.log('[Login API] Terminal validated successfully');
+    } else if (data.terminal_id && isAdmin) {
+      // Admin users can access any terminal, but we try to update last_seen if it exists
+      console.log('[Login API] ADMIN bypass - skipping terminal validation');
+      try {
+        await prisma.terminals.update({
+          where: {
+            tenant_id_terminal_id: {
+              tenant_id: data.tenant_id,
+              terminal_id: data.terminal_id,
+            },
+          },
+          data: { last_seen_at: new Date() },
+        });
+        console.log('[Login API] Terminal last_seen updated');
+      } catch (e) {
+        // Terminal doesn't exist, but that's OK for admin
+        console.log('[Login API] Terminal not found for update (OK for admin)');
+      }
     }
 
-    // Get active shift (if terminal_id provided)
+    // Step 3: Get active shift (if terminal_id provided)
+    console.log('[Login API] Step 3: Looking for active shift');
     let activeShift = null as any;
     if (data.terminal_id) {
       activeShift = await prisma.shifts.findFirst({
@@ -110,9 +148,11 @@ export async function POST(request: NextRequest) {
           status: 'OPEN',
         },
       });
+      console.log('[Login API] Active shift found:', !!activeShift);
     }
 
-    // Create response with httpOnly cookie
+    // Step 4: Create response with httpOnly cookie
+    console.log('[Login API] Step 4: Creating response with JWT cookie');
     const response = NextResponse.json({
       success: true,
       employee: authResult.employee,
@@ -135,6 +175,7 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
+    console.log('[Login API] Login successful - cookie set');
     return response;
   } catch (error) {
     console.error('Login error:', error);
