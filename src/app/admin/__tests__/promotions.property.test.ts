@@ -1,11 +1,13 @@
 /**
  * Property-Based Tests for Promotions
  * Property 9: Promociones Expiradas Se Desactivan
- * Validates: Requirements 6.3
+ * Property 18: Promotion Type Validation
+ * Validates: Requirements 6.3, 3.2
  */
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { z } from 'zod';
 
 interface Promotion {
   id: string;
@@ -28,10 +30,24 @@ function deactivateExpired(promotions: Promotion[], now: Date = new Date()): Pro
   }));
 }
 
+// Validation schema
+const promotionSchema = z.object({
+  name: z.string().min(1).max(100),
+  type: z.enum(['PERCENT', 'FIXED', 'HAPPY_HOUR', '2X1', 'COMBO']),
+  value: z.number().min(0),
+  rules: z.record(z.unknown()).optional(),
+  starts_at: z.string().datetime(),
+  ends_at: z.string().datetime(),
+  is_active: z.boolean().default(true),
+}).refine(data => new Date(data.starts_at) < new Date(data.ends_at), {
+  message: 'Start date must be before end date',
+  path: ['starts_at'],
+});
+
 const promotionArb = fc.record({
   id: fc.uuid(),
   name: fc.string({ minLength: 1, maxLength: 50 }),
-  type: fc.constantFrom('PERCENT', 'FIXED', 'HAPPY_HOUR', '2X1'),
+  type: fc.constantFrom('PERCENT', 'FIXED', 'HAPPY_HOUR', '2X1', 'COMBO'),
   value: fc.integer({ min: 0, max: 100 }),
   starts_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }),
   ends_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }),
@@ -39,6 +55,50 @@ const promotionArb = fc.record({
 });
 
 describe('Promotions - Property Tests', () => {
+  describe('Property 18: Promotion Type Validation', () => {
+    it('only valid promotion types are accepted', () => {
+      fc.assert(
+        fc.property(
+          fc.constantFrom('PERCENT', 'FIXED', 'HAPPY_HOUR', '2X1', 'COMBO'),
+          (validType) => {
+            const data = {
+              name: 'Test Promotion',
+              type: validType,
+              value: 10,
+              starts_at: new Date().toISOString(),
+              ends_at: new Date(Date.now() + 86400000).toISOString(),
+            };
+            
+            const result = promotionSchema.safeParse(data);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 50 }
+      );
+    });
+
+    it('invalid promotion types are rejected', () => {
+      fc.assert(
+        fc.property(
+          fc.string().filter(s => !['PERCENT', 'FIXED', 'HAPPY_HOUR', '2X1', 'COMBO'].includes(s)),
+          (invalidType) => {
+            const data = {
+              name: 'Test Promotion',
+              type: invalidType,
+              value: 10,
+              starts_at: new Date().toISOString(),
+              ends_at: new Date(Date.now() + 86400000).toISOString(),
+            };
+            
+            const result = promotionSchema.safeParse(data);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 50 }
+      );
+    });
+  });
+
   describe('Property 9: Expired Promotions Are Deactivated', () => {
     it('expired promotions have is_active=false after deactivation', () => {
       fc.assert(
