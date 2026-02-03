@@ -97,379 +97,128 @@
           "file": "09-admin-promotions-network-throttling.spec.ts",
           "line": 22,
           "column": 6,
-          "specs": [],
-          "suites": [
+          "specs": [
             {
-              "title": "Slow Network (1-2s latency)",
+              "title": "should handle timeout with slow network",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 38796,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\09-admin-promotions-network-throttling.spec.ts",
+                            "column": 18,
+                            "line": 58
+                          },
+                          "message": "Error: page.goto: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/promociones/nuevo\", waiting until \"load\"\u001b[22m\n\n\n  56 |\n  57 |       // Navigate to create promotion page\n> 58 |       await page.goto(`${BASE_URL}/admin/promociones/nuevo`);\n     |                  ^\n  59 |\n  60 |       const uniquePromotion = {\n  61 |         name: `Timeout Promotion ${Date.now()}`,\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\09-admin-promotions-network-throttling.spec.ts:58:18"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-03T16:03:44.144Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d78af6cc2043201c3c22-60738f2a6144d64eb4d6",
               "file": "09-admin-promotions-network-throttling.spec.ts",
               "line": 24,
-              "column": 8,
-              "specs": [
-                {
-                  "title": "should create promotion with slow network",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 5118,
-                          "errors": [],
-                          "stdout": [
-                            {
-                              "text": "Request duration: 1247ms (expected: ≥1500ms)\n"
-                            }
-                          ],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:20.896Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-fc0449ddef28eb9f7265",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 25,
-                  "column": 5
-                },
-                {
-                  "title": "should handle timeout with slow network",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 3920,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:26.149Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-eeda3d9c9d13ef44ceba",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 83,
-                  "column": 5
-                },
-                {
-                  "title": "should create promotion with slow network",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "mobile",
-                      "projectName": "mobile",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 3954,
-                          "errors": [],
-                          "stdout": [
-                            {
-                              "text": "Request duration: 1109ms (expected: ≥1500ms)\n"
-                            }
-                          ],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:43.921Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-40a560cce29e254a079a",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 25,
-                  "column": 5
-                },
-                {
-                  "title": "should handle timeout with slow network",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "mobile",
-                      "projectName": "mobile",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 3868,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:48.005Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-48cfd31630ff91465d97",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 83,
-                  "column": 5
-                }
-              ]
+              "column": 3
             },
             {
-              "title": "Packet Loss (10% failure rate)",
-              "file": "09-admin-promotions-network-throttling.spec.ts",
-              "line": 139,
-              "column": 8,
-              "specs": [
+              "title": "should handle timeout with slow network",
+              "ok": false,
+              "tags": [],
+              "tests": [
                 {
-                  "title": "should handle packet loss gracefully",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
                     {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 37618,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
                         {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 3890,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:30.086Z",
-                          "annotations": [],
-                          "attachments": []
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\09-admin-promotions-network-throttling.spec.ts",
+                            "column": 18,
+                            "line": 58
+                          },
+                          "message": "Error: page.goto: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/promociones/nuevo\", waiting until \"load\"\u001b[22m\n\n\n  56 |\n  57 |       // Navigate to create promotion page\n> 58 |       await page.goto(`${BASE_URL}/admin/promociones/nuevo`);\n     |                  ^\n  59 |\n  60 |       const uniquePromotion = {\n  61 |         name: `Timeout Promotion ${Date.now()}`,\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\09-admin-promotions-network-throttling.spec.ts:58:18"
                         }
                       ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-374c810539f87522acd3",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 140,
-                  "column": 5
-                },
-                {
-                  "title": "should retry on network failure",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-03T16:04:25.075Z",
                       "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
+                      "attachments": [
                         {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 3895,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:33.994Z",
-                          "annotations": [],
-                          "attachments": []
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\09-admin-promotions-networ-56352-e-timeout-with-slow-network-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\09-admin-promotions-networ-56352-e-timeout-with-slow-network-mobile\\error-context.md"
                         }
-                      ],
-                      "status": "expected"
+                      ]
                     }
                   ],
-                  "id": "d78af6cc2043201c3c22-1e1bb2e5a02fabb3ee69",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 197,
-                  "column": 5
-                },
-                {
-                  "title": "should handle packet loss gracefully",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "mobile",
-                      "projectName": "mobile",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 4600,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:51.892Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-21ee60bcd984e149693c",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 140,
-                  "column": 5
-                },
-                {
-                  "title": "should retry on network failure",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "mobile",
-                      "projectName": "mobile",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 4549,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:56.505Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-02e3bbb8df271a515937",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 197,
-                  "column": 5
+                  "status": "unexpected"
                 }
-              ]
-            },
-            {
-              "title": "Network Diagnostics",
+              ],
+              "id": "d78af6cc2043201c3c22-f1ee2a7498972d19a698",
               "file": "09-admin-promotions-network-throttling.spec.ts",
-              "line": 253,
-              "column": 8,
-              "specs": [
-                {
-                  "title": "should capture network metrics in trace",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 4082,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:45:37.906Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-f3ff9468b4da8fabeaaf",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 254,
-                  "column": 5
-                },
-                {
-                  "title": "should capture network metrics in trace",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "mobile",
-                      "projectName": "mobile",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 3951,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2026-02-03T14:46:01.069Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "d78af6cc2043201c3c22-e8c45a2c14e3328b9096",
-                  "file": "09-admin-promotions-network-throttling.spec.ts",
-                  "line": 254,
-                  "column": 5
-                }
-              ]
+              "line": 24,
+              "column": 3
             }
           ]
         }
@@ -478,11 +227,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-03T14:45:14.925Z",
-    "duration": 50357.251,
-    "expected": 10,
+    "startTime": "2026-02-03T16:02:30.851Z",
+    "duration": 152079.865,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 2,
     "flaky": 0
   }
 }

@@ -1,34 +1,76 @@
-<testsuites id="" name="" tests="10" failures="0" skipped="0" errors="0" time="50.357251">
-<testsuite name="09-admin-promotions-network-throttling.spec.ts" timestamp="2026-02-03T14:45:19.160Z" hostname="chromium" tests="5" failures="0" skipped="0" time="20.905" errors="0">
-<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should create promotion with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="5.118">
+<testsuites id="" name="" tests="2" failures="2" skipped="0" errors="0" time="152.07986499999998">
+<testsuite name="09-admin-promotions-network-throttling.spec.ts" timestamp="2026-02-03T16:03:41.444Z" hostname="chromium" tests="1" failures="1" skipped="0" time="38.796" errors="0">
+<testcase name="Admin Panel - Promotions with Network Throttling › should handle timeout with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="38.796">
+<failure message="09-admin-promotions-network-throttling.spec.ts:24:3 should handle timeout with slow network" type="FAILURE">
+<![CDATA[  [chromium] › 09-admin-promotions-network-throttling.spec.ts:24:3 › Admin Panel - Promotions with Network Throttling › should handle timeout with slow network 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+      - navigating to "http://localhost:3000/admin/promociones/nuevo", waiting until "load"
+
+
+      56 |
+      57 |       // Navigate to create promotion page
+    > 58 |       await page.goto(`${BASE_URL}/admin/promociones/nuevo`);
+         |                  ^
+      59 |
+      60 |       const uniquePromotion = {
+      61 |         name: `Timeout Promotion ${Date.now()}`,
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\09-admin-promotions-network-throttling.spec.ts:58:18
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\error-context.md
+]]>
+</failure>
 <system-out>
-<![CDATA[Request duration: 1247ms (expected: ≥1500ms)
+<![CDATA[
+[[ATTACHMENT|09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\video.webm]]
+
+[[ATTACHMENT|09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\error-context.md]]
 ]]>
 </system-out>
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should handle timeout with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="3.92">
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should handle packet loss gracefully" classname="09-admin-promotions-network-throttling.spec.ts" time="3.89">
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should retry on network failure" classname="09-admin-promotions-network-throttling.spec.ts" time="3.895">
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Network Diagnostics › should capture network metrics in trace" classname="09-admin-promotions-network-throttling.spec.ts" time="4.082">
 </testcase>
 </testsuite>
-<testsuite name="09-admin-promotions-network-throttling.spec.ts" timestamp="2026-02-03T14:45:19.160Z" hostname="mobile" tests="5" failures="0" skipped="0" time="20.922" errors="0">
-<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should create promotion with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="3.954">
+<testsuite name="09-admin-promotions-network-throttling.spec.ts" timestamp="2026-02-03T16:03:41.444Z" hostname="mobile" tests="1" failures="1" skipped="0" time="37.618" errors="0">
+<testcase name="Admin Panel - Promotions with Network Throttling › should handle timeout with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="37.618">
+<failure message="09-admin-promotions-network-throttling.spec.ts:24:3 should handle timeout with slow network" type="FAILURE">
+<![CDATA[  [mobile] › 09-admin-promotions-network-throttling.spec.ts:24:3 › Admin Panel - Promotions with Network Throttling › should handle timeout with slow network 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+      - navigating to "http://localhost:3000/admin/promociones/nuevo", waiting until "load"
+
+
+      56 |
+      57 |       // Navigate to create promotion page
+    > 58 |       await page.goto(`${BASE_URL}/admin/promociones/nuevo`);
+         |                  ^
+      59 |
+      60 |       const uniquePromotion = {
+      61 |         name: `Timeout Promotion ${Date.now()}`,
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\09-admin-promotions-network-throttling.spec.ts:58:18
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\09-admin-promotions-networ-56352-e-timeout-with-slow-network-mobile\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\09-admin-promotions-networ-56352-e-timeout-with-slow-network-mobile\error-context.md
+]]>
+</failure>
 <system-out>
-<![CDATA[Request duration: 1109ms (expected: ≥1500ms)
+<![CDATA[
+[[ATTACHMENT|09-admin-promotions-networ-56352-e-timeout-with-slow-network-mobile\video.webm]]
+
+[[ATTACHMENT|09-admin-promotions-networ-56352-e-timeout-with-slow-network-mobile\error-context.md]]
 ]]>
 </system-out>
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should handle timeout with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="3.868">
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should handle packet loss gracefully" classname="09-admin-promotions-network-throttling.spec.ts" time="4.6">
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should retry on network failure" classname="09-admin-promotions-network-throttling.spec.ts" time="4.549">
-</testcase>
-<testcase name="Admin Panel - Promotions with Network Throttling › Network Diagnostics › should capture network metrics in trace" classname="09-admin-promotions-network-throttling.spec.ts" time="3.951">
 </testcase>
 </testsuite>
 </testsuites>

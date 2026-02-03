@@ -1,0 +1,76 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - img "PARK POS" [ref=e12]
+          - generic [ref=e13]:
+            - heading "PARKPOS" [level=1] [ref=e14]
+            - paragraph [ref=e15]: Selecciona tu estación
+        - link [ref=e16] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e17]
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e24]:
+            - img [ref=e26]
+            - generic [ref=e31]: ¿Qué rol desempeñas hoy?
+            - img [ref=e33]
+          - button "Caja Cobros y cierre" [ref=e38]:
+            - generic [ref=e41]:
+              - img [ref=e44]
+              - generic [ref=e46]:
+                - heading "Caja" [level=3] [ref=e47]
+                - paragraph [ref=e48]: Cobros y cierre
+              - img [ref=e50]
+          - button "Meseros 15 terminales" [ref=e52]:
+            - generic [ref=e55]:
+              - img [ref=e58]
+              - generic [ref=e63]:
+                - heading "Meseros" [level=3] [ref=e64]
+                - paragraph [ref=e65]: 15 terminales
+              - img [ref=e67]
+          - button "Horno Parrilla" [ref=e69]:
+            - generic [ref=e72]:
+              - img [ref=e75]
+              - generic [ref=e77]:
+                - heading "Horno" [level=3] [ref=e78]
+                - paragraph [ref=e79]: Parrilla
+              - img [ref=e81]
+          - button "Cocina Guarniciones" [ref=e83]:
+            - generic [ref=e86]:
+              - img [ref=e89]
+              - generic [ref=e91]:
+                - heading "Cocina" [level=3] [ref=e92]
+                - paragraph [ref=e93]: Guarniciones
+              - img [ref=e95]
+          - button "Bar Bebidas" [ref=e97]:
+            - generic [ref=e100]:
+              - img [ref=e103]
+              - generic [ref=e105]:
+                - heading "Bar" [level=3] [ref=e106]
+                - paragraph [ref=e107]: Bebidas
+              - img [ref=e109]
+          - button "Empaque Delivery" [ref=e111]:
+            - generic [ref=e114]:
+              - img [ref=e117]
+              - generic [ref=e121]:
+                - heading "Empaque" [level=3] [ref=e122]
+                - paragraph [ref=e123]: Delivery
+              - img [ref=e125]
+        - link "Inventario" [ref=e128] [cursor=pointer]:
+          - /url: /inventario
+          - img [ref=e130]
+          - generic [ref=e134]: Inventario
+          - img [ref=e136]
+    - contentinfo [ref=e138]:
+      - paragraph [ref=e139]: PARK POS•v2.1.1•Sistema de Punto de Venta
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e145] [cursor=pointer]:
+    - img [ref=e146]
+  - alert [ref=e149]
+```
