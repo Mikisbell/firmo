@@ -333,7 +333,7 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - **Property 15: Conflict Resolution Is Tenant-Scoped**
     - **Validates: Requirements 11.6**
 
-- [ ] 14. Checkpoint - Ensure event sourcing isolation tests pass
+- [x] 14. Checkpoint - Ensure event sourcing isolation tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 

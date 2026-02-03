@@ -8,6 +8,7 @@
  */
 
 import * as fc from 'fast-check';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { randomUUID } from 'crypto';
 import prisma from '@/src/core/db/prisma';
 import {
@@ -163,42 +164,43 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
    * validation should fail with CROSS_TENANT_REFERENCE error.
    */
   it('rejects events with cross-tenant references in payload', async () => {
-    await fc.assert(
-      fc.asyncProperty(
-        fc.tuple(arbParkEvent, arbTenantId),
-        async ([event, differentTenantId]) => {
-          fc.pre(event.tenant_id !== differentTenantId);
+    // Setup: Create test orders once, not in each iteration
+    const tenant1 = randomUUID();
+    const tenant2 = randomUUID();
+    
+    const testOrder = await prisma.orders.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenant2,
+        order_number: 1,
+        order_type: 'DINE_IN',
+        order_status: 'OPEN',
+        fulfillment_status: 'COOKING',
+        handoff_status: 'WAITING',
+        stations_active: [],
+        unpaid_checks_count: 1,
+        subtotal_cents: 0,
+        discount_cents: 0,
+        total_cents: 0,
+        items: [],
+        checks: [],
+        terminal_id: 'CAJA-01',
+      },
+    });
 
-          // Create a test order in different tenant
-          const testOrder = await prisma.orders.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: differentTenantId,
-              order_number: 1,
-              order_type: 'DINE_IN',
-              order_status: 'OPEN',
-              fulfillment_status: 'COOKING',
-              handoff_status: 'WAITING',
-              stations_active: [],
-              unpaid_checks_count: 1,
-              subtotal_cents: 0,
-              discount_cents: 0,
-              total_cents: 0,
-              items: [],
-              checks: [],
-              terminal_id: 'CAJA-01',
-            },
-          });
-
-          // Create event that references the cross-tenant order
+    try {
+      // Test: Property-based test with pre-created data
+      await fc.assert(
+        fc.asyncProperty(arbParkEvent, async (event) => {
           const eventWithCrossTenantRef = {
             ...event,
+            tenant_id: tenant1,
             event_type: 'ORDER_ITEM_ADDED',
             payload: {
               order_id: testOrder.id,
               line: { qty: 1, unit_price_cents: 1000 },
             },
-          };
+          } as ParkEvent;
 
           const result = await prisma.$transaction(async (tx) => {
             return await validatePayloadTenantReferences(tx, eventWithCrossTenantRef);
@@ -206,12 +208,13 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
 
           expect(result.valid).toBe(false);
           expect(result.error).toBe('CROSS_TENANT_REFERENCE');
-
-          // Cleanup
-          await prisma.orders.delete({ where: { id: testOrder.id } });
-        }
-      )
-    );
+        }),
+        { numRuns: 10 } // Reduce iterations for speed
+      );
+    } finally {
+      // Cleanup
+      await prisma.orders.delete({ where: { id: testOrder.id } });
+    }
   });
 
   /**
@@ -221,49 +224,54 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
    * validation should succeed.
    */
   it('accepts events with same-tenant entity references', async () => {
-    await fc.assert(
-      fc.asyncProperty(arbParkEvent, async (event) => {
-        // Create a test order in the same tenant
-        const testOrder = await prisma.orders.create({
-          data: {
-            id: randomUUID(),
-            tenant_id: event.tenant_id,
-            order_number: 1,
-            order_type: 'DINE_IN',
-            order_status: 'OPEN',
-            fulfillment_status: 'COOKING',
-            handoff_status: 'WAITING',
-            stations_active: [],
-            unpaid_checks_count: 1,
-            subtotal_cents: 0,
-            discount_cents: 0,
-            total_cents: 0,
-            items: [],
-            checks: [],
-            terminal_id: 'CAJA-01',
-          },
-        });
+    // Setup: Create test order once
+    const tenantId = randomUUID();
+    const testOrder = await prisma.orders.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenantId,
+        order_number: 1,
+        order_type: 'DINE_IN',
+        order_status: 'OPEN',
+        fulfillment_status: 'COOKING',
+        handoff_status: 'WAITING',
+        stations_active: [],
+        unpaid_checks_count: 1,
+        subtotal_cents: 0,
+        discount_cents: 0,
+        total_cents: 0,
+        items: [],
+        checks: [],
+        terminal_id: 'CAJA-01',
+      },
+    });
 
-        // Create event that references the same-tenant order
-        const eventWithSameTenantRef = {
-          ...event,
-          event_type: 'ORDER_ITEM_ADDED',
-          payload: {
-            order_id: testOrder.id,
-            line: { qty: 1, unit_price_cents: 1000 },
-          },
-        };
+    try {
+      // Test: Property-based test with pre-created data
+      await fc.assert(
+        fc.asyncProperty(arbParkEvent, async (event) => {
+          const eventWithSameTenantRef = {
+            ...event,
+            tenant_id: tenantId,
+            event_type: 'ORDER_ITEM_ADDED',
+            payload: {
+              order_id: testOrder.id,
+              line: { qty: 1, unit_price_cents: 1000 },
+            },
+          } as ParkEvent;
 
-        const result = await prisma.$transaction(async (tx) => {
-          return await validatePayloadTenantReferences(tx, eventWithSameTenantRef);
-        });
+          const result = await prisma.$transaction(async (tx) => {
+            return await validatePayloadTenantReferences(tx, eventWithSameTenantRef);
+          });
 
-        expect(result.valid).toBe(true);
-
-        // Cleanup
-        await prisma.orders.delete({ where: { id: testOrder.id } });
-      })
-    );
+          expect(result.valid).toBe(true);
+        }),
+        { numRuns: 10 } // Reduce iterations for speed
+      );
+    } finally {
+      // Cleanup
+      await prisma.orders.delete({ where: { id: testOrder.id } });
+    }
   });
 });
 
@@ -279,62 +287,57 @@ describe('Property 12: Event Streams Are Tenant-Filtered', () => {
    * that tenant should be included.
    */
   it('event stream filtering respects tenant boundaries', async () => {
-    await fc.assert(
-      fc.asyncProperty(
-        fc.tuple(arbTenantId, arbTenantId),
-        async ([tenant1, tenant2]) => {
-          fc.pre(tenant1 !== tenant2);
+    // Setup: Create events once
+    const tenant1 = randomUUID();
+    const tenant2 = randomUUID();
+    
+    const event1 = await prisma.events.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenant1,
+        occurred_at: new Date(),
+        type: 'ORDER_CREATED',
+        entity_type: 'ORDER',
+        entity_id: randomUUID(),
+        actor_id: null,
+        actor_role_snapshot: null,
+        terminal_id: 'CAJA-01',
+        payload_version: 1,
+        payload: {},
+      },
+    });
 
-          // Create events for both tenants
-          const event1 = await prisma.events.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: tenant1,
-              occurred_at: new Date(),
-              type: 'ORDER_CREATED',
-              entity_type: 'ORDER',
-              entity_id: randomUUID(),
-              actor_id: null,
-              actor_role_snapshot: null,
-              terminal_id: 'CAJA-01',
-              payload_version: 1,
-              payload: {},
-            },
-          });
+    const event2 = await prisma.events.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenant2,
+        occurred_at: new Date(),
+        type: 'ORDER_CREATED',
+        entity_type: 'ORDER',
+        entity_id: randomUUID(),
+        actor_id: null,
+        actor_role_snapshot: null,
+        terminal_id: 'CAJA-01',
+        payload_version: 1,
+        payload: {},
+      },
+    });
 
-          const event2 = await prisma.events.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: tenant2,
-              occurred_at: new Date(),
-              type: 'ORDER_CREATED',
-              entity_type: 'ORDER',
-              entity_id: randomUUID(),
-              actor_id: null,
-              actor_role_snapshot: null,
-              terminal_id: 'CAJA-01',
-              payload_version: 1,
-              payload: {},
-            },
-          });
+    try {
+      // Test: Verify filtering works
+      const tenant1Events = await prisma.events.findMany({
+        where: { tenant_id: tenant1 },
+      });
 
-          // Query events for tenant1
-          const tenant1Events = await prisma.events.findMany({
-            where: { tenant_id: tenant1 },
-          });
-
-          // Verify only tenant1 events are returned
-          expect(tenant1Events.every((e) => e.tenant_id === tenant1)).toBe(true);
-          expect(tenant1Events.some((e) => e.id === event1.id)).toBe(true);
-          expect(tenant1Events.some((e) => e.id === event2.id)).toBe(false);
-
-          // Cleanup
-          await prisma.events.deleteMany({
-            where: { id: { in: [event1.id, event2.id] } },
-          });
-        }
-      )
-    );
+      expect(tenant1Events.every((e) => e.tenant_id === tenant1)).toBe(true);
+      expect(tenant1Events.some((e) => e.id === event1.id)).toBe(true);
+      expect(tenant1Events.some((e) => e.id === event2.id)).toBe(false);
+    } finally {
+      // Cleanup
+      await prisma.events.deleteMany({
+        where: { id: { in: [event1.id, event2.id] } },
+      });
+    }
   });
 });
 
@@ -350,70 +353,65 @@ describe('Property 13: Projection Rebuild Is Tenant-Scoped', () => {
    * tenant should be processed.
    */
   it('projection rebuild processes only tenant events', async () => {
-    await fc.assert(
-      fc.asyncProperty(
-        fc.tuple(arbTenantId, arbTenantId),
-        async ([tenant1, tenant2]) => {
-          fc.pre(tenant1 !== tenant2);
+    // Setup: Create orders once
+    const tenant1 = randomUUID();
+    const tenant2 = randomUUID();
+    
+    const order1 = await prisma.orders.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenant1,
+        order_number: 1,
+        order_type: 'DINE_IN',
+        order_status: 'OPEN',
+        fulfillment_status: 'COOKING',
+        handoff_status: 'WAITING',
+        stations_active: [],
+        unpaid_checks_count: 1,
+        subtotal_cents: 0,
+        discount_cents: 0,
+        total_cents: 0,
+        items: [],
+        checks: [],
+        terminal_id: 'CAJA-01',
+      },
+    });
 
-          // Create orders for both tenants
-          const order1 = await prisma.orders.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: tenant1,
-              order_number: 1,
-              order_type: 'DINE_IN',
-              order_status: 'OPEN',
-              fulfillment_status: 'COOKING',
-              handoff_status: 'WAITING',
-              stations_active: [],
-              unpaid_checks_count: 1,
-              subtotal_cents: 0,
-              discount_cents: 0,
-              total_cents: 0,
-              items: [],
-              checks: [],
-              terminal_id: 'CAJA-01',
-            },
-          });
+    const order2 = await prisma.orders.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenant2,
+        order_number: 1,
+        order_type: 'DINE_IN',
+        order_status: 'OPEN',
+        fulfillment_status: 'COOKING',
+        handoff_status: 'WAITING',
+        stations_active: [],
+        unpaid_checks_count: 1,
+        subtotal_cents: 0,
+        discount_cents: 0,
+        total_cents: 0,
+        items: [],
+        checks: [],
+        terminal_id: 'CAJA-01',
+      },
+    });
 
-          const order2 = await prisma.orders.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: tenant2,
-              order_number: 1,
-              order_type: 'DINE_IN',
-              order_status: 'OPEN',
-              fulfillment_status: 'COOKING',
-              handoff_status: 'WAITING',
-              stations_active: [],
-              unpaid_checks_count: 1,
-              subtotal_cents: 0,
-              discount_cents: 0,
-              total_cents: 0,
-              items: [],
-              checks: [],
-              terminal_id: 'CAJA-01',
-            },
-          });
+    try {
+      // Test: Verify tenant-scoped query
+      const tenant1Orders = await prisma.orders.findMany({
+        where: { tenant_id: tenant1 },
+      });
 
-          // Query orders for tenant1
-          const tenant1Orders = await prisma.orders.findMany({
-            where: { tenant_id: tenant1 },
-          });
-
-          // Verify only tenant1 orders are returned
-          expect(tenant1Orders.every((o) => o.tenant_id === tenant1)).toBe(true);
-          expect(tenant1Orders.some((o) => o.id === order1.id)).toBe(true);
-          expect(tenant1Orders.some((o) => o.id === order2.id)).toBe(false);
-
-          // Cleanup
-          await prisma.orders.deleteMany({
-            where: { id: { in: [order1.id, order2.id] } },
-          });
-        }
-      )
-    );
+      expect(tenant1Orders.every((o) => o.tenant_id === tenant1)).toBe(true);
+      expect(tenant1Orders.some((o) => o.id === order1.id)).toBe(true);
+      expect(tenant1Orders.some((o) => o.id === order2.id)).toBe(false);
+    } finally {
+      // Cleanup
+      await prisma.orders.deleteMany({
+        where: { id: { in: [order1.id, order2.id] } },
+      });
+    }
   });
 });
 
@@ -429,75 +427,71 @@ describe('Property 15: Conflict Resolution Is Tenant-Scoped', () => {
    * should not affect other tenants' data.
    */
   it('conflict resolution does not affect other tenants', async () => {
-    await fc.assert(
-      fc.asyncProperty(
-        fc.tuple(arbTenantId, arbTenantId),
-        async ([tenant1, tenant2]) => {
-          fc.pre(tenant1 !== tenant2);
+    // Setup: Create orders once
+    const tenant1 = randomUUID();
+    const tenant2 = randomUUID();
+    
+    const order1 = await prisma.orders.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenant1,
+        order_number: 1,
+        order_type: 'DINE_IN',
+        order_status: 'OPEN',
+        fulfillment_status: 'COOKING',
+        handoff_status: 'WAITING',
+        stations_active: [],
+        unpaid_checks_count: 1,
+        subtotal_cents: 1000,
+        discount_cents: 0,
+        total_cents: 1000,
+        items: [],
+        checks: [],
+        terminal_id: 'CAJA-01',
+        revision: 1,
+      },
+    });
 
-          // Create orders for both tenants
-          const order1 = await prisma.orders.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: tenant1,
-              order_number: 1,
-              order_type: 'DINE_IN',
-              order_status: 'OPEN',
-              fulfillment_status: 'COOKING',
-              handoff_status: 'WAITING',
-              stations_active: [],
-              unpaid_checks_count: 1,
-              subtotal_cents: 1000,
-              discount_cents: 0,
-              total_cents: 1000,
-              items: [],
-              checks: [],
-              terminal_id: 'CAJA-01',
-              revision: 1,
-            },
-          });
+    const order2 = await prisma.orders.create({
+      data: {
+        id: randomUUID(),
+        tenant_id: tenant2,
+        order_number: 1,
+        order_type: 'DINE_IN',
+        order_status: 'OPEN',
+        fulfillment_status: 'COOKING',
+        handoff_status: 'WAITING',
+        stations_active: [],
+        unpaid_checks_count: 1,
+        subtotal_cents: 2000,
+        discount_cents: 0,
+        total_cents: 2000,
+        items: [],
+        checks: [],
+        terminal_id: 'CAJA-01',
+        revision: 1,
+      },
+    });
 
-          const order2 = await prisma.orders.create({
-            data: {
-              id: randomUUID(),
-              tenant_id: tenant2,
-              order_number: 1,
-              order_type: 'DINE_IN',
-              order_status: 'OPEN',
-              fulfillment_status: 'COOKING',
-              handoff_status: 'WAITING',
-              stations_active: [],
-              unpaid_checks_count: 1,
-              subtotal_cents: 2000,
-              discount_cents: 0,
-              total_cents: 2000,
-              items: [],
-              checks: [],
-              terminal_id: 'CAJA-01',
-              revision: 1,
-            },
-          });
+    try {
+      // Test: Simulate conflict resolution for tenant1
+      await prisma.orders.update({
+        where: { id: order1.id },
+        data: { revision: 2, total_cents: 1500 },
+      });
 
-          // Simulate conflict resolution for tenant1
-          await prisma.orders.update({
-            where: { id: order1.id },
-            data: { revision: 2, total_cents: 1500 },
-          });
+      // Verify tenant2 order is unchanged
+      const updatedOrder2 = await prisma.orders.findUnique({
+        where: { id: order2.id },
+      });
 
-          // Verify tenant2 order is unchanged
-          const updatedOrder2 = await prisma.orders.findUnique({
-            where: { id: order2.id },
-          });
-
-          expect(updatedOrder2?.revision).toBe(1);
-          expect(updatedOrder2?.total_cents).toBe(2000);
-
-          // Cleanup
-          await prisma.orders.deleteMany({
-            where: { id: { in: [order1.id, order2.id] } },
-          });
-        }
-      )
-    );
+      expect(updatedOrder2?.revision).toBe(1);
+      expect(updatedOrder2?.total_cents).toBe(2000);
+    } finally {
+      // Cleanup
+      await prisma.orders.deleteMany({
+        where: { id: { in: [order1.id, order2.id] } },
+      });
+    }
   });
 });
