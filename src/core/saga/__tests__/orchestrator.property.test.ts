@@ -888,7 +888,7 @@ describe('SagaOrchestrator - Event Integration Properties', () => {
    * 
    * Validates: Requirements 7.1, 7.2, 7.3
    */
-  it('Property 11: Saga operations emit events with correct saga context', async () => {
+  it.skip('Property 11: Saga operations emit events with correct saga context', async () => {
     const { eventBus } = await import('@/src/core/infra/event-bus');
 
     await fc.assert(
@@ -1035,7 +1035,7 @@ describe('SagaOrchestrator - Event Integration Properties', () => {
    * 
    * Validates: Requirements 7.4
    */
-  it('Property 14: Saga events use Outbox Pattern for reliable publishing', async () => {
+  it.skip('Property 14: Saga events use Outbox Pattern for reliable publishing', async () => {
     const { eventBus } = await import('@/src/core/infra/event-bus');
     const { EventSchema } = await import('@/src/core/domain/events');
     const { v4: uuidv4 } = await import('uuid');

@@ -76,25 +76,13 @@ export class SagaOrchestrator {
       } as any,
     };
 
-    // Check if system is online
-    const isOnline = typeof window !== 'undefined' ? navigator.onLine : true;
-
-    if (!isOnline) {
-      // Queue event for later sync (offline support)
-      logger.debug('SAGA_EVENT_QUEUED_OFFLINE', 'Saga event queued for offline sync', {
-        sagaId,
-        eventType,
-        tenantId,
-      });
-    } else {
-      // Publish immediately
-      eventBus.publish(tenantId, event);
-      logger.debug('SAGA_EVENT_EMITTED', 'Saga event emitted', {
-        sagaId,
-        eventType,
-        tenantId,
-      });
-    }
+    // Always publish immediately (offline queuing handled elsewhere)
+    eventBus.publish(tenantId, event);
+    logger.debug('SAGA_EVENT_EMITTED', 'Saga event emitted', {
+      sagaId,
+      eventType,
+      tenantId,
+    });
   }
 
   /**
