@@ -399,6 +399,187 @@ describe('SagaOrchestrator - Property Tests', () => {
       { numRuns: 100 }
     );
   });
+
+  /**
+   * Property 14: Outbox Pattern Integration
+   * 
+   * For any saga event emitted, the event must be published through the
+   * existing Outbox Pattern to ensure reliable delivery.
+   */
+  it('Property 14: Saga events are published through Outbox Pattern', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 1, max: 5 }), // number of steps
+        async (numSteps) => {
+          const orchestrator = new SagaOrchestrator();
+          const sagaId = `outbox-test-${Date.now()}-${Math.random()}`;
+          const publishedEvents: any[] = [];
+
+          // Mock event bus to capture published events
+          const mockEventBus = {
+            publish: vi.fn((tenantId: string, event: any) => {
+              publishedEvents.push({
+                tenantId,
+                event,
+                timestamp: Date.now(),
+              });
+            }),
+            subscribe: vi.fn(),
+          };
+
+          // Replace event bus temporarily
+          const originalEventBus = (await import('@/src/core/infra/event-bus')).eventBus;
+          vi.mocked(originalEventBus).publish = mockEventBus.publish;
+
+          const steps: SagaStep<SagaContext>[] = Array.from(
+            { length: numSteps },
+            (_, i) => ({
+              name: `step-${i}`,
+              do: async (ctx) => {
+                return { stepIndex: i };
+              },
+              undo: async () => {},
+            })
+          );
+
+          const definition: SagaDefinition<SagaContext> = {
+            name: 'outbox-test-saga',
+            steps,
+          };
+
+          const context: SagaContext = {
+            sagaId,
+            tenantId: 'test-tenant',
+            startedAt: new Date(),
+          };
+
+          const result = await orchestrator.execute(definition, context);
+
+          // Verify saga events were published
+          expect(publishedEvents.length).toBeGreaterThan(0);
+
+          // Verify event structure includes saga context
+          publishedEvents.forEach(({ event }) => {
+            expect(event).toHaveProperty('event_type');
+            expect(event).toHaveProperty('payload');
+            expect(event.payload).toHaveProperty('saga_id', sagaId);
+            expect(event.payload).toHaveProperty('saga_type', 'outbox-test-saga');
+          });
+
+          // Verify expected event types were emitted
+          const eventTypes = publishedEvents.map(e => e.event.event_type);
+          expect(eventTypes).toContain('SAGA_STARTED');
+          
+          if (result.status === 'COMPLETED') {
+            expect(eventTypes).toContain('SAGA_COMPLETED');
+            // Should have SAGA_STEP_COMPLETED for each step
+            const stepCompletedCount = eventTypes.filter(
+              t => t === 'SAGA_STEP_COMPLETED'
+            ).length;
+            expect(stepCompletedCount).toBe(numSteps);
+          } else if (result.status === 'COMPENSATED') {
+            expect(eventTypes).toContain('SAGA_COMPENSATED');
+          }
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * Property 15: Event Projection Compatibility
+   * 
+   * For any saga event emitted, the event must be processable by existing
+   * event projections and reducers without errors.
+   */
+  it('Property 15: Saga events are compatible with existing projections', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 1, max: 3 }), // number of steps
+        async (numSteps) => {
+          const orchestrator = new SagaOrchestrator();
+          const sagaId = `projection-test-${Date.now()}-${Math.random()}`;
+          const emittedEvents: any[] = [];
+
+          // Mock event bus to capture events
+          const mockEventBus = {
+            publish: vi.fn((tenantId: string, event: any) => {
+              emittedEvents.push(event);
+            }),
+            subscribe: vi.fn(),
+          };
+
+          const originalEventBus = (await import('@/src/core/infra/event-bus')).eventBus;
+          vi.mocked(originalEventBus).publish = mockEventBus.publish;
+
+          const steps: SagaStep<SagaContext>[] = Array.from(
+            { length: numSteps },
+            (_, i) => ({
+              name: `step-${i}`,
+              do: async (ctx) => {
+                return { stepIndex: i, data: `result-${i}` };
+              },
+              undo: async () => {},
+            })
+          );
+
+          const definition: SagaDefinition<SagaContext> = {
+            name: 'projection-test-saga',
+            steps,
+          };
+
+          const context: SagaContext = {
+            sagaId,
+            tenantId: 'test-tenant',
+            startedAt: new Date(),
+          };
+
+          const result = await orchestrator.execute(definition, context);
+
+          // Verify all emitted events have required fields for projection compatibility
+          emittedEvents.forEach((event) => {
+            // Required fields for event projection
+            expect(event).toHaveProperty('event_id');
+            expect(event).toHaveProperty('tenant_id');
+            expect(event).toHaveProperty('event_type');
+            expect(event).toHaveProperty('payload');
+            expect(event).toHaveProperty('occurred_at');
+            expect(event).toHaveProperty('aggregate_type');
+            expect(event).toHaveProperty('aggregate_id');
+            expect(event).toHaveProperty('correlation_id');
+
+            // Saga-specific fields
+            expect(event.aggregate_type).toBe('SAGA');
+            expect(event.aggregate_id).toBe(sagaId);
+            expect(event.correlation_id).toBe(sagaId);
+
+            // Payload must be serializable
+            expect(() => JSON.stringify(event.payload)).not.toThrow();
+
+            // Event type must be valid
+            const validEventTypes = [
+              'SAGA_STARTED',
+              'SAGA_STEP_COMPLETED',
+              'SAGA_STEP_FAILED',
+              'SAGA_STEP_COMPENSATED',
+              'SAGA_COMPLETED',
+              'SAGA_COMPENSATED',
+              'SAGA_FAILED',
+            ];
+            expect(validEventTypes).toContain(event.event_type);
+          });
+
+          // Verify event ordering is preserved
+          const eventTypes = emittedEvents.map(e => e.event_type);
+          expect(eventTypes[0]).toBe('SAGA_STARTED');
+          expect(eventTypes[eventTypes.length - 1]).toMatch(
+            /SAGA_COMPLETED|SAGA_COMPENSATED|SAGA_FAILED/
+          );
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
 });
 
 /**

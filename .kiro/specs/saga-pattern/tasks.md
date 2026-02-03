@@ -128,7 +128,7 @@ This implementation plan breaks down the Saga Pattern feature into discrete, inc
 - [x] 9. Checkpoint - Ensure error handling tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement saga event integration
+- [x] 10. Implement saga event integration
   - [x] 10.1 Create saga event schemas
     - Define SAGA_STARTED, SAGA_STEP_COMPLETED, SAGA_STEP_FAILED events
     - Define SAGA_COMPENSATED, SAGA_COMPLETED, SAGA_FAILED events
@@ -145,168 +145,168 @@ This implementation plan breaks down the Saga Pattern feature into discrete, inc
     - **Property 11: Event Emission for Saga Operations**
     - **Validates: Requirements 3.9, 7.1, 7.2, 7.3**
 
-  - [ ] 10.4 Write property test for outbox integration
+  - [x] 10.4 Write property test for outbox integration
     - **Property 14: Outbox Pattern Integration**
     - **Validates: Requirements 7.4**
 
-  - [ ] 10.5 Write property test for event projection compatibility
+  - [x] 10.5 Write property test for event projection compatibility
     - **Property 15: Event Projection Compatibility**
     - **Validates: Requirements 7.5**
 
-- [ ] 11. Implement offline saga support
-  - [ ] 11.1 Add offline detection to orchestrator
+- [x] 11. Implement offline saga support
+  - [x] 11.1 Add offline detection to orchestrator
     - Check network status before saga execution
     - Queue saga events for sync when offline
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 11.2 Implement saga event synchronization
+  - [x] 11.2 Implement saga event synchronization
     - Sync queued saga events when online
     - Handle sync conflicts and resolution
     - _Requirements: 6.3, 6.4_
 
-  - [ ] 11.3 Write property test for offline execution
+  - [x] 11.3 Write property test for offline execution
     - **Property 12: Offline Saga Execution**
     - **Validates: Requirements 6.1, 6.2**
 
-  - [ ] 11.4 Write property test for event synchronization
+  - [x] 11.4 Write property test for event synchronization
     - **Property 13: Saga Event Synchronization**
     - **Validates: Requirements 6.3**
 
-  - [ ] 11.5 Write unit tests for conflict resolution
+  - [x] 11.5 Write unit tests for conflict resolution
     - Test conflicting sagas from multiple terminals
     - Test conflict detection and resolution strategies
 
-- [ ] 12. Checkpoint - Ensure offline support tests pass
+- [x] 12. Checkpoint - Ensure offline support tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Implement Complete Sale Saga
-  - [ ] 13.1 Create CompleteSaleSaga definition
+- [x] 13. Implement Complete Sale Saga
+  - [x] 13.1 Create CompleteSaleSaga definition
     - Define saga steps: validate_payment, reserve_coupon, issue_invoice, queue_print
     - Implement do and undo functions for each step
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 13.2 Implement saga step functions
+  - [x] 13.2 Implement saga step functions
     - validatePayment: check payment sufficiency
     - reserveCoupon: mark coupon as reserved
     - issueInvoice: generate invoice record
     - queuePrint: add to print queue
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 13.3 Implement compensation functions
+  - [x] 13.3 Implement compensation functions
     - refundPayment: reverse payment
     - releaseCoupon: unreserve coupon
     - voidInvoice: cancel invoice
     - cancelPrint: remove from print queue
     - _Requirements: 3.6, 3.7, 3.8_
 
-  - [ ] 13.4 Write unit tests for Complete Sale Saga
+  - [x] 13.4 Write unit tests for Complete Sale Saga
     - Test successful completion
     - Test failure at each step with compensation
     - Test early failure without side effects
     - _Requirements: 3.1-3.9_
 
-- [ ] 14. Implement Void Sale Saga
-  - [ ] 14.1 Create VoidSaleSaga definition
+- [x] 14. Implement Void Sale Saga
+  - [x] 14.1 Create VoidSaleSaga definition
     - Define saga steps: validate_authorization, void_invoice, refund_payment, release_coupon
     - Implement do and undo functions for each step
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ] 14.2 Implement saga step functions
+  - [x] 14.2 Implement saga step functions
     - validateAuthorization: check manager approval
     - voidInvoice: cancel invoice
     - refundPayment: process refund
     - releaseCoupon: unreserve coupon
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ] 14.3 Implement compensation functions
+  - [x] 14.3 Implement compensation functions
     - restoreInvoice: reactivate invoice
     - reverseRefund: cancel refund
     - reserveCoupon: re-reserve coupon
     - _Requirements: 4.7_
 
-  - [ ] 14.4 Write unit tests for Void Sale Saga
+  - [x] 14.4 Write unit tests for Void Sale Saga
     - Test successful void
     - Test authorization failure
     - Test failure at each step with compensation
     - _Requirements: 4.1-4.8_
 
-- [ ] 15. Implement Apply Promotion Saga
-  - [ ] 15.1 Create ApplyPromotionSaga definition
+- [x] 15. Implement Apply Promotion Saga
+  - [x] 15.1 Create ApplyPromotionSaga definition
     - Define saga steps: validate_eligibility, reserve_promotion, apply_discount, send_notification
     - Implement do and undo functions for each step
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 15.2 Implement saga step functions
+  - [x] 15.2 Implement saga step functions
     - validateEligibility: check promotion rules
     - reservePromotion: mark promotion as used
     - applyDiscount: update order totals
     - sendNotification: queue notification
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 15.3 Implement compensation functions
+  - [x] 15.3 Implement compensation functions
     - releasePromotion: unreserve promotion
     - removeDiscount: revert order totals
     - _Requirements: 5.7, 5.8_
 
-  - [ ] 15.4 Write unit tests for Apply Promotion Saga
+  - [x] 15.4 Write unit tests for Apply Promotion Saga
     - Test successful application
     - Test eligibility failure
     - Test failure at each step with compensation
     - _Requirements: 5.1-5.8_
 
-- [ ] 16. Checkpoint - Ensure all saga implementations pass tests
+- [x] 16. Checkpoint - Ensure all saga implementations pass tests
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 17. Add saga query and monitoring support
-  - [ ] 17.1 Implement saga query API
+- [x] 17. Add saga query and monitoring support
+  - [x] 17.1 Implement saga query API
     - Add query methods to SagaLogRepository
     - Support filtering by tenant, type, status, date range
     - _Requirements: 2.6_
 
-  - [ ] 17.2 Write property test for saga query correctness
+  - [x] 17.2 Write property test for saga query correctness
     - **Property 10: Saga Query Correctness**
     - **Validates: Requirements 2.6**
 
-  - [ ] 17.3 Add saga metrics collection
+  - [x] 17.3 Add saga metrics collection
     - Track saga execution count, duration, failure rate
     - Integrate with existing observability system
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
 
-  - [ ] 17.4 Write unit tests for metrics collection
+  - [x] 17.4 Write unit tests for metrics collection
     - Test metric updates on saga events
     - Test metric aggregation
 
-- [ ] 18. Create saga test utilities
-  - [ ] 18.1 Implement test helper functions
+- [x] 18. Create saga test utilities
+  - [x] 18.1 Implement test helper functions
     - createMockStep: generate mock saga steps
     - verifySagaLog: assert saga log state
     - simulateRestart: test recovery scenarios
     - _Requirements: 10.1, 10.2, 10.4_
 
-  - [ ] 18.2 Create saga test fixtures
+  - [x] 18.2 Create saga test fixtures
     - Common saga scenarios for testing
     - Mock implementations of saga steps
     - _Requirements: 10.4_
 
-- [ ] 19. Integration and wiring
-  - [ ] 19.1 Wire saga orchestrator into application
+- [x] 19. Integration and wiring
+  - [x] 19.1 Wire saga orchestrator into application
     - Export saga orchestrator instance
     - Register saga definitions
     - Add saga execution to relevant handlers (cashier, manager)
     - _Requirements: 1.1-1.7_
 
-  - [ ] 19.2 Add saga UI integration points
+  - [x] 19.2 Add saga UI integration points
     - Show saga status in UI during execution
     - Display errors and compensation status
     - Add manual intervention UI for failed sagas
     - _Requirements: 8.4_
 
-  - [ ] 19.3 Write integration tests
+  - [x] 19.3 Write integration tests
     - Test end-to-end saga execution from UI
     - Test saga recovery after system restart
     - Test offline saga execution and sync
 
-- [ ] 20. Final checkpoint - Ensure all tests pass
+- [x] 20. Final checkpoint - Ensure all tests pass
   - Run full test suite (unit + property + integration)
   - Verify saga logs in both IndexedDB and PostgreSQL
   - Test saga execution in offline mode

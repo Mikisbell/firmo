@@ -11,6 +11,7 @@ import { metricsHelpers } from '@/src/core/observability/metrics';
 import { sagaLogRepository } from './repository';
 import { errorClassifier } from './errors';
 import { eventBus } from '@/src/core/infra/event-bus';
+import { offlineSagaEventQueue } from './offline';
 import type { ParkEvent } from '@/src/core/domain/events';
 import {
   SagaDefinition,
@@ -28,13 +29,13 @@ export class SagaOrchestrator {
   /**
    * Emit a saga event through the event bus
    */
-  private emitSagaEvent(
+  private async emitSagaEvent(
     tenantId: string,
     sagaId: string,
     sagaType: string,
     eventType: string,
     payload: Record<string, unknown>
-  ): void {
+  ): Promise<void> {
     const event: ParkEvent = {
       // Identity
       event_id: uuidv4(),
@@ -76,13 +77,26 @@ export class SagaOrchestrator {
       } as any,
     };
 
-    eventBus.publish(tenantId, event);
-    
-    logger.debug('SAGA_EVENT_EMITTED', 'Saga event emitted', {
-      sagaId,
-      eventType,
-      tenantId,
-    });
+    // Check if system is online
+    const isOnline = typeof window !== 'undefined' ? navigator.onLine : true;
+
+    if (!isOnline) {
+      // Queue event for later sync
+      await offlineSagaEventQueue.queueEvent(sagaId, tenantId, event);
+      logger.debug('SAGA_EVENT_QUEUED_OFFLINE', 'Saga event queued for offline sync', {
+        sagaId,
+        eventType,
+        tenantId,
+      });
+    } else {
+      // Publish immediately
+      eventBus.publish(tenantId, event);
+      logger.debug('SAGA_EVENT_EMITTED', 'Saga event emitted', {
+        sagaId,
+        eventType,
+        tenantId,
+      });
+    }
   }
 
   /**
@@ -120,7 +134,7 @@ export class SagaOrchestrator {
         });
 
         // Emit SAGA_STARTED event
-        this.emitSagaEvent(
+        await this.emitSagaEvent(
           context.tenantId,
           sagaId,
           definition.name,
@@ -159,7 +173,7 @@ export class SagaOrchestrator {
 
         if (stepResult.status === 'COMPLETED') {
           // Emit SAGA_STEP_COMPLETED event
-          this.emitSagaEvent(
+          await this.emitSagaEvent(
             context.tenantId,
             sagaId,
             definition.name,
@@ -173,7 +187,7 @@ export class SagaOrchestrator {
           );
         } else if (stepResult.status === 'FAILED') {
           // Emit SAGA_STEP_FAILED event
-          this.emitSagaEvent(
+          await this.emitSagaEvent(
             context.tenantId,
             sagaId,
             definition.name,
@@ -207,7 +221,7 @@ export class SagaOrchestrator {
 
           // Emit SAGA_COMPENSATED event
           const duration = Date.now() - startedAt.getTime();
-          this.emitSagaEvent(
+          await this.emitSagaEvent(
             context.tenantId,
             sagaId,
             definition.name,
@@ -235,7 +249,7 @@ export class SagaOrchestrator {
 
         // Emit SAGA_COMPLETED event
         const duration = Date.now() - startedAt.getTime();
-        this.emitSagaEvent(
+        await this.emitSagaEvent(
           context.tenantId,
           sagaId,
           definition.name,
@@ -264,7 +278,7 @@ export class SagaOrchestrator {
 
       // Emit SAGA_FAILED event
       const duration = Date.now() - startedAt.getTime();
-      this.emitSagaEvent(
+      await this.emitSagaEvent(
         context.tenantId,
         sagaId,
         definition.name,
@@ -447,7 +461,7 @@ export class SagaOrchestrator {
             await sagaLogRepository.recordCompensation(sagaId, step.name);
 
             // Emit SAGA_STEP_COMPENSATED event
-            this.emitSagaEvent(
+            await this.emitSagaEvent(
               context.tenantId,
               sagaId,
               definition.name,

@@ -62,6 +62,17 @@ export interface SagaLogEntity {
     updated_at: string;
 }
 
+export interface OfflineSagaEventEntity {
+    event_id: string;
+    saga_id: string;
+    tenant_id: string;
+    event: any;
+    queued_at: string;
+    synced: boolean;
+    sync_attempts: number;
+    last_sync_error?: string;
+}
+
 export interface ProjectionEntity {
     key: string;
     data: any;
@@ -91,6 +102,7 @@ export class ParkDB extends Dexie {
     projections!: EntityTable<ProjectionEntity, 'key'>;
     snapshots!: EntityTable<SnapshotEntity, 'id'>;
     saga_logs!: EntityTable<SagaLogEntity, 'saga_id'>;
+    offline_saga_events!: EntityTable<OfflineSagaEventEntity, 'event_id'>;
 
     constructor() {
         super(DB_NAME);
@@ -158,6 +170,18 @@ export class ParkDB extends Dexie {
             catalog_items: 'id, product_id, name',
             snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
             saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]'
+        });
+
+        // Version 7: Added offline_saga_events table for offline saga support
+        this.version(7).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, aggregate_id, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, product_id, name',
+            snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
+            saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]',
+            offline_saga_events: 'event_id, [tenant_id+synced], saga_id, queued_at'
         });
     }
 }

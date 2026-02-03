@@ -9,6 +9,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:property": "vitest run --include '**/*.property.test.ts'",
+    "test:property:watch": "vitest --include '**/*.property.test.ts'",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:debug": "playwright test --debug",
