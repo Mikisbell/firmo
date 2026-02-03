@@ -234,26 +234,26 @@ This implementation plan breaks down the multi-tenant improvements into discrete
 - [x] 10. Checkpoint - Ensure backup and monitoring tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Cross-Tenant Administration
-  - [ ] 11.1 Create cross-tenant admin schema
+- [x] 11. Cross-Tenant Administration
+  - [x] 11.1 Create cross-tenant admin schema
     - Create cross_tenant_admins table
     - Create cross_tenant_audit_log table
     - Add indexes for performance
     - _Requirements: 9.1, 9.2, 9.7_
 
-  - [ ] 11.2 Implement cross-tenant admin middleware
+  - [x] 11.2 Implement cross-tenant admin middleware
     - Create withCrossTenantAdmin function
     - Verify admin permissions
     - Set target tenant context
     - Implement audit logging
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
 
-  - [ ] 11.3 Write unit tests for permission checks
+  - [x] 11.3 Write unit tests for permission checks
     - Test each permission type
     - Test permission denial
     - _Requirements: 9.4, 9.5, 9.6, 9.7_
 
-  - [ ] 11.4 Create cross-tenant admin API endpoints
+  - [x] 11.4 Create cross-tenant admin API endpoints
     - GET /api/admin/tenants
     - GET /api/admin/tenants/:id/configuration
     - GET /api/admin/tenants/:id/events
@@ -261,14 +261,14 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - Add cross-tenant admin authorization
     - _Requirements: 9.5, 9.6_
 
-  - [ ] 11.5 Implement admin grant/revoke functions
+  - [x] 11.5 Implement admin grant/revoke functions
     - Create grantCrossTenantAdmin
     - Create revokeCrossTenantAdmin
     - Add expiration handling
     - _Requirements: 9.1, 9.2_
 
-- [ ] 12. Tenant Migration and Export
-  - [ ] 12.1 Implement export service
+- [x] 12. Tenant Migration and Export
+  - [x] 12.1 Implement export service
     - Create exportTenantData function
     - Implement collectExportData
     - Implement validateExportCompleteness
@@ -277,59 +277,59 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - Implement data encryption
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ] 12.2 Write unit tests for export
+  - [x] 12.2 Write unit tests for export
     - Test JSON export format
     - Test SQL export format
     - Test data completeness validation
     - Test encryption
     - _Requirements: 10.1, 10.2, 10.4, 10.5_
 
-  - [ ] 12.3 Create export API endpoints
+  - [x] 12.3 Create export API endpoints
     - POST /api/tenant/export
     - GET /api/tenant/exports
     - GET /api/tenant/exports/:id/download
     - Add authentication and authorization
     - _Requirements: 10.1, 10.6, 10.7_
 
-- [ ] 13. Event Sourcing Tenant Isolation
-  - [ ] 13.1 Implement event validation
+- [x] 13. Event Sourcing Tenant Isolation
+  - [x] 13.1 Implement event validation
     - Add tenant_id validation to event ingestion
     - Validate entity_id belongs to same tenant
     - Prevent cross-tenant event references
     - _Requirements: 11.1, 11.4, 11.5_
 
-  - [ ] 13.2 Write property test for event ingestion validation
+  - [x] 13.2 Write property test for event ingestion validation
     - **Property 11: Event Ingestion Validates Tenant**
     - **Validates: Requirements 11.1**
 
-  - [ ] 13.3 Write property test for cross-tenant event references
+  - [x] 13.3 Write property test for cross-tenant event references
     - **Property 14: Cross-Tenant Event References Are Rejected**
     - **Validates: Requirements 11.4, 11.5**
 
-  - [ ] 13.4 Implement tenant-scoped event streaming
+  - [x] 13.4 Implement tenant-scoped event streaming
     - Add tenant_id filtering to SSE endpoint
     - Ensure only tenant's events are streamed
     - _Requirements: 11.2_
 
-  - [ ] 13.5 Write property test for event stream filtering
+  - [x] 13.5 Write property test for event stream filtering
     - **Property 12: Event Streams Are Tenant-Filtered**
     - **Validates: Requirements 11.2**
 
-  - [ ] 13.6 Implement tenant-scoped projection rebuild
+  - [x] 13.6 Implement tenant-scoped projection rebuild
     - Add tenant_id filtering to projection rebuild
     - Ensure only tenant's events are processed
     - _Requirements: 11.3_
 
-  - [ ] 13.7 Write property test for projection rebuild scoping
+  - [x] 13.7 Write property test for projection rebuild scoping
     - **Property 13: Projection Rebuild Is Tenant-Scoped**
     - **Validates: Requirements 11.3**
 
-  - [ ] 13.8 Implement tenant-scoped conflict resolution
+  - [x] 13.8 Implement tenant-scoped conflict resolution
     - Ensure conflict resolution doesn't affect other tenants
     - Add tenant_id validation to conflict resolution
     - _Requirements: 11.6_
 
-  - [ ] 13.9 Write property test for conflict resolution scoping
+  - [x] 13.9 Write property test for conflict resolution scoping
     - **Property 15: Conflict Resolution Is Tenant-Scoped**
     - **Validates: Requirements 11.6**
 

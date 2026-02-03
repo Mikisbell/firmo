@@ -47,6 +47,8 @@ export interface ConflictResult {
 /**
  * Detecta y resuelve conflictos basado en revisión del agregado.
  * 
+ * **Requirement 11.6:** Ensure conflict resolution doesn't affect other tenants
+ * 
  * @param tx - Transacción de Prisma
  * @param event - Evento a procesar
  * @param currentRevision - Revisión actual del agregado en el servidor
@@ -57,6 +59,22 @@ export async function detectAndResolveConflict(
   event: ParkEvent,
   currentRevision: number
 ): Promise<ConflictResult> {
+  // **Requirement 11.6:** Validate tenant_id is present
+  if (!event.tenant_id) {
+    return {
+      hasConflict: true,
+      shouldApply: false,
+      conflict: {
+        type: "REVISION_CONFLICT",
+        aggregate_id: event.aggregate_id,
+        expected_revision: 0,
+        actual_revision: currentRevision,
+        resolution: "REJECT",
+        rejected_reason: "Event missing tenant_id - cannot process",
+      }
+    };
+  }
+
   // Obtener expected_revision del evento o payload
   const expectedRevision = getExpectedRevision(event);
   
@@ -318,6 +336,15 @@ async function logConflict(
   }
 ) {
   try {
+    // **Requirement 11.6:** Validate tenant_id before logging
+    if (!data.tenant_id) {
+      logger.error('conflict.missing_tenant', 'Cannot log conflict without tenant_id', undefined, {
+        aggregate_id: data.aggregate_id,
+        event_id: data.event_id,
+      });
+      return;
+    }
+
     // IMPORTANTE: Usar conflict_logs (snake_case) según el modelo en schema.prisma
     // Ver docs/02-architecture/PRISMA_NAMING.md para convención de nombres
     await tx.conflict_logs.create({

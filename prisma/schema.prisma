@@ -1759,3 +1759,41 @@ model session_audit_log {
   @@index([created_at(sort: Desc)])
   @@index([mac_address])
 }
+
+// ============================================
+// Cross-Tenant Administration
+// ============================================
+
+model cross_tenant_admins {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_id String    @db.Uuid
+  granted_by  String    @db.Uuid
+  granted_at  DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at  DateTime? @db.Timestamptz(6)
+  is_active   Boolean   @default(true)
+  permissions Json      @default("{}")
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@unique([employee_id])
+  @@index([is_active])
+  @@index([expires_at])
+  @@index([granted_at(sort: Desc)])
+}
+
+model cross_tenant_audit_log {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  admin_id      String    @db.Uuid
+  tenant_id     String    @db.Uuid
+  action        String
+  resource_type String?
+  resource_id   String?   @db.Uuid
+  details       Json?
+  ip_address    String?
+  user_agent    String?
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([admin_id, created_at(sort: Desc)])
+  @@index([tenant_id, created_at(sort: Desc)])
+  @@index([action, created_at(sort: Desc)])
+}
