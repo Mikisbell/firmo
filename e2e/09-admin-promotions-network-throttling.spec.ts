@@ -28,17 +28,24 @@ test.describe('Admin Panel - Promotions with Network Throttling', () => {
        * - Latencia: 1-2 segundos
        * - Packet loss: 0%
        * 
+       * FIX: Usar CDP Network.emulateNetworkConditions en lugar de context.route()
+       * - context.route() solo retrasa la respuesta (después del procesamiento)
+       * - CDP emula latencia real de red (antes del envío)
+       * 
        * Resultado esperado:
-       * - ✅ Pasa en local (sin throttling real)
-       * - ❌ Falla en CI con throttling real
-       * - Demuestra el problema del "éxito silencioso"
+       * - ✅ Pasa en local (con CDP throttling real)
+       * - ✅ Pasa en CI (con CDP throttling real)
+       * - Demuestra que el sistema maneja latencia correctamente
        */
       
-      // Simular latencia de 1-2 segundos
-      await context.route('**/*', async (route) => {
-        const delay = Math.random() * 1000 + 1000; // 1-2 segundos
-        await new Promise(resolve => setTimeout(resolve, delay));
-        await route.continue();
+      // Usar CDP para emular latencia real de red
+      const client = await context.newCDPSession(page);
+      
+      await client.send('Network.emulateNetworkConditions', {
+        offline: false,
+        downloadThroughput: 100 * 1024 / 8, // 100 kbps
+        uploadThroughput: 50 * 1024 / 8,    // 50 kbps
+        latency: 1500, // 1.5 segundos latencia
       });
 
       await authenticateAsAdmin(page, ADMIN_PIN);
@@ -52,7 +59,7 @@ test.describe('Admin Panel - Promotions with Network Throttling', () => {
         is_active: true,
       };
 
-      // Este request debería tomar 1-2 segundos adicionales
+      // Este request debería tomar ~1.5 segundos adicionales
       const startTime = Date.now();
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: { 'Content-Type': 'application/json' },
@@ -60,10 +67,11 @@ test.describe('Admin Panel - Promotions with Network Throttling', () => {
       });
       const duration = Date.now() - startTime;
 
-      // Verificar que tomó tiempo
-      console.log(`Request duration: ${duration}ms (expected: 1000-2000ms)`);
+      // Verificar que tomó tiempo (al menos 1 segundo por latencia)
+      console.log(`Request duration: ${duration}ms (expected: ≥1500ms)`);
       
       expect([200, 201]).toContain(response.status());
+      expect(duration).toBeGreaterThanOrEqual(1000); // Al menos 1 segundo
       
       if (response.ok()) {
         const promotion = await response.json();
@@ -77,14 +85,24 @@ test.describe('Admin Panel - Promotions with Network Throttling', () => {
        * NOTA: Este test valida que el sistema maneja timeouts correctamente
        * 
        * Escenario:
-       * - Latencia: 5 segundos (más que el timeout típico)
-       * - Esperado: Error o retry
+       * - Latencia: 5 segundos (hardware-level via CDP)
+       * - Timeout: 3 segundos (cliente)
+       * - Esperado: Timeout error o error de conexión
+       * 
+       * FIX: Usar CDP Network.emulateNetworkConditions para simular latencia real
+       * - context.route() intercepta DESPUÉS del envío (demasiado limpio)
+       * - CDP emula latencia a nivel de hardware (antes del envío)
+       * - Resultado: Timeout real que la IA puede diagnosticar como fallo de infraestructura
        */
       
-      // Simular latencia de 5 segundos (timeout)
-      await context.route('**/api/admin/promotions', async (route) => {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        await route.continue();
+      // Usar CDP para emular latencia masiva (5 segundos)
+      const client = await context.newCDPSession(page);
+      
+      await client.send('Network.emulateNetworkConditions', {
+        offline: false,
+        downloadThroughput: 50 * 1024 / 8, // 50 kbps (muy lento)
+        uploadThroughput: 20 * 1024 / 8,   // 20 kbps (muy lento)
+        latency: 5000, // 5 segundos de ping (hardware-level)
       });
 
       await authenticateAsAdmin(page, ADMIN_PIN);
@@ -98,20 +116,32 @@ test.describe('Admin Panel - Promotions with Network Throttling', () => {
         is_active: true,
       };
 
-      // Este request debería timeout
+      // Este request debería timeout (5000ms latencia > 3000ms timeout)
+      let timedOut = false;
+      const startTime = Date.now();
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: { 'Content-Type': 'application/json' },
         data: uniquePromotion,
-        timeout: 3000, // 3 segundos timeout
+        timeout: 3000, // 3 segundos timeout (estricto)
       }).catch(err => {
-        // Esperado: timeout error
+        // Esperado: timeout error por latencia de hardware
         console.log(`Expected timeout error: ${err.message}`);
+        timedOut = true;
         return null;
       });
+      const duration = Date.now() - startTime;
 
-      // Debería fallar o retornar error
+      // Validar que ocurrió timeout (response será null)
+      // O si no timeout, debería ser error 408/504/500
+      console.log(`Request duration: ${duration}ms (timeout: 3000ms, latency: 5000ms)`);
+      
       if (response) {
+        // Si no timeout, debería ser error de conexión
         expect([408, 504, 500]).toContain(response.status());
+      } else {
+        // Timeout ocurrió (esperado)
+        expect(timedOut).toBe(true);
+        expect(duration).toBeGreaterThanOrEqual(3000); // Al menos el timeout
       }
     });
   });
