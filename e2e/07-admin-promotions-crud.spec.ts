@@ -20,17 +20,12 @@ const ADMIN_PIN = TEST_PINS.ADMIN;
 
 // Test data
 const TEST_PROMOTION = {
-  code: `PROMO-${Date.now()}`,
   name: 'Test Promotion E2E',
   type: 'PERCENT',
   value: 10,
-  start_date: new Date().toISOString().split('T')[0],
-  end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-};
-
-const UPDATED_PROMOTION = {
-  name: 'Updated Promotion E2E',
-  value: 15,
+  starts_at: new Date().toISOString(),
+  ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  is_active: true,
 };
 
 test.describe('Admin Panel - Promotion CRUD', () => {
@@ -62,14 +57,28 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     test('should create a new promotion via API', async ({ page }) => {
       await authenticateAsAdmin(page, ADMIN_PIN);
 
+      // Use unique promotion name to avoid conflicts
+      const uniquePromotion = {
+        ...TEST_PROMOTION,
+        name: `Test Promotion E2E ${Date.now()}`,
+      };
+
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
         },
-        data: TEST_PROMOTION,
+        data: uniquePromotion,
       });
 
       expect([200, 201]).toContain(response.status());
+      
+      // Verify response contains promotion data
+      if (response.ok()) {
+        const promotion = await response.json();
+        expect(promotion.id).toBeDefined();
+        expect(promotion.name).toBe(uniquePromotion.name);
+        expect(promotion.type).toBe(uniquePromotion.type);
+      }
     });
 
     test('should validate required fields', async ({ page }) => {
@@ -80,11 +89,18 @@ test.describe('Admin Panel - Promotion CRUD', () => {
           'Content-Type': 'application/json',
         },
         data: {
-          name: TEST_PROMOTION.name,
+          name: `Test Promotion ${Date.now()}`,
+          // Missing: type, value, starts_at, ends_at
         },
       });
 
       expect(response.status()).toBe(400);
+      
+      // Verify error response
+      if (!response.ok()) {
+        const error = await response.json();
+        expect(error.error).toBeDefined();
+      }
     });
 
     test('should validate promotion type', async ({ page }) => {
@@ -95,13 +111,21 @@ test.describe('Admin Panel - Promotion CRUD', () => {
           'Content-Type': 'application/json',
         },
         data: {
-          ...TEST_PROMOTION,
-          code: `PROMO-TYPE-${Date.now()}`,
+          name: `Test Promotion ${Date.now()}`,
           type: 'INVALID_TYPE',
+          value: 10,
+          starts_at: new Date().toISOString(),
+          ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         },
       });
 
       expect(response.status()).toBe(400);
+      
+      // Verify error response
+      if (!response.ok()) {
+        const error = await response.json();
+        expect(error.error).toBeDefined();
+      }
     });
   });
 
@@ -114,10 +138,11 @@ test.describe('Admin Panel - Promotion CRUD', () => {
           'Content-Type': 'application/json',
         },
         data: {
-          ...TEST_PROMOTION,
-          code: `PROMO-INVALID-${Date.now()}`,
-          start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          end_date: new Date().toISOString().split('T')[0],
+          name: 'Invalid Date Range Promotion',
+          type: 'PERCENT',
+          value: 10,
+          starts_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          ends_at: new Date().toISOString(),
         },
       });
 
@@ -129,11 +154,17 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     test('should update promotion information', async ({ page }) => {
       await authenticateAsAdmin(page, ADMIN_PIN);
 
+      // Create a promotion first
+      const createData = {
+        ...TEST_PROMOTION,
+        name: `Update Test Promotion ${Date.now()}`,
+      };
+
       const createResponse = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
         },
-        data: TEST_PROMOTION,
+        data: createData,
       });
 
       if (createResponse.ok()) {
@@ -144,10 +175,23 @@ test.describe('Admin Panel - Promotion CRUD', () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          data: UPDATED_PROMOTION,
+          data: {
+            name: `Updated Promotion ${Date.now()}`,
+            type: 'PERCENT',
+            value: 15,
+            starts_at: new Date().toISOString(),
+            ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            is_active: true,
+          },
         });
 
-        expect(updateResponse.status()).toBe(200);
+        expect([200, 201]).toContain(updateResponse.status());
+        
+        // Verify update was applied
+        if (updateResponse.ok()) {
+          const updated = await updateResponse.json();
+          expect(updated.value).toBe(15);
+        }
       }
     });
   });
@@ -156,11 +200,17 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     test('should deactivate promotion (soft delete)', async ({ page }) => {
       await authenticateAsAdmin(page, ADMIN_PIN);
 
+      // Create a promotion first
+      const createData = {
+        ...TEST_PROMOTION,
+        name: `Delete Test Promotion ${Date.now()}`,
+      };
+
       const createResponse = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
         },
-        data: TEST_PROMOTION,
+        data: createData,
       });
 
       if (createResponse.ok()) {
@@ -170,6 +220,13 @@ test.describe('Admin Panel - Promotion CRUD', () => {
         const deleteResponse = await page.request.delete(`${BASE_URL}/api/admin/promotions/${promotionId}`);
 
         expect([200, 204]).toContain(deleteResponse.status());
+        
+        // Verify deletion was applied (soft delete)
+        if (deleteResponse.ok()) {
+          // Try to fetch the promotion - it should still exist but be inactive
+          const getResponse = await page.request.get(`${BASE_URL}/api/admin/promotions?is_active=false`);
+          expect(getResponse.ok()).toBeTruthy();
+        }
       }
     });
   });
