@@ -337,27 +337,27 @@ This implementation plan breaks down the multi-tenant improvements into discrete
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [ ] 15. Tenant-Scoped Authentication
-  - [ ] 15.1 Implement tenant-scoped login validation
+- [-] 15. Tenant-Scoped Authentication
+  - [x] 15.1 Implement tenant-scoped login validation
     - Validate employee belongs to specified tenant
     - Add tenant_id to JWT token claims
     - _Requirements: 12.1, 12.2_
 
-  - [ ] 15.2 Write property test for login tenant validation
+  - [x] 15.2 Write property test for login tenant validation
     - **Property 16: Login Validates Tenant Membership**
     - **Validates: Requirements 12.1**
 
-  - [ ] 15.3 Write unit test for JWT tenant_id inclusion
+  - [x] 15.3 Write unit test for JWT tenant_id inclusion
     - Test token structure
     - Test tenant_id claim presence
     - _Requirements: 12.2_
 
-  - [ ] 15.4 Implement token tenant validation
+  - [x] 15.4 Implement token tenant validation
     - Verify token tenant_id matches requested resource
     - Prevent token reuse across tenants
     - _Requirements: 12.3, 12.4_
 
-  - [ ] 15.5 Write property test for token tenant mismatch
+  - [x] 15.5 Write property test for token tenant mismatch
     - **Property 17: Token Tenant Mismatch Is Rejected**
     - **Validates: Requirements 12.3, 12.4**
 
