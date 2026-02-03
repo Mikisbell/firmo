@@ -126,9 +126,10 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - **Validates: Requirements 3.1**
     - ✅ Implemented in src/app/admin/__tests__/promotions.property.test.ts
 
-  - [ ]* 5.3 Write property test for promotion type validation
+  - [x]* 5.3 Write property test for promotion type validation
     - **Property 18: Promotion Type Validation**
     - **Validates: Requirements 3.2**
+    - ✅ Implemented in src/app/admin/__tests__/promotions.property.test.ts
 
   - [ ] 5.4 Create Promotion frontend pages
     - Create src/app/admin/promociones/nuevo/page.tsx with form for all promotion fields
@@ -141,13 +142,14 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Note: List page exists but needs create/edit modal forms
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.7, 3.9, 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ]* 5.5 Write unit tests for Promotion API
+  - [x]* 5.5 Write unit tests for Promotion API
     - Test successful promotion creation
     - Test date range validation
     - Test promotion type enum validation
     - Test JSON rules validation
     - Test automatic expiration
     - Test soft delete behavior
+    - ✅ 14 tests implemented in src/app/admin/__tests__/promotions.unit.test.ts
     - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.9_
 
   - [ ]* 5.6 Write E2E test for Promotion CRUD flow
@@ -165,9 +167,10 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Note: Uses PATCH instead of PUT, uses DriverService
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 10.10, 10.11, 10.12_
 
-  - [ ]* 6.2 Write property test for driver required fields
+  - [x]* 6.2 Write property test for driver required fields
     - **Property 24: Driver Required Field Validation**
     - **Validates: Requirements 4.1**
+    - ✅ Implemented in src/app/admin/__tests__/drivers.property.test.ts
 
   - [x] 6.3 Create Driver frontend pages
     - Driver list page exists with inline edit/create forms ✅
@@ -177,10 +180,11 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Note: Different pattern than other modules (inline forms vs modal)
     - _Requirements: 4.1, 4.2, 4.3, 4.5, 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ]* 6.4 Write unit tests for Driver API
+  - [x]* 6.4 Write unit tests for Driver API
     - Test successful driver creation with and without phone
     - Test name required validation
     - Test soft delete behavior
+    - ✅ 20 tests implemented in src/app/admin/__tests__/drivers.unit.test.ts
     - _Requirements: 4.1, 4.3_
 
   - [ ]* 6.5 Write E2E test for Driver CRUD flow
@@ -199,10 +203,11 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Add audit trail logging with old and new values (needs implementation)
     - _Requirements: 5.1, 5.3, 5.5, 10.13_
 
-  - [ ]* 8.2 Write property test for configuration validation
+  - [x]* 8.2 Write property test for configuration validation
     - **Property 29: Configuration Value Validation**
     - **Property 31: Configuration Range Validation**
     - **Validates: Requirements 5.1, 5.5**
+    - ✅ Implemented in src/app/admin/__tests__/config.property.test.ts
 
   - [ ] 8.3 Update Configuration frontend page
     - Modify src/app/admin/configuracion/page.tsx to make fields editable
@@ -212,11 +217,12 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Add loading states and error handling
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 6.1, 6.2, 6.3, 6.4_
 
-  - [ ]* 8.4 Write unit tests for Configuration API
+  - [x]* 8.4 Write unit tests for Configuration API
     - Test successful configuration update
     - Test validation for invalid values
     - Test range validation for numeric values
     - Test audit trail with change tracking
+    - ✅ 22 tests implemented in src/app/admin/__tests__/config.unit.test.ts
     - _Requirements: 5.1, 5.3, 5.5_
 
 - [x] 9. Complete remaining API endpoints
