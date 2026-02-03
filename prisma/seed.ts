@@ -146,7 +146,8 @@ async function main() {
         { code: "VIP", name: "Zona VIP", color: "#9C27B0", tables: 3 },
     ];
 
-    const locationId = DEFAULT_LOCATION_ID;
+    // Use a valid UUID for location
+    const locationId = uuid();
     
     // Create default location first
     const location = await prisma.locations.upsert({
