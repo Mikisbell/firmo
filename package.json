@@ -10,6 +10,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:trace": "playwright show-trace",
+    "test:e2e:single": "playwright test --grep @focus",
     "seed:prod": "tsx scripts/seed-production.ts",
     "verify:prod": "tsx scripts/verify-production-seed.ts",
     "diagnose:terminals": "tsx scripts/diagnose-terminals.ts"
