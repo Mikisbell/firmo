@@ -55,17 +55,36 @@ export class BasePage {
 
   /**
    * Click element with context-aware error message
-   * @param selector - CSS selector
+   * Prioritizes accessibility (getByRole) over data-testid
+   * @param selector - CSS selector or role-based selector
    * @param context - Description of what we're clicking
    */
   async click(selector: string, context: string) {
     try {
       await this.waitForElement(selector, context);
-      await this.page.click(selector);
+      
+      // Try to click and validate it's actually clickable (not just DOM-visible)
+      const element = await this.page.locator(selector).first();
+      
+      // Check if element is actually visible and enabled
+      const isVisible = await element.isVisible();
+      const isEnabled = await element.isEnabled();
+      
+      if (!isVisible) {
+        throw new Error(`Element is not visible (may be hidden by z-index or overlay)`);
+      }
+      
+      if (!isEnabled) {
+        throw new Error(`Element is not enabled (disabled or aria-disabled)`);
+      }
+      
+      await element.click();
     } catch (error) {
       throw new Error(
         `Failed to click: ${context}\n` +
         `Selector: ${selector}\n` +
+        `Visibility check: Ensure no overlays block the element\n` +
+        `Accessibility check: Ensure element is not disabled\n` +
         `Original error: ${error}`
       );
     }
@@ -110,17 +129,89 @@ export class BasePage {
   }
 
   /**
-   * Assert element is visible
-   * @param selector - CSS selector
-   * @param context - Description of what we're checking
+   * Click button by accessible role (PREFERRED METHOD)
+   * Validates both DOM and accessibility tree
+   * @param name - Button text or aria-label
+   * @param context - Description of what we're clicking
    */
-  async assertVisible(selector: string, context: string) {
+  async clickButton(name: string, context: string) {
     try {
-      await expect(this.page.locator(selector)).toBeVisible();
+      const button = this.page.getByRole('button', { name });
+      
+      // Validate accessibility
+      const isVisible = await button.isVisible();
+      const isEnabled = await button.isEnabled();
+      
+      if (!isVisible) {
+        throw new Error(`Button not visible (may be hidden by overlay or z-index)`);
+      }
+      
+      if (!isEnabled) {
+        throw new Error(`Button is disabled (aria-disabled or disabled attribute)`);
+      }
+      
+      await button.click();
     } catch (error) {
       throw new Error(
-        `Element not visible: ${context}\n` +
-        `Selector: ${selector}\n` +
+        `Failed to click button: ${context}\n` +
+        `Button name: ${name}\n` +
+        `Accessibility check: Ensure button is in accessibility tree\n` +
+        `Visibility check: Ensure no overlays block the button\n` +
+        `Original error: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Fill input by accessible label (PREFERRED METHOD)
+   * Validates both DOM and accessibility tree
+   * @param label - Label text or aria-label
+   * @param value - Value to fill
+   * @param context - Description of what we're filling
+   */
+  async fillByLabel(label: string, value: string, context: string) {
+    try {
+      const input = this.page.getByLabel(label);
+      
+      // Validate accessibility
+      const isVisible = await input.isVisible();
+      const isEnabled = await input.isEnabled();
+      
+      if (!isVisible) {
+        throw new Error(`Input not visible (may be hidden by overlay or z-index)`);
+      }
+      
+      if (!isEnabled) {
+        throw new Error(`Input is disabled (aria-disabled or disabled attribute)`);
+      }
+      
+      await input.fill(value);
+    } catch (error) {
+      throw new Error(
+        `Failed to fill input: ${context}\n` +
+        `Label: ${label}\n` +
+        `Value: ${value}\n` +
+        `Accessibility check: Ensure input has associated label\n` +
+        `Original error: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Select option by accessible role (PREFERRED METHOD)
+   * @param label - Label text or aria-label
+   * @param optionName - Option text
+   * @param context - Description of what we're selecting
+   */
+  async selectByLabel(label: string, optionName: string, context: string) {
+    try {
+      const select = this.page.getByLabel(label);
+      await select.selectOption(optionName);
+    } catch (error) {
+      throw new Error(
+        `Failed to select option: ${context}\n` +
+        `Label: ${label}\n` +
+        `Option: ${optionName}\n` +
         `Original error: ${error}`
       );
     }
@@ -166,45 +257,32 @@ export class BasePage {
 /**
  * Example: Admin Panel Page Object
  * 
- * This demonstrates how to structure a page object for the admin panel.
- * Each method represents a user action or assertion.
+ * IMPORTANTE: Este ejemplo demuestra la jerarquía de selectores:
+ * 1. getByRole() - Accesibilidad primero (PREFERIDO)
+ * 2. getByLabel() - Inputs con labels
+ * 3. data-testid - Fallback para elementos complejos
+ * 4. CSS selectors - Último recurso (EVITAR)
+ * 
+ * Esta jerarquía asegura que:
+ * - Tests validan accesibilidad real
+ * - Tests detectan overlays y z-index issues
+ * - Tests son resilientes a cambios de Tailwind
  */
 export class AdminPanelPage extends BasePage {
-  // Selectors - centralized for easy maintenance
+  // Selectores - Jerarquía de Accesibilidad
   private readonly selectors = {
-    sidebar: '[data-testid="admin-sidebar"]',
-    employeesLink: '[data-testid="sidebar-employees"]',
-    productsLink: '[data-testid="sidebar-products"]',
-    promotionsLink: '[data-testid="sidebar-promotions"]',
-    driversLink: '[data-testid="sidebar-drivers"]',
+    // ✅ PREFERIDO: Accesibilidad
+    createEmployeeBtn: { role: 'button', name: /crear empleado/i },
+    saveBtn: { role: 'button', name: /guardar/i },
+    deleteBtn: { role: 'button', name: /eliminar|desactivar/i },
     
-    // Employee page
-    createEmployeeBtn: '[data-testid="create-employee-btn"]',
-    employeeNameInput: '[data-testid="employee-name-input"]',
-    employeeRoleSelect: '[data-testid="employee-role-select"]',
-    employeePinInput: '[data-testid="employee-pin-input"]',
-    saveEmployeeBtn: '[data-testid="save-employee-btn"]',
+    // ✅ ALTERNATIVA: data-testid para elementos complejos
     employeeTable: '[data-testid="employee-table"]',
-    
-    // Product page
-    createProductBtn: '[data-testid="create-product-btn"]',
-    productSkuInput: '[data-testid="product-sku-input"]',
-    productNameInput: '[data-testid="product-name-input"]',
-    productPriceInput: '[data-testid="product-price-input"]',
-    productCategorySelect: '[data-testid="product-category-select"]',
-    productStationSelect: '[data-testid="product-station-select"]',
-    saveProductBtn: '[data-testid="save-product-btn"]',
     productTable: '[data-testid="product-table"]',
-    
-    // Promotion page
-    createPromotionBtn: '[data-testid="create-promotion-btn"]',
-    promotionNameInput: '[data-testid="promotion-name-input"]',
-    promotionTypeSelect: '[data-testid="promotion-type-select"]',
-    promotionValueInput: '[data-testid="promotion-value-input"]',
-    promotionStartsAtInput: '[data-testid="promotion-starts-at-input"]',
-    promotionEndsAtInput: '[data-testid="promotion-ends-at-input"]',
-    savePromotionBtn: '[data-testid="save-promotion-btn"]',
     promotionTable: '[data-testid="promotion-table"]',
+    
+    // ❌ EVITAR: Clases CSS (frágiles)
+    // saveBtn: '.bg-amber-500.hover\\:bg-amber-600',
   };
 
   /**

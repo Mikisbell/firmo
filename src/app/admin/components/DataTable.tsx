@@ -5,10 +5,18 @@
  * Touch-friendly table with search, filters, and pagination
  * 
  * Requirements: 3.1
+ * 
+ * Phase 1 Critical Review - Issue #2: DOM Weight Optimization
+ * - Conditional data-testid (test env only)
+ * - Prevents 30KB DOM overhead in production
+ * - Maintains test functionality
  */
 
 import { useState, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+
+// Determine if we're in test environment
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST === 'true';
 
 export interface Column<T> {
   key: keyof T | string;
@@ -197,7 +205,7 @@ export function DataTable<T extends { id: string }>({
                   className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider"
                   style={{ width: col.width }}
                   role="columnheader"
-                  data-testid={`column-header-${colIndex}-${String(col.key)}`}
+                  data-testid={isTestEnv ? `column-header-${colIndex}-${String(col.key)}` : undefined}
                   aria-label={`Column: ${col.label}`}
                 >
                   {col.label}
@@ -225,7 +233,7 @@ export function DataTable<T extends { id: string }>({
               paginatedData.map((item, rowIndex) => (
                 <tr
                   key={item.id}
-                  data-testid={`table-row-${rowIndex}-${item.id}`}
+                  data-testid={isTestEnv ? `table-row-${rowIndex}-${item.id}` : undefined}
                   onClick={() => onRowClick?.(item)}
                   className={`bg-zinc-950 hover:bg-zinc-900 transition-colors ${
                     onRowClick ? 'cursor-pointer' : ''
@@ -238,7 +246,7 @@ export function DataTable<T extends { id: string }>({
                       key={String(col.key)} 
                       className="px-4 py-3 text-sm"
                       role="cell"
-                      data-testid={`cell-${rowIndex}-${colIndex}-${item.id}-${String(col.key)}`}
+                      data-testid={isTestEnv ? `cell-${rowIndex}-${colIndex}-${item.id}-${String(col.key)}` : undefined}
                       aria-label={`${col.label}: ${col.render ? 'rendered' : String((item as Record<string, unknown>)[col.key as string] ?? '')}`}
                     >
                       {col.render

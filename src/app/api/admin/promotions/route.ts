@@ -56,29 +56,34 @@ async function handleGET(request: NextRequest) {
 
     const now = new Date();
     
-    // Auto-deactivate expired promotions
-    const deactivateStart = Date.now();
-    const deactivated = await prisma.promotions.updateMany({
-      where: {
-        tenant_id: TENANT_ID,
-        ends_at: { lt: now },
-        is_active: true,
-      },
-      data: { is_active: false },
-    });
+    // LAZY EVALUATION: Don't deactivate in GET request
+    // Instead, filter out expired promotions in the query
+    // Background job handles actual deactivation every 5 minutes
     
-    if (deactivated.count > 0) {
-      logPerformance('db_deactivate_expired_promotions', Date.now() - deactivateStart, { 
-        count: deactivated.count 
-      });
-      log.info({ count: deactivated.count }, 'Auto-deactivated expired promotions');
+    // Build where clause with lazy expiration check
+    let where: any = { tenant_id: TENANT_ID };
+    
+    // Handle is_active filter
+    if (validatedQuery.is_active === true) {
+      // Only active promotions that haven't expired
+      where.is_active = true;
+      where.ends_at = { gte: now };
+    } else if (validatedQuery.is_active === false) {
+      // Only inactive promotions
+      where.is_active = false;
+    } else {
+      // All promotions (both active and inactive)
+      // But filter out expired active ones from results
+      where.OR = [
+        { is_active: false },
+        { 
+          is_active: true,
+          ends_at: { gte: now },
+        },
+      ];
     }
-
-    // Build where clause
-    const where: any = { tenant_id: TENANT_ID };
-    if (validatedQuery.is_active !== undefined) {
-      where.is_active = validatedQuery.is_active;
-    }
+    
+    // Handle type filter
     if (validatedQuery.type) {
       where.type = validatedQuery.type;
     }

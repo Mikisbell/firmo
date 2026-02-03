@@ -114,6 +114,8 @@ export default function PromotionsPage() {
         <div className="flex items-center gap-2">
           <Link
             href={`/admin/promociones/${p.id}`}
+            data-testid={`edit-promotion-${p.id}`}
+            aria-label={`Editar promoción ${p.name}`}
             className="p-1.5 hover:bg-zinc-800 rounded transition-colors"
             title="Editar"
           >
@@ -121,6 +123,8 @@ export default function PromotionsPage() {
           </Link>
           <button
             onClick={() => handleDelete(p.id)}
+            data-testid={`delete-promotion-${p.id}`}
+            aria-label={`Desactivar promoción ${p.name}`}
             className="p-1.5 hover:bg-red-500/10 text-red-400 rounded transition-colors"
             title="Desactivar"
           >
@@ -138,7 +142,12 @@ export default function PromotionsPage() {
           <h1 className="text-2xl font-bold">Promociones</h1>
           <p className="text-zinc-400 mt-1">Gestionar ofertas y descuentos</p>
         </div>
-        <Link href="/admin/promociones/nuevo" className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]">
+        <Link 
+          href="/admin/promociones/nuevo" 
+          data-testid="create-promotion-btn"
+          aria-label="Crear nueva promoción"
+          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
+        >
           <Plus className="w-4 h-4" />
           Nueva Promoción
         </Link>

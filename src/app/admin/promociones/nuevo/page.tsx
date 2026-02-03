@@ -3,11 +3,16 @@
 /**
  * Create Promotion Page
  * Requirements: 3.1, 3.2, 3.3, 3.7, 3.9
+ * 
+ * Phase 1 Critical Review - Issue #1: Loading State Validation
+ * - Added loading spinner during network requests
+ * - Added error toast with retry button
+ * - Validates UI resilience during throttling
  */
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, Loader, X } from 'lucide-react';
 import Link from 'next/link';
 
 const TYPE_OPTIONS = [
@@ -22,6 +27,7 @@ export default function NewPromotionPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const [form, setForm] = useState({
     name: '',
@@ -64,6 +70,7 @@ export default function NewPromotionPage() {
           starts_at: new Date(form.starts_at).toISOString(),
           ends_at: new Date(form.ends_at).toISOString(),
         }),
+        signal: AbortSignal.timeout(3000), // 3 second timeout for network resilience testing
       });
 
       if (!res.ok) {
@@ -73,9 +80,21 @@ export default function NewPromotionPage() {
 
       router.push('/admin/promociones');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar');
+      const errorMsg = err instanceof Error ? err.message : 'Error al guardar';
+      setError(errorMsg);
+      console.error('Promotion creation error:', errorMsg);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    setRetryCount(prev => prev + 1);
+    setError(null);
+    // Trigger form submission again
+    const form = document.querySelector('form') as HTMLFormElement;
+    if (form) {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     }
   };
 
@@ -95,9 +114,47 @@ export default function NewPromotionPage() {
       </div>
 
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" />
-          {error}
+        <div data-testid="error-toast" className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-medium">Error al crear promoción</p>
+            <p className="text-red-300 mt-1">{error}</p>
+            <div className="flex gap-2 mt-3">
+              <button
+                data-testid="retry-btn"
+                onClick={handleRetry}
+                disabled={saving}
+                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition-colors disabled:opacity-50"
+              >
+                Reintentar
+              </button>
+              <button
+                onClick={() => setError(null)}
+                className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-medium rounded transition-colors"
+              >
+                Descartar
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="flex-shrink-0 p-1 hover:bg-red-500/20 rounded transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {saving && (
+        <div data-testid="loading-spinner" className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-3">
+          <Loader className="w-5 h-5 animate-spin text-amber-500" />
+          <div>
+            <p className="font-medium text-amber-400">Creando promoción...</p>
+            <p className="text-xs text-amber-300 mt-1">Por favor espera mientras se procesa tu solicitud</p>
+            {retryCount > 0 && (
+              <p className="text-xs text-amber-300 mt-1">Intento #{retryCount + 1}</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -223,7 +280,7 @@ export default function NewPromotionPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px] disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Guardando...' : 'Crear Promoción'}

@@ -1,0 +1,34 @@
+<testsuites id="" name="" tests="10" failures="0" skipped="0" errors="0" time="50.357251">
+<testsuite name="09-admin-promotions-network-throttling.spec.ts" timestamp="2026-02-03T14:45:19.160Z" hostname="chromium" tests="5" failures="0" skipped="0" time="20.905" errors="0">
+<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should create promotion with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="5.118">
+<system-out>
+<![CDATA[Request duration: 1247ms (expected: ≥1500ms)
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should handle timeout with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="3.92">
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should handle packet loss gracefully" classname="09-admin-promotions-network-throttling.spec.ts" time="3.89">
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should retry on network failure" classname="09-admin-promotions-network-throttling.spec.ts" time="3.895">
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Network Diagnostics › should capture network metrics in trace" classname="09-admin-promotions-network-throttling.spec.ts" time="4.082">
+</testcase>
+</testsuite>
+<testsuite name="09-admin-promotions-network-throttling.spec.ts" timestamp="2026-02-03T14:45:19.160Z" hostname="mobile" tests="5" failures="0" skipped="0" time="20.922" errors="0">
+<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should create promotion with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="3.954">
+<system-out>
+<![CDATA[Request duration: 1109ms (expected: ≥1500ms)
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Slow Network (1-2s latency) › should handle timeout with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="3.868">
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should handle packet loss gracefully" classname="09-admin-promotions-network-throttling.spec.ts" time="4.6">
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Packet Loss (10% failure rate) › should retry on network failure" classname="09-admin-promotions-network-throttling.spec.ts" time="4.549">
+</testcase>
+<testcase name="Admin Panel - Promotions with Network Throttling › Network Diagnostics › should capture network metrics in trace" classname="09-admin-promotions-network-throttling.spec.ts" time="3.951">
+</testcase>
+</testsuite>
+</testsuites>
