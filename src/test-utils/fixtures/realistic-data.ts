@@ -356,7 +356,7 @@ export function generateRealisticOrderSequence(count: number): any[] {
  * Generates a sequence of realistic events
  */
 export function generateRealisticEventSequence(count: number): any[] {
-  const events = [];
+  const events: any[] = [];
   for (let i = 0; i < count; i++) {
     if (i % 3 === 0) {
       events.push(generateRealisticOrderCreatedEvent());
@@ -373,7 +373,7 @@ export function generateRealisticEventSequence(count: number): any[] {
  * Generates a realistic inventory transaction sequence
  */
 export function generateRealisticInventoryTransactionSequence(count: number): any[] {
-  const transactions = [];
+  const transactions: any[] = [];
   let currentQty = 1000;
 
   for (let i = 0; i < count; i++) {

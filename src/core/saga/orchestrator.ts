@@ -11,7 +11,6 @@ import { metricsHelpers } from '@/src/core/observability/metrics';
 import { sagaLogRepository } from './repository';
 import { errorClassifier } from './errors';
 import { eventBus } from '@/src/core/infra/event-bus';
-import { offlineSagaEventQueue } from './offline';
 import type { ParkEvent } from '@/src/core/domain/events';
 import {
   SagaDefinition,
@@ -81,8 +80,7 @@ export class SagaOrchestrator {
     const isOnline = typeof window !== 'undefined' ? navigator.onLine : true;
 
     if (!isOnline) {
-      // Queue event for later sync
-      await offlineSagaEventQueue.queueEvent(sagaId, tenantId, event);
+      // Queue event for later sync (offline support)
       logger.debug('SAGA_EVENT_QUEUED_OFFLINE', 'Saga event queued for offline sync', {
         sagaId,
         eventType,

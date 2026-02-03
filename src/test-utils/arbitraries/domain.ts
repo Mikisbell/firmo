@@ -166,7 +166,6 @@ export const uuidArb = fc.uuid();
 export const shortStringArb = fc.string({
   minLength: 1,
   maxLength: 50,
-  unit: fc.char(),
 });
 
 /**
@@ -175,7 +174,6 @@ export const shortStringArb = fc.string({
 export const mediumStringArb = fc.string({
   minLength: 1,
   maxLength: 100,
-  unit: fc.char(),
 });
 
 /**

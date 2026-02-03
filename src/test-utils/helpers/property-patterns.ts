@@ -139,12 +139,12 @@ export function testCommutativity<T, R>(
  *   (a, b) => a === b
  * );
  */
-export function testAssociativity<T, R>(
+export function testAssociativity<T>(
   arbA: fc.Arbitrary<T>,
   arbB: fc.Arbitrary<T>,
   arbC: fc.Arbitrary<T>,
-  operation: (a: T, b: T) => R,
-  equals: (a: R, b: R) => boolean = (a, b) => a === b,
+  operation: (a: T, b: T) => T,
+  equals: (a: T, b: T) => boolean = (a, b) => a === b,
   options?: fc.Parameters<[T, T, T]>
 ): void {
   fc.assert(
@@ -174,13 +174,13 @@ export function testAssociativity<T, R>(
  *   (a, b) => a === b
  * );
  */
-export function testDistributivity<T, R>(
+export function testDistributivity<T>(
   arbA: fc.Arbitrary<T>,
   arbB: fc.Arbitrary<T>,
   arbC: fc.Arbitrary<T>,
-  operation1: (a: T, b: T) => R,
-  operation2: (a: T, b: T) => R,
-  equals: (a: R, b: R) => boolean = (a, b) => a === b,
+  operation1: (a: T, b: T) => T,
+  operation2: (a: T, b: T) => T,
+  equals: (a: T, b: T) => boolean = (a, b) => a === b,
   options?: fc.Parameters<[T, T, T]>
 ): void {
   fc.assert(

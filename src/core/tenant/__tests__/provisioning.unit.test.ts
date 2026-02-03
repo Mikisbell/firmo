@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { prisma } from '@/core/db/prisma';
+import prisma from '@/src/core/db/prisma';
 import { provisionTenant, getTenantProvisioningStatus } from '../provisioning';
 
 describe('Tenant Provisioning', () => {

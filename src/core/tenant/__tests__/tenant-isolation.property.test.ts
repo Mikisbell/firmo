@@ -11,7 +11,7 @@
 
 import fc from 'fast-check';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { prisma } from '@/core/db/prisma';
+import prisma from '@/src/core/db/prisma';
 import {
   extractTenantContext,
   validateTenantContext,
