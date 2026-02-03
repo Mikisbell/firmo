@@ -305,3 +305,30 @@ export async function setupCashierTerminal(page: Page) {
     
     await page.waitForLoadState("networkidle");
 }
+
+/**
+ * Authenticate as Admin for API calls
+ * Returns auth token for use in API requests
+ */
+export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN): Promise<string> {
+    const response = await page.request.post('http://localhost:3000/api/auth/login', {
+        data: {
+            tenant_id: TENANT_ID,
+            pin: pin,
+        },
+    });
+
+    if (!response.ok()) {
+        throw new Error(`Admin authentication failed: ${response.status()}`);
+    }
+
+    // Extract JWT from cookies
+    const cookies = await page.context().cookies();
+    const authCookie = cookies.find(c => c.name === 'auth_token');
+    
+    if (!authCookie) {
+        throw new Error('No auth_token cookie found after login');
+    }
+
+    return authCookie.value;
+}

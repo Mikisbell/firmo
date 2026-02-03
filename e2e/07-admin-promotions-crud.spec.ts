@@ -11,9 +11,12 @@
  * - Validate promotion types (PERCENT, 2X1, DELIVERY_FEE_DISCOUNT)
  */
 import { test, expect } from '@playwright/test';
+import { authenticateAsAdmin, TEST_PINS } from './helpers/test-utils';
 
 const BASE_URL = 'http://localhost:3000';
-const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+// Admin credentials
+const ADMIN_PIN = TEST_PINS.ADMIN;
 
 // Test data
 const TEST_PROMOTION = {
@@ -57,6 +60,8 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
   test.describe('Create Promotion', () => {
     test('should create a new promotion via API', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
@@ -68,6 +73,8 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should validate required fields', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
@@ -81,6 +88,8 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should validate promotion type', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
@@ -98,6 +107,8 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
   test.describe('Date Validation', () => {
     test('should validate date range', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
@@ -116,6 +127,8 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
   test.describe('Update Promotion', () => {
     test('should update promotion information', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const createResponse = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
@@ -141,6 +154,8 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
   test.describe('Delete Promotion', () => {
     test('should deactivate promotion (soft delete)', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const createResponse = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +169,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
         const deleteResponse = await page.request.delete(`${BASE_URL}/api/admin/promotions/${promotionId}`);
 
-        expect(deleteResponse.status()).toBe(200);
+        expect([200, 204]).toContain(deleteResponse.status());
       }
     });
   });

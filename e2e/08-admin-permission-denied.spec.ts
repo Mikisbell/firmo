@@ -12,9 +12,12 @@
  * - Allow admin users to access all pages
  */
 import { test, expect } from '@playwright/test';
+import { authenticateAsAdmin, TEST_PINS } from './helpers/test-utils';
 
 const BASE_URL = 'http://localhost:3000';
-const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+// Admin credentials
+const ADMIN_PIN = TEST_PINS.ADMIN;
 
 test.describe('Admin Panel - Permission Denied', () => {
   
@@ -231,14 +234,16 @@ test.describe('Admin Panel - Permission Denied', () => {
 
   test.describe('Admin API Access Allowed', () => {
     test('should allow admin API access to create employee', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/employees`, {
         headers: {
           'Content-Type': 'application/json',
         },
         data: {
-          name: 'Admin Created Employee',
+          name: `Admin Created Employee ${Date.now()}`,
           role: 'WAITER',
-          pin: '1234',
+          pin: `${Math.floor(Math.random() * 9000) + 1000}`,
         },
       });
 
@@ -246,6 +251,8 @@ test.describe('Admin Panel - Permission Denied', () => {
     });
 
     test('should allow admin API access to create product', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/products`, {
         headers: {
           'Content-Type': 'application/json',
@@ -263,6 +270,8 @@ test.describe('Admin Panel - Permission Denied', () => {
     });
 
     test('should allow admin API access to create promotion', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/promotions`, {
         headers: {
           'Content-Type': 'application/json',
@@ -272,6 +281,8 @@ test.describe('Admin Panel - Permission Denied', () => {
           name: 'Admin Created Promotion',
           type: 'PERCENT',
           value: 10,
+          start_date: new Date().toISOString().split('T')[0],
+          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         },
       });
 
@@ -279,12 +290,14 @@ test.describe('Admin Panel - Permission Denied', () => {
     });
 
     test('should allow admin API access to create driver', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/drivers`, {
         headers: {
           'Content-Type': 'application/json',
         },
         data: {
-          name: 'Admin Created Driver',
+          name: `Admin Created Driver ${Date.now()}`,
           phone: '987654321',
         },
       });

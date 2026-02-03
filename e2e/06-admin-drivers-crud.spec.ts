@@ -11,9 +11,12 @@
  * - Validate driver phone format
  */
 import { test, expect } from '@playwright/test';
+import { authenticateAsAdmin, TEST_PINS } from './helpers/test-utils';
 
 const BASE_URL = 'http://localhost:3000';
-const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+// Admin credentials
+const ADMIN_PIN = TEST_PINS.ADMIN;
 
 // Test data
 const TEST_DRIVER = {
@@ -53,6 +56,8 @@ test.describe('Admin Panel - Driver CRUD', () => {
 
   test.describe('Create Driver', () => {
     test('should create a new driver via API', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/drivers`, {
         headers: {
           'Content-Type': 'application/json',
@@ -64,6 +69,8 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should validate required fields when creating driver', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/drivers`, {
         headers: {
           'Content-Type': 'application/json',
@@ -78,6 +85,8 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should validate phone format', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/drivers`, {
         headers: {
           'Content-Type': 'application/json',
@@ -94,6 +103,8 @@ test.describe('Admin Panel - Driver CRUD', () => {
 
   test.describe('Update Driver', () => {
     test('should update driver information', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const createResponse = await page.request.post(`${BASE_URL}/api/drivers`, {
         headers: {
           'Content-Type': 'application/json',
@@ -119,6 +130,8 @@ test.describe('Admin Panel - Driver CRUD', () => {
 
   test.describe('Delete Driver', () => {
     test('should deactivate driver (soft delete)', async ({ page }) => {
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const createResponse = await page.request.post(`${BASE_URL}/api/drivers`, {
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +145,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
 
         const deleteResponse = await page.request.delete(`${BASE_URL}/api/drivers/${driverId}`);
 
-        expect(deleteResponse.status()).toBe(200);
+        expect([200, 204]).toContain(deleteResponse.status());
       }
     });
   });

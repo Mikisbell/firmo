@@ -11,18 +11,18 @@
  * - Permission validation
  */
 import { test, expect } from '@playwright/test';
+import { authenticateAsAdmin, TENANT_ID, TEST_PINS } from './helpers/test-utils';
 
 const BASE_URL = 'http://localhost:3000';
-const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
 // Admin credentials (from seed.ts)
-const ADMIN_PIN = '1234';
+const ADMIN_PIN = TEST_PINS.ADMIN;
 
 // Test data
 const TEST_EMPLOYEE = {
-  name: 'Test Employee E2E',
+  name: `Test Employee E2E ${Date.now()}`,
   role: 'WAITER',
-  pin: '9999',
+  pin: `${Math.floor(Math.random() * 9000) + 1000}`,
 };
 
 const UPDATED_EMPLOYEE = {
@@ -67,6 +67,9 @@ test.describe('Admin Panel - Employee CRUD', () => {
 
   test.describe('Create Employee', () => {
     test('should create a new employee via API', async ({ page }) => {
+      // Authenticate as admin first
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/employees`, {
         headers: {
           'Content-Type': 'application/json',
@@ -82,6 +85,9 @@ test.describe('Admin Panel - Employee CRUD', () => {
     });
 
     test('should validate required fields when creating employee', async ({ page }) => {
+      // Authenticate as admin first
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/employees`, {
         headers: {
           'Content-Type': 'application/json',
@@ -97,6 +103,9 @@ test.describe('Admin Panel - Employee CRUD', () => {
     });
 
     test('should validate PIN format', async ({ page }) => {
+      // Authenticate as admin first
+      await authenticateAsAdmin(page, ADMIN_PIN);
+
       const response = await page.request.post(`${BASE_URL}/api/admin/employees`, {
         headers: {
           'Content-Type': 'application/json',

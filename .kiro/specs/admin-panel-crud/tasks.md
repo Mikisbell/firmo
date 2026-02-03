@@ -346,7 +346,7 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Permission enforcement tests (11.4)
     - Data integrity tests (12.4)
 
-  - [ ]* 14.3 Write E2E tests for complete workflows
+  - [-]* 14.3 Write E2E tests for complete workflows
     - Employee CRUD flow (2.6)
     - Product CRUD flow (3.7)
     - Promotion CRUD flow (5.6)
@@ -354,13 +354,13 @@ This implementation plan breaks down the complete CRUD functionality for the Adm
     - Test permission denied for non-admin users
     - Test audit trail logging for all operations
 
-  - [ ] 14.4 Verify all requirements are met
+  - [-] 14.4 Verify all requirements are met
     - Review all 10 requirements
     - Verify all acceptance criteria are satisfied
     - Check audit trail completeness
     - Verify soft deletes work correctly
 
-- [ ] 15. Final checkpoint - Production readiness
+- [-] 15. Final checkpoint - Production readiness
   - Ensure all tests pass (unit, property, integration, E2E)
   - Verify audit trail logging works for all operations
   - Verify permission enforcement works correctly
