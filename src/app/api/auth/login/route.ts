@@ -93,6 +93,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ADMIN can access any terminal with their PIN
+    // This is a security feature: admins can override and access any terminal
+    if (authResult.employee?.role === 'ADMIN') {
+      console.log('[Login] ADMIN access detected - allowing access to any terminal');
+      // Admin is allowed to access any terminal, no additional checks needed
+    }
+
     // Get active shift (if terminal_id provided)
     let activeShift = null as any;
     if (data.terminal_id) {
