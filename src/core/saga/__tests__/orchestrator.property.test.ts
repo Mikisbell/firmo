@@ -21,6 +21,10 @@ vi.mock('@/src/core/db/schema', () => {
         get: vi.fn(async (sagaId: string) => {
           return sagaLogs.get(sagaId) || null;
         }),
+        put: vi.fn(async (entity: any) => {
+          sagaLogs.set(entity.saga_id, entity);
+          return entity.saga_id;
+        }),
         update: vi.fn(async (sagaId: string, changes: any) => {
           const existing = sagaLogs.get(sagaId);
           if (existing) {
