@@ -1,7 +1,15 @@
 import { PrismaClient } from '@prisma/client'
+import { withRetry } from './retry'
 
 const prismaClientSingleton = () => {
-    return new PrismaClient()
+    const client = new PrismaClient()
+    
+    // Add retry middleware for connection errors
+    client.$use(async (params, next) => {
+      return withRetry(() => next(params), 3, 100)
+    })
+    
+    return client
 }
 
 declare global {
