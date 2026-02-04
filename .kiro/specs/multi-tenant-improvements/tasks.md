@@ -375,61 +375,61 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - Test re-authentication requirement
     - _Requirements: 12.6_
 
-- [ ] 16. Tenant Onboarding Workflow
-  - [ ] 16.1 Create onboarding checklist schema
+- [x] 16. Tenant Onboarding Workflow
+  - [x] 16.1 Create onboarding checklist schema
     - Add onboarding_status to tenant_settings
     - Create onboarding_steps table
     - _Requirements: 13.1_
 
-  - [ ] 16.2 Implement onboarding service
+  - [x] 16.2 Implement onboarding service
     - Create createOnboardingChecklist function
     - Implement step completion tracking
     - Implement onboarding validation
     - _Requirements: 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
-  - [ ] 16.3 Write unit tests for onboarding workflow
+  - [x] 16.3 Write unit tests for onboarding workflow
     - Test checklist creation
     - Test step completion
     - Test onboarding validation
     - _Requirements: 13.1, 13.6_
 
-  - [ ] 16.4 Create onboarding UI components
+  - [x] 16.4 Create onboarding UI components
     - Create onboarding wizard component
     - Create step progress indicator
     - Create configuration forms
     - _Requirements: 13.2, 13.3, 13.4, 13.5_
 
-- [ ] 17. Tenant Deactivation and Deletion
-  - [ ] 17.1 Implement tenant deactivation
+- [x] 17. Tenant Deactivation and Deletion
+  - [x] 17.1 Implement tenant deactivation
     - Create deactivateTenant function
     - Prevent logins for deactivated tenants
     - Prevent API access for deactivated tenants
     - _Requirements: 14.1, 14.2_
 
-  - [ ] 17.2 Write unit tests for deactivation
+  - [x] 17.2 Write unit tests for deactivation
     - Test login prevention
     - Test API access prevention
     - _Requirements: 14.2_
 
-  - [ ] 17.3 Implement tenant reactivation
+  - [x] 17.3 Implement tenant reactivation
     - Create reactivateTenant function
     - Restore full access
     - _Requirements: 14.3_
 
-  - [ ] 17.4 Implement tenant deletion
+  - [x] 17.4 Implement tenant deletion
     - Create deleteTenant function
     - Create final backup before deletion
     - Implement data purge
     - Require explicit confirmation
     - _Requirements: 14.4, 14.5, 14.6_
 
-  - [ ] 17.5 Write unit tests for deletion
+  - [x] 17.5 Write unit tests for deletion
     - Test backup creation
     - Test data purge completeness
     - Test confirmation requirement
     - _Requirements: 14.5, 14.6_
 
-  - [ ] 17.6 Create deactivation/deletion API endpoints
+  - [x] 17.6 Create deactivation/deletion API endpoints
     - POST /api/admin/tenants/:id/deactivate
     - POST /api/admin/tenants/:id/reactivate
     - DELETE /api/admin/tenants/:id

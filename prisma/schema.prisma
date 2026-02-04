@@ -1211,8 +1211,10 @@ model tenant_settings {
   allow_offline_coupon          Boolean  @default(false)
   max_offline_coupons_per_order Int      @default(1)
   require_manager_for_offline   Boolean  @default(true)
+  onboarding_status             String   @default("IN_PROGRESS")
   updated_at                    DateTime @default(now()) @db.Timestamptz(6)
   tenants                       tenants  @relation(fields: [tenant_id], references: [id])
+  onboarding_steps              onboarding_steps[]
 }
 
 model terminal_number_ranges {
@@ -1809,4 +1811,29 @@ model cross_tenant_audit_log {
   @@index([admin_id, created_at(sort: Desc)])
   @@index([tenant_id, created_at(sort: Desc)])
   @@index([action, created_at(sort: Desc)])
+}
+
+// ============================================
+// Tenant Onboarding
+// ============================================
+
+model onboarding_steps {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String   @db.Uuid
+  step_number Int
+  step_key    String
+  title       String
+  description String?
+  is_required Boolean  @default(true)
+  is_completed Boolean @default(false)
+  completed_at DateTime? @db.Timestamptz(6)
+  completed_by String?  @db.Uuid
+  metadata    Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  tenant_settings tenant_settings @relation(fields: [tenant_id], references: [tenant_id])
+
+  @@unique([tenant_id, step_key])
+  @@index([tenant_id, step_number])
+  @@index([tenant_id, is_completed])
 }
