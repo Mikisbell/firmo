@@ -10,7 +10,7 @@
  * - Tooltips en desktop para labels completos
  * - Icono consistente (Lucide Store en vez de emoji)
  * 
- * Requirements: 2.1, 10.1, 10.3
+ * Requirements: 2.1, 10.1, 10.3, 6.1
  */
 
 import { useState } from 'react';
@@ -37,6 +37,8 @@ import {
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
+import { TenantLogo } from '@/src/components/branding';
+import { useTenantBranding } from '@/src/core/tenant/branding-context';
 
 export interface NavItem {
   href: string;
@@ -70,6 +72,7 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const badges = useSidebarBadges();
+  const { branding } = useTenantBranding();
 
   const filteredItems = NAV_ITEMS.filter(item => {
     if (!item.permission) return true;
@@ -122,13 +125,24 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800">
-          <Link href="/admin" className="flex items-center gap-2">
-            <Store className="w-6 h-6 text-amber-500" />
-            <span className="font-bold text-lg">PARK POS</span>
+          <Link href="/admin" className="flex items-center gap-2 flex-1 min-w-0">
+            <TenantLogo
+              logoUrl={branding?.logo_url}
+              legalName={branding?.legal_name || 'PARK POS'}
+              size="sm"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold truncate">
+                {branding?.legal_name || 'PARK POS'}
+              </div>
+              <div className="text-xs text-zinc-500 truncate">
+                {branding?.ruc ? `RUC: ${branding.ruc}` : 'Sistema POS'}
+              </div>
+            </div>
           </Link>
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 hover:bg-zinc-800 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 hover:bg-zinc-800 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
             aria-label="Cerrar menú"
           >
             <X className="w-5 h-5" />

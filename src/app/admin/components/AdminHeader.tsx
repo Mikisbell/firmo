@@ -3,8 +3,9 @@
 /**
  * Admin Header Component
  * Header con información del usuario y logout
+ * Displays tenant branding (logo, legal name)
  * 
- * Requirements: 2.1, 10.1, 10.2
+ * Requirements: 2.1, 10.1, 10.2, 6.1, 6.2
  */
 
 import { useState } from 'react';
@@ -18,6 +19,8 @@ import {
   WifiOff,
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { TenantLogo, TenantInfo } from '@/src/components/branding';
+import { useTenantBranding } from '@/src/core/tenant/branding-context';
 
 interface AdminHeaderProps {
   employee: {
@@ -32,6 +35,7 @@ interface AdminHeaderProps {
 export default function AdminHeader({ employee, isOnline = true, onLogout }: AdminHeaderProps) {
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
+  const { branding } = useTenantBranding();
 
   const handleLogout = () => {
     setShowDropdown(false);
@@ -50,9 +54,17 @@ export default function AdminHeader({ employee, isOnline = true, onLogout }: Adm
 
   return (
     <header className="h-16 bg-zinc-900 border-b border-zinc-800 px-4 lg:px-6 flex items-center justify-between">
-      {/* Left side - Title (hidden on mobile, shown on desktop) */}
-      <div className="hidden lg:block">
-        <h1 className="text-lg font-semibold">Panel de Administración</h1>
+      {/* Left side - Tenant branding (hidden on mobile, shown on desktop) */}
+      <div className="hidden lg:flex items-center gap-3 flex-1">
+        <TenantLogo
+          logoUrl={branding?.logo_url}
+          legalName={branding?.legal_name || 'PARK POS'}
+          size="sm"
+        />
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-sm font-semibold">{branding?.legal_name || 'Panel de Administración'}</h1>
+          {branding?.ruc && <p className="text-xs text-zinc-500">RUC: {branding.ruc}</p>}
+        </div>
       </div>
 
       {/* Spacer for mobile (hamburger is in sidebar) */}

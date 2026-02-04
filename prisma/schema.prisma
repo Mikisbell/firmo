@@ -1814,6 +1814,66 @@ model cross_tenant_audit_log {
 }
 
 // ============================================
+// Tenant Quotas and Usage
+// ============================================
+
+model tenant_quotas {
+  tenant_id         String   @id @db.Uuid
+  max_terminals     Int      @default(20)
+  max_employees     Int      @default(50)
+  max_products      Int      @default(500)
+  max_daily_orders  Int      @default(1000)
+  max_storage_mb    Int      @default(1000)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model tenant_usage {
+  tenant_id          String   @id @db.Uuid
+  current_terminals  Int      @default(0)
+  current_employees  Int      @default(0)
+  current_products   Int      @default(0)
+  daily_orders       Int      @default(0)
+  storage_mb         Int      @default(0)
+  last_reset_date    DateTime @default(now()) @db.Date
+  updated_at         DateTime @default(now()) @db.Timestamptz(6)
+}
+
+// ============================================
+// Tenant Analytics
+// ============================================
+
+model tenant_analytics {
+  tenant_id              String   @db.Uuid
+  date                   DateTime @db.Date
+  active_terminals       Int      @default(0)
+  total_orders           Int      @default(0)
+  total_events           Int      @default(0)
+  total_revenue_cents    BigInt   @default(0)
+  avg_order_value_cents  Int      @default(0)
+  peak_orders_per_hour   Int      @default(0)
+  sync_errors            Int      @default(0)
+  api_errors             Int      @default(0)
+  storage_mb             Int      @default(0)
+
+  @@id([tenant_id, date])
+  @@index([tenant_id, date(sort: Desc)])
+}
+
+model tenant_health_checks {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String   @db.Uuid
+  check_type  String
+  status      String
+  message     String?
+  details     Json?
+  checked_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, checked_at(sort: Desc)])
+  @@index([tenant_id, check_type, checked_at(sort: Desc)])
+}
+
+// ============================================
 // Tenant Onboarding
 // ============================================
 

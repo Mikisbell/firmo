@@ -18,6 +18,7 @@ import AdminHeader from './components/AdminHeader';
 import { PinModal } from '@/src/components/inventory/PinModal';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { TenantBrandingProvider } from '@/src/core/tenant/branding-context';
 
 interface AuthEmployee {
   id: string;
@@ -153,7 +154,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
+      <TenantBrandingProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </TenantBrandingProvider>
     </AuthProvider>
   );
 }
