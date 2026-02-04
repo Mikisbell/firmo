@@ -491,7 +491,7 @@ This implementation plan breaks down the multi-tenant improvements into discrete
 - [x] 19. Checkpoint - Ensure all isolation tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 20. Integration and UI
+- [x] 20. Integration and UI
   - [x] 20.1 Create tenant admin dashboard
     - Display tenant configuration
     - Display quota usage
@@ -513,19 +513,19 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - Display tenant receipt_footer_text
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [~] 20.4 Write integration tests for tenant branding
+  - [x] 20.4 Write integration tests for tenant branding
     - Test logo display
     - Test branding updates
     - _Requirements: 6.5_
 
-  - [~] 20.5 Create tenant provisioning UI
+  - [x] 20.5 Create tenant provisioning UI
     - Create provisioning form
     - Display provisioning progress
     - Display tenant credentials
     - _Requirements: 3.7_
 
-- [ ] 21. Final Checkpoint - End-to-end testing
-  - [~] 21.1 Run complete tenant lifecycle test
+- [x] 21. Final Checkpoint - End-to-end testing
+  - [x] 21.1 Run complete tenant lifecycle test
     - Provision tenant
     - Configure settings
     - Create resources
@@ -533,20 +533,20 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - Export data
     - Deactivate tenant
 
-  - [~] 21.2 Run cross-tenant admin workflow test
+  - [x] 21.2 Run cross-tenant admin workflow test
     - Grant admin access
     - Access multiple tenants
     - Verify audit logs
     - Revoke access
 
-  - [~] 21.3 Run quota management workflow test
+  - [x] 21.3 Run quota management workflow test
     - Set quotas
     - Create resources to quota
     - Verify enforcement
     - Increase quota
     - Verify new resources
 
-  - [~] 21.4 Run performance benchmarks
+  - [x] 21.4 Run performance benchmarks
     - Measure tenant provisioning time
     - Measure RLS query overhead
     - Measure quota check latency
