@@ -446,7 +446,7 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - **Property 19: IndexedDB Database Names Are Tenant-Specific**
     - **Validates: Requirements 15.1**
 
-  - [ ] 18.3 Implement tenant validation middleware for IndexedDB
+  - [-] 18.3 Implement tenant validation middleware for IndexedDB
     - Add tenant_id validation to all operations
     - Prevent cross-tenant data access
     - _Requirements: 15.2, 15.4_

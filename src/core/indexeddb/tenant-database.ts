@@ -96,6 +96,7 @@ export interface ProjectionEntity {
 
 export interface SnapshotEntity {
     id?: number;
+    tenant_id: string;
     aggregate_type: string;
     aggregate_id: string;
     sequence: number;
