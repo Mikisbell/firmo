@@ -78,7 +78,7 @@ export async function getCrossTenantPermissions(
     return null;
   }
 
-  return admin.permissions as CrossTenantPermissions;
+  return admin.permissions as unknown as CrossTenantPermissions;
 }
 
 /**
@@ -164,7 +164,7 @@ export async function logCrossTenantAdminAction(
       action,
       resource_type: resourceType,
       resource_id: resourceId,
-      details: details ? JSON.stringify(details) : null,
+      details: details ? (JSON.stringify(details) as any) : undefined,
       ip_address: context.ip_address,
       user_agent: context.user_agent,
     },

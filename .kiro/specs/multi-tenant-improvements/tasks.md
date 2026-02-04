@@ -337,7 +337,7 @@ This implementation plan breaks down the multi-tenant improvements into discrete
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [-] 15. Tenant-Scoped Authentication
+- [x] 15. Tenant-Scoped Authentication
   - [x] 15.1 Implement tenant-scoped login validation
     - Validate employee belongs to specified tenant
     - Add tenant_id to JWT token claims
@@ -361,16 +361,16 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - **Property 17: Token Tenant Mismatch Is Rejected**
     - **Validates: Requirements 12.3, 12.4**
 
-  - [ ] 15.6 Implement tenant-specific PIN policies
+  - [x] 15.6 Implement tenant-specific PIN policies
     - Add PIN policy configuration to tenant_settings
     - Enforce policies during PIN validation
     - _Requirements: 12.5_
 
-  - [ ] 15.7 Write property test for PIN policy enforcement
+  - [x] 15.7 Write property test for PIN policy enforcement
     - **Property 18: Tenant-Specific PIN Policies Are Enforced**
     - **Validates: Requirements 12.5**
 
-  - [ ] 15.8 Write unit test for session expiration
+  - [x] 15.8 Write unit test for session expiration
     - Test session expiration behavior
     - Test re-authentication requirement
     - _Requirements: 12.6_

@@ -156,8 +156,8 @@ export async function tenantScopedLogin(
     );
 
     // Step 5: Create session
-    const { hashToken } = await import('./crypto-utils');
-    const tokenHash = await hashToken(token);
+    const { generateTokenHash } = await import('./crypto-utils');
+    const tokenHash = await generateTokenHash();
 
     await createSession(
       prisma,

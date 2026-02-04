@@ -7,7 +7,7 @@ import { getTenantContext } from '@/src/core/tenant/tenant-context';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const contextResult = await getTenantContext(request);
@@ -17,7 +17,7 @@ export async function GET(
     }
 
     const { context } = contextResult;
-    const exportId = params.id;
+    const { id: exportId } = await params;
 
     if (!exportId) {
       return NextResponse.json(

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get authentication session
     const session = await getSessionFromRequest(request, prisma);
-    if (!session || !session.employee_id) {
+    if (!session || !session.employeeId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -23,11 +23,11 @@ export async function GET(request: NextRequest) {
 
     // Verify cross-tenant admin access
     const context = await withCrossTenantAdmin(
-      session.employee_id,
+      session.employeeId,
       '', // No specific tenant for list operation
       'can_view_configuration',
       {
-        ip_address: request.ip,
+        ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         user_agent: request.headers.get('user-agent') || undefined,
       }
     );
