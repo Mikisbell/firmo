@@ -61,116 +61,116 @@
 
 - [x] 1.6 Create new endpoints (MODIFIED - Hybrid support)
   - [x] 1.6.1 POST /api/auth/confirm-device (with terminal_id support)
-  - [ ] 1.6.2 POST /api/auth/logout
-  - [ ] 1.6.3 POST /api/auth/validate-session
-  - [ ] 1.6.4 GET /api/admin/security/devices (list all devices)
-  - [ ] 1.6.5 POST /api/admin/security/devices/[mac]/block (block device)
-  - [ ] 1.6.6 GET /api/admin/security/terminals/[id]/access-log (terminal audit)
+  - [x] 1.6.2 POST /api/auth/logout
+  - [x] 1.6.3 POST /api/auth/validate-session
+  - [x] 1.6.4 GET /api/admin/security/devices (list all devices)
+  - [x] 1.6.5 POST /api/admin/security/devices/[mac]/block (block device)
+  - [x] 1.6.6 GET /api/admin/security/terminals/[id]/access-log (terminal audit)
 
 ## Phase 2: Admin Panel (HIGH PRIORITY)
 
-- [ ] 2.1 Create admin security dashboard
-  - [ ] 2.1.1 Create src/app/admin/security/page.tsx
-  - [ ] 2.1.2 Add active sessions view (show MAC instead of IP)
-  - [ ] 2.1.3 Add alerts view
-  - [ ] 2.1.4 Add audit log view
+- [x] 2.1 Create admin security dashboard
+  - [x] 2.1.1 Create src/app/admin/security/page.tsx
+  - [x] 2.1.2 Add active sessions view (show MAC instead of IP)
+  - [x] 2.1.3 Add alerts view
+  - [x] 2.1.4 Add audit log view
 
-- [ ] 2.2 Create session management UI
-  - [ ] 2.2.1 Create components/admin/SessionsList.tsx
-  - [ ] 2.2.2 Add session details modal (show MAC address)
-  - [ ] 2.2.3 Add revoke session button
-  - [ ] 2.2.4 Add real-time updates (SSE)
+- [x] 2.2 Create session management UI
+  - [x] 2.2.1 Create components/admin/SessionsList.tsx
+  - [x] 2.2.2 Add session details modal (show MAC address)
+  - [x] 2.2.3 Add revoke session button
+  - [x] 2.2.4 Add real-time updates (SSE)
 
-- [ ] 2.3 Create alerts management UI
-  - [ ] 2.3.1 Create components/admin/AlertsList.tsx
-  - [ ] 2.3.2 Add alert details modal
-  - [ ] 2.3.3 Add mark as resolved button
-  - [ ] 2.3.4 Add filter by type/date
+- [x] 2.3 Create alerts management UI
+  - [x] 2.3.1 Create components/admin/AlertsList.tsx
+  - [x] 2.3.2 Add alert details modal
+  - [x] 2.3.3 Add mark as resolved button
+  - [x] 2.3.4 Add filter by type/date
 
-- [ ] 2.4 Create admin endpoints
-  - [ ] 2.4.1 GET /api/admin/security/sessions
-  - [ ] 2.4.2 POST /api/admin/security/sessions/[id]/revoke
-  - [ ] 2.4.3 GET /api/admin/security/alerts
-  - [ ] 2.4.4 POST /api/admin/security/alerts/[id]/resolve
+- [x] 2.4 Create admin endpoints
+  - [x] 2.4.1 GET /api/admin/security/sessions
+  - [x] 2.4.2 POST /api/admin/security/sessions/[id]/revoke
+  - [x] 2.4.3 GET /api/admin/security/alerts
+  - [x] 2.4.4 POST /api/admin/security/alerts/[id]/resolve
 
 ## Phase 3: Frontend Integration (MEDIUM PRIORITY)
 
-- [ ] 3.1 Update TerminalSetup.tsx (MODIFIED)
-  - [ ] 3.1.1 Detect MAC address (WebRTC)
-  - [ ] 3.1.2 Send MAC in login request (not IP)
-  - [ ] 3.1.3 Handle unknown device response
-  - [ ] 3.1.4 Show confirmation code input for new devices
-  - [ ] 3.1.5 Handle device confirmation flow
+- [x] 3.1 Update TerminalSetup.tsx (MODIFIED)
+  - [x] 3.1.1 Detect MAC address (WebRTC)
+  - [x] 3.1.2 Send MAC in login request (not IP)
+  - [x] 3.1.3 Handle unknown device response
+  - [x] 3.1.4 Show confirmation code input for new devices
+  - [x] 3.1.5 Handle device confirmation flow
 
-- [ ] 3.2 Update page.tsx
-  - [ ] 3.2.1 Add session validation on app load
-  - [ ] 3.2.2 Add session timeout logic
-  - [ ] 3.2.3 Add logout on session expiry
-  - [ ] 3.2.4 Add session refresh mechanism
+- [x] 3.2 Update page.tsx
+  - [x] 3.2.1 Add session validation on app load
+  - [x] 3.2.2 Add session timeout logic
+  - [x] 3.2.3 Add logout on session expiry
+  - [x] 3.2.4 Add session refresh mechanism
 
-- [ ] 3.3 Create session management UI
-  - [ ] 3.3.1 Create components/auth/SessionInfo.tsx
-  - [ ] 3.3.2 Show current session details (MAC address)
-  - [ ] 3.3.3 Add logout button
-  - [ ] 3.3.4 Add session timeout warning
+- [x] 3.3 Create session management UI
+  - [x] 3.3.1 Create components/auth/SessionInfo.tsx
+  - [x] 3.3.2 Show current session details (MAC address)
+  - [x] 3.3.3 Add logout button
+  - [x] 3.3.4 Add session timeout warning
 
 ## Phase 4: Rate Limiting (MEDIUM PRIORITY)
 
-- [ ] 4.1 Implement rate limiting
-  - [ ] 4.1.1 Create src/core/security/rate-limiter.ts ✅
-  - [ ] 4.1.2 Add transaction limit checks
-  - [ ] 4.1.3 Add price change limit checks
-  - [ ] 4.1.4 Add refund limit checks
+- [x] 4.1 Implement rate limiting
+  - [x] 4.1.1 Create src/core/security/rate-limiter.ts ✅
+  - [x] 4.1.2 Add transaction limit checks
+  - [x] 4.1.3 Add price change limit checks
+  - [x] 4.1.4 Add refund limit checks
 
-- [ ] 4.2 Add rate limit endpoints
-  - [ ] 4.2.1 GET /api/admin/limits/[employeeId]
-  - [ ] 4.2.2 PUT /api/admin/limits/[employeeId]
-  - [ ] 4.2.3 POST /api/admin/limits/[employeeId]/reset
+- [x] 4.2 Add rate limit endpoints
+  - [x] 4.2.1 GET /api/admin/limits/[employeeId]
+  - [x] 4.2.2 PUT /api/admin/limits/[employeeId]
+  - [x] 4.2.3 POST /api/admin/limits/[employeeId]/reset
 
-- [ ] 4.3 Add rate limit UI
-  - [ ] 4.3.1 Create components/admin/LimitsManager.tsx
-  - [ ] 4.3.2 Show current usage
-  - [ ] 4.3.3 Show limits
-  - [ ] 4.3.4 Allow admin to adjust limits
+- [x] 4.3 Add rate limit UI
+  - [x] 4.3.1 Create components/admin/LimitsManager.tsx
+  - [x] 4.3.2 Show current usage
+  - [x] 4.3.3 Show limits
+  - [x] 4.3.4 Allow admin to adjust limits
 
 ## Phase 5: Alerts & Notifications (LOW PRIORITY)
 
-- [ ] 5.1 Implement real-time alerts
-  - [ ] 5.1.1 Create alert service
-  - [ ] 5.1.2 Send email alerts
-  - [ ] 5.1.3 Send push notifications
-  - [ ] 5.1.4 Add to-do list in admin
+- [x] 5.1 Implement real-time alerts
+  - [x] 5.1.1 Create alert service
+  - [x] 5.1.2 Send email alerts
+  - [x] 5.1.3 Send push notifications
+  - [x] 5.1.4 Add to-do list in admin
 
-- [ ] 5.2 Create alert rules (MODIFIED)
-  - [ ] 5.2.1 Simultaneous login alert
-  - [ ] 5.2.2 Unknown device alert (REPLACES suspicious IP)
-  - [ ] 5.2.3 Device mismatch alert (NEW)
-  - [ ] 5.2.4 Rate limit exceeded alert
+- [x] 5.2 Create alert rules (MODIFIED)
+  - [x] 5.2.1 Simultaneous login alert
+  - [x] 5.2.2 Unknown device alert (REPLACES suspicious IP)
+  - [x] 5.2.3 Device mismatch alert (NEW)
+  - [x] 5.2.4 Rate limit exceeded alert
 
 ## Phase 6: Testing & Validation (CRITICAL)
 
-- [ ] 6.1 Unit tests
-  - [ ] 6.1.1 Test MAC detection
-  - [ ] 6.1.2 Test MAC validation
-  - [ ] 6.1.3 Test simultaneous login detection
-  - [ ] 6.1.4 Test rate limiting
+- [x] 6.1 Unit tests
+  - [x] 6.1.1 Test MAC detection
+  - [x] 6.1.2 Test MAC validation
+  - [x] 6.1.3 Test simultaneous login detection
+  - [x] 6.1.4 Test rate limiting
 
-- [ ] 6.2 Integration tests
-  - [ ] 6.2.1 Test complete login flow with MAC
-  - [ ] 6.2.2 Test unknown device flow
-  - [ ] 6.2.3 Test session management
-  - [ ] 6.2.4 Test admin endpoints
+- [x] 6.2 Integration tests
+  - [x] 6.2.1 Test complete login flow with MAC
+  - [x] 6.2.2 Test unknown device flow
+  - [x] 6.2.3 Test session management
+  - [x] 6.2.4 Test admin endpoints
 
-- [ ] 6.3 Security tests
-  - [ ] 6.3.1 Test hacker scenario (unknown MAC)
-  - [ ] 6.3.2 Test MAC spoofing (should fail)
-  - [ ] 6.3.3 Test rate limit bypass
-  - [ ] 6.3.4 Test session hijacking
+- [x] 6.3 Security tests
+  - [x] 6.3.1 Test hacker scenario (unknown MAC)
+  - [x] 6.3.2 Test MAC spoofing (should fail)
+  - [x] 6.3.3 Test rate limit bypass
+  - [x] 6.3.4 Test session hijacking
 
-- [ ] 6.4 E2E tests
-  - [ ] 6.4.1 Test complete user flow with MAC
-  - [ ] 6.4.2 Test admin security dashboard
-  - [ ] 6.4.3 Test alert notifications
+- [x] 6.4 E2E tests
+  - [x] 6.4.1 Test complete user flow with MAC
+  - [x] 6.4.2 Test admin security dashboard
+  - [x] 6.4.3 Test alert notifications
 
 ## Priority Order
 

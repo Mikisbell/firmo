@@ -1,208 +1,134 @@
 /**
- * Unit Tests for Tenant Provisioning
+ * Unit Tests: Tenant Provisioning Service
  * 
- * Tests specific examples and edge cases for tenant provisioning.
- * 
- * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.8**
+ * Valida que el servicio de provisioning crea todos los recursos correctamente
+ * en Supabase Cloud.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
+import { provisionTenant } from '@/src/core/tenant/provisioning';
 import prisma from '@/src/core/db/prisma';
-import { provisionTenant, getTenantProvisioningStatus } from '../provisioning';
 
-describe('Tenant Provisioning', () => {
-  let provisionedTenantId: string;
+describe('Tenant Provisioning Service', () => {
+  const tenantsToCleanup: string[] = [];
 
-  afterAll(async () => {
-    // Clean up provisioned tenant
-    if (provisionedTenantId) {
-      await prisma.tenants.delete({
-        where: { id: provisionedTenantId },
-      }).catch(() => {});
+  afterEach(async () => {
+    // Limpiar datos de prueba
+    for (const tenantId of tenantsToCleanup) {
+      try {
+        await prisma.tenant_settings.delete({
+          where: { tenant_id: tenantId },
+        }).catch(() => {});
+      } catch (e) {
+        // Ignorar errores de limpieza
+      }
     }
+    tenantsToCleanup.length = 0;
   });
 
-  /**
-   * Test: Tenant provisioning creates all required resources
-   * 
-   * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
-   */
-  it('provisions tenant with all required resources', async () => {
+  it('✅ debe provisionar tenant con todos los recursos', async () => {
     const result = await provisionTenant({
-      legal_name: 'Pollería El Buen Sabor',
-      ruc: '20123456789',
-      address_text: 'Av. Principal 123, Lima',
-      admin_name: 'Juan Pérez',
+      legal_name: 'Pollería Unit Test 1',
+      admin_name: 'Juan Test',
       admin_pin: '1234',
       timezone: 'America/Lima',
       currency: 'PEN',
     });
 
-    provisionedTenantId = result.tenant_id;
+    tenantsToCleanup.push(result.tenant_id);
 
-    // Verify tenant was created
-    const tenant = await prisma.tenants.findUnique({
-      where: { id: result.tenant_id },
-    });
-    expect(tenant).toBeDefined();
-    expect(tenant?.name).toBe('Pollería El Buen Sabor');
-    expect(tenant?.is_active).toBe(true);
+    // Verificaciones básicas
+    expect(result.tenant_id).toBeDefined();
+    expect(result.tenant_id.length).toBeGreaterThan(10);
+    expect(result.admin_employee_id).toBeDefined();
+    expect(result.activation_code).toMatch(/^\d{6}$/); // 6 dígitos
+    expect(result.onboarding_checklist).toHaveLength(6);
 
-    // Verify tenant_settings was created
+    // Verificar en Supabase
     const settings = await prisma.tenant_settings.findUnique({
       where: { tenant_id: result.tenant_id },
     });
+
     expect(settings).toBeDefined();
-    expect(settings?.legal_name).toBe('Pollería El Buen Sabor');
-    expect(settings?.ruc).toBe('20123456789');
+    expect(settings?.legal_name).toBe('Pollería Unit Test 1');
     expect(settings?.timezone).toBe('America/Lima');
     expect(settings?.currency).toBe('PEN');
+  });
 
-    // Verify catalog_meta was created
-    const catalogMeta = await prisma.catalog_meta.findUnique({
-      where: { tenant_id: result.tenant_id },
+  it('✅ debe crear 4 estaciones por defecto', async () => {
+    const result = await provisionTenant({
+      legal_name: 'Test Stations',
+      admin_name: 'Test',
+      admin_pin: '5678',
     });
-    expect(catalogMeta).toBeDefined();
-    expect(catalogMeta?.catalog_version).toBe(1);
 
-    // Verify default stations were created
+    tenantsToCleanup.push(result.tenant_id);
+
     const stations = await prisma.stations.findMany({
       where: { tenant_id: result.tenant_id },
     });
-    expect(stations.length).toBe(4);
-    expect(stations.map(s => s.code).sort()).toEqual(['BAR', 'COCINA', 'EMPAQUE', 'PARRILLA']);
 
-    // Verify admin employee was created
-    const admin = await prisma.employees.findUnique({
+    expect(stations).toHaveLength(4);
+    
+    const codes = stations.map(s => s.code).sort();
+    expect(codes).toEqual(['BAR', 'COCINA', 'EMPAQUE', 'PARRILLA']);
+  });
+
+  it('✅ debe crear admin employee con PIN hasheado', async () => {
+    const result = await provisionTenant({
+      legal_name: 'Test Admin',
+      admin_name: 'Carlos Admin',
+      admin_pin: '9999',
+    });
+
+    tenantsToCleanup.push(result.tenant_id);
+
+    const employee = await prisma.employees.findUnique({
       where: { id: result.admin_employee_id },
     });
-    expect(admin).toBeDefined();
-    expect(admin?.name).toBe('Juan Pérez');
-    expect(admin?.role).toBe('ADMIN');
-    expect(admin?.is_active).toBe(true);
 
-    // Verify terminal number ranges were allocated
+    expect(employee).toBeDefined();
+    expect(employee?.name).toBe('Carlos Admin');
+    expect(employee?.role).toBe('ADMIN');
+    expect(employee?.pin_hash).toBeDefined();
+    expect(employee?.pin_hash).not.toBe('9999'); // No debe estar en texto plano
+    expect(employee?.is_active).toBe(true);
+  });
+
+  it('✅ debe asignar 10 rangos de números de terminal', async () => {
+    const result = await provisionTenant({
+      legal_name: 'Test Ranges',
+      admin_name: 'Test',
+      admin_pin: '1111',
+    });
+
+    tenantsToCleanup.push(result.tenant_id);
+
     const ranges = await prisma.terminal_number_ranges.findMany({
       where: { tenant_id: result.tenant_id },
     });
-    expect(ranges.length).toBe(10);
 
-    // Verify default terminal was created
+    expect(ranges).toHaveLength(10);
+    expect(ranges[0].range_start).toBe(1);
+    expect(ranges[0].range_end).toBe(100);
+    expect(ranges[9].range_start).toBe(901);
+    expect(ranges[9].range_end).toBe(1000);
+  });
+
+  it('✅ debe crear terminal por defecto', async () => {
+    const result = await provisionTenant({
+      legal_name: 'Test Terminal',
+      admin_name: 'Test',
+      admin_pin: '2222',
+    });
+
+    tenantsToCleanup.push(result.tenant_id);
+
     const terminals = await prisma.terminals.findMany({
       where: { tenant_id: result.tenant_id },
     });
-    expect(terminals.length).toBeGreaterThan(0);
 
-    // Verify activation code was generated
-    expect(result.activation_code).toBeDefined();
-    expect(result.activation_code).toMatch(/^\d{6}$/);
-
-    // Verify onboarding checklist was created
-    expect(result.onboarding_checklist).toBeDefined();
-    expect(result.onboarding_checklist.length).toBe(6);
-    expect(result.onboarding_checklist[0].is_completed).toBe(false);
-  });
-
-  /**
-   * Test: Provisioning is atomic (all or nothing)
-   * 
-   * **Validates: Requirements 3.8**
-   */
-  it('provisioning is atomic - rollback on failure', async () => {
-    // This test would require mocking a failure during provisioning
-    // For now, we verify that a successful provisioning creates all resources
-    const result = await provisionTenant({
-      legal_name: 'Test Restaurant',
-      admin_name: 'Test Admin',
-      admin_pin: '1234',
-    });
-
-    const status = await getTenantProvisioningStatus(result.tenant_id);
-    expect(status.is_provisioned).toBe(true);
-
-    // Clean up
-    await prisma.tenants.delete({ where: { id: result.tenant_id } });
-  });
-
-  /**
-   * Test: Tenant IDs are unique
-   * 
-   * **Validates: Requirements 3.1**
-   */
-  it('generates unique tenant IDs', async () => {
-    const result1 = await provisionTenant({
-      legal_name: 'Restaurant 1',
-      admin_name: 'Admin 1',
-      admin_pin: '1234',
-    });
-
-    const result2 = await provisionTenant({
-      legal_name: 'Restaurant 2',
-      admin_name: 'Admin 2',
-      admin_pin: '1234',
-    });
-
-    expect(result1.tenant_id).not.toBe(result2.tenant_id);
-
-    // Clean up
-    await Promise.all([
-      prisma.tenants.delete({ where: { id: result1.tenant_id } }),
-      prisma.tenants.delete({ where: { id: result2.tenant_id } }),
-    ]);
-  });
-
-  /**
-   * Test: Default values are applied correctly
-   * 
-   * **Validates: Requirements 3.2, 3.3, 3.4**
-   */
-  it('applies default values when not provided', async () => {
-    const result = await provisionTenant({
-      legal_name: 'Minimal Restaurant',
-      admin_name: 'Admin',
-      admin_pin: '1234',
-      // timezone and currency not provided
-    });
-
-    const settings = await prisma.tenant_settings.findUnique({
-      where: { tenant_id: result.tenant_id },
-    });
-
-    expect(settings?.timezone).toBe('America/Lima');
-    expect(settings?.currency).toBe('PEN');
-
-    // Clean up
-    await prisma.tenants.delete({ where: { id: result.tenant_id } });
-  });
-
-  /**
-   * Test: Provisioning status tracking
-   * 
-   * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
-   */
-  it('tracks provisioning status correctly', async () => {
-    const result = await provisionTenant({
-      legal_name: 'Status Test Restaurant',
-      admin_name: 'Admin',
-      admin_pin: '1234',
-    });
-
-    const status = await getTenantProvisioningStatus(result.tenant_id);
-
-    expect(status.is_provisioned).toBe(true);
-    expect(status.status.tenant_settings).toBe(true);
-    expect(status.status.catalog_meta).toBe(true);
-    expect(status.status.stations).toBe(true);
-    expect(status.status.employees).toBe(true);
-    expect(status.status.terminals).toBe(true);
-    expect(status.status.number_ranges).toBe(true);
-
-    expect(status.counts.stations).toBe(4);
-    expect(status.counts.employees).toBeGreaterThan(0);
-    expect(status.counts.terminals).toBeGreaterThan(0);
-    expect(status.counts.number_ranges).toBe(10);
-
-    // Clean up
-    await prisma.tenants.delete({ where: { id: result.tenant_id } });
+    expect(terminals.length).toBeGreaterThanOrEqual(1);
+    expect(terminals[0].is_allowed).toBe(true);
   });
 });

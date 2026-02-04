@@ -1,58 +1,55 @@
-/**
- * Admin Security: Alerts API
- * GET - List all security alerts
- */
+// src/app/api/admin/security/alerts/route.ts
+// Get all security alerts
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
-import { validateToken } from '@/src/core/auth/auth.service';
+import { getSessionFromRequest } from '@/src/core/auth/auth.service';
+import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
+
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  return handleCorsPreflightRequest(origin);
+}
 
 export async function GET(request: NextRequest) {
   try {
-    // Validate admin session
-    const cookieToken = request.cookies.get('auth_token')?.value;
-    const authHeader = request.headers.get('authorization');
-    const headerToken = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : null;
+    console.log('[Admin Alerts API] GET request received');
 
-    const token = cookieToken || headerToken;
-
-    if (!token) {
+    // Validate session
+    const session = await getSessionFromRequest(request, prisma);
+    if (!session) {
+      console.log('[Admin Alerts API] Unauthorized - no session');
       return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      );
-    }
-
-    const tokenResult = await validateToken(token);
-    if (!tokenResult.valid || !tokenResult.payload) {
-      return NextResponse.json(
-        { error: 'Token inválido' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
     // Check if user is admin
-    if (tokenResult.payload.role !== 'ADMIN') {
+    const employee = await prisma.employees.findUnique({
+      where: { id: session.employeeId },
+    });
+
+    if (!employee || employee.role !== 'ADMIN') {
+      console.log('[Admin Alerts API] Forbidden - not admin');
       return NextResponse.json(
-        { error: 'No autorizado' },
+        { error: 'Forbidden - admin access required' },
         { status: 403 }
       );
     }
 
-    const tenantId = DEFAULT_TENANT_ID;
-
     // Get query parameters
-    const searchParams = request.nextUrl.searchParams;
-    const alertType = searchParams.get('type');
-    const isResolved = searchParams.get('resolved');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const url = new URL(request.url);
+    const limit = parseInt(url.searchParams.get('limit') || '100');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+    const alertType = url.searchParams.get('alert_type');
+    const isResolved = url.searchParams.get('is_resolved');
+
+    console.log('[Admin Alerts API] Fetching alerts');
 
     // Build where clause
     const where: any = {
-      tenant_id: tenantId,
+      tenant_id: session.tenantId,
     };
 
     if (alertType) {
@@ -70,30 +67,36 @@ export async function GET(request: NextRequest) {
         created_at: 'desc',
       },
       take: limit,
-      select: {
-        id: true,
-        employee_id: true,
-        alert_type: true,
-        reason: true,
-        ip_address: true,
-        location_lat: true,
-        location_lng: true,
-        is_resolved: true,
-        resolved_by: true,
-        resolved_at: true,
-        resolution_notes: true,
-        created_at: true,
-      },
+      skip: offset,
     });
 
+    // Get total count
+    const total = await prisma.session_alerts.count({ where });
+
+    console.log('[Admin Alerts API] Found', alerts.length, 'alerts');
+
     return NextResponse.json({
-      alerts,
-      total: alerts.length,
+      success: true,
+      total,
+      limit,
+      offset,
+      alerts: alerts.map((a) => ({
+        id: a.id,
+        employee_id: a.employee_id,
+        alert_type: a.alert_type,
+        reason: a.reason,
+        mac_address: a.mac_address,
+        ip_address: a.ip_address,
+        is_resolved: a.is_resolved,
+        resolved_by: a.resolved_by,
+        resolved_at: a.resolved_at,
+        created_at: a.created_at,
+      })),
     });
   } catch (error) {
-    console.error('Get alerts error:', error);
+    console.error('Admin alerts error:', error);
     return NextResponse.json(
-      { error: 'Error al obtener alertas' },
+      { error: 'Error fetching alerts' },
       { status: 500 }
     );
   }

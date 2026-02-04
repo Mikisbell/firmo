@@ -2,18 +2,24 @@
 // API to authenticate employee with PIN
 // Now with JWT tokens and httpOnly cookies for secure authentication
 // ADMIN users can access any terminal without terminal validation
+// HYBRID MAC validation: Device-level (per employee) + Terminal-level (per terminal)
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { authenticate } from '@/src/core/auth/auth.service';
+import { validateMAC, checkTerminalAuthorization, registerMAC } from '@/src/core/security/mac-validator-hybrid';
+import { detectSimultaneousLogin, createActiveSession, closeAllSessionsExcept } from '@/src/core/security/session-validator';
+import { createAlert } from '@/src/core/security/alert-service';
 
 const LoginSchema = z.object({
   tenant_id: z.string().uuid(),
   terminal_id: z.string().optional(), // Optional for admin panel
   pin: z.string().length(4),
   device_fingerprint: z.string().min(16).optional(), // Optional for admin panel
+  device_id: z.string().uuid().optional(), // Device identifier
+  mac_address: z.string().optional(), // MAC address (hybrid validation)
 });
 
 // Handle CORS preflight request
@@ -37,7 +43,7 @@ export async function POST(request: NextRequest) {
                'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
-    console.log('[Login API] Metadata:', { ip, userAgent, terminal_id: data.terminal_id });
+    console.log('[Login API] Metadata:', { ip, userAgent, terminal_id: data.terminal_id, mac_address: data.mac_address });
 
     // Step 1: Authenticate user with PIN
     console.log('[Login API] Step 1: Authenticating user with PIN');
@@ -65,10 +71,96 @@ export async function POST(request: NextRequest) {
     console.log('  Employee:', authResult.employee?.name);
     console.log('  Role:', authResult.employee?.role);
 
-    // Step 2: Validate terminal (if provided)
+    // Step 2: HYBRID MAC Validation (NEW)
+    console.log('[Login API] Step 2: HYBRID MAC Validation');
+    let macValidationWarning: string | undefined;
+    
+    if (data.mac_address && data.terminal_id) {
+      console.log('[Login API] Validating MAC address:', data.mac_address);
+      
+      const macValidation = await validateMAC(
+        data.tenant_id,
+        authResult.employee!.id,
+        data.mac_address,
+        data.terminal_id
+      );
+
+      if (!macValidation.isValid) {
+        if (macValidation.requiresConfirmation) {
+          // Unknown device - requires confirmation
+          console.log('[Login API] Unknown MAC - requires confirmation');
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'UNKNOWN_DEVICE',
+              message: 'Dispositivo desconocido. Se requiere confirmación.',
+              requires_confirmation: true,
+            },
+            { status: 403 }
+          );
+        } else {
+          // Device mismatch or blocked
+          console.log('[Login API] MAC validation failed:', macValidation.reason);
+          
+          // Create alert
+          await createAlert(data.tenant_id, {
+            employeeId: authResult.employee!.id,
+            alertType: macValidation.reason === 'DEVICE_MISMATCH' ? 'DEVICE_MISMATCH' : 'BLOCKED_DEVICE',
+            reason: macValidation.reason || 'Unknown MAC validation error',
+            ipAddress: ip,
+          });
+
+          return NextResponse.json(
+            {
+              success: false,
+              error: macValidation.reason,
+              message: 'Acceso denegado. Dispositivo no autorizado.',
+            },
+            { status: 403 }
+          );
+        }
+      }
+
+      if (macValidation.warning) {
+        macValidationWarning = macValidation.warning;
+        console.log('[Login API] MAC validation warning:', macValidationWarning);
+      }
+
+      // Check terminal authorization (audit trail)
+      console.log('[Login API] Checking terminal authorization');
+      const terminalAuth = await checkTerminalAuthorization(
+        data.tenant_id,
+        data.terminal_id,
+        data.mac_address,
+        authResult.employee!.id
+      );
+
+      if (!terminalAuth.isAuthorized) {
+        console.log('[Login API] Terminal authorization failed:', terminalAuth.reason);
+        
+        // Create alert
+        await createAlert(data.tenant_id, {
+          employeeId: authResult.employee!.id,
+          alertType: 'UNAUTHORIZED_TERMINAL_ACCESS',
+          reason: terminalAuth.reason || 'Unauthorized terminal access',
+          ipAddress: ip,
+        });
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'UNAUTHORIZED_TERMINAL_ACCESS',
+            message: 'Acceso a terminal no autorizado.',
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Step 3: Validate terminal (if provided)
     // ADMIN users bypass terminal validation - they can access any terminal
     const isAdmin = authResult.employee?.role === 'ADMIN';
-    console.log('[Login API] Step 2: Terminal validation');
+    console.log('[Login API] Step 3: Terminal validation');
     console.log('  Is Admin:', isAdmin);
     console.log('  Terminal ID:', data.terminal_id);
 
@@ -137,8 +229,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 3: Get active shift (if terminal_id provided)
-    console.log('[Login API] Step 3: Looking for active shift');
+    // Step 4: Detect simultaneous login (NEW)
+    console.log('[Login API] Step 4: Detecting simultaneous login');
+    const deviceId = data.device_id || 'unknown';
+    const terminalId = data.terminal_id || 'admin-panel';
+    
+    const simultaneousCheck = await detectSimultaneousLogin(
+      data.tenant_id,
+      authResult.employee!.id,
+      terminalId,
+      deviceId
+    );
+
+    if (simultaneousCheck.hasActiveSession) {
+      console.log('[Login API] Simultaneous login detected');
+      
+      // Create alert
+      await createAlert(data.tenant_id, {
+        employeeId: authResult.employee!.id,
+        alertType: 'SIMULTANEOUS_LOGIN',
+        reason: `Simultaneous login detected on device ${deviceId}`,
+        ipAddress: ip,
+      });
+
+      // Close previous session
+      await closeAllSessionsExcept(
+        data.tenant_id,
+        authResult.employee!.id,
+        'new-session' // Placeholder, will be replaced with actual token
+      );
+    }
+
+    // Step 5: Get active shift (if terminal_id provided)
+    console.log('[Login API] Step 5: Looking for active shift');
     let activeShift = null as any;
     if (data.terminal_id) {
       activeShift = await prisma.shifts.findFirst({
@@ -151,8 +274,43 @@ export async function POST(request: NextRequest) {
       console.log('[Login API] Active shift found:', !!activeShift);
     }
 
-    // Step 4: Create response with httpOnly cookie
-    console.log('[Login API] Step 4: Creating response with JWT cookie');
+    // Step 6: Create active session (NEW)
+    console.log('[Login API] Step 6: Creating active session');
+    const sessionContext = {
+      employeeId: authResult.employee!.id,
+      terminalId: terminalId,
+      deviceId: deviceId,
+      macAddress: data.mac_address || 'unknown',
+      ipAddress: ip,
+      userAgent: userAgent,
+    };
+
+    const { sessionId } = await createActiveSession(
+      data.tenant_id,
+      sessionContext
+    );
+
+    console.log('[Login API] Active session created:', sessionId);
+
+    // Step 7: Register MAC if it's new (NEW)
+    if (data.mac_address && data.terminal_id) {
+      console.log('[Login API] Registering MAC address');
+      try {
+        await registerMAC(
+          data.tenant_id,
+          authResult.employee!.id,
+          data.mac_address,
+          data.terminal_id
+        );
+        console.log('[Login API] MAC registered successfully');
+      } catch (error) {
+        console.log('[Login API] MAC registration error (non-fatal):', error);
+        // Non-fatal error - continue with login
+      }
+    }
+
+    // Step 8: Create response with httpOnly cookie
+    console.log('[Login API] Step 8: Creating response with JWT cookie');
     const response = NextResponse.json({
       success: true,
       employee: authResult.employee,
@@ -161,6 +319,8 @@ export async function POST(request: NextRequest) {
         opened_at: activeShift.opened_at.toISOString(),
         opened_by: activeShift.opened_by,
       } : null,
+      session_id: sessionId,
+      warning: macValidationWarning,
     });
 
     // Set httpOnly cookie with JWT token
@@ -175,18 +335,48 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    console.log('[Login API] Login successful - cookie set');
+    // Also set session token cookie for reference
+    response.cookies.set('session_id', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1800,
+      path: '/',
+    });
+
+    console.log('[Login API] Login successful - cookies set');
     return response;
   } catch (error) {
     console.error('Login error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Datos inválidos' },
+        { error: 'Datos inválidos', details: error.errors },
         { status: 400 }
       );
     }
+    
+    // Check for database errors
+    if (error instanceof Error && error.message.includes('relation')) {
+      return NextResponse.json(
+        { 
+          error: 'Database error - tables may not exist',
+          message: 'Please run: npx prisma migrate deploy',
+          details: error.message 
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: 'Error de autenticación' },
+      { 
+        error: 'Error de autenticación',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
