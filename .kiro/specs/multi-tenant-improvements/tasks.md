@@ -436,13 +436,13 @@ This implementation plan breaks down the multi-tenant improvements into discrete
     - Add cross-tenant admin authorization
     - _Requirements: 14.7_
 
-- [ ] 18. IndexedDB Tenant Isolation
-  - [ ] 18.1 Implement tenant-specific database naming
+- [-] 18. IndexedDB Tenant Isolation
+  - [x] 18.1 Implement tenant-specific database naming
     - Create getTenantDatabaseName function
     - Initialize tenant-specific IndexedDB
     - _Requirements: 15.1_
 
-  - [ ] 18.2 Write property test for database name uniqueness
+  - [x] 18.2 Write property test for database name uniqueness
     - **Property 19: IndexedDB Database Names Are Tenant-Specific**
     - **Validates: Requirements 15.1**
 
