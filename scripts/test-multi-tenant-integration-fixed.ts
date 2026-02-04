@@ -1,12 +1,14 @@
 /**
- * Integration Tests: Multi-Tenant APIs + Supabase
+ * Integration Tests: Multi-Tenant APIs + Supabase (FIXED)
  * 
  * Valida que:
  * 1. API de provisioning funciona
  * 2. Datos se guardan en Supabase
  * 3. RLS aísla tenants correctamente
  * 
- * Ejecutar: npx ts-node scripts/test-multi-tenant-integration.ts
+ * NOTA: Usa transacciones para mantener el contexto de tenant
+ * 
+ * Ejecutar: npx tsx scripts/test-multi-tenant-integration-fixed.ts
  */
 
 import prisma from '@/src/core/db/prisma';
@@ -45,7 +47,7 @@ async function test(name: string, fn: () => Promise<void>) {
 }
 
 async function runTests() {
-  console.log('🧪 Multi-Tenant Integration Tests\n');
+  console.log('🧪 Multi-Tenant Integration Tests (FIXED)\n');
   console.log('═'.repeat(60));
 
   // Test 1: Provisioning Service
@@ -62,9 +64,14 @@ async function runTests() {
     if (!result.admin_employee_id) throw new Error('No admin_employee_id returned');
     if (!result.activation_code) throw new Error('No activation_code returned');
 
-    // Verificar en Supabase
-    const settings = await prisma.tenant_settings.findUnique({
-      where: { tenant_id: result.tenant_id },
+    // Verificar en Supabase usando transacción
+    const settings = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${result.tenant_id}::text, false)
+      `;
+      return tx.tenant_settings.findUnique({
+        where: { tenant_id: result.tenant_id },
+      });
     });
 
     if (!settings) throw new Error('Tenant settings not found in Supabase');
@@ -89,21 +96,21 @@ async function runTests() {
       admin_pin: '2222',
     });
 
-    // Cambiar contexto a tenant 1 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
-    `;
-
     // Contar órdenes de tenant 1 (debe ser 0)
-    const ordersT1 = await prisma.orders.findMany();
-
-    // Cambiar contexto a tenant 2 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
-    `;
+    const ordersT1 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
+      `;
+      return tx.orders.findMany();
+    });
 
     // Contar órdenes de tenant 2 (debe ser 0)
-    const ordersT2 = await prisma.orders.findMany();
+    const ordersT2 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
+      `;
+      return tx.orders.findMany();
+    });
 
     if (ordersT1.length !== 0) {
       throw new Error(`Tenant 1 vio ${ordersT1.length} órdenes (esperaba 0)`);
@@ -128,19 +135,21 @@ async function runTests() {
       admin_pin: '4444',
     });
 
-    // Cambiar a tenant 1 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
-    `;
+    // Obtener settings de tenant 1
+    const settings1 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
+      `;
+      return tx.tenant_settings.findMany();
+    });
 
-    const settings1 = await prisma.tenant_settings.findMany();
-
-    // Cambiar a tenant 2 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
-    `;
-
-    const settings2 = await prisma.tenant_settings.findMany();
+    // Obtener settings de tenant 2
+    const settings2 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
+      `;
+      return tx.tenant_settings.findMany();
+    });
 
     // Cada tenant debe ver solo sus propios settings
     if (settings1.length !== 1) {
@@ -174,19 +183,21 @@ async function runTests() {
       admin_pin: '6666',
     });
 
-    // Cambiar a tenant 1 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
-    `;
+    // Obtener empleados de tenant 1
+    const employees1 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
+      `;
+      return tx.employees.findMany();
+    });
 
-    const employees1 = await prisma.employees.findMany();
-
-    // Cambiar a tenant 2 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
-    `;
-
-    const employees2 = await prisma.employees.findMany();
+    // Obtener empleados de tenant 2
+    const employees2 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
+      `;
+      return tx.employees.findMany();
+    });
 
     // Cada tenant debe ver solo sus empleados
     if (employees1.length !== 1) {
@@ -212,19 +223,21 @@ async function runTests() {
       admin_pin: '8888',
     });
 
-    // Cambiar a tenant 1 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
-    `;
+    // Obtener estaciones de tenant 1
+    const stations1 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant1.tenant_id}::text, false)
+      `;
+      return tx.stations.findMany();
+    });
 
-    const stations1 = await prisma.stations.findMany();
-
-    // Cambiar a tenant 2 (session-level, no transaction-level)
-    await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
-    `;
-
-    const stations2 = await prisma.stations.findMany();
+    // Obtener estaciones de tenant 2
+    const stations2 = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${tenant2.tenant_id}::text, false)
+      `;
+      return tx.stations.findMany();
+    });
 
     // Cada tenant debe ver solo sus estaciones
     if (stations1.length !== 4) {
@@ -282,8 +295,13 @@ async function runTests() {
       admin_pin: '9999',
     });
 
-    const employee = await prisma.employees.findUnique({
-      where: { id: result.admin_employee_id },
+    const employee = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT set_config('app.current_tenant_id', ${result.tenant_id}::text, false)
+      `;
+      return tx.employees.findUnique({
+        where: { id: result.admin_employee_id },
+      });
     });
 
     if (!employee?.pin_hash) {
