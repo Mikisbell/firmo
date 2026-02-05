@@ -89,21 +89,27 @@ async function runTests() {
     });
 
     // Create orders for both tenants using postgres (bypasses RLS for setup)
+    const { v4: uuidv4 } = await import('uuid');
+    
     const order1 = await prisma.orders.create({
       data: {
+        id: uuidv4(),
         tenant_id: tenant1.tenant_id,
-        order_number: 'T1-001',
+        order_number: 1,
+        order_type: 'DINE_IN',
+        terminal_id: 'test-terminal-1',
         total_cents: 10000,
-        status: 'COMPLETED',
       },
     });
 
     const order2 = await prisma.orders.create({
       data: {
+        id: uuidv4(),
         tenant_id: tenant2.tenant_id,
-        order_number: 'T2-001',
+        order_number: 1,
+        order_type: 'DINE_IN',
+        terminal_id: 'test-terminal-2',
         total_cents: 20000,
-        status: 'COMPLETED',
       },
     });
 

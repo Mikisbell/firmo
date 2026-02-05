@@ -95,7 +95,7 @@
         {
           "title": "Multi-Tenant Provisioning E2E",
           "file": "multi-tenant-provisioning.spec.ts",
-          "line": 11,
+          "line": 12,
           "column": 6,
           "specs": [
             {
@@ -114,31 +114,31 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 11876,
+                      "duration": 2003,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Provision New Tenant')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Provision New Tenant')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Provision New Tenant')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Provision New Tenant')\u001b[22m\n\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:19:61",
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:17:5",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                          "column": 61,
-                          "line": 19
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
                         },
-                        "snippet": "\u001b[0m \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[90m// 2. Verificar que la página cargó\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Provision New Tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Create a new tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[90m// 3. Llenar formulario - Información del negocio\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 61,
-                            "line": 19
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Provision New Tenant')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Provision New Tenant')\u001b[22m\n\n\n\u001b[0m \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[90m// 2. Verificar que la página cargó\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Provision New Tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Create a new tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[90m// 3. Llenar formulario - Información del negocio\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:19:61\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:17:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:32:04.945Z",
+                      "startTime": "2026-02-05T05:37:25.116Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -150,17 +150,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                        "column": 61,
-                        "line": 19
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
                       }
                     }
                   ],
@@ -169,7 +164,7 @@
               ],
               "id": "0fec786bd5127312a7d3-dc9dd970035de4cbbdf3",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 14,
+              "line": 15,
               "column": 3
             },
             {
@@ -187,29 +182,32 @@
                     {
                       "workerIndex": 1,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32601,
+                      "status": "failed",
+                      "duration": 446,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:76:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 73
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 71 |\u001b[39m\n \u001b[90m 72 |\u001b[39m     \u001b[90m// Llenar con PIN inválido (solo 2 dígitos)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 73 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 74 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 75 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'12'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 76 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:73:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:76:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:32:19.481Z",
+                      "startTime": "2026-02-05T05:37:29.418Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -221,13 +219,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -235,7 +233,7 @@
               ],
               "id": "0fec786bd5127312a7d3-c260b70cab0741017dd2",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 69,
+              "line": 74,
               "column": 3
             },
             {
@@ -253,29 +251,32 @@
                     {
                       "workerIndex": 2,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32780,
+                      "status": "failed",
+                      "duration": 441,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:96:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 88
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"admin_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 86 |\u001b[39m\n \u001b[90m 87 |\u001b[39m     \u001b[90m// Dejar legal_name vacío\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 89 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 90 |\u001b[39m\n \u001b[90m 91 |\u001b[39m     \u001b[36mconst\u001b[39m button \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:88:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:96:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:32:54.261Z",
+                      "startTime": "2026-02-05T05:37:31.686Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -287,13 +288,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -301,7 +302,7 @@
               ],
               "id": "0fec786bd5127312a7d3-51a4c9d5ff55584cc524",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 84,
+              "line": 94,
               "column": 3
             },
             {
@@ -319,29 +320,32 @@
                     {
                       "workerIndex": 3,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32494,
+                      "status": "failed",
+                      "duration": 434,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 102
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 100 |\u001b[39m\n \u001b[90m 101 |\u001b[39m     \u001b[90m// Dejar admin_name vacío\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 103 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 104 |\u001b[39m\n \u001b[90m 105 |\u001b[39m     \u001b[36mconst\u001b[39m button \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:102:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:33:29.304Z",
+                      "startTime": "2026-02-05T05:37:33.950Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -353,13 +357,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -367,7 +371,7 @@
               ],
               "id": "0fec786bd5127312a7d3-418981959414b5463b3f",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 98,
+              "line": 114,
               "column": 3
             },
             {
@@ -385,29 +389,32 @@
                     {
                       "workerIndex": 4,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32050,
+                      "status": "failed",
+                      "duration": 427,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:136:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 116
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 114 |\u001b[39m\n \u001b[90m 115 |\u001b[39m     \u001b[90m// Provisionar tenant\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 116 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Copy Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 117 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 118 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 119 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:136:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:34:03.682Z",
+                      "startTime": "2026-02-05T05:37:36.177Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -419,13 +426,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -433,7 +440,7 @@
               ],
               "id": "0fec786bd5127312a7d3-ae6c381ad951d1f4736e",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 112,
+              "line": 134,
               "column": 3
             },
             {
@@ -451,29 +458,32 @@
                     {
                       "workerIndex": 5,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32795,
+                      "status": "failed",
+                      "duration": 437,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:171:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 141
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 139 |\u001b[39m\n \u001b[90m 140 |\u001b[39m     \u001b[90m// Provisionar tenant 1\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 141 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Tenant 1 E2E'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin 1'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 143 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1111'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:141:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:171:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:34:37.675Z",
+                      "startTime": "2026-02-05T05:37:38.345Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -485,13 +495,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -499,7 +509,7 @@
               ],
               "id": "0fec786bd5127312a7d3-68f2fedf9ae0ec8c57b1",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 137,
+              "line": 169,
               "column": 3
             },
             {
@@ -518,31 +528,31 @@
                       "workerIndex": 6,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6570,
+                      "duration": 508,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Business Information')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Business Information')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Business Information')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Business Information')\u001b[22m\n\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:173:61",
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:221:5",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                          "column": 61,
-                          "line": 173
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
                         },
-                        "snippet": "\u001b[0m \u001b[90m 171 |\u001b[39m\n \u001b[90m 172 |\u001b[39m     \u001b[90m// Verificar secciones\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 173 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Business Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 174 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Admin Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 175 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Regional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 176 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Optional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 61,
-                            "line": 173
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Business Information')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Business Information')\u001b[22m\n\n\n\u001b[0m \u001b[90m 171 |\u001b[39m\n \u001b[90m 172 |\u001b[39m     \u001b[90m// Verificar secciones\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 173 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Business Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 174 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Admin Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 175 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Regional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 176 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Optional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:173:61\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:221:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:35:12.584Z",
+                      "startTime": "2026-02-05T05:37:40.563Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -554,17 +564,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                        "column": 61,
-                        "line": 173
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
                       }
                     }
                   ],
@@ -573,7 +578,7 @@
               ],
               "id": "0fec786bd5127312a7d3-9e2677f9fc31a9fcc6bd",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 169,
+              "line": 219,
               "column": 3
             },
             {
@@ -591,29 +596,32 @@
                     {
                       "workerIndex": 7,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32388,
+                      "status": "failed",
+                      "duration": 588,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:240:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 190
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 188 |\u001b[39m\n \u001b[90m 189 |\u001b[39m     \u001b[90m// Provisionar tenant\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 190 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Checklist Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 191 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 192 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 193 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:190:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:240:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:35:21.434Z",
+                      "startTime": "2026-02-05T05:37:42.850Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -625,13 +633,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -639,7 +647,7 @@
               ],
               "id": "0fec786bd5127312a7d3-08fa5d652b016c174b0c",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 186,
+              "line": 238,
               "column": 3
             },
             {
@@ -657,29 +665,32 @@
                     {
                       "workerIndex": 8,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31702,
+                      "status": "failed",
+                      "duration": 469,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:272:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 215
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 213 |\u001b[39m\n \u001b[90m 214 |\u001b[39m     \u001b[90m// Llenar formulario\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 215 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Mobile Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 216 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 217 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 218 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:215:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:272:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:35:55.857Z",
+                      "startTime": "2026-02-05T05:37:45.285Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -691,13 +702,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -705,7 +716,7 @@
               ],
               "id": "0fec786bd5127312a7d3-1ad9deea41d9c2925896",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 208,
+              "line": 270,
               "column": 3
             },
             {
@@ -724,31 +735,31 @@
                       "workerIndex": 9,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 5949,
+                      "duration": 469,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('label:has-text(\"Legal Name\")')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('label:has-text(\"Legal Name\")')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('label:has-text(\"Legal Name\")')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('label:has-text(\"Legal Name\")')\u001b[22m\n\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:234:34",
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:299:5",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                          "column": 34,
-                          "line": 234
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
                         },
-                        "snippet": "\u001b[0m \u001b[90m 232 |\u001b[39m     \u001b[36mconst\u001b[39m adminPinLabel \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'label:has-text(\"Admin PIN\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m     \u001b[36mawait\u001b[39m expect(legalNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 236 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminPinLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 237 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 34,
-                            "line": 234
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('label:has-text(\"Legal Name\")')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('label:has-text(\"Legal Name\")')\u001b[22m\n\n\n\u001b[0m \u001b[90m 232 |\u001b[39m     \u001b[36mconst\u001b[39m adminPinLabel \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'label:has-text(\"Admin PIN\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m     \u001b[36mawait\u001b[39m expect(legalNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 236 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminPinLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 237 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:234:34\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:299:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:36:29.317Z",
+                      "startTime": "2026-02-05T05:37:47.517Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -760,17 +771,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                        "column": 34,
-                        "line": 234
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
                       }
                     }
                   ],
@@ -779,7 +785,7 @@
               ],
               "id": "0fec786bd5127312a7d3-592223a94b6c2db393e7",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 226,
+              "line": 297,
               "column": 3
             },
             {
@@ -798,31 +804,31 @@
                       "workerIndex": 10,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6062,
+                      "duration": 525,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Provision New Tenant')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Provision New Tenant')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Provision New Tenant')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Provision New Tenant')\u001b[22m\n\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:19:61",
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:17:5",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                          "column": 61,
-                          "line": 19
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
                         },
-                        "snippet": "\u001b[0m \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[90m// 2. Verificar que la página cargó\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Provision New Tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Create a new tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[90m// 3. Llenar formulario - Información del negocio\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 61,
-                            "line": 19
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Provision New Tenant')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Provision New Tenant')\u001b[22m\n\n\n\u001b[0m \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[90m// 2. Verificar que la página cargó\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Provision New Tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Create a new tenant'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[90m// 3. Llenar formulario - Información del negocio\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:19:61\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:17:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:36:37.125Z",
+                      "startTime": "2026-02-05T05:37:49.985Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -834,17 +840,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                        "column": 61,
-                        "line": 19
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
                       }
                     }
                   ],
@@ -853,7 +854,7 @@
               ],
               "id": "0fec786bd5127312a7d3-aca3fb943b9eaa319755",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 14,
+              "line": 15,
               "column": 3
             },
             {
@@ -871,29 +872,32 @@
                     {
                       "workerIndex": 11,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31574,
+                      "status": "failed",
+                      "duration": 498,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:76:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 73
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 71 |\u001b[39m\n \u001b[90m 72 |\u001b[39m     \u001b[90m// Llenar con PIN inválido (solo 2 dígitos)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 73 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 74 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 75 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'12'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 76 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:73:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:76:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:36:44.919Z",
+                      "startTime": "2026-02-05T05:37:52.753Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -905,13 +909,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -919,7 +923,7 @@
               ],
               "id": "0fec786bd5127312a7d3-f5b3a570922fddc0893c",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 69,
+              "line": 74,
               "column": 3
             },
             {
@@ -937,29 +941,32 @@
                     {
                       "workerIndex": 12,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31582,
+                      "status": "failed",
+                      "duration": 465,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:96:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 88
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"admin_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 86 |\u001b[39m\n \u001b[90m 87 |\u001b[39m     \u001b[90m// Dejar legal_name vacío\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 89 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 90 |\u001b[39m\n \u001b[90m 91 |\u001b[39m     \u001b[36mconst\u001b[39m button \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:88:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:96:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:37:18.222Z",
+                      "startTime": "2026-02-05T05:37:55.250Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -971,13 +978,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -985,7 +992,7 @@
               ],
               "id": "0fec786bd5127312a7d3-30555944814ecb1130bf",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 84,
+              "line": 94,
               "column": 3
             },
             {
@@ -1003,29 +1010,32 @@
                     {
                       "workerIndex": 13,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31645,
+                      "status": "failed",
+                      "duration": 526,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 102
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 100 |\u001b[39m\n \u001b[90m 101 |\u001b[39m     \u001b[90m// Dejar admin_name vacío\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 103 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 104 |\u001b[39m\n \u001b[90m 105 |\u001b[39m     \u001b[36mconst\u001b[39m button \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:102:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:37:51.667Z",
+                      "startTime": "2026-02-05T05:37:57.578Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1037,13 +1047,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -1051,7 +1061,7 @@
               ],
               "id": "0fec786bd5127312a7d3-89d31df77c2359e30494",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 98,
+              "line": 114,
               "column": 3
             },
             {
@@ -1069,29 +1079,32 @@
                     {
                       "workerIndex": 14,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31577,
+                      "status": "failed",
+                      "duration": 646,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:136:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 116
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 114 |\u001b[39m\n \u001b[90m 115 |\u001b[39m     \u001b[90m// Provisionar tenant\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 116 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Copy Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 117 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 118 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 119 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:136:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:38:24.998Z",
+                      "startTime": "2026-02-05T05:38:00.181Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1103,13 +1116,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -1117,7 +1130,7 @@
               ],
               "id": "0fec786bd5127312a7d3-c907b66814e5ff92a49b",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 112,
+              "line": 134,
               "column": 3
             },
             {
@@ -1135,29 +1148,32 @@
                     {
                       "workerIndex": 15,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31634,
+                      "status": "failed",
+                      "duration": 632,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:171:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 141
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 139 |\u001b[39m\n \u001b[90m 140 |\u001b[39m     \u001b[90m// Provisionar tenant 1\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 141 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Tenant 1 E2E'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin 1'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 143 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1111'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:141:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:171:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:38:58.432Z",
+                      "startTime": "2026-02-05T05:38:02.980Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1169,13 +1185,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -1183,7 +1199,7 @@
               ],
               "id": "0fec786bd5127312a7d3-55d449b884002befc73e",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 137,
+              "line": 169,
               "column": 3
             },
             {
@@ -1202,31 +1218,31 @@
                       "workerIndex": 16,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 5940,
+                      "duration": 657,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Business Information')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Business Information')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Business Information')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Business Information')\u001b[22m\n\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:173:61",
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:221:5",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                          "column": 61,
-                          "line": 173
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
                         },
-                        "snippet": "\u001b[0m \u001b[90m 171 |\u001b[39m\n \u001b[90m 172 |\u001b[39m     \u001b[90m// Verificar secciones\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 173 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Business Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 174 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Admin Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 175 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Regional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 176 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Optional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 61,
-                            "line": 173
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Business Information')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Business Information')\u001b[22m\n\n\n\u001b[0m \u001b[90m 171 |\u001b[39m\n \u001b[90m 172 |\u001b[39m     \u001b[90m// Verificar secciones\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 173 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Business Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 174 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Admin Information'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 175 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Regional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 176 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Optional Settings'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:173:61\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:221:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:39:31.790Z",
+                      "startTime": "2026-02-05T05:38:05.692Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1238,17 +1254,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                        "column": 61,
-                        "line": 173
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
                       }
                     }
                   ],
@@ -1257,7 +1268,7 @@
               ],
               "id": "0fec786bd5127312a7d3-b0926c23fbd47efcd9a1",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 169,
+              "line": 219,
               "column": 3
             },
             {
@@ -1275,29 +1286,32 @@
                     {
                       "workerIndex": 17,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31741,
+                      "status": "failed",
+                      "duration": 614,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:240:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 190
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 188 |\u001b[39m\n \u001b[90m 189 |\u001b[39m     \u001b[90m// Provisionar tenant\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 190 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Checklist Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 191 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 192 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 193 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Provision Tenant\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:190:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:240:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:39:39.515Z",
+                      "startTime": "2026-02-05T05:38:08.413Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1309,13 +1323,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -1323,7 +1337,7 @@
               ],
               "id": "0fec786bd5127312a7d3-9a358c4cfaea0c2fe342",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 186,
+              "line": 238,
               "column": 3
             },
             {
@@ -1341,29 +1355,32 @@
                     {
                       "workerIndex": 18,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 31365,
+                      "status": "failed",
+                      "duration": 693,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:272:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 16,
-                            "line": 215
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"legal_name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 213 |\u001b[39m\n \u001b[90m 214 |\u001b[39m     \u001b[90m// Llenar formulario\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 215 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"legal_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Mobile Test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 216 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_name\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'Admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 217 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[name=\"admin_pin\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 218 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:215:16\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:272:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:40:12.994Z",
+                      "startTime": "2026-02-05T05:38:11.030Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1375,13 +1392,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -1389,7 +1406,7 @@
               ],
               "id": "0fec786bd5127312a7d3-fea8e2f0dd0ee407af7e",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 208,
+              "line": 270,
               "column": 3
             },
             {
@@ -1408,31 +1425,31 @@
                       "workerIndex": 19,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6012,
+                      "duration": 637,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('label:has-text(\"Legal Name\")')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('label:has-text(\"Legal Name\")')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('label:has-text(\"Legal Name\")')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('label:has-text(\"Legal Name\")')\u001b[22m\n\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:234:34",
+                        "message": "Error: Admin authentication failed: 500",
+                        "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:299:5",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                          "column": 34,
-                          "line": 234
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 15,
+                          "line": 322
                         },
-                        "snippet": "\u001b[0m \u001b[90m 232 |\u001b[39m     \u001b[36mconst\u001b[39m adminPinLabel \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'label:has-text(\"Admin PIN\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m     \u001b[36mawait\u001b[39m expect(legalNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 236 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminPinLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 237 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:322\n\n\u001b[0m \u001b[90m 320 |\u001b[39m\n \u001b[90m 321 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mresponse\u001b[33m.\u001b[39mok()) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m         \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Admin authentication failed: ${response.status()}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m     }\n \u001b[90m 324 |\u001b[39m\n \u001b[90m 325 |\u001b[39m     \u001b[90m// Extract JWT from cookies\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                            "column": 34,
-                            "line": 234
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 15,
+                            "line": 322
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('label:has-text(\"Legal Name\")')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('label:has-text(\"Legal Name\")')\u001b[22m\n\n\n\u001b[0m \u001b[90m 232 |\u001b[39m     \u001b[36mconst\u001b[39m adminPinLabel \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'label:has-text(\"Admin PIN\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m     \u001b[36mawait\u001b[39m expect(legalNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminNameLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 236 |\u001b[39m     \u001b[36mawait\u001b[39m expect(adminPinLabel)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 237 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:234:34\u001b[22m"
+                          "message": "Error: Admin authentication failed: 500\n\n   at helpers\\test-utils.ts:322\n\n  320 |\n  321 |     if (!response.ok()) {\n> 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);\n      |               ^\n  323 |     }\n  324 |\n  325 |     // Extract JWT from cookies\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:299:5"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-04T23:40:46.305Z",
+                      "startTime": "2026-02-05T05:38:13.908Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1444,17 +1461,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts",
-                        "column": 34,
-                        "line": 234
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 15,
+                        "line": 322
                       }
                     }
                   ],
@@ -1463,7 +1475,7 @@
               ],
               "id": "0fec786bd5127312a7d3-25fc7463918900404597",
               "file": "multi-tenant-provisioning.spec.ts",
-              "line": 226,
+              "line": 297,
               "column": 3
             }
           ]
@@ -1473,8 +1485,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-04T23:31:55.004Z",
-    "duration": 537715.761,
+    "startTime": "2026-02-05T05:37:16.182Z",
+    "duration": 58845.84,
     "expected": 0,
     "skipped": 0,
     "unexpected": 20,

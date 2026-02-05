@@ -1,29 +1,22 @@
-<testsuites id="" name="" tests="20" failures="20" skipped="0" errors="0" time="537.715761">
-<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-04T23:32:03.124Z" hostname="chromium" tests="10" failures="10" skipped="0" time="251.205" errors="0">
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="11.876">
-<failure message="multi-tenant-provisioning.spec.ts:14:3 ✅ Flujo completo: Provisionar nuevo tenant" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:14:3 › Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant 
+<testsuites id="" name="" tests="20" failures="20" skipped="0" errors="0" time="58.845839999999995">
+<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-05T05:37:23.511Z" hostname="chromium" tests="10" failures="10" skipped="0" time="6.222" errors="0">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="2.003">
+<failure message="multi-tenant-provisioning.spec.ts:15:3 ✅ Flujo completo: Provisionar nuevo tenant" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:15:3 › Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant 
 
-    Error: expect(locator).toBeVisible() failed
+    Error: Admin authentication failed: 500
 
-    Locator: locator('text=Provision New Tenant')
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
+       at helpers\test-utils.ts:322
 
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=Provision New Tenant')
-
-
-      17 |
-      18 |     // 2. Verificar que la página cargó
-    > 19 |     await expect(page.locator('text=Provision New Tenant')).toBeVisible();
-         |                                                             ^
-      20 |     await expect(page.locator('text=Create a new tenant')).toBeVisible();
-      21 |
-      22 |     // 3. Llenar formulario - Información del negocio
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:19:61
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:17:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\test-failed-1.png
@@ -32,8 +25,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -41,30 +32,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="32.601">
-<failure message="multi-tenant-provisioning.spec.ts:69:3 ✅ Validación: PIN debe ser 4 dígitos" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:69:3 › Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="0.446">
+<failure message="multi-tenant-provisioning.spec.ts:74:3 ✅ Validación: PIN debe ser 4 dígitos" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:74:3 › Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      71 |
-      72 |     // Llenar con PIN inválido (solo 2 dígitos)
-    > 73 |     await page.fill('input[name="legal_name"]', 'Test');
-         |                ^
-      74 |     await page.fill('input[name="admin_name"]', 'Test');
-      75 |     await page.fill('input[name="admin_pin"]', '12');
-      76 |
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:73:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:76:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\test-failed-1.png
@@ -73,8 +60,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -82,30 +67,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="32.78">
-<failure message="multi-tenant-provisioning.spec.ts:84:3 ✅ Validación: Legal name es requerido" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:84:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.441">
+<failure message="multi-tenant-provisioning.spec.ts:94:3 ✅ Validación: Legal name es requerido" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:94:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="admin_name"]')
+       at helpers\test-utils.ts:322
 
-
-      86 |
-      87 |     // Dejar legal_name vacío
-    > 88 |     await page.fill('input[name="admin_name"]', 'Test');
-         |                ^
-      89 |     await page.fill('input[name="admin_pin"]', '1234');
-      90 |
-      91 |     const button = page.locator('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:88:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:96:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\test-failed-1.png
@@ -114,8 +95,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -123,30 +102,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="32.494">
-<failure message="multi-tenant-provisioning.spec.ts:98:3 ✅ Validación: Admin name es requerido" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:98:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.434">
+<failure message="multi-tenant-provisioning.spec.ts:114:3 ✅ Validación: Admin name es requerido" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:114:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      100 |
-      101 |     // Dejar admin_name vacío
-    > 102 |     await page.fill('input[name="legal_name"]', 'Test');
-          |                ^
-      103 |     await page.fill('input[name="admin_pin"]', '1234');
-      104 |
-      105 |     const button = page.locator('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:102:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:116:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\test-failed-1.png
@@ -155,8 +130,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -164,30 +137,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="32.05">
-<failure message="multi-tenant-provisioning.spec.ts:112:3 ✅ Funcionalidad: Copiar credenciales al portapapeles" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:112:3 › Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="0.427">
+<failure message="multi-tenant-provisioning.spec.ts:134:3 ✅ Funcionalidad: Copiar credenciales al portapapeles" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:134:3 › Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      114 |
-      115 |     // Provisionar tenant
-    > 116 |     await page.fill('input[name="legal_name"]', 'Copy Test');
-          |                ^
-      117 |     await page.fill('input[name="admin_name"]', 'Admin');
-      118 |     await page.fill('input[name="admin_pin"]', '1234');
-      119 |     await page.click('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:116:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:136:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\test-failed-1.png
@@ -196,8 +165,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -205,30 +172,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="32.795">
-<failure message="multi-tenant-provisioning.spec.ts:137:3 ✅ Flujo: Provisionar múltiples tenants" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:137:3 › Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="0.437">
+<failure message="multi-tenant-provisioning.spec.ts:169:3 ✅ Flujo: Provisionar múltiples tenants" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:169:3 › Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      139 |
-      140 |     // Provisionar tenant 1
-    > 141 |     await page.fill('input[name="legal_name"]', 'Tenant 1 E2E');
-          |                ^
-      142 |     await page.fill('input[name="admin_name"]', 'Admin 1');
-      143 |     await page.fill('input[name="admin_pin"]', '1111');
-      144 |     await page.click('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:141:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:171:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\test-failed-1.png
@@ -237,8 +200,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -246,35 +207,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="6.57">
-<failure message="multi-tenant-provisioning.spec.ts:169:3 ✅ UI: Formulario tiene todas las secciones" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:169:3 › Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="0.508">
+<failure message="multi-tenant-provisioning.spec.ts:219:3 ✅ UI: Formulario tiene todas las secciones" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:219:3 › Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones 
 
-    Error: expect(locator).toBeVisible() failed
+    Error: Admin authentication failed: 500
 
-    Locator: locator('text=Business Information')
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
+       at helpers\test-utils.ts:322
 
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=Business Information')
-
-
-      171 |
-      172 |     // Verificar secciones
-    > 173 |     await expect(page.locator('text=Business Information')).toBeVisible();
-          |                                                             ^
-      174 |     await expect(page.locator('text=Admin Information')).toBeVisible();
-      175 |     await expect(page.locator('text=Regional Settings')).toBeVisible();
-      176 |     await expect(page.locator('text=Optional Settings')).toBeVisible();
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:173:61
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:221:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\test-failed-1.png
@@ -283,8 +235,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -292,30 +242,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="32.388">
-<failure message="multi-tenant-provisioning.spec.ts:186:3 ✅ UI: Onboarding checklist muestra 6 pasos" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:186:3 › Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="0.588">
+<failure message="multi-tenant-provisioning.spec.ts:238:3 ✅ UI: Onboarding checklist muestra 6 pasos" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:238:3 › Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      188 |
-      189 |     // Provisionar tenant
-    > 190 |     await page.fill('input[name="legal_name"]', 'Checklist Test');
-          |                ^
-      191 |     await page.fill('input[name="admin_name"]', 'Admin');
-      192 |     await page.fill('input[name="admin_pin"]', '1234');
-      193 |     await page.click('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:190:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:240:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\test-failed-1.png
@@ -324,8 +270,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -333,30 +277,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="31.702">
-<failure message="multi-tenant-provisioning.spec.ts:208:3 ✅ Responsividad: Formulario funciona en mobile" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:208:3 › Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="0.469">
+<failure message="multi-tenant-provisioning.spec.ts:270:3 ✅ Responsividad: Formulario funciona en mobile" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:270:3 › Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      213 |
-      214 |     // Llenar formulario
-    > 215 |     await page.fill('input[name="legal_name"]', 'Mobile Test');
-          |                ^
-      216 |     await page.fill('input[name="admin_name"]', 'Admin');
-      217 |     await page.fill('input[name="admin_pin"]', '1234');
-      218 |
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:215:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:272:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\test-failed-1.png
@@ -365,8 +305,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -374,35 +312,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="5.949">
-<failure message="multi-tenant-provisioning.spec.ts:226:3 ✅ Accesibilidad: Formulario tiene labels correctos" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:226:3 › Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="0.469">
+<failure message="multi-tenant-provisioning.spec.ts:297:3 ✅ Accesibilidad: Formulario tiene labels correctos" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:297:3 › Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos 
 
-    Error: expect(locator).toBeVisible() failed
+    Error: Admin authentication failed: 500
 
-    Locator: locator('label:has-text("Legal Name")')
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
+       at helpers\test-utils.ts:322
 
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('label:has-text("Legal Name")')
-
-
-      232 |     const adminPinLabel = page.locator('label:has-text("Admin PIN")');
-      233 |
-    > 234 |     await expect(legalNameLabel).toBeVisible();
-          |                                  ^
-      235 |     await expect(adminNameLabel).toBeVisible();
-      236 |     await expect(adminPinLabel).toBeVisible();
-      237 |   });
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:234:34
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:299:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\test-failed-1.png
@@ -411,8 +340,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -420,37 +347,28 @@
 [[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-04T23:32:03.124Z" hostname="mobile" tests="10" failures="10" skipped="0" time="239.132" errors="0">
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="6.062">
-<failure message="multi-tenant-provisioning.spec.ts:14:3 ✅ Flujo completo: Provisionar nuevo tenant" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:14:3 › Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant 
+<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-05T05:37:23.511Z" hostname="mobile" tests="10" failures="10" skipped="0" time="5.893" errors="0">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="0.525">
+<failure message="multi-tenant-provisioning.spec.ts:15:3 ✅ Flujo completo: Provisionar nuevo tenant" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:15:3 › Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant 
 
-    Error: expect(locator).toBeVisible() failed
+    Error: Admin authentication failed: 500
 
-    Locator: locator('text=Provision New Tenant')
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
+       at helpers\test-utils.ts:322
 
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=Provision New Tenant')
-
-
-      17 |
-      18 |     // 2. Verificar que la página cargó
-    > 19 |     await expect(page.locator('text=Provision New Tenant')).toBeVisible();
-         |                                                             ^
-      20 |     await expect(page.locator('text=Create a new tenant')).toBeVisible();
-      21 |
-      22 |     // 3. Llenar formulario - Información del negocio
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:19:61
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:17:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\test-failed-1.png
@@ -459,8 +377,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -468,30 +384,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="31.574">
-<failure message="multi-tenant-provisioning.spec.ts:69:3 ✅ Validación: PIN debe ser 4 dígitos" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:69:3 › Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="0.498">
+<failure message="multi-tenant-provisioning.spec.ts:74:3 ✅ Validación: PIN debe ser 4 dígitos" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:74:3 › Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      71 |
-      72 |     // Llenar con PIN inválido (solo 2 dígitos)
-    > 73 |     await page.fill('input[name="legal_name"]', 'Test');
-         |                ^
-      74 |     await page.fill('input[name="admin_name"]', 'Test');
-      75 |     await page.fill('input[name="admin_pin"]', '12');
-      76 |
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:73:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:76:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\test-failed-1.png
@@ -500,8 +412,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -509,30 +419,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="31.582">
-<failure message="multi-tenant-provisioning.spec.ts:84:3 ✅ Validación: Legal name es requerido" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:84:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.465">
+<failure message="multi-tenant-provisioning.spec.ts:94:3 ✅ Validación: Legal name es requerido" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:94:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="admin_name"]')
+       at helpers\test-utils.ts:322
 
-
-      86 |
-      87 |     // Dejar legal_name vacío
-    > 88 |     await page.fill('input[name="admin_name"]', 'Test');
-         |                ^
-      89 |     await page.fill('input[name="admin_pin"]', '1234');
-      90 |
-      91 |     const button = page.locator('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:88:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:96:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\test-failed-1.png
@@ -541,8 +447,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -550,30 +454,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="31.645">
-<failure message="multi-tenant-provisioning.spec.ts:98:3 ✅ Validación: Admin name es requerido" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:98:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.526">
+<failure message="multi-tenant-provisioning.spec.ts:114:3 ✅ Validación: Admin name es requerido" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:114:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      100 |
-      101 |     // Dejar admin_name vacío
-    > 102 |     await page.fill('input[name="legal_name"]', 'Test');
-          |                ^
-      103 |     await page.fill('input[name="admin_pin"]', '1234');
-      104 |
-      105 |     const button = page.locator('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:102:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:116:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\test-failed-1.png
@@ -582,8 +482,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -591,30 +489,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="31.577">
-<failure message="multi-tenant-provisioning.spec.ts:112:3 ✅ Funcionalidad: Copiar credenciales al portapapeles" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:112:3 › Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="0.646">
+<failure message="multi-tenant-provisioning.spec.ts:134:3 ✅ Funcionalidad: Copiar credenciales al portapapeles" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:134:3 › Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      114 |
-      115 |     // Provisionar tenant
-    > 116 |     await page.fill('input[name="legal_name"]', 'Copy Test');
-          |                ^
-      117 |     await page.fill('input[name="admin_name"]', 'Admin');
-      118 |     await page.fill('input[name="admin_pin"]', '1234');
-      119 |     await page.click('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:116:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:136:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\test-failed-1.png
@@ -623,8 +517,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -632,30 +524,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="31.634">
-<failure message="multi-tenant-provisioning.spec.ts:137:3 ✅ Flujo: Provisionar múltiples tenants" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:137:3 › Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="0.632">
+<failure message="multi-tenant-provisioning.spec.ts:169:3 ✅ Flujo: Provisionar múltiples tenants" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:169:3 › Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      139 |
-      140 |     // Provisionar tenant 1
-    > 141 |     await page.fill('input[name="legal_name"]', 'Tenant 1 E2E');
-          |                ^
-      142 |     await page.fill('input[name="admin_name"]', 'Admin 1');
-      143 |     await page.fill('input[name="admin_pin"]', '1111');
-      144 |     await page.click('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:141:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:171:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\test-failed-1.png
@@ -664,8 +552,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -673,35 +559,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="5.94">
-<failure message="multi-tenant-provisioning.spec.ts:169:3 ✅ UI: Formulario tiene todas las secciones" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:169:3 › Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="0.657">
+<failure message="multi-tenant-provisioning.spec.ts:219:3 ✅ UI: Formulario tiene todas las secciones" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:219:3 › Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones 
 
-    Error: expect(locator).toBeVisible() failed
+    Error: Admin authentication failed: 500
 
-    Locator: locator('text=Business Information')
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
+       at helpers\test-utils.ts:322
 
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=Business Information')
-
-
-      171 |
-      172 |     // Verificar secciones
-    > 173 |     await expect(page.locator('text=Business Information')).toBeVisible();
-          |                                                             ^
-      174 |     await expect(page.locator('text=Admin Information')).toBeVisible();
-      175 |     await expect(page.locator('text=Regional Settings')).toBeVisible();
-      176 |     await expect(page.locator('text=Optional Settings')).toBeVisible();
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:173:61
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:221:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\test-failed-1.png
@@ -710,8 +587,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -719,30 +594,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="31.741">
-<failure message="multi-tenant-provisioning.spec.ts:186:3 ✅ UI: Onboarding checklist muestra 6 pasos" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:186:3 › Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="0.614">
+<failure message="multi-tenant-provisioning.spec.ts:238:3 ✅ UI: Onboarding checklist muestra 6 pasos" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:238:3 › Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      188 |
-      189 |     // Provisionar tenant
-    > 190 |     await page.fill('input[name="legal_name"]', 'Checklist Test');
-          |                ^
-      191 |     await page.fill('input[name="admin_name"]', 'Admin');
-      192 |     await page.fill('input[name="admin_pin"]', '1234');
-      193 |     await page.click('button:has-text("Provision Tenant")');
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:190:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:240:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\test-failed-1.png
@@ -751,8 +622,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -760,30 +629,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="31.365">
-<failure message="multi-tenant-provisioning.spec.ts:208:3 ✅ Responsividad: Formulario funciona en mobile" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:208:3 › Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="0.693">
+<failure message="multi-tenant-provisioning.spec.ts:270:3 ✅ Responsividad: Formulario funciona en mobile" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:270:3 › Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile 
 
-    Test timeout of 30000ms exceeded.
+    Error: Admin authentication failed: 500
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="legal_name"]')
+       at helpers\test-utils.ts:322
 
-
-      213 |
-      214 |     // Llenar formulario
-    > 215 |     await page.fill('input[name="legal_name"]', 'Mobile Test');
-          |                ^
-      216 |     await page.fill('input[name="admin_name"]', 'Admin');
-      217 |     await page.fill('input[name="admin_pin"]', '1234');
-      218 |
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:215:16
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:272:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\test-failed-1.png
@@ -792,8 +657,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -801,35 +664,26 @@
 [[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="6.012">
-<failure message="multi-tenant-provisioning.spec.ts:226:3 ✅ Accesibilidad: Formulario tiene labels correctos" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:226:3 › Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos 
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="0.637">
+<failure message="multi-tenant-provisioning.spec.ts:297:3 ✅ Accesibilidad: Formulario tiene labels correctos" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:297:3 › Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos 
 
-    Error: expect(locator).toBeVisible() failed
+    Error: Admin authentication failed: 500
 
-    Locator: locator('label:has-text("Legal Name")')
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
+       at helpers\test-utils.ts:322
 
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('label:has-text("Legal Name")')
-
-
-      232 |     const adminPinLabel = page.locator('label:has-text("Admin PIN")');
-      233 |
-    > 234 |     await expect(legalNameLabel).toBeVisible();
-          |                                  ^
-      235 |     await expect(adminNameLabel).toBeVisible();
-      236 |     await expect(adminPinLabel).toBeVisible();
-      237 |   });
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:234:34
+      320 |
+      321 |     if (!response.ok()) {
+    > 322 |         throw new Error(`Admin authentication failed: ${response.status()}`);
+          |               ^
+      323 |     }
+      324 |
+      325 |     // Extract JWT from cookies
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:322:15)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:299:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\test-failed-1.png
@@ -838,8 +692,6 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
@@ -847,8 +699,6 @@
 [[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>

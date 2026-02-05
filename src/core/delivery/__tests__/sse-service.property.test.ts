@@ -13,9 +13,9 @@
  */
 
 import fc from 'fast-check';
-import { describe, it, expect, afterEach } from 'vitest';
-import { SSEConnectionManager } from '../sse-connection-manager';
-import { SSEBroadcaster } from '../sse-broadcaster';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
+import { SSEConnectionManager, sseConnectionManager } from '../sse-connection-manager';
+import { SSEBroadcaster, sseBroadcaster } from '../sse-broadcaster';
 import { arbitraryDeliveryEvent } from '../arbitraries';
 import { DeliveryEvent } from '../types-2026';
 
@@ -54,28 +54,26 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
           arbitraryDeliveryEvent(),
           fc.integer({ min: 1, max: 10 }), // Number of clients
           async (event, clientCount) => {
-            // Setup
-            const manager = new SSEConnectionManager();
-            const broadcaster = new SSEBroadcaster();
-            const mockControllers: ReadableStreamDefaultController[] = [];
+            // Setup - use singleton manager
             const receivedEvents: Array<{ clientId: string; timestamp: number }> = [];
+            const clientIds: string[] = [];
             
             // Create mock controllers that track when events are received
             for (let i = 0; i < clientCount; i++) {
-              const clientId = `client-${i}`;
+              const clientId = `client-${i}-${Date.now()}`;
               const controller = createMockController((data) => {
                 receivedEvents.push({
                   clientId,
                   timestamp: Date.now()
                 });
               });
-              mockControllers.push(controller);
-              await manager.addClient(clientId, controller);
+              clientIds.push(clientId);
+              await sseConnectionManager.addClient(clientId, controller);
             }
             
             // Act
             const startTime = Date.now();
-            await broadcaster.broadcast(event);
+            await sseBroadcaster.broadcast(event);
             const endTime = Date.now();
             
             // Assert
@@ -90,8 +88,9 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             }
             
             // Cleanup
-            await manager.shutdown();
-            await broadcaster.shutdown();
+            for (const clientId of clientIds) {
+              await sseConnectionManager.removeClient(clientId);
+            }
           }
         ),
         { numRuns: 100 }
@@ -114,25 +113,25 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
           arbitraryDeliveryEvent(),
           fc.integer({ min: 2, max: 20 }), // Multiple clients
           async (event, clientCount) => {
-            // Setup
-            const manager = new SSEConnectionManager();
-            const broadcaster = new SSEBroadcaster();
+            // Setup - use singleton manager
             const receivedData: Array<{ clientId: string; data: string }> = [];
+            const clientIds: string[] = [];
             
             // Create mock controllers that capture received data
             for (let i = 0; i < clientCount; i++) {
-              const clientId = `client-${i}`;
+              const clientId = `client-${i}-${Date.now()}`;
               const controller = createMockController((data) => {
                 receivedData.push({
                   clientId,
                   data: new TextDecoder().decode(data)
                 });
               });
-              await manager.addClient(clientId, controller);
+              clientIds.push(clientId);
+              await sseConnectionManager.addClient(clientId, controller);
             }
             
             // Act
-            await broadcaster.broadcast(event);
+            await sseBroadcaster.broadcast(event);
             
             // Wait a bit for async operations
             await new Promise(resolve => {
@@ -153,8 +152,9 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             expect(firstData).toContain(`event: ${event.type}`);
             
             // Cleanup
-            await manager.shutdown();
-            await broadcaster.shutdown();
+            for (const clientId of clientIds) {
+              await sseConnectionManager.removeClient(clientId);
+            }
           }
         ),
         { numRuns: 100 }
@@ -291,11 +291,10 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
         fc.asyncProperty(
           fc.array(arbitraryDeliveryEvent(), { minLength: 2, maxLength: 50 }),
           async (events) => {
-            // Setup
-            const manager = new SSEConnectionManager();
-            const broadcaster = new SSEBroadcaster();
+            // Setup - use singleton manager
             const eventIds = new Set<string>();
             const receivedEvents: DeliveryEvent[] = [];
+            const clientId = `test-client-${Date.now()}`;
             
             // Create a mock controller that captures event IDs
             const controller = createMockController((data) => {
@@ -318,11 +317,11 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
               }
             });
             
-            await manager.addClient('test-client', controller);
+            await sseConnectionManager.addClient(clientId, controller);
             
             // Act - Broadcast all events
             for (const event of events) {
-              await broadcaster.broadcast(event);
+              await sseBroadcaster.broadcast(event);
             }
             
             // Wait for async operations
@@ -347,8 +346,7 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             expect(uniqueIds.size).toBe(idsArray.length);
             
             // Cleanup
-            await manager.shutdown();
-            await broadcaster.shutdown();
+            await sseConnectionManager.removeClient(clientId);
           }
         ),
         { numRuns: 100 }
