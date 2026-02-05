@@ -1,0 +1,51 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/core/domain/events.ts",
+    "src/core/domain/money.ts",
+    "src/core/types/shared.ts",
+    "src/core/services/order.service.ts",
+    "src/core/services/payment.service.ts",
+    "src/core/services/invoice.service.ts",
+    "src/core/services/inventory.service.ts",
+    "src/core/sync/client.ts",
+    "src/core/observability/structured-logger.ts",
+    "src/core/observability/error-tracker.ts",
+    "src/core/observability/metrics.ts",
+    "src/core/cache/cache-service.ts",
+    "src/lib/openapi/generator.ts",
+    "src/lib/openapi/postman-exporter.ts"
+  ],
+  "out": "public/docs/code",
+  "name": "PARK POS API Documentation",
+  "includeVersion": true,
+  "entryPointStrategy": "expand",
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/node_modules/**",
+    "**/__tests__/**"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": false,
+  "readme": "none",
+  "plugin": [],
+  "theme": "default",
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Domain Models",
+    "Services",
+    "Observability",
+    "Utilities",
+    "*"
+  ],
+  "sort": ["source-order"],
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "searchInComments": true,
+  "cleanOutputDir": true
+}
