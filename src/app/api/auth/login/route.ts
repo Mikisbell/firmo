@@ -17,9 +17,17 @@ const LoginSchema = z.object({
   tenant_id: z.string().uuid(),
   terminal_id: z.string().optional(), // Optional for admin panel
   pin: z.string().length(4),
-  device_fingerprint: z.string().min(16).optional(), // Optional for admin panel
-  device_id: z.string().uuid().optional(), // Device identifier
+  // Support both old and new fingerprint formats
+  fingerprint: z.object({
+    hash: z.string(),
+    signals: z.any().optional(),
+    signalCount: z.number().optional(),
+    timestamp: z.number().optional(),
+  }).optional(), // Old format (object)
+  device_fingerprint: z.string().min(16).optional(), // New format (string)
+  device_id: z.string().optional(), // Device identifier (relaxed from uuid)
   mac_address: z.string().optional(), // MAC address (hybrid validation)
+  risk_score: z.number().optional(), // Risk score from frontend
 });
 
 // Handle CORS preflight request
@@ -36,6 +44,10 @@ export async function POST(request: NextRequest) {
     
     const data = LoginSchema.parse(body);
     console.log('[Login API] Schema validation passed');
+
+    // Extract device fingerprint from either format
+    const deviceFingerprint = data.fingerprint?.hash || data.device_fingerprint;
+    console.log('[Login API] Device fingerprint:', deviceFingerprint ? 'present' : 'not provided');
 
     // Get metadata for audit
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
@@ -193,8 +205,8 @@ export async function POST(request: NextRequest) {
       }
 
       // Verify device fingerprint if provided
-      if (data.device_fingerprint && terminal.device_secret_hash && 
-          terminal.device_secret_hash !== data.device_fingerprint) {
+      if (deviceFingerprint && terminal.device_secret_hash && 
+          terminal.device_secret_hash !== deviceFingerprint) {
         console.log('[Login API] Device fingerprint mismatch');
         return NextResponse.json(
           { error: 'Dispositivo no reconocido' },
