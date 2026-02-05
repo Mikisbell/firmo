@@ -7,11 +7,15 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { authenticateAsAdmin, TEST_PINS } from './helpers/test-utils';
 
 test.describe('Multi-Tenant Provisioning E2E', () => {
-  const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
+  const baseURL = 'http://localhost:3000';
 
   test('✅ Flujo completo: Provisionar nuevo tenant', async ({ page }) => {
+    // 0. Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     // 1. Navegar a página de provisioning
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
@@ -67,6 +71,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ Validación: PIN debe ser 4 dígitos', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Llenar con PIN inválido (solo 2 dígitos)
@@ -82,6 +89,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ Validación: Legal name es requerido', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Dejar legal_name vacío
@@ -96,6 +106,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ Validación: Admin name es requerido', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Dejar admin_name vacío
@@ -110,6 +123,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ Funcionalidad: Copiar credenciales al portapapeles', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Provisionar tenant
@@ -135,6 +151,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ Flujo: Provisionar múltiples tenants', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Provisionar tenant 1
@@ -167,6 +186,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ UI: Formulario tiene todas las secciones', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Verificar secciones
@@ -184,6 +206,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ UI: Onboarding checklist muestra 6 pasos', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Provisionar tenant
@@ -206,6 +231,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ Responsividad: Formulario funciona en mobile', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     // Simular viewport mobile
     await page.setViewportSize({ width: 375, height: 667 });
 
@@ -224,6 +252,9 @@ test.describe('Multi-Tenant Provisioning E2E', () => {
   });
 
   test('✅ Accesibilidad: Formulario tiene labels correctos', async ({ page }) => {
+    // Authenticate as admin first
+    await authenticateAsAdmin(page, TEST_PINS.ADMIN);
+
     await page.goto(`${baseURL}/admin/tenant/provisioning`);
 
     // Verificar que los inputs tienen labels
