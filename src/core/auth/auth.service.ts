@@ -78,9 +78,9 @@ export async function isLockedOut(
         where: {
             tenant_id: tenantId,
             pin_hash: pinHash,
-            created_at: { gte: since },
+            attempted_at: { gte: since },
         },
-        orderBy: { created_at: 'desc' },
+        orderBy: { attempted_at: 'desc' },
         take: MAX_FAILED_ATTEMPTS + 1,
     });
 
@@ -88,7 +88,7 @@ export async function isLockedOut(
     
     if (failedAttempts.length >= MAX_FAILED_ATTEMPTS) {
         const oldestFailed = failedAttempts[failedAttempts.length - 1];
-        const lockoutUntil = new Date(oldestFailed.created_at.getTime() + LOCKOUT_DURATION_MS);
+        const lockoutUntil = new Date(oldestFailed.attempted_at.getTime() + LOCKOUT_DURATION_MS);
         
         if (lockoutUntil > new Date()) {
             return { locked: true, until: lockoutUntil, attempts: failedAttempts.length };
