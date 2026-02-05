@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="20" failures="20" skipped="0" errors="0" time="58.845839999999995">
-<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-05T05:37:23.511Z" hostname="chromium" tests="10" failures="10" skipped="0" time="6.222" errors="0">
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="2.003">
+<testsuites id="" name="" tests="20" failures="20" skipped="0" errors="0" time="47.169881">
+<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-05T05:47:08.652Z" hostname="chromium" tests="10" failures="10" skipped="0" time="4.791" errors="0">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="0.697">
 <failure message="multi-tenant-provisioning.spec.ts:15:3 ✅ Flujo completo: Provisionar nuevo tenant" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:15:3 › Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant 
 
@@ -35,7 +35,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="0.446">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="0.445">
 <failure message="multi-tenant-provisioning.spec.ts:74:3 ✅ Validación: PIN debe ser 4 dígitos" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:74:3 › Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos 
 
@@ -70,7 +70,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.441">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.456">
 <failure message="multi-tenant-provisioning.spec.ts:94:3 ✅ Validación: Legal name es requerido" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:94:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido 
 
@@ -105,7 +105,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.434">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.447">
 <failure message="multi-tenant-provisioning.spec.ts:114:3 ✅ Validación: Admin name es requerido" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:114:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido 
 
@@ -140,7 +140,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="0.427">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="0.444">
 <failure message="multi-tenant-provisioning.spec.ts:134:3 ✅ Funcionalidad: Copiar credenciales al portapapeles" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:134:3 › Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles 
 
@@ -175,7 +175,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="0.437">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="0.431">
 <failure message="multi-tenant-provisioning.spec.ts:169:3 ✅ Flujo: Provisionar múltiples tenants" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:169:3 › Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants 
 
@@ -210,7 +210,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="0.508">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="0.453">
 <failure message="multi-tenant-provisioning.spec.ts:219:3 ✅ UI: Formulario tiene todas las secciones" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:219:3 › Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones 
 
@@ -245,7 +245,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="0.588">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="0.518">
 <failure message="multi-tenant-provisioning.spec.ts:238:3 ✅ UI: Onboarding checklist muestra 6 pasos" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:238:3 › Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos 
 
@@ -280,7 +280,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="0.469">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="0.464">
 <failure message="multi-tenant-provisioning.spec.ts:270:3 ✅ Responsividad: Formulario funciona en mobile" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:270:3 › Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile 
 
@@ -315,7 +315,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="0.469">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="0.436">
 <failure message="multi-tenant-provisioning.spec.ts:297:3 ✅ Accesibilidad: Formulario tiene labels correctos" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:297:3 › Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos 
 
@@ -351,8 +351,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-05T05:37:23.511Z" hostname="mobile" tests="10" failures="10" skipped="0" time="5.893" errors="0">
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="0.525">
+<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-05T05:47:08.652Z" hostname="mobile" tests="10" failures="10" skipped="0" time="4.856" errors="0">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="0.457">
 <failure message="multi-tenant-provisioning.spec.ts:15:3 ✅ Flujo completo: Provisionar nuevo tenant" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:15:3 › Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant 
 
@@ -387,7 +387,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="0.498">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="0.466">
 <failure message="multi-tenant-provisioning.spec.ts:74:3 ✅ Validación: PIN debe ser 4 dígitos" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:74:3 › Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos 
 
@@ -422,7 +422,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.465">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.468">
 <failure message="multi-tenant-provisioning.spec.ts:94:3 ✅ Validación: Legal name es requerido" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:94:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido 
 
@@ -457,7 +457,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.526">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="0.473">
 <failure message="multi-tenant-provisioning.spec.ts:114:3 ✅ Validación: Admin name es requerido" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:114:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido 
 
@@ -492,7 +492,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="0.646">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="0.569">
 <failure message="multi-tenant-provisioning.spec.ts:134:3 ✅ Funcionalidad: Copiar credenciales al portapapeles" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:134:3 › Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles 
 
@@ -527,7 +527,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="0.632">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="0.452">
 <failure message="multi-tenant-provisioning.spec.ts:169:3 ✅ Flujo: Provisionar múltiples tenants" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:169:3 › Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants 
 
@@ -562,7 +562,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="0.657">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="0.48">
 <failure message="multi-tenant-provisioning.spec.ts:219:3 ✅ UI: Formulario tiene todas las secciones" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:219:3 › Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones 
 
@@ -597,7 +597,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="0.614">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="0.47">
 <failure message="multi-tenant-provisioning.spec.ts:238:3 ✅ UI: Onboarding checklist muestra 6 pasos" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:238:3 › Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos 
 
@@ -632,7 +632,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="0.693">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="0.457">
 <failure message="multi-tenant-provisioning.spec.ts:270:3 ✅ Responsividad: Formulario funciona en mobile" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:270:3 › Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile 
 
@@ -667,7 +667,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="0.637">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="0.564">
 <failure message="multi-tenant-provisioning.spec.ts:297:3 ✅ Accesibilidad: Formulario tiene labels correctos" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-provisioning.spec.ts:297:3 › Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos 
 

@@ -114,7 +114,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 2003,
+                      "duration": 697,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:17:5",
@@ -138,7 +138,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:25.116Z",
+                      "startTime": "2026-02-05T05:47:10.429Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -183,7 +183,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 446,
+                      "duration": 445,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:76:5",
@@ -207,7 +207,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:29.418Z",
+                      "startTime": "2026-02-05T05:47:12.976Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -252,7 +252,7 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 441,
+                      "duration": 456,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:96:5",
@@ -276,7 +276,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:31.686Z",
+                      "startTime": "2026-02-05T05:47:15.254Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -321,7 +321,7 @@
                       "workerIndex": 3,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 434,
+                      "duration": 447,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:5",
@@ -345,7 +345,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:33.950Z",
+                      "startTime": "2026-02-05T05:47:17.516Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -390,7 +390,7 @@
                       "workerIndex": 4,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 427,
+                      "duration": 444,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:136:5",
@@ -414,7 +414,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:36.177Z",
+                      "startTime": "2026-02-05T05:47:19.752Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -459,7 +459,7 @@
                       "workerIndex": 5,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 437,
+                      "duration": 431,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:171:5",
@@ -483,7 +483,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:38.345Z",
+                      "startTime": "2026-02-05T05:47:22.002Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -528,7 +528,7 @@
                       "workerIndex": 6,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 508,
+                      "duration": 453,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:221:5",
@@ -552,7 +552,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:40.563Z",
+                      "startTime": "2026-02-05T05:47:24.180Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -597,7 +597,7 @@
                       "workerIndex": 7,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 588,
+                      "duration": 518,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:240:5",
@@ -621,7 +621,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:42.850Z",
+                      "startTime": "2026-02-05T05:47:26.457Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -666,7 +666,7 @@
                       "workerIndex": 8,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 469,
+                      "duration": 464,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:272:5",
@@ -690,7 +690,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:45.285Z",
+                      "startTime": "2026-02-05T05:47:28.714Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -735,7 +735,7 @@
                       "workerIndex": 9,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 469,
+                      "duration": 436,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:299:5",
@@ -759,7 +759,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:47.517Z",
+                      "startTime": "2026-02-05T05:47:31.024Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -804,7 +804,7 @@
                       "workerIndex": 10,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 525,
+                      "duration": 457,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:17:5",
@@ -828,7 +828,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:49.985Z",
+                      "startTime": "2026-02-05T05:47:33.385Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -873,7 +873,7 @@
                       "workerIndex": 11,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 498,
+                      "duration": 466,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:76:5",
@@ -897,7 +897,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:52.753Z",
+                      "startTime": "2026-02-05T05:47:35.688Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -942,7 +942,7 @@
                       "workerIndex": 12,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 465,
+                      "duration": 468,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:96:5",
@@ -966,7 +966,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:55.250Z",
+                      "startTime": "2026-02-05T05:47:37.948Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1011,7 +1011,7 @@
                       "workerIndex": 13,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 526,
+                      "duration": 473,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:116:5",
@@ -1035,7 +1035,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:37:57.578Z",
+                      "startTime": "2026-02-05T05:47:40.185Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1080,7 +1080,7 @@
                       "workerIndex": 14,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 646,
+                      "duration": 569,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:136:5",
@@ -1104,7 +1104,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:38:00.181Z",
+                      "startTime": "2026-02-05T05:47:42.681Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1149,7 +1149,7 @@
                       "workerIndex": 15,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 632,
+                      "duration": 452,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:171:5",
@@ -1173,7 +1173,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:38:02.980Z",
+                      "startTime": "2026-02-05T05:47:45.088Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1218,7 +1218,7 @@
                       "workerIndex": 16,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 657,
+                      "duration": 480,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:221:5",
@@ -1242,7 +1242,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:38:05.692Z",
+                      "startTime": "2026-02-05T05:47:47.388Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1287,7 +1287,7 @@
                       "workerIndex": 17,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 614,
+                      "duration": 470,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:240:5",
@@ -1311,7 +1311,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:38:08.413Z",
+                      "startTime": "2026-02-05T05:47:49.641Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1356,7 +1356,7 @@
                       "workerIndex": 18,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 693,
+                      "duration": 457,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:272:5",
@@ -1380,7 +1380,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:38:11.030Z",
+                      "startTime": "2026-02-05T05:47:51.975Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1425,7 +1425,7 @@
                       "workerIndex": 19,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 637,
+                      "duration": 564,
                       "error": {
                         "message": "Error: Admin authentication failed: 500",
                         "stack": "Error: Admin authentication failed: 500\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:322:15)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-provisioning.spec.ts:299:5",
@@ -1449,7 +1449,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-05T05:38:13.908Z",
+                      "startTime": "2026-02-05T05:47:54.205Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1485,8 +1485,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-05T05:37:16.182Z",
-    "duration": 58845.84,
+    "startTime": "2026-02-05T05:47:07.846Z",
+    "duration": 47169.880999999994,
     "expected": 0,
     "skipped": 0,
     "unexpected": 20,
