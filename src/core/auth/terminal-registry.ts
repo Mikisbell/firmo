@@ -4,12 +4,19 @@
  * Manages terminal device registration, activation codes, and device binding.
  * 
  * Requirements: 2.1, 2.2, 2.3, 2.4, 2.6, 3.1
+ * 
+ * Cache Integration: Task 9.9
+ * - Cache terminal data with 15-minute TTL (900s)
+ * - Invalidate on terminal updates
+ * - Use cache-aside pattern
  */
 
 import prisma from '@/src/core/db/prisma';
-import { logger } from '@/src/core/observability/logger';
+import { logger } from '@/src/core/observability/structured-logger';
 import { hashWithSalt, type FingerprintResult } from './fingerprint-v2';
 import { randomBytes } from 'crypto';
+import { cache, generateCacheKey, DEFAULT_TTLS } from '@/src/core/cache/cache-service';
+import { metrics } from '@/src/core/observability/metrics';
 
 // ============ TYPES ============
 
@@ -183,6 +190,11 @@ export async function generateActivationCode(terminalId: string, createdBy: stri
 
 /**
  * Activate a device with an activation code
+ * 
+ * Cache Invalidation:
+ * - Invalidates terminal cache on successful activation
+ * - Uses tag-based invalidation
+ * 
  * Requirements: 2.2, 2.3, 2.4
  */
 export async function activateDevice(
@@ -286,6 +298,11 @@ export async function activateDevice(
     data: { used: true },
   });
 
+  // Invalidate terminal cache
+  await cache.deleteByTag(`tenant:${tenantId}`);
+  await cache.deleteByTag('terminals');
+  metrics.increment('cache.invalidation', { resource: 'terminal', reason: 'activation' });
+
   logger.info('DEVICE_ACTIVATED', 'Device successfully activated', {
     terminal_id: activationCode.terminal_id,
     role: updatedTerminal.role,
@@ -371,35 +388,128 @@ export async function validateTerminal(
 }
 
 /**
- * Get a terminal by ID
+ * Get a terminal by ID with caching
+ * 
+ * Cache Strategy:
+ * - TTL: 15 minutes (900 seconds)
+ * - Cache key: terminal:{tenantId}:{terminalId}
+ * - Tags: tenant:{tenantId}, terminals
+ * 
  * Requirements: 3.1
  */
 export async function getTerminal(terminalId: string, tenantId: string): Promise<TerminalDevice | null> {
-  const terminal = await prisma.terminal_devices.findFirst({
-    where: {
-      terminal_id: terminalId,
-      tenant_id: tenantId,
-    },
-  });
-
-  return terminal ? mapToTerminalDevice(terminal) : null;
+  const startTime = Date.now();
+  
+  // Generate cache key
+  const cacheKey = generateCacheKey('terminal', tenantId, terminalId);
+  
+  try {
+    // Try cache first (cache-aside pattern)
+    const cached = await cache.get<TerminalDevice>(cacheKey);
+    
+    if (cached) {
+      metrics.increment('cache.hit', { resource: 'terminal', backend: cache.getType() });
+      metrics.timing('terminal.get', Date.now() - startTime, { source: 'cache' });
+      return cached;
+    }
+    
+    metrics.increment('cache.miss', { resource: 'terminal', backend: cache.getType() });
+    
+    // Cache miss - fetch from database
+    const terminal = await prisma.terminal_devices.findFirst({
+      where: {
+        terminal_id: terminalId,
+        tenant_id: tenantId,
+      },
+    });
+    
+    if (!terminal) {
+      return null;
+    }
+    
+    const mappedTerminal = mapToTerminalDevice(terminal);
+    
+    // Store in cache with 15-minute TTL
+    await cache.set(cacheKey, mappedTerminal, {
+      ttl: DEFAULT_TTLS.terminals, // 900 seconds (15 minutes)
+      tags: [`tenant:${tenantId}`, 'terminals'],
+    });
+    
+    metrics.timing('terminal.get', Date.now() - startTime, { source: 'database' });
+    
+    return mappedTerminal;
+    
+  } catch (error) {
+    logger.error('TERMINAL_GET_ERROR', 'Failed to get terminal', error as Error, {
+      terminalId,
+      tenantId,
+    });
+    metrics.increment('terminal.error', { operation: 'get' });
+    throw error;
+  }
 }
 
 /**
- * List all terminals for a tenant
+ * List all terminals for a tenant with caching
+ * 
+ * Cache Strategy:
+ * - TTL: 15 minutes (900 seconds)
+ * - Cache key: terminals:{tenantId}:list
+ * - Tags: tenant:{tenantId}, terminals
+ * 
  * Requirements: 3.1
  */
 export async function listTerminals(tenantId: string): Promise<TerminalDevice[]> {
-  const terminals = await prisma.terminal_devices.findMany({
-    where: { tenant_id: tenantId },
-    orderBy: { terminal_id: 'asc' },
-  });
-
-  return terminals.map(mapToTerminalDevice);
+  const startTime = Date.now();
+  
+  // Generate cache key
+  const cacheKey = generateCacheKey('terminals', tenantId, 'list');
+  
+  try {
+    // Try cache first (cache-aside pattern)
+    const cached = await cache.get<TerminalDevice[]>(cacheKey);
+    
+    if (cached) {
+      metrics.increment('cache.hit', { resource: 'terminals-list', backend: cache.getType() });
+      metrics.timing('terminals.list', Date.now() - startTime, { source: 'cache' });
+      return cached;
+    }
+    
+    metrics.increment('cache.miss', { resource: 'terminals-list', backend: cache.getType() });
+    
+    // Cache miss - fetch from database
+    const terminals = await prisma.terminal_devices.findMany({
+      where: { tenant_id: tenantId },
+      orderBy: { terminal_id: 'asc' },
+    });
+    
+    const mappedTerminals = terminals.map(mapToTerminalDevice);
+    
+    // Store in cache with 15-minute TTL
+    await cache.set(cacheKey, mappedTerminals, {
+      ttl: DEFAULT_TTLS.terminals, // 900 seconds (15 minutes)
+      tags: [`tenant:${tenantId}`, 'terminals'],
+    });
+    
+    metrics.timing('terminals.list', Date.now() - startTime, { source: 'database' });
+    
+    return mappedTerminals;
+    
+  } catch (error) {
+    logger.error('TERMINALS_LIST_ERROR', 'Failed to list terminals', error as Error, {
+      tenantId,
+    });
+    metrics.increment('terminals.error', { operation: 'list' });
+    throw error;
+  }
 }
 
 /**
- * Disable a terminal
+ * Disable a terminal and invalidate cache
+ * 
+ * Cache Invalidation:
+ * - Invalidates terminal cache on status change
+ * 
  * Requirements: 3.3
  */
 export async function disableTerminal(terminalId: string, tenantId: string): Promise<void> {
@@ -413,11 +523,19 @@ export async function disableTerminal(terminalId: string, tenantId: string): Pro
     },
   });
 
+  // Invalidate terminal cache
+  await cache.deleteByTag(`tenant:${tenantId}`);
+  await cache.deleteByTag('terminals');
+  metrics.increment('cache.invalidation', { resource: 'terminal', reason: 'disable' });
+
   logger.info('TERMINAL_DISABLED', 'Terminal disabled', { terminal_id: terminalId });
 }
 
 /**
- * Update terminal status
+ * Update terminal status and invalidate cache
+ * 
+ * Cache Invalidation:
+ * - Invalidates terminal cache on status change
  */
 export async function updateTerminalStatus(
   terminalId: string,
@@ -433,6 +551,11 @@ export async function updateTerminalStatus(
   });
 
   if (terminal.count === 0) return null;
+
+  // Invalidate terminal cache
+  await cache.deleteByTag(`tenant:${tenantId}`);
+  await cache.deleteByTag('terminals');
+  metrics.increment('cache.invalidation', { resource: 'terminal', reason: 'status_update' });
 
   return getTerminal(terminalId, tenantId);
 }

@@ -2,6 +2,10 @@
  * Products API - GET, PUT, DELETE for single product
  * Requirements: 2.3, 2.4, 2.7, 10.5, 10.6, 1.10 (images)
  * Properties: 8 (image reordering)
+ * 
+ * Cache Integration: Task 9.7
+ * - Invalidate product cache on updates
+ * - Use tag-based invalidation
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,10 +13,11 @@ import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
-import { cache } from '@/src/core/cache/redis.service';
+import { cache } from '@/src/core/cache/cache-service';
 import { ImageReorderRequestSchema } from '@/src/core/admin/schemas/product-image.schema';
 import type { ProductImage } from '@/src/core/types/product-images';
 import { ZodError } from 'zod';
+import { metrics } from '@/src/core/observability/metrics';
 
 const TENANT_ID = getTenantId();
 
@@ -210,8 +215,10 @@ export async function PUT(
       return updatedProduct;
     });
 
-    // Invalidate cache
-    await cache.invalidatePattern('products:*');
+    // Invalidate cache using tag-based invalidation
+    await cache.deleteByTag(`tenant:${TENANT_ID}`);
+    await cache.deleteByTag('products');
+    metrics.increment('cache.invalidation', { resource: 'products', reason: 'update' });
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -271,6 +278,11 @@ export async function DELETE(
         },
       });
     });
+
+    // Invalidate cache using tag-based invalidation
+    await cache.deleteByTag(`tenant:${TENANT_ID}`);
+    await cache.deleteByTag('products');
+    metrics.increment('cache.invalidation', { resource: 'products', reason: 'delete' });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

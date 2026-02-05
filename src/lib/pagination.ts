@@ -39,15 +39,26 @@ const MAX_LIMIT = 100;
 /**
  * Parse and validate pagination parameters from URL search params
  * 
+ * Supports both 'limit' and 'pageSize' query parameters (pageSize takes precedence)
+ * 
  * @param searchParams - URL search params object
  * @returns Validated pagination parameters with skip offset
  * 
  * @example
+ * // Using page and pageSize
  * const params = parsePaginationParams(request.nextUrl.searchParams);
  * const items = await prisma.items.findMany({
  *   skip: params.skip,
  *   take: params.limit,
  * });
+ * 
+ * @example
+ * // Query: ?page=2&pageSize=20
+ * // Returns: { page: 2, limit: 20, skip: 20 }
+ * 
+ * @example
+ * // Query: ?page=1&limit=50
+ * // Returns: { page: 1, limit: 50, skip: 0 }
  */
 export function parsePaginationParams(
   searchParams: URLSearchParams
@@ -57,9 +68,11 @@ export function parsePaginationParams(
   let page = pageParam ? parseInt(pageParam, 10) : DEFAULT_PAGE;
   page = isNaN(page) ? DEFAULT_PAGE : Math.max(1, page);
 
-  // Parse limit (default: 10, min: 1, max: 100)
+  // Parse limit/pageSize (pageSize takes precedence, default: 10, min: 1, max: 100)
+  const pageSizeParam = searchParams.get('pageSize');
   const limitParam = searchParams.get('limit');
-  let limit = limitParam ? parseInt(limitParam, 10) : DEFAULT_LIMIT;
+  const sizeParam = pageSizeParam || limitParam;
+  let limit = sizeParam ? parseInt(sizeParam, 10) : DEFAULT_LIMIT;
   limit = isNaN(limit) ? DEFAULT_LIMIT : Math.max(MIN_LIMIT, Math.min(MAX_LIMIT, limit));
 
   // Calculate skip offset

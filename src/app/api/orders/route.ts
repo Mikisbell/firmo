@@ -1,20 +1,30 @@
 /**
  * Orders API - Root Endpoint
  * GET - List all orders for current user/terminal
+ * 
+ * Query Parameters:
+ * - page: Page number (default: 1, min: 1)
+ * - pageSize: Items per page (default: 20, max: 100)
+ * - orderStatus: Filter by order status
+ * - terminalId: Filter by terminal ID
+ * 
+ * Requirements: 9.6 (Pagination with max 100 items)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
 export async function GET(request: NextRequest) {
   try {
     const tenantId = getTenantId();
     
-    // Get query parameters
+    // Parse pagination parameters (supports page/pageSize)
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
+    // Get filter parameters
     const searchParams = request.nextUrl.searchParams;
-    const skip = parseInt(searchParams.get('skip') || '0');
-    const take = parseInt(searchParams.get('take') || '50');
     const orderStatus = searchParams.get('orderStatus');
     const terminalId = searchParams.get('terminalId');
 
@@ -34,11 +44,11 @@ export async function GET(request: NextRequest) {
     // Get total count
     const total = await prisma.orders.count({ where });
 
-    // Get orders
+    // Get orders with pagination
     const orders = await prisma.orders.findMany({
       where,
-      skip,
-      take,
+      skip: params.skip,
+      take: params.limit,
       orderBy: { created_at: 'desc' },
       select: {
         id: true,
@@ -51,15 +61,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      data: orders,
-      pagination: {
-        skip,
-        take,
-        total,
-        hasMore: skip + take < total,
-      },
-    });
+    // Return standardized paginated response
+    return NextResponse.json(createPaginatedResponse(orders, total, params));
   } catch (error) {
     console.error('Error fetching orders:', error);
     return NextResponse.json(

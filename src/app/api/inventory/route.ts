@@ -1,20 +1,30 @@
 /**
  * Inventory API - Root Endpoint
  * GET - List inventory stock
+ * 
+ * Query Parameters:
+ * - page: Page number (default: 1, min: 1)
+ * - pageSize: Items per page (default: 20, max: 100)
+ * - search: Search by code or name
+ * - lowStockOnly: Filter low stock items (default: false)
+ * 
+ * Requirements: 9.6 (Pagination with max 100 items)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
 export async function GET(request: NextRequest) {
   try {
     const tenantId = getTenantId();
     
-    // Get query parameters
+    // Parse pagination parameters (supports page/pageSize)
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
+    // Get filter parameters
     const searchParams = request.nextUrl.searchParams;
-    const skip = parseInt(searchParams.get('skip') || '0');
-    const take = parseInt(searchParams.get('take') || '50');
     const search = searchParams.get('search') || '';
     const lowStockOnly = searchParams.get('lowStockOnly') === 'true';
 
@@ -33,11 +43,11 @@ export async function GET(request: NextRequest) {
     // Get total count
     const total = await prisma.inventory.count({ where });
 
-    // Get inventory items
+    // Get inventory items with pagination
     let items = await prisma.inventory.findMany({
       where,
-      skip,
-      take,
+      skip: params.skip,
+      take: params.limit,
       orderBy: { name: 'asc' },
       select: {
         id: true,
@@ -52,37 +62,32 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Convert Decimal fields to numbers and filter low stock if requested
+    // Convert Decimal fields to numbers
     const convertedItems = items.map(item => ({
       ...item,
       stock: Number(item.stock),
       min_stock: item.min_stock ? Number(item.min_stock) : null,
     })) as any[];
 
+    // Filter low stock if requested (after pagination to maintain accurate counts)
     if (lowStockOnly) {
       const filtered = convertedItems.filter(item => 
         item.min_stock && item.stock <= item.min_stock
       );
-      return NextResponse.json({
-        data: filtered,
-        pagination: {
-          skip,
-          take,
-          total: filtered.length,
-          hasMore: false,
-        },
+      // For low stock filter, we need to recalculate total
+      const lowStockTotal = await prisma.inventory.count({
+        where: {
+          ...where,
+          AND: [
+            { min_stock: { not: null } },
+            { stock: { lte: prisma.inventory.fields.min_stock } }
+          ]
+        }
       });
+      return NextResponse.json(createPaginatedResponse(filtered, lowStockTotal, params));
     }
 
-    return NextResponse.json({
-      data: convertedItems,
-      pagination: {
-        skip,
-        take,
-        total,
-        hasMore: skip + take < total,
-      },
-    });
+    return NextResponse.json(createPaginatedResponse(convertedItems, total, params));
   } catch (error) {
     console.error('Error fetching inventory:', error);
     return NextResponse.json(

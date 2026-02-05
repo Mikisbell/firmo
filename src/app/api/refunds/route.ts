@@ -3,8 +3,16 @@
  * 
  * GET /api/refunds
  * 
+ * Query Parameters:
+ * - page: Page number (default: 1, min: 1)
+ * - pageSize: Items per page (default: 20, max: 100)
+ * - order_id: Filter by order ID
+ * - status: Filter by refund status
+ * 
  * Returns all refunds for the current tenant
  * Supports filtering by order_id, status, date range
+ * 
+ * Requirements: 9.6 (Pagination with max 100 items)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,6 +20,7 @@ import { PrismaClient } from '@prisma/client';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
 const prisma = new PrismaClient();
 
@@ -26,12 +35,13 @@ export async function GET(request: NextRequest) {
     const { user } = authResult;
     const tenantId = getTenantId();
     
-    // Parse query parameters
+    // Parse pagination parameters (supports page/pageSize)
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
+    // Parse filter parameters
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('order_id');
     const status = searchParams.get('status');
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
-    const offset = parseInt(searchParams.get('offset') || '0', 10);
 
     // Build where clause
     const where: any = {
@@ -46,14 +56,17 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    // Get refunds
+    // Get total count
+    const total = await prisma.refunds.count({ where });
+
+    // Get refunds with pagination
     const refunds = await prisma.refunds.findMany({
       where,
       orderBy: {
         created_at: 'desc',
       },
-      take: limit,
-      skip: offset,
+      skip: params.skip,
+      take: params.limit,
       include: {
         credit_notes: {
           select: {
@@ -66,9 +79,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Get total count
-    const total = await prisma.refunds.count({ where });
-
     pinoLogger.info({
       count: refunds.length,
       total,
@@ -76,31 +86,33 @@ export async function GET(request: NextRequest) {
       tenant_id: tenantId,
     }, 'Refunds listed');
 
+    // Transform refunds data
+    const transformedRefunds = refunds.map(refund => ({
+      id: refund.id,
+      order_id: refund.order_id,
+      check_id: refund.check_id,
+      invoice_id: refund.invoice_id,
+      type: refund.type,
+      status: refund.status,
+      reason_code: refund.reason_code,
+      reason_detail: refund.reason_detail,
+      original_amount: refund.original_amount,
+      refund_amount: refund.refund_amount,
+      refund_method: refund.refund_method,
+      items: refund.items as any,
+      credit_note: refund.credit_notes,
+      created_at: refund.created_at.toISOString(),
+      issued_at: refund.issued_at?.toISOString(),
+    }));
+
+    // Return standardized paginated response
+    const response = createPaginatedResponse(transformedRefunds, total, params);
+
     return NextResponse.json({
       success: true,
-      refunds: refunds.map(refund => ({
-        id: refund.id,
-        order_id: refund.order_id,
-        check_id: refund.check_id,
-        invoice_id: refund.invoice_id,
-        type: refund.type,
-        status: refund.status,
-        reason_code: refund.reason_code,
-        reason_detail: refund.reason_detail,
-        original_amount: refund.original_amount,
-        refund_amount: refund.refund_amount,
-        refund_method: refund.refund_method,
-        items: refund.items as any,
-        credit_note: refund.credit_notes,
-        created_at: refund.created_at.toISOString(),
-        issued_at: refund.issued_at?.toISOString(),
-      })),
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + refunds.length < total,
-      },
+      ...response,
+      // Maintain backward compatibility with 'refunds' key
+      refunds: response.items,
     });
 
   } catch (error) {

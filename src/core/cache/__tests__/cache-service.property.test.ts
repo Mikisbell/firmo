@@ -11,6 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fc from 'fast-check';
 import { RedisCacheService, DEFAULT_TTLS, generateCacheKey } from '../cache-service';
 import type { CacheOptions } from '../cache-service';
+import { metrics } from '@/src/core/observability/metrics';
 
 // Configure fast-check for comprehensive testing
 fc.configureGlobal({
@@ -91,7 +92,7 @@ vi.mock('@/src/core/observability/structured-logger', () => ({
   },
 }));
 
-// Mock metrics to avoid side effects
+// Mock metrics to track calls
 vi.mock('@/src/core/observability/metrics', () => ({
   metrics: {
     increment: vi.fn(),
@@ -131,6 +132,9 @@ describe('Cache Service - Property Tests', () => {
     // Set test environment
     process.env.NODE_ENV = 'test';
     process.env.REDIS_URL = 'redis://localhost:6379';
+    
+    // Clear mock calls
+    vi.clearAllMocks();
     
     cache = new RedisCacheService();
   });
@@ -505,6 +509,227 @@ describe('Cache Service - Property Tests', () => {
             // Verify value is gone
             const afterInvalidation = await cache.get(key);
             expect(afterInvalidation).toBeNull();
+          }
+        )
+      );
+    });
+  });
+
+  /**
+   * Property 15: Cache Hit Rate Metrics
+   * 
+   * For any cache operation (get, set, delete), the Cache_Layer SHALL emit
+   * metrics tracking cache hits and misses.
+   * 
+   * Validates: Requirements 9.6
+   */
+  describe('Property 15: Cache Hit Rate Metrics', () => {
+    it('should emit cache.hit metric on successful get', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          cacheKeyArbitrary,
+          cacheValueArbitrary,
+          async (key, value) => {
+            // Clear previous calls
+            vi.clearAllMocks();
+
+            // Store value
+            await cache.set(key, value);
+
+            // Clear metrics from set operation
+            vi.clearAllMocks();
+
+            // Get value (should hit)
+            const retrieved = await cache.get(key);
+            expect(retrieved).toEqual(value);
+
+            // Verify cache.hit metric was emitted
+            expect(metrics.increment).toHaveBeenCalledWith(
+              'cache.hit',
+              expect.objectContaining({ backend: expect.any(String) })
+            );
+          }
+        )
+      );
+    });
+
+    it('should emit cache.miss metric on failed get', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          cacheKeyArbitrary,
+          async (key) => {
+            // Clear previous calls
+            vi.clearAllMocks();
+
+            // Get non-existent value (should miss)
+            const retrieved = await cache.get(key);
+            expect(retrieved).toBeNull();
+
+            // Verify cache.miss metric was emitted
+            expect(metrics.increment).toHaveBeenCalledWith(
+              'cache.miss',
+              expect.objectContaining({ backend: expect.any(String) })
+            );
+          }
+        )
+      );
+    });
+
+    it('should emit cache.set metric on set operation', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          cacheKeyArbitrary,
+          cacheValueArbitrary,
+          async (key, value) => {
+            // Clear previous calls
+            vi.clearAllMocks();
+
+            // Set value
+            await cache.set(key, value);
+
+            // Verify cache.set metric was emitted
+            expect(metrics.increment).toHaveBeenCalledWith(
+              'cache.set',
+              expect.objectContaining({ backend: expect.any(String) })
+            );
+          }
+        )
+      );
+    });
+
+    it('should emit cache.delete metric on delete operation', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          cacheKeyArbitrary,
+          async (key) => {
+            // Clear previous calls
+            vi.clearAllMocks();
+
+            // Delete value
+            await cache.delete(key);
+
+            // Verify cache.delete metric was emitted
+            expect(metrics.increment).toHaveBeenCalledWith(
+              'cache.delete',
+              expect.objectContaining({ backend: expect.any(String) })
+            );
+          }
+        )
+      );
+    });
+
+    it('should emit timing metrics for all operations', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          cacheKeyArbitrary,
+          cacheValueArbitrary,
+          async (key, value) => {
+            // Clear previous calls
+            vi.clearAllMocks();
+
+            // Set operation
+            await cache.set(key, value);
+            expect(metrics.timing).toHaveBeenCalledWith(
+              'cache.set',
+              expect.any(Number),
+              expect.objectContaining({ backend: expect.any(String) })
+            );
+
+            // Clear for get operation
+            vi.clearAllMocks();
+
+            // Get operation
+            await cache.get(key);
+            expect(metrics.timing).toHaveBeenCalledWith(
+              'cache.get',
+              expect.any(Number),
+              expect.objectContaining({ backend: expect.any(String) })
+            );
+          }
+        )
+      );
+    });
+
+    it('should track hit/miss ratio across multiple operations', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.integer({ min: 2, max: 10 }),
+          fc.integer({ min: 2, max: 10 }),
+          async (numToStore, numToQuery) => {
+            // Clear cache and metrics
+            await cache.clear();
+            vi.clearAllMocks();
+
+            // Generate unique keys
+            const storedKeys = new Set<string>();
+            const allKeys = new Set<string>();
+
+            // Store some entries
+            for (let i = 0; i < numToStore; i++) {
+              const key = `test-key-${i}`;
+              await cache.set(key, `value-${i}`);
+              storedKeys.add(key);
+              allKeys.add(key);
+            }
+
+            // Add some keys that won't be stored
+            for (let i = numToStore; i < numToStore + numToQuery; i++) {
+              allKeys.add(`test-key-${i}`);
+            }
+
+            // Clear metrics from set operations
+            vi.clearAllMocks();
+
+            // Query all keys
+            let expectedHits = 0;
+            let expectedMisses = 0;
+
+            for (const key of allKeys) {
+              await cache.get(key);
+              if (storedKeys.has(key)) {
+                expectedHits++;
+              } else {
+                expectedMisses++;
+              }
+            }
+
+            // Count actual hits and misses from metrics
+            const hitCalls = (metrics.increment as any).mock.calls.filter(
+              (call: any) => call[0] === 'cache.hit'
+            );
+            const missCalls = (metrics.increment as any).mock.calls.filter(
+              (call: any) => call[0] === 'cache.miss'
+            );
+
+            // Verify metrics match expected counts
+            expect(hitCalls.length).toBe(expectedHits);
+            expect(missCalls.length).toBe(expectedMisses);
+          }
+        )
+      );
+    });
+
+    it('should emit metrics with correct backend tag', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          cacheKeyArbitrary,
+          cacheValueArbitrary,
+          async (key, value) => {
+            // Clear previous calls
+            vi.clearAllMocks();
+
+            // Set and get value
+            await cache.set(key, value);
+            await cache.get(key);
+
+            // Verify all metric calls include backend tag
+            const allCalls = (metrics.increment as any).mock.calls;
+            for (const call of allCalls) {
+              if (call[0].startsWith('cache.')) {
+                expect(call[1]).toHaveProperty('backend');
+                expect(['redis', 'memory']).toContain(call[1].backend);
+              }
+            }
           }
         )
       );

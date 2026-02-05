@@ -1,6 +1,13 @@
 /**
  * POST /api/delivery - Crear delivery order
  * GET /api/delivery - Listar deliveries pendientes
+ * 
+ * Query Parameters (GET):
+ * - page: Page number (default: 1, min: 1)
+ * - pageSize: Items per page (default: 20, max: 100)
+ * - status: Filter by status (comma-separated, default: PENDING,ASSIGNED,DISPATCHED)
+ * 
+ * Requirements: 9.6 (Pagination with max 100 items)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,6 +15,8 @@ import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
 import { asCentavos } from '@/src/core/types/shared';
 import { getTenantId } from '@/src/core/config/tenant';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
+import prisma from '@/src/core/db/prisma';
 
 const TENANT_ID = getTenantId();
 
@@ -64,6 +73,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Parse pagination parameters (supports page/pageSize)
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get('status');
     
@@ -72,9 +84,40 @@ export async function GET(request: NextRequest) {
       ? statusParam.split(',') as ('PENDING' | 'ASSIGNED' | 'DISPATCHED' | 'DELIVERED' | 'FAILED')[]
       : ['PENDING', 'ASSIGNED', 'DISPATCHED'] as const;
 
-    const deliveries = await DeliveryService.getByStatus(TENANT_ID, [...statuses]);
+    // Build where clause
+    const where = {
+      tenant_id: TENANT_ID,
+      status: { in: statuses }
+    };
 
-    return NextResponse.json({ deliveries });
+    // Get total count
+    const total = await prisma.delivery_orders.count({ where });
+
+    // Get paginated deliveries
+    const deliveries = await prisma.delivery_orders.findMany({
+      where,
+      skip: params.skip,
+      take: params.limit,
+      orderBy: { created_at: 'desc' },
+      include: {
+        drivers: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          }
+        }
+      }
+    });
+
+    // Return standardized paginated response
+    const response = createPaginatedResponse(deliveries, total, params);
+
+    return NextResponse.json({
+      ...response,
+      // Maintain backward compatibility with 'deliveries' key
+      deliveries: response.items,
+    });
   } catch (error) {
     console.error('Error fetching deliveries:', error);
     return NextResponse.json(

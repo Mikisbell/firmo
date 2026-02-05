@@ -3,7 +3,13 @@
  * 
  * GET /api/promotions
  * 
+ * Query Parameters:
+ * - page: Page number (default: 1, min: 1)
+ * - pageSize: Items per page (default: 20, max: 100)
+ * 
  * Returns all active promotions for the current tenant
+ * 
+ * Requirements: 9.6 (Pagination with max 100 items)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -11,6 +17,7 @@ import { PrismaClient } from '@prisma/client';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
+import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 
 const prisma = new PrismaClient();
 
@@ -25,20 +32,31 @@ export async function GET(request: NextRequest) {
     const { user } = authResult;
     const tenantId = getTenantId();
     
+    // Parse pagination parameters (supports page/pageSize)
+    const params = parsePaginationParams(request.nextUrl.searchParams);
+    
     const now = new Date();
     
-    // Get all active promotions for this tenant
+    // Build where clause for active promotions
+    const where = {
+      tenant_id: tenantId,
+      is_active: true,
+      OR: [
+        { starts_at: null, ends_at: null },
+        { starts_at: { lte: now }, ends_at: null },
+        { starts_at: null, ends_at: { gte: now } },
+        { starts_at: { lte: now }, ends_at: { gte: now } },
+      ],
+    };
+    
+    // Get total count
+    const total = await prisma.promotions.count({ where });
+    
+    // Get paginated promotions
     const promotions = await prisma.promotions.findMany({
-      where: {
-        tenant_id: tenantId,
-        is_active: true,
-        OR: [
-          { starts_at: null, ends_at: null },
-          { starts_at: { lte: now }, ends_at: null },
-          { starts_at: null, ends_at: { gte: now } },
-          { starts_at: { lte: now }, ends_at: { gte: now } },
-        ],
-      },
+      where,
+      skip: params.skip,
+      take: params.limit,
       orderBy: [
         { priority: 'asc' },
         { created_at: 'desc' },
@@ -60,19 +78,28 @@ export async function GET(request: NextRequest) {
 
     pinoLogger.info({
       count: promotions.length,
+      total,
       user_id: user.id,
       tenant_id: tenantId,
     }, 'Promotions listed');
 
+    // Transform promotions data
+    const transformedPromotions = promotions.map(promo => ({
+      ...promo,
+      rules: promo.rules as any,
+      is_currently_active: !promo.starts_at || !promo.ends_at || 
+        (promo.starts_at <= now && promo.ends_at >= now),
+    }));
+
+    // Return standardized paginated response
+    const response = createPaginatedResponse(transformedPromotions, total, params);
+
     return NextResponse.json({
       success: true,
-      promotions: promotions.map(promo => ({
-        ...promo,
-        rules: promo.rules as any,
-        is_currently_active: !promo.starts_at || !promo.ends_at || 
-          (promo.starts_at <= now && promo.ends_at >= now),
-      })),
-      count: promotions.length,
+      ...response,
+      // Maintain backward compatibility with 'promotions' key
+      promotions: response.items,
+      count: total,
     });
 
   } catch (error) {
