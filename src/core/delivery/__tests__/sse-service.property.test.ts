@@ -13,14 +13,32 @@
  */
 
 import fc from 'fast-check';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { SSEConnectionManager } from '../sse-connection-manager';
 import { SSEBroadcaster } from '../sse-broadcaster';
 import { arbitraryDeliveryEvent } from '../arbitraries';
 import { DeliveryEvent } from '../types-2026';
 
 describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
-  
+  // Track all intervals and timeouts for cleanup
+  const activeIntervals: NodeJS.Timeout[] = [];
+  const activeTimeouts: NodeJS.Timeout[] = [];
+
+  // Cleanup after each test
+  afterEach(() => {
+    // Clear all intervals
+    for (const interval of activeIntervals) {
+      clearInterval(interval);
+    }
+    activeIntervals.length = 0;
+
+    // Clear all timeouts
+    for (const timeout of activeTimeouts) {
+      clearTimeout(timeout);
+    }
+    activeTimeouts.length = 0;
+  });
+
   /**
    * Property 1: SSE Broadcast Latency
    * 
@@ -117,7 +135,10 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             await broadcaster.broadcast(event);
             
             // Wait a bit for async operations
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => {
+              const timeout = setTimeout(resolve, 50);
+              activeTimeouts.push(timeout);
+            });
             
             // Assert
             expect(receivedData.length).toBe(clientCount);
@@ -305,7 +326,10 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             }
             
             // Wait for async operations
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => {
+              const timeout = setTimeout(resolve, 100);
+              activeTimeouts.push(timeout);
+            });
             
             // Assert
             // All event IDs should be unique
