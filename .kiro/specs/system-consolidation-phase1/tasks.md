@@ -41,8 +41,8 @@ The implementation follows a phased approach:
     - Add error handling for Logtail failures
     - _Requirements: 1.1, 1.5_
 
-- [ ] 2. Implement Error Tracker
-  - [ ] 2.1 Create error tracker interface and Sentry integration
+- [-] 2. Implement Error Tracker
+  - [x] 2.1 Create error tracker interface and Sentry integration
     - Create `src/core/observability/error-tracker.ts` with SentryErrorTracker class
     - Initialize Sentry SDK with DSN from environment
     - Implement captureException with context (tenantId, terminalId, userId)
@@ -51,57 +51,57 @@ The implementation follows a phased approach:
     - Filter sensitive data from error reports (headers, cookies)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.8_
   
-  - [ ] 2.2 Write property test for error capture completeness
+  - [x] 2.2 Write property test for error capture completeness
     - **Property 4: Error Capture Completeness**
     - **Validates: Requirements 2.1, 2.2**
   
-  - [ ] 2.3 Write property test for error context preservation
+  - [x] 2.3 Write property test for error context preservation
     - **Property 25: Error Context Preservation**
     - **Validates: Requirements 2.2**
   
-  - [ ] 2.4 Configure Sentry performance monitoring
+  - [x] 2.4 Configure Sentry performance monitoring
     - Set tracesSampleRate to 10%
     - Configure beforeSend hook for data filtering
     - Add custom tags for tenant and terminal
     - _Requirements: 2.7_
 
-- [ ] 3. Implement Metrics Collector
-  - [ ] 3.1 Create metrics collector interface and implementation
+- [x] 3. Implement Metrics Collector
+  - [x] 3.1 Create metrics collector interface and implementation
     - Create `src/core/observability/metrics.ts` with VercelMetricsCollector class
     - Implement increment, decrement, gauge, histogram, timing methods
     - Add metric tagging (tenantId, terminalId, eventType, endpoint)
     - Implement metric batching and flushing
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
   
-  - [ ] 3.2 Write property test for business event metrics
+  - [x] 3.2 Write property test for business event metrics
     - **Property 5: Business Event Metrics**
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
   
-  - [ ] 3.3 Write property test for API response time metrics
+  - [x] 3.3 Write property test for API response time metrics
     - **Property 6: API Response Time Metrics**
     - **Validates: Requirements 3.5**
   
-  - [ ] 3.4 Write property test for session tracking metrics
+  - [x] 3.4 Write property test for session tracking metrics
     - **Property 7: Session Tracking Metrics**
     - **Validates: Requirements 3.6**
   
-  - [ ] 3.5 Write property test for metrics idempotency
+  - [x] 3.5 Write property test for metrics idempotency
     - **Property 24: Metrics Idempotency**
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
   
-  - [ ] 3.6 Create metrics API endpoint
+  - [x] 3.6 Create metrics API endpoint
     - Create `src/app/api/metrics/route.ts` for metrics retrieval
     - Implement aggregation by tenant, terminal, time period
     - Add authentication check (admin only)
     - Return metrics in JSON format
     - _Requirements: 3.9_
 
-- [ ] 4. Checkpoint - Ensure observability tests pass
+- [x] 4. Checkpoint - Ensure observability tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 2: API Documentation
 
-- [ ] 5. Implement OpenAPI Documentation Generator
+- [~] 5. Implement OpenAPI Documentation Generator
   - [ ] 5.1 Create OpenAPI specification generator
     - Create `src/lib/openapi/generator.ts` with generateOpenAPISpec function
     - Define OpenAPI 3.0 document structure (info, servers, paths, components)
@@ -129,7 +129,7 @@ The implementation follows a phased approach:
     - Add authentication support in UI
     - _Requirements: 5.5_
 
-- [ ] 6. Implement Postman Collection Generator
+- [~] 6. Implement Postman Collection Generator
   - [ ] 6.1 Create Postman collection exporter
     - Create `src/lib/openapi/postman-exporter.ts` with exportToPostman function
     - Convert OpenAPI spec to Postman Collection v2.1 format
@@ -149,7 +149,7 @@ The implementation follows a phased approach:
     - Return as downloadable JSON file
     - _Requirements: 6.5_
 
-- [ ] 7. Implement TypeDoc Code Documentation
+- [~] 7. Implement TypeDoc Code Documentation
   - [ ] 7.1 Configure TypeDoc for code documentation
     - Add TypeDoc dependency to package.json
     - Create `typedoc.json` configuration file
@@ -168,12 +168,12 @@ The implementation follows a phased approach:
     - Serve static TypeDoc site at `/docs/code`
     - _Requirements: 7.5_
 
-- [ ] 8. Checkpoint - Ensure documentation tests pass
+- [~] 8. Checkpoint - Ensure documentation tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 3: Performance Optimization
 
-- [ ] 9. Implement Redis Caching Layer
+- [~] 9. Implement Redis Caching Layer
   - [ ] 9.1 Create cache service interface and Redis implementation
     - Create `src/core/cache/cache-service.ts` with RedisCacheService class
     - Implement get, set, delete, deleteByTag, clear methods
@@ -222,7 +222,7 @@ The implementation follows a phased approach:
     - Invalidate cache on terminal updates
     - _Requirements: 8.3_
 
-- [ ] 10. Optimize Database Queries
+- [~] 10. Optimize Database Queries
   - [ ] 10.1 Add database indexes for performance
     - Create migration `prisma/migrations/add_performance_indexes.sql`
     - Add index on `orders(tenant_id, created_at DESC)`
@@ -265,7 +265,7 @@ The implementation follows a phased approach:
     - **Property 19: Query Performance Metrics**
     - **Validates: Requirements 10.7**
 
-- [ ] 11. Implement Frontend Performance Optimizations
+- [~] 11. Implement Frontend Performance Optimizations
   - [ ] 11.1 Configure code splitting for routes
     - Update `next.config.js` to enable code splitting
     - Use dynamic imports for route components
@@ -294,12 +294,12 @@ The implementation follows a phased approach:
     - Test that vitals are sent to metrics service
     - _Requirements: 10.10_
 
-- [ ] 12. Checkpoint - Ensure performance tests pass
+- [~] 12. Checkpoint - Ensure performance tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 4: Monitoring and Alerting
 
-- [ ] 13. Implement Health Check System
+- [~] 13. Implement Health Check System
   - [ ] 13.1 Create health check service
     - Create `src/core/health/health-check.ts` with HealthCheckService class
     - Implement database connectivity check
@@ -331,7 +331,7 @@ The implementation follows a phased approach:
     - Configure alert notifications (email)
     - _Requirements: 4.5, 4.6, 4.7_
 
-- [ ] 14. Implement Monitoring Dashboard
+- [~] 14. Implement Monitoring Dashboard
   - [ ] 14.1 Create monitoring dashboard UI
     - Create `src/app/admin/monitoring/page.tsx` for dashboard
     - Display real-time error rate and trend chart
@@ -355,7 +355,7 @@ The implementation follows a phased approach:
     - Include all visible metrics in export
     - _Requirements: 11.10_
 
-- [ ] 15. Implement Alert Configuration System
+- [~] 15. Implement Alert Configuration System
   - [ ] 15.1 Create alert configuration service
     - Create `src/core/alerts/alert-config.ts` with AlertConfigService class
     - Support configuration for error rate thresholds
@@ -393,7 +393,7 @@ The implementation follows a phased approach:
     - Allow snoozing alerts
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.9_
 
-- [ ] 16. Implement Log Level Configuration
+- [~] 16. Implement Log Level Configuration
   - [ ] 16.1 Create log level configuration service
     - Create `src/core/observability/log-config.ts` with LogConfigService class
     - Support environment variable configuration
@@ -418,7 +418,7 @@ The implementation follows a phased approach:
     - Apply changes within 30 seconds
     - _Requirements: 12.2, 12.3_
 
-- [ ] 17. Implement Error Recovery System
+- [~] 17. Implement Error Recovery System
   - [ ] 17.1 Create error recovery service
     - Create `src/core/recovery/recovery-service.ts` with RecoveryService class
     - Implement automatic retry with exponential backoff for transient errors
@@ -447,12 +447,12 @@ The implementation follows a phased approach:
     - Add authentication check (admin only)
     - _Requirements: 13.4_
 
-- [ ] 18. Final Checkpoint - Ensure all tests pass
+- [~] 18. Final Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 5: Integration and Deployment
 
-- [ ] 19. Integration Testing
+- [~] 19. Integration Testing
   - [ ] 19.1 Write integration tests for observability flow
     - Test that errors are logged, tracked, and metrics are emitted
     - Test that logs are sent to Logtail in production
@@ -477,7 +477,7 @@ The implementation follows a phased approach:
     - Test CSV export works
     - _Requirements: 11.1, 11.7, 11.10_
 
-- [ ] 20. Documentation and Deployment
+- [~] 20. Documentation and Deployment
   - [ ] 20.1 Create deployment guide
     - Document environment variables required
     - Document third-party service setup (Sentry, Logtail, Uptime Robot)

@@ -1,409 +1,534 @@
 /**
- * Performance Metrics Service
- * Prometheus-compatible metrics for monitoring
+ * Metrics Collector for PARK POS
  * 
- * Features:
- * - Counter metrics
- * - Histogram metrics
- * - Gauge metrics
- * - Labels support
- * - Prometheus export format
+ * Tracks business and technical metrics for monitoring and analytics.
+ * Implements batching and flushing for efficient metric collection.
+ * 
+ * @module observability/metrics
  */
 
-import { pinoLogger } from './logger-pino';
+export interface MetricTags {
+  tenantId?: string;
+  terminalId?: string;
+  eventType?: string;
+  endpoint?: string;
+  role?: string;
+  [key: string]: string | undefined;
+}
 
-/**
- * Metric types
- */
-type MetricType = 'counter' | 'histogram' | 'gauge';
+export interface MetricsCollector {
+  increment(metric: string, tags?: MetricTags): void;
+  decrement(metric: string, tags?: MetricTags): void;
+  gauge(metric: string, value: number, tags?: MetricTags): void;
+  histogram(metric: string, value: number, tags?: MetricTags): void;
+  timing(metric: string, duration: number, tags?: MetricTags): void;
+  flush(): Promise<void>;
+}
 
-/**
- * Metric value with labels
- */
-interface MetricValue {
+interface MetricEntry {
+  name: string;
   value: number;
-  labels: Record<string, string>;
+  type: 'counter' | 'gauge' | 'histogram' | 'timing';
+  tags: Record<string, string>;
   timestamp: number;
 }
 
 /**
- * Metric definition
+ * Vercel-compatible metrics collector with batching and flushing
  */
-interface Metric {
-  name: string;
-  type: MetricType;
-  help: string;
-  values: Map<string, MetricValue>;
-}
-
-/**
- * Metrics Registry
- */
-class MetricsRegistry {
-  private metrics: Map<string, Metric> = new Map();
-
-  /**
-   * Register a new metric
-   */
-  private register(name: string, type: MetricType, help: string): void {
-    if (!this.metrics.has(name)) {
-      this.metrics.set(name, {
-        name,
-        type,
-        help,
-        values: new Map(),
-      });
+export class VercelMetricsCollector implements MetricsCollector {
+  private metrics: Map<string, MetricEntry> = new Map();
+  private counters: Map<string, number> = new Map();
+  private histograms: Map<string, number[]> = new Map();
+  private flushInterval: NodeJS.Timeout | null = null;
+  private readonly batchSize = 100;
+  private readonly flushIntervalMs = 10000; // 10 seconds
+  
+  constructor() {
+    // Start auto-flush in production
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      this.startAutoFlush();
     }
   }
-
+  
   /**
-   * Generate label key from labels object
+   * Increment a counter metric
    */
-  private getLabelKey(labels: Record<string, string>): string {
-    const sortedKeys = Object.keys(labels).sort();
-    return sortedKeys.map((key) => `${key}="${labels[key]}"`).join(',');
+  increment(metric: string, tags?: MetricTags): void {
+    const key = this.buildKey(metric, tags);
+    const current = this.counters.get(key) || 0;
+    this.counters.set(key, current + 1);
+    
+    this.storeMetric({
+      name: metric,
+      value: current + 1,
+      type: 'counter',
+      tags: this.normalizeTags(tags),
+      timestamp: Date.now(),
+    });
+    
+    this.checkFlush();
   }
-
+  
   /**
-   * Increment a counter
+   * Decrement a counter metric
    */
-  increment(name: string, labels: Record<string, string> = {}, value: number = 1): void {
-    this.register(name, 'counter', `Counter metric: ${name}`);
+  decrement(metric: string, tags?: MetricTags): void {
+    const key = this.buildKey(metric, tags);
+    const current = this.counters.get(key) || 0;
+    this.counters.set(key, current - 1);
     
-    const metric = this.metrics.get(name)!;
-    const labelKey = this.getLabelKey(labels);
+    this.storeMetric({
+      name: metric,
+      value: current - 1,
+      type: 'counter',
+      tags: this.normalizeTags(tags),
+      timestamp: Date.now(),
+    });
     
-    const existing = metric.values.get(labelKey);
-    if (existing) {
-      existing.value += value;
-      existing.timestamp = Date.now();
-    } else {
-      metric.values.set(labelKey, {
-        value,
-        labels,
-        timestamp: Date.now(),
-      });
+    this.checkFlush();
+  }
+  
+  /**
+   * Set a gauge metric (overwrites previous value)
+   */
+  gauge(metric: string, value: number, tags?: MetricTags): void {
+    const key = this.buildKey(metric, tags);
+    
+    this.storeMetric({
+      name: metric,
+      value,
+      type: 'gauge',
+      tags: this.normalizeTags(tags),
+      timestamp: Date.now(),
+    });
+    
+    this.checkFlush();
+  }
+  
+  /**
+   * Record a histogram value (appends to distribution)
+   */
+  histogram(metric: string, value: number, tags?: MetricTags): void {
+    const key = this.buildKey(metric, tags);
+    const values = this.histograms.get(key) || [];
+    values.push(value);
+    this.histograms.set(key, values);
+    
+    this.storeMetric({
+      name: metric,
+      value,
+      type: 'histogram',
+      tags: this.normalizeTags(tags),
+      timestamp: Date.now(),
+    });
+    
+    this.checkFlush();
+  }
+  
+  /**
+   * Record a timing metric (special case of histogram)
+   */
+  timing(metric: string, duration: number, tags?: MetricTags): void {
+    this.histogram(`${metric}.duration`, duration, tags);
+  }
+  
+  /**
+   * Flush all pending metrics
+   */
+  async flush(): Promise<void> {
+    if (this.metrics.size === 0) {
+      return;
     }
-  }
-
-  /**
-   * Record a histogram value (for timing)
-   */
-  observe(name: string, value: number, labels: Record<string, string> = {}): void {
-    this.register(name, 'histogram', `Histogram metric: ${name}`);
     
-    const metric = this.metrics.get(name)!;
-    const labelKey = this.getLabelKey(labels);
-    
-    // For simplicity, we store the latest value
-    // In production, you'd want to use a proper histogram implementation
-    metric.values.set(labelKey, {
-      value,
-      labels,
-      timestamp: Date.now(),
-    });
-  }
-
-  /**
-   * Set a gauge value
-   */
-  set(name: string, value: number, labels: Record<string, string> = {}): void {
-    this.register(name, 'gauge', `Gauge metric: ${name}`);
-    
-    const metric = this.metrics.get(name)!;
-    const labelKey = this.getLabelKey(labels);
-    
-    metric.values.set(labelKey, {
-      value,
-      labels,
-      timestamp: Date.now(),
-    });
-  }
-
-  /**
-   * Start a timer and return a function to end it
-   */
-  startTimer(name: string, labels: Record<string, string> = {}): () => void {
-    const start = Date.now();
-    
-    return () => {
-      const duration = Date.now() - start;
-      this.observe(name, duration, labels);
-    };
-  }
-
-  /**
-   * Get all metrics in Prometheus format
-   */
-  getMetrics(): string {
-    const lines: string[] = [];
-    
-    for (const metric of this.metrics.values()) {
-      // Add HELP line
-      lines.push(`# HELP ${metric.name} ${metric.help}`);
+    try {
+      const metricsToSend = Array.from(this.metrics.values());
       
-      // Add TYPE line
-      lines.push(`# TYPE ${metric.name} ${metric.type}`);
-      
-      // Add metric values
-      for (const [labelKey, metricValue] of metric.values.entries()) {
-        const labelsStr = labelKey ? `{${labelKey}}` : '';
-        lines.push(`${metric.name}${labelsStr} ${metricValue.value}`);
+      // In production, send to Vercel Analytics or custom endpoint
+      if (process.env.NODE_ENV === 'production') {
+        await this.sendToAnalytics(metricsToSend);
       }
       
-      lines.push(''); // Empty line between metrics
+      // Clear flushed metrics
+      this.metrics.clear();
+    } catch (error) {
+      // Graceful degradation - log error but don't throw
+      console.error('Failed to flush metrics:', error);
     }
-    
-    return lines.join('\n');
   }
-
+  
   /**
-   * Get metrics as JSON
+   * Build a unique key for metric storage
    */
-  getMetricsJSON(): Record<string, any> {
-    const result: Record<string, any> = {};
+  private buildKey(metric: string, tags?: MetricTags): string {
+    if (!tags) return metric;
     
-    for (const metric of this.metrics.values()) {
-      result[metric.name] = {
-        type: metric.type,
-        help: metric.help,
-        values: Array.from(metric.values.values()),
-      };
+    const tagString = Object.entries(tags)
+      .filter(([_, value]) => value !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b)) // Sort for consistency
+      .map(([key, value]) => `${key}:${value}`)
+      .join(',');
+    
+    return tagString ? `${metric}{${tagString}}` : metric;
+  }
+  
+  /**
+   * Normalize tags to remove undefined values
+   */
+  private normalizeTags(tags?: MetricTags): Record<string, string> {
+    if (!tags) return {};
+    
+    const normalized: Record<string, string> = {};
+    for (const [key, value] of Object.entries(tags)) {
+      if (value !== undefined) {
+        normalized[key] = value;
+      }
+    }
+    return normalized;
+  }
+  
+  /**
+   * Store a metric entry
+   */
+  private storeMetric(entry: MetricEntry): void {
+    const key = this.buildKey(entry.name, entry.tags);
+    
+    // For counters and gauges, overwrite previous value
+    // For histograms, we keep all values in the histograms map
+    if (entry.type === 'counter' || entry.type === 'gauge') {
+      this.metrics.set(key, entry);
+    } else {
+      // For histograms, store each value separately with timestamp
+      const timestampedKey = `${key}:${entry.timestamp}`;
+      this.metrics.set(timestampedKey, entry);
+    }
+  }
+  
+  /**
+   * Check if we should flush based on batch size
+   */
+  private checkFlush(): void {
+    if (this.metrics.size >= this.batchSize) {
+      void this.flush();
+    }
+  }
+  
+  /**
+   * Start automatic flushing
+   */
+  private startAutoFlush(): void {
+    if (this.flushInterval) {
+      return;
     }
     
-    return result;
+    this.flushInterval = setInterval(() => {
+      void this.flush();
+    }, this.flushIntervalMs);
+    
+    // Ensure cleanup on process exit
+    if (typeof process !== 'undefined') {
+      process.on('beforeExit', () => {
+        if (this.flushInterval) {
+          clearInterval(this.flushInterval);
+          this.flushInterval = null;
+        }
+        void this.flush();
+      });
+    }
   }
-
+  
   /**
-   * Clear all metrics
+   * Send metrics to analytics service
+   */
+  private async sendToAnalytics(metrics: MetricEntry[]): Promise<void> {
+    // In production, this would send to Vercel Analytics or custom endpoint
+    // For now, we'll just log to console in a structured format
+    
+    if (process.env.VERCEL_ANALYTICS_ENDPOINT) {
+      try {
+        const response = await fetch(process.env.VERCEL_ANALYTICS_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.VERCEL_ANALYTICS_TOKEN || ''}`,
+          },
+          body: JSON.stringify({ metrics }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Analytics API returned ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Failed to send metrics to analytics:', error);
+        // Graceful degradation - continue without throwing
+      }
+    }
+  }
+  
+  /**
+   * Get current metric values (for testing and debugging)
+   */
+  getMetrics(): Map<string, MetricEntry> {
+    return new Map(this.metrics);
+  }
+  
+  /**
+   * Get counter values (for testing and debugging)
+   */
+  getCounters(): Map<string, number> {
+    return new Map(this.counters);
+  }
+  
+  /**
+   * Get histogram values (for testing and debugging)
+   */
+  getHistograms(): Map<string, number[]> {
+    return new Map(this.histograms);
+  }
+  
+  /**
+   * Clear all metrics (for testing)
    */
   clear(): void {
     this.metrics.clear();
+    this.counters.clear();
+    this.histograms.clear();
   }
+}
 
-  /**
-   * Get metric count
-   */
-  getMetricCount(): number {
-    return this.metrics.size;
+// Singleton instance
+export const metrics = new VercelMetricsCollector();
+
+/**
+ * Legacy API compatibility layer
+ * These functions provide backward compatibility with the old metrics API
+ */
+
+/**
+ * Reset all metrics (alias for clear)
+ * @deprecated Use metrics.clear() instead
+ */
+export function resetMetrics(): void {
+  metrics.clear();
+}
+
+/**
+ * Increment a counter
+ * @deprecated Use metrics.increment() instead
+ */
+export function incrementCounter(name: string, value: number = 1, tags?: MetricTags): void {
+  for (let i = 0; i < value; i++) {
+    metrics.increment(name, tags);
   }
 }
 
 /**
- * Global metrics instance
+ * Set a gauge value
+ * @deprecated Use metrics.gauge() instead
  */
-export const metrics = new MetricsRegistry();
+export function setGauge(name: string, value: number, tags?: MetricTags): void {
+  metrics.gauge(name, value, tags);
+}
 
 /**
- * Pre-defined metric names
+ * Record a histogram observation
+ * @deprecated Use metrics.histogram() instead
  */
-export const MetricNames = {
-  // HTTP metrics
-  HTTP_REQUESTS_TOTAL: 'http_requests_total',
-  HTTP_REQUEST_DURATION_MS: 'http_request_duration_milliseconds',
-  HTTP_RESPONSE_SIZE_BYTES: 'http_response_size_bytes',
-  
-  // Database metrics
-  DB_QUERY_DURATION_MS: 'db_query_duration_milliseconds',
-  DB_QUERIES_TOTAL: 'db_queries_total',
-  DB_CONNECTIONS_ACTIVE: 'db_connections_active',
-  
-  // Cache metrics
-  CACHE_HITS_TOTAL: 'cache_hits_total',
-  CACHE_MISSES_TOTAL: 'cache_misses_total',
-  CACHE_SIZE_BYTES: 'cache_size_bytes',
-  
-  // Business metrics
-  EMPLOYEES_CREATED_TOTAL: 'employees_created_total',
-  EMPLOYEES_ACTIVE: 'employees_active',
-  API_ERRORS_TOTAL: 'api_errors_total',
-  
-  // Saga metrics
-  SAGA_STARTED_TOTAL: 'saga_started_total',
-  SAGA_COMPLETED_TOTAL: 'saga_completed_total',
-  SAGA_FAILED_TOTAL: 'saga_failed_total',
-  SAGA_COMPENSATED_TOTAL: 'saga_compensated_total',
-  SAGA_DURATION_MS: 'saga_duration_milliseconds',
-  SAGA_STEP_DURATION_MS: 'saga_step_duration_milliseconds',
-  SAGA_STEP_RETRIES_TOTAL: 'saga_step_retries_total',
-  SAGA_COMPENSATION_DURATION_MS: 'saga_compensation_duration_milliseconds',
-  SAGA_RECOVERY_ATTEMPTS_TOTAL: 'saga_recovery_attempts_total',
-};
+export function recordHistogram(name: string, value: number, tags?: MetricTags): void {
+  metrics.histogram(name, value, tags);
+}
 
 /**
- * Helper functions for common metrics
+ * Get counter value
+ * @deprecated Use metrics.getCounters() instead
  */
-export const metricsHelpers = {
-  /**
-   * Record HTTP request
-   */
-  recordHttpRequest(method: string, path: string, status: number, durationMs: number): void {
-    metrics.increment(MetricNames.HTTP_REQUESTS_TOTAL, {
-      method,
-      path,
-      status: status.toString(),
-    });
-    
-    metrics.observe(MetricNames.HTTP_REQUEST_DURATION_MS, durationMs, {
-      method,
-      path,
-      status: status.toString(),
-    });
-  },
-
-  /**
-   * Record database query
-   */
-  recordDbQuery(operation: string, table: string, durationMs: number): void {
-    metrics.increment(MetricNames.DB_QUERIES_TOTAL, {
-      operation,
-      table,
-    });
-    
-    metrics.observe(MetricNames.DB_QUERY_DURATION_MS, durationMs, {
-      operation,
-      table,
-    });
-  },
-
-  /**
-   * Record cache hit
-   */
-  recordCacheHit(key: string): void {
-    metrics.increment(MetricNames.CACHE_HITS_TOTAL, { key });
-  },
-
-  /**
-   * Record cache miss
-   */
-  recordCacheMiss(key: string): void {
-    metrics.increment(MetricNames.CACHE_MISSES_TOTAL, { key });
-  },
-
-  /**
-   * Record API error
-   */
-  recordApiError(endpoint: string, errorType: string): void {
-    metrics.increment(MetricNames.API_ERRORS_TOTAL, {
-      endpoint,
-      error_type: errorType,
-    });
-  },
-
-  /**
-   * Record saga started
-   */
-  recordSagaStarted(sagaType: string, tenantId: string): void {
-    metrics.increment(MetricNames.SAGA_STARTED_TOTAL, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-    });
-  },
-
-  /**
-   * Record saga completed
-   */
-  recordSagaCompleted(sagaType: string, tenantId: string, durationMs: number): void {
-    metrics.increment(MetricNames.SAGA_COMPLETED_TOTAL, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-    });
-    
-    metrics.observe(MetricNames.SAGA_DURATION_MS, durationMs, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-      status: 'completed',
-    });
-  },
-
-  /**
-   * Record saga failed
-   */
-  recordSagaFailed(sagaType: string, tenantId: string, durationMs: number, failureReason: string): void {
-    metrics.increment(MetricNames.SAGA_FAILED_TOTAL, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-      failure_reason: failureReason,
-    });
-    
-    metrics.observe(MetricNames.SAGA_DURATION_MS, durationMs, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-      status: 'failed',
-    });
-  },
-
-  /**
-   * Record saga compensated
-   */
-  recordSagaCompensated(sagaType: string, tenantId: string, durationMs: number, compensationDurationMs: number): void {
-    metrics.increment(MetricNames.SAGA_COMPENSATED_TOTAL, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-    });
-    
-    metrics.observe(MetricNames.SAGA_DURATION_MS, durationMs, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-      status: 'compensated',
-    });
-    
-    metrics.observe(MetricNames.SAGA_COMPENSATION_DURATION_MS, compensationDurationMs, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-    });
-  },
-
-  /**
-   * Record saga step duration
-   */
-  recordSagaStepDuration(sagaType: string, stepName: string, tenantId: string, durationMs: number, status: 'completed' | 'failed'): void {
-    metrics.observe(MetricNames.SAGA_STEP_DURATION_MS, durationMs, {
-      saga_type: sagaType,
-      step_name: stepName,
-      tenant_id: tenantId,
-      status,
-    });
-  },
-
-  /**
-   * Record saga step retry
-   */
-  recordSagaStepRetry(sagaType: string, stepName: string, tenantId: string, errorType: string): void {
-    metrics.increment(MetricNames.SAGA_STEP_RETRIES_TOTAL, {
-      saga_type: sagaType,
-      step_name: stepName,
-      tenant_id: tenantId,
-      error_type: errorType,
-    });
-  },
-
-  /**
-   * Record saga recovery attempt
-   */
-  recordSagaRecoveryAttempt(sagaType: string, tenantId: string, success: boolean): void {
-    metrics.increment(MetricNames.SAGA_RECOVERY_ATTEMPTS_TOTAL, {
-      saga_type: sagaType,
-      tenant_id: tenantId,
-      success: success.toString(),
-    });
-  },
-};
-
-/**
- * Log metrics periodically
- */
-if (process.env.NODE_ENV !== 'test') {
-  setInterval(() => {
-    const metricsData = metrics.getMetricsJSON();
-    const metricCount = metrics.getMetricCount();
-    
-    if (metricCount > 0) {
-      pinoLogger.debug({
-        type: 'metrics_snapshot',
-        metricCount,
-        metrics: metricsData,
-      }, 'Metrics snapshot');
+export function getCounter(name: string): number {
+  const counters = metrics.getCounters();
+  for (const [key, value] of counters.entries()) {
+    if (key.startsWith(name)) {
+      return value;
     }
-  }, 60000); // Log every minute
+  }
+  return 0;
 }
+
+/**
+ * Get gauge value
+ * @deprecated Use metrics.getMetrics() instead
+ */
+export function getGauge(name: string): number {
+  const metricsMap = metrics.getMetrics();
+  for (const [key, entry] of metricsMap.entries()) {
+    if (key.startsWith(name) && entry.type === 'gauge') {
+      return entry.value;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Get histogram statistics
+ * @deprecated Use metrics.getHistograms() instead
+ */
+export function getHistogram(name: string): { count: number; sum: number; buckets: Array<{ le: number; count: number }> } | null {
+  const histograms = metrics.getHistograms();
+  const values: number[] = [];
+  
+  for (const [key, vals] of histograms.entries()) {
+    if (key.startsWith(name)) {
+      values.push(...vals);
+    }
+  }
+  
+  if (values.length === 0) {
+    return { count: 0, sum: 0, buckets: [] };
+  }
+  
+  const sum = values.reduce((a, b) => a + b, 0);
+  const buckets = [50, 100, 250, 500, 1000, 2500, 5000, 10000].map(le => ({
+    le,
+    count: values.filter(v => v <= le).length,
+  }));
+  
+  return {
+    count: values.length,
+    sum,
+    buckets,
+  };
+}
+
+/**
+ * Get percentile from histogram
+ * @deprecated Use metrics.getHistograms() instead
+ */
+export function getPercentile(name: string, percentile: number): number {
+  const hist = getHistogram(name);
+  if (!hist || hist.count === 0) return 0;
+  
+  const targetCount = Math.ceil((percentile / 100) * hist.count);
+  const bucket = hist.buckets.find(b => b.count >= targetCount);
+  return bucket?.le || 0;
+}
+
+/**
+ * Get Prometheus-formatted metrics
+ * @deprecated Use metrics API endpoint instead
+ */
+export function getPrometheusMetrics(): string {
+  const lines: string[] = [];
+  const metricsMap = metrics.getMetrics();
+  const counters = metrics.getCounters();
+  const histograms = metrics.getHistograms();
+  
+  // Always include help/type comments for known metrics
+  const knownMetrics = [
+    { name: 'sync_backlog', type: 'gauge', help: 'Number of events in sync backlog' },
+    { name: 'sync_events_processed_total', type: 'counter', help: 'Total events processed' },
+    { name: 'sync_latency_ms', type: 'histogram', help: 'Sync latency in milliseconds' },
+  ];
+  
+  for (const metric of knownMetrics) {
+    lines.push(`# HELP ${metric.name} ${metric.help}`);
+    lines.push(`# TYPE ${metric.name} ${metric.type}`);
+  }
+  
+  // Add counters
+  for (const [key, value] of counters.entries()) {
+    const name = key.split('{')[0];
+    if (!knownMetrics.find(m => m.name === name)) {
+      lines.push(`# HELP ${name} Counter metric`);
+      lines.push(`# TYPE ${name} counter`);
+    }
+    lines.push(`${key} ${value}`);
+  }
+  
+  // Add gauges
+  for (const [key, entry] of metricsMap.entries()) {
+    if (entry.type === 'gauge') {
+      const name = key.split('{')[0];
+      if (!knownMetrics.find(m => m.name === name)) {
+        lines.push(`# HELP ${name} Gauge metric`);
+        lines.push(`# TYPE ${name} gauge`);
+      }
+      lines.push(`${key} ${entry.value}`);
+    }
+  }
+  
+  // Add histograms
+  for (const [key, values] of histograms.entries()) {
+    const name = key.split('{')[0];
+    const sum = values.reduce((a, b) => a + b, 0);
+    if (!knownMetrics.find(m => m.name === name)) {
+      lines.push(`# HELP ${name} Histogram metric`);
+      lines.push(`# TYPE ${name} histogram`);
+    }
+    lines.push(`${name}_count ${values.length}`);
+    lines.push(`${name}_sum ${sum}`);
+  }
+  
+  return lines.join('\n');
+}
+
+/**
+ * Get JSON summary of metrics
+ * @deprecated Use metrics API endpoint instead
+ */
+export function getMetricsSummary(): any {
+  return {
+    sync: {
+      events_processed: getCounter('sync_events_processed_total'),
+      backlog: getGauge('sync_backlog'),
+      errors: getCounter('sync_errors_total'),
+      batches: getCounter('sync_batches_total'),
+    },
+    api: {
+      events_ingested: getCounter('ingest_events_total'),
+      projection_errors: getCounter('projection_errors_total'),
+    },
+    business: {
+      orders_created: getCounter('orders_created_total'),
+      orders_completed: getCounter('orders_completed_total'),
+    },
+  };
+}
+
+/**
+ * Convenience functions for sync metrics
+ */
+export const syncMetrics = {
+  recordLatency: (ms: number) => recordHistogram('sync_latency_ms', ms),
+  setBacklog: (count: number) => setGauge('sync_backlog', count),
+  incrementEventsProcessed: (count: number = 1) => incrementCounter('sync_events_processed_total', count),
+  incrementErrors: () => incrementCounter('sync_errors_total', 1),
+  incrementBatches: () => incrementCounter('sync_batches_total', 1),
+};
+
+/**
+ * Convenience functions for API metrics
+ */
+export const apiMetrics = {
+  recordIngestLatency: (ms: number) => recordHistogram('ingest_latency_ms', ms),
+  recordBatchSize: (size: number) => recordHistogram('ingest_batch_size', size),
+  incrementEventsIngested: (count: number = 1) => incrementCounter('ingest_events_total', count),
+  incrementProjectionErrors: () => incrementCounter('projection_errors_total', 1),
+};
+
+/**
+ * Convenience functions for circuit breaker metrics
+ */
+export const circuitBreakerMetrics = {
+  setState: (state: 'CLOSED' | 'HALF_OPEN' | 'OPEN') => {
+    const stateValue = state === 'CLOSED' ? 0 : state === 'HALF_OPEN' ? 1 : 2;
+    setGauge('circuit_breaker_state', stateValue);
+  },
+  incrementFailures: () => incrementCounter('circuit_breaker_failures_total', 1),
+};
+
+/**
+ * Convenience functions for business metrics
+ */
+export const businessMetrics = {
+  incrementOrdersCreated: () => incrementCounter('orders_created_total', 1),
+  incrementOrdersCompleted: () => incrementCounter('orders_completed_total', 1),
+  recordOrderTotal: (cents: number) => recordHistogram('order_total_cents', cents),
+};
