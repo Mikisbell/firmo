@@ -231,7 +231,8 @@ export async function POST(request: NextRequest) {
 
     // Step 4: Detect simultaneous login (NEW)
     console.log('[Login API] Step 4: Detecting simultaneous login');
-    const deviceId = data.device_id || 'unknown';
+    const { v4: uuidv4 } = await import('uuid');
+    const deviceId = data.device_id || uuidv4();
     const terminalId = data.terminal_id || 'admin-panel';
     
     const simultaneousCheck = await detectSimultaneousLogin(
@@ -280,7 +281,7 @@ export async function POST(request: NextRequest) {
       employeeId: authResult.employee!.id,
       terminalId: terminalId,
       deviceId: deviceId,
-      macAddress: data.mac_address || 'unknown',
+      macAddress: data.mac_address || 'unknown-mac',
       ipAddress: ip,
       userAgent: userAgent,
     };
