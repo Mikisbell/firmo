@@ -1,0 +1,324 @@
+
+> build
+> next build
+
+[@serwist/next] WARNING: You are using '@serwist/next' with `next dev --turbopack`, but Serwist doesn't support Turbopack at the moment. It is recommended that you set `disable` to `process.env.NODE_ENV !== "production"`. Follow https://github.com/serwist/serwist/issues/54 for progress on Serwist + Turbopack. You can also suppress this warning by setting SERWIST_SUPPRESS_TURBOPACK_WARNING=1.
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env.production, .env
+
+  Creating an optimized production build ...
+[@serwist/next] WARNING: You are using '@serwist/next' with `next dev --turbopack`, but Serwist doesn't support Turbopack at the moment. It is recommended that you set `disable` to `process.env.NODE_ENV !== "production"`. Follow https://github.com/serwist/serwist/issues/54 for progress on Serwist + Turbopack. You can also suppress this warning by setting SERWIST_SUPPRESS_TURBOPACK_WARNING=1.
+Ô£ô Compiled successfully in 14.4s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+{"level":"info","time":"2026-02-05T17:02:42.736Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:42.738Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"info","time":"2026-02-05T17:02:42.929Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:42.934Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:42.934Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"warn","time":"2026-02-05T17:02:42.938Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:42.931Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"timestamp":"2026-02-05T17:02:42.950Z","level":"info","event":"sse.heartbeat.started","message":"Started SSE heartbeat interval","context":{"intervalMs":30000}}
+{"level":"warn","time":"2026-02-05T17:02:42.949Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"timestamp":"2026-02-05T17:02:42.951Z","level":"info","event":"sse.cleanup.started","message":"Started SSE cleanup interval","context":{"intervalMs":60000}}
+{"level":"info","time":"2026-02-05T17:02:42.936Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"info","time":"2026-02-05T17:02:42.936Z","env":"production","service":"park-pos-admin","msg":"Delivery Redis not available, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:42.950Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:42.954Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:42.956Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:42.951Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"warn","time":"2026-02-05T17:02:42.983Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:42.984Z","env":"production","service":"park-pos-admin","msg":"Delivery Redis not available, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:42.996Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:42.957Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"info","time":"2026-02-05T17:02:42.958Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"info","time":"2026-02-05T17:02:43.002Z","env":"production","service":"park-pos-admin","msg":"Delivery Redis not available, using in-memory fallback"}
+{"level":"warn","time":"2026-02-05T17:02:43.007Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:42.950Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:42.951Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"info","time":"2026-02-05T17:02:42.951Z","env":"production","service":"park-pos-admin","msg":"Delivery Redis not available, using in-memory fallback"}
+{"timestamp":"2026-02-05T17:02:43.045Z","level":"info","event":"sse.heartbeat.started","message":"Started SSE heartbeat interval","context":{"intervalMs":30000}}
+{"timestamp":"2026-02-05T17:02:43.048Z","level":"info","event":"sse.cleanup.started","message":"Started SSE cleanup interval","context":{"intervalMs":60000}}
+{"timestamp":"2026-02-05T17:02:43.051Z","level":"info","event":"SSE_REDIS_SUBSCRIPTION_STARTED","message":"Started Redis Pub/Sub subscription for SSE broadcasting","context":{"channel":"delivery:events"}}
+{"level":"info","time":"2026-02-05T17:02:42.997Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"info","time":"2026-02-05T17:02:43.010Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.012Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"info","time":"2026-02-05T17:02:43.013Z","env":"production","service":"park-pos-admin","msg":"Delivery Redis not available, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.071Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.098Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.207Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.208Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"warn","time":"2026-02-05T17:02:43.099Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.240Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.244Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.245Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"warn","time":"2026-02-05T17:02:43.249Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.255Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.244Z","env":"production","service":"park-pos-admin","msg":"Delivery Redis not available, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.269Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.250Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.274Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.275Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.277Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.278Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.257Z","env":"production","service":"park-pos-admin","msg":"Redis not available, using in-memory cache (this is OK for MVP)"}
+{"level":"warn","time":"2026-02-05T17:02:43.281Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.282Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.308Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+  Generating static pages using 11 workers (0/140) ...
+{"timestamp":"2026-02-05T17:02:43.341Z","level":"info","event":"sse.heartbeat.started","message":"Started SSE heartbeat interval","context":{"intervalMs":30000}}
+{"timestamp":"2026-02-05T17:02:43.342Z","level":"info","event":"sse.cleanup.started","message":"Started SSE cleanup interval","context":{"intervalMs":60000}}
+{"timestamp":"2026-02-05T17:02:43.343Z","level":"info","event":"SSE_REDIS_SUBSCRIPTION_STARTED","message":"Started Redis Pub/Sub subscription for SSE broadcasting","context":{"channel":"delivery:events"}}
+{"level":"info","time":"2026-02-05T17:02:43.358Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.372Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+  Generating static pages using 11 workers (35/140) 
+{"level":"info","time":"2026-02-05T17:02:43.451Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.482Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.482Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.499Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.499Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+  Generating static pages using 11 workers (70/140) 
+{"level":"info","time":"2026-02-05T17:02:43.547Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.575Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.575Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.576Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.590Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"timestamp":"2026-02-05T17:02:43.596Z","level":"info","event":"EVENT_MIGRATOR_REGISTERED","message":"Registered migrations for event types","context":{"count":18}}
+{"level":"warn","time":"2026-02-05T17:02:43.625Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.654Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.719Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.720Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.777Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.778Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.804Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.807Z","env":"production","service":"park-pos-admin","times":4,"msg":"Delivery Redis connection failed, falling back to in-memory"}
+{"level":"info","time":"2026-02-05T17:02:43.810Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.810Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.822Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.822Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.824Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.825Z","env":"production","service":"park-pos-admin","times":4,"msg":"Delivery Redis connection failed, falling back to in-memory"}
+{"level":"info","time":"2026-02-05T17:02:43.859Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.859Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.861Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.868Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"warn","time":"2026-02-05T17:02:43.862Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.883Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.883Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.883Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.883Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:43.884Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.884Z","env":"production","service":"park-pos-admin","times":4,"msg":"Delivery Redis connection failed, falling back to in-memory"}
+{"level":"info","time":"2026-02-05T17:02:43.884Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.903Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.903Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+  Generating static pages using 11 workers (105/140) 
+{"level":"warn","time":"2026-02-05T17:02:43.930Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:43.930Z","env":"production","service":"park-pos-admin","times":4,"msg":"Delivery Redis connection failed, falling back to in-memory"}
+{"level":"info","time":"2026-02-05T17:02:43.962Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:43.962Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"warn","time":"2026-02-05T17:02:44.137Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"warn","time":"2026-02-05T17:02:44.281Z","env":"production","service":"park-pos-admin","error":"","msg":"Delivery Redis error, using in-memory fallback"}
+{"level":"info","time":"2026-02-05T17:02:44.282Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:44.293Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:44.293Z","env":"production","service":"park-pos-admin","times":4,"msg":"Delivery Redis connection failed, falling back to in-memory"}
+{"level":"info","time":"2026-02-05T17:02:44.378Z","env":"production","service":"park-pos-admin","error":"","msg":"Redis error, using in-memory cache"}
+{"level":"info","time":"2026-02-05T17:02:44.386Z","env":"production","service":"park-pos-admin","times":4,"msg":"Redis connection failed, falling back to in-memory cache"}
+Ô£ô Generating static pages using 11 workers (140/140) in 1081.8ms
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ Ôùï /admin
+Ôö£ Ôùï /admin/auditoria
+Ôö£ Ôùï /admin/configuracion
+Ôö£ Ôùï /admin/cross-tenant/dashboard
+Ôö£ Ôùï /admin/dashboard
+Ôö£ Ôùï /admin/delivery
+Ôö£ Ôùï /admin/delivery/historial
+Ôö£ Ôùï /admin/drivers
+Ôö£ Ôùï /admin/empleados
+Ôö£ ãÆ /admin/empleados/[id]
+Ôö£ Ôùï /admin/empleados/nuevo
+Ôö£ Ôùï /admin/estaciones
+Ôö£ Ôùï /admin/mesas
+Ôö£ Ôùï /admin/notificaciones
+Ôö£ Ôùï /admin/productos
+Ôö£ ãÆ /admin/productos/[id]
+Ôö£ Ôùï /admin/productos/nuevo
+Ôö£ Ôùï /admin/promociones
+Ôö£ ãÆ /admin/promociones/[id]
+Ôö£ Ôùï /admin/promociones/nuevo
+Ôö£ Ôùï /admin/reportes
+Ôö£ Ôùï /admin/security
+Ôö£ Ôùï /admin/tenant/dashboard
+Ôö£ Ôùï /admin/tenant/provisioning
+Ôö£ Ôùï /admin/terminales
+Ôö£ ãÆ /api/admin/analytics/comparison
+Ôö£ ãÆ /api/admin/analytics/history
+Ôö£ ãÆ /api/admin/analytics/hourly
+Ôö£ ãÆ /api/admin/analytics/realtime
+Ôö£ ãÆ /api/admin/analytics/top-products
+Ôö£ ãÆ /api/admin/audit/alerts
+Ôö£ ãÆ /api/admin/audit/alerts/[alertId]/acknowledge
+Ôö£ ãÆ /api/admin/audit/events
+Ôö£ ãÆ /api/admin/cleanup
+Ôö£ ãÆ /api/admin/config
+Ôö£ ãÆ /api/admin/cross-tenant-admins/grant
+Ôö£ ãÆ /api/admin/cross-tenant-admins/revoke
+Ôö£ ãÆ /api/admin/cross-tenant/access-control
+Ôö£ ãÆ /api/admin/cross-tenant/audit-log
+Ôö£ ãÆ /api/admin/cross-tenant/tenants
+Ôö£ ãÆ /api/admin/cross-tenant/tenants/[tenantId]/health
+Ôö£ ãÆ /api/admin/dashboard/stats
+Ôö£ ãÆ /api/admin/delivery/driver-metrics
+Ôö£ ãÆ /api/admin/delivery/history
+Ôö£ ãÆ /api/admin/delivery/metrics
+Ôö£ ãÆ /api/admin/employees
+Ôö£ ãÆ /api/admin/employees/[id]
+Ôö£ ãÆ /api/admin/notifications/status
+Ôö£ ãÆ /api/admin/products
+Ôö£ ãÆ /api/admin/products/[id]
+Ôö£ ãÆ /api/admin/products/bulk
+Ôö£ ãÆ /api/admin/products/export
+Ôö£ ãÆ /api/admin/products/images
+Ôö£ ãÆ /api/admin/products/images/[id]
+Ôö£ ãÆ /api/admin/products/import
+Ôö£ ãÆ /api/admin/products/template
+Ôö£ ãÆ /api/admin/promotions
+Ôö£ ãÆ /api/admin/promotions/[id]
+Ôö£ ãÆ /api/admin/reports
+Ôö£ ãÆ /api/admin/security/alerts
+Ôö£ ãÆ /api/admin/security/alerts/[alertId]/resolve
+Ôö£ ãÆ /api/admin/security/devices
+Ôö£ ãÆ /api/admin/security/devices/[mac]/block
+Ôö£ ãÆ /api/admin/security/sessions
+Ôö£ ãÆ /api/admin/security/sessions/[sessionId]/revoke
+Ôö£ ãÆ /api/admin/security/terminals/[id]/access-log
+Ôö£ ãÆ /api/admin/sidebar/badges
+Ôö£ ãÆ /api/admin/stations
+Ôö£ ãÆ /api/admin/stations/[id]
+Ôö£ ãÆ /api/admin/stations/[id]/metrics
+Ôö£ ãÆ /api/admin/stations/[id]/orders
+Ôö£ ãÆ /api/admin/stations/alerts
+Ôö£ ãÆ /api/admin/stations/alerts/[id]/dismiss
+Ôö£ ãÆ /api/admin/tables
+Ôö£ ãÆ /api/admin/tables/[id]
+Ôö£ ãÆ /api/admin/tenants
+Ôö£ ãÆ /api/admin/tenants/[id]/configuration
+Ôö£ ãÆ /api/admin/tenants/[id]/deactivate
+Ôö£ ãÆ /api/admin/tenants/[id]/delete
+Ôö£ ãÆ /api/admin/tenants/[id]/events
+Ôö£ ãÆ /api/admin/tenants/[id]/orders
+Ôö£ ãÆ /api/admin/tenants/[id]/reactivate
+Ôö£ ãÆ /api/admin/tenants/current/activity
+Ôö£ ãÆ /api/admin/tenants/current/health
+Ôö£ ãÆ /api/admin/tenants/current/metrics
+Ôö£ ãÆ /api/admin/tenants/provision
+Ôö£ ãÆ /api/admin/terminals
+Ôö£ ãÆ /api/admin/terminals-v2
+Ôö£ ãÆ /api/admin/terminals-v2/[terminalId]
+Ôö£ ãÆ /api/admin/terminals-v2/[terminalId]/debug
+Ôö£ ãÆ /api/admin/terminals-v2/[terminalId]/regenerate-code
+Ôö£ ãÆ /api/admin/terminals-v2/[terminalId]/status
+Ôö£ ãÆ /api/admin/terminals-v2/[terminalId]/unbind
+Ôö£ ãÆ /api/admin/terminals-v2/create
+Ôö£ ãÆ /api/admin/terminals/activate
+Ôö£ ãÆ /api/admin/zones
+Ôö£ ãÆ /api/auth/confirm-device
+Ôö£ ãÆ /api/auth/login
+Ôö£ ãÆ /api/auth/login-secure
+Ôö£ ãÆ /api/auth/logout
+Ôö£ ãÆ /api/auth/register-terminal
+Ôö£ ãÆ /api/auth/session
+Ôö£ ãÆ /api/auth/terminals
+Ôö£ ãÆ /api/auth/validate-session
+Ôö£ ãÆ /api/auth/verify-manager
+Ôö£ ãÆ /api/auth/verify-terminal
+Ôö£ ãÆ /api/catalog/latest
+Ôö£ ãÆ /api/deliveries/stream
+Ôö£ ãÆ /api/delivery
+Ôö£ ãÆ /api/delivery/[id]
+Ôö£ ãÆ /api/delivery/[id]/assign
+Ôö£ ãÆ /api/delivery/[id]/deliver
+Ôö£ ãÆ /api/delivery/[id]/dispatch
+Ôö£ ãÆ /api/delivery/[id]/fail
+Ôö£ ãÆ /api/delivery/checkpoint2
+Ôö£ ãÆ /api/delivery/driver/[driverId]
+Ôö£ ãÆ /api/docs
+Ôö£ ãÆ /api/drivers
+Ôö£ ãÆ /api/drivers/[id]
+Ôö£ ãÆ /api/drivers/available
+Ôö£ ãÆ /api/events/ingest
+Ôö£ ãÆ /api/events/stream
+Ôö£ ãÆ /api/health
+Ôö£ ãÆ /api/inventory
+Ôö£ ãÆ /api/inventory/kardex/[code]
+Ôö£ ãÆ /api/inventory/lots/[code]
+Ôö£ ãÆ /api/inventory/movements/recent
+Ôö£ ãÆ /api/inventory/receive
+Ôö£ ãÆ /api/inventory/stats
+Ôö£ ãÆ /api/inventory/stock
+Ôö£ ãÆ /api/inventory/verify-pin
+Ôö£ ãÆ /api/inventory/waste
+Ôö£ ãÆ /api/locations
+Ôö£ ãÆ /api/locations/history/[driverId]
+Ôö£ ãÆ /api/metrics
+Ôö£ ãÆ /api/notifications/preferences
+Ôö£ ãÆ /api/notifications/subscribe
+Ôö£ ãÆ /api/notifications/test
+Ôö£ ãÆ /api/notifications/vapid-key
+Ôö£ ãÆ /api/orders
+Ôö£ ãÆ /api/orders/[orderId]/lock
+Ôö£ ãÆ /api/orders/[orderId]/state
+Ôö£ ãÆ /api/products
+Ôö£ ãÆ /api/promotions
+Ôö£ ãÆ /api/promotions/apply
+Ôö£ ãÆ /api/promotions/remove
+Ôö£ ãÆ /api/promotions/validate
+Ôö£ ãÆ /api/push/send
+Ôö£ ãÆ /api/push/subscribe
+Ôö£ ãÆ /api/push/unsubscribe
+Ôö£ ãÆ /api/refunds
+Ôö£ ãÆ /api/stream-test
+Ôö£ ãÆ /api/sunat/invoice
+Ôö£ ãÆ /api/sunat/void
+Ôö£ ãÆ /api/tenant/configuration
+Ôö£ ãÆ /api/tenant/export
+Ôö£ ãÆ /api/tenant/exports
+Ôö£ ãÆ /api/tenant/exports/[id]/download
+Ôö£ ãÆ /api/terminals/activate
+Ôö£ ãÆ /api/terminals/activate-simple
+Ôö£ ãÆ /api/terminals/range
+Ôö£ ãÆ /api/terminals/validate
+Ôö£ ãÆ /api/terminals/validate-device
+Ôö£ ãÆ /api/test
+Ôö£ ãÆ /api/test-prisma
+Ôö£ ãÆ /api/test-simple
+Ôö£ ãÆ /api/test/broadcast-delivery-event
+Ôö£ Ôùï /bar
+Ôö£ Ôùï /caja
+Ôö£ Ôùï /cocina
+Ôö£ Ôùï /cocina/empaque
+Ôö£ Ôùï /cocina/horno
+Ôö£ Ôùï /delivery
+Ôö£ Ôùï /inventario
+Ôö£ Ôùï /mozo
+Ôö£ Ôùï /mozo/configuracion
+Ôö£ ãÆ /mozo/mesa/[tableId]
+Ôö£ Ôùï /offline
+Ôö£ Ôùï /pos
+Ôö£ Ôùï /pos/checkout
+Ôö£ Ôùï /pos/diagnostics
+Ôö£ Ôùï /pos/history
+Ôö£ Ôùï /pos/shift
+Ôö£ Ôùï /simple-activate
+Ôöö Ôùï /test-delivery-sse
+
+
+ãÆ Proxy (Middleware)
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

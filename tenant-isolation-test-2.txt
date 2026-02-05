@@ -1,0 +1,75 @@
+
+> test
+> vitest run src/core/tenant/__tests__/tenant-isolation.property.test.ts
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mE:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park[39m
+
+ [31mÔØ»[39m src/core/tenant/__tests__/tenant-isolation.property.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 65893[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m queries with different tenant contexts return different data [33m 12362[2mms[22m[39m
+[31m       [31m├ù[31m non-admin users cannot access other tenant data[39m[33m 6917[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m cross-tenant admins can access other tenant data [33m 11441[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m attempted cross-tenant access is logged [33m 9130[2mms[22m[39m
+       [32mÔ£ô[39m validates tenant context with valid tenant_id[32m 12[2mms[22m[39m
+       [32mÔ£ô[39m rejects context when tenant_id is empty[32m 3[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m tenant_id is logged with all API requests [33m 13675[2mms[22m[39m
+[31m       [31m├ù[31m queries are automatically scoped by RLS[39m[33m 10016[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/core/tenant/__tests__/tenant-isolation.property.test.ts > Tenant Isolation Properties > Property 2: Cross-Tenant Access Attempts Are Blocked > non-admin users cannot access other tenant data
+Error: Property failed after 1 tests
+{ seed: -1316480106, path: "0:0:0:0:0", endOnFailure: true }
+Counterexample: ["00000000-0000-1000-8000-000000000000"]
+Shrunk 4 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run
+ ÔØ» buildError node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:156:19
+ ÔØ» asyncThrowIfFailed node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:170:11
+
+Caused by: AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ÔØ» src/core/tenant/__tests__/tenant-isolation.property.test.ts:168:58
+ ÔØ» AsyncProperty.run node_modules/fast-check/lib/check/property/AsyncProperty.generic.js:43:28
+ ÔØ» asyncRunIt node_modules/fast-check/lib/check/runner/Runner.js:24:21
+ ÔØ» src/core/tenant/__tests__/tenant-isolation.property.test.ts:139:7
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/2]ÔÄ»
+
+ FAIL  src/core/tenant/__tests__/tenant-isolation.property.test.ts > Tenant Isolation Properties > Property 6: Prisma Queries Are Tenant-Scoped > queries are automatically scoped by RLS
+Error: Property failed after 1 tests
+{ seed: 1597717101, path: "0:0:0:0:0", endOnFailure: true }
+Counterexample: ["00000000-0000-1000-8000-000000000000"]
+Shrunk 4 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run
+ ÔØ» buildError node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:156:19
+ ÔØ» asyncThrowIfFailed node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:170:11
+
+Caused by: AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ÔØ» src/core/tenant/__tests__/tenant-isolation.property.test.ts:430:33
+ ÔØ» AsyncProperty.run node_modules/fast-check/lib/check/property/AsyncProperty.generic.js:43:28
+ ÔØ» asyncRunIt node_modules/fast-check/lib/check/runner/Runner.js:24:21
+ ÔØ» src/core/tenant/__tests__/tenant-isolation.property.test.ts:385:7
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/2]ÔÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 12:05:14
+[2m   Duration [22m 66.73s[2m (transform 120ms, setup 0ms, import 585ms, tests 65.89s, environment 0ms)[22m
+

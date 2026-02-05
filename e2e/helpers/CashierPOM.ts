@@ -13,10 +13,21 @@ export class CashierPOM {
 
   /**
    * Opens and waits for payment terminal modal to be visible
+   * Now includes order selection step
    */
   async openPaymentTerminal() {
     await this.page.waitForLoadState('networkidle');
-    await this.page.waitForSelector('[data-testid="payment-terminal-modal"]');
+    
+    // Click on first pending order to open payment terminal
+    const firstOrder = this.page.locator('[data-testid^="order-card-"]').first();
+    await firstOrder.waitFor({ state: 'visible', timeout: 10000 });
+    await firstOrder.click();
+    
+    // Wait for modal to appear
+    await this.page.waitForSelector('[data-testid="payment-terminal-modal"]', {
+      state: 'visible',
+      timeout: 10000
+    });
   }
 
   /**
