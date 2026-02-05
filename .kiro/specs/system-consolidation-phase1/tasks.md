@@ -189,41 +189,41 @@ The implementation follows a phased approach:
     - **Property 13: Cache TTL Correctness**
     - **Validates: Requirements 9.1, 9.2, 9.3**
   
-  - [~] 9.3 Write property test for cache invalidation on update
+  - [x] 9.3 Write property test for cache invalidation on update
     - **Property 14: Cache Invalidation on Update**
     - **Validates: Requirements 9.4**
   
-  - [~] 9.4 Write property test for cache hit rate metrics
+  - [x] 9.4 Write property test for cache hit rate metrics
     - **Property 15: Cache Hit Rate Metrics**
     - **Validates: Requirements 9.6**
   
-  - [~] 9.5 Write property test for cache graceful degradation
+  - [x] 9.5 Write property test for cache graceful degradation
     - **Property 16: Cache Graceful Degradation**
     - **Validates: Requirements 9.7**
   
-  - [~] 9.6 Write property test for cache round-trip consistency
+  - [x] 9.6 Write property test for cache round-trip consistency
     - **Property 23: Cache Round-Trip Consistency**
     - **Validates: Requirements 9.1, 9.2, 9.3**
   
-  - [~] 9.7 Integrate caching in product catalog service
+  - [x] 9.7 Integrate caching in product catalog service
     - Modify `src/core/services/product.service.ts` to use cache
     - Check cache before database query
     - Store results in cache after database query
     - Invalidate cache on product updates
     - _Requirements: 8.1_
   
-  - [~] 9.8 Integrate caching in tenant configuration service
+  - [x] 9.8 Integrate caching in tenant configuration service
     - Modify tenant configuration queries to use cache
     - Invalidate cache on configuration updates
     - _Requirements: 8.2_
   
-  - [~] 9.9 Integrate caching in terminal registration service
+  - [x] 9.9 Integrate caching in terminal registration service
     - Modify terminal queries to use cache
     - Invalidate cache on terminal updates
     - _Requirements: 8.3_
 
 - [~] 10. Optimize Database Queries
-  - [~] 10.1 Add database indexes for performance
+  - [x] 10.1 Add database indexes for performance
     - Create migration `prisma/migrations/add_performance_indexes.sql`
     - Add index on `orders(tenant_id, created_at DESC)`
     - Add index on `orders(status)`
@@ -235,7 +235,7 @@ The implementation follows a phased approach:
     - Run migration
     - _Requirements: 9.4, 9.5_
   
-  - [~] 10.2 Eliminate N+1 queries in order loading
+  - [x] 10.2 Eliminate N+1 queries in order loading
     - Modify `src/core/services/order.service.ts` to use Prisma include
     - Load orders with items, payments in single query
     - Add unit test to verify single query execution

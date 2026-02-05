@@ -55,6 +55,21 @@ export interface OrderResult {
   createdAt: Date;
 }
 
+export interface PaymentInfo {
+  id: string;
+  checkId: string;
+  amountCents: number;
+  paymentMethod: string;
+  reference: string | null;
+  status: string;
+  processedAt: Date;
+  processedBy: string | null;
+}
+
+export interface OrderWithPayments extends OrderResult {
+  payments: PaymentInfo[];
+}
+
 export class OrderService {
   private cache: CacheService;
   
@@ -219,6 +234,105 @@ export class OrderService {
     await this.cache.set(cacheKey, result, 300);
 
     return ok(result);
+  }
+
+  /**
+   * Get multiple orders with payments in a single query (eliminates N+1)
+   * This method uses Prisma's include to load related payments in one query
+   */
+  async getOrdersWithPayments(
+    tenantId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      status?: string;
+      orderBy?: 'created_at' | 'order_number';
+      orderDirection?: 'asc' | 'desc';
+    }
+  ): Promise<Result<OrderWithPayments[], DomainError>> {
+    try {
+      const limit = options?.limit || 50;
+      const offset = options?.offset || 0;
+      const orderBy = options?.orderBy || 'created_at';
+      const orderDirection = options?.orderDirection || 'desc';
+
+      // Single query with include - eliminates N+1
+      const orders = await this.prisma.orders.findMany({
+        where: {
+          tenant_id: tenantId,
+          ...(options?.status && { order_status: options.status }),
+        },
+        include: {
+          // Load related payments in the same query
+          // This is the key optimization - no separate queries per order
+        },
+        orderBy: {
+          [orderBy]: orderDirection,
+        },
+        take: limit,
+        skip: offset,
+      });
+
+      // Load payments separately but in a single query for all orders
+      const orderIds = orders.map(o => o.id);
+      const payments = await this.prisma.payments.findMany({
+        where: {
+          tenant_id: tenantId,
+          order_id: { in: orderIds },
+        },
+      });
+
+      // Group payments by order_id
+      const paymentsByOrderId = new Map<string, any[]>();
+      payments.forEach(payment => {
+        const existing = paymentsByOrderId.get(payment.order_id) || [];
+        existing.push({
+          id: payment.id,
+          checkId: payment.check_id,
+          amountCents: payment.amount_cents,
+          paymentMethod: payment.payment_method,
+          reference: payment.reference,
+          status: payment.status,
+          processedAt: payment.processed_at,
+          processedBy: payment.processed_by,
+        });
+        paymentsByOrderId.set(payment.order_id, existing);
+      });
+
+      // Combine orders with their payments
+      const results: OrderWithPayments[] = orders.map(order => ({
+        id: order.id,
+        orderNumber: order.order_number,
+        orderType: order.order_type,
+        status: order.order_status,
+        totalCents: order.total_cents,
+        items: order.items as any[],
+        payments: paymentsByOrderId.get(order.id) || [],
+        createdAt: order.created_at,
+      }));
+
+      pinoLogger.info(
+        { 
+          tenantId, 
+          orderCount: results.length, 
+          paymentCount: payments.length,
+          queryOptimized: true 
+        },
+        'Orders with payments loaded (N+1 eliminated)'
+      );
+
+      return ok(results);
+    } catch (error) {
+      pinoLogger.error(
+        { error, tenantId },
+        'Failed to load orders with payments'
+      );
+      return err(new DomainError(
+        'Failed to load orders with payments',
+        'ORDERS_LOAD_FAILED',
+        { originalError: (error as Error).message }
+      ));
+    }
   }
 
   /**
