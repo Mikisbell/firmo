@@ -60,7 +60,7 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             
             // Create mock controllers that track when events are received
             for (let i = 0; i < clientCount; i++) {
-              const clientId = `client-${i}-${Date.now()}`;
+              const clientId = `client-${i}-${Date.now()}-${Math.random()}`;
               const controller = createMockController((data) => {
                 receivedEvents.push({
                   clientId,
@@ -68,7 +68,13 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
                 });
               });
               clientIds.push(clientId);
-              await sseConnectionManager.addClient(clientId, controller);
+              // Add client with same restaurantId and driverId as event
+              await sseConnectionManager.addClient(
+                clientId, 
+                controller,
+                event.restaurantId || undefined,
+                event.driverId || undefined
+              );
             }
             
             // Act
@@ -119,7 +125,7 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             
             // Create mock controllers that capture received data
             for (let i = 0; i < clientCount; i++) {
-              const clientId = `client-${i}-${Date.now()}`;
+              const clientId = `client-${i}-${Date.now()}-${Math.random()}`;
               const controller = createMockController((data) => {
                 receivedData.push({
                   clientId,
@@ -127,7 +133,13 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
                 });
               });
               clientIds.push(clientId);
-              await sseConnectionManager.addClient(clientId, controller);
+              // Add client with same restaurantId and driverId as event
+              await sseConnectionManager.addClient(
+                clientId, 
+                controller,
+                event.restaurantId || undefined,
+                event.driverId || undefined
+              );
             }
             
             // Act
@@ -294,7 +306,7 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             // Setup - use singleton manager
             const eventIds = new Set<string>();
             const receivedEvents: DeliveryEvent[] = [];
-            const clientId = `test-client-${Date.now()}`;
+            const clientId = `test-client-${Date.now()}-${Math.random()}`;
             
             // Create a mock controller that captures event IDs
             const controller = createMockController((data) => {
@@ -317,10 +329,16 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
               }
             });
             
+            // Add client without filters - will receive all events
             await sseConnectionManager.addClient(clientId, controller);
             
             // Act - Broadcast all events
             for (const event of events) {
+              // Ensure each event has a unique ID
+              event.id = `event-${Date.now()}-${Math.random()}`;
+              // Set restaurantId and driverId to null so they match the unfiltered client
+              event.restaurantId = null;
+              event.driverId = null;
               await sseBroadcaster.broadcast(event);
             }
             
