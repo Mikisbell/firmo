@@ -12,6 +12,58 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
     reactStrictMode: true,
     
+    // Code Splitting Optimization
+    experimental: {
+        // Enable optimized package imports for better code splitting
+        optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-icons'],
+    },
+    
+    // Webpack configuration for code splitting
+    webpack: (config, { isServer }) => {
+        if (!isServer) {
+            // Suppress Zustand deprecation warning
+            config.ignoreWarnings = [
+                ...(config.ignoreWarnings || []),
+                {
+                    module: /node_modules\/zustand/,
+                    message: /Default export is deprecated/,
+                },
+            ];
+            
+            // Optimize chunk splitting for better caching
+            config.optimization = {
+                ...config.optimization,
+                splitChunks: {
+                    chunks: 'all',
+                    cacheGroups: {
+                        // Vendor chunk for node_modules
+                        vendor: {
+                            test: /[\\/]node_modules[\\/]/,
+                            name: 'vendors',
+                            priority: 10,
+                            reuseExistingChunk: true,
+                        },
+                        // Separate chunk for large UI libraries
+                        ui: {
+                            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|recharts)[\\/]/,
+                            name: 'ui-libs',
+                            priority: 20,
+                            reuseExistingChunk: true,
+                        },
+                        // Common chunk for shared code
+                        common: {
+                            minChunks: 2,
+                            priority: 5,
+                            reuseExistingChunk: true,
+                            name: 'common',
+                        },
+                    },
+                },
+            };
+        }
+        return config;
+    },
+    
     // Security Headers Configuration
     async headers() {
         return [
@@ -85,20 +137,6 @@ const nextConfig = {
         ];
     },
 
-    // Suppress Zustand deprecation warning from dependencies
-    webpack: (config, { isServer }) => {
-        if (!isServer) {
-            config.ignoreWarnings = [
-                ...(config.ignoreWarnings || []),
-                {
-                    module: /node_modules\/zustand/,
-                    message: /Default export is deprecated/,
-                },
-            ];
-        }
-        return config;
-    },
-    
     // Turbopack configuration (empty to silence warning)
     turbopack: {},
 };
