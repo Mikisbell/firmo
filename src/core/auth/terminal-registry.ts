@@ -137,7 +137,8 @@ export async function createTerminal(input: CreateTerminalInput): Promise<{ term
   // Generate activation code
   const code = await generateActivationCode(input.terminal_id, input.created_by);
 
-  logger.info('TERMINAL_CREATED', 'New terminal created', {
+  logger.info('New terminal created', {
+    event: 'TERMINAL_CREATED',
     terminal_id: input.terminal_id,
     role: input.role,
     tenant_id: input.tenant_id,
@@ -180,7 +181,8 @@ export async function generateActivationCode(terminalId: string, createdBy: stri
     },
   });
 
-  logger.info('ACTIVATION_CODE_GENERATED', 'Activation code generated', {
+  logger.info('Activation code generated', {
+    event: 'ACTIVATION_CODE_GENERATED',
     terminal_id: terminalId,
     expires_at: expiresAt.toISOString(),
   });
@@ -216,13 +218,17 @@ export async function activateDevice(
   });
 
   if (!activationCode) {
-    logger.warn('ACTIVATION_FAILED', 'Invalid activation code', { code: normalizedCode });
+    logger.warn('Invalid activation code', { 
+      event: 'ACTIVATION_FAILED',
+      code: normalizedCode 
+    });
     return { success: false, error: 'Código de activación inválido' };
   }
 
   // Check if code is expired (Requirement 2.3)
   if (new Date() > activationCode.expires_at) {
-    logger.warn('ACTIVATION_FAILED', 'Activation code expired', {
+    logger.warn('Activation code expired', {
+      event: 'ACTIVATION_FAILED',
       terminal_id: activationCode.terminal_id,
       expired_at: activationCode.expires_at.toISOString(),
     });
@@ -231,7 +237,8 @@ export async function activateDevice(
 
   // Check max attempts
   if (activationCode.attempts >= MAX_ACTIVATION_ATTEMPTS) {
-    logger.warn('ACTIVATION_FAILED', 'Max activation attempts exceeded', {
+    logger.warn('Max activation attempts exceeded', {
+      event: 'ACTIVATION_FAILED',
       terminal_id: activationCode.terminal_id,
       attempts: activationCode.attempts,
     });
@@ -246,7 +253,8 @@ export async function activateDevice(
 
   // Check tenant match
   if (activationCode.terminal_device.tenant_id !== tenantId) {
-    logger.warn('ACTIVATION_FAILED', 'Tenant mismatch', {
+    logger.warn('Tenant mismatch', {
+      event: 'ACTIVATION_FAILED',
       terminal_id: activationCode.terminal_id,
       expected_tenant: activationCode.terminal_device.tenant_id,
       provided_tenant: tenantId,
@@ -268,7 +276,8 @@ export async function activateDevice(
     // Check similarity with existing binding
     const existingHash = await hashWithSalt(fingerprint, existingBinding.fingerprint_salt);
     if (existingHash === existingBinding.fingerprint_hash) {
-      logger.warn('ACTIVATION_FAILED', 'Device already bound to another terminal', {
+      logger.warn('Device already bound to another terminal', {
+        event: 'ACTIVATION_FAILED',
         terminal_id: activationCode.terminal_id,
         existing_terminal: existingBinding.terminal_id,
       });
@@ -303,7 +312,8 @@ export async function activateDevice(
   await cache.deleteByTag('terminals');
   metrics.increment('cache.invalidation', { resource: 'terminal', reason: 'activation' });
 
-  logger.info('DEVICE_ACTIVATED', 'Device successfully activated', {
+  logger.info('Device successfully activated', {
+    event: 'DEVICE_ACTIVATED',
     terminal_id: activationCode.terminal_id,
     role: updatedTerminal.role,
   });
@@ -366,7 +376,8 @@ export async function validateTerminal(
 
   // Check drift threshold (Requirement 3.4)
   if (similarity < FINGERPRINT_DRIFT_THRESHOLD) {
-    logger.warn('FINGERPRINT_DRIFT', 'Fingerprint drift detected', {
+    logger.warn('Fingerprint drift detected', {
+      event: 'FINGERPRINT_DRIFT',
       terminal_id: terminalId,
       similarity,
       threshold: FINGERPRINT_DRIFT_THRESHOLD,
@@ -440,7 +451,8 @@ export async function getTerminal(terminalId: string, tenantId: string): Promise
     return mappedTerminal;
     
   } catch (error) {
-    logger.error('TERMINAL_GET_ERROR', 'Failed to get terminal', error as Error, {
+    logger.error('Failed to get terminal', error as Error, {
+      event: 'TERMINAL_GET_ERROR',
       terminalId,
       tenantId,
     });
@@ -496,7 +508,8 @@ export async function listTerminals(tenantId: string): Promise<TerminalDevice[]>
     return mappedTerminals;
     
   } catch (error) {
-    logger.error('TERMINALS_LIST_ERROR', 'Failed to list terminals', error as Error, {
+    logger.error('Failed to list terminals', error as Error, {
+      event: 'TERMINALS_LIST_ERROR',
       tenantId,
     });
     metrics.increment('terminals.error', { operation: 'list' });
@@ -528,7 +541,10 @@ export async function disableTerminal(terminalId: string, tenantId: string): Pro
   await cache.deleteByTag('terminals');
   metrics.increment('cache.invalidation', { resource: 'terminal', reason: 'disable' });
 
-  logger.info('TERMINAL_DISABLED', 'Terminal disabled', { terminal_id: terminalId });
+  logger.info('Terminal disabled', { 
+    event: 'TERMINAL_DISABLED',
+    terminal_id: terminalId 
+  });
 }
 
 /**

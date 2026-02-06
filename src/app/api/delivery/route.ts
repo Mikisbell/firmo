@@ -80,9 +80,9 @@ export async function GET(request: NextRequest) {
     const statusParam = searchParams.get('status');
     
     // Por defecto, obtener pendientes (PENDING, ASSIGNED, DISPATCHED)
-    const statuses = statusParam 
-      ? statusParam.split(',') as ('PENDING' | 'ASSIGNED' | 'DISPATCHED' | 'DELIVERED' | 'FAILED')[]
-      : ['PENDING', 'ASSIGNED', 'DISPATCHED'] as const;
+    const statuses: string[] = statusParam 
+      ? statusParam.split(',')
+      : ['PENDING', 'ASSIGNED', 'DISPATCHED'];
 
     // Build where clause
     const where = {

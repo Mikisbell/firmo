@@ -12,67 +12,70 @@ const SLOW_QUERY_THRESHOLD_MS = 1000
  * Create Prisma client with slow query logging middleware
  */
 const prismaClientSingleton = () => {
-    const client = new PrismaClient()
+    const baseClient = new PrismaClient()
     
-    // Add middleware for query timing and slow query logging
-    // Only if $use is available (not available in some test environments)
-    if (typeof client.$use === 'function') {
-        client.$use(async (params, next) => {
-            const startTime = Date.now()
-            
-            try {
-                // Execute the query
-                const result = await next(params)
+    // Use Prisma 6 extension API for middleware
+    const extendedClient = baseClient.$extends({
+        name: 'slow-query-logger',
+        query: {
+            async $allOperations({ operation, model, args, query }) {
+                const startTime = Date.now()
                 
-                // Calculate execution time
-                const duration = Date.now() - startTime
-                
-                // Emit metrics for all queries
-                metrics.histogram('database.query.duration', duration, {
-                    model: params.model || 'unknown',
-                    action: params.action,
-                })
-                
-                // Log slow queries
-                if (duration > SLOW_QUERY_THRESHOLD_MS) {
-                    logger.warn('Slow query detected', {
-                        model: params.model,
-                        action: params.action,
-                        duration,
-                        args: JSON.stringify(params.args),
+                try {
+                    // Execute the query
+                    const result = await query(args)
+                    
+                    // Calculate execution time
+                    const duration = Date.now() - startTime
+                    
+                    // Emit metrics for all queries
+                    metrics.histogram('database.query.duration', duration, {
+                        model: model || 'unknown',
+                        action: operation,
                     })
                     
-                    // Emit slow query metric
-                    metrics.increment('database.query.slow', {
-                        model: params.model || 'unknown',
-                        action: params.action,
+                    // Log slow queries
+                    if (duration > SLOW_QUERY_THRESHOLD_MS) {
+                        logger.warn('Slow query detected', {
+                            model: model,
+                            action: operation,
+                            duration,
+                            args: JSON.stringify(args).substring(0, 200),
+                        })
+                        
+                        // Emit slow query metric
+                        metrics.increment('database.query.slow', {
+                            model: model || 'unknown',
+                            action: operation,
+                        })
+                    }
+                    
+                    return result
+                } catch (error) {
+                    // Log query errors
+                    const duration = Date.now() - startTime
+                    
+                    logger.error('Query failed', error as Error, {
+                        model: model,
+                        action: operation,
+                        duration,
+                        args: JSON.stringify(args).substring(0, 200),
                     })
+                    
+                    // Emit error metric
+                    metrics.increment('database.query.error', {
+                        model: model || 'unknown',
+                        action: operation,
+                    })
+                    
+                    throw error
                 }
-                
-                return result
-            } catch (error) {
-                // Log query errors
-                const duration = Date.now() - startTime
-                
-                logger.error('Query failed', error as Error, {
-                    model: params.model,
-                    action: params.action,
-                    duration,
-                    args: JSON.stringify(params.args),
-                })
-                
-                // Emit error metric
-                metrics.increment('database.query.error', {
-                    model: params.model || 'unknown',
-                    action: params.action,
-                })
-                
-                throw error
             }
-        })
-    }
+        }
+    })
     
-    return client
+    // Return as PrismaClient type for compatibility
+    return extendedClient as unknown as PrismaClient
 }
 
 declare global {

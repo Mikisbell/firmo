@@ -45,9 +45,6 @@ export async function GET(request: NextRequest) {
         name: true,
         phone: true,
         is_active: true,
-        current_location: true,
-        created_at: true,
-        updated_at: true,
       }
     });
     

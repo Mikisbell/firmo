@@ -7,6 +7,47 @@
  * @module observability/metrics
  */
 
+/**
+ * Standard metric names used throughout the application
+ */
+export const MetricNames = {
+  // Employee metrics
+  EMPLOYEES_CREATED_TOTAL: 'employees_created_total',
+  EMPLOYEES_ACTIVE: 'employees_active',
+  
+  // Order metrics
+  ORDERS_CREATED_TOTAL: 'orders_created_total',
+  ORDERS_COMPLETED_TOTAL: 'orders_completed_total',
+  
+  // Sync metrics
+  SYNC_EVENTS_PROCESSED_TOTAL: 'sync_events_processed_total',
+  SYNC_BACKLOG: 'sync_backlog',
+  SYNC_ERRORS_TOTAL: 'sync_errors_total',
+  SYNC_BATCHES_TOTAL: 'sync_batches_total',
+  SYNC_LATENCY_MS: 'sync_latency_ms',
+  
+  // API metrics
+  INGEST_EVENTS_TOTAL: 'ingest_events_total',
+  INGEST_LATENCY_MS: 'ingest_latency_ms',
+  INGEST_BATCH_SIZE: 'ingest_batch_size',
+  PROJECTION_ERRORS_TOTAL: 'projection_errors_total',
+  
+  // Cache metrics
+  CACHE_HITS_TOTAL: 'cache_hits_total',
+  CACHE_MISSES_TOTAL: 'cache_misses_total',
+  
+  // HTTP metrics
+  HTTP_REQUESTS_TOTAL: 'http_requests_total',
+  HTTP_REQUEST_DURATION_MS: 'http_request_duration_ms',
+  
+  // Error metrics
+  API_ERRORS_TOTAL: 'api_errors_total',
+  
+  // Circuit breaker metrics
+  CIRCUIT_BREAKER_STATE: 'circuit_breaker_state',
+  CIRCUIT_BREAKER_FAILURES_TOTAL: 'circuit_breaker_failures_total',
+} as const;
+
 export interface MetricTags {
   tenantId?: string;
   terminalId?: string;
@@ -104,6 +145,14 @@ export class VercelMetricsCollector implements MetricsCollector {
     });
     
     this.checkFlush();
+  }
+  
+  /**
+   * Set a gauge metric (alias for gauge)
+   * @deprecated Use gauge() instead
+   */
+  set(metric: string, value: number, tags?: MetricTags): void {
+    this.gauge(metric, value, tags);
   }
   
   /**
@@ -531,4 +580,76 @@ export const businessMetrics = {
   incrementOrdersCreated: () => incrementCounter('orders_created_total', 1),
   incrementOrdersCompleted: () => incrementCounter('orders_completed_total', 1),
   recordOrderTotal: (cents: number) => recordHistogram('order_total_cents', cents),
+};
+
+/**
+ * Helper functions for common metric operations
+ * Used by middleware and services
+ */
+export const metricsHelpers = {
+  // Cache metrics
+  recordCacheHit: (key: string) => {
+    metrics.increment(MetricNames.CACHE_HITS_TOTAL, { key });
+  },
+  recordCacheMiss: (key: string) => {
+    metrics.increment(MetricNames.CACHE_MISSES_TOTAL, { key });
+  },
+  
+  // HTTP metrics
+  recordHttpRequest: (method: string, pathname: string, status: number, durationMs: number) => {
+    metrics.increment(MetricNames.HTTP_REQUESTS_TOTAL, { method, pathname, status: String(status) });
+    metrics.histogram(MetricNames.HTTP_REQUEST_DURATION_MS, durationMs, { method, pathname });
+  },
+  
+  // Error metrics
+  recordApiError: (pathname: string, errorType: string) => {
+    metrics.increment(MetricNames.API_ERRORS_TOTAL, { pathname, errorType });
+  },
+  
+  // Saga metrics
+  recordSagaStarted: (sagaType: string, tenantId: string) => {
+    metrics.increment('saga.started', { saga_type: sagaType, tenant_id: tenantId });
+  },
+  
+  recordSagaCompleted: (sagaType: string, tenantId: string, durationMs: number) => {
+    metrics.increment('saga.completed', { saga_type: sagaType, tenant_id: tenantId });
+    metrics.histogram('saga.duration', durationMs, { saga_type: sagaType, tenant_id: tenantId, status: 'completed' });
+  },
+  
+  recordSagaFailed: (sagaType: string, tenantId: string, durationMs: number, errorType: string) => {
+    metrics.increment('saga.failed', { saga_type: sagaType, tenant_id: tenantId, error_type: errorType });
+    metrics.histogram('saga.duration', durationMs, { saga_type: sagaType, tenant_id: tenantId, status: 'failed' });
+  },
+  
+  recordSagaCompensated: (sagaType: string, tenantId: string, durationMs: number, compensationDurationMs: number) => {
+    metrics.increment('saga.compensated', { saga_type: sagaType, tenant_id: tenantId });
+    metrics.histogram('saga.duration', durationMs, { saga_type: sagaType, tenant_id: tenantId, status: 'compensated' });
+    metrics.histogram('saga.compensation_duration', compensationDurationMs, { saga_type: sagaType, tenant_id: tenantId });
+  },
+  
+  recordSagaStepDuration: (sagaType: string, stepName: string, tenantId: string, durationMs: number, status: 'completed' | 'failed') => {
+    metrics.histogram('saga.step.duration', durationMs, { 
+      saga_type: sagaType, 
+      step_name: stepName, 
+      tenant_id: tenantId,
+      status 
+    });
+  },
+  
+  recordSagaStepRetry: (sagaType: string, stepName: string, tenantId: string, errorType: string) => {
+    metrics.increment('saga.step.retry', { 
+      saga_type: sagaType, 
+      step_name: stepName, 
+      tenant_id: tenantId,
+      error_type: errorType 
+    });
+  },
+  
+  recordSagaRecoveryAttempt: (sagaType: string, tenantId: string, success: boolean) => {
+    metrics.increment('saga.recovery.attempt', { 
+      saga_type: sagaType, 
+      tenant_id: tenantId,
+      success: String(success)
+    });
+  },
 };

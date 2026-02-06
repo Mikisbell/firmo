@@ -5,8 +5,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { generateOpenAPISpec } from '@/lib/openapi/generator';
-import { exportToPostman } from '@/lib/openapi/postman-exporter';
+import { generateOpenAPISpec } from '@/src/lib/openapi/generator';
+import { exportToPostman } from '@/src/lib/openapi/postman-exporter';
 
 export async function GET() {
   try {

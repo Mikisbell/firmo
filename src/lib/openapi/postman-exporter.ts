@@ -221,10 +221,11 @@ function buildQueryParameters(
     .map((param) => {
       const p = param as OpenAPIV3.ParameterObject;
       const schema = p.schema as OpenAPIV3.SchemaObject;
+      const exampleValue = getExampleValue(schema);
       
       return {
         key: p.name,
-        value: getExampleValue(schema) || '',
+        value: typeof exampleValue === 'string' ? exampleValue : String(exampleValue || ''),
         description: p.description || '',
       };
     });

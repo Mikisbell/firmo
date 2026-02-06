@@ -76,12 +76,17 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
         const mockSession: SecureSession = {
           id: `e2e-test-session-${Date.now()}`,
           terminal_id: storedConfig.terminal_id,
-          actor_id: storedConfig.actor_id,
-          role: storedConfig.role,
-          created_at: Date.now(),
-          last_activity: Date.now(),
-          fingerprint: storedConfig.device_fingerprint,
-          risk_level: 'low'
+          employee_id: storedConfig.actor_id,
+          employee_name: 'E2E Test User',
+          employee_role: 'WAITER',
+          terminal_role: 'MOZO', // Map WAITER to MOZO for session-v2
+          fingerprint_at_login: storedConfig.device_fingerprint,
+          fingerprint_signals_at_login: JSON.stringify({}),
+          risk_score_at_login: 0,
+          created_at: new Date(),
+          last_activity_at: new Date(),
+          last_fingerprint_check: new Date(),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         };
         
         setSession(mockSession);

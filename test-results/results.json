@@ -1,0 +1,240 @@
+{
+  "config": {
+    "configFile": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\playwright.config.ts",
+    "rootDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/junit.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true
+    }
+  },
+  "suites": [
+    {
+      "title": "debug-waiter-page.spec.ts",
+      "file": "debug-waiter-page.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Waiter Page Diagnosis",
+          "file": "debug-waiter-page.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "diagnose waiter page loading",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3855,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Navigating to /mozo...\n"
+                        },
+                        {
+                          "text": "Page title: PARK POS\n"
+                        },
+                        {
+                          "text": "Current URL: http://localhost:3000/mozo\n"
+                        },
+                        {
+                          "text": "Body text (first 500 chars): MESEROT-01Toma de Pedidos • Mesas0OcupadasLIVECerrar sesiónTodasSalónTerrazaVIPSALMesa 1DisponibleSALMesa 2DisponibleSALMesa 3DisponibleTERMesa 4DisponibleTERMesa 5DisponibleTERMesa 6DisponibleVIPMesa 7DisponibleVIPMesa 8DisponibleVIPMesa 9DisponibleDisponibleOcupada <20m20-40m>40mPide cuentaMesasListosConfigself.__next_r=\"DQe9SAYK36SFITnuuJwv1\"(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"6:I[\\\"[project]/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-nod\n"
+                        },
+                        {
+                          "text": "Found 9 mesa buttons\n"
+                        },
+                        {
+                          "text": "Found 23 total buttons\n"
+                        },
+                        {
+                          "text": "Button 0: \n"
+                        },
+                        {
+                          "text": "Button 1: Cerrar sesión\n"
+                        },
+                        {
+                          "text": "Button 2: Todas\n"
+                        },
+                        {
+                          "text": "Button 3: Salón\n"
+                        },
+                        {
+                          "text": "Button 4: Terraza\n"
+                        },
+                        {
+                          "text": "\n=== Console Logs ===\n"
+                        },
+                        {
+                          "text": "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[log] [HMR] connected\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/cache/redis.service.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import Redis from 'ioredis';\n  14 | import { pinoLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 |\n  17 | const isTest = process.env.NODE_ENV === 'test';\n  18 |\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/cache/redis.service.ts\n    ./src/app/api/admin/zones/route.ts\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/middleware/request-logger.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import { NextRequest, NextResponse } from 'next/server';\n  14 | import { createRequestLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 | import { randomUUID } from 'crypto';\n  17 |\n  18 | /**\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/middleware/request-logger.ts\n    ./src/app/api/admin/zones/route.ts\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/cache/redis.service.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import Redis from 'ioredis';\n  14 | import { pinoLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 |\n  17 | const isTest = process.env.NODE_ENV === 'test';\n  18 |\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/cache/redis.service.ts\n    ./src/app/api/admin/tables/route.ts\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/middleware/request-logger.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import { NextRequest, NextResponse } from 'next/server';\n  14 | import { createRequestLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 | import { randomUUID } from 'crypto';\n  17 |\n  18 | /**\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/middleware/request-logger.ts\n    ./src/app/api/admin/tables/route.ts\n"
+                        },
+                        {
+                          "text": "[log] [Fast Refresh] rebuilding\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/cache/redis.service.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import Redis from 'ioredis';\n  14 | import { pinoLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 |\n  17 | const isTest = process.env.NODE_ENV === 'test';\n  18 |\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/cache/redis.service.ts\n    ./src/app/api/admin/zones/route.ts\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/middleware/request-logger.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import { NextRequest, NextResponse } from 'next/server';\n  14 | import { createRequestLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 | import { randomUUID } from 'crypto';\n  17 |\n  18 | /**\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/middleware/request-logger.ts\n    ./src/app/api/admin/zones/route.ts\n"
+                        },
+                        {
+                          "text": "[log] [useRequireTerminal] Config found {terminal_id: WAITER_TEST_01}\n"
+                        },
+                        {
+                          "text": "[log] [useRequireTerminal] Config found {terminal_id: WAITER_TEST_01}\n"
+                        },
+                        {
+                          "text": "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)\n"
+                        },
+                        {
+                          "text": "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)\n"
+                        },
+                        {
+                          "text": "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)\n"
+                        },
+                        {
+                          "text": "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)\n"
+                        },
+                        {
+                          "text": "[log] [Fast Refresh] rebuilding\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/cache/redis.service.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import Redis from 'ioredis';\n  14 | import { pinoLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 |\n  17 | const isTest = process.env.NODE_ENV === 'test';\n  18 |\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/cache/redis.service.ts\n    ./src/app/api/admin/zones/route.ts\n"
+                        },
+                        {
+                          "text": "[error] ./src/core/middleware/request-logger.ts:15:1\nExport metricsHelpers doesn't exist in target module\n  13 | import { NextRequest, NextResponse } from 'next/server';\n  14 | import { createRequestLogger } from '@/src/core/observability/logger-pino';\n> 15 | import { metricsHelpers } from '@/src/core/observability/metrics';\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  16 | import { randomUUID } from 'crypto';\n  17 |\n  18 | /**\n\nThe export metricsHelpers was not found in module [project]/src/core/observability/metrics.ts [app-route] (ecmascript).\nDid you mean to import metrics?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\nImport trace:\n  App Route:\n    ./src/core/middleware/request-logger.ts\n    ./src/app/api/admin/zones/route.ts\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-06T02:03:37.352Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c5e4d24499521d9d987-629904cf9af13f12216d",
+              "file": "debug-waiter-page.spec.ts",
+              "line": 13,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-02-06T02:03:34.738Z",
+    "duration": 7270.998999999999,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

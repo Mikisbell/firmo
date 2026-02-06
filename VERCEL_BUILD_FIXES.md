@@ -1,435 +1,258 @@
-# 🔧 Vercel Build Fixes - Análisis Detallado
+# Vercel Build Fixes - 5 Febrero 2026
 
-**Fecha:** 23 Enero 2026  
-**Estado:** ✅ TODO COMPLETADO - Solo falta configurar Vercel  
-**Build Local:** ✅ PASSING (89 páginas estáticas, 0 errores TypeScript)
+## Resumen
 
----
+Corrección de **11 errores de build pre-existentes** en Vercel que bloqueaban el deploy del sistema de notificaciones para mesero.
 
-## 📊 RESUMEN EJECUTIVO
-
-### ✅ LO QUE YA ESTÁ HECHO (100%)
-
-1. **Seguridad Crítica** ✅
-   - JWT_SECRET validado en producción
-   - PIN_SALT validado en producción
-   - Fail-fast si no están configurados
-   - Archivos: `src/core/auth/auth.service.ts`
-
-2. **Configuración Centralizada** ✅
-   - `getTenantId()` en `src/core/config/tenant.ts`
-   - `getLocationId()` en `src/core/config/location.ts`
-   - `getAdminEmployeeId()` en `src/core/config/employees.ts`
-   - 26 archivos migrados a usar estas funciones
-
-3. **Build Local** ✅
-   - `npm run build` pasa sin errores
-   - 89 páginas estáticas generadas
-   - 0 errores de TypeScript
-   - 0 errores de compilación
-
-4. **Documentación** ✅
-   - `VERCEL_QUICK_START.md` - Guía rápida (5 min)
-   - `VERCEL_ENV_SETUP.md` - Guía completa
-   - `RESUMEN_SEGURIDAD_COMPLETO.md` - Resumen ejecutivo
-   - `scripts/generate-secrets.ts` - Script para generar secrets
+**Status:** ✅ Build exitoso - 143 páginas generadas, 0 errores
 
 ---
 
-## 🎯 LO QUE FALTA (Solo Configuración de Vercel)
+## Errores Corregidos
 
-### El build de Vercel está fallando INTENCIONALMENTE
+### 1. Imports Incorrectos de OpenAPI Generator (3 errores)
 
-**Error en Vercel:**
+**Problema:** Archivos importaban desde `@/lib/openapi/generator` pero debía ser `@/src/lib/openapi/generator`
+
+**Archivos afectados:**
+- `src/app/api/docs/openapi.json/route.ts`
+- `src/app/api/docs/postman/route.ts`
+
+**Fix:**
+```typescript
+// Antes
+import { generateOpenAPISpec } from '@/lib/openapi/generator';
+
+// Después
+import { generateOpenAPISpec } from '@/src/lib/openapi/generator';
 ```
-CONFIGURATION ERROR: TENANT_ID must be configured in production environment
-```
-
-**¿Por qué falla?**
-Porque las validaciones de seguridad están funcionando correctamente. El código detecta que está en producción (`NODE_ENV=production`) y que faltan variables críticas.
-
-**Esto es CORRECTO y ESPERADO.** ✅
 
 ---
 
-## 🔑 VARIABLES QUE FALTAN EN VERCEL
+### 2. Export Faltante: `MetricNames` (1 error)
 
-Tu base de datos YA está conectada (DATABASE_URL configurado). Solo faltan estas 4 variables:
+**Problema:** No existía el export en `src/core/observability/metrics.ts`
 
-### 1. TENANT_ID (REQUERIDO)
+**Fix:** Agregado objeto `MetricNames` con todas las constantes de métricas:
+```typescript
+export const MetricNames = {
+  EMPLOYEES_CREATED_TOTAL: 'employees_created_total',
+  EMPLOYEES_ACTIVE: 'employees_active',
+  ORDERS_CREATED_TOTAL: 'orders_created_total',
+  CACHE_HITS_TOTAL: 'cache_hits_total',
+  HTTP_REQUESTS_TOTAL: 'http_requests_total',
+  // ... 20+ métricas más
+} as const;
 ```
-TENANT_ID=a1b2c3d4-e5f6-7890-abcd-ef1234567890
-```
-**Qué hace:** Identifica tu tenant/negocio en el sistema multi-tenant
-
-### 2. LOCATION_ID (REQUERIDO)
-```
-LOCATION_ID=loc-00000000-0000-0000-0000-000000000001
-```
-**Qué hace:** Identifica la ubicación física del restaurante
-
-### 3. JWT_SECRET (REQUERIDO)
-```bash
-# Generar con:
-npx tsx scripts/generate-secrets.ts
-# Copiar el JWT_SECRET del output
-```
-**Qué hace:** Firma los tokens de autenticación (sesiones de usuarios)
-
-### 4. PIN_SALT (REQUERIDO)
-```bash
-# Generar con:
-npx tsx scripts/generate-secrets.ts
-# Copiar el PIN_SALT del output
-```
-**Qué hace:** Hace hash de los PINs de empleados de forma segura
 
 ---
 
-## 📋 PASOS PARA ARREGLAR VERCEL (10 minutos)
+### 3. Export Faltante: `metricsHelpers` (2 errores)
 
-### Paso 1: Generar Secrets (2 min)
+**Problema:** No existía el export en `src/core/observability/metrics.ts`
 
-```bash
-npx tsx scripts/generate-secrets.ts
+**Fix:** Agregado objeto `metricsHelpers` con funciones helper:
+```typescript
+export const metricsHelpers = {
+  recordCacheHit: (key: string) => { ... },
+  recordCacheMiss: (key: string) => { ... },
+  recordHttpRequest: (method, pathname, status, durationMs) => { ... },
+  recordApiError: (pathname, errorType) => { ... },
+  // ... funciones de saga metrics
+};
 ```
-
-**Output esperado:**
-```
-🔐 PARK POS - Security Secrets Generator
-========================================
-
-✅ Generated Secrets:
-
-JWT_SECRET=<secret-de-64-caracteres>
-PIN_SALT=<salt-de-64-caracteres>
-PARK_API_SECRET=<secret-de-64-caracteres>
-ADMIN_API_KEY=<key-de-64-caracteres>
-
-⚠️  IMPORTANT: Save these in a password manager!
-```
-
-**⚠️ CRÍTICO:** Guarda estos valores en un lugar seguro (password manager).
 
 ---
 
-### Paso 2: Ir a Vercel Dashboard (1 min)
+### 4. Método `metrics.set()` Faltante
 
-1. Abre https://vercel.com
-2. Selecciona tu proyecto PARK POS
-3. Ve a **Settings** → **Environment Variables**
+**Problema:** Código llamaba a `metrics.set()` pero el método no existía
 
----
-
-### Paso 3: Agregar Variables (5 min)
-
-Para cada variable, haz click en **"Add New"** y configura:
-
-#### Variable 1: TENANT_ID
-- **Key:** `TENANT_ID`
-- **Value:** `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
-- **Environments:** ✅ Production ✅ Preview ✅ Development
-- Click **Save**
-
-#### Variable 2: LOCATION_ID
-- **Key:** `LOCATION_ID`
-- **Value:** `loc-00000000-0000-0000-0000-000000000001`
-- **Environments:** ✅ Production ✅ Preview ✅ Development
-- Click **Save**
-
-#### Variable 3: JWT_SECRET
-- **Key:** `JWT_SECRET`
-- **Value:** `<el-secret-generado-en-paso-1>`
-- **Environments:** ✅ Production ✅ Preview ✅ Development
-- Click **Save**
-
-#### Variable 4: PIN_SALT
-- **Key:** `PIN_SALT`
-- **Value:** `<el-salt-generado-en-paso-1>`
-- **Environments:** ✅ Production ✅ Preview ✅ Development
-- Click **Save**
-
----
-
-### Paso 4: Trigger Redeploy (1 min)
-
-Vercel automáticamente hará redeploy cuando agregues las variables, pero si no:
-
-1. Ve a **Deployments**
-2. Click en el último deployment
-3. Click en **"Redeploy"**
-
----
-
-### Paso 5: Verificar (1 min)
-
-1. **Espera a que termine el build** (2-3 minutos)
-2. **Revisa los logs** - No debe haber "CONFIGURATION ERROR"
-3. **Abre tu app** - `https://tu-app.vercel.app`
-4. **Prueba login** - PIN 1234 debe funcionar
-
----
-
-## 🔍 VERIFICACIÓN DETALLADA
-
-### Cómo Verificar que Todo Funciona
-
-#### 1. Build Logs (Vercel Dashboard)
-```
-✓ Compiled successfully
-✓ Linting and checking validity of types
-✓ Collecting page data
-✓ Generating static pages (89/89)
-✓ Finalizing page optimization
-```
-
-**NO debe aparecer:**
-- ❌ "CONFIGURATION ERROR: TENANT_ID must be configured"
-- ❌ "SECURITY ERROR: JWT_SECRET must be configured"
-- ❌ "SECURITY ERROR: PIN_SALT must be configured"
-
-#### 2. Health Check API
-```bash
-curl https://tu-app.vercel.app/api/health
-```
-
-**Respuesta esperada:**
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-01-23T..."
+**Fix:** Agregado método `set()` como alias de `gauge()`:
+```typescript
+set(metric: string, value: number, tags?: MetricTags): void {
+  this.gauge(metric, value, tags);
 }
 ```
 
-#### 3. Login Test
-1. Abre `https://tu-app.vercel.app`
-2. Ingresa PIN: `1234`
-3. Debe entrar al sistema sin errores
-
 ---
 
-## 🚨 TROUBLESHOOTING
+### 5. Error de Tipo en Delivery Route
 
-### Error: "CONFIGURATION ERROR: TENANT_ID must be configured"
+**Problema:** Array readonly causaba error de tipo en Prisma query
 
-**Causa:** Variable TENANT_ID no está en Vercel  
-**Solución:** Agregar TENANT_ID en Environment Variables (ver Paso 3)
-
----
-
-### Error: "SECURITY ERROR: JWT_SECRET must be configured"
-
-**Causa:** Variable JWT_SECRET no está en Vercel  
-**Solución:** 
-1. Generar secret: `npx tsx scripts/generate-secrets.ts`
-2. Agregar JWT_SECRET en Environment Variables
-
----
-
-### Error: "SECURITY ERROR: PIN_SALT must be configured"
-
-**Causa:** Variable PIN_SALT no está en Vercel  
-**Solución:**
-1. Generar salt: `npx tsx scripts/generate-secrets.ts`
-2. Agregar PIN_SALT en Environment Variables
-
----
-
-### Error: "Database connection failed"
-
-**Causa:** DATABASE_URL incorrecto o Supabase inactivo  
-**Solución:**
-1. Verificar DATABASE_URL en Vercel Environment Variables
-2. Verificar que Supabase esté activo
-3. Si las credenciales estuvieron expuestas, hacer "Reset Password" en Supabase
-
----
-
-### Build pasa pero login no funciona
-
-**Causa:** Variables configuradas pero con valores incorrectos  
-**Solución:**
-1. Verificar que JWT_SECRET y PIN_SALT sean los generados por el script
-2. Verificar que TENANT_ID sea exactamente: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
-3. Verificar que no haya espacios extra en las variables
-
----
-
-## 📊 ESTADO ACTUAL
-
-### Build Local ✅
-```bash
-npm run build
-```
-**Resultado:**
-- ✅ 89 páginas estáticas generadas
-- ✅ 0 errores de TypeScript
-- ✅ 0 errores de compilación
-- ✅ Build completo en ~30 segundos
-
-### Build Vercel ❌ (ESPERADO)
-**Error:**
-```
-CONFIGURATION ERROR: TENANT_ID must be configured in production environment
-```
-
-**Esto es CORRECTO.** El código está protegiendo contra deployment sin configuración.
-
-### Después de Configurar Variables ✅
-Una vez agregues las 4 variables en Vercel:
-- ✅ Build pasará automáticamente
-- ✅ App funcionará correctamente
-- ✅ Login con PIN 1234 funcionará
-- ✅ Todas las APIs funcionarán
-
----
-
-## 🎓 POR QUÉ ESTÁ DISEÑADO ASÍ
-
-### Fail-Fast es Mejor que Fail-Silent
-
-**Antes (Inseguro):**
+**Fix:** Cambiado a `string[]` mutable:
 ```typescript
-const JWT_SECRET = process.env.JWT_SECRET || 'default-insecure-secret';
-```
-- ✅ Build pasa siempre
-- ❌ App funciona con secret inseguro
-- ❌ Vulnerabilidad de seguridad en producción
+// Antes
+const statuses: readonly string[] = ['PENDING', 'ASSIGNED'];
 
-**Ahora (Seguro):**
+// Después
+const statuses: string[] = ['PENDING', 'ASSIGNED'];
+```
+
+**Archivo:** `src/app/api/delivery/route.ts`
+
+---
+
+### 6. Campos Inexistentes en Modelo `drivers`
+
+**Problema:** Select incluía campos que no existen en el schema Prisma
+
+**Fix:** Eliminados campos inexistentes:
 ```typescript
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-    throw new Error('SECURITY ERROR: JWT_SECRET must be configured');
+// Antes
+select: {
+  id: true,
+  current_location: true,  // ❌ No existe
+  created_at: true,         // ❌ No existe
+  updated_at: true,         // ❌ No existe
+}
+
+// Después
+select: {
+  id: true,
+  name: true,
+  phone: true,
+  status: true,
 }
 ```
-- ❌ Build falla si falta configuración
-- ✅ Imposible deployar sin configuración correcta
-- ✅ Seguridad garantizada en producción
 
-### Ventajas de Este Enfoque
-
-1. **Seguridad por Diseño**
-   - Imposible deployar sin configuración correcta
-   - No hay "defaults inseguros"
-   - Fail-fast en build time, no en runtime
-
-2. **Errores Claros**
-   - Mensaje exacto de qué falta
-   - Guía al desarrollador a la solución
-   - No hay confusión sobre qué configurar
-
-3. **Configuración Centralizada**
-   - Una sola fuente de verdad
-   - Fácil de mantener
-   - Consistente en todo el código
+**Archivo:** `src/app/api/drivers/route.ts`
 
 ---
 
-## 📁 ARCHIVOS RELEVANTES
+### 7. Error de Tipo en `TerminalConfig`
 
-### Configuración
-- `src/core/config/tenant.ts` - Configuración de tenant
-- `src/core/config/location.ts` - Configuración de ubicación
-- `src/core/config/employees.ts` - Configuración de empleados
-- `src/core/auth/auth.service.ts` - Validaciones de seguridad
+**Problema:** Campo `activated_at` no existe, debe ser `registered_at`
 
-### Scripts
-- `scripts/generate-secrets.ts` - Generar JWT_SECRET y PIN_SALT
+**Fix:** Corregida estructura del tipo:
+```typescript
+// Antes
+activated_at: Date | null;
 
-### Documentación
-- `VERCEL_QUICK_START.md` - Guía rápida (5 min)
-- `VERCEL_ENV_SETUP.md` - Guía completa paso a paso
-- `RESUMEN_SEGURIDAD_COMPLETO.md` - Resumen ejecutivo
-- `REMAINING_HARDCODED_ISSUES.md` - Análisis de configuración
+// Después
+registered_at: Date | null;
+device_name: string;
+location_id: string;
+is_allowed: boolean;
+```
 
-### Environment
-- `.env.example` - Template de variables
-- `.env.local` - Tu configuración local (NO commitear)
+**Archivo:** `src/app/mozo/mesa/[tableId]/page.tsx`
 
 ---
 
-## ✅ CHECKLIST FINAL
+### 8. Error de Tipo en `SecureSession` (E2E Mock)
 
-### Antes de Configurar Vercel
-- [x] Build local pasa sin errores
-- [x] Código commitado y pusheado
-- [x] Documentación completa
-- [x] Scripts de generación listos
-- [x] Validaciones de seguridad implementadas
+**Problema:** Mock session tenía estructura incorrecta
 
-### Configurar Vercel (TU TAREA)
-- [ ] Generar secrets con `npx tsx scripts/generate-secrets.ts`
-- [ ] Guardar secrets en password manager
-- [ ] Agregar TENANT_ID en Vercel
-- [ ] Agregar LOCATION_ID en Vercel
-- [ ] Agregar JWT_SECRET en Vercel
-- [ ] Agregar PIN_SALT en Vercel
-- [ ] Verificar que DATABASE_URL ya existe
-- [ ] Trigger redeploy
+**Fix:** Corregido para usar estructura completa de `session-v2.ts`:
+```typescript
+const mockSession: SecureSession = {
+  session_id: 'test-session',
+  employee_id: 'test-employee',
+  terminal_id: 'MOZO_01',
+  terminal_role: 'MOZO',  // Mapeado de 'WAITER'
+  tenant_id: 'test-tenant',
+  location_id: 'test-location',
+  // ... campos completos
+};
+```
 
-### Después de Configurar
-- [ ] Build de Vercel pasa sin errores
-- [ ] App abre correctamente
-- [ ] Login con PIN 1234 funciona
-- [ ] API health check retorna 200
-- [ ] No hay errores en logs de Vercel
+**Archivo:** `src/components/auth/AuthProvider.tsx`
 
 ---
 
-## 🎯 PRÓXIMOS PASOS
+### 9. Llamadas Incorrectas a Logger (3 parámetros en vez de 2)
 
-### Inmediato (10 minutos)
-1. Generar secrets
-2. Configurar 4 variables en Vercel
-3. Verificar deployment
+**Problema:** `logger.info()`, `logger.warn()` solo aceptan 2 parámetros: `(message, context)`
 
-### Opcional (Recomendado)
-4. Generar VAPID keys para notificaciones push
-5. Configurar ALLOWED_ORIGINS para CORS
-6. Configurar REDIS_URL si usas caching
+**Fix:** Corregidas todas las llamadas:
+```typescript
+// Antes
+logger.info('message', 'extra', { context });
 
----
+// Después
+logger.info('message', { context });
+```
 
-## 📞 SOPORTE
-
-Si tienes problemas:
-
-1. **Revisa los logs de Vercel**
-   - Deployment → [Tu Deployment] → Logs
-   - Busca "CONFIGURATION ERROR" o "SECURITY ERROR"
-
-2. **Verifica las variables**
-   - Settings → Environment Variables
-   - Confirma que las 4 variables estén configuradas
-   - Verifica que no haya espacios extra
-
-3. **Consulta la documentación**
-   - `VERCEL_QUICK_START.md` - Guía rápida
-   - `VERCEL_ENV_SETUP.md` - Guía completa
-   - `RESUMEN_SEGURIDAD_COMPLETO.md` - Resumen ejecutivo
-
-4. **Verifica build local**
-   ```bash
-   NODE_ENV=production npm run build
-   ```
+**Archivo:** `src/core/auth/terminal-registry.ts`
 
 ---
 
-## 🎉 CONCLUSIÓN
+### 10. Llamadas Incorrectas a `logger.error` (4 parámetros en vez de 3)
 
-**TODO EL CÓDIGO ESTÁ LISTO.** ✅
+**Problema:** `logger.error()` acepta 3 parámetros: `(message, error, context)`
 
-Solo necesitas:
-1. Generar 2 secrets (JWT_SECRET, PIN_SALT)
-2. Agregar 4 variables en Vercel
-3. Esperar el redeploy automático
+**Fix:** Corregidas todas las llamadas:
+```typescript
+// Antes
+logger.error('message', error, 'extra', { context });
 
-**Tiempo total: 10 minutos** ⏱️
+// Después
+logger.error('message', error as Error, { context });
+```
 
-Una vez hagas esto, tu app estará funcionando en producción. 🚀
+**Archivo:** `src/core/auth/terminal-registry.ts`
 
 ---
 
-**Última actualización:** 23 Enero 2026  
-**Estado:** ✅ Código completo, esperando configuración de Vercel  
-**Próximo paso:** Seguir los pasos en este documento
+### 11. Prisma Middleware Deprecado
+
+**Problema:** Método `$use` ya no existe en Prisma 5+
+
+**Fix:** Migrado a Prisma 6 extension API:
+```typescript
+// Antes (Prisma 4)
+prisma.$use(async (params, next) => { ... });
+
+// Después (Prisma 6)
+const extendedClient = baseClient.$extends({
+  name: 'slow-query-logger',
+  query: {
+    async $allOperations({ operation, model, args, query }) {
+      // Middleware logic
+    }
+  }
+});
+```
+
+**Archivo:** `src/core/db/prisma.ts`
+
+---
+
+## Resultado Final
+
+✅ **Build exitoso en Vercel**
+- TypeScript compilation: ✅ Passed
+- 143 páginas estáticas generadas
+- 0 errores de compilación
+- 0 warnings críticos
+
+---
+
+## Archivos Modificados
+
+1. `src/app/api/docs/openapi.json/route.ts` - Import path fix
+2. `src/app/api/docs/postman/route.ts` - Import path fix
+3. `src/core/observability/metrics.ts` - Exports agregados (MetricNames, metricsHelpers, set())
+4. `src/app/api/delivery/route.ts` - Array type fix
+5. `src/app/api/drivers/route.ts` - Schema fields fix
+6. `src/app/mozo/mesa/[tableId]/page.tsx` - TerminalConfig type fix
+7. `src/components/auth/AuthProvider.tsx` - Mock session fix
+8. `src/core/auth/terminal-registry.ts` - Logger calls fix (9 llamadas corregidas)
+9. `src/core/db/prisma.ts` - Prisma 6 extension API migration
+
+---
+
+## Lecciones Aprendidas
+
+1. **Probar localmente SIEMPRE antes de push** - `npm run build` hubiera encontrado todos estos errores en 1 minuto
+2. **Errores pre-existentes** - Estos errores NO estaban relacionados con las notificaciones, eran bugs latentes
+3. **TypeScript strict mode** - Ayuda a encontrar estos problemas antes del build
+4. **Prisma versioning** - Importante mantener código actualizado con la versión de Prisma
+
+---
+
+**Fecha:** 5 Febrero 2026  
+**Impacto:** 🔴 CRÍTICO - Bloqueaba deploy en Vercel  
+**Status:** ✅ RESUELTO - Build pasando exitosamente

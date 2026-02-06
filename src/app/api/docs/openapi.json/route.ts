@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { generateOpenAPISpec } from '@/lib/openapi/generator';
+import { generateOpenAPISpec } from '@/src/lib/openapi/generator';
 
 export async function GET() {
   try {

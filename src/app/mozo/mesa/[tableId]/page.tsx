@@ -49,7 +49,10 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                     actor_id: "00000000-0000-0000-0000-000000000002",
                     role: "WAITER",
                     device_fingerprint: "dev-device-fingerprint",
-                    activated_at: new Date().toISOString()
+                    device_name: "Development Waiter Terminal",
+                    location_id: "00000000-0000-0000-0000-000000000001",
+                    is_allowed: true,
+                    registered_at: new Date().toISOString()
                 };
                 setTerminalConfig(defaultConfig);
                 return;
