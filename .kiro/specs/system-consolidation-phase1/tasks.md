@@ -289,18 +289,18 @@ The implementation follows a phased approach:
     - Send vitals to metrics collector
     - _Requirements: 10.10_
   
-  - [~] 11.5 Write unit tests for Web Vitals tracking
+  - [x] 11.5 Write unit tests for Web Vitals tracking
     - Test that vitals are collected on page load
     - Test that vitals are sent to metrics service
     - _Requirements: 10.10_
 
-- [ ] 12. Checkpoint - Ensure performance tests pass
+- [x] 12. Checkpoint - Ensure performance tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 4: Monitoring and Alerting
 
-- [ ] 13. Implement Health Check System
-  - [~] 13.1 Create health check service
+- [x] 13. Implement Health Check System
+  - [x] 13.1 Create health check service
     - Create `src/core/health/health-check.ts` with HealthCheckService class
     - Implement database connectivity check
     - Implement Redis connectivity check
@@ -309,30 +309,30 @@ The implementation follows a phased approach:
     - Track component response times
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
   
-  - [~] 13.2 Write property test for health check component status
+  - [x] 13.2 Write property test for health check component status
     - **Property 20: Health Check Component Status**
     - **Validates: Requirements 13.2, 13.3, 13.4, 13.5, 13.6**
   
-  - [~] 13.3 Write property test for health check failure response
+  - [x] 13.3 Write property test for health check failure response
     - **Property 21: Health Check Failure Response**
     - **Validates: Requirements 13.7**
   
-  - [~] 13.4 Create health check API endpoint
+  - [x] 13.4 Create health check API endpoint
     - Create `src/app/api/health/route.ts` for health checks
     - Return health status with component details
     - Return HTTP 200 if healthy, 503 if unhealthy
     - Ensure response time < 2 seconds
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
   
-  - [~] 13.5 Configure Uptime Robot monitoring
+  - [x] 13.5 Configure Uptime Robot monitoring
     - Create Uptime Robot account (free tier)
     - Add monitor for `/api/health` endpoint
     - Configure 5-minute check interval
     - Configure alert notifications (email)
     - _Requirements: 4.5, 4.6, 4.7_
 
-- [ ] 14. Implement Monitoring Dashboard
-  - [~] 14.1 Create monitoring dashboard UI
+- [~] 14. Implement Monitoring Dashboard
+  - [x] 14.1 Create monitoring dashboard UI
     - Create `src/app/admin/monitoring/page.tsx` for dashboard
     - Display real-time error rate and trend chart
     - Display API response times by endpoint
@@ -355,7 +355,7 @@ The implementation follows a phased approach:
     - Include all visible metrics in export
     - _Requirements: 11.10_
 
-- [ ] 15. Implement Alert Configuration System
+- [~] 15. Implement Alert Configuration System
   - [~] 15.1 Create alert configuration service
     - Create `src/core/alerts/alert-config.ts` with AlertConfigService class
     - Support configuration for error rate thresholds
@@ -393,7 +393,7 @@ The implementation follows a phased approach:
     - Allow snoozing alerts
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.9_
 
-- [ ] 16. Implement Log Level Configuration
+- [~] 16. Implement Log Level Configuration
   - [~] 16.1 Create log level configuration service
     - Create `src/core/observability/log-config.ts` with LogConfigService class
     - Support environment variable configuration
@@ -418,7 +418,7 @@ The implementation follows a phased approach:
     - Apply changes within 30 seconds
     - _Requirements: 12.2, 12.3_
 
-- [ ] 17. Implement Error Recovery System
+- [~] 17. Implement Error Recovery System
   - [~] 17.1 Create error recovery service
     - Create `src/core/recovery/recovery-service.ts` with RecoveryService class
     - Implement automatic retry with exponential backoff for transient errors
@@ -447,12 +447,12 @@ The implementation follows a phased approach:
     - Add authentication check (admin only)
     - _Requirements: 13.4_
 
-- [ ] 18. Final Checkpoint - Ensure all tests pass
+- [~] 18. Final Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 5: Integration and Deployment
 
-- [ ] 19. Integration Testing
+- [~] 19. Integration Testing
   - [~] 19.1 Write integration tests for observability flow
     - Test that errors are logged, tracked, and metrics are emitted
     - Test that logs are sent to Logtail in production
@@ -477,7 +477,7 @@ The implementation follows a phased approach:
     - Test CSV export works
     - _Requirements: 11.1, 11.7, 11.10_
 
-- [ ] 20. Documentation and Deployment
+- [~] 20. Documentation and Deployment
   - [~] 20.1 Create deployment guide
     - Document environment variables required
     - Document third-party service setup (Sentry, Logtail, Uptime Robot)

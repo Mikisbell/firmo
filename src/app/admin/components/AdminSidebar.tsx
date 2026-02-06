@@ -34,6 +34,7 @@ import {
   Bike,
   Shield,
   Store,
+  Activity,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -61,6 +62,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/delivery', label: 'Delivery', icon: Truck, permission: 'manage_config', badgeKey: 'delivery' },
   { href: '/admin/drivers', label: 'Motorizados', icon: Bike, permission: 'manage_employees' },
   { href: '/inventario', label: 'Inventario', icon: Warehouse, permission: 'manage_products' },
+  { href: '/admin/monitoring', label: 'Monitoreo', icon: Activity, permission: 'view_dashboard' },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, permission: 'manage_config' },
   { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, permission: 'view_reports' },
 ];

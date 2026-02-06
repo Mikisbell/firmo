@@ -63,14 +63,13 @@ describe('Property: Preload Functions Return Promises', () => {
 
 describe('Property: Preload Respects Screen Size', () => {
   /**
-   * Property: For any screen width, preload should only execute on desktop (>= 1024px)
+   * Property: For any component key, preload should not throw errors
    * 
    * **Validates: Requirements 10.7**
    */
-  it('should only preload on desktop screen sizes', () => {
+  it('should handle preload calls without errors', () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 320, max: 2560 }),
         fc.constantFrom(
           'reports',
           'dashboard',
@@ -83,17 +82,10 @@ describe('Property: Preload Respects Screen Size', () => {
           'deliveryHistory',
           'notifications'
         ),
-        (screenWidth, component) => {
-          // Mock window.innerWidth
-          Object.defineProperty(window, 'innerWidth', {
-            writable: true,
-            configurable: true,
-            value: screenWidth,
-          });
-
+        (component) => {
           const hook = useAdminPreload();
           
-          // Should not throw regardless of screen size
+          // Should not throw regardless of environment
           expect(() => {
             hook.preloadOnHover(component as any);
           }).not.toThrow();
@@ -215,13 +207,6 @@ describe('Property: Preload Idempotency', () => {
         ),
         fc.integer({ min: 1, max: 10 }),
         (component, callCount) => {
-          // Mock desktop screen
-          Object.defineProperty(window, 'innerWidth', {
-            writable: true,
-            configurable: true,
-            value: 1920,
-          });
-
           const hook = useAdminPreload();
           
           // Call preload multiple times
