@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { setupTerminalConfig } from "./helpers/terminal-setup";
 
 /**
  * E2E Test: Waiter → KDS Flow
@@ -8,13 +9,43 @@ import { test, expect } from "@playwright/test";
  * 
  * Bug Fix: ORDER_SUBMITTED event was not being processed by the reducer,
  * causing orders to not appear on KDS screens.
+ * 
+ * Fix 2 (5 Feb 2026): Added terminal configuration setup to prevent redirect to home.
  */
 
 test.describe("Waiter to KDS Flow", () => {
-    test.beforeEach(async ({ page }) => {
-        // Navigate to home and ensure clean state
-        await page.goto("/");
-        await page.waitForLoadState("networkidle");
+    test.beforeEach(async ({ page, context }) => {
+        // CRITICAL: Set localStorage AND sessionStorage BEFORE any page loads
+        // This ensures terminal config and auth session are available when components mount
+        await context.addInitScript(() => {
+            const terminalConfig = {
+                tenant_id: "00000000-0000-0000-0000-000000000001",
+                terminal_id: "WAITER_TEST_01",
+                actor_id: "00000000-0000-0000-0000-000000000001",
+                role: "WAITER",
+                device_fingerprint: "test-device-fingerprint-waiter-1",
+                activated_at: new Date().toISOString()
+            };
+            
+            // Create a mock session for E2E tests
+            const mockSession = {
+                id: "e2e-test-session-" + Date.now(),
+                terminal_id: "WAITER_TEST_01",
+                actor_id: "00000000-0000-0000-0000-000000000001",
+                role: "WAITER",
+                created_at: Date.now(),
+                last_activity: Date.now(),
+                fingerprint: "test-device-fingerprint-waiter-1",
+                risk_level: "low"
+            };
+            
+            // IMPORTANT: Use correct localStorage keys
+            localStorage.setItem('park_terminal_config', JSON.stringify(terminalConfig));
+            localStorage.setItem('e2e_mode', 'true');
+            
+            // IMPORTANT: Set session in sessionStorage to bypass PIN screen
+            sessionStorage.setItem('park_session_v2', JSON.stringify(mockSession));
+        });
     });
 
     test("waiter creates order and submits to kitchen, KDS shows order", async ({ page, context }) => {

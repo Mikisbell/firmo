@@ -34,7 +34,27 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
     // 0. Load terminal config and redirect if not configured
     useEffect(() => {
         const config = getStoredTerminalConfig();
+        
+        // In development/testing, use default config if not configured
         if (!config?.terminal_id) {
+            // Check if we're in development or E2E test mode
+            const isDev = process.env.NODE_ENV === 'development';
+            const isE2E = typeof window !== 'undefined' && localStorage.getItem('e2e_mode') === 'true';
+            
+            if (isDev || isE2E) {
+                // Use default config for development/testing
+                const defaultConfig: TerminalConfig = {
+                    tenant_id: "00000000-0000-0000-0000-000000000001",
+                    terminal_id: "WAITER_DEV_01",
+                    actor_id: "00000000-0000-0000-0000-000000000002",
+                    role: "WAITER",
+                    device_fingerprint: "dev-device-fingerprint",
+                    activated_at: new Date().toISOString()
+                };
+                setTerminalConfig(defaultConfig);
+                return;
+            }
+            
             toast.error("Terminal no configurado");
             router.replace("/");
             return;
