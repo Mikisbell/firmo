@@ -270,10 +270,10 @@ export class AlertNotifier {
         current_value: input.currentValue,
         threshold_value: input.thresholdValue,
         message: input.message,
-        metadata: input.metadata ?? {},
+        metadata: (input.metadata ?? {}) as any,
         status: 'ACTIVE',
         escalated: false,
-        notifications_sent: [],
+        notifications_sent: [] as any,
       },
     });
 
@@ -342,7 +342,7 @@ export class AlertNotifier {
     await prisma.alert_events.update({
       where: { id: alertEvent.id },
       data: {
-        notifications_sent: notificationsSent,
+        notifications_sent: notificationsSent as any,
         updated_at: new Date(),
       },
     });
