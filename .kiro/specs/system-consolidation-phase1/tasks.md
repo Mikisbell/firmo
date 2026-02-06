@@ -155,7 +155,7 @@ The implementation follows a phased approach:
     - Create `typedoc.json` configuration file
     - Configure entry points (core domain models, services, projections)
     - Configure output directory (`public/docs/code`)
-    - Add JSDoc comments to all exported functions and types                                                                                                                                                                
+    - Add JSDoc comments to all exported functions and types                                                                                                                                                                te destuviste c
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.7_
   
   - [x] 7.2 Write property test for TypeDoc comment completeness
@@ -278,12 +278,12 @@ The implementation follows a phased approach:
     - Add Suspense boundaries with loading states
     - _Requirements: 10.7_
   
-  - [~] 11.3 Configure resource preloading
+  - [x] 11.3 Configure resource preloading
     - Add preload links for critical resources (fonts, CSS, main JS)
     - Configure in `src/app/layout.tsx`
     - _Requirements: 10.8_
   
-  - [~] 11.4 Implement Web Vitals tracking
+  - [x] 11.4 Implement Web Vitals tracking
     - Create `src/lib/web-vitals.ts` for vitals collection
     - Track TTFB, FCP, LCP, TTI, CLS
     - Send vitals to metrics collector
