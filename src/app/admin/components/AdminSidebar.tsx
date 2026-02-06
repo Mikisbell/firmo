@@ -39,6 +39,7 @@ import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
 import { TenantLogo } from '@/src/components/branding';
 import { useTenantBranding } from '@/src/core/tenant/branding-context';
+import { useAdminPreload } from '@/src/lib/lazy-admin-components';
 
 export interface NavItem {
   href: string;
@@ -73,6 +74,7 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const badges = useSidebarBadges();
   const { branding } = useTenantBranding();
+  const { preloadOnHover } = useAdminPreload();
 
   const filteredItems = NAV_ITEMS.filter(item => {
     if (!item.permission) return true;
@@ -88,6 +90,21 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
   const getBadgeCount = (item: NavItem): number => {
     if (!item.badgeKey) return 0;
     return badges[item.badgeKey] || 0;
+  };
+
+  // Map routes to preload keys
+  const getPreloadKey = (href: string): keyof typeof import('@/src/lib/lazy-admin-components').preloadAdminComponents | null => {
+    if (href === '/admin/reportes') return 'reports';
+    if (href === '/admin') return 'dashboard';
+    if (href === '/admin/auditoria') return 'auditoria';
+    if (href === '/admin/security') return 'security';
+    if (href === '/admin/cross-tenant/dashboard') return 'crossTenant';
+    if (href === '/admin/tenant/dashboard') return 'tenantDashboard';
+    if (href === '/admin/tenant/provisioning') return 'tenantProvisioning';
+    if (href === '/admin/delivery') return 'delivery';
+    if (href === '/admin/delivery/historial') return 'deliveryHistory';
+    if (href === '/admin/notificaciones') return 'notifications';
+    return null;
   };
 
   return (
@@ -160,6 +177,12 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
                 <Link
                   href={item.href}
                   onClick={() => setIsOpen(false)}
+                  onMouseEnter={() => {
+                    const preloadKey = getPreloadKey(item.href);
+                    if (preloadKey) {
+                      preloadOnHover(preloadKey);
+                    }
+                  }}
                   className={`
                     flex items-center gap-3 px-3 py-3 rounded-lg transition-colors
                     min-h-[44px] relative
