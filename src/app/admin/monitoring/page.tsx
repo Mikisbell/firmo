@@ -45,6 +45,7 @@ import {
   Zap,
   HardDrive,
   RefreshCw,
+  Download,
 } from 'lucide-react';
 
 // Tipos de datos
@@ -282,6 +283,114 @@ export default function MonitoringDashboard() {
     return Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
   };
 
+  /**
+   * Exportar métricas a CSV
+   * 
+   * Genera un archivo CSV con todas las métricas visibles en el dashboard:
+   * - Métricas principales (error rate, cache hit rate, total requests, avg response time)
+   * - Tiempos de respuesta por endpoint
+   * - Distribución de requests por status
+   * - Web Vitals scores
+   * - Queries lentas de base de datos
+   * 
+   * El archivo incluye:
+   * - Timestamp de exportación
+   * - Filtros aplicados (período, tenant, terminal)
+   * - Headers descriptivos
+   * - Encoding UTF-8 con BOM para compatibilidad con Excel
+   * 
+   * Requirement: 11.10
+   */
+  const exportToCSV = () => {
+    if (!metricsData) return;
+
+    const timestamp = new Date().toISOString();
+    const filename = `park-pos-metrics-${timestamp.replace(/[:.]/g, '-')}.csv`;
+
+    // Construir CSV con BOM para UTF-8 (compatibilidad con Excel)
+    const BOM = '\uFEFF';
+    let csv = BOM;
+
+    // Header del CSV con información de exportación
+    csv += '# PARK POS - Reporte de Métricas\n';
+    csv += `# Fecha de exportación: ${new Date().toLocaleString('es-PE')}\n`;
+    csv += `# Período: ${period}\n`;
+    csv += `# Rango: ${new Date(metricsData.summary.startTime).toLocaleString('es-PE')} - ${new Date(metricsData.summary.endTime).toLocaleString('es-PE')}\n`;
+    if (tenantId) csv += `# Tenant ID: ${tenantId}\n`;
+    if (terminalId) csv += `# Terminal ID: ${terminalId}\n`;
+    csv += '\n';
+
+    // Sección 1: Métricas Principales
+    csv += '## MÉTRICAS PRINCIPALES\n';
+    csv += 'Métrica,Valor,Unidad,Detalles\n';
+    csv += `Error Rate,${errorRate.toFixed(2)},"%","${metricsData.counters['api_errors_total'] || 0} errores de ${metricsData.counters['http_requests_total'] || 0} requests"\n`;
+    csv += `Cache Hit Rate,${cacheHitRate.toFixed(1)},"%","${metricsData.counters['cache_hits_total'] || 0} hits / ${metricsData.counters['cache_misses_total'] || 0} misses"\n`;
+    csv += `Total Requests,${metricsData.counters['http_requests_total'] || 0},requests,"En el período seleccionado"\n`;
+    
+    const avgResponseTime = metricsData.histograms['http_request_duration_ms']?.avg || 0;
+    const p95ResponseTime = metricsData.histograms['http_request_duration_ms']?.p95 || 0;
+    csv += `Avg Response Time,${Math.round(avgResponseTime)},ms,"P95: ${Math.round(p95ResponseTime)}ms"\n`;
+    csv += '\n';
+
+    // Sección 2: Tiempos de Respuesta por Endpoint
+    csv += '## TIEMPOS DE RESPUESTA POR ENDPOINT\n';
+    csv += 'Endpoint,Promedio (ms),P95 (ms),P99 (ms)\n';
+    responseTimeData.forEach(item => {
+      csv += `"${item.endpoint}",${item.avg},${item.p95},${item.p99}\n`;
+    });
+    csv += '\n';
+
+    // Sección 3: Distribución de Requests por Status
+    csv += '## DISTRIBUCIÓN DE REQUESTS POR STATUS\n';
+    csv += 'Categoría,Cantidad,Porcentaje\n';
+    const totalRequests = requestStatusData.reduce((sum, item) => sum + item.value, 0);
+    requestStatusData.forEach(item => {
+      const percentage = totalRequests > 0 ? ((item.value / totalRequests) * 100).toFixed(1) : '0.0';
+      csv += `"${item.name}",${item.value},${percentage}%\n`;
+    });
+    csv += '\n';
+
+    // Sección 4: Web Vitals
+    csv += '## WEB VITALS PERFORMANCE\n';
+    csv += 'Métrica,Valor Actual,Threshold,Estado\n';
+    webVitalsData.forEach(item => {
+      const status = item.value <= item.threshold ? 'PASS' : 'FAIL';
+      csv += `${item.metric},${item.value},${item.threshold},${status}\n`;
+    });
+    csv += '\n';
+
+    // Sección 5: Queries Lentas de Base de Datos
+    csv += '## QUERIES LENTAS DE BASE DE DATOS\n';
+    csv += 'Query,Cantidad,Tiempo Promedio (ms),Estado\n';
+    databaseQueryData.forEach(item => {
+      const status = item.avgTime > 1000 ? 'SLOW' : 'OK';
+      csv += `"${item.query}",${item.count},${item.avgTime},${status}\n`;
+    });
+    csv += '\n';
+
+    // Sección 6: Todas las Métricas (raw data)
+    csv += '## TODAS LAS MÉTRICAS (RAW DATA)\n';
+    csv += 'Nombre,Tipo,Count,Sum,Min,Max,Avg,Latest\n';
+    metricsData.metrics.forEach(metric => {
+      csv += `"${metric.name}",${metric.type},${metric.count},${metric.sum},${metric.min},${metric.max},${metric.avg.toFixed(2)},${metric.latest}\n`;
+    });
+
+    // Crear blob y descargar
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   if (loading && !metricsData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -398,6 +507,17 @@ export default function MonitoringDashboard() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Actualizar
+          </button>
+
+          {/* Botón de exportación CSV */}
+          <button
+            onClick={exportToCSV}
+            disabled={!metricsData || loading}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            title="Exportar métricas a CSV"
+          >
+            <Download className="w-4 h-4" />
+            Exportar CSV
           </button>
         </div>
       </div>

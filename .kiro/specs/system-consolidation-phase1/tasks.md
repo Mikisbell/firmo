@@ -331,7 +331,7 @@ The implementation follows a phased approach:
     - Configure alert notifications (email)
     - _Requirements: 4.5, 4.6, 4.7_
 
-- [~] 14. Implement Monitoring Dashboard
+- [x] 14. Implement Monitoring Dashboard
   - [x] 14.1 Create monitoring dashboard UI
     - Create `src/app/admin/monitoring/page.tsx` for dashboard
     - Display real-time error rate and trend chart
@@ -343,13 +343,13 @@ The implementation follows a phased approach:
     - Add tenant and terminal filters
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8_
   
-  - [~] 14.2 Write unit tests for dashboard components
+  - [x] 14.2 Write unit tests for dashboard components
     - Test that metrics are displayed correctly
     - Test that filters work correctly
     - Test that charts render correctly
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6_
   
-  - [~] 14.3 Implement metrics export functionality
+  - [x] 14.3 Implement metrics export functionality
     - Add CSV export button to dashboard
     - Generate CSV from metrics data
     - Include all visible metrics in export
