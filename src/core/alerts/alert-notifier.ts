@@ -15,8 +15,8 @@
  */
 
 import prisma from '@/src/core/db/prisma';
-import { logger } from '@/core/observability/structured-logger';
-import { metrics } from '@/core/observability/metrics';
+import { logger } from '@/src/core/observability/structured-logger';
+import { metrics } from '@/src/core/observability/metrics';
 import type { AlertConfiguration, AlertType, NotificationChannel } from './alert-config';
 
 /**

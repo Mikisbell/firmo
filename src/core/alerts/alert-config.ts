@@ -12,9 +12,9 @@
  * @module core/alerts/alert-config
  */
 
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/core/observability/structured-logger';
-import { metrics } from '@/core/observability/metrics';
+import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
+import { metrics } from '@/src/core/observability/metrics';
 
 /**
  * Tipos de alertas soportados por el sistema
