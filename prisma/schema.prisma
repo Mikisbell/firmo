@@ -521,19 +521,19 @@ model invoices {
 }
 
 model payments {
-  id              String   @id @db.Uuid
-  tenant_id       String   @db.Uuid
-  order_id        String   @db.Uuid
-  check_id        String
-  amount_cents    Int
-  payment_method  String
-  reference       String?
-  status          String   @default("COMPLETED")
-  processed_at    DateTime @db.Timestamptz(6)
-  processed_by    String?  @db.Uuid
-  shift_id        String?  @db.Uuid
-  terminal_id     String
-  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  id             String   @id @db.Uuid
+  tenant_id      String   @db.Uuid
+  order_id       String   @db.Uuid
+  check_id       String
+  amount_cents   Int
+  payment_method String
+  reference      String?
+  status         String   @default("COMPLETED")
+  processed_at   DateTime @db.Timestamptz(6)
+  processed_by   String?  @db.Uuid
+  shift_id       String?  @db.Uuid
+  terminal_id    String
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([tenant_id, order_id])
   @@index([tenant_id, check_id])
@@ -541,14 +541,14 @@ model payments {
 }
 
 model login_attempts {
-  id          String   @id @db.Uuid
-  tenant_id   String   @db.Uuid
-  employee_id String?  @db.Uuid
-  pin_hash    String
-  success     Boolean
-  ip_address  String?
-  user_agent  String?
-  terminal_id String?
+  id           String   @id @db.Uuid
+  tenant_id    String   @db.Uuid
+  employee_id  String?  @db.Uuid
+  pin_hash     String
+  success      Boolean
+  ip_address   String?
+  user_agent   String?
+  terminal_id  String?
   attempted_at DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([tenant_id, employee_id, attempted_at(sort: Desc)])
@@ -556,13 +556,13 @@ model login_attempts {
 }
 
 model pin_history {
-  id        String   @id @db.Uuid
-  tenant_id String   @db.Uuid
-  employee_id String  @db.Uuid
-  pin_hash  String
-  changed_at DateTime @default(now()) @db.Timestamptz(6)
-  changed_by String?  @db.Uuid
-  reason    String?
+  id          String   @id @db.Uuid
+  tenant_id   String   @db.Uuid
+  employee_id String   @db.Uuid
+  pin_hash    String
+  changed_at  DateTime @default(now()) @db.Timestamptz(6)
+  changed_by  String?  @db.Uuid
+  reason      String?
 
   @@index([employee_id, changed_at(sort: Desc)])
   @@index([tenant_id, changed_at(sort: Desc)])
@@ -1192,28 +1192,28 @@ model tables {
 }
 
 model tenant_settings {
-  tenant_id                     String   @id @db.Uuid
+  tenant_id                     String             @id @db.Uuid
   legal_name                    String
   ruc                           String?
   address_text                  String?
   logo_url                      String?
-  timezone                      String   @default("America/Lima")
-  currency                      String   @default("PEN")
+  timezone                      String             @default("America/Lima")
+  currency                      String             @default("PEN")
   receipt_footer_text           String?
-  kds_audio_enabled             Boolean  @default(true)
-  kds_audio_volume              Int      @default(80)
-  default_delivery_fee_cents    Int      @default(0)
-  require_payment_verification  Boolean  @default(false)
-  allow_cod                     Boolean  @default(true)
-  default_payment_expectation   String   @default("PREPAID")
-  enable_tips                   Boolean  @default(true)
-  tips_on_invoice               Boolean  @default(false)
-  allow_offline_coupon          Boolean  @default(false)
-  max_offline_coupons_per_order Int      @default(1)
-  require_manager_for_offline   Boolean  @default(true)
-  onboarding_status             String   @default("IN_PROGRESS")
-  updated_at                    DateTime @default(now()) @db.Timestamptz(6)
-  tenants                       tenants  @relation(fields: [tenant_id], references: [id])
+  kds_audio_enabled             Boolean            @default(true)
+  kds_audio_volume              Int                @default(80)
+  default_delivery_fee_cents    Int                @default(0)
+  require_payment_verification  Boolean            @default(false)
+  allow_cod                     Boolean            @default(true)
+  default_payment_expectation   String             @default("PREPAID")
+  enable_tips                   Boolean            @default(true)
+  tips_on_invoice               Boolean            @default(false)
+  allow_offline_coupon          Boolean            @default(false)
+  max_offline_coupons_per_order Int                @default(1)
+  require_manager_for_offline   Boolean            @default(true)
+  onboarding_status             String             @default("IN_PROGRESS")
+  updated_at                    DateTime           @default(now()) @db.Timestamptz(6)
+  tenants                       tenants            @relation(fields: [tenant_id], references: [id])
   onboarding_steps              onboarding_steps[]
 }
 
@@ -1650,24 +1650,24 @@ model delivery_metrics {
 // ============================================
 
 model active_sessions {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id         String    @db.Uuid
-  employee_id       String    @db.Uuid
-  terminal_id       String
-  device_id         String    @db.Uuid
-  session_token     String    @unique
-  mac_address       String
-  ip_address        String
-  user_agent        String?
-  location_lat      Decimal?  @db.Decimal(10, 7)
-  location_lng      Decimal?  @db.Decimal(10, 7)
-  started_at        DateTime  @default(now()) @db.Timestamptz(6)
-  last_activity_at  DateTime  @default(now()) @db.Timestamptz(6)
-  ended_at          DateTime? @db.Timestamptz(6)
-  is_active         Boolean   @default(true)
-  is_suspicious     Boolean   @default(false)
-  blocked_reason    String?
-  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id        String    @db.Uuid
+  employee_id      String    @db.Uuid
+  terminal_id      String
+  device_id        String    @db.Uuid
+  session_token    String    @unique
+  mac_address      String
+  ip_address       String
+  user_agent       String?
+  location_lat     Decimal?  @db.Decimal(10, 7)
+  location_lng     Decimal?  @db.Decimal(10, 7)
+  started_at       DateTime  @default(now()) @db.Timestamptz(6)
+  last_activity_at DateTime  @default(now()) @db.Timestamptz(6)
+  ended_at         DateTime? @db.Timestamptz(6)
+  is_active        Boolean   @default(true)
+  is_suspicious    Boolean   @default(false)
+  blocked_reason   String?
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([tenant_id, employee_id, is_active])
   @@index([terminal_id, is_active])
@@ -1676,20 +1676,20 @@ model active_sessions {
 }
 
 model device_mac_addresses {
-  mac_address  String    @db.VarChar(17)
-  employee_id  String    @db.Uuid
-  terminal_id  String    @default("00000000-0000-0000-0000-000000000000") @db.Uuid  // Special UUID = valid for any terminal
-  
-  tenant_id    String    @db.Uuid
-  location_id  String?   @db.Uuid
-  
-  trust_level  String    @default("UNKNOWN")         // TRUSTED, UNKNOWN, BLOCKED
-  
-  first_seen   DateTime  @default(now()) @db.Timestamptz(6)
-  last_seen    DateTime  @default(now()) @db.Timestamptz(6)
-  access_count Int       @default(1)
-  is_active    Boolean   @default(true)
-  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  mac_address String @db.VarChar(17)
+  employee_id String @db.Uuid
+  terminal_id String @default("00000000-0000-0000-0000-000000000000") @db.Uuid // Special UUID = valid for any terminal
+
+  tenant_id   String  @db.Uuid
+  location_id String? @db.Uuid
+
+  trust_level String @default("UNKNOWN") // TRUSTED, UNKNOWN, BLOCKED
+
+  first_seen   DateTime @default(now()) @db.Timestamptz(6)
+  last_seen    DateTime @default(now()) @db.Timestamptz(6)
+  access_count Int      @default(1)
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
 
   // Composite primary key: (mac_address, employee_id, terminal_id)
   // terminal_id = 00000000-0000-0000-0000-000000000000 means valid for any terminal
@@ -1702,17 +1702,17 @@ model device_mac_addresses {
 }
 
 model terminal_mac_registry {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id       String    @db.Uuid
-  terminal_id     String    @db.Uuid
-  mac_address     String    @db.VarChar(17)
-  employee_id     String    @db.Uuid
-  
-  first_seen      DateTime  @default(now()) @db.Timestamptz(6)
-  last_seen       DateTime  @default(now()) @db.Timestamptz(6)
-  access_count    Int       @default(1)
-  is_authorized   Boolean   @default(true)
-  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String @db.Uuid
+  terminal_id String @db.Uuid
+  mac_address String @db.VarChar(17)
+  employee_id String @db.Uuid
+
+  first_seen    DateTime @default(now()) @db.Timestamptz(6)
+  last_seen     DateTime @default(now()) @db.Timestamptz(6)
+  access_count  Int      @default(1)
+  is_authorized Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([terminal_id, mac_address])
   @@index([employee_id, terminal_id])
@@ -1721,20 +1721,20 @@ model terminal_mac_registry {
 }
 
 model session_alerts {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id       String    @db.Uuid
-  employee_id     String    @db.Uuid
-  alert_type      String
-  reason          String
-  mac_address     String?
-  ip_address      String?
-  location_lat    Decimal?  @db.Decimal(10, 7)
-  location_lng    Decimal?  @db.Decimal(10, 7)
-  is_resolved     Boolean   @default(false)
-  resolved_by     String?   @db.Uuid
-  resolved_at     DateTime? @db.Timestamptz(6)
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id        String    @db.Uuid
+  employee_id      String    @db.Uuid
+  alert_type       String
+  reason           String
+  mac_address      String?
+  ip_address       String?
+  location_lat     Decimal?  @db.Decimal(10, 7)
+  location_lng     Decimal?  @db.Decimal(10, 7)
+  is_resolved      Boolean   @default(false)
+  resolved_by      String?   @db.Uuid
+  resolved_at      DateTime? @db.Timestamptz(6)
   resolution_notes String?
-  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([tenant_id, alert_type, is_resolved])
   @@index([employee_id, created_at(sort: Desc)])
@@ -1743,16 +1743,16 @@ model session_alerts {
 }
 
 model transaction_limits {
-  id                          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id                   String   @db.Uuid
-  employee_id                 String   @db.Uuid
-  max_transactions_per_hour   Int      @default(100)
-  max_transactions_per_day    Int      @default(500)
-  max_amount_per_transaction  Int      @default(100000)
-  max_price_changes_per_hour  Int      @default(20)
-  max_refunds_per_day         Int      @default(10)
-  created_at                  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at                  DateTime @default(now()) @db.Timestamptz(6)
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                  String   @db.Uuid
+  employee_id                String   @db.Uuid
+  max_transactions_per_hour  Int      @default(100)
+  max_transactions_per_day   Int      @default(500)
+  max_amount_per_transaction Int      @default(100000)
+  max_price_changes_per_hour Int      @default(20)
+  max_refunds_per_day        Int      @default(10)
+  created_at                 DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime @default(now()) @db.Timestamptz(6)
 
   @@unique([tenant_id, employee_id])
 }
@@ -1797,16 +1797,16 @@ model cross_tenant_admins {
 }
 
 model cross_tenant_audit_log {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  admin_id      String    @db.Uuid
-  tenant_id     String    @db.Uuid
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  admin_id      String   @db.Uuid
+  tenant_id     String   @db.Uuid
   action        String
   resource_type String?
-  resource_id   String?   @db.Uuid
+  resource_id   String?  @db.Uuid
   details       Json?
   ip_address    String?
   user_agent    String?
-  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([admin_id, created_at(sort: Desc)])
   @@index([tenant_id, created_at(sort: Desc)])
@@ -1818,25 +1818,25 @@ model cross_tenant_audit_log {
 // ============================================
 
 model tenant_quotas {
-  tenant_id         String   @id @db.Uuid
-  max_terminals     Int      @default(20)
-  max_employees     Int      @default(50)
-  max_products      Int      @default(500)
-  max_daily_orders  Int      @default(1000)
-  max_storage_mb    Int      @default(1000)
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime @default(now()) @db.Timestamptz(6)
+  tenant_id        String   @id @db.Uuid
+  max_terminals    Int      @default(20)
+  max_employees    Int      @default(50)
+  max_products     Int      @default(500)
+  max_daily_orders Int      @default(1000)
+  max_storage_mb   Int      @default(1000)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @db.Timestamptz(6)
 }
 
 model tenant_usage {
-  tenant_id          String   @id @db.Uuid
-  current_terminals  Int      @default(0)
-  current_employees  Int      @default(0)
-  current_products   Int      @default(0)
-  daily_orders       Int      @default(0)
-  storage_mb         Int      @default(0)
-  last_reset_date    DateTime @default(now()) @db.Date
-  updated_at         DateTime @default(now()) @db.Timestamptz(6)
+  tenant_id         String   @id @db.Uuid
+  current_terminals Int      @default(0)
+  current_employees Int      @default(0)
+  current_products  Int      @default(0)
+  daily_orders      Int      @default(0)
+  storage_mb        Int      @default(0)
+  last_reset_date   DateTime @default(now()) @db.Date
+  updated_at        DateTime @default(now()) @db.Timestamptz(6)
 }
 
 // ============================================
@@ -1844,30 +1844,30 @@ model tenant_usage {
 // ============================================
 
 model tenant_analytics {
-  tenant_id              String   @db.Uuid
-  date                   DateTime @db.Date
-  active_terminals       Int      @default(0)
-  total_orders           Int      @default(0)
-  total_events           Int      @default(0)
-  total_revenue_cents    BigInt   @default(0)
-  avg_order_value_cents  Int      @default(0)
-  peak_orders_per_hour   Int      @default(0)
-  sync_errors            Int      @default(0)
-  api_errors             Int      @default(0)
-  storage_mb             Int      @default(0)
+  tenant_id             String   @db.Uuid
+  date                  DateTime @db.Date
+  active_terminals      Int      @default(0)
+  total_orders          Int      @default(0)
+  total_events          Int      @default(0)
+  total_revenue_cents   BigInt   @default(0)
+  avg_order_value_cents Int      @default(0)
+  peak_orders_per_hour  Int      @default(0)
+  sync_errors           Int      @default(0)
+  api_errors            Int      @default(0)
+  storage_mb            Int      @default(0)
 
   @@id([tenant_id, date])
   @@index([tenant_id, date(sort: Desc)])
 }
 
 model tenant_health_checks {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id   String   @db.Uuid
-  check_type  String
-  status      String
-  message     String?
-  details     Json?
-  checked_at  DateTime @default(now()) @db.Timestamptz(6)
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id  String   @db.Uuid
+  check_type String
+  status     String
+  message    String?
+  details    Json?
+  checked_at DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([tenant_id, checked_at(sort: Desc)])
   @@index([tenant_id, check_type, checked_at(sort: Desc)])
@@ -1878,22 +1878,94 @@ model tenant_health_checks {
 // ============================================
 
 model onboarding_steps {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id   String   @db.Uuid
-  step_number Int
-  step_key    String
-  title       String
-  description String?
-  is_required Boolean  @default(true)
-  is_completed Boolean @default(false)
-  completed_at DateTime? @db.Timestamptz(6)
-  completed_by String?  @db.Uuid
-  metadata    Json?
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id       String          @db.Uuid
+  step_number     Int
+  step_key        String
+  title           String
+  description     String?
+  is_required     Boolean         @default(true)
+  is_completed    Boolean         @default(false)
+  completed_at    DateTime?       @db.Timestamptz(6)
+  completed_by    String?         @db.Uuid
+  metadata        Json?
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime        @default(now()) @db.Timestamptz(6)
   tenant_settings tenant_settings @relation(fields: [tenant_id], references: [tenant_id])
 
   @@unique([tenant_id, step_key])
   @@index([tenant_id, step_number])
   @@index([tenant_id, is_completed])
+}
+
+// ============================================
+// Sistema de Alertas y Monitoreo
+// ============================================
+
+model alert_configurations {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id             String   @db.Uuid
+  alert_type            String // 'ERROR_RATE', 'RESPONSE_TIME', 'UPTIME', 'CACHE_HIT_RATE', 'DB_POOL'
+  threshold_value       Decimal  @db.Decimal(10, 2)
+  threshold_unit        String // 'PERCENTAGE', 'MILLISECONDS', 'COUNT'
+  comparison_operator   String // 'GT', 'LT', 'GTE', 'LTE', 'EQ'
+  enabled               Boolean  @default(true)
+  notification_channels Json     @default("[]") // ['email', 'slack', 'webhook']
+  notification_config   Json? // Configuración específica por canal
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @db.Timestamptz(6)
+  created_by            String?  @db.Uuid
+  updated_by            String?  @db.Uuid
+
+  alert_events alert_events[]
+
+  @@index([tenant_id])
+  @@index([tenant_id, alert_type])
+  @@index([tenant_id, enabled])
+}
+
+model alert_events {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id          String    @db.Uuid
+  configuration_id   String    @db.Uuid
+  alert_type         String
+  severity           String // 'INFO', 'WARNING', 'CRITICAL'
+  current_value      Decimal   @db.Decimal(10, 2)
+  threshold_value    Decimal   @db.Decimal(10, 2)
+  message            String
+  metadata           Json?
+  status             String    @default("ACTIVE") // 'ACTIVE', 'ACKNOWLEDGED', 'RESOLVED', 'SNOOZED'
+  acknowledged_at    DateTime? @db.Timestamptz(6)
+  acknowledged_by    String?   @db.Uuid
+  resolved_at        DateTime? @db.Timestamptz(6)
+  resolved_by        String?   @db.Uuid
+  snoozed_until      DateTime? @db.Timestamptz(6)
+  escalated          Boolean   @default(false)
+  escalated_at       DateTime? @db.Timestamptz(6)
+  notifications_sent Json      @default("[]") // Array de notificaciones enviadas
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime  @default(now()) @db.Timestamptz(6)
+
+  configuration alert_configurations @relation(fields: [configuration_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+  @@index([configuration_id])
+  @@index([tenant_id, status])
+  @@index([tenant_id, created_at(sort: Desc)])
+  @@index([tenant_id, alert_type, created_at(sort: Desc)])
+}
+
+model maintenance_windows {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String   @db.Uuid
+  name        String
+  description String?
+  start_time  DateTime @db.Timestamptz(6)
+  end_time    DateTime @db.Timestamptz(6)
+  alert_types String[] // Tipos de alertas a silenciar
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  created_by  String?  @db.Uuid
+
+  @@index([tenant_id])
+  @@index([tenant_id, start_time, end_time])
 }
