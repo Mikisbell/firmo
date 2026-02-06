@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTableStatus, useZones, TableStatus } from "./hooks/useTableStatus";
+import { useWaiterNotifications } from "./hooks/useWaiterNotifications";
+import { NotificationPanel } from "./components/NotificationPanel";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCents } from "@/src/core/domain/money";
 import { Users, Utensils, Clock, ClipboardList, Wifi, WifiOff, LogOut, Home, Bell, AlertTriangle, Receipt, Settings } from "lucide-react";
@@ -103,6 +105,10 @@ export default function WaiterPage() {
     const { zones: apiZones, loading: zonesLoading } = useZones();
     const [selectedZoneId, setSelectedZoneId] = useState<string | null>("all"); // "all" = todas las zonas
     const { isMobile, isTablet } = useResponsive();
+    const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+    
+    // Hook de notificaciones
+    const { unreadCount, readyItemsCount } = useWaiterNotifications();
     
     // Use API zones or fallback
     const zones = apiZones.length > 0 ? apiZones : DEFAULT_ZONES;
@@ -143,6 +149,10 @@ export default function WaiterPage() {
         router.push("/");
     };
 
+    const toggleNotificationPanel = () => {
+        setNotificationPanelOpen(!notificationPanelOpen);
+    };
+
     // Bottom navigation items for mobile
     const navItems: BottomNavItem[] = [
         { id: 'mesas', icon: <Utensils className="w-6 h-6" />, label: 'Mesas', href: '/mozo', badge: alertCount > 0 ? alertCount : undefined },
@@ -166,6 +176,18 @@ export default function WaiterPage() {
                             </div>
                         }
                         rightActions={[
+                            <button
+                                key="notifications"
+                                onClick={toggleNotificationPanel}
+                                className="relative p-2 bg-violet-500/20 rounded-lg"
+                            >
+                                <Bell className="text-violet-400 w-5 h-5" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>,
                             <div key="sync" className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs ${isOnline ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
                                 {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
                             </div>,
@@ -196,12 +218,27 @@ export default function WaiterPage() {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {/* Notifications Button */}
+                        <button
+                            onClick={toggleNotificationPanel}
+                            className="relative text-center px-4 py-2 bg-violet-950/50 rounded-lg border border-violet-500/30 hover:bg-violet-900/50 transition-colors"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Bell size={20} className="text-violet-400" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/50">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </div>
+                        </button>
+
                         {/* Ready Items Counter */}
-                        {readyItemsTotal > 0 && (
+                        {readyItemsCount > 0 && (
                             <div className="text-center px-4 py-2 bg-emerald-950/50 rounded-lg border border-emerald-500/30 animate-pulse">
                                 <div className="text-xl font-black text-emerald-400 flex items-center gap-1">
                                     <Bell size={16} />
-                                    {readyItemsTotal}
+                                    {readyItemsCount}
                                 </div>
                                 <div className="text-[10px] uppercase tracking-wider text-emerald-300/60">Listos</div>
                             </div>
@@ -429,6 +466,12 @@ export default function WaiterPage() {
 
             {/* Bottom Navigation - Mobile only */}
             <BottomNavigation items={navItems} activeId="mesas" />
+
+            {/* Notification Panel */}
+            <NotificationPanel 
+                isOpen={notificationPanelOpen} 
+                onClose={() => setNotificationPanelOpen(false)} 
+            />
         </div>
     );
 }
