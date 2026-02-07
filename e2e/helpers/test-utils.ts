@@ -307,28 +307,51 @@ export async function setupCashierTerminal(page: Page) {
 }
 
 /**
- * Authenticate as Admin for API calls
- * Returns auth token for use in API requests
+ * Authenticate as Admin via UI
+ * Navigates to admin panel and logs in with PIN using PinPad
  */
-export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN): Promise<string> {
-    const response = await page.request.post('http://localhost:3000/api/auth/login', {
-        data: {
-            tenant_id: TENANT_ID,
-            pin: pin,
-        },
-    });
-
-    if (!response.ok()) {
-        throw new Error(`Admin authentication failed: ${response.status()}`);
-    }
-
-    // Extract JWT from cookies
-    const cookies = await page.context().cookies();
-    const authCookie = cookies.find(c => c.name === 'auth_token');
+export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+    // Navigate to admin panel
+    await page.goto('http://localhost:3000/admin');
     
-    if (!authCookie) {
-        throw new Error('No auth_token cookie found after login');
+    // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+    if (tenantId) {
+        await page.evaluate((tid) => {
+            localStorage.setItem('tenant_id', tid);
+        }, tenantId);
+        console.log(`[authenticateAsAdmin] Set tenant_id in localStorage: ${tenantId}`);
     }
+    
+    // Wait for PinPad to appear
+    await page.waitForSelector('[data-testid="pin-pad"]', { timeout: 10000 });
+    
+    // Enter PIN using PinPad buttons
+    for (const digit of pin) {
+        await page.click(`button:has-text("${digit}")`);
+        await page.waitForTimeout(100); // Small delay between clicks
+    }
+    
+    // Wait for authentication to complete and redirect
+    await page.waitForURL('**/admin/**', { timeout: 10000 });
+    
+    // Wait for admin panel to load
+    await page.waitForLoadState('networkidle');
+}
 
-    return authCookie.value;
+/**
+ * Logout from Admin Panel
+ * Opens user dropdown and clicks logout button
+ */
+export async function logoutFromAdmin(page: Page): Promise<void> {
+    // Open user dropdown
+    await page.click('button:has(svg.lucide-chevron-down)');
+    
+    // Wait for dropdown animation
+    await page.waitForTimeout(500);
+    
+    // Click logout button
+    await page.click('button:has-text("Cerrar Sesión")');
+    
+    // Wait for logout to complete
+    await page.waitForTimeout(1000);
 }

@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Toaster } from 'sonner';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
@@ -31,6 +31,7 @@ const STANDALONE_ROUTES = ['/inventario'];
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isAuthenticated, isLoading, employee, permissions, login, logout } = useAuth();
   const [showPinModal, setShowPinModal] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -69,7 +70,11 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     console.log('[AdminLayout] login() called, setting showPinModal to false');
     setShowPinModal(false);
     console.log('[AdminLayout] showPinModal set to false');
-  }, [login]);
+    
+    // Redirigir a dashboard después de login exitoso
+    console.log('[AdminLayout] Redirecting to /admin/dashboard...');
+    router.push('/admin/dashboard');
+  }, [login, router]);
 
   const handleLogout = useCallback(async () => {
     await logout();

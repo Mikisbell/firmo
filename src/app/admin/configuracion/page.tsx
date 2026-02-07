@@ -125,7 +125,7 @@ export default function ConfigurationPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-zinc-400 mb-1">Razón Social</label>
-              <input type="text" value={form?.legal_name || ''} onChange={(e) => setForm((s) => s ? { ...s, legal_name: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" />
+              <input type="text" value={form?.legal_name || ''} onChange={(e) => setForm((s) => s ? { ...s, legal_name: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" data-testid="tenant-name" />
             </div>
             <div>
               <label className="block text-sm text-zinc-400 mb-1">RUC (11 dígitos)</label>

@@ -82,13 +82,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { pin, allowedRoles } = body;
+    const { pin, allowedRoles, tenant_id } = body;
 
     console.log('[Session API] POST request received');
     console.log('  PIN:', pin);
     console.log('  PIN type:', typeof pin);
     console.log('  PIN length:', pin?.length);
     console.log('  Allowed roles:', allowedRoles);
+    console.log('  Tenant ID from request:', tenant_id);
 
     if (!pin || !allowedRoles || !Array.isArray(allowedRoles)) {
       console.log('[Session API] Validation failed - missing PIN or roles');
@@ -98,9 +99,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get tenant ID from centralized config
-    const tenantId = getTenantId();
-    console.log('[Session API] Tenant ID:', tenantId);
+    // Get tenant ID from request body (for multi-tenant E2E tests) or fallback to centralized config
+    const tenantId = tenant_id || getTenantId();
+    console.log('[Session API] Tenant ID (final):', tenantId);
 
     // Get IP and user agent
     const metadata = {

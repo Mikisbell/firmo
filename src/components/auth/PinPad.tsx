@@ -41,7 +41,7 @@ export function PinPad({ onSubmit, disabled, error, maxLength = 4 }: PinPadProps
   }, [disabled]);
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-6" data-testid="pin-pad">
       {/* PIN Display */}
       <div className="flex gap-3">
         {Array.from({ length: maxLength }).map((_, i) => (

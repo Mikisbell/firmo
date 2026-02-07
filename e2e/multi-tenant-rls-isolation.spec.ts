@@ -13,30 +13,34 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { authenticateAsAdmin } from './helpers/test-utils';
+import { authenticateAsAdmin, logoutFromAdmin } from './helpers/test-utils';
 
 test.describe('Multi-Tenant RLS Isolation E2E', () => {
   const baseURL = 'http://localhost:3000';
   
   // Test data - these should be provisioned before running tests
+  // Run: npx tsx scripts/provision-e2e-test-tenants.ts
   const tenant1 = {
-    id: 'test-tenant-1-' + Date.now(),
+    id: '11111111-1111-1111-1111-111111111111',
     adminPin: '1111',
     name: 'Pollería Test 1',
   };
   
   const tenant2 = {
-    id: 'test-tenant-2-' + (Date.now() + 1),
+    id: '22222222-2222-2222-2222-222222222222',
     adminPin: '2222',
     name: 'Pollería Test 2',
   };
 
   test('✅ RLS: Tenant 1 cannot see Tenant 2 employees', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to employees page (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
+
+    // Wait for data to load
+    await page.waitForSelector('[data-testid="employee-row"]', { timeout: 10000 });
 
     // Get list of employees for Tenant 1
     const tenant1Employees = page.locator('[data-testid="employee-row"]');
@@ -49,13 +53,16 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1Names = await page.locator('[data-testid="employee-name"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Cerrar Sesión")');
+    await logoutFromAdmin(page);
 
     // Authenticate as Tenant 2 admin
-    await authenticateAsAdmin(page, tenant2.adminPin);
+    await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to employees page (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
+
+    // Wait for data to load
+    await page.waitForSelector('[data-testid="employee-row"]', { timeout: 10000 });
 
     // Get list of employees for Tenant 2
     const tenant2Employees = page.locator('[data-testid="employee-row"]');
@@ -75,10 +82,13 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot see Tenant 2 products', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to products page (Spanish route)
     await page.goto(`${baseURL}/admin/productos`);
+
+    // Wait for data to load
+    await page.waitForSelector('[data-testid="product-row"]', { timeout: 10000 });
 
     // Get list of products for Tenant 1
     const tenant1Products = page.locator('[data-testid="product-row"]');
@@ -91,13 +101,16 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1Names = await page.locator('[data-testid="product-name"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Cerrar Sesión")');
+    await logoutFromAdmin(page);
 
     // Authenticate as Tenant 2 admin
-    await authenticateAsAdmin(page, tenant2.adminPin);
+    await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to products page (Spanish route)
     await page.goto(`${baseURL}/admin/productos`);
+
+    // Wait for data to load
+    await page.waitForSelector('[data-testid="product-row"]', { timeout: 10000 });
 
     // Get list of products for Tenant 2
     const tenant2Products = page.locator('[data-testid="product-row"]');
@@ -117,7 +130,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot see Tenant 2 orders', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to reportes page (Spanish route)
     await page.goto(`${baseURL}/admin/reportes`);
@@ -130,10 +143,10 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1OrderIds = await page.locator('[data-testid="order-id"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Cerrar Sesión")');
+    await logoutFromAdmin(page);
 
     // Authenticate as Tenant 2 admin
-    await authenticateAsAdmin(page, tenant2.adminPin);
+    await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to reportes page (Spanish route)
     await page.goto(`${baseURL}/admin/reportes`);
@@ -153,7 +166,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to access a Tenant 2 employee directly (Spanish route)
     await page.goto(`${baseURL}/admin/empleados/tenant-2-employee-id`, { waitUntil: 'networkidle' });
@@ -169,7 +182,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to access a Tenant 2 product directly (Spanish route)
     await page.goto(`${baseURL}/admin/productos/tenant-2-product-id`, { waitUntil: 'networkidle' });
@@ -185,7 +198,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to edit a Tenant 2 employee via API
     const response = await page.request.put(`${baseURL}/api/admin/employees/tenant-2-employee-id`, {
@@ -200,7 +213,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot delete Tenant 2 product via API', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to delete a Tenant 2 product via API
     const response = await page.request.delete(`${baseURL}/api/admin/products/tenant-2-product-id`);
@@ -211,7 +224,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot create employee for Tenant 2', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to create employee for Tenant 2 via API
     const response = await page.request.post(`${baseURL}/api/admin/employees`, {
@@ -234,7 +247,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot view Tenant 2 analytics', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to dashboard (Spanish route)
     await page.goto(`${baseURL}/admin/dashboard`);
@@ -243,10 +256,10 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1Revenue = await page.locator('[data-testid="total-revenue"]').textContent();
 
     // Logout
-    await page.click('button:has-text("Cerrar Sesión")');
+    await logoutFromAdmin(page);
 
     // Authenticate as Tenant 2 admin
-    await authenticateAsAdmin(page, tenant2.adminPin);
+    await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to dashboard (Spanish route)
     await page.goto(`${baseURL}/admin/dashboard`);
@@ -260,7 +273,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot view Tenant 2 audit logs', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to audit logs (Spanish route)
     await page.goto(`${baseURL}/admin/auditoria`);
@@ -269,10 +282,10 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1LogEntries = await page.locator('[data-testid="audit-log-entry"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Cerrar Sesión")');
+    await logoutFromAdmin(page);
 
     // Authenticate as Tenant 2 admin
-    await authenticateAsAdmin(page, tenant2.adminPin);
+    await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to audit logs (Spanish route)
     await page.goto(`${baseURL}/admin/auditoria`);
@@ -288,7 +301,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot view Tenant 2 settings', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to settings (Spanish route)
     await page.goto(`${baseURL}/admin/configuracion`);
@@ -297,10 +310,10 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1Name = await page.locator('[data-testid="tenant-name"]').textContent();
 
     // Logout
-    await page.click('button:has-text("Cerrar Sesión")');
+    await logoutFromAdmin(page);
 
     // Authenticate as Tenant 2 admin
-    await authenticateAsAdmin(page, tenant2.adminPin);
+    await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to settings (Spanish route)
     await page.goto(`${baseURL}/admin/configuracion`);
@@ -314,7 +327,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Cross-tenant API calls are blocked', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to fetch Tenant 2's employees via API
     const response = await page.request.get(`${baseURL}/api/admin/employees?tenant_id=${tenant2.id}`);
@@ -335,7 +348,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant switching clears previous tenant data', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to employees (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
@@ -347,7 +360,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
-    await authenticateAsAdmin(page, tenant2.adminPin);
+    await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to employees (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
@@ -359,8 +372,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     expect(tenant1Employees).not.toEqual(tenant2Employees);
 
     // Logout and re-authenticate as Tenant 1
-    await page.click('button:has-text("Cerrar Sesión")');
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await logoutFromAdmin(page);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Navigate to employees (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
@@ -374,7 +387,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot bulk import data for Tenant 2', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to bulk import with Tenant 2 ID
     const response = await page.request.post(`${baseURL}/api/admin/bulk-import`, {
@@ -398,7 +411,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot export Tenant 2 data', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to export Tenant 2 data
     const response = await page.request.post(`${baseURL}/api/tenant/export`, {
@@ -414,7 +427,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot restore Tenant 2 backup', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to restore Tenant 2 backup
     const response = await page.request.post(`${baseURL}/api/tenant/restore`, {
@@ -430,7 +443,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot modify Tenant 2 configuration', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to modify Tenant 2 configuration
     const response = await page.request.put(`${baseURL}/api/tenant/configuration`, {
@@ -452,7 +465,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot view Tenant 2 quotas', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to view Tenant 2 quotas
     const response = await page.request.get(`${baseURL}/api/admin/quotas?tenant_id=${tenant2.id}`);
@@ -472,7 +485,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
   test('✅ RLS: Tenant 1 cannot modify Tenant 2 quotas', async ({ page }) => {
     // Authenticate as Tenant 1 admin
-    await authenticateAsAdmin(page, tenant1.adminPin);
+    await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
     // Try to modify Tenant 2 quotas
     const response = await page.request.put(`${baseURL}/api/admin/quotas/tenant-2-quota-id`, {
@@ -485,3 +498,4 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     expect([403, 404, 401]).toContain(response.status());
   });
 });
+

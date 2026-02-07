@@ -104,8 +104,8 @@ export default function ReportsPage() {
             <h2 className="font-medium mb-4">Por Método de Pago</h2>
             <div className="space-y-2">
               {report.by_payment_method.map((m) => (
-                <div key={m.method} className="flex justify-between items-center py-2 border-b border-zinc-800 last:border-0">
-                  <span className="text-zinc-400">{m.method}</span>
+                <div key={m.method} className="flex justify-between items-center py-2 border-b border-zinc-800 last:border-0" data-testid="order-row">
+                  <span className="text-zinc-400" data-testid="order-id">{m.method}</span>
                   <span className="font-medium">{formatCurrency(m.total)}</span>
                 </div>
               ))}

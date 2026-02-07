@@ -235,7 +235,7 @@ export function DataTable<T extends { id: string }>({
               paginatedData.map((item, rowIndex) => (
                 <tr
                   key={item.id}
-                  data-testid={rowTestId || (isTestEnv ? `table-row-${rowIndex}-${item.id}` : undefined)}
+                  data-testid={rowTestId ? rowTestId : (isTestEnv ? `table-row-${rowIndex}-${item.id}` : undefined)}
                   onClick={() => onRowClick?.(item)}
                   className={`bg-zinc-950 hover:bg-zinc-900 transition-colors ${
                     onRowClick ? 'cursor-pointer' : ''

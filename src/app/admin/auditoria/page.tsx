@@ -215,7 +215,7 @@ export default function AuditoriaPage() {
       label: 'Fecha/Hora',
       width: '180px',
       render: (e) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-testid="audit-log-entry">
           <Calendar className="w-3 h-3 text-zinc-500" />
           <span className="text-xs">{formatDate(e.created_at)}</span>
         </div>

@@ -39,7 +39,16 @@ async function handleGET(request: NextRequest) {
   const log = createRequestLogger(requestId);
   
   try {
-    log.info({ operation: 'list_employees' }, 'Listing employees');
+    // ✅ PASO 1: Validate admin authentication and authorization
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // ✅ PASO 2: Use tenant_id from authenticated user's JWT token
+    const tenantId = authResult.user.tenantId;
+    
+    log.info({ operation: 'list_employees', tenantId }, 'Listing employees');
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -48,9 +57,10 @@ async function handleGET(request: NextRequest) {
     // Parse pagination parameters
     const params = parsePaginationParams(request.nextUrl.searchParams);
 
-    // Generate cache key
+    // Generate cache key with tenant_id
     const cacheKey = generateCacheKey(
       'employees',
+      tenantId,
       params.page,
       params.limit,
       validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all'
@@ -62,13 +72,14 @@ async function handleGET(request: NextRequest) {
       log.info({
         operation: 'list_employees_cache_hit',
         cacheKey,
+        tenantId,
         durationMs: Date.now() - startTime,
       }, 'Employees retrieved from cache');
       return NextResponse.json(cached);
     }
 
-    // Build where clause
-    const where: any = { tenant_id: TENANT_ID };
+    // Build where clause with tenant_id from JWT
+    const where: any = { tenant_id: tenantId };
     if (validatedQuery.is_active !== undefined) {
       where.is_active = validatedQuery.is_active;
     }
@@ -76,7 +87,7 @@ async function handleGET(request: NextRequest) {
     // Get total count
     const dbStart = Date.now();
     const total = await prisma.employees.count({ where });
-    logPerformance('db_count_employees', Date.now() - dbStart, { total });
+    logPerformance('db_count_employees', Date.now() - dbStart, { total, tenantId });
 
     // Get paginated employees
     const queryStart = Date.now();
@@ -96,6 +107,7 @@ async function handleGET(request: NextRequest) {
       count: employees.length,
       page: params.page,
       limit: params.limit,
+      tenantId,
     });
 
     // Create response
@@ -108,6 +120,7 @@ async function handleGET(request: NextRequest) {
       operation: 'list_employees_success',
       count: employees.length,
       total,
+      tenantId,
       cached: true,
       durationMs: Date.now() - startTime,
     }, 'Employees listed successfully');
@@ -167,26 +180,30 @@ async function handlePOST(request: NextRequest) {
     return authResult.response;
   }
 
+  // ✅ PASO 3: Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
+    tenantId,
   });
 
   try {
-    log.info({ operation: 'create_employee' }, 'Creating new employee');
+    log.info({ operation: 'create_employee', tenantId }, 'Creating new employee');
     
     const body = await request.json();
     
-    // ✅ PASO 3: Validate with Zod
+    // ✅ PASO 4: Validate with Zod
     const validatedData = CreateEmployeeSchema.parse(body);
     const { name, role, pin, is_active = true } = validatedData;
 
     // Hash PIN
     const pin_hash = hashPin(pin);
 
-    // Check PIN uniqueness
+    // Check PIN uniqueness within tenant
     const existingPin = await prisma.employees.findFirst({
       where: {
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         pin_hash,
         is_active: true,
       },
@@ -197,6 +214,7 @@ async function handlePOST(request: NextRequest) {
         operation: 'create_employee_duplicate_pin',
         name,
         role,
+        tenantId,
       }, 'Attempted to create employee with duplicate PIN');
       
       return NextResponse.json(
@@ -211,7 +229,7 @@ async function handlePOST(request: NextRequest) {
       const newEmployee = await tx.employees.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           name,
           role,
           pin_hash,
@@ -223,7 +241,7 @@ async function handlePOST(request: NextRequest) {
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'employees',
@@ -236,21 +254,21 @@ async function handlePOST(request: NextRequest) {
     });
     logPerformance('db_transaction_create_employee', Date.now() - txStart);
 
-    // Invalidate employees cache
-    await cache.invalidatePattern('employees:*');
+    // Invalidate employees cache for this tenant
+    await cache.invalidatePattern(`employees:${tenantId}:*`);
 
     // Record business metrics
     metrics.increment(MetricNames.EMPLOYEES_CREATED_TOTAL, {
       role: employee.role,
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Update active employees gauge
     const activeCount = await prisma.employees.count({
-      where: { tenant_id: TENANT_ID, is_active: true },
+      where: { tenant_id: tenantId, is_active: true },
     });
     metrics.set(MetricNames.EMPLOYEES_ACTIVE, activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event
@@ -258,6 +276,7 @@ async function handlePOST(request: NextRequest) {
       employeeId: employee.id,
       employeeName: employee.name,
       employeeRole: employee.role,
+      tenantId,
     });
 
     log.info({
@@ -265,6 +284,7 @@ async function handlePOST(request: NextRequest) {
       employeeId: employee.id,
       employeeName: employee.name,
       employeeRole: employee.role,
+      tenantId,
       durationMs: Date.now() - startTime,
     }, 'Employee created successfully');
 

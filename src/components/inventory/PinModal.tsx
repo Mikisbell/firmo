@@ -6,6 +6,7 @@
 // Token is stored in httpOnly cookie for security
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PinPad } from '@/src/components/auth/PinPad';
 import { X, Lock, AlertTriangle } from 'lucide-react';
@@ -27,6 +28,7 @@ export function PinModal({
   allowedRoles,
   title = 'Ingrese PIN'
 }: PinModalProps) {
+  const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [lockoutUntil, setLockoutUntil] = useState<Date | null>(null);
@@ -66,7 +68,15 @@ export function PinModal({
     setLoading(true);
 
     try {
-      const requestBody = { pin, allowedRoles };
+      // Get tenant_id from localStorage (for multi-tenant E2E tests)
+      const tenantId = typeof window !== 'undefined' ? localStorage.getItem('tenant_id') : null;
+      console.log('[PinModal] Tenant ID from localStorage:', tenantId);
+
+      const requestBody = { 
+        pin, 
+        allowedRoles,
+        ...(tenantId && { tenant_id: tenantId }) // Include tenant_id if available
+      };
       console.log('[PinModal] Request body:', JSON.stringify(requestBody));
 
       const response = await fetch('/api/auth/session', {
@@ -103,6 +113,10 @@ export function PinModal({
       console.log('[PinModal] Calling onSuccess()...');
       onSuccess(data.employee);
       console.log('[PinModal] onSuccess() completed');
+      
+      // Redirigir a dashboard después de login exitoso
+      console.log('[PinModal] Redirecting to /admin/dashboard...');
+      router.push('/admin/dashboard');
     } catch (err) {
       console.error('[PinModal] Error:', err);
       setError('Error de conexión');

@@ -259,6 +259,7 @@ export default function AnalyticsDashboardPage() {
           delta={comparison?.delta_percent.total_sales}
           icon={DollarSign}
           loading={loading}
+          testId="total-revenue"
         />
         <KPICard
           label="Órdenes"
@@ -371,12 +372,14 @@ function KPICard({
   delta,
   icon: Icon,
   loading,
+  testId,
 }: {
   label: string;
   value: string;
   delta?: number;
   icon: React.ElementType;
   loading?: boolean;
+  testId?: string;
 }) {
   const isPositive = delta !== undefined && delta >= 0;
   const TrendIcon = isPositive ? TrendingUp : TrendingDown;
@@ -398,7 +401,7 @@ function KPICard({
           </div>
         )}
       </div>
-      <p className={`text-2xl font-bold mt-3 ${loading ? 'animate-pulse' : ''}`}>
+      <p className={`text-2xl font-bold mt-3 ${loading ? 'animate-pulse' : ''}`} data-testid={testId}>
         {loading ? '...' : value}
       </p>
       <p className="text-xs text-zinc-500 mt-1">{label}</p>
