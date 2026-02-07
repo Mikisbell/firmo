@@ -16,19 +16,25 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId, getLocationId } from '@/src/core/config/location';
-
-const TENANT_ID = getTenantId();
-const LOCATION_ID = getLocationId();
+import { getLocationId } from '@/src/core/config/location';
 
 // GET - List all zones with pagination
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+  
+  const tenantId = authResult.user.tenantId;
+  const LOCATION_ID = getLocationId();
+  const log = createRequestLogger(requestId, authResult.user.id);
   
   try {
-    log.info({ operation: 'list_zones' }, 'Listing zones');
+    log.info({ operation: 'list_zones', tenantId }, 'Listing zones');
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -40,6 +46,7 @@ async function handleGET(request: NextRequest) {
     // Generate cache key
     const cacheKey = generateCacheKey(
       'zones',
+      tenantId,
       params.page,
       params.limit,
       validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all',
@@ -60,7 +67,7 @@ async function handleGET(request: NextRequest) {
 
     // Build where clause
     const where: any = { 
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
       location_id: LOCATION_ID,
     };
     if (validatedQuery.is_active !== undefined) {
@@ -164,12 +171,14 @@ async function handlePOST(request: NextRequest) {
     return authResult.response;
   }
 
+  const tenantId = authResult.user.tenantId;
+  const LOCATION_ID = getLocationId();
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
   });
 
   try {
-    log.info({ operation: 'create_zone' }, 'Creating new zone');
+    log.info({ operation: 'create_zone', tenantId }, 'Creating new zone');
     
     const body = await request.json();
     
@@ -181,7 +190,7 @@ async function handlePOST(request: NextRequest) {
     const checkStart = Date.now();
     const existing = await prisma.zones.findFirst({
       where: { 
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         location_id: LOCATION_ID,
         code,
       },
@@ -206,7 +215,7 @@ async function handlePOST(request: NextRequest) {
       const newZone = await tx.zones.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           location_id: LOCATION_ID,
           code,
           name,
@@ -223,7 +232,7 @@ async function handlePOST(request: NextRequest) {
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'zones',
@@ -237,24 +246,24 @@ async function handlePOST(request: NextRequest) {
     logPerformance('db_transaction_create_zone', Date.now() - txStart);
 
     // Invalidate zones cache
-    await cache.invalidatePattern('zones:*');
+    await cache.invalidatePattern(`zones:${tenantId}:*`);
 
     // Record business metrics
     metrics.increment('zones_created_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
       location_id: LOCATION_ID,
     });
 
     // Update active zones gauge
     const activeCount = await prisma.zones.count({
       where: { 
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         location_id: LOCATION_ID,
         is_active: true,
       },
     });
     metrics.set('zones_active', activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
       location_id: LOCATION_ID,
     });
 

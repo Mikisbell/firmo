@@ -4,13 +4,19 @@
  * Requirements: 3.1 (Terminal Architecture v2)
  */
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { getTenantId } from '@/src/core/config/tenant';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const tenantId = getTenantId();
+    // Validate admin authentication
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+    
+    const tenantId = authResult.user.tenantId;
     
     const devices = await prisma.terminal_devices.findMany({
       where: { tenant_id: tenantId },

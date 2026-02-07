@@ -3,7 +3,7 @@
 ## Resumen Ejecutivo
 
 **Estado:** 🟢 PROGRESO SIGNIFICATIVO - 10+/19 tests pasando (53%+)  
-**Breakthrough:** ✅ Tenant isolation aplicado a TODAS las APIs críticas  
+**Breakthrough:** ✅ Tenant isolation aplicado a TODAS las APIs críticas (Products, Promotions, Employees, Analytics)  
 **Próximo Paso:** Mejorar manejo de errores y validación en páginas de detalle
 
 ## Tests Pasando ✅ (10+/19)
@@ -36,8 +36,9 @@
 
 ### 3. Analytics - Ambos tenants muestran "..." (1 test)
 **Error:** `expect(tenant1Revenue).not.toBe(tenant2Revenue)` falla  
-**Causa:** Dashboard analytics no tiene datos o usa tenant hardcodeado  
-**Fix Pendiente:** Aplicar fix de tenantId a analytics APIs + seed datos
+**Causa:** Dashboard analytics no tiene datos  
+**Fix Aplicado:** ✅ Analytics APIs ahora usan tenantId del JWT  
+**Pendiente:** Seed datos de analytics para tests
 
 ### 4. Settings - Timeout en autenticación (1 test)
 **Error:** `TimeoutError: page.waitForSelector: Timeout 10000ms exceeded`  
@@ -51,87 +52,35 @@
 
 ## Fixes Implementados ✅
 
-### 1. Products API - Tenant Isolation Completo
-**Problema:** API usaba `getTenantId()` hardcodeado  
-**Solución:** Usar `authResult.user.tenantId` del JWT token  
+### 1. Products API - Tenant Isolation Completo ✅
 **Archivos:**
 - ✅ `src/app/api/admin/products/route.ts` (GET, POST)
 - ✅ `src/app/api/admin/products/[id]/route.ts` (GET, PUT, DELETE)
 
-**Resultado:** ✅ Products ahora están correctamente aislados por tenant
-
-### 2. Promotions API - Tenant Isolation Completo
-**Problema:** API usaba `getTenantId()` hardcodeado  
-**Solución:** Usar `authResult.user.tenantId` del JWT token  
+### 2. Promotions API - Tenant Isolation Completo ✅
 **Archivos:**
 - ✅ `src/app/api/admin/promotions/route.ts` (GET, POST)
 - ✅ `src/app/api/admin/promotions/[id]/route.ts` (GET, PUT, DELETE)
 
-**Resultado:** ✅ Promotions ahora están correctamente aislados por tenant
-
-### 3. Employees [id] API - Tenant Isolation Completo
-**Problema:** API usaba `getTenantId()` hardcodeado  
-**Solución:** Usar `authResult.user.tenantId` del JWT token  
+### 3. Employees [id] API - Tenant Isolation Completo ✅
 **Archivos:**
 - ✅ `src/app/api/admin/employees/[id]/route.ts` (GET, PUT, DELETE)
 
-**Resultado:** ✅ Employees ahora están correctamente aislados por tenant
+### 4. Analytics APIs - Tenant Isolation Completo ✅ (NUEVO)
+**Archivos:**
+- ✅ `src/app/api/admin/analytics/realtime/route.ts` (GET)
+- ✅ `src/app/api/admin/analytics/comparison/route.ts` (GET)
+- ✅ `src/app/api/admin/analytics/top-products/route.ts` (GET)
+- ✅ `src/app/api/admin/analytics/hourly/route.ts` (GET)
+- ✅ `src/app/api/admin/analytics/history/route.ts` (GET)
 
-### 4. Logout Helper - Mobile Compatibility
-**Problema:** En mobile, el header interceptaba el click  
-**Solución:** Usar `force: true` en primer click  
+### 5. Logout Helper - Mobile Compatibility ✅
 **Archivos:**
 - ✅ `e2e/helpers/test-utils.ts`
 
-**Resultado:** ✅ Logout funciona correctamente en mobile y desktop
-
-### 5. Test Fixes - Tenant Switching y Cross-tenant API
-**Problema:** Tests usaban código incorrecto  
-**Solución:** Usar helper function y manejar respuesta paginada  
+### 6. Test Fixes - Tenant Switching y Cross-tenant API ✅
 **Archivos:**
 - ✅ `e2e/multi-tenant-rls-isolation.spec.ts`
-
-**Resultado:** ✅ Tests actualizados correctamente
-
-## Fixes Pendientes ❌
-
-### 1. Analytics APIs (CRÍTICO)
-```typescript
-// src/app/api/admin/analytics/*/route.ts
-// ANTES
-const where: any = { tenant_id: TENANT_ID };
-
-// DESPUÉS
-const authResult = await requireAdminAuth(request);
-const tenantId = authResult.user.tenantId;
-const where: any = { tenant_id: tenantId };
-```
-
-### 2. Mejorar Manejo de Errores
-```typescript
-// Retornar 404 en lugar de 500 cuando recurso no existe
-if (!existing) {
-  return NextResponse.json(
-    { error: 'Recurso no encontrado' },
-    { status: 404 }
-  );
-}
-```
-
-### 3. Validación en Páginas de Detalle
-```typescript
-// src/app/admin/productos/[id]/page.tsx
-const product = await prisma.products.findFirst({
-  where: {
-    id: params.id,
-    tenant_id: session.user.tenantId,
-  },
-});
-
-if (!product) {
-  redirect('/admin/productos');
-}
-```
 
 ## Progreso Total
 
@@ -141,7 +90,7 @@ if (!product) {
 - E2E Tests: 8/20 (40%) 🟡
 - **Total: 23/35 (66%)**
 
-### Después de los Fixes Parciales
+### Después de los Fixes
 - Unit Tests: 5/5 (100%) ✅
 - Integration Tests: 10/10 (100%) ✅
 - E2E Tests: 10+/20 (50%+) 🟢
@@ -155,45 +104,35 @@ if (!product) {
 
 ## Archivos Modificados
 
-1. ✅ `src/app/api/admin/products/route.ts` - Tenant isolation
-2. ✅ `src/app/api/admin/products/[id]/route.ts` - Tenant isolation
-3. ✅ `src/app/api/admin/promotions/route.ts` - Tenant isolation
-4. ✅ `src/app/api/admin/promotions/[id]/route.ts` - Tenant isolation
-5. ✅ `src/app/api/admin/employees/[id]/route.ts` - Tenant isolation
-6. ✅ `e2e/helpers/test-utils.ts` - Mobile logout fix
-7. ✅ `e2e/multi-tenant-rls-isolation.spec.ts` - Test fixes
+### Commit 1 (b74ea62): Products, Promotions, Employees
+1. ✅ `src/app/api/admin/products/route.ts`
+2. ✅ `src/app/api/admin/products/[id]/route.ts`
+3. ✅ `src/app/api/admin/promotions/route.ts`
+4. ✅ `src/app/api/admin/promotions/[id]/route.ts`
+5. ✅ `src/app/api/admin/employees/[id]/route.ts`
+6. ✅ `e2e/helpers/test-utils.ts`
+7. ✅ `e2e/multi-tenant-rls-isolation.spec.ts`
+
+### Commit 2 (ab509f3): Analytics APIs
+8. ✅ `src/app/api/admin/analytics/realtime/route.ts`
+9. ✅ `src/app/api/admin/analytics/comparison/route.ts`
+10. ✅ `src/app/api/admin/analytics/top-products/route.ts`
+11. ✅ `src/app/api/admin/analytics/hourly/route.ts`
+12. ✅ `src/app/api/admin/analytics/history/route.ts`
+13. ✅ `playwright.config.ts`
 
 ## Próximos Pasos
 
-1. **Aplicar fix de tenantId a Analytics APIs** (10 min)
-2. **Mejorar manejo de errores en APIs** (15 min)
-3. **Agregar validación en páginas de detalle** (20 min)
-4. **Seed datos de analytics para tests** (10 min)
-5. **Ejecutar todos los tests nuevamente** (5 min)
+1. **Mejorar manejo de errores** (15 min)
+2. **Validación en páginas de detalle** (20 min)
+3. **Seed datos de analytics** (10 min)
+4. **Ejecutar tests completos** (5 min)
 
-**Tiempo estimado total:** 60 minutos
-
-## Comandos Útiles
-
-```bash
-# Limpiar lockouts
-npx tsx scripts/clear-all-lockouts.ts
-
-# Ejecutar un test específico
-npm run test:e2e -- e2e/multi-tenant-rls-isolation.spec.ts:83 --workers=1
-
-# Ejecutar todos los tests
-npm run test:e2e -- e2e/multi-tenant-rls-isolation.spec.ts --workers=1
-
-# Ver reporte HTML
-npx playwright show-report
-```
+**Tiempo estimado total:** 50 minutos
 
 ---
 
 **Última actualización:** 7 Febrero 2026  
 **Estado:** 🟢 PROGRESO SIGNIFICATIVO - 71%+ completado  
-**Bloqueador:** Ninguno - Fixes principales aplicados exitosamente  
-**Solución:** Continuar con APIs restantes y mejoras de manejo de errores
-
-
+**Commits:** 2 commits pushed to GitHub  
+**Próximo Paso:** Mejorar manejo de errores y validación en páginas
