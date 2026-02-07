@@ -14,6 +14,7 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 
 const TENANT_ID = getTenantId();
@@ -22,10 +23,22 @@ const TENANT_ID = getTenantId();
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
   
   try {
     log.info({ operation: 'list_terminals' }, 'Listing terminals');
+    
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -34,9 +47,10 @@ async function handleGET(request: NextRequest) {
     // Parse pagination parameters
     const params = parsePaginationParams(request.nextUrl.searchParams);
 
-    // Generate cache key
+    // Generate cache key with tenantId
     const cacheKey = generateCacheKey(
       'terminals',
+      tenantId,
       params.page,
       params.limit,
       validatedQuery.is_allowed !== undefined ? String(validatedQuery.is_allowed) : 'all',
@@ -54,8 +68,8 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Build where clause
-    const where: any = { tenant_id: TENANT_ID };
+    // Build where clause with tenantId from JWT
+    const where: any = { tenant_id: tenantId };
     if (validatedQuery.is_allowed !== undefined) {
       where.is_allowed = validatedQuery.is_allowed;
     }
@@ -95,13 +109,13 @@ async function handleGET(request: NextRequest) {
     // Cache for 2 minutes (terminals status changes frequently)
     await cache.set(cacheKey, response, 120);
 
-    // Record business metrics
+    // Record business metrics with tenantId from JWT
     const activeCount = terminals.filter(t => t.is_allowed).length;
     metrics.set('terminals_active', activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
     metrics.set('terminals_total', total, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     log.info({

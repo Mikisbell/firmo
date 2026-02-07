@@ -24,10 +24,22 @@ const TENANT_ID = getTenantId();
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
   
   try {
     log.info({ operation: 'list_stations' }, 'Listing stations');
+    
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -36,9 +48,10 @@ async function handleGET(request: NextRequest) {
     // Parse pagination parameters
     const params = parsePaginationParams(request.nextUrl.searchParams);
 
-    // Generate cache key
+    // Generate cache key with tenantId
     const cacheKey = generateCacheKey(
       'stations',
+      tenantId,
       params.page,
       params.limit,
       validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all',
@@ -56,9 +69,9 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Build where clause
+    // Build where clause with tenantId from JWT
     const where: any = { 
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     };
     
     if (validatedQuery.is_active !== undefined) {
@@ -179,17 +192,20 @@ async function handlePOST(request: NextRequest) {
   try {
     log.info({ operation: 'create_station' }, 'Creating new station');
     
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
+    
     const body = await request.json();
     
     // Validate with Zod
     const validatedData = CreateStationSchema.parse(body);
     const { code, name, is_active } = validatedData;
 
-    // Check for duplicate code
+    // Check for duplicate code with tenantId from JWT
     const checkStart = Date.now();
     const existing = await prisma.stations.findFirst({
       where: { 
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         code,
       },
     });
@@ -207,13 +223,13 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Create station in transaction with audit trail
+    // Create station in transaction with audit trail (using tenantId from JWT)
     const txStart = Date.now();
     const station = await prisma.$transaction(async (tx: any) => {
       const newStation = await tx.stations.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           code,
           name,
           is_active,
@@ -224,7 +240,7 @@ async function handlePOST(request: NextRequest) {
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'stations',
@@ -240,20 +256,20 @@ async function handlePOST(request: NextRequest) {
     // Invalidate stations cache
     await cache.invalidatePattern('stations:*');
 
-    // Record business metrics
+    // Record business metrics with tenantId from JWT
     metrics.increment('stations_created_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
-    // Update active stations gauge
+    // Update active stations gauge with tenantId from JWT
     const activeCount = await prisma.stations.count({
       where: { 
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         is_active: true,
       },
     });
     metrics.set('stations_active', activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event

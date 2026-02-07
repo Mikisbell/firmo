@@ -20,13 +20,25 @@ const TENANT_ID = getTenantId();
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
   
   try {
     log.info({ operation: 'get_config' }, 'Getting config');
     
-    // Generate cache key
-    const cacheKey = generateCacheKey('config', TENANT_ID);
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
+    
+    // Generate cache key with tenantId
+    const cacheKey = generateCacheKey('config', tenantId);
 
     // Try to get from cache
     const cached = await cache.get(cacheKey);
@@ -39,10 +51,10 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Get config from DB
+    // Get config from DB with tenantId from JWT
     const dbStart = Date.now();
     const settings = await prisma.tenant_settings.findUnique({
-      where: { tenant_id: TENANT_ID },
+      where: { tenant_id: tenantId },
     });
     logPerformance('db_query_config', Date.now() - dbStart);
     
@@ -53,9 +65,9 @@ async function handleGET(request: NextRequest) {
     // Cache for 10 minutes (config doesn't change often)
     await cache.set(cacheKey, settings, 600);
 
-    // Record business metrics
+    // Record business metrics with tenantId from JWT
     metrics.increment('config_requests_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     log.info({
@@ -98,25 +110,28 @@ async function handlePUT(request: NextRequest) {
   try {
     log.info({ operation: 'update_config' }, 'Updating config');
     
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
+    
     const body = await request.json();
     
     // Validate with Zod
     const validatedData = UpdateConfigSchema.parse(body);
 
-    // Get old values for audit trail
+    // Get old values for audit trail with tenantId from JWT
     const oldSettings = await prisma.tenant_settings.findUnique({
-      where: { tenant_id: TENANT_ID },
+      where: { tenant_id: tenantId },
     });
 
     if (!oldSettings) {
       return NextResponse.json({ error: 'Configuración no encontrada' }, { status: 404 });
     }
     
-    // Update settings in transaction with audit trail
+    // Update settings in transaction with audit trail (using tenantId from JWT)
     const txStart = Date.now();
     const settings = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.tenant_settings.update({
-        where: { tenant_id: TENANT_ID },
+        where: { tenant_id: tenantId },
         data: {
           legal_name: validatedData.legal_name,
           ruc: validatedData.ruc || null,
@@ -125,11 +140,11 @@ async function handlePUT(request: NextRequest) {
         },
       });
 
-      // Log audit trail with old and new values
+      // Log audit trail
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'config',
@@ -156,9 +171,9 @@ async function handlePUT(request: NextRequest) {
     // Invalidate config cache
     await cache.invalidatePattern('config:*');
 
-    // Record business metrics
+    // Record business metrics with tenantId from JWT
     metrics.increment('config_updates_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event

@@ -12,6 +12,7 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 
 const TENANT_ID = getTenantId();
@@ -19,18 +20,30 @@ const TENANT_ID = getTenantId();
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
   
   try {
     log.info({ operation: 'get_reports' }, 'Getting reports');
+    
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
     const validatedQuery = ReportsQuerySchema.parse(queryParams);
     const period = validatedQuery.period ?? 'daily';
 
-    // Generate cache key
-    const cacheKey = generateCacheKey('reports', period);
+    // Generate cache key with tenantId
+    const cacheKey = generateCacheKey('reports', tenantId, period);
 
     // Try to get from cache
     const cached = await cache.get(cacheKey);
@@ -58,11 +71,11 @@ async function handleGET(request: NextRequest) {
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     }
     
-    // Get orders in period
+    // Get orders in period with tenantId from JWT
     const dbStart = Date.now();
     const orders = await prisma.orders.findMany({
       where: {
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         created_at: { gte: startDate },
         order_status: 'CONFIRMED',
       },
@@ -113,9 +126,9 @@ async function handleGET(request: NextRequest) {
     // Cache for 5 minutes
     await cache.set(cacheKey, response, 300);
 
-    // Record business metrics
+    // Record business metrics with tenantId from JWT
     metrics.increment('reports_requests_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
       period,
     });
 

@@ -25,10 +25,22 @@ const LOCATION_ID = getLocationId();
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
   
   try {
     log.info({ operation: 'list_tables' }, 'Listing tables');
+    
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -37,9 +49,10 @@ async function handleGET(request: NextRequest) {
     // Parse pagination parameters
     const params = parsePaginationParams(request.nextUrl.searchParams);
 
-    // Generate cache key
+    // Generate cache key with tenantId
     const cacheKey = generateCacheKey(
       'tables',
+      tenantId,
       params.page,
       params.limit,
       validatedQuery.zone_id ?? 'all',
@@ -57,9 +70,9 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Build where clause
+    // Build where clause with tenantId from JWT
     const where: Record<string, unknown> = {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
       location_id: LOCATION_ID,
     };
     
@@ -180,15 +193,18 @@ async function handlePOST(request: NextRequest) {
   try {
     log.info({ operation: 'create_table' }, 'Creating new table');
     
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
+    
     const body = await request.json();
     
     // Validate with Zod
     const validatedData = CreateTableSchema.parse(body);
     const { number, display_name, zone_id, capacity, shape, position_x, position_y, width, height, rotation, is_active } = validatedData;
 
-    // Check duplicate number
+    // Check duplicate number with tenantId from JWT
     const existing = await prisma.tables.findFirst({
-      where: { tenant_id: TENANT_ID, location_id: LOCATION_ID, number },
+      where: { tenant_id: tenantId, location_id: LOCATION_ID, number },
     });
 
     if (existing) {
@@ -203,10 +219,10 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Validate zone exists if provided
+    // Validate zone exists if provided (with tenantId from JWT)
     if (zone_id) {
       const zone = await prisma.zones.findFirst({
-        where: { id: zone_id, tenant_id: TENANT_ID },
+        where: { id: zone_id, tenant_id: tenantId },
       });
       if (!zone) {
         log.warn({
@@ -221,13 +237,13 @@ async function handlePOST(request: NextRequest) {
       }
     }
 
-    // Create table in transaction with audit trail
+    // Create table in transaction with audit trail (using tenantId from JWT)
     const txStart = Date.now();
     const table = await prisma.$transaction(async (tx: any) => {
       const newTable = await tx.tables.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           location_id: LOCATION_ID,
           number,
           display_name: display_name || `Mesa ${number}`,
@@ -250,7 +266,7 @@ async function handlePOST(request: NextRequest) {
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'tables',
@@ -266,18 +282,18 @@ async function handlePOST(request: NextRequest) {
     // Invalidate tables cache
     await cache.invalidatePattern('tables:*');
 
-    // Record business metrics
+    // Record business metrics with tenantId from JWT
     metrics.increment('tables_created_total', {
       zone_id: zone_id || 'none',
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
-    // Update active tables gauge
+    // Update active tables gauge with tenantId from JWT
     const activeCount = await prisma.tables.count({
-      where: { tenant_id: TENANT_ID, is_active: true },
+      where: { tenant_id: tenantId, is_active: true },
     });
     metrics.set('tables_active', activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event

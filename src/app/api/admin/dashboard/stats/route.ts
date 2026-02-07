@@ -13,6 +13,7 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 
 const TENANT_ID = getTenantId();
@@ -51,13 +52,25 @@ export interface Activity {
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
   
   try {
     log.info({ operation: 'get_dashboard_stats' }, 'Getting dashboard stats');
     
-    // Generate cache key
-    const cacheKey = generateCacheKey('dashboard:stats', 'today');
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
+    
+    // Generate cache key with tenantId
+    const cacheKey = generateCacheKey('dashboard:stats', tenantId, 'today');
 
     // Try to get from cache
     const cached = await cache.get(cacheKey);
@@ -88,13 +101,13 @@ async function handleGET(request: NextRequest) {
     const yesterday = new Date(businessDate);
     yesterday.setDate(yesterday.getDate() - 1);
     
-    // Get all stats in parallel
+    // Get all stats in parallel with tenantId from JWT
     const dbStart = Date.now();
     const [salesResult, salesYesterday, activeOrders, terminalsOnline, terminalsOffline, totalProducts, outOfStockProducts, pendingEvents] = await Promise.all([
       // Today's sales
       prisma.orders.aggregate({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           business_date: new Date(businessDate),
           order_status: 'CONFIRMED',
         },
@@ -104,7 +117,7 @@ async function handleGET(request: NextRequest) {
       // Yesterday's sales
       prisma.orders.aggregate({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           business_date: yesterday,
           order_status: 'CONFIRMED',
         },
@@ -114,7 +127,7 @@ async function handleGET(request: NextRequest) {
       // Active orders
       prisma.orders.count({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           order_status: { in: ['OPEN', 'IN_PROGRESS'] },
         },
       }).catch(() => 0),
@@ -122,7 +135,7 @@ async function handleGET(request: NextRequest) {
       // Terminals online (last 5 minutes)
       prisma.terminals.count({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           is_allowed: true,
           last_seen_at: { gte: new Date(Date.now() - 5 * 60 * 1000) },
         },
@@ -131,7 +144,7 @@ async function handleGET(request: NextRequest) {
       // Terminals offline (last seen > 2 hours ago)
       prisma.terminals.findMany({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           is_allowed: true,
           last_seen_at: { lt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
         },
@@ -142,7 +155,7 @@ async function handleGET(request: NextRequest) {
       // Total active products
       prisma.products.count({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           is_active: true,
         },
       }).catch(() => 0),
@@ -150,7 +163,7 @@ async function handleGET(request: NextRequest) {
       // Out of stock products
       prisma.products.findMany({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           is_active: false,
         },
         select: { name: true },
@@ -160,7 +173,7 @@ async function handleGET(request: NextRequest) {
       // Pending events (from outbox)
       prisma.event_outbox.count({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           published_at: null,
         },
       }).catch(() => 0),
@@ -231,15 +244,15 @@ async function handleGET(request: NextRequest) {
     // Cache for 30 seconds (dashboard needs fresh data)
     await cache.set(cacheKey, stats, 30);
 
-    // Record business metrics
+    // Record business metrics with tenantId from JWT
     metrics.increment('dashboard_stats_requests_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
     metrics.set('dashboard_sales_today', stats.salesToday, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
     metrics.set('dashboard_active_orders', stats.activeOrders, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     log.info({
