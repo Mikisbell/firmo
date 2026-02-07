@@ -15,8 +15,6 @@ import { getTenantId } from '@/src/core/config/tenant';
 import { deleteImage } from '@/src/core/images/image.service';
 import type { ProductImage } from '@/src/core/types/product-images';
 
-const TENANT_ID = getTenantId();
-
 // DELETE - Remove image from product
 export async function DELETE(
   request: NextRequest,
@@ -30,6 +28,9 @@ export async function DELETE(
   if (!authResult.authorized) {
     return authResult.response;
   }
+
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
 
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
@@ -46,7 +47,7 @@ export async function DELETE(
     // Find product with this image
     const productsResult = await prisma.$queryRaw<Array<{ id: string; images: any; version: number }>>`
       SELECT id, images, version FROM products 
-      WHERE tenant_id = ${TENANT_ID}::uuid
+      WHERE tenant_id = ${tenantId}::uuid
       AND images @> ${JSON.stringify([{ id: imageId }])}::jsonb
       LIMIT 1
     `;
@@ -77,7 +78,7 @@ export async function DELETE(
     // Delete from storage
     const deleteStart = Date.now();
     try {
-      await deleteImage(imageToDelete.url, TENANT_ID, product.id);
+      await deleteImage(imageToDelete.url, tenantId, product.id);
       logPerformance('image_delete_from_storage', Date.now() - deleteStart, {
         imageId,
       });
@@ -110,9 +111,9 @@ export async function DELETE(
 
       // Increment catalog version
       await tx.catalog_meta.upsert({
-        where: { tenant_id: TENANT_ID },
+        where: { tenant_id: tenantId },
         create: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           catalog_version: 1,
           updated_at: new Date(),
         },
@@ -126,7 +127,7 @@ export async function DELETE(
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'products',
@@ -146,7 +147,7 @@ export async function DELETE(
 
     // Record metrics
     metrics.increment('product_images_deleted_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event

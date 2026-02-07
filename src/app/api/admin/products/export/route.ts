@@ -13,9 +13,6 @@ import { csvService } from '@/src/core/services/csv.service';
 import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
 
 /**
  * GET - Export products to CSV
@@ -39,6 +36,9 @@ async function handleGET(request: NextRequest) {
     return authResult.response;
   }
 
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
+
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
   });
@@ -57,7 +57,7 @@ async function handleGET(request: NextRequest) {
 
     // Export products to CSV
     const exportStart = Date.now();
-    const csv = await csvService.exportToCSV(TENANT_ID, {
+    const csv = await csvService.exportToCSV(tenantId, {
       category,
       station,
       includeInactive,
@@ -73,7 +73,7 @@ async function handleGET(request: NextRequest) {
 
     // Record business metrics
     metrics.increment('products_csv_exported_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
       product_count: String(productCount),
     });
 

@@ -15,9 +15,6 @@ import { ZodError } from 'zod';
 import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
 
 /**
  * POST - Bulk update or delete products
@@ -35,6 +32,9 @@ async function handlePOST(request: NextRequest) {
   if (!authResult.authorized) {
     return authResult.response;
   }
+
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
 
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
@@ -71,14 +71,14 @@ async function handlePOST(request: NextRequest) {
     if (isDelete) {
       result = await bulkOperationsService.bulkDelete(
         product_ids,
-        TENANT_ID,
+        tenantId,
         authResult.user.id
       );
     } else {
       result = await bulkOperationsService.bulkUpdate(
         product_ids,
         validatedData.updates,
-        TENANT_ID,
+        tenantId,
         authResult.user.id
       );
     }
@@ -97,7 +97,7 @@ async function handlePOST(request: NextRequest) {
     metrics.increment(
       isDelete ? 'products_bulk_deleted_total' : 'products_bulk_updated_total',
       {
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         success_count: result.success_count,
         failure_count: result.failure_count,
       }

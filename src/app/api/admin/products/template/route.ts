@@ -13,9 +13,6 @@ import { csvService } from '@/src/core/services/csv.service';
 import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit } from '@/src/core/observability/logger-pino';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
 
 /**
  * GET - Download CSV template
@@ -35,6 +32,9 @@ async function handleGET(request: NextRequest) {
     return authResult.response;
   }
 
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
+
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
   });
@@ -47,7 +47,7 @@ async function handleGET(request: NextRequest) {
 
     // Record business metrics
     metrics.increment('products_csv_template_downloaded_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event

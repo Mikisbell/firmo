@@ -7,19 +7,26 @@
  * Requirements: 3.3 (Terminal Architecture v2)
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { updateTerminalStatus, type TerminalStatus } from '@/src/core/auth/terminal-registry';
 import { logger } from '@/src/core/observability/logger';
-import { getTenantId } from '@/src/core/config/tenant';
-import prisma from '@/src/core/db/prisma';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ terminalId: string }> }
 ) {
   try {
+    // Validate admin authentication and authorization
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
+
     const { terminalId } = await params;
-    const tenantId = getTenantId();
     const body = await request.json();
     const { status } = body;
 

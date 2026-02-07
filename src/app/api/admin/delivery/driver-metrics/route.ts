@@ -11,14 +11,24 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  const log = createRequestLogger(requestId);
+  
+  // Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
+
+  const log = createRequestLogger(requestId, authResult.user.id, {
+    userRole: authResult.user.role,
+  });
   
   try {
     log.info({ operation: 'get_driver_metrics' }, 'Getting driver metrics');
@@ -51,7 +61,7 @@ async function handleGET(request: NextRequest) {
 
     // Get metrics from service
     const serviceStart = Date.now();
-    const driverMetrics = await DeliveryMetricsService.getDriverMetrics(TENANT_ID, from, to);
+    const driverMetrics = await DeliveryMetricsService.getDriverMetrics(tenantId, from, to);
     logPerformance('service_get_driver_metrics', Date.now() - serviceStart);
 
     const response = { 
@@ -65,7 +75,7 @@ async function handleGET(request: NextRequest) {
 
     // Record business metrics
     metrics.increment('driver_metrics_requests_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     log.info({

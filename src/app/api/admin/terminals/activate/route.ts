@@ -5,13 +5,20 @@
  * Requirements: 5.2
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createActivationCode } from '../activation-codes';
-import { getTenantId } from '@/src/core/config/tenant';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const tenantId = getTenantId();
+    // Validate admin authentication and authorization
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
     
     const { code, expiresAt } = createActivationCode(tenantId);
     

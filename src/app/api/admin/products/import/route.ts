@@ -14,9 +14,6 @@ import { csvService } from '@/src/core/services/csv.service';
 import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
 
 /**
  * CSV Import Request Schema
@@ -48,6 +45,9 @@ async function handlePOST(request: NextRequest) {
   if (!authResult.authorized) {
     return authResult.response;
   }
+
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
 
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
@@ -91,7 +91,7 @@ async function handlePOST(request: NextRequest) {
     const importStart = Date.now();
     const result = await csvService.importFromCSV(
       csv_content,
-      TENANT_ID,
+      tenantId,
       authResult.user.id
     );
     
@@ -107,7 +107,7 @@ async function handlePOST(request: NextRequest) {
 
     // Record business metrics
     metrics.increment('products_csv_imported_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
       created_count: String(result.created_count),
       updated_count: String(result.updated_count),
       skipped_count: String(result.skipped_count),

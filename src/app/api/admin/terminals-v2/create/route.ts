@@ -2,13 +2,12 @@
  * Terminal Devices API v2 - POST (Create)
  * 
  * Requirements: 3.1 (Terminal Architecture v2)
- * Updated: 01 Febrero 2026 - Added admin authentication from session
+ * Updated: 07 Febrero 2026 - Added tenant isolation from JWT
  */
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createTerminal, type CreateTerminalInput } from '@/src/core/auth/terminal-registry';
-import { getTenantId } from '@/src/core/config/tenant';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function POST(req: NextRequest) {
@@ -18,6 +17,9 @@ export async function POST(req: NextRequest) {
     if (!authResult.authorized) {
       return authResult.response;
     }
+
+    // Extract tenantId from JWT
+    const tenantId = authResult.user.tenantId;
 
     const { user } = authResult;
     const body = await req.json();
@@ -39,8 +41,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const tenantId = getTenantId();
     
     // Use authenticated user's ID as created_by (from session)
     const createdBy = user.id;

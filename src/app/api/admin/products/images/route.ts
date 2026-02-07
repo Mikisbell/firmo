@@ -18,7 +18,6 @@ import { ImageUploadRequestSchema } from '@/src/core/admin/schemas/product-image
 import { ZodError } from 'zod';
 import type { ProductImage } from '@/src/core/types/product-images';
 
-const TENANT_ID = getTenantId();
 const MAX_IMAGES_PER_PRODUCT = 5;
 
 // POST - Upload image for product
@@ -31,6 +30,9 @@ async function handlePOST(request: NextRequest) {
   if (!authResult.authorized) {
     return authResult.response;
   }
+
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
 
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
@@ -67,7 +69,7 @@ async function handlePOST(request: NextRequest) {
     const productResult = await prisma.$queryRaw<Array<{ id: string; images: any }>>`
       SELECT id, images FROM products 
       WHERE id = ${validatedData.product_id}::uuid 
-      AND tenant_id = ${TENANT_ID}::uuid
+      AND tenant_id = ${tenantId}::uuid
       LIMIT 1
     `;
 
@@ -105,7 +107,7 @@ async function handlePOST(request: NextRequest) {
     const uploadStart = Date.now();
     const uploadedImage = await uploadImage(
       file,
-      TENANT_ID,
+      tenantId,
       validatedData.product_id,
       authResult.user.id
     );
@@ -153,9 +155,9 @@ async function handlePOST(request: NextRequest) {
 
       // Increment catalog version
       await tx.catalog_meta.upsert({
-        where: { tenant_id: TENANT_ID },
+        where: { tenant_id: tenantId },
         create: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           catalog_version: 1,
           updated_at: new Date(),
         },
@@ -169,7 +171,7 @@ async function handlePOST(request: NextRequest) {
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'products',
@@ -191,7 +193,7 @@ async function handlePOST(request: NextRequest) {
 
     // Record metrics
     metrics.increment('product_images_uploaded_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event

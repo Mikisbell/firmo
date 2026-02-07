@@ -14,9 +14,6 @@ import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observ
 import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/location';
-
-const TENANT_ID = getTenantId();
 
 // PUT - Update station
 async function handlePUT(
@@ -32,6 +29,9 @@ async function handlePUT(
   if (!authResult.authorized) {
     return authResult.response;
   }
+
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
 
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
@@ -51,7 +51,7 @@ async function handlePUT(
     const existing = await prisma.stations.findFirst({
       where: { 
         id: id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
     });
     logPerformance('db_check_station_exists', Date.now() - checkStart);
@@ -80,7 +80,7 @@ async function handlePUT(
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'stations',
@@ -110,12 +110,12 @@ async function handlePUT(
     if (validatedData.is_active !== undefined) {
       const activeCount = await prisma.stations.count({
         where: { 
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           is_active: true,
         },
       });
       metrics.set('stations_active', activeCount, {
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       });
     }
 
@@ -188,6 +188,9 @@ async function handleDELETE(
     return authResult.response;
   }
 
+  // Extract tenantId from JWT
+  const tenantId = authResult.user.tenantId;
+
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
     stationId: id,
@@ -201,7 +204,7 @@ async function handleDELETE(
     const existing = await prisma.stations.findFirst({
       where: { 
         id: id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
       include: {
         _count: {
@@ -251,7 +254,7 @@ async function handleDELETE(
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'DELETE',
           resource: 'stations',
@@ -270,12 +273,12 @@ async function handleDELETE(
     // Update active stations gauge
     const activeCount = await prisma.stations.count({
       where: { 
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         is_active: true,
       },
     });
     metrics.set('stations_active', activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event
