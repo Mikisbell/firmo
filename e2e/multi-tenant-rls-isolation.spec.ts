@@ -119,8 +119,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to orders/sales page
-    await page.goto(`${baseURL}/admin/sales`);
+    // Navigate to reportes page (Spanish route)
+    await page.goto(`${baseURL}/admin/reportes`);
 
     // Get list of orders for Tenant 1
     const tenant1Orders = page.locator('[data-testid="order-row"]');
@@ -130,13 +130,13 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1OrderIds = await page.locator('[data-testid="order-id"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin);
 
-    // Navigate to orders/sales page
-    await page.goto(`${baseURL}/admin/sales`);
+    // Navigate to reportes page (Spanish route)
+    await page.goto(`${baseURL}/admin/reportes`);
 
     // Get list of orders for Tenant 2
     const tenant2Orders = page.locator('[data-testid="order-row"]');
@@ -155,8 +155,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Try to access a Tenant 2 employee directly
-    await page.goto(`${baseURL}/admin/employees/tenant-2-employee-id`, { waitUntil: 'networkidle' });
+    // Try to access a Tenant 2 employee directly (Spanish route)
+    await page.goto(`${baseURL}/admin/empleados/tenant-2-employee-id`, { waitUntil: 'networkidle' });
 
     // Should either be redirected or show error
     const currentUrl = page.url();
@@ -171,8 +171,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Try to access a Tenant 2 product directly
-    await page.goto(`${baseURL}/admin/products/tenant-2-product-id`, { waitUntil: 'networkidle' });
+    // Try to access a Tenant 2 product directly (Spanish route)
+    await page.goto(`${baseURL}/admin/productos/tenant-2-product-id`, { waitUntil: 'networkidle' });
 
     // Should either be redirected or show error
     const currentUrl = page.url();
@@ -236,20 +236,20 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to analytics
-    await page.goto(`${baseURL}/admin/analytics`);
+    // Navigate to dashboard (Spanish route)
+    await page.goto(`${baseURL}/admin/dashboard`);
 
     // Get Tenant 1 analytics data
     const tenant1Revenue = await page.locator('[data-testid="total-revenue"]').textContent();
 
     // Logout
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin);
 
-    // Navigate to analytics
-    await page.goto(`${baseURL}/admin/analytics`);
+    // Navigate to dashboard (Spanish route)
+    await page.goto(`${baseURL}/admin/dashboard`);
 
     // Get Tenant 2 analytics data
     const tenant2Revenue = await page.locator('[data-testid="total-revenue"]').textContent();
@@ -262,20 +262,20 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to audit logs
-    await page.goto(`${baseURL}/admin/audit-logs`);
+    // Navigate to audit logs (Spanish route)
+    await page.goto(`${baseURL}/admin/auditoria`);
 
     // Get Tenant 1 audit logs
     const tenant1LogEntries = await page.locator('[data-testid="audit-log-entry"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin);
 
-    // Navigate to audit logs
-    await page.goto(`${baseURL}/admin/audit-logs`);
+    // Navigate to audit logs (Spanish route)
+    await page.goto(`${baseURL}/admin/auditoria`);
 
     // Get Tenant 2 audit logs
     const tenant2LogEntries = await page.locator('[data-testid="audit-log-entry"]').allTextContents();
@@ -290,20 +290,20 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to settings
-    await page.goto(`${baseURL}/admin/settings`);
+    // Navigate to settings (Spanish route)
+    await page.goto(`${baseURL}/admin/configuracion`);
 
     // Get Tenant 1 settings
     const tenant1Name = await page.locator('[data-testid="tenant-name"]').textContent();
 
     // Logout
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin);
 
-    // Navigate to settings
-    await page.goto(`${baseURL}/admin/settings`);
+    // Navigate to settings (Spanish route)
+    await page.goto(`${baseURL}/admin/configuracion`);
 
     // Get Tenant 2 settings
     const tenant2Name = await page.locator('[data-testid="tenant-name"]').textContent();
@@ -337,20 +337,20 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to employees
-    await page.goto(`${baseURL}/admin/employees`);
+    // Navigate to employees (Spanish route)
+    await page.goto(`${baseURL}/admin/empleados`);
 
     // Get Tenant 1 employees
     const tenant1Employees = await page.locator('[data-testid="employee-name"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin);
 
-    // Navigate to employees
-    await page.goto(`${baseURL}/admin/employees`);
+    // Navigate to employees (Spanish route)
+    await page.goto(`${baseURL}/admin/empleados`);
 
     // Get Tenant 2 employees
     const tenant2Employees = await page.locator('[data-testid="employee-name"]').allTextContents();
@@ -359,11 +359,11 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     expect(tenant1Employees).not.toEqual(tenant2Employees);
 
     // Logout and re-authenticate as Tenant 1
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to employees
-    await page.goto(`${baseURL}/admin/employees`);
+    // Navigate to employees (Spanish route)
+    await page.goto(`${baseURL}/admin/empleados`);
 
     // Get Tenant 1 employees again
     const tenant1EmployeesAgain = await page.locator('[data-testid="employee-name"]').allTextContents();
