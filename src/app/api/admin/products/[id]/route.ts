@@ -23,15 +23,24 @@ const TENANT_ID = getTenantId();
 
 // GET - Get single product
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // ✅ Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   try {
     const { id } = await params;
     const product = await prisma.products.findFirst({
       where: {
         id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
     });
 
@@ -63,6 +72,9 @@ export async function PUT(
     return authResult.response;
   }
 
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -72,7 +84,7 @@ export async function PUT(
     const existing = await prisma.products.findFirst({
       where: {
         id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
     });
 
@@ -148,7 +160,7 @@ export async function PUT(
     if (sku && sku !== existing.sku) {
       const existingSku = await prisma.products.findFirst({
         where: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           sku,
           id: { not: id },
         },
@@ -184,9 +196,9 @@ export async function PUT(
 
       // Increment catalog version
       await tx.catalog_meta.upsert({
-        where: { tenant_id: TENANT_ID },
+        where: { tenant_id: tenantId },
         create: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           catalog_version: 1,
           updated_at: new Date(),
         },
@@ -200,7 +212,7 @@ export async function PUT(
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'products',
@@ -216,7 +228,7 @@ export async function PUT(
     });
 
     // Invalidate cache using tag-based invalidation
-    await cache.deleteByTag(`tenant:${TENANT_ID}`);
+    await cache.deleteByTag(`tenant:${tenantId}`);
     await cache.deleteByTag('products');
     metrics.increment('cache.invalidation', { resource: 'products', reason: 'update' });
 
@@ -241,13 +253,16 @@ export async function DELETE(
     return authResult.response;
   }
 
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   try {
     const { id } = await params;
     // Check product exists
     const existing = await prisma.products.findFirst({
       where: {
         id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
     });
 
@@ -269,7 +284,7 @@ export async function DELETE(
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'DELETE',
           resource: 'products',
@@ -280,7 +295,7 @@ export async function DELETE(
     });
 
     // Invalidate cache using tag-based invalidation
-    await cache.deleteByTag(`tenant:${TENANT_ID}`);
+    await cache.deleteByTag(`tenant:${tenantId}`);
     await cache.deleteByTag('products');
     metrics.increment('cache.invalidation', { resource: 'products', reason: 'delete' });
 

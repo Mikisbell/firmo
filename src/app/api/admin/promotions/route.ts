@@ -22,10 +22,20 @@ const TENANT_ID = getTenantId();
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
+  
+  // ✅ PASO 1: Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  // ✅ PASO 2: Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+  
   const log = createRequestLogger(requestId);
   
   try {
-    log.info({ operation: 'list_promotions' }, 'Listing promotions');
+    log.info({ operation: 'list_promotions', tenantId }, 'Listing promotions');
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -34,9 +44,10 @@ async function handleGET(request: NextRequest) {
     // Parse pagination parameters
     const params = parsePaginationParams(request.nextUrl.searchParams);
 
-    // Generate cache key
+    // Generate cache key with tenant_id
     const cacheKey = generateCacheKey(
       'promotions',
+      tenantId,
       params.page,
       params.limit,
       validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all',
@@ -49,6 +60,7 @@ async function handleGET(request: NextRequest) {
       log.info({
         operation: 'list_promotions_cache_hit',
         cacheKey,
+        tenantId,
         durationMs: Date.now() - startTime,
       }, 'Promotions retrieved from cache');
       return NextResponse.json(cached);
@@ -60,8 +72,8 @@ async function handleGET(request: NextRequest) {
     // Instead, filter out expired promotions in the query
     // Background job handles actual deactivation every 5 minutes
     
-    // Build where clause with lazy expiration check
-    let where: any = { tenant_id: TENANT_ID };
+    // Build where clause with lazy expiration check and tenant_id from JWT
+    let where: any = { tenant_id: tenantId };
     
     // Handle is_active filter
     if (validatedQuery.is_active === true) {
@@ -91,7 +103,7 @@ async function handleGET(request: NextRequest) {
     // Get total count
     const dbStart = Date.now();
     const total = await prisma.promotions.count({ where });
-    logPerformance('db_count_promotions', Date.now() - dbStart, { total });
+    logPerformance('db_count_promotions', Date.now() - dbStart, { total, tenantId });
 
     // Get paginated promotions
     const queryStart = Date.now();
@@ -114,6 +126,7 @@ async function handleGET(request: NextRequest) {
       count: promotions.length,
       page: params.page,
       limit: params.limit,
+      tenantId,
     });
 
     // Create response
@@ -126,6 +139,7 @@ async function handleGET(request: NextRequest) {
       operation: 'list_promotions_success',
       count: promotions.length,
       total,
+      tenantId,
       cached: true,
       durationMs: Date.now() - startTime,
     }, 'Promotions listed successfully');
@@ -179,12 +193,16 @@ async function handlePOST(request: NextRequest) {
     return authResult.response;
   }
 
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
+    tenantId,
   });
 
   try {
-    log.info({ operation: 'create_promotion' }, 'Creating new promotion');
+    log.info({ operation: 'create_promotion', tenantId }, 'Creating new promotion');
     
     const body = await request.json();
     
@@ -198,7 +216,7 @@ async function handlePOST(request: NextRequest) {
       const newPromotion = await tx.promotions.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           name,
           type,
           value,
@@ -213,7 +231,7 @@ async function handlePOST(request: NextRequest) {
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'promotions',
@@ -226,21 +244,21 @@ async function handlePOST(request: NextRequest) {
     });
     logPerformance('db_transaction_create_promotion', Date.now() - txStart);
 
-    // Invalidate promotions cache
-    await cache.invalidatePattern('promotions:*');
+    // Invalidate promotions cache for this tenant
+    await cache.invalidatePattern(`promotions:${tenantId}:*`);
 
     // Record business metrics
     metrics.increment('promotions_created_total', {
       type: promotion.type,
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Update active promotions gauge
     const activeCount = await prisma.promotions.count({
-      where: { tenant_id: TENANT_ID, is_active: true },
+      where: { tenant_id: tenantId, is_active: true },
     });
     metrics.set('promotions_active', activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event
@@ -248,6 +266,7 @@ async function handlePOST(request: NextRequest) {
       promotionId: promotion.id,
       promotionName: promotion.name,
       promotionType: promotion.type,
+      tenantId,
     });
 
     log.info({
@@ -255,6 +274,7 @@ async function handlePOST(request: NextRequest) {
       promotionId: promotion.id,
       promotionName: promotion.name,
       promotionType: promotion.type,
+      tenantId,
       durationMs: Date.now() - startTime,
     }, 'Promotion created successfully');
 

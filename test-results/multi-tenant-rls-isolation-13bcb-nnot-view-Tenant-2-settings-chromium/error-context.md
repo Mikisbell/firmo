@@ -5,12 +5,12 @@
   - generic [ref=e2]:
     - region "Notifications alt+T"
     - complementary [ref=e3]:
-      - 'link "Pollería Test 1 S.A.C. RUC: 20123456781" [ref=e5] [cursor=pointer]':
+      - link "PARK POS Sistema POS" [ref=e5] [cursor=pointer]:
         - /url: /admin
         - img [ref=e7]
         - generic [ref=e11]:
-          - generic [ref=e12]: Pollería Test 1 S.A.C.
-          - generic [ref=e13]: "RUC: 20123456781"
+          - generic [ref=e12]: PARK POS
+          - generic [ref=e13]: Sistema POS
       - navigation [ref=e14]:
         - link "Dashboard" [ref=e16] [cursor=pointer]:
           - /url: /admin
@@ -73,149 +73,52 @@
       - banner [ref=e106]:
         - generic [ref=e107]:
           - img [ref=e109]
-          - generic [ref=e113]:
-            - heading "Pollería Test 1 S.A.C." [level=1] [ref=e114]
-            - paragraph [ref=e115]: "RUC: 20123456781"
-        - generic [ref=e116]:
-          - generic [ref=e117]:
-            - img [ref=e118]
-            - generic [ref=e122]: Conectado
-          - button "Notificaciones (próximamente)" [disabled] [ref=e123]:
-            - img [ref=e124]
-          - button "Admin Tenant 1 ADMIN" [ref=e128]:
-            - img [ref=e130]
-            - generic [ref=e133]:
-              - paragraph [ref=e134]: Admin Tenant 1
-              - paragraph [ref=e135]: ADMIN
-            - img [ref=e136]
-      - main [ref=e138]:
-        - generic [ref=e139]:
-          - generic [ref=e140]:
-            - generic [ref=e141]:
-              - heading "Dashboard" [level=1] [ref=e142]
-              - paragraph [ref=e143]: Bienvenido al panel de administración
-            - generic [ref=e144]:
-              - generic [ref=e147]: Sincronizado
-              - button "Actualizar métricas" [ref=e148]:
-                - img [ref=e149]
-          - link "Analytics Premium Ver métricas detalladas en tiempo real con gráficos y comparaciones" [ref=e154] [cursor=pointer]:
-            - /url: /admin/dashboard
-            - generic [ref=e155]:
-              - generic [ref=e156]:
-                - heading "Analytics Premium" [level=3] [ref=e157]:
-                  - img [ref=e158]
-                  - text: Analytics Premium
-                - paragraph [ref=e160]: Ver métricas detalladas en tiempo real con gráficos y comparaciones
-              - img [ref=e161]
-          - generic [ref=e163]:
-            - generic [ref=e165]:
-              - img [ref=e167]
-              - generic [ref=e170]:
-                - paragraph [ref=e171]: S/ 0.00
-                - generic [ref=e172]:
-                  - paragraph [ref=e173]: Ventas Hoy
-                  - generic [ref=e174]:
-                    - img [ref=e175]
-                    - text: +0.0%
-            - generic [ref=e179]:
-              - img [ref=e181]
-              - generic [ref=e185]:
-                - paragraph [ref=e186]: "0"
-                - paragraph [ref=e188]: Órdenes Activas
-            - generic [ref=e190]:
-              - img [ref=e192]
-              - generic [ref=e196]:
-                - paragraph [ref=e197]: "0"
-                - paragraph [ref=e199]: Terminales Online
-            - generic [ref=e201]:
-              - img [ref=e203]
-              - generic [ref=e207]:
-                - paragraph [ref=e208]: "133"
-                - paragraph [ref=e210]: Productos
-          - generic [ref=e211]:
-            - heading "Alertas 5" [level=2] [ref=e212]:
-              - img [ref=e213]
-              - text: Alertas
-              - generic [ref=e215]: "5"
-            - generic [ref=e216]:
-              - generic [ref=e218]:
-                - img [ref=e219]
-                - paragraph [ref=e221]: Terminal SPC_BAR offline hace 32 horas
-              - generic [ref=e223]:
-                - img [ref=e224]
-                - paragraph [ref=e226]: Terminal CAJA_01 offline hace 32 horas
-              - generic [ref=e228]:
-                - img [ref=e229]
-                - paragraph [ref=e231]: Terminal MOZO_01 offline hace 32 horas
-              - generic [ref=e233]:
-                - img [ref=e234]
-                - paragraph [ref=e236]: Terminal SPC_HORNO offline hace 32 horas
-              - generic [ref=e238]:
-                - img [ref=e239]
-                - paragraph [ref=e241]: Terminal MOZO_02 offline hace 32 horas
-          - generic [ref=e242]:
-            - heading "Accesos Rápidos" [level=2] [ref=e243]
-            - generic [ref=e244]:
-              - button "Nuevo Producto" [ref=e245]:
-                - img [ref=e247]
-                - paragraph [ref=e251]: Nuevo Producto
-              - button "Nuevo Empleado" [ref=e252]:
-                - img [ref=e254]
-                - paragraph [ref=e259]: Nuevo Empleado
-              - button "Registrar Terminal" [ref=e260]:
-                - img [ref=e262]
-                - paragraph [ref=e264]: Registrar Terminal
-              - button "Ver Reportes" [ref=e265]:
-                - img [ref=e267]
-                - paragraph [ref=e269]: Ver Reportes
-          - generic [ref=e270]:
-            - heading "Módulos" [level=2] [ref=e271]
-            - generic [ref=e272]:
-              - link "Productos Gestionar catálogo de productos" [ref=e274] [cursor=pointer]:
-                - /url: /admin/productos
-                - img [ref=e276]
-                - heading "Productos" [level=3] [ref=e280]
-                - paragraph [ref=e281]: Gestionar catálogo de productos
-              - link "Empleados Gestionar personal y accesos" [ref=e283] [cursor=pointer]:
-                - /url: /admin/empleados
-                - img [ref=e285]
-                - heading "Empleados" [level=3] [ref=e290]
-                - paragraph [ref=e291]: Gestionar personal y accesos
-              - link "Terminales Controlar dispositivos" [ref=e293] [cursor=pointer]:
-                - /url: /admin/terminales
-                - img [ref=e295]
-                - heading "Terminales" [level=3] [ref=e297]
-                - paragraph [ref=e298]: Controlar dispositivos
-              - link "Promociones Crear y gestionar ofertas" [ref=e300] [cursor=pointer]:
-                - /url: /admin/promociones
-                - img [ref=e302]
-                - heading "Promociones" [level=3] [ref=e306]
-                - paragraph [ref=e307]: Crear y gestionar ofertas
-              - link "Estaciones KDS Configurar cocina y bar" [ref=e309] [cursor=pointer]:
-                - /url: /admin/estaciones
-                - img [ref=e311]
-                - heading "Estaciones KDS" [level=3] [ref=e313]
-                - paragraph [ref=e314]: Configurar cocina y bar
-              - link "Inventario Control de stock y merma" [ref=e316] [cursor=pointer]:
-                - /url: /inventario
-                - img [ref=e318]
-                - heading "Inventario" [level=3] [ref=e321]
-                - paragraph [ref=e322]: Control de stock y merma
-              - link "Configuración Ajustes del negocio" [ref=e324] [cursor=pointer]:
-                - /url: /admin/configuracion
-                - img [ref=e326]
-                - heading "Configuración" [level=3] [ref=e329]
-                - paragraph [ref=e330]: Ajustes del negocio
-              - link "Reportes Ver ventas y estadísticas" [ref=e332] [cursor=pointer]:
-                - /url: /admin/reportes
-                - img [ref=e334]
-                - heading "Reportes" [level=3] [ref=e336]
-                - paragraph [ref=e337]: Ver ventas y estadísticas
-          - paragraph [ref=e338]:
-            - img [ref=e339]
-            - text: "Última actualización: 11:20:35 PM"
+          - heading "Panel de Administración" [level=1] [ref=e114]
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - img [ref=e117]
+            - generic [ref=e121]: Conectado
+          - button "Notificaciones (próximamente)" [disabled] [ref=e122]:
+            - img [ref=e123]
+          - button "Admin Tenant 2 ADMIN" [ref=e127]:
+            - img [ref=e129]
+            - generic [ref=e132]:
+              - paragraph [ref=e133]: Admin Tenant 2
+              - paragraph [ref=e134]: ADMIN
+            - img [ref=e135]
+      - main [ref=e137]:
+        - generic [ref=e138]:
+          - generic [ref=e139]:
+            - heading "Configuración" [level=1] [ref=e140]
+            - paragraph [ref=e141]: Ajustes del negocio
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - heading "Información del Negocio" [level=2] [ref=e144]:
+                - img [ref=e145]
+                - text: Información del Negocio
+              - generic [ref=e149]:
+                - generic [ref=e150]:
+                  - generic [ref=e151]: Razón Social
+                  - textbox [ref=e152]
+                - generic [ref=e153]:
+                  - generic [ref=e154]: RUC (11 dígitos)
+                  - textbox [ref=e155]
+                - generic [ref=e156]:
+                  - generic [ref=e157]: Dirección
+                  - textbox [ref=e158]
+            - generic [ref=e159]:
+              - heading "Configuración Fiscal (Solo OWNER)" [level=2] [ref=e160]:
+                - img [ref=e161]
+                - text: Configuración Fiscal
+                - generic [ref=e164]: (Solo OWNER)
+              - generic [ref=e165]:
+                - generic [ref=e166]: Tasa de IGV (%)
+                - spinbutton [disabled] [ref=e167]: "18"
+          - button "Guardar Cambios" [ref=e168]:
+            - img [ref=e169]
+            - text: Guardar Cambios
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e347] [cursor=pointer]:
-    - img [ref=e348]
-  - alert [ref=e351]
+  - button "Open Next.js Dev Tools" [ref=e178] [cursor=pointer]:
+    - img [ref=e179]
+  - alert [ref=e182]
 ```

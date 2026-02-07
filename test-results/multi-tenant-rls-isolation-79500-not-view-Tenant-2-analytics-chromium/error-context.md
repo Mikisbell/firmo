@@ -5,12 +5,12 @@
   - generic [ref=e2]:
     - region "Notifications alt+T"
     - complementary [ref=e3]:
-      - link "PARK POS Sistema POS" [ref=e5] [cursor=pointer]:
+      - 'link "Pollería Test 2 S.A.C. RUC: 20123456782" [ref=e5] [cursor=pointer]':
         - /url: /admin
         - img [ref=e7]
         - generic [ref=e11]:
-          - generic [ref=e12]: PARK POS
-          - generic [ref=e13]: Sistema POS
+          - generic [ref=e12]: Pollería Test 2 S.A.C.
+          - generic [ref=e13]: "RUC: 20123456782"
       - navigation [ref=e14]:
         - link "Dashboard" [ref=e16] [cursor=pointer]:
           - /url: /admin
@@ -73,71 +73,73 @@
       - banner [ref=e106]:
         - generic [ref=e107]:
           - img [ref=e109]
-          - heading "Panel de Administración" [level=1] [ref=e114]
-        - generic [ref=e115]:
-          - generic [ref=e116]:
-            - img [ref=e117]
-            - generic [ref=e121]: Conectado
-          - button "Notificaciones (próximamente)" [disabled] [ref=e122]:
-            - img [ref=e123]
-          - button "Admin Tenant 2 ADMIN" [ref=e127]:
-            - img [ref=e129]
-            - generic [ref=e132]:
-              - paragraph [ref=e133]: Admin Tenant 2
-              - paragraph [ref=e134]: ADMIN
-            - img [ref=e135]
-      - main [ref=e137]:
-        - generic [ref=e138]:
-          - generic [ref=e139]:
-            - generic [ref=e140]:
-              - heading "Analytics Dashboard" [level=1] [ref=e141]
-              - paragraph [ref=e142]: Métricas en tiempo real • 2026-02-07
-            - generic [ref=e143]:
-              - generic [ref=e144]:
-                - img [ref=e145]
-                - textbox [ref=e147]: 2026-02-07
-              - button "Actualizar" [disabled] [ref=e148]:
-                - img [ref=e149]
+          - generic [ref=e113]:
+            - heading "Pollería Test 2 S.A.C." [level=1] [ref=e114]
+            - paragraph [ref=e115]: "RUC: 20123456782"
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - img [ref=e118]
+            - generic [ref=e122]: Conectado
+          - button "Notificaciones (próximamente)" [disabled] [ref=e123]:
+            - img [ref=e124]
+          - button "Admin Tenant 2 ADMIN" [ref=e128]:
+            - img [ref=e130]
+            - generic [ref=e133]:
+              - paragraph [ref=e134]: Admin Tenant 2
+              - paragraph [ref=e135]: ADMIN
+            - img [ref=e136]
+      - main [ref=e138]:
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - generic [ref=e141]:
+              - heading "Analytics Dashboard" [level=1] [ref=e142]
+              - paragraph [ref=e143]: Métricas en tiempo real • 2026-02-07
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - img [ref=e146]
+                - textbox [ref=e148]: 2026-02-07
+              - button "Actualizar" [disabled] [ref=e149]:
+                - img [ref=e150]
                 - text: Actualizar
-          - generic [ref=e154]:
-            - generic [ref=e155]:
-              - img [ref=e158]
-              - paragraph [ref=e160]: ...
-              - paragraph [ref=e161]: Ventas del Turno
-            - generic [ref=e162]:
-              - img [ref=e165]
-              - paragraph [ref=e169]: ...
-              - paragraph [ref=e170]: Órdenes
-            - generic [ref=e171]:
-              - img [ref=e174]
-              - paragraph [ref=e177]: ...
-              - paragraph [ref=e178]: Ticket Promedio
-            - generic [ref=e179]:
-              - img [ref=e182]
-              - paragraph [ref=e187]: ...
-              - paragraph [ref=e188]: Mesas Ocupadas
-          - generic [ref=e189]:
-            - generic [ref=e190]:
-              - heading "Estaciones KDS" [level=2] [ref=e191]:
-                - img [ref=e192]
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - img [ref=e159]
+              - paragraph [ref=e161]: ...
+              - paragraph [ref=e162]: Ventas del Turno
+            - generic [ref=e163]:
+              - img [ref=e166]
+              - paragraph [ref=e170]: ...
+              - paragraph [ref=e171]: Órdenes
+            - generic [ref=e172]:
+              - img [ref=e175]
+              - paragraph [ref=e178]: ...
+              - paragraph [ref=e179]: Ticket Promedio
+            - generic [ref=e180]:
+              - img [ref=e183]
+              - paragraph [ref=e188]: ...
+              - paragraph [ref=e189]: Mesas Ocupadas
+          - generic [ref=e190]:
+            - generic [ref=e191]:
+              - heading "Estaciones KDS" [level=2] [ref=e192]:
+                - img [ref=e193]
                 - text: Estaciones KDS
-              - generic [ref=e195]:
-                - img [ref=e196]
-                - paragraph [ref=e198]: Sin datos de estaciones KDS
-                - paragraph [ref=e199]: Las estaciones aparecerán cuando haya órdenes activas
-            - generic [ref=e200]:
-              - heading "Top 5 Productos" [level=2] [ref=e201]
-              - generic [ref=e203]:
-                - img [ref=e204]
-                - paragraph [ref=e208]: Sin ventas registradas
-                - paragraph [ref=e209]: Los productos más vendidos aparecerán aquí
-          - generic [ref=e210]:
-            - heading "Ventas por Hora" [level=2] [ref=e211]:
-              - img [ref=e212]
+              - generic [ref=e196]:
+                - img [ref=e197]
+                - paragraph [ref=e199]: Sin datos de estaciones KDS
+                - paragraph [ref=e200]: Las estaciones aparecerán cuando haya órdenes activas
+            - generic [ref=e201]:
+              - heading "Top 5 Productos" [level=2] [ref=e202]
+              - generic [ref=e204]:
+                - img [ref=e205]
+                - paragraph [ref=e209]: Sin ventas registradas
+                - paragraph [ref=e210]: Los productos más vendidos aparecerán aquí
+          - generic [ref=e211]:
+            - heading "Ventas por Hora" [level=2] [ref=e212]:
+              - img [ref=e213]
               - text: Ventas por Hora
-            - img [ref=e216]
+            - img [ref=e217]
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e226] [cursor=pointer]:
-    - img [ref=e227]
-  - alert [ref=e230]
+  - button "Open Next.js Dev Tools" [ref=e227] [cursor=pointer]:
+    - img [ref=e228]
+  - alert [ref=e231]
 ```

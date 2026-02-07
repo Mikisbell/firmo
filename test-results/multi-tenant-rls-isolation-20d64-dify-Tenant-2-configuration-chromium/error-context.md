@@ -157,7 +157,7 @@
               - img [ref=e234]
               - paragraph [ref=e237]: Sin datos de ventas por hora
               - paragraph [ref=e238]: El gráfico se poblará conforme se registren ventas
-          - paragraph [ref=e239]: "Última actualización: 11:22:15 PM"
+          - paragraph [ref=e239]: "Última actualización: 11:39:19 PM"
   - region "Notifications alt+T"
   - generic [ref=e244] [cursor=pointer]:
     - button "Open Next.js Dev Tools" [ref=e245]:

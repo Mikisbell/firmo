@@ -25,7 +25,16 @@ async function handleGET(request: NextRequest) {
   const log = createRequestLogger(requestId);
   
   try {
-    log.info({ operation: 'list_products' }, 'Listing products');
+    // ✅ PASO 1: Validate admin authentication and authorization
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // ✅ PASO 2: Use tenant_id from authenticated user's JWT token
+    const tenantId = authResult.user.tenantId;
+    
+    log.info({ operation: 'list_products', tenantId }, 'Listing products');
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -34,9 +43,10 @@ async function handleGET(request: NextRequest) {
     // Parse pagination parameters
     const params = parsePaginationParams(request.nextUrl.searchParams);
 
-    // Generate cache key
+    // Generate cache key with tenant_id
     const cacheKey = generateCacheKey(
       'products',
+      tenantId,
       params.page,
       params.limit,
       validatedQuery.is_active !== undefined ? String(validatedQuery.is_active) : 'all',
@@ -50,13 +60,14 @@ async function handleGET(request: NextRequest) {
       log.info({
         operation: 'list_products_cache_hit',
         cacheKey,
+        tenantId,
         durationMs: Date.now() - startTime,
       }, 'Products retrieved from cache');
       return NextResponse.json(cached);
     }
 
-    // Build where clause
-    const where: any = { tenant_id: TENANT_ID };
+    // Build where clause with tenant_id from JWT
+    const where: any = { tenant_id: tenantId };
     if (validatedQuery.is_active !== undefined) {
       where.is_active = validatedQuery.is_active;
     }
@@ -70,7 +81,7 @@ async function handleGET(request: NextRequest) {
     // Get total count
     const dbStart = Date.now();
     const total = await prisma.products.count({ where });
-    logPerformance('db_count_products', Date.now() - dbStart, { total });
+    logPerformance('db_count_products', Date.now() - dbStart, { total, tenantId });
 
     // Get paginated products
     const queryStart = Date.now();
@@ -96,6 +107,7 @@ async function handleGET(request: NextRequest) {
       count: products.length,
       page: params.page,
       limit: params.limit,
+      tenantId,
     });
 
     // Create response
@@ -108,6 +120,7 @@ async function handleGET(request: NextRequest) {
       operation: 'list_products_success',
       count: products.length,
       total,
+      tenantId,
       cached: true,
       durationMs: Date.now() - startTime,
     }, 'Products listed successfully');
@@ -161,12 +174,16 @@ async function handlePOST(request: NextRequest) {
     return authResult.response;
   }
 
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
+    tenantId,
   });
 
   try {
-    log.info({ operation: 'create_product' }, 'Creating new product');
+    log.info({ operation: 'create_product', tenantId }, 'Creating new product');
     
     const body = await request.json();
     
@@ -174,10 +191,10 @@ async function handlePOST(request: NextRequest) {
     const validatedData = CreateProductSchema.parse(body);
     const { sku, name, short_name, price_cents, category, station, type = 'SIMPLE', is_active = true } = validatedData;
 
-    // Check SKU uniqueness
+    // Check SKU uniqueness within tenant
     const existingSku = await prisma.products.findFirst({
       where: {
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         sku,
       },
     });
@@ -187,6 +204,7 @@ async function handlePOST(request: NextRequest) {
         operation: 'create_product_duplicate_sku',
         sku,
         name,
+        tenantId,
       }, 'Attempted to create product with duplicate SKU');
       
       return NextResponse.json(
@@ -201,7 +219,7 @@ async function handlePOST(request: NextRequest) {
       const newProduct = await tx.products.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           sku,
           name,
           short_name: short_name || null,
@@ -215,9 +233,9 @@ async function handlePOST(request: NextRequest) {
 
       // Increment catalog version
       await tx.catalog_meta.upsert({
-        where: { tenant_id: TENANT_ID },
+        where: { tenant_id: tenantId },
         create: {
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           catalog_version: 1,
           updated_at: new Date(),
         },
@@ -231,7 +249,7 @@ async function handlePOST(request: NextRequest) {
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'CREATE',
           resource: 'products',
@@ -244,22 +262,22 @@ async function handlePOST(request: NextRequest) {
     });
     logPerformance('db_transaction_create_product', Date.now() - txStart);
 
-    // Invalidate products cache
-    await cache.invalidatePattern('products:*');
+    // Invalidate products cache for this tenant
+    await cache.invalidatePattern(`products:${tenantId}:*`);
 
     // Record business metrics
     metrics.increment('products_created_total', {
       category: product.category,
       station: product.station,
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Update active products gauge
     const activeCount = await prisma.products.count({
-      where: { tenant_id: TENANT_ID, is_active: true },
+      where: { tenant_id: tenantId, is_active: true },
     });
     metrics.set('products_active', activeCount, {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     // Log audit event
@@ -268,6 +286,7 @@ async function handlePOST(request: NextRequest) {
       productName: product.name,
       productSku: product.sku,
       productCategory: product.category,
+      tenantId,
     });
 
     log.info({
@@ -275,6 +294,7 @@ async function handlePOST(request: NextRequest) {
       productId: product.id,
       productName: product.name,
       productSku: product.sku,
+      tenantId,
       durationMs: Date.now() - startTime,
     }, 'Product created successfully');
 

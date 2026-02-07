@@ -335,11 +335,13 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Should either return empty or fail
     if (response.ok()) {
       const data = await response.json();
+      // Handle paginated response
+      const employees = data.data || data;
       // Should return empty array or only Tenant 1 employees
-      expect(Array.isArray(data)).toBeTruthy();
+      expect(Array.isArray(employees)).toBeTruthy();
       // If it returns data, it should be for Tenant 1
-      if (data.length > 0) {
-        expect(data[0].tenant_id).toBe(tenant1.id);
+      if (employees.length > 0) {
+        expect(employees[0].tenant_id).toBe(tenant1.id);
       }
     } else {
       expect([403, 404, 401]).toContain(response.status());
@@ -353,17 +355,23 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Navigate to employees (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
 
+    // Wait for data to load
+    await page.waitForSelector('[data-testid="employee-row"]', { timeout: 10000 });
+
     // Get Tenant 1 employees
     const tenant1Employees = await page.locator('[data-testid="employee-name"]').allTextContents();
 
-    // Logout
-    await page.click('button:has-text("Cerrar Sesión")');
+    // Logout using helper function
+    await logoutFromAdmin(page);
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
     // Navigate to employees (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
+
+    // Wait for data to load
+    await page.waitForSelector('[data-testid="employee-row"]', { timeout: 10000 });
 
     // Get Tenant 2 employees
     const tenant2Employees = await page.locator('[data-testid="employee-name"]').allTextContents();
@@ -377,6 +385,9 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
     // Navigate to employees (Spanish route)
     await page.goto(`${baseURL}/admin/empleados`);
+
+    // Wait for data to load
+    await page.waitForSelector('[data-testid="employee-row"]', { timeout: 10000 });
 
     // Get Tenant 1 employees again
     const tenant1EmployeesAgain = await page.locator('[data-testid="employee-name"]').allTextContents();

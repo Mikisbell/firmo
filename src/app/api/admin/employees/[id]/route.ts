@@ -13,15 +13,24 @@ const TENANT_ID = getTenantId();
 
 // GET - Get single employee
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // ✅ Validate admin authentication and authorization
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   try {
     const { id } = await params;
     const employee = await prisma.employees.findFirst({
       where: {
         id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
     });
 
@@ -53,6 +62,9 @@ export async function PUT(
     return authResult.response;
   }
 
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -62,7 +74,7 @@ export async function PUT(
     const existing = await prisma.employees.findFirst({
       where: {
         id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
     });
 
@@ -99,7 +111,7 @@ export async function PUT(
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'employees',
@@ -135,13 +147,16 @@ export async function DELETE(
     return authResult.response;
   }
 
+  // ✅ Use tenant_id from authenticated user's JWT token
+  const tenantId = authResult.user.tenantId;
+
   try {
     const { id } = await params;
     // Check employee exists
     const existing = await prisma.employees.findFirst({
       where: {
         id,
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
       },
     });
 
@@ -163,7 +178,7 @@ export async function DELETE(
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           employee_id: authResult.user.id,
           action: 'DELETE',
           resource: 'employees',

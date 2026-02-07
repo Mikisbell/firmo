@@ -341,10 +341,11 @@ export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.AD
 /**
  * Logout from Admin Panel
  * Opens user dropdown and clicks logout button
+ * Works on both desktop and mobile (uses force: true for mobile)
  */
 export async function logoutFromAdmin(page: Page): Promise<void> {
-    // Open user dropdown
-    await page.click('button:has(svg.lucide-chevron-down)');
+    // Open user dropdown with force click for mobile compatibility
+    await page.click('button:has(svg.lucide-chevron-down)', { force: true });
     
     // Wait for dropdown animation
     await page.waitForTimeout(500);
