@@ -132,7 +132,13 @@ export default function ProductsPage() {
       },
     },
     { key: 'sku', label: 'SKU', width: '100px' },
-    { key: 'name', label: 'Nombre' },
+    { 
+      key: 'name', 
+      label: 'Nombre',
+      render: (p) => (
+        <span data-testid="product-name">{p.name}</span>
+      ),
+    },
     {
       key: 'price_cents',
       label: 'Precio',
@@ -216,6 +222,7 @@ export default function ProductsPage() {
         loading={loading}
         emptyMessage="No hay productos"
         onRowClick={(p) => router.push(`/admin/productos/${p.id}`)}
+        rowTestId="product-row"
       />
 
       {/* Bulk Actions Toolbar */}

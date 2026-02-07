@@ -54,7 +54,13 @@ export default function EmployeesPage() {
   const { data: employees, loading, error } = useAdminData<Employee>('/api/admin/employees');
 
   const columns: Column<Employee>[] = [
-    { key: 'name', label: 'Nombre' },
+    { 
+      key: 'name', 
+      label: 'Nombre',
+      render: (e) => (
+        <span data-testid="employee-name">{e.name}</span>
+      ),
+    },
     {
       key: 'role',
       label: 'Rol',
@@ -139,6 +145,7 @@ export default function EmployeesPage() {
         loading={loading}
         emptyMessage="No hay empleados"
         onRowClick={(e) => router.push(`/admin/empleados/${e.id}`)}
+        rowTestId="employee-row"
       />
     </div>
   );

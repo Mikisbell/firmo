@@ -35,8 +35,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to employees page
-    await page.goto(`${baseURL}/admin/employees`);
+    // Navigate to employees page (Spanish route)
+    await page.goto(`${baseURL}/admin/empleados`);
 
     // Get list of employees for Tenant 1
     const tenant1Employees = page.locator('[data-testid="employee-row"]');
@@ -49,13 +49,13 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1Names = await page.locator('[data-testid="employee-name"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin);
 
-    // Navigate to employees page
-    await page.goto(`${baseURL}/admin/employees`);
+    // Navigate to employees page (Spanish route)
+    await page.goto(`${baseURL}/admin/empleados`);
 
     // Get list of employees for Tenant 2
     const tenant2Employees = page.locator('[data-testid="employee-row"]');
@@ -77,8 +77,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin);
 
-    // Navigate to products page
-    await page.goto(`${baseURL}/admin/products`);
+    // Navigate to products page (Spanish route)
+    await page.goto(`${baseURL}/admin/productos`);
 
     // Get list of products for Tenant 1
     const tenant1Products = page.locator('[data-testid="product-row"]');
@@ -91,13 +91,13 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     const tenant1Names = await page.locator('[data-testid="product-name"]').allTextContents();
 
     // Logout
-    await page.click('button:has-text("Logout")');
+    await page.click('button:has-text("Cerrar Sesión")');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin);
 
-    // Navigate to products page
-    await page.goto(`${baseURL}/admin/products`);
+    // Navigate to products page (Spanish route)
+    await page.goto(`${baseURL}/admin/productos`);
 
     // Get list of products for Tenant 2
     const tenant2Products = page.locator('[data-testid="product-row"]');

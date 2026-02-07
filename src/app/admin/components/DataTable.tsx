@@ -47,6 +47,7 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
   loading?: boolean;
   emptyMessage?: string;
+  rowTestId?: string; // Custom test ID for rows (e.g., "employee-row")
 }
 
 export function DataTable<T extends { id: string }>({
@@ -59,6 +60,7 @@ export function DataTable<T extends { id: string }>({
   onRowClick,
   loading = false,
   emptyMessage = 'No hay datos',
+  rowTestId,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -233,7 +235,7 @@ export function DataTable<T extends { id: string }>({
               paginatedData.map((item, rowIndex) => (
                 <tr
                   key={item.id}
-                  data-testid={isTestEnv ? `table-row-${rowIndex}-${item.id}` : undefined}
+                  data-testid={rowTestId || (isTestEnv ? `table-row-${rowIndex}-${item.id}` : undefined)}
                   onClick={() => onRowClick?.(item)}
                   className={`bg-zinc-950 hover:bg-zinc-900 transition-colors ${
                     onRowClick ? 'cursor-pointer' : ''
