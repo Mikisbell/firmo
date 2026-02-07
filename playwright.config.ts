@@ -18,9 +18,9 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   // Set environment variable for test detection
-  env: {
-    PLAYWRIGHT_TEST: 'true',
-  },
+  // env: {
+  //   PLAYWRIGHT_TEST: 'true',
+  // },
   projects: [
     {
       name: 'chromium',

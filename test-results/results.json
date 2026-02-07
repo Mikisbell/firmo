@@ -1,0 +1,2385 @@
+{
+  "config": {
+    "configFile": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\playwright.config.ts",
+    "rootDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "E:/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/junit.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true
+    }
+  },
+  "suites": [
+    {
+      "title": "multi-tenant-rls-isolation.spec.ts",
+      "file": "multi-tenant-rls-isolation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Multi-Tenant RLS Isolation E2E",
+          "file": "multi-tenant-rls-isolation.spec.ts",
+          "line": 18,
+          "column": 6,
+          "specs": [
+            {
+              "title": "✅ RLS: Tenant 1 cannot see Tenant 2 employees",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16637,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:36:09.485Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-feff42dfc79808aee957",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 35,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot see Tenant 2 products",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16068,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:36:26.404Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-842c8c594991ced0deb5",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 83,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot see Tenant 2 orders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11399,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:36:42.486Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-b2aab58e01d871f2230e",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 131,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10020,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:180:38",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 38,
+                          "line": 180
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 178 |\u001b[39m\n \u001b[90m 179 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 180 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 181 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 182 |\u001b[39m\n \u001b[90m 183 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 38,
+                            "line": 180
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 178 |\u001b[39m\n \u001b[90m 179 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 180 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 181 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 182 |\u001b[39m\n \u001b[90m 183 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:180:38\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:36:53.901Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-8c059-t-2-employee-via-direct-URL-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-8c059-t-2-employee-via-direct-URL-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-8c059-t-2-employee-via-direct-URL-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 38,
+                        "line": 180
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-f72cebb113faa1923186",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 167,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10076,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:196:38",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 38,
+                          "line": 196
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 194 |\u001b[39m\n \u001b[90m 195 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 196 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 197 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 198 |\u001b[39m\n \u001b[90m 199 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 38,
+                            "line": 196
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 194 |\u001b[39m\n \u001b[90m 195 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 196 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 197 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 198 |\u001b[39m\n \u001b[90m 199 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:196:38\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:37:05.866Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c2aab-nt-2-product-via-direct-URL-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c2aab-nt-2-product-via-direct-URL-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c2aab-nt-2-product-via-direct-URL-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 38,
+                        "line": 196
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-0c5fa8672b851aa0b26f",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 183,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4901,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:211:29",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 29,
+                          "line": 211
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 209 |\u001b[39m\n \u001b[90m 210 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 211 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 212 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 213 |\u001b[39m\n \u001b[90m 214 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 29,
+                            "line": 211
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 209 |\u001b[39m\n \u001b[90m 210 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 211 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 212 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 213 |\u001b[39m\n \u001b[90m 214 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:211:29\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:37:18.028Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 29,
+                        "line": 211
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-e3554e8fb0dd79f74e86",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 199,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot delete Tenant 2 product via API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5048,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:222:29",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 29,
+                          "line": 222
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 222 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 223 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 224 |\u001b[39m\n \u001b[90m 225 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 29,
+                            "line": 222
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 222 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 223 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 224 |\u001b[39m\n \u001b[90m 225 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:222:29\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:37:25.002Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 29,
+                        "line": 222
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-3d2702245cd731963a60",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 214,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot create employee for Tenant 2",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4353,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:37:32.048Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-1e89d534cd7eb1023fa3",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 225,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 analytics",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 12791,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"...\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"...\"\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:271:32",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 32,
+                          "line": 271
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 269 |\u001b[39m\n \u001b[90m 270 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 271 |\u001b[39m     expect(tenant1Revenue)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Revenue)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 272 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 273 |\u001b[39m\n \u001b[90m 274 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot view Tenant 2 audit logs'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 32,
+                            "line": 271
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"...\"\u001b[39m\n\n\u001b[0m \u001b[90m 269 |\u001b[39m\n \u001b[90m 270 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 271 |\u001b[39m     expect(tenant1Revenue)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Revenue)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 272 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 273 |\u001b[39m\n \u001b[90m 274 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot view Tenant 2 audit logs'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:271:32\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:37:36.542Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 32,
+                        "line": 271
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-751314a92500c2a68fec",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 248,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 audit logs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12588,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:37:51.200Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-440723943fa7e09bd018",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 274,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 settings",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 15095,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"\"\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:325:29",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 29,
+                          "line": 325
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 323 |\u001b[39m\n \u001b[90m 324 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 325 |\u001b[39m     expect(tenant1Name)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Name)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 326 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 327 |\u001b[39m\n \u001b[90m 328 |\u001b[39m   test(\u001b[32m'✅ RLS: Cross-tenant API calls are blocked'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 29,
+                            "line": 325
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"\"\u001b[39m\n\n\u001b[0m \u001b[90m 323 |\u001b[39m\n \u001b[90m 324 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 325 |\u001b[39m     expect(tenant1Name)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Name)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 326 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 327 |\u001b[39m\n \u001b[90m 328 |\u001b[39m   test(\u001b[32m'✅ RLS: Cross-tenant API calls are blocked'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:325:29\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:38:03.931Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 29,
+                        "line": 325
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-efd0e8286f0ad31642da",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 302,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Cross-tenant API calls are blocked",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5638,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:341:40",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 40,
+                          "line": 341
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 339 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 340 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 341 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 342 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 343 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 344 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 40,
+                            "line": 341
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 339 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 340 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 341 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 342 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 343 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 344 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:341:40\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:38:21.067Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 40,
+                        "line": 341
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-62c3cc4d956f773af16c",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 328,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant switching clears previous tenant data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 22640,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:38:28.899Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-d28f127541f054905416",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 351,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot bulk import data for Tenant 2",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5184,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:38:51.729Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-8b28da0a97d59280964f",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 399,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot export Tenant 2 data",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10463,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:436:34",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 34,
+                          "line": 436
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 434 |\u001b[39m\n \u001b[90m 435 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 436 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 437 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 438 |\u001b[39m\n \u001b[90m 439 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 34,
+                            "line": 436
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 434 |\u001b[39m\n \u001b[90m 435 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 436 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 437 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 438 |\u001b[39m\n \u001b[90m 439 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:436:34\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:38:56.933Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 34,
+                        "line": 436
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-3f69db88bfe531affd0d",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 423,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot restore Tenant 2 backup",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4583,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:39:09.312Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-2c48d94b10979e62c516",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 439,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot modify Tenant 2 configuration",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5924,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:473:36",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 36,
+                          "line": 473
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 471 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 472 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 473 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 474 |\u001b[39m     }\n \u001b[90m 475 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 476 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 36,
+                            "line": 473
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 471 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 472 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 473 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 474 |\u001b[39m     }\n \u001b[90m 475 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 476 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:473:36\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:39:14.045Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 36,
+                        "line": 473
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-a36e92d7a741789e7980",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 455,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 quotas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5180,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:39:21.931Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-abb6b4a7e02a43b5932c",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 477,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot modify Tenant 2 quotas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4782,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:39:27.263Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-53e19a5d7acdb7ce585d",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 497,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot see Tenant 2 employees",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21284,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:39:35.104Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-94a981ff2856db3680f9",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 35,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot see Tenant 2 products",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30326,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 354
+                          },
+                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Cerrar Sesión\")')\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors min-h-[44px]\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    42 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:354\n\n\u001b[0m \u001b[90m 352 |\u001b[39m     \n \u001b[90m 353 |\u001b[39m     \u001b[90m// Click logout button\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 354 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Cerrar Sesión\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 355 |\u001b[39m     \n \u001b[90m 356 |\u001b[39m     \u001b[90m// Wait for logout to complete\u001b[39m\n \u001b[90m 357 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m1000\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at logoutFromAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:354:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:104:5\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:39:56.610Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-3b756-annot-see-Tenant-2-products-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-3b756-annot-see-Tenant-2-products-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-3b756-annot-see-Tenant-2-products-mobile\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-39fb4d256b4527a393b0",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 83,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot see Tenant 2 orders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11477,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:40:29.355Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-3a5ec462918041ea88b0",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 131,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10164,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:180:38",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 38,
+                          "line": 180
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 178 |\u001b[39m\n \u001b[90m 179 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 180 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 181 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 182 |\u001b[39m\n \u001b[90m 183 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 38,
+                            "line": 180
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 178 |\u001b[39m\n \u001b[90m 179 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 180 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 181 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 182 |\u001b[39m\n \u001b[90m 183 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:180:38\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:40:40.987Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-8c059-t-2-employee-via-direct-URL-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-8c059-t-2-employee-via-direct-URL-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-8c059-t-2-employee-via-direct-URL-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 38,
+                        "line": 180
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-7cef03c2942a10f691c2",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 167,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 9903,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:196:38",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 38,
+                          "line": 196
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 194 |\u001b[39m\n \u001b[90m 195 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 196 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 197 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 198 |\u001b[39m\n \u001b[90m 199 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 38,
+                            "line": 196
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 194 |\u001b[39m\n \u001b[90m 195 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 196 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 197 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 198 |\u001b[39m\n \u001b[90m 199 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:196:38\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:40:53.184Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c2aab-nt-2-product-via-direct-URL-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c2aab-nt-2-product-via-direct-URL-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c2aab-nt-2-product-via-direct-URL-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 38,
+                        "line": 196
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-7adb2eb0bf1875f0b901",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 183,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5109,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:211:29",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 29,
+                          "line": 211
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 209 |\u001b[39m\n \u001b[90m 210 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 211 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 212 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 213 |\u001b[39m\n \u001b[90m 214 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 29,
+                            "line": 211
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 209 |\u001b[39m\n \u001b[90m 210 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 211 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 212 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 213 |\u001b[39m\n \u001b[90m 214 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:211:29\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:41:05.124Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 29,
+                        "line": 211
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-658d0d1ddc0edc05497b",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 199,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot delete Tenant 2 product via API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6133,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:222:29",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 29,
+                          "line": 222
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 222 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 223 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 224 |\u001b[39m\n \u001b[90m 225 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 29,
+                            "line": 222
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 222 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 223 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 224 |\u001b[39m\n \u001b[90m 225 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:222:29\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:41:12.391Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 29,
+                        "line": 222
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-e3431e4892ecb2a5196f",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 214,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot create employee for Tenant 2",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4276,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:41:20.563Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-0d5aaa98e09cc56b45c1",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 225,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 analytics",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 13840,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"...\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"...\"\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:271:32",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 32,
+                          "line": 271
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 269 |\u001b[39m\n \u001b[90m 270 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 271 |\u001b[39m     expect(tenant1Revenue)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Revenue)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 272 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 273 |\u001b[39m\n \u001b[90m 274 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot view Tenant 2 audit logs'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 32,
+                            "line": 271
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"...\"\u001b[39m\n\n\u001b[0m \u001b[90m 269 |\u001b[39m\n \u001b[90m 270 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 271 |\u001b[39m     expect(tenant1Revenue)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Revenue)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 272 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 273 |\u001b[39m\n \u001b[90m 274 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot view Tenant 2 audit logs'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:271:32\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:41:24.990Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 32,
+                        "line": 271
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-8bc4fedf6b3ecbcfdb00",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 248,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 audit logs",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30305,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 354
+                          },
+                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Cerrar Sesión\")')\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors min-h-[44px]\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    45 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:354\n\n\u001b[0m \u001b[90m 352 |\u001b[39m     \n \u001b[90m 353 |\u001b[39m     \u001b[90m// Click logout button\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 354 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Cerrar Sesión\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 355 |\u001b[39m     \n \u001b[90m 356 |\u001b[39m     \u001b[90m// Wait for logout to complete\u001b[39m\n \u001b[90m 357 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m1000\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at logoutFromAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:354:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:285:5\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:41:40.888Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-08cba775bdaefad5fda1",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 274,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 settings",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 17985,
+                      "error": {
+                        "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"pin-pad\"]') to be visible\u001b[22m\n",
+                        "stack": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"pin-pad\"]') to be visible\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:326:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:316:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 326
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:326\n\n\u001b[0m \u001b[90m 324 |\u001b[39m     \n \u001b[90m 325 |\u001b[39m     \u001b[90m// Wait for PinPad to appear\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 326 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForSelector(\u001b[32m'[data-testid=\"pin-pad\"]'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 327 |\u001b[39m     \n \u001b[90m 328 |\u001b[39m     \u001b[90m// Enter PIN using PinPad buttons\u001b[39m\n \u001b[90m 329 |\u001b[39m     \u001b[36mfor\u001b[39m (\u001b[36mconst\u001b[39m digit \u001b[36mof\u001b[39m pin) {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 326
+                          },
+                          "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"pin-pad\"]') to be visible\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:326\n\n\u001b[0m \u001b[90m 324 |\u001b[39m     \n \u001b[90m 325 |\u001b[39m     \u001b[90m// Wait for PinPad to appear\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 326 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForSelector(\u001b[32m'[data-testid=\"pin-pad\"]'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 327 |\u001b[39m     \n \u001b[90m 328 |\u001b[39m     \u001b[90m// Enter PIN using PinPad buttons\u001b[39m\n \u001b[90m 329 |\u001b[39m     \u001b[36mfor\u001b[39m (\u001b[36mconst\u001b[39m digit \u001b[36mof\u001b[39m pin) {\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:326:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:316:5\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:42:13.145Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 326
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-2c09cfe4e5b09b222e9e",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 302,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Cross-tenant API calls are blocked",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5404,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:341:40",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 40,
+                          "line": 341
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 339 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 340 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 341 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 342 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 343 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 344 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 40,
+                            "line": 341
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 339 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 340 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 341 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 342 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 343 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 344 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:341:40\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:42:33.232Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 40,
+                        "line": 341
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-8b6bb6becfe47eddd831",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 328,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant switching clears previous tenant data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21123,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
+                        },
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:42:40.577Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-d4ad5653f9c1b5d7addb",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 351,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot bulk import data for Tenant 2",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5203,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:43:01.838Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-bab68fd6617153ad028a",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 399,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot export Tenant 2 data",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10831,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:436:34",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 34,
+                          "line": 436
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 434 |\u001b[39m\n \u001b[90m 435 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 436 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 437 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 438 |\u001b[39m\n \u001b[90m 439 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 34,
+                            "line": 436
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 434 |\u001b[39m\n \u001b[90m 435 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 436 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 437 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 438 |\u001b[39m\n \u001b[90m 439 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:436:34\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:43:07.058Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 34,
+                        "line": 436
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-f9dc84014419728c7b17",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 423,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot restore Tenant 2 backup",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4632,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:43:19.897Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-2dfb699a4673c33993e8",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 439,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot modify Tenant 2 configuration",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6364,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:473:36",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 36,
+                          "line": 473
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 471 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 472 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 473 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 474 |\u001b[39m     }\n \u001b[90m 475 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 476 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 36,
+                            "line": 473
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 471 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 472 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 473 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 474 |\u001b[39m     }\n \u001b[90m 475 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 476 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:473:36\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:43:24.671Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 36,
+                        "line": 473
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a93df9727312381a518f-bd27df67c8f0a46cbac8",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 455,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot view Tenant 2 quotas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4886,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:43:33.476Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-43b917457540249aeee9",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 477,
+              "column": 3
+            },
+            {
+              "title": "✅ RLS: Tenant 1 cannot modify Tenant 2 quotas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4816,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-07T04:43:38.512Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a93df9727312381a518f-8aa817d3994fe7c0d305",
+              "file": "multi-tenant-rls-isolation.spec.ts",
+              "line": 497,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-02-07T04:36:06.071Z",
+    "duration": 457410.079,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 20,
+    "flaky": 0
+  }
+}

@@ -13,9 +13,7 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
@@ -23,7 +21,16 @@ async function handleGET(request: NextRequest) {
   const log = createRequestLogger(requestId);
   
   try {
-    log.info({ operation: 'get_history_analytics' }, 'Getting history analytics');
+    // ✅ Validate admin authentication and authorization
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // ✅ Extract tenantId from JWT token
+    const tenantId = authResult.user.tenantId;
+
+    log.info({ operation: 'get_history_analytics', tenantId }, 'Getting history analytics');
     
     const { searchParams } = request.nextUrl;
     const from = searchParams.get('from');
@@ -63,8 +70,8 @@ async function handleGET(request: NextRequest) {
       );
     }
 
-    // Generate cache key
-    const cacheKey = generateCacheKey('analytics:history', from, to);
+    // Generate cache key with tenantId
+    const cacheKey = generateCacheKey('analytics:history', tenantId, from, to);
 
     // Try to get from cache
     const cached = await cache.get(cacheKey);
@@ -72,6 +79,7 @@ async function handleGET(request: NextRequest) {
       log.info({
         operation: 'get_history_analytics_cache_hit',
         cacheKey,
+        tenantId,
         durationMs: Date.now() - startTime,
       }, 'History analytics retrieved from cache');
       return NextResponse.json(cached);
@@ -81,7 +89,7 @@ async function handleGET(request: NextRequest) {
     const dbStart = Date.now();
     const summaries = await prisma.daily_sales_summary.findMany({
       where: {
-        tenant_id: TENANT_ID,
+        tenant_id: tenantId,
         business_date: {
           gte: fromDate,
           lte: toDate,
@@ -113,11 +121,12 @@ async function handleGET(request: NextRequest) {
 
     // Record business metrics
     metrics.increment('analytics_history_requests_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     log.info({
       operation: 'get_history_analytics_success',
+      tenantId,
       from,
       to,
       daysCount: summaries.length,

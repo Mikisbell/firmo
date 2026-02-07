@@ -12,9 +12,7 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
@@ -22,15 +20,25 @@ async function handleGET(request: NextRequest) {
   const log = createRequestLogger(requestId);
   
   try {
-    log.info({ operation: 'get_realtime_analytics' }, 'Getting realtime analytics');
+    // ✅ Validate admin authentication and authorization
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // ✅ Extract tenantId from JWT token
+    const tenantId = authResult.user.tenantId;
+
+    log.info({ operation: 'get_realtime_analytics', tenantId }, 'Getting realtime analytics');
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
     const validatedQuery = RealtimeAnalyticsQuerySchema.parse(queryParams);
 
-    // Generate cache key
+    // Generate cache key with tenantId
     const cacheKey = generateCacheKey(
       'analytics:realtime',
+      tenantId,
       validatedQuery.shift_id ?? 'current'
     );
 
@@ -40,6 +48,7 @@ async function handleGET(request: NextRequest) {
       log.info({
         operation: 'get_realtime_analytics_cache_hit',
         cacheKey,
+        tenantId,
         durationMs: Date.now() - startTime,
       }, 'Realtime analytics retrieved from cache');
       return NextResponse.json(cached);
@@ -47,7 +56,7 @@ async function handleGET(request: NextRequest) {
 
     // Get metrics from service
     const serviceStart = Date.now();
-    const analyticsMetrics = await getRealtimeMetrics(TENANT_ID, validatedQuery.shift_id);
+    const analyticsMetrics = await getRealtimeMetrics(tenantId, validatedQuery.shift_id);
     logPerformance('service_get_realtime_metrics', Date.now() - serviceStart);
 
     // Cache for 10 seconds (realtime data changes frequently)
@@ -55,11 +64,12 @@ async function handleGET(request: NextRequest) {
 
     // Record business metrics
     metrics.increment('analytics_realtime_requests_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     log.info({
       operation: 'get_realtime_analytics_success',
+      tenantId,
       shiftId: validatedQuery.shift_id,
       cached: true,
       durationMs: Date.now() - startTime,

@@ -1,0 +1,97 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T"
+    - button "Abrir menú" [ref=e3]:
+      - img [ref=e4]
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - 'link "Pollería Test 1 S.A.C. RUC: 20123456781" [ref=e7] [cursor=pointer]':
+          - /url: /admin
+          - img [ref=e9]
+          - generic [ref=e13]:
+            - generic [ref=e14]: Pollería Test 1 S.A.C.
+            - generic [ref=e15]: "RUC: 20123456781"
+        - button "Cerrar menú" [ref=e16]:
+          - img [ref=e17]
+      - navigation [ref=e20]:
+        - link "Dashboard" [ref=e22] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e23]
+          - generic [ref=e28]: Dashboard
+        - link "Productos" [ref=e30] [cursor=pointer]:
+          - /url: /admin/productos
+          - img [ref=e31]
+          - generic [ref=e35]: Productos
+        - link "Mesas" [ref=e37] [cursor=pointer]:
+          - /url: /admin/mesas
+          - img [ref=e38]
+          - generic [ref=e40]: Mesas
+        - link "Empleados" [ref=e42] [cursor=pointer]:
+          - /url: /admin/empleados
+          - img [ref=e43]
+          - generic [ref=e48]: Empleados
+        - link "Terminales" [ref=e50] [cursor=pointer]:
+          - /url: /admin/terminales
+          - img [ref=e51]
+          - generic [ref=e53]: Terminales
+        - link "Auditoría" [ref=e55] [cursor=pointer]:
+          - /url: /admin/auditoria
+          - img [ref=e56]
+          - generic [ref=e58]: Auditoría
+        - link "Promociones" [ref=e60] [cursor=pointer]:
+          - /url: /admin/promociones
+          - img [ref=e61]
+          - generic [ref=e65]: Promociones
+        - link "Estaciones KDS" [ref=e67] [cursor=pointer]:
+          - /url: /admin/estaciones
+          - img [ref=e68]
+          - generic [ref=e70]: Estaciones KDS
+        - link "Delivery" [ref=e72] [cursor=pointer]:
+          - /url: /admin/delivery
+          - img [ref=e73]
+          - generic [ref=e78]: Delivery
+        - link "Motorizados" [ref=e80] [cursor=pointer]:
+          - /url: /admin/drivers
+          - img [ref=e81]
+          - generic [ref=e86]: Motorizados
+        - link "Inventario" [ref=e88] [cursor=pointer]:
+          - /url: /inventario
+          - img [ref=e89]
+          - generic [ref=e92]: Inventario
+        - link "Monitoreo" [ref=e94] [cursor=pointer]:
+          - /url: /admin/monitoring
+          - img [ref=e95]
+          - generic [ref=e97]: Monitoreo
+        - link "Configuración" [ref=e99] [cursor=pointer]:
+          - /url: /admin/configuracion
+          - img [ref=e100]
+          - generic [ref=e103]: Configuración
+        - link "Reportes" [ref=e105] [cursor=pointer]:
+          - /url: /admin/reportes
+          - img [ref=e106]
+          - generic [ref=e108]: Reportes
+      - paragraph [ref=e110]: Panel de Administración
+    - generic [ref=e111]:
+      - banner [ref=e112]:
+        - generic [ref=e113]:
+          - img [ref=e115]
+          - button "Notificaciones (próximamente)" [disabled] [ref=e119]:
+            - img [ref=e120]
+          - button [ref=e124]:
+            - img [ref=e126]
+            - img [ref=e129]
+      - main [ref=e131]:
+        - generic [ref=e132]:
+          - generic [ref=e133]:
+            - button [ref=e134]:
+              - img [ref=e135]
+            - heading "Error" [level=1] [ref=e137]
+          - generic [ref=e138]: Empleado no encontrado
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e144] [cursor=pointer]:
+    - img [ref=e145]
+  - alert [ref=e148]
+```

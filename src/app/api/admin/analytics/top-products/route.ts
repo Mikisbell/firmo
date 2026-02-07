@@ -12,9 +12,7 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();
@@ -22,15 +20,25 @@ async function handleGET(request: NextRequest) {
   const log = createRequestLogger(requestId);
   
   try {
-    log.info({ operation: 'get_top_products' }, 'Getting top products');
+    // ✅ Validate admin authentication and authorization
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // ✅ Extract tenantId from JWT token
+    const tenantId = authResult.user.tenantId;
+
+    log.info({ operation: 'get_top_products', tenantId }, 'Getting top products');
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
     const validatedQuery = TopProductsQuerySchema.parse(queryParams);
 
-    // Generate cache key
+    // Generate cache key with tenantId
     const cacheKey = generateCacheKey(
       'analytics:top-products',
+      tenantId,
       validatedQuery.limit ?? 10,
       validatedQuery.date_from ?? 'all',
       validatedQuery.date_to ?? 'all'
@@ -42,6 +50,7 @@ async function handleGET(request: NextRequest) {
       log.info({
         operation: 'get_top_products_cache_hit',
         cacheKey,
+        tenantId,
         durationMs: Date.now() - startTime,
       }, 'Top products retrieved from cache');
       return NextResponse.json(cached);
@@ -50,7 +59,7 @@ async function handleGET(request: NextRequest) {
     // Get metrics from service
     const serviceStart = Date.now();
     const products = await getTopProducts(
-      TENANT_ID, 
+      tenantId, 
       validatedQuery.limit ?? 10
     );
     logPerformance('service_get_top_products', Date.now() - serviceStart);
@@ -60,11 +69,12 @@ async function handleGET(request: NextRequest) {
 
     // Record business metrics
     metrics.increment('analytics_top_products_requests_total', {
-      tenant_id: TENANT_ID,
+      tenant_id: tenantId,
     });
 
     log.info({
       operation: 'get_top_products_success',
+      tenantId,
       productsCount: products.length,
       limit: validatedQuery.limit,
       cached: true,
