@@ -382,11 +382,25 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Navigate to settings (Spanish route)
     await page.goto(`${baseURL}/admin/configuracion`);
 
+    // ✅ Esperar a que el campo tenga un valor no vacío
+    await page.waitForFunction(() => {
+      const input = document.querySelector('[data-testid="tenant-name"]') as HTMLInputElement;
+      return input && input.value && input.value.trim() !== '';
+    }, { timeout: 10000 }).catch(() => {
+      console.log('⚠️ Tenant 1 name field is empty - data may not be provisioned');
+    });
+
     // Get Tenant 1 settings
-    const tenant1Name = await page.locator('[data-testid="tenant-name"]').textContent();
+    const tenant1Name = await page.locator('[data-testid="tenant-name"]').inputValue();
 
     // Logout
     await logoutFromAdmin(page);
+
+    // ✅ Agregar espera adicional después de logout para limpieza completa
+    await page.waitForTimeout(2000);
+    
+    // ✅ Forzar navegación para limpiar estado
+    await page.goto('http://localhost:3000/admin');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
@@ -394,11 +408,21 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Navigate to settings (Spanish route)
     await page.goto(`${baseURL}/admin/configuracion`);
 
+    // ✅ Esperar a que el campo tenga un valor no vacío
+    await page.waitForFunction(() => {
+      const input = document.querySelector('[data-testid="tenant-name"]') as HTMLInputElement;
+      return input && input.value && input.value.trim() !== '';
+    }, { timeout: 10000 }).catch(() => {
+      console.log('⚠️ Tenant 2 name field is empty - data may not be provisioned');
+    });
+
     // Get Tenant 2 settings
-    const tenant2Name = await page.locator('[data-testid="tenant-name"]').textContent();
+    const tenant2Name = await page.locator('[data-testid="tenant-name"]').inputValue();
 
     // Verify they are different
     expect(tenant1Name).not.toBe(tenant2Name);
+    expect(tenant1Name).not.toBe('');
+    expect(tenant2Name).not.toBe('');
   });
 
   test('✅ RLS: Cross-tenant API calls are blocked', async ({ page }) => {

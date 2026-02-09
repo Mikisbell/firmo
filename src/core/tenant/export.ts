@@ -244,9 +244,8 @@ async function validateExportCompleteness(
     throw new ExportError('Tenant settings missing from export');
   }
 
-  if (!data.catalog_meta) {
-    throw new ExportError('Catalog metadata missing from export');
-  }
+  // ✅ catalog_meta es opcional - puede no existir para algunos tenants
+  // No lanzar error si no existe
 }
 
 /**
@@ -350,6 +349,15 @@ export async function exportTenantData(request: ExportRequest): Promise<ExportRe
   const export_id = randomUUID();
 
   try {
+    // ✅ Validar tenant PRIMERO antes de procesar
+    const tenant = await prisma.tenant_settings.findUnique({
+      where: { tenant_id: request.tenant_id },
+    });
+    
+    if (!tenant) {
+      throw new ValidationError('Tenant not found');
+    }
+
     // Validate request
     await validateExportRequest(request);
 

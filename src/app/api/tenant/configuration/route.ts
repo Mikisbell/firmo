@@ -67,6 +67,9 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const tenantId = session.tenantId;
+    
+    // ✅ IGNORAR tenant_id del body - usar solo el de la sesión
+    const { tenant_id: _, ...updateData } = body;
 
     // ✅ Validar que el tenant existe antes de procesar
     const tenantExists = await prisma.tenant_settings.findUnique({
@@ -81,32 +84,32 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate updates
-    if (body.timezone) {
+    if (updateData.timezone) {
       try {
-        Intl.DateTimeFormat(undefined, { timeZone: body.timezone });
+        Intl.DateTimeFormat(undefined, { timeZone: updateData.timezone });
       } catch {
         return NextResponse.json(
-          { error: `Invalid timezone: ${body.timezone}` },
+          { error: `Invalid timezone: ${updateData.timezone}` },
           { status: 400 }
         );
       }
     }
 
-    if (body.currency) {
+    if (updateData.currency) {
       const allowedCurrencies = ['PEN', 'USD', 'EUR'];
-      if (!allowedCurrencies.includes(body.currency)) {
+      if (!allowedCurrencies.includes(updateData.currency)) {
         return NextResponse.json(
-          { error: `Unsupported currency: ${body.currency}` },
+          { error: `Unsupported currency: ${updateData.currency}` },
           { status: 400 }
         );
       }
     }
 
-    // Update configuration
+    // Update configuration (sin tenant_id en data)
     const updated = await prisma.tenant_settings.update({
       where: { tenant_id: tenantId },
       data: {
-        ...body,
+        ...updateData, // ✅ Sin tenant_id
         updated_at: new Date(),
       },
     });
@@ -120,6 +123,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         { error: 'Tenant configuration not found' },
         { status: 404 }
+      );
+    }
+    
+    // ✅ Manejar error P2002 (unique constraint) - retornar 400
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Configuration update failed - unique constraint violation' },
+        { status: 400 }
       );
     }
     
