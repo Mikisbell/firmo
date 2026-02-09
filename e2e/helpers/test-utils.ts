@@ -315,6 +315,7 @@ export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.AD
     await page.goto('http://localhost:3000/admin');
     
     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+    // This will be read by PinModal and sent to the auth API
     if (tenantId) {
         await page.evaluate((tid) => {
             localStorage.setItem('tenant_id', tid);

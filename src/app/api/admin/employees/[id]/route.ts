@@ -11,6 +11,12 @@ import { getTenantId } from '@/src/core/config/tenant';
 
 const TENANT_ID = getTenantId();
 
+// Validate UUID format
+function isValidUUID(id: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
+}
+
 // GET - Get single employee
 export async function GET(
   request: NextRequest,
@@ -27,6 +33,15 @@ export async function GET(
 
   try {
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { error: 'ID de empleado inválido' },
+        { status: 400 }
+      );
+    }
+    
     const employee = await prisma.employees.findFirst({
       where: {
         id,
@@ -67,6 +82,15 @@ export async function PUT(
 
   try {
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { error: 'ID de empleado inválido' },
+        { status: 400 }
+      );
+    }
+    
     const body = await request.json();
     const { name, role, is_active } = body;
 
@@ -152,6 +176,15 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { error: 'ID de empleado inválido' },
+        { status: 400 }
+      );
+    }
+    
     // Check employee exists
     const existing = await prisma.employees.findFirst({
       where: {

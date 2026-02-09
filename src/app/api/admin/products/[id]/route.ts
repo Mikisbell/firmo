@@ -21,6 +21,12 @@ import { metrics } from '@/src/core/observability/metrics';
 
 const TENANT_ID = getTenantId();
 
+// Validate UUID format
+function isValidUUID(id: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
+}
+
 // GET - Get single product
 export async function GET(
   request: NextRequest,
@@ -37,6 +43,15 @@ export async function GET(
 
   try {
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { error: 'ID de producto inválido' },
+        { status: 400 }
+      );
+    }
+    
     const product = await prisma.products.findFirst({
       where: {
         id,
@@ -77,6 +92,15 @@ export async function PUT(
 
   try {
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { error: 'ID de producto inválido' },
+        { status: 400 }
+      );
+    }
+    
     const body = await request.json();
     const { sku, name, short_name, price_cents, category, station, type, is_active, images } = body;
 
@@ -258,6 +282,15 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { error: 'ID de producto inválido' },
+        { status: 400 }
+      );
+    }
+    
     // Check product exists
     const existing = await prisma.products.findFirst({
       where: {
