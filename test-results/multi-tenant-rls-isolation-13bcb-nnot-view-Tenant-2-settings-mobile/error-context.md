@@ -8,12 +8,12 @@
       - img [ref=e4]
     - complementary [ref=e5]:
       - generic [ref=e6]:
-        - link "PARK POS Sistema POS" [ref=e7] [cursor=pointer]:
+        - 'link "Pollería Test 2 S.A.C. RUC: 20123456782" [ref=e7] [cursor=pointer]':
           - /url: /admin
           - img [ref=e9]
           - generic [ref=e13]:
-            - generic [ref=e14]: PARK POS
-            - generic [ref=e15]: Sistema POS
+            - generic [ref=e14]: Pollería Test 2 S.A.C.
+            - generic [ref=e15]: "RUC: 20123456782"
         - button "Cerrar menú" [ref=e16]:
           - img [ref=e17]
       - navigation [ref=e20]:
@@ -86,55 +86,36 @@
       - main [ref=e131]:
         - generic [ref=e132]:
           - generic [ref=e133]:
-            - generic [ref=e134]:
-              - heading "Analytics Dashboard" [level=1] [ref=e135]
-              - paragraph [ref=e136]: Métricas en tiempo real • 2026-02-09
+            - heading "Configuración" [level=1] [ref=e134]
+            - paragraph [ref=e135]: Ajustes del negocio
+          - generic [ref=e136]:
             - generic [ref=e137]:
-              - generic [ref=e138]:
+              - heading "Información del Negocio" [level=2] [ref=e138]:
                 - img [ref=e139]
-                - textbox [ref=e141]: 2026-02-09
-              - button "Actualizar" [disabled] [ref=e142]:
-                - img [ref=e143]
-                - text: Actualizar
-          - generic [ref=e148]:
-            - generic [ref=e149]:
-              - img [ref=e152]
-              - paragraph [ref=e154]: ...
-              - paragraph [ref=e155]: Ventas del Turno
-            - generic [ref=e156]:
-              - img [ref=e159]
-              - paragraph [ref=e163]: ...
-              - paragraph [ref=e164]: Órdenes
-            - generic [ref=e165]:
-              - img [ref=e168]
-              - paragraph [ref=e171]: ...
-              - paragraph [ref=e172]: Ticket Promedio
-            - generic [ref=e173]:
-              - img [ref=e176]
-              - paragraph [ref=e181]: ...
-              - paragraph [ref=e182]: Mesas Ocupadas
-          - generic [ref=e183]:
-            - generic [ref=e184]:
-              - heading "Estaciones KDS" [level=2] [ref=e185]:
-                - img [ref=e186]
-                - text: Estaciones KDS
-              - generic [ref=e189]:
-                - img [ref=e190]
-                - paragraph [ref=e192]: Sin datos de estaciones KDS
-                - paragraph [ref=e193]: Las estaciones aparecerán cuando haya órdenes activas
-            - generic [ref=e194]:
-              - heading "Top 5 Productos" [level=2] [ref=e195]
-              - generic [ref=e197]:
-                - img [ref=e198]
-                - paragraph [ref=e202]: Sin ventas registradas
-                - paragraph [ref=e203]: Los productos más vendidos aparecerán aquí
-          - generic [ref=e204]:
-            - heading "Ventas por Hora" [level=2] [ref=e205]:
-              - img [ref=e206]
-              - text: Ventas por Hora
-            - img [ref=e210]
+                - text: Información del Negocio
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - generic [ref=e145]: Razón Social
+                  - textbox [ref=e146]
+                - generic [ref=e147]:
+                  - generic [ref=e148]: RUC (11 dígitos)
+                  - textbox [ref=e149]
+                - generic [ref=e150]:
+                  - generic [ref=e151]: Dirección
+                  - textbox [ref=e152]
+            - generic [ref=e153]:
+              - heading "Configuración Fiscal (Solo OWNER)" [level=2] [ref=e154]:
+                - img [ref=e155]
+                - text: Configuración Fiscal
+                - generic [ref=e158]: (Solo OWNER)
+              - generic [ref=e159]:
+                - generic [ref=e160]: Tasa de IGV (%)
+                - spinbutton [disabled] [ref=e161]: "18"
+          - button "Guardar Cambios" [ref=e162]:
+            - img [ref=e163]
+            - text: Guardar Cambios
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e220] [cursor=pointer]:
-    - img [ref=e221]
-  - alert [ref=e224]
+  - button "Open Next.js Dev Tools" [ref=e172] [cursor=pointer]:
+    - img [ref=e173]
+  - alert [ref=e176]
 ```
