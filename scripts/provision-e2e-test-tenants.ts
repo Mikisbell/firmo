@@ -233,162 +233,108 @@ async function main() {
   console.log('  Tenant 1 Admin PIN: 1111');
   console.log('  Tenant 2 Admin PIN: 2222');
   
-  // Create analytics data for both tenants
-  console.log('\n📊 Creating analytics data...');
+  // Create orders for analytics data
+  console.log('\n📊 Creating orders for analytics...');
   
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setHours(6, 0, 0, 0); // Business date cutoff
   
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  // Get business date (YYYY-MM-DD format)
+  const businessDate = today.toISOString().split('T')[0];
+  const businessDateTime = new Date(`${businessDate}T00:00:00.000Z`);
   
-  const lastWeek = new Date(today);
-  lastWeek.setDate(lastWeek.getDate() - 7);
-  
-  // Tenant 1 - Analytics data
-  await prisma.tenant_analytics.upsert({
-    where: {
-      tenant_id_date: {
+  // Tenant 1 - Create orders
+  for (let i = 0; i < 5; i++) {
+    const orderId = uuidv4();
+    await prisma.orders.create({
+      data: {
+        id: orderId,
         tenant_id: tenant1Id,
-        date: today,
+        business_date: businessDateTime,
+        order_number: 1000 + i,
+        order_type: 'DINE_IN',
+        order_status: 'CLOSED',
+        fulfillment_status: 'READY',
+        handoff_status: 'DELIVERED',
+        terminal_id: 'terminal-1',
+        subtotal_cents: 3500,
+        total_cents: 3500,
+        items: [
+          {
+            product_id: uuidv4(),
+            sku: 'T1-POLLO',
+            name: 'Pollo Tenant 1',
+            qty: 1,
+            unit_price_cents: 3500,
+            station: 'PARRILLA',
+            status: 'READY',
+          },
+        ],
+        checks: [
+          {
+            id: uuidv4(),
+            status: 'PAID',
+            payments: [
+              {
+                method: 'CASH',
+                amount_cents: 3500,
+              },
+            ],
+          },
+        ],
+        created_at: new Date(today.getTime() + i * 3600000), // Spread over hours
+        updated_at: new Date(today.getTime() + i * 3600000 + 1800000), // 30 min later
       },
-    },
-    update: {},
-    create: {
-      tenant_id: tenant1Id,
-      date: today,
-      active_terminals: 3,
-      total_orders: 25,
-      total_events: 150,
-      total_revenue_cents: 87500, // S/ 875.00
-      avg_order_value_cents: 3500, // S/ 35.00
-      peak_orders_per_hour: 8,
-      sync_errors: 0,
-      api_errors: 0,
-      storage_mb: 12,
-    },
-  });
+    });
+  }
+  console.log('  ✅ Tenant 1 orders created (5 orders, S/ 175.00 total)');
   
-  await prisma.tenant_analytics.upsert({
-    where: {
-      tenant_id_date: {
-        tenant_id: tenant1Id,
-        date: yesterday,
-      },
-    },
-    update: {},
-    create: {
-      tenant_id: tenant1Id,
-      date: yesterday,
-      active_terminals: 3,
-      total_orders: 22,
-      total_events: 132,
-      total_revenue_cents: 77000, // S/ 770.00
-      avg_order_value_cents: 3500,
-      peak_orders_per_hour: 7,
-      sync_errors: 0,
-      api_errors: 0,
-      storage_mb: 11,
-    },
-  });
-  
-  await prisma.tenant_analytics.upsert({
-    where: {
-      tenant_id_date: {
-        tenant_id: tenant1Id,
-        date: lastWeek,
-      },
-    },
-    update: {},
-    create: {
-      tenant_id: tenant1Id,
-      date: lastWeek,
-      active_terminals: 3,
-      total_orders: 20,
-      total_events: 120,
-      total_revenue_cents: 70000, // S/ 700.00
-      avg_order_value_cents: 3500,
-      peak_orders_per_hour: 6,
-      sync_errors: 0,
-      api_errors: 0,
-      storage_mb: 10,
-    },
-  });
-  
-  console.log('  ✅ Tenant 1 analytics created (3 days)');
-  
-  // Tenant 2 - Analytics data (different values)
-  await prisma.tenant_analytics.upsert({
-    where: {
-      tenant_id_date: {
+  // Tenant 2 - Create orders (different amounts)
+  for (let i = 0; i < 3; i++) {
+    const orderId = uuidv4();
+    await prisma.orders.create({
+      data: {
+        id: orderId,
         tenant_id: tenant2Id,
-        date: today,
+        business_date: businessDateTime,
+        order_number: 2000 + i,
+        order_type: 'DINE_IN',
+        order_status: 'CLOSED',
+        fulfillment_status: 'READY',
+        handoff_status: 'DELIVERED',
+        terminal_id: 'terminal-2',
+        subtotal_cents: 3500,
+        total_cents: 3500,
+        items: [
+          {
+            product_id: uuidv4(),
+            sku: 'T2-POLLO',
+            name: 'Pollo Tenant 2',
+            qty: 1,
+            unit_price_cents: 3500,
+            station: 'PARRILLA',
+            status: 'READY',
+          },
+        ],
+        checks: [
+          {
+            id: uuidv4(),
+            status: 'PAID',
+            payments: [
+              {
+                method: 'YAPE',
+                amount_cents: 3500,
+              },
+            ],
+          },
+        ],
+        created_at: new Date(today.getTime() + i * 3600000),
+        updated_at: new Date(today.getTime() + i * 3600000 + 1800000),
       },
-    },
-    update: {},
-    create: {
-      tenant_id: tenant2Id,
-      date: today,
-      active_terminals: 2,
-      total_orders: 18,
-      total_events: 108,
-      total_revenue_cents: 63000, // S/ 630.00
-      avg_order_value_cents: 3500,
-      peak_orders_per_hour: 6,
-      sync_errors: 0,
-      api_errors: 0,
-      storage_mb: 9,
-    },
-  });
-  
-  await prisma.tenant_analytics.upsert({
-    where: {
-      tenant_id_date: {
-        tenant_id: tenant2Id,
-        date: yesterday,
-      },
-    },
-    update: {},
-    create: {
-      tenant_id: tenant2Id,
-      date: yesterday,
-      active_terminals: 2,
-      total_orders: 16,
-      total_events: 96,
-      total_revenue_cents: 56000, // S/ 560.00
-      avg_order_value_cents: 3500,
-      peak_orders_per_hour: 5,
-      sync_errors: 0,
-      api_errors: 0,
-      storage_mb: 8,
-    },
-  });
-  
-  await prisma.tenant_analytics.upsert({
-    where: {
-      tenant_id_date: {
-        tenant_id: tenant2Id,
-        date: lastWeek,
-      },
-    },
-    update: {},
-    create: {
-      tenant_id: tenant2Id,
-      date: lastWeek,
-      active_terminals: 2,
-      total_orders: 15,
-      total_events: 90,
-      total_revenue_cents: 52500, // S/ 525.00
-      avg_order_value_cents: 3500,
-      peak_orders_per_hour: 5,
-      sync_errors: 0,
-      api_errors: 0,
-      storage_mb: 7,
-    },
-  });
-  
-  console.log('  ✅ Tenant 2 analytics created (3 days)');
-  console.log('\n✅ Analytics data provisioned successfully!');
+    });
+  }
+  console.log('  ✅ Tenant 2 orders created (3 orders, S/ 105.00 total)');
+  console.log('\n✅ Orders for analytics provisioned successfully!');
 }
 
 main()
