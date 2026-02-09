@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get tenant configuration
+    // ✅ Validar que el tenant existe antes de procesar
     const configuration = await prisma.tenant_settings.findUnique({
       where: { tenant_id: session.tenantId },
     });
@@ -33,9 +33,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(configuration);
   } catch (error: any) {
     console.error('Error getting tenant configuration:', error);
+    
+    // ✅ Retornar 404 si el tenant no existe, no 500
+    if (error.code === 'P2025' || error.message?.includes('not found')) {
+      return NextResponse.json(
+        { error: 'Tenant configuration not found' },
+        { status: 404 }
+      );
+    }
+    
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { status: 500 }
     );
   }
 }
@@ -58,6 +67,18 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const tenantId = session.tenantId;
+
+    // ✅ Validar que el tenant existe antes de procesar
+    const tenantExists = await prisma.tenant_settings.findUnique({
+      where: { tenant_id: tenantId },
+    });
+    
+    if (!tenantExists) {
+      return NextResponse.json(
+        { error: 'Tenant configuration not found' },
+        { status: 404 }
+      );
+    }
 
     // Validate updates
     if (body.timezone) {
@@ -93,9 +114,18 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(updated);
   } catch (error: any) {
     console.error('Error updating tenant configuration:', error);
+    
+    // ✅ Retornar 404 si el tenant no existe, no 500
+    if (error.code === 'P2025' || error.message?.includes('not found')) {
+      return NextResponse.json(
+        { error: 'Tenant configuration not found' },
+        { status: 404 }
+      );
+    }
+    
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { status: 500 }
     );
   }
 }

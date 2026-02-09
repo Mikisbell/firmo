@@ -345,14 +345,21 @@ export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.AD
  * Works on both desktop and mobile (uses force: true for mobile)
  */
 export async function logoutFromAdmin(page: Page): Promise<void> {
+    // Close any open overlays first (mobile menu, modals, etc.)
+    const overlay = page.locator('div.fixed.inset-0.z-40');
+    if (await overlay.isVisible().catch(() => false)) {
+        await overlay.click({ force: true });
+        await page.waitForTimeout(300);
+    }
+    
     // Open user dropdown with force click for mobile compatibility
     await page.click('button:has(svg.lucide-chevron-down)', { force: true });
     
     // Wait for dropdown animation
     await page.waitForTimeout(500);
     
-    // Click logout button
-    await page.click('button:has-text("Cerrar Sesión")');
+    // Click logout button with force for mobile
+    await page.click('button:has-text("Cerrar Sesión")', { force: true });
     
     // Wait for logout to complete
     await page.waitForTimeout(1000);

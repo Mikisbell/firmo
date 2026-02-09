@@ -98,6 +98,7 @@ async function handleGET(request: NextRequest) {
       take: params.limit,
       select: {
         id: true,
+        tenant_id: true, // ✅ INCLUIR tenant_id en respuesta
         name: true,
         role: true,
         is_active: true,

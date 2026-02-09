@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exportTenantData, ExportRequest } from '@/src/core/tenant/export';
 import { getTenantContext } from '@/src/core/tenant/tenant-context';
+import prisma from '@/src/core/db/prisma';
 
 /**
  * POST /api/tenant/export
@@ -15,6 +16,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { context } = contextResult;
+    
+    // ✅ Validar que el tenant existe antes de procesar
+    const tenantExists = await prisma.tenant_settings.findUnique({
+      where: { tenant_id: context.tenant_id },
+    });
+    
+    if (!tenantExists) {
+      return NextResponse.json(
+        { error: 'Tenant not found' },
+        { status: 404 }
+      );
+    }
+    
     const body = await request.json();
 
     const exportRequest: ExportRequest = {
