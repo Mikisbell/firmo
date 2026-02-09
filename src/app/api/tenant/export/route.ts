@@ -31,8 +31,17 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
 
+    // ✅ VALIDACIÓN CRÍTICA: Si el body incluye tenant_id, debe coincidir con el de la sesión
+    // Esto previene que Tenant 1 exporte datos de Tenant 2
+    if (body.tenant_id && body.tenant_id !== context.tenant_id) {
+      return NextResponse.json(
+        { error: 'Cannot export data for another tenant' },
+        { status: 403 }
+      );
+    }
+
     const exportRequest: ExportRequest = {
-      tenant_id: context.tenant_id,
+      tenant_id: context.tenant_id, // ✅ Usar SIEMPRE el tenant_id de la sesión, NO del body
       format: body.format || 'json',
       include_events: body.include_events !== false,
       include_orders: body.include_orders !== false,

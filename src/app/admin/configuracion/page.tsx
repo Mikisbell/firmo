@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Building2, Receipt, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAdminData, useAdminMutation } from '@/src/hooks/useAdminData';
+import { useAdminMutation } from '@/src/hooks/useAdminData';
 
 interface TenantSettings {
   tenant_id: string;
@@ -25,10 +25,33 @@ export default function ConfigurationPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const canEditFiscal = userRole?.toUpperCase() === 'OWNER';
   
-  const { data: settingsArray, loading, error: fetchError, refetch } = useAdminData<TenantSettings>('/api/admin/config');
+  // ✅ Usar fetch directo en lugar de useAdminData porque el endpoint retorna un objeto único, no un array
+  const [settings, setSettings] = useState<TenantSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  
   const { mutate: updateConfig, loading: saving, error: saveError } = useAdminMutation<TenantSettings>('/api/admin/config', 'PUT');
   
-  const settings = settingsArray && settingsArray.length > 0 ? settingsArray[0] : null;
+  const refetch = async () => {
+    try {
+      setLoading(true);
+      setFetchError(null);
+      const res = await fetch('/api/admin/config');
+      if (!res.ok) {
+        throw new Error('Error al cargar configuración');
+      }
+      const data = await res.json();
+      setSettings(data);
+    } catch (error) {
+      setFetchError(error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    refetch();
+  }, []);
   const [form, setForm] = useState<TenantSettings | null>(null);
   const [success, setSuccess] = useState(false);
 
