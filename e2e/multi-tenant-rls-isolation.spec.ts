@@ -59,8 +59,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
       return;
     }
 
-    // Get employee names visible (try multiple selectors)
-    const tenant1Names = await page.locator('[data-testid="employee-name"], td:nth-child(2), .employee-name').allTextContents();
+    // Get employee names visible
+    const tenant1Names = await page.locator('[data-testid="employee-name"]').allTextContents();
 
     // Logout
     await logoutFromAdmin(page);
@@ -90,8 +90,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
       return;
     }
 
-    // Get employee names visible (try multiple selectors)
-    const tenant2Names = await page.locator('[data-testid="employee-name"], td:nth-child(2), .employee-name').allTextContents();
+    // Get employee names visible
+    const tenant2Names = await page.locator('[data-testid="employee-name"]').allTextContents();
 
     // Verify that Tenant 2 does NOT see Tenant 1's employees
     for (const name of tenant1Names) {
@@ -126,8 +126,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
       return;
     }
 
-    // Get product names visible (try multiple selectors)
-    const tenant1Names = await page.locator('[data-testid="product-name"], td:nth-child(2), .product-name').allTextContents();
+    // Get product names visible
+    const tenant1Names = await page.locator('[data-testid="product-name"]').allTextContents();
 
     // Logout
     await logoutFromAdmin(page);
@@ -157,8 +157,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
       return;
     }
 
-    // Get product names visible (try multiple selectors)
-    const tenant2Names = await page.locator('[data-testid="product-name"], td:nth-child(2), .product-name').allTextContents();
+    // Get product names visible
+    const tenant2Names = await page.locator('[data-testid="product-name"]').allTextContents();
 
     // Verify that Tenant 2 does NOT see Tenant 1's products
     for (const name of tenant1Names) {
@@ -403,7 +403,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     });
 
     // Get Tenant 1 employees
-    const tenant1EmployeesLocator = page.locator('[data-testid="employee-name"], td:nth-child(2), .employee-name');
+    const tenant1EmployeesLocator = page.locator('[data-testid="employee-name"]');
     const tenant1Count = await tenant1EmployeesLocator.count();
     
     // Skip test if no data
@@ -433,7 +433,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     });
 
     // Get Tenant 2 employees
-    const tenant2EmployeesLocator = page.locator('[data-testid="employee-name"], td:nth-child(2), .employee-name');
+    const tenant2EmployeesLocator = page.locator('[data-testid="employee-name"]');
     const tenant2Count = await tenant2EmployeesLocator.count();
     
     // Skip test if no data
@@ -462,7 +462,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     await page.waitForSelector(employeeSelector, { timeout: 5000 }).catch(() => {});
 
     // Get Tenant 1 employees again
-    const tenant1EmployeesAgainLocator = page.locator('[data-testid="employee-name"], td:nth-child(2), .employee-name');
+    const tenant1EmployeesAgainLocator = page.locator('[data-testid="employee-name"]');
     const tenant1EmployeesAgain = await tenant1EmployeesAgainLocator.allTextContents();
 
     // Verify we're back to Tenant 1 data
