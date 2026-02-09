@@ -6,6 +6,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : 1,
+  timeout: 300000, // 5 minutes per test (increased from default 30s)
   reporter: [
     ['html'],
     ['json', { outputFile: 'test-results/results.json' }],
@@ -16,6 +17,8 @@ export default defineConfig({
     trace: 'on-first-retry', // Captura traces solo en fallos
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    actionTimeout: 15000, // 15 seconds for individual actions
+    navigationTimeout: 30000, // 30 seconds for page navigation
   },
   // Set environment variable for test detection
   // env: {

@@ -411,8 +411,20 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Should either return empty or fail
     if (response.ok()) {
       const data = await response.json();
-      // Handle paginated response
-      const employees = data.data || data;
+      
+      // Handle both formats: paginated { items: [], pagination: {} } and direct array []
+      let employees: any[];
+      if (data.items && Array.isArray(data.items)) {
+        // Paginated format
+        employees = data.items;
+      } else if (Array.isArray(data)) {
+        // Direct array format
+        employees = data;
+      } else {
+        // Unknown format - fail test
+        throw new Error(`Unexpected API response format: ${JSON.stringify(data)}`);
+      }
+      
       // Should return empty array or only Tenant 1 employees
       expect(Array.isArray(employees)).toBeTruthy();
       // If it returns data, it should be for Tenant 1
@@ -521,14 +533,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
       },
     });
 
-    // Should fail or import for Tenant 1 instead
-    if (response.ok()) {
-      const data = await response.json();
-      // If it succeeds, it should be for Tenant 1
-      expect(data.tenant_id).toBe(tenant1.id);
-    } else {
-      expect([403, 404, 401, 400]).toContain(response.status());
-    }
+    // Should fail (endpoint doesn't exist yet - returns 404)
+    expect([403, 404, 401, 400]).toContain(response.status());
   });
 
   test('✅ RLS: Tenant 1 cannot export Tenant 2 data', async ({ page }) => {
@@ -592,17 +598,8 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Try to view Tenant 2 quotas
     const response = await page.request.get(`${baseURL}/api/admin/quotas?tenant_id=${tenant2.id}`);
 
-    // Should fail or return empty
-    if (response.ok()) {
-      const data = await response.json();
-      // Should return empty or only Tenant 1 quotas
-      expect(Array.isArray(data)).toBeTruthy();
-      if (data.length > 0) {
-        expect(data[0].tenant_id).toBe(tenant1.id);
-      }
-    } else {
-      expect([403, 404, 401]).toContain(response.status());
-    }
+    // Should fail (endpoint doesn't exist yet - returns 404)
+    expect([403, 404, 401]).toContain(response.status());
   });
 
   test('✅ RLS: Tenant 1 cannot modify Tenant 2 quotas', async ({ page }) => {

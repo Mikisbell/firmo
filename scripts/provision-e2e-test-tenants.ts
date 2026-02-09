@@ -232,6 +232,163 @@ async function main() {
   console.log('\nTest credentials:');
   console.log('  Tenant 1 Admin PIN: 1111');
   console.log('  Tenant 2 Admin PIN: 2222');
+  
+  // Create analytics data for both tenants
+  console.log('\n📊 Creating analytics data...');
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const lastWeek = new Date(today);
+  lastWeek.setDate(lastWeek.getDate() - 7);
+  
+  // Tenant 1 - Analytics data
+  await prisma.tenant_analytics.upsert({
+    where: {
+      tenant_id_date: {
+        tenant_id: tenant1Id,
+        date: today,
+      },
+    },
+    update: {},
+    create: {
+      tenant_id: tenant1Id,
+      date: today,
+      active_terminals: 3,
+      total_orders: 25,
+      total_events: 150,
+      total_revenue_cents: 87500, // S/ 875.00
+      avg_order_value_cents: 3500, // S/ 35.00
+      peak_orders_per_hour: 8,
+      sync_errors: 0,
+      api_errors: 0,
+      storage_mb: 12,
+    },
+  });
+  
+  await prisma.tenant_analytics.upsert({
+    where: {
+      tenant_id_date: {
+        tenant_id: tenant1Id,
+        date: yesterday,
+      },
+    },
+    update: {},
+    create: {
+      tenant_id: tenant1Id,
+      date: yesterday,
+      active_terminals: 3,
+      total_orders: 22,
+      total_events: 132,
+      total_revenue_cents: 77000, // S/ 770.00
+      avg_order_value_cents: 3500,
+      peak_orders_per_hour: 7,
+      sync_errors: 0,
+      api_errors: 0,
+      storage_mb: 11,
+    },
+  });
+  
+  await prisma.tenant_analytics.upsert({
+    where: {
+      tenant_id_date: {
+        tenant_id: tenant1Id,
+        date: lastWeek,
+      },
+    },
+    update: {},
+    create: {
+      tenant_id: tenant1Id,
+      date: lastWeek,
+      active_terminals: 3,
+      total_orders: 20,
+      total_events: 120,
+      total_revenue_cents: 70000, // S/ 700.00
+      avg_order_value_cents: 3500,
+      peak_orders_per_hour: 6,
+      sync_errors: 0,
+      api_errors: 0,
+      storage_mb: 10,
+    },
+  });
+  
+  console.log('  ✅ Tenant 1 analytics created (3 days)');
+  
+  // Tenant 2 - Analytics data (different values)
+  await prisma.tenant_analytics.upsert({
+    where: {
+      tenant_id_date: {
+        tenant_id: tenant2Id,
+        date: today,
+      },
+    },
+    update: {},
+    create: {
+      tenant_id: tenant2Id,
+      date: today,
+      active_terminals: 2,
+      total_orders: 18,
+      total_events: 108,
+      total_revenue_cents: 63000, // S/ 630.00
+      avg_order_value_cents: 3500,
+      peak_orders_per_hour: 6,
+      sync_errors: 0,
+      api_errors: 0,
+      storage_mb: 9,
+    },
+  });
+  
+  await prisma.tenant_analytics.upsert({
+    where: {
+      tenant_id_date: {
+        tenant_id: tenant2Id,
+        date: yesterday,
+      },
+    },
+    update: {},
+    create: {
+      tenant_id: tenant2Id,
+      date: yesterday,
+      active_terminals: 2,
+      total_orders: 16,
+      total_events: 96,
+      total_revenue_cents: 56000, // S/ 560.00
+      avg_order_value_cents: 3500,
+      peak_orders_per_hour: 5,
+      sync_errors: 0,
+      api_errors: 0,
+      storage_mb: 8,
+    },
+  });
+  
+  await prisma.tenant_analytics.upsert({
+    where: {
+      tenant_id_date: {
+        tenant_id: tenant2Id,
+        date: lastWeek,
+      },
+    },
+    update: {},
+    create: {
+      tenant_id: tenant2Id,
+      date: lastWeek,
+      active_terminals: 2,
+      total_orders: 15,
+      total_events: 90,
+      total_revenue_cents: 52500, // S/ 525.00
+      avg_order_value_cents: 3500,
+      peak_orders_per_hour: 5,
+      sync_errors: 0,
+      api_errors: 0,
+      storage_mb: 7,
+    },
+  });
+  
+  console.log('  ✅ Tenant 2 analytics created (3 days)');
+  console.log('\n✅ Analytics data provisioned successfully!');
 }
 
 main()
