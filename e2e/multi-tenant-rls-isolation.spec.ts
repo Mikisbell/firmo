@@ -328,11 +328,25 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Navigate to dashboard (Spanish route)
     await page.goto(`${baseURL}/admin/dashboard`);
 
+    // ✅ Wait for data to load (not "..." placeholder)
+    await page.waitForFunction(() => {
+      const element = document.querySelector('[data-testid="total-revenue"]');
+      return element && element.textContent && element.textContent.trim() !== '...' && element.textContent.trim() !== '';
+    }, { timeout: 15000 }).catch(() => {
+      console.log('⚠️ Tenant 1 analytics data did not load - may be empty');
+    });
+
     // Get Tenant 1 analytics data
     const tenant1Revenue = await page.locator('[data-testid="total-revenue"]').textContent();
 
     // Logout
     await logoutFromAdmin(page);
+
+    // ✅ Agregar espera adicional después de logout para limpieza completa
+    await page.waitForTimeout(2000);
+    
+    // ✅ Forzar navegación para limpiar estado
+    await page.goto('http://localhost:3000/admin');
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
@@ -340,11 +354,21 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Navigate to dashboard (Spanish route)
     await page.goto(`${baseURL}/admin/dashboard`);
 
+    // ✅ Wait for data to load (not "..." placeholder)
+    await page.waitForFunction(() => {
+      const element = document.querySelector('[data-testid="total-revenue"]');
+      return element && element.textContent && element.textContent.trim() !== '...' && element.textContent.trim() !== '';
+    }, { timeout: 15000 }).catch(() => {
+      console.log('⚠️ Tenant 2 analytics data did not load - may be empty');
+    });
+
     // Get Tenant 2 analytics data
     const tenant2Revenue = await page.locator('[data-testid="total-revenue"]').textContent();
 
     // Verify they are different
     expect(tenant1Revenue).not.toBe(tenant2Revenue);
+    expect(tenant1Revenue).not.toBe('...');
+    expect(tenant2Revenue).not.toBe('...');
   });
 
   test('✅ RLS: Tenant 1 cannot view Tenant 2 audit logs', async ({ page }) => {
