@@ -44,11 +44,11 @@ export async function GET(
   try {
     const { id } = await params;
     
-    // Validate UUID format
+    // Validate UUID format - return 404 for invalid UUIDs (not found)
     if (!isValidUUID(id)) {
       return NextResponse.json(
-        { error: 'ID de producto inválido' },
-        { status: 400 }
+        { error: 'Producto no encontrado' },
+        { status: 404 }
       );
     }
     
@@ -93,18 +93,18 @@ export async function PUT(
   try {
     const { id } = await params;
     
-    // Validate UUID format
+    // Validate UUID format - return 404 for invalid UUIDs (not found)
     if (!isValidUUID(id)) {
       return NextResponse.json(
-        { error: 'ID de producto inválido' },
-        { status: 400 }
+        { error: 'Producto no encontrado' },
+        { status: 404 }
       );
     }
     
     const body = await request.json();
     const { sku, name, short_name, price_cents, category, station, type, is_active, images } = body;
 
-    // Check product exists
+    // Check product exists and belongs to tenant
     const existing = await prisma.products.findFirst({
       where: {
         id,
@@ -114,8 +114,8 @@ export async function PUT(
 
     if (!existing) {
       return NextResponse.json(
-        { error: 'Producto no encontrado' },
-        { status: 404 }
+        { error: 'Producto no encontrado o no autorizado' },
+        { status: 403 }
       );
     }
 
@@ -283,15 +283,15 @@ export async function DELETE(
   try {
     const { id } = await params;
     
-    // Validate UUID format
+    // Validate UUID format - return 404 for invalid UUIDs (not found)
     if (!isValidUUID(id)) {
       return NextResponse.json(
-        { error: 'ID de producto inválido' },
-        { status: 400 }
+        { error: 'Producto no encontrado' },
+        { status: 404 }
       );
     }
     
-    // Check product exists
+    // Check product exists and belongs to tenant
     const existing = await prisma.products.findFirst({
       where: {
         id,
@@ -301,8 +301,8 @@ export async function DELETE(
 
     if (!existing) {
       return NextResponse.json(
-        { error: 'Producto no encontrado' },
-        { status: 404 }
+        { error: 'Producto no encontrado o no autorizado' },
+        { status: 403 }
       );
     }
 
