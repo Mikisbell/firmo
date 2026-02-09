@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e8]
+        - heading "Acceso al Panel de Administración" [level=2] [ref=e11]
+      - button [ref=e12]:
+        - img [ref=e13]
+    - paragraph [ref=e17]: "Roles permitidos: OWNER, ADMIN, MANAGER"
+    - generic [ref=e18]:
+      - paragraph [ref=e24]: Error de conexión
+      - generic [ref=e25]:
+        - button "1" [ref=e26]
+        - button "2" [ref=e27]
+        - button "3" [ref=e28]
+        - button "4" [ref=e29]
+        - button "5" [ref=e30]
+        - button "6" [ref=e31]
+        - button "7" [ref=e32]
+        - button "8" [ref=e33]
+        - button "9" [ref=e34]
+        - button "Borrar" [ref=e35]
+        - button "0" [ref=e36]
+        - button "⌫" [ref=e37]
+  - region "Notifications alt+T"
+  - generic [ref=e42] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e43]:
+      - img [ref=e44]
+    - generic [ref=e47]:
+      - button "Open issues overlay" [ref=e48]:
+        - generic [ref=e49]:
+          - generic [ref=e50]: "1"
+          - generic [ref=e51]: "2"
+        - generic [ref=e52]:
+          - text: Issue
+          - generic [ref=e53]: s
+      - button "Collapse issues badge" [ref=e54]:
+        - img [ref=e55]
+  - alert [ref=e57]
+```

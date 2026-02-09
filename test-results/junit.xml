@@ -1,27 +1,27 @@
-<testsuites id="" name="" tests="38" failures="19" skipped="0" errors="0" time="472.49260699999996">
-<testsuite name="multi-tenant-rls-isolation.spec.ts" timestamp="2026-02-09T05:13:56.216Z" hostname="chromium" tests="19" failures="9" skipped="0" time="203.244" errors="0">
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 employees" classname="multi-tenant-rls-isolation.spec.ts" time="20.338">
+<testsuites id="" name="" tests="38" failures="22" skipped="0" errors="0" time="410.04595400000005">
+<testsuite name="multi-tenant-rls-isolation.spec.ts" timestamp="2026-02-09T15:32:32.991Z" hostname="chromium" tests="19" failures="8" skipped="0" time="208.441" errors="0">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 employees" classname="multi-tenant-rls-isolation.spec.ts" time="20.758">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 [authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 products" classname="multi-tenant-rls-isolation.spec.ts" time="20.134">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 products" classname="multi-tenant-rls-isolation.spec.ts" time="20.249">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 [authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 orders" classname="multi-tenant-rls-isolation.spec.ts" time="11.463">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 orders" classname="multi-tenant-rls-isolation.spec.ts" time="12.682">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 [authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="11.08">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="10.863">
 <failure message="multi-tenant-rls-isolation.spec.ts:205:3 ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:205:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL 
 
@@ -60,7 +60,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="10.773">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="10.651">
 <failure message="multi-tenant-rls-isolation.spec.ts:221:3 ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:221:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL 
 
@@ -99,107 +99,72 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.461">
-<failure message="multi-tenant-rls-isolation.spec.ts:237:3 ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:237:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API 
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API" classname="multi-tenant-rls-isolation.spec.ts" time="5.028">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API" classname="multi-tenant-rls-isolation.spec.ts" time="5.234">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot create employee for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="5.099">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" classname="multi-tenant-rls-isolation.spec.ts" time="14.709">
+<failure message="multi-tenant-rls-isolation.spec.ts:286:3 ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:286:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics 
 
-    Error: expect(received).toContain(expected) // indexOf
+    Error: expect(received).not.toBe(expected) // Object.is equality
 
-    Expected value: 400
-    Received array: [403, 404, 401]
+    Expected: not "S/ 0.00"
 
-      247 |
-      248 |     // Should return 403 or 404
-    > 249 |     expect([403, 404, 401]).toContain(response.status());
-          |                             ^
-      250 |   });
-      251 |
-      252 |   test('✅ RLS: Tenant 1 cannot delete Tenant 2 product via API', async ({ page }) => {
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:249:29
+      307 |       data: {
+      308 |         name: 'Hacked Employee',
+    > 309 |         pin: '9999',
+          |                                ^
+      310 |         tenant_id: tenant2.id,
+      311 |       },
+      312 |     });
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:309:32
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\test-failed-1.png
+    ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\video.webm
+    ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ..\test-results\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\error-context.md
+    Error Context: ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\error-context.md
 ]]>
 </failure>
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
 
-[[ATTACHMENT|multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\test-failed-1.png]]
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\test-failed-1.png]]
 
-[[ATTACHMENT|multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\video.webm]]
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\video.webm]]
 
-[[ATTACHMENT|multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\error-context.md]]
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.523">
-<failure message="multi-tenant-rls-isolation.spec.ts:252:3 ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API" type="FAILURE">
-<![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:252:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API 
-
-    Error: expect(received).toContain(expected) // indexOf
-
-    Expected value: 400
-    Received array: [403, 404, 401]
-
-      258 |
-      259 |     // Should return 403 or 404
-    > 260 |     expect([403, 404, 401]).toContain(response.status());
-          |                             ^
-      261 |   });
-      262 |
-      263 |   test('✅ RLS: Tenant 1 cannot create employee for Tenant 2', async ({ page }) => {
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:260:29
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-
-[[ATTACHMENT|multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\test-failed-1.png]]
-
-[[ATTACHMENT|multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\video.webm]]
-
-[[ATTACHMENT|multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot create employee for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="4.395">
-<system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" classname="multi-tenant-rls-isolation.spec.ts" time="12.864">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 audit logs" classname="multi-tenant-rls-isolation.spec.ts" time="11.783">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 [authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 audit logs" classname="multi-tenant-rls-isolation.spec.ts" time="11.337">
-<system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
-]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 settings" classname="multi-tenant-rls-isolation.spec.ts" time="17.843">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 settings" classname="multi-tenant-rls-isolation.spec.ts" time="17.613">
 <failure message="multi-tenant-rls-isolation.spec.ts:340:3 ✅ RLS: Tenant 1 cannot view Tenant 2 settings" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:340:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 settings 
 
@@ -243,7 +208,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Cross-tenant API calls are blocked" classname="multi-tenant-rls-isolation.spec.ts" time="5.634">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Cross-tenant API calls are blocked" classname="multi-tenant-rls-isolation.spec.ts" time="4.784">
 <failure message="multi-tenant-rls-isolation.spec.ts:366:3 ✅ RLS: Cross-tenant API calls are blocked" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:366:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Cross-tenant API calls are blocked 
 
@@ -251,13 +216,13 @@
 
     Received: false
 
-      377 |       const employees = data.data || data;
-      378 |       // Should return empty array or only Tenant 1 employees
-    > 379 |       expect(Array.isArray(employees)).toBeTruthy();
+      377 |
+      378 |   test('✅ RLS: Tenant 1 cannot view Tenant 2 settings', async ({ page }) => {
+    > 379 |     // Authenticate as Tenant 1 admin
           |                                        ^
-      380 |       // If it returns data, it should be for Tenant 1
-      381 |       if (employees.length > 0) {
-      382 |         expect(employees[0].tenant_id).toBe(tenant1.id);
+      380 |     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
+      381 |
+      382 |     // Navigate to settings (Spanish route)
         at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:379:40
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -282,7 +247,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant switching clears previous tenant data" classname="multi-tenant-rls-isolation.spec.ts" time="30.25">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant switching clears previous tenant data" classname="multi-tenant-rls-isolation.spec.ts" time="30.254">
 <failure message="multi-tenant-rls-isolation.spec.ts:389:3 ✅ RLS: Tenant switching clears previous tenant data" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:389:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant switching clears previous tenant data 
 
@@ -290,13 +255,13 @@
 
     Error: locator.allTextContents: Target page, context or browser has been closed
 
-      464 |     // Get Tenant 1 employees again
-      465 |     const tenant1EmployeesAgainLocator = page.locator('[data-testid="employee-name"]');
-    > 466 |     const tenant1EmployeesAgain = await tenant1EmployeesAgainLocator.allTextContents();
+      464 |
+      465 |     // Wait for page to load with shorter timeout
+    > 466 |     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
           |                                                                      ^
       467 |
-      468 |     // Verify we're back to Tenant 1 data
-      469 |     expect(tenant1EmployeesAgain).toEqual(tenant1Employees);
+      468 |     // Try to find employee rows
+      469 |     await page.waitForSelector(employeeSelector, { timeout: 5000 }).catch(() => {
         at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:466:70
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -323,13 +288,13 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot bulk import data for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="5.197">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot bulk import data for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="5.303">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot export Tenant 2 data" classname="multi-tenant-rls-isolation.spec.ts" time="10.963">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot export Tenant 2 data" classname="multi-tenant-rls-isolation.spec.ts" time="11.545">
 <failure message="multi-tenant-rls-isolation.spec.ts:496:3 ✅ RLS: Tenant 1 cannot export Tenant 2 data" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:496:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot export Tenant 2 data 
 
@@ -338,13 +303,13 @@
     Expected value: 500
     Received array: [403, 404, 401, 400]
 
-      507 |
-      508 |     // Should fail
-    > 509 |     expect([403, 404, 401, 400]).toContain(response.status());
-          |                                  ^
-      510 |   });
-      511 |
-      512 |   test('✅ RLS: Tenant 1 cannot restore Tenant 2 backup', async ({ page }) => {
+      507 |     expect(tenant1EmployeesAgain).toEqual(tenant1Employees);
+      508 |   });
+    > 509 |
+          | ^
+      510 |   test('✅ RLS: Tenant 1 cannot bulk import data for Tenant 2', async ({ page }) => {
+      511 |     // Authenticate as Tenant 1 admin
+      512 |     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
         at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:509:34
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -369,13 +334,13 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot restore Tenant 2 backup" classname="multi-tenant-rls-isolation.spec.ts" time="4.598">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot restore Tenant 2 backup" classname="multi-tenant-rls-isolation.spec.ts" time="4.762">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration" classname="multi-tenant-rls-isolation.spec.ts" time="6.898">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration" classname="multi-tenant-rls-isolation.spec.ts" time="7.74">
 <failure message="multi-tenant-rls-isolation.spec.ts:528:3 ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration" type="FAILURE">
 <![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:528:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration 
 
@@ -384,11 +349,11 @@
     Expected value: 500
     Received array: [403, 404, 401, 400]
 
-      544 |       expect(data.tenant_id).toBe(tenant1.id);
-      545 |     } else {
-    > 546 |       expect([403, 404, 401, 400]).toContain(response.status());
-          |                                    ^
-      547 |     }
+      544 |     });
+      545 |
+    > 546 |     // Should fail
+          |                             ^
+      547 |     expect([403, 404, 401, 400]).toContain(response.status());
       548 |   });
       549 |
         at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:546:36
@@ -415,28 +380,28 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="5.339">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="4.462">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="5.154">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="4.922">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 ]]>
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="multi-tenant-rls-isolation.spec.ts" timestamp="2026-02-09T05:13:56.216Z" hostname="mobile" tests="19" failures="10" skipped="0" time="223.857" errors="0">
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 employees" classname="multi-tenant-rls-isolation.spec.ts" time="20.213">
+<testsuite name="multi-tenant-rls-isolation.spec.ts" timestamp="2026-02-09T15:32:32.991Z" hostname="mobile" tests="19" failures="14" skipped="0" time="138.992" errors="0">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 employees" classname="multi-tenant-rls-isolation.spec.ts" time="20.298">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 [authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 products" classname="multi-tenant-rls-isolation.spec.ts" time="30.42">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 products" classname="multi-tenant-rls-isolation.spec.ts" time="30.345">
 <failure message="multi-tenant-rls-isolation.spec.ts:102:3 ✅ RLS: Tenant 1 cannot see Tenant 2 products" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:102:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 products 
 
@@ -504,14 +469,14 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 orders" classname="multi-tenant-rls-isolation.spec.ts" time="11.867">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 orders" classname="multi-tenant-rls-isolation.spec.ts" time="12.393">
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 [authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="9.892">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="11.101">
 <failure message="multi-tenant-rls-isolation.spec.ts:205:3 ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:205:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL 
 
@@ -519,13 +484,13 @@
 
     Received: false
 
-      216 |
-      217 |     const hasError = await isError.isVisible().catch(() => false);
-    > 218 |     expect(hasError || isRedirected).toBeTruthy();
-          |                                      ^
-      219 |   });
-      220 |
-      221 |   test('✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL', async ({ page }) => {
+      216 |     // Check for error messages (Spanish or English)
+      217 |     const errorMessages = [
+    > 218 |       'Error',
+          |                                   ^
+      219 |       'no encontrado',
+      220 |       'Not Found',
+      221 |       '404',
         at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:218:38
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -550,7 +515,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="10.161">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="10.481">
 <failure message="multi-tenant-rls-isolation.spec.ts:221:3 ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:221:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL 
 
@@ -558,13 +523,13 @@
 
     Received: false
 
-      232 |
-      233 |     const hasError = await isError.isVisible().catch(() => false);
-    > 234 |     expect(hasError || isRedirected).toBeTruthy();
-          |                                      ^
-      235 |   });
+      232 |         hasError = true;
+      233 |         break;
+    > 234 |       }
+          |        ^
+      235 |     }
       236 |
-      237 |   test('✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API', async ({ page }) => {
+      237 |     expect(hasError || isRedirected).toBeTruthy();
         at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:234:38
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -589,144 +554,87 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.971">
-<failure message="multi-tenant-rls-isolation.spec.ts:237:3 ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:237:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API 
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.524">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.605">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot create employee for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="5.07">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" classname="multi-tenant-rls-isolation.spec.ts" time="12.036">
+<failure message="multi-tenant-rls-isolation.spec.ts:286:3 ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:286:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics 
 
-    Error: expect(received).toContain(expected) // indexOf
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/admin/**" until "load"
+    ============================================================
 
-    Expected value: 400
-    Received array: [403, 404, 401]
+       at helpers\test-utils.ts:336
 
-      247 |
-      248 |     // Should return 403 or 404
-    > 249 |     expect([403, 404, 401]).toContain(response.status());
-          |                             ^
-      250 |   });
-      251 |
-      252 |   test('✅ RLS: Tenant 1 cannot delete Tenant 2 product via API', async ({ page }) => {
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:249:29
+      334 |     
+      335 |     // Wait for authentication to complete and redirect
+    > 336 |     await page.waitForURL('**/admin/**', { timeout: 10000 });
+          |                ^
+      337 |     
+      338 |     // Wait for admin panel to load
+      339 |     await page.waitForLoadState('networkidle');
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:336:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:288:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\test-failed-1.png
+    ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\video.webm
+    ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ..\test-results\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\error-context.md
+    Error Context: ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
 <![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
 
-[[ATTACHMENT|multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\test-failed-1.png]]
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\test-failed-1.png]]
 
-[[ATTACHMENT|multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\video.webm]]
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\video.webm]]
 
-[[ATTACHMENT|multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\error-context.md]]
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.712">
-<failure message="multi-tenant-rls-isolation.spec.ts:252:3 ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API" type="FAILURE">
-<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:252:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API 
-
-    Error: expect(received).toContain(expected) // indexOf
-
-    Expected value: 400
-    Received array: [403, 404, 401]
-
-      258 |
-      259 |     // Should return 403 or 404
-    > 260 |     expect([403, 404, 401]).toContain(response.status());
-          |                             ^
-      261 |   });
-      262 |
-      263 |   test('✅ RLS: Tenant 1 cannot create employee for Tenant 2', async ({ page }) => {
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:260:29
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ..\test-results\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-
-[[ATTACHMENT|multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\test-failed-1.png]]
-
-[[ATTACHMENT|multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot create employee for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="4.305">
-<system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" classname="multi-tenant-rls-isolation.spec.ts" time="12.173">
-<system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
-]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 audit logs" classname="multi-tenant-rls-isolation.spec.ts" time="30.272">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 audit logs" classname="multi-tenant-rls-isolation.spec.ts" time="2.814">
 <failure message="multi-tenant-rls-isolation.spec.ts:312:3 ✅ RLS: Tenant 1 cannot view Tenant 2 audit logs" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:312:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 audit logs 
 
-    Test timeout of 30000ms exceeded.
-
-    Error: page.click: Test timeout of 30000ms exceeded.
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
     Call log:
-      - waiting for locator('button:has-text("Cerrar Sesión")')
-        - locator resolved to <button class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors min-h-[44px]">…</button>
-      - attempting click action
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="fixed inset-0 z-40"></div> intercepts pointer events
-        - retrying click action
-        - waiting 20ms
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="fixed inset-0 z-40"></div> intercepts pointer events
-        - retrying click action
-          - waiting 100ms
-        46 × waiting for element to be visible, enabled and stable
-           - element is visible, enabled and stable
-           - scrolling into view if needed
-           - done scrolling
-           - <div class="fixed inset-0 z-40"></div> intercepts pointer events
-         - retrying click action
-           - waiting 500ms
+      - navigating to "http://localhost:3000/admin", waiting until "load"
 
 
-       at helpers\test-utils.ts:355
+       at helpers\test-utils.ts:315
 
-      353 |     
-      354 |     // Click logout button
-    > 355 |     await page.click('button:has-text("Cerrar Sesión")');
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
           |                ^
-      356 |     
-      357 |     // Wait for logout to complete
-      358 |     await page.waitForTimeout(1000);
-        at logoutFromAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:355:16)
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:323:5
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:314:11
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\test-failed-1.png
@@ -735,37 +643,36 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-
+<![CDATA[
 [[ATTACHMENT|multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 settings" classname="multi-tenant-rls-isolation.spec.ts" time="14.334">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 settings" classname="multi-tenant-rls-isolation.spec.ts" time="2.826">
 <failure message="multi-tenant-rls-isolation.spec.ts:340:3 ✅ RLS: Tenant 1 cannot view Tenant 2 settings" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:340:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 settings 
 
-    Error: expect(received).not.toBe(expected) // Object.is equality
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
 
-    Expected: not ""
 
-      361 |
-      362 |     // Verify they are different
-    > 363 |     expect(tenant1Name).not.toBe(tenant2Name);
-          |                             ^
-      364 |   });
-      365 |
-      366 |   test('✅ RLS: Cross-tenant API calls are blocked', async ({ page }) => {
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:363:29
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:342:11
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\test-failed-1.png
@@ -774,38 +681,36 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
-
+<![CDATA[
 [[ATTACHMENT|multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\video.webm]]
-
-[[ATTACHMENT|multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Cross-tenant API calls are blocked" classname="multi-tenant-rls-isolation.spec.ts" time="5.366">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Cross-tenant API calls are blocked" classname="multi-tenant-rls-isolation.spec.ts" time="2.768">
 <failure message="multi-tenant-rls-isolation.spec.ts:366:3 ✅ RLS: Cross-tenant API calls are blocked" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:366:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Cross-tenant API calls are blocked 
 
-    Error: expect(received).toBeTruthy()
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
 
-    Received: false
 
-      377 |       const employees = data.data || data;
-      378 |       // Should return empty array or only Tenant 1 employees
-    > 379 |       expect(Array.isArray(employees)).toBeTruthy();
-          |                                        ^
-      380 |       // If it returns data, it should be for Tenant 1
-      381 |       if (employees.length > 0) {
-      382 |         expect(employees[0].tenant_id).toBe(tenant1.id);
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:379:40
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:368:11
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\test-failed-1.png
@@ -814,52 +719,112 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-
+<![CDATA[
 [[ATTACHMENT|multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant switching clears previous tenant data" classname="multi-tenant-rls-isolation.spec.ts" time="2.856">
+<failure message="multi-tenant-rls-isolation.spec.ts:389:3 ✅ RLS: Tenant switching clears previous tenant data" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:389:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant switching clears previous tenant data 
 
-[[ATTACHMENT|multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\error-context.md]]
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
+
+
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:391:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-f8d5e-clears-previous-tenant-data-mobile\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-f8d5e-clears-previous-tenant-data-mobile\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
 ]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant switching clears previous tenant data" classname="multi-tenant-rls-isolation.spec.ts" time="30.205">
+</failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
-[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+<![CDATA[
+[[ATTACHMENT|multi-tenant-rls-isolation-f8d5e-clears-previous-tenant-data-mobile\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-rls-isolation-f8d5e-clears-previous-tenant-data-mobile\video.webm]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot bulk import data for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="4.624">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot bulk import data for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="2.808">
+<failure message="multi-tenant-rls-isolation.spec.ts:472:3 ✅ RLS: Tenant 1 cannot bulk import data for Tenant 2" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:472:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot bulk import data for Tenant 2 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
+
+
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:474:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-59d2e-lk-import-data-for-Tenant-2-mobile\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-59d2e-lk-import-data-for-Tenant-2-mobile\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+<![CDATA[
+[[ATTACHMENT|multi-tenant-rls-isolation-59d2e-lk-import-data-for-Tenant-2-mobile\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-rls-isolation-59d2e-lk-import-data-for-Tenant-2-mobile\video.webm]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot export Tenant 2 data" classname="multi-tenant-rls-isolation.spec.ts" time="10.716">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot export Tenant 2 data" classname="multi-tenant-rls-isolation.spec.ts" time="2.834">
 <failure message="multi-tenant-rls-isolation.spec.ts:496:3 ✅ RLS: Tenant 1 cannot export Tenant 2 data" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:496:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot export Tenant 2 data 
 
-    Error: expect(received).toContain(expected) // indexOf
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
 
-    Expected value: 500
-    Received array: [403, 404, 401, 400]
 
-      507 |
-      508 |     // Should fail
-    > 509 |     expect([403, 404, 401, 400]).toContain(response.status());
-          |                                  ^
-      510 |   });
-      511 |
-      512 |   test('✅ RLS: Tenant 1 cannot restore Tenant 2 backup', async ({ page }) => {
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:509:34
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:498:11
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\test-failed-1.png
@@ -868,44 +833,74 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-
+<![CDATA[
 [[ATTACHMENT|multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot restore Tenant 2 backup" classname="multi-tenant-rls-isolation.spec.ts" time="2.814">
+<failure message="multi-tenant-rls-isolation.spec.ts:512:3 ✅ RLS: Tenant 1 cannot restore Tenant 2 backup" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:512:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot restore Tenant 2 backup 
 
-[[ATTACHMENT|multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\error-context.md]]
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
+
+
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:514:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-f600f-not-restore-Tenant-2-backup-mobile\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-f600f-not-restore-Tenant-2-backup-mobile\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
 ]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot restore Tenant 2 backup" classname="multi-tenant-rls-isolation.spec.ts" time="4.654">
+</failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+<![CDATA[
+[[ATTACHMENT|multi-tenant-rls-isolation-f600f-not-restore-Tenant-2-backup-mobile\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-rls-isolation-f600f-not-restore-Tenant-2-backup-mobile\video.webm]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration" classname="multi-tenant-rls-isolation.spec.ts" time="6.095">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration" classname="multi-tenant-rls-isolation.spec.ts" time="2.818">
 <failure message="multi-tenant-rls-isolation.spec.ts:528:3 ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration" type="FAILURE">
 <![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:528:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration 
 
-    Error: expect(received).toContain(expected) // indexOf
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
 
-    Expected value: 500
-    Received array: [403, 404, 401, 400]
 
-      544 |       expect(data.tenant_id).toBe(tenant1.id);
-      545 |     } else {
-    > 546 |       expect([403, 404, 401, 400]).toContain(response.status());
-          |                                    ^
-      547 |     }
-      548 |   });
-      549 |
-        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:546:36
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:530:11
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\test-failed-1.png
@@ -914,30 +909,89 @@
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\test-results\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\error-context.md
 ]]>
 </failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
-
+<![CDATA[
 [[ATTACHMENT|multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\test-failed-1.png]]
 
 [[ATTACHMENT|multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="2.811">
+<failure message="multi-tenant-rls-isolation.spec.ts:550:3 ✅ RLS: Tenant 1 cannot view Tenant 2 quotas" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:550:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 quotas 
 
-[[ATTACHMENT|multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\error-context.md]]
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
+
+
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:552:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-001e1-cannot-view-Tenant-2-quotas-mobile\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-001e1-cannot-view-Tenant-2-quotas-mobile\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-rls-isolation-001e1-cannot-view-Tenant-2-quotas-mobile\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-rls-isolation-001e1-cannot-view-Tenant-2-quotas-mobile\video.webm]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="4.384">
-<system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="2.79">
+<failure message="multi-tenant-rls-isolation.spec.ts:570:3 ✅ RLS: Tenant 1 cannot modify Tenant 2 quotas" type="FAILURE">
+<![CDATA[  [mobile] › multi-tenant-rls-isolation.spec.ts:570:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 quotas 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin
+    Call log:
+      - navigating to "http://localhost:3000/admin", waiting until "load"
+
+
+       at helpers\test-utils.ts:315
+
+      313 | export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
+      314 |     // Navigate to admin panel
+    > 315 |     await page.goto('http://localhost:3000/admin');
+          |                ^
+      316 |     
+      317 |     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
+      318 |     // This will be read by PinModal and sent to the auth API
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:315:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:572:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-c3c3b-nnot-modify-Tenant-2-quotas-mobile\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-c3c3b-nnot-modify-Tenant-2-quotas-mobile\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
 ]]>
-</system-out>
-</testcase>
-<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="4.493">
+</failure>
 <system-out>
-<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+<![CDATA[
+[[ATTACHMENT|multi-tenant-rls-isolation-c3c3b-nnot-modify-Tenant-2-quotas-mobile\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-rls-isolation-c3c3b-nnot-modify-Tenant-2-quotas-mobile\video.webm]]
 ]]>
 </system-out>
 </testcase>

@@ -1,0 +1,208 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T"
+    - complementary [ref=e3]:
+      - 'link "Pollería Test 2 S.A.C. RUC: 20123456782" [ref=e5] [cursor=pointer]':
+        - /url: /admin
+        - img [ref=e7]
+        - generic [ref=e11]:
+          - generic [ref=e12]: Pollería Test 2 S.A.C.
+          - generic [ref=e13]: "RUC: 20123456782"
+      - navigation [ref=e14]:
+        - link "Dashboard" [ref=e16] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e17]
+          - generic [ref=e22]: Dashboard
+        - link "Productos" [ref=e24] [cursor=pointer]:
+          - /url: /admin/productos
+          - img [ref=e25]
+          - generic [ref=e29]: Productos
+        - link "Mesas" [ref=e31] [cursor=pointer]:
+          - /url: /admin/mesas
+          - img [ref=e32]
+          - generic [ref=e34]: Mesas
+        - link "Empleados" [ref=e36] [cursor=pointer]:
+          - /url: /admin/empleados
+          - img [ref=e37]
+          - generic [ref=e42]: Empleados
+        - link "Terminales" [ref=e44] [cursor=pointer]:
+          - /url: /admin/terminales
+          - img [ref=e45]
+          - generic [ref=e47]: Terminales
+        - link "Auditoría" [ref=e49] [cursor=pointer]:
+          - /url: /admin/auditoria
+          - img [ref=e50]
+          - generic [ref=e52]: Auditoría
+        - link "Promociones" [ref=e54] [cursor=pointer]:
+          - /url: /admin/promociones
+          - img [ref=e55]
+          - generic [ref=e59]: Promociones
+        - link "Estaciones KDS" [ref=e61] [cursor=pointer]:
+          - /url: /admin/estaciones
+          - img [ref=e62]
+          - generic [ref=e64]: Estaciones KDS
+        - link "Delivery" [ref=e66] [cursor=pointer]:
+          - /url: /admin/delivery
+          - img [ref=e67]
+          - generic [ref=e72]: Delivery
+        - link "Motorizados" [ref=e74] [cursor=pointer]:
+          - /url: /admin/drivers
+          - img [ref=e75]
+          - generic [ref=e80]: Motorizados
+        - link "Inventario" [ref=e82] [cursor=pointer]:
+          - /url: /inventario
+          - img [ref=e83]
+          - generic [ref=e86]: Inventario
+        - link "Monitoreo" [ref=e88] [cursor=pointer]:
+          - /url: /admin/monitoring
+          - img [ref=e89]
+          - generic [ref=e91]: Monitoreo
+        - link "Configuración" [ref=e93] [cursor=pointer]:
+          - /url: /admin/configuracion
+          - img [ref=e94]
+          - generic [ref=e97]: Configuración
+        - link "Reportes" [ref=e99] [cursor=pointer]:
+          - /url: /admin/reportes
+          - img [ref=e100]
+          - generic [ref=e102]: Reportes
+      - paragraph [ref=e104]: Panel de Administración
+    - generic [ref=e105]:
+      - banner [ref=e106]:
+        - generic [ref=e107]:
+          - img [ref=e109]
+          - generic [ref=e113]:
+            - heading "Pollería Test 2 S.A.C." [level=1] [ref=e114]
+            - paragraph [ref=e115]: "RUC: 20123456782"
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - img [ref=e118]
+            - generic [ref=e122]: Conectado
+          - button "Notificaciones (próximamente)" [disabled] [ref=e123]:
+            - img [ref=e124]
+          - button "Admin Tenant 2 ADMIN" [ref=e128]:
+            - img [ref=e130]
+            - generic [ref=e133]:
+              - paragraph [ref=e134]: Admin Tenant 2
+              - paragraph [ref=e135]: ADMIN
+            - img [ref=e136]
+      - main [ref=e138]:
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - generic [ref=e141]:
+              - heading "Analytics Dashboard" [level=1] [ref=e142]
+              - paragraph [ref=e143]: Métricas en tiempo real • 2026-02-09
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - img [ref=e146]
+                - textbox [ref=e148]: 2026-02-09
+              - button "Actualizar" [ref=e149]:
+                - img [ref=e150]
+                - text: Actualizar
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - img [ref=e159]
+                - generic [ref=e161]:
+                  - img [ref=e162]
+                  - text: +0.0%
+              - paragraph [ref=e165]: S/ 0.00
+              - paragraph [ref=e166]: Ventas del Turno
+            - generic [ref=e167]:
+              - generic [ref=e168]:
+                - img [ref=e170]
+                - generic [ref=e174]:
+                  - img [ref=e175]
+                  - text: +0.0%
+              - paragraph [ref=e178]: "0"
+              - paragraph [ref=e179]: Órdenes
+            - generic [ref=e180]:
+              - generic [ref=e181]:
+                - img [ref=e183]
+                - generic [ref=e186]:
+                  - img [ref=e187]
+                  - text: +0.0%
+              - paragraph [ref=e190]: S/ 0.00
+              - paragraph [ref=e191]: Ticket Promedio
+            - generic [ref=e192]:
+              - img [ref=e195]
+              - paragraph [ref=e200]: 0 / 0
+              - paragraph [ref=e201]: Mesas Ocupadas
+          - generic [ref=e202]:
+            - generic [ref=e203]:
+              - heading "Estaciones KDS" [level=2] [ref=e204]:
+                - img [ref=e205]
+                - text: Estaciones KDS
+              - generic [ref=e207]:
+                - generic [ref=e208]:
+                  - generic [ref=e209]:
+                    - img [ref=e211]
+                    - generic [ref=e213]:
+                      - paragraph [ref=e214]: COCINA
+                      - paragraph [ref=e215]: Sin datos de tiempo
+                  - generic [ref=e216]:
+                    - paragraph [ref=e217]: "0"
+                    - paragraph [ref=e218]: pendientes
+                - generic [ref=e219]:
+                  - generic [ref=e220]:
+                    - img [ref=e222]
+                    - generic [ref=e224]:
+                      - paragraph [ref=e225]: HORNO
+                      - paragraph [ref=e226]: Sin datos de tiempo
+                  - generic [ref=e227]:
+                    - paragraph [ref=e228]: "0"
+                    - paragraph [ref=e229]: pendientes
+                - generic [ref=e230]:
+                  - generic [ref=e231]:
+                    - img [ref=e233]
+                    - generic [ref=e235]:
+                      - paragraph [ref=e236]: BAR
+                      - paragraph [ref=e237]: Sin datos de tiempo
+                  - generic [ref=e238]:
+                    - paragraph [ref=e239]: "0"
+                    - paragraph [ref=e240]: pendientes
+            - generic [ref=e241]:
+              - heading "Top 5 Productos" [level=2] [ref=e242]
+              - generic [ref=e244]:
+                - img [ref=e245]
+                - paragraph [ref=e249]: Sin ventas registradas
+                - paragraph [ref=e250]: Los productos más vendidos aparecerán aquí
+          - generic [ref=e251]:
+            - heading "Ventas por Método de Pago" [level=2] [ref=e252]
+            - generic [ref=e253]:
+              - generic [ref=e254]:
+                - paragraph [ref=e255]: S/ 0.00
+                - paragraph [ref=e256]: CASH
+              - generic [ref=e257]:
+                - paragraph [ref=e258]: S/ 0.00
+                - paragraph [ref=e259]: YAPE
+              - generic [ref=e260]:
+                - paragraph [ref=e261]: S/ 0.00
+                - paragraph [ref=e262]: PLIN
+              - generic [ref=e263]:
+                - paragraph [ref=e264]: S/ 0.00
+                - paragraph [ref=e265]: CARD
+              - generic [ref=e266]:
+                - paragraph [ref=e267]: S/ 0.00
+                - paragraph [ref=e268]: TRANSFER
+          - generic [ref=e269]:
+            - heading "Ventas por Hora" [level=2] [ref=e270]:
+              - img [ref=e271]
+              - text: Ventas por Hora
+            - generic [ref=e274]:
+              - img [ref=e275]
+              - paragraph [ref=e278]: Sin datos de ventas por hora
+              - paragraph [ref=e279]: El gráfico se poblará conforme se registren ventas
+          - paragraph [ref=e280]: "Última actualización: 10:34:25 AM"
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e286] [cursor=pointer]:
+    - generic [ref=e289]:
+      - text: Compiling
+      - generic [ref=e290]:
+        - generic [ref=e291]: .
+        - generic [ref=e292]: .
+        - generic [ref=e293]: .
+  - alert [ref=e294]
+```

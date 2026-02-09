@@ -114,7 +114,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 20338,
+                      "duration": 20758,
                       "errors": [],
                       "stdout": [
                         {
@@ -126,7 +126,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:13:58.076Z",
+                      "startTime": "2026-02-09T15:32:34.850Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -155,7 +155,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 20134,
+                      "duration": 20249,
                       "errors": [],
                       "stdout": [
                         {
@@ -167,7 +167,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:14:18.555Z",
+                      "startTime": "2026-02-09T15:32:55.842Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -196,7 +196,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 11463,
+                      "duration": 12682,
                       "errors": [],
                       "stdout": [
                         {
@@ -208,7 +208,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:14:38.701Z",
+                      "startTime": "2026-02-09T15:33:16.112Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -237,7 +237,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 11080,
+                      "duration": 10863,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:218:38",
@@ -265,7 +265,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:14:50.176Z",
+                      "startTime": "2026-02-09T15:33:28.811Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -315,7 +315,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 10773,
+                      "duration": 10651,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:234:38",
@@ -343,7 +343,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:15:03.049Z",
+                      "startTime": "2026-02-09T15:33:41.963Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -379,7 +379,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -392,28 +392,9 @@
                     {
                       "workerIndex": 2,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 4461,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:249:29",
-                        "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 29,
-                          "line": 249
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 247 |\u001b[39m\n \u001b[90m 248 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 249 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 250 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 251 |\u001b[39m\n \u001b[90m 252 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 29,
-                            "line": 249
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 247 |\u001b[39m\n \u001b[90m 248 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 249 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 250 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 251 |\u001b[39m\n \u001b[90m 252 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:249:29\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 5028,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
@@ -421,33 +402,12 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:15:15.692Z",
+                      "startTime": "2026-02-09T15:33:55.836Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 29,
-                        "line": 249
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "a93df9727312381a518f-e3554e8fb0dd79f74e86",
@@ -457,7 +417,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot delete Tenant 2 product via API",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -468,30 +428,11 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
+                      "workerIndex": 2,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 4523,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:260:29",
-                        "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 29,
-                          "line": 260
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 258 |\u001b[39m\n \u001b[90m 259 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 260 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 261 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 262 |\u001b[39m\n \u001b[90m 263 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 29,
-                            "line": 260
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 258 |\u001b[39m\n \u001b[90m 259 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 260 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 261 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 262 |\u001b[39m\n \u001b[90m 263 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:260:29\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 5234,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
@@ -499,33 +440,12 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:15:22.046Z",
+                      "startTime": "2026-02-09T15:34:01.063Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 29,
-                        "line": 260
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "a93df9727312381a518f-3d2702245cd731963a60",
@@ -546,10 +466,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4395,
+                      "duration": 5099,
                       "errors": [],
                       "stdout": [
                         {
@@ -558,7 +478,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:15:28.476Z",
+                      "startTime": "2026-02-09T15:34:06.326Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -573,7 +493,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot view Tenant 2 analytics",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -584,11 +504,30 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 2,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 12864,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 14709,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"S/ 0.00\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"S/ 0.00\"\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:309:32",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                          "column": 32,
+                          "line": 309
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 307 |\u001b[39m       data\u001b[33m:\u001b[39m {\n \u001b[90m 308 |\u001b[39m         name\u001b[33m:\u001b[39m \u001b[32m'Hacked Employee'\u001b[39m\u001b[33m,\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 309 |\u001b[39m         pin\u001b[33m:\u001b[39m \u001b[32m'9999'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 310 |\u001b[39m         tenant_id\u001b[33m:\u001b[39m tenant2\u001b[33m.\u001b[39mid\u001b[33m,\u001b[39m\n \u001b[90m 311 |\u001b[39m       }\u001b[33m,\u001b[39m\n \u001b[90m 312 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                            "column": 32,
+                            "line": 309
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"S/ 0.00\"\u001b[39m\n\n\u001b[0m \u001b[90m 307 |\u001b[39m       data\u001b[33m:\u001b[39m {\n \u001b[90m 308 |\u001b[39m         name\u001b[33m:\u001b[39m \u001b[32m'Hacked Employee'\u001b[39m\u001b[33m,\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 309 |\u001b[39m         pin\u001b[33m:\u001b[39m \u001b[32m'9999'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 310 |\u001b[39m         tenant_id\u001b[33m:\u001b[39m tenant2\u001b[33m.\u001b[39mid\u001b[33m,\u001b[39m\n \u001b[90m 311 |\u001b[39m       }\u001b[33m,\u001b[39m\n \u001b[90m 312 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:309:32\u001b[22m"
+                        }
+                      ],
                       "stdout": [
                         {
                           "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
@@ -599,12 +538,33 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:15:32.996Z",
+                      "startTime": "2026-02-09T15:34:11.445Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
+                        "column": 32,
+                        "line": 309
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "a93df9727312381a518f-751314a92500c2a68fec",
@@ -625,10 +585,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 3,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 11337,
+                      "duration": 11783,
                       "errors": [],
                       "stdout": [
                         {
@@ -640,7 +600,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:15:45.877Z",
+                      "startTime": "2026-02-09T15:34:29.008Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -666,10 +626,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 3,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 17843,
+                      "duration": 17613,
                       "error": {
                         "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"pin-pad\"]') to be visible\u001b[22m\n",
                         "stack": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"pin-pad\"]') to be visible\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:327:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:354:5",
@@ -700,7 +660,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:15:57.228Z",
+                      "startTime": "2026-02-09T15:34:40.935Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -747,10 +707,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
+                      "workerIndex": 4,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 5634,
+                      "duration": 4784,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:379:40",
@@ -759,7 +719,7 @@
                           "column": 40,
                           "line": 379
                         },
-                        "snippet": "\u001b[0m \u001b[90m 377 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 378 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 379 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 380 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 381 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 382 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 377 |\u001b[39m\n \u001b[90m 378 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot view Tenant 2 settings'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 379 |\u001b[39m     \u001b[90m// Authenticate as Tenant 1 admin\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 380 |\u001b[39m     \u001b[36mawait\u001b[39m authenticateAsAdmin(page\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39madminPin\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 381 |\u001b[39m\n \u001b[90m 382 |\u001b[39m     \u001b[90m// Navigate to settings (Spanish route)\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
@@ -768,7 +728,7 @@
                             "column": 40,
                             "line": 379
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 377 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 378 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 379 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 380 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 381 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 382 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:379:40\u001b[22m"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 377 |\u001b[39m\n \u001b[90m 378 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot view Tenant 2 settings'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 379 |\u001b[39m     \u001b[90m// Authenticate as Tenant 1 admin\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 380 |\u001b[39m     \u001b[36mawait\u001b[39m authenticateAsAdmin(page\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39madminPin\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 381 |\u001b[39m\n \u001b[90m 382 |\u001b[39m     \u001b[90m// Navigate to settings (Spanish route)\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:379:40\u001b[22m"
                         }
                       ],
                       "stdout": [
@@ -778,7 +738,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:16:16.961Z",
+                      "startTime": "2026-02-09T15:35:00.763Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -825,10 +785,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 6,
+                      "workerIndex": 5,
                       "parallelIndex": 0,
                       "status": "timedOut",
-                      "duration": 30250,
+                      "duration": 30254,
                       "error": {
                         "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                         "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -843,7 +803,7 @@
                             "column": 70,
                             "line": 466
                           },
-                          "message": "Error: locator.allTextContents: Target page, context or browser has been closed\n\n\u001b[0m \u001b[90m 464 |\u001b[39m     \u001b[90m// Get Tenant 1 employees again\u001b[39m\n \u001b[90m 465 |\u001b[39m     \u001b[36mconst\u001b[39m tenant1EmployeesAgainLocator \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"employee-name\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 466 |\u001b[39m     \u001b[36mconst\u001b[39m tenant1EmployeesAgain \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m tenant1EmployeesAgainLocator\u001b[33m.\u001b[39mallTextContents()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 467 |\u001b[39m\n \u001b[90m 468 |\u001b[39m     \u001b[90m// Verify we're back to Tenant 1 data\u001b[39m\n \u001b[90m 469 |\u001b[39m     expect(tenant1EmployeesAgain)\u001b[33m.\u001b[39mtoEqual(tenant1Employees)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:466:70\u001b[22m"
+                          "message": "Error: locator.allTextContents: Target page, context or browser has been closed\n\n\u001b[0m \u001b[90m 464 |\u001b[39m\n \u001b[90m 465 |\u001b[39m     \u001b[90m// Wait for page to load with shorter timeout\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 466 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m'networkidle'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m {})\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 467 |\u001b[39m\n \u001b[90m 468 |\u001b[39m     \u001b[90m// Try to find employee rows\u001b[39m\n \u001b[90m 469 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForSelector(employeeSelector\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:466:70\u001b[22m"
                         }
                       ],
                       "stdout": [
@@ -859,7 +819,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:16:24.434Z",
+                      "startTime": "2026-02-09T15:35:08.178Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -901,10 +861,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 7,
+                      "workerIndex": 6,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5197,
+                      "duration": 5303,
                       "errors": [],
                       "stdout": [
                         {
@@ -913,7 +873,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:16:56.823Z",
+                      "startTime": "2026-02-09T15:35:40.753Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -939,10 +899,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 7,
+                      "workerIndex": 6,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 10963,
+                      "duration": 11545,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:509:34",
@@ -951,7 +911,7 @@
                           "column": 34,
                           "line": 509
                         },
-                        "snippet": "\u001b[0m \u001b[90m 507 |\u001b[39m\n \u001b[90m 508 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 509 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 510 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 511 |\u001b[39m\n \u001b[90m 512 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 507 |\u001b[39m     expect(tenant1EmployeesAgain)\u001b[33m.\u001b[39mtoEqual(tenant1Employees)\u001b[33m;\u001b[39m\n \u001b[90m 508 |\u001b[39m   })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 509 |\u001b[39m\n \u001b[90m     |\u001b[39m \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 510 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot bulk import data for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 511 |\u001b[39m     \u001b[90m// Authenticate as Tenant 1 admin\u001b[39m\n \u001b[90m 512 |\u001b[39m     \u001b[36mawait\u001b[39m authenticateAsAdmin(page\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39madminPin\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
@@ -960,7 +920,7 @@
                             "column": 34,
                             "line": 509
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 507 |\u001b[39m\n \u001b[90m 508 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 509 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 510 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 511 |\u001b[39m\n \u001b[90m 512 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:509:34\u001b[22m"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 507 |\u001b[39m     expect(tenant1EmployeesAgain)\u001b[33m.\u001b[39mtoEqual(tenant1Employees)\u001b[33m;\u001b[39m\n \u001b[90m 508 |\u001b[39m   })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 509 |\u001b[39m\n \u001b[90m     |\u001b[39m \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 510 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot bulk import data for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 511 |\u001b[39m     \u001b[90m// Authenticate as Tenant 1 admin\u001b[39m\n \u001b[90m 512 |\u001b[39m     \u001b[36mawait\u001b[39m authenticateAsAdmin(page\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39madminPin\u001b[33m,\u001b[39m tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:509:34\u001b[22m"
                         }
                       ],
                       "stdout": [
@@ -970,7 +930,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:17:02.169Z",
+                      "startTime": "2026-02-09T15:35:46.198Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1017,10 +977,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 8,
+                      "workerIndex": 7,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4598,
+                      "duration": 4762,
                       "errors": [],
                       "stdout": [
                         {
@@ -1029,7 +989,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:17:14.884Z",
+                      "startTime": "2026-02-09T15:35:59.800Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1055,10 +1015,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 8,
+                      "workerIndex": 7,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6898,
+                      "duration": 7740,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:546:36",
@@ -1067,7 +1027,7 @@
                           "column": 36,
                           "line": 546
                         },
-                        "snippet": "\u001b[0m \u001b[90m 544 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 545 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 546 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 547 |\u001b[39m     }\n \u001b[90m 548 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 549 |\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 544 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 545 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 546 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 547 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m 548 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 549 |\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
@@ -1076,7 +1036,7 @@
                             "column": 36,
                             "line": 546
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 544 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 545 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 546 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 547 |\u001b[39m     }\n \u001b[90m 548 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 549 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:546:36\u001b[22m"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 544 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 545 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 546 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 547 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m 548 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 549 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:546:36\u001b[22m"
                         }
                       ],
                       "stdout": [
@@ -1086,7 +1046,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:17:19.617Z",
+                      "startTime": "2026-02-09T15:36:04.718Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1133,10 +1093,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 9,
+                      "workerIndex": 8,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5339,
+                      "duration": 4462,
                       "errors": [],
                       "stdout": [
                         {
@@ -1145,7 +1105,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:17:29.028Z",
+                      "startTime": "2026-02-09T15:36:14.437Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1171,10 +1131,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 9,
+                      "workerIndex": 8,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5154,
+                      "duration": 4922,
                       "errors": [],
                       "stdout": [
                         {
@@ -1183,7 +1143,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:17:34.540Z",
+                      "startTime": "2026-02-09T15:36:19.030Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1209,10 +1169,10 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 10,
+                      "workerIndex": 9,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 20213,
+                      "duration": 20298,
                       "errors": [],
                       "stdout": [
                         {
@@ -1224,7 +1184,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:17:41.959Z",
+                      "startTime": "2026-02-09T15:36:26.218Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1250,10 +1210,10 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 10,
+                      "workerIndex": 9,
                       "parallelIndex": 0,
                       "status": "timedOut",
-                      "duration": 30420,
+                      "duration": 30345,
                       "error": {
                         "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                         "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -1278,7 +1238,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:18:02.299Z",
+                      "startTime": "2026-02-09T15:36:46.670Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1320,10 +1280,10 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 11,
+                      "workerIndex": 10,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 11867,
+                      "duration": 12393,
                       "errors": [],
                       "stdout": [
                         {
@@ -1335,7 +1295,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:18:34.731Z",
+                      "startTime": "2026-02-09T15:37:19.916Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1361,10 +1321,10 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 11,
+                      "workerIndex": 10,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 9892,
+                      "duration": 11101,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:218:38",
@@ -1373,7 +1333,7 @@
                           "column": 38,
                           "line": 218
                         },
-                        "snippet": "\u001b[0m \u001b[90m 216 |\u001b[39m\n \u001b[90m 217 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 218 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 219 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 216 |\u001b[39m     \u001b[90m// Check for error messages (Spanish or English)\u001b[39m\n \u001b[90m 217 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessages \u001b[33m=\u001b[39m [\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 218 |\u001b[39m       \u001b[32m'Error'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m     |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 219 |\u001b[39m       \u001b[32m'no encontrado'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 220 |\u001b[39m       \u001b[32m'Not Found'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 221 |\u001b[39m       \u001b[32m'404'\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
@@ -1382,7 +1342,7 @@
                             "column": 38,
                             "line": 218
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 216 |\u001b[39m\n \u001b[90m 217 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 218 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 219 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:218:38\u001b[22m"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 216 |\u001b[39m     \u001b[90m// Check for error messages (Spanish or English)\u001b[39m\n \u001b[90m 217 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessages \u001b[33m=\u001b[39m [\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 218 |\u001b[39m       \u001b[32m'Error'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m     |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 219 |\u001b[39m       \u001b[32m'no encontrado'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 220 |\u001b[39m       \u001b[32m'Not Found'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 221 |\u001b[39m       \u001b[32m'404'\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:218:38\u001b[22m"
                         }
                       ],
                       "stdout": [
@@ -1392,7 +1352,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:18:46.728Z",
+                      "startTime": "2026-02-09T15:37:32.463Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1439,10 +1399,10 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 12,
+                      "workerIndex": 11,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 10161,
+                      "duration": 10481,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:234:38",
@@ -1451,7 +1411,7 @@
                           "column": 38,
                           "line": 234
                         },
-                        "snippet": "\u001b[0m \u001b[90m 232 |\u001b[39m\n \u001b[90m 233 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 236 |\u001b[39m\n \u001b[90m 237 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 232 |\u001b[39m         hasError \u001b[33m=\u001b[39m \u001b[36mtrue\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m         \u001b[36mbreak\u001b[39m\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m       }\n \u001b[90m     |\u001b[39m        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     }\n \u001b[90m 236 |\u001b[39m\n \u001b[90m 237 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
@@ -1460,7 +1420,7 @@
                             "column": 38,
                             "line": 234
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 232 |\u001b[39m\n \u001b[90m 233 |\u001b[39m     \u001b[36mconst\u001b[39m hasError \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m isError\u001b[33m.\u001b[39misVisible()\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m \u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 236 |\u001b[39m\n \u001b[90m 237 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:234:38\u001b[22m"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 232 |\u001b[39m         hasError \u001b[33m=\u001b[39m \u001b[36mtrue\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m         \u001b[36mbreak\u001b[39m\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m       }\n \u001b[90m     |\u001b[39m        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     }\n \u001b[90m 236 |\u001b[39m\n \u001b[90m 237 |\u001b[39m     expect(hasError \u001b[33m||\u001b[39m isRedirected)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:234:38\u001b[22m"
                         }
                       ],
                       "stdout": [
@@ -1470,7 +1430,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:18:58.574Z",
+                      "startTime": "2026-02-09T15:37:45.777Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1506,7 +1466,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -1517,30 +1477,11 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 13,
+                      "workerIndex": 12,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 4971,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:249:29",
-                        "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 29,
-                          "line": 249
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 247 |\u001b[39m\n \u001b[90m 248 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 249 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 250 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 251 |\u001b[39m\n \u001b[90m 252 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 29,
-                            "line": 249
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 247 |\u001b[39m\n \u001b[90m 248 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 249 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 250 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 251 |\u001b[39m\n \u001b[90m 252 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot delete Tenant 2 product via API'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:249:29\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 4524,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
@@ -1548,33 +1489,12 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:19:11.275Z",
+                      "startTime": "2026-02-09T15:37:58.558Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-cd379-t-Tenant-2-employee-via-API-mobile\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 29,
-                        "line": 249
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "a93df9727312381a518f-658d0d1ddc0edc05497b",
@@ -1584,7 +1504,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot delete Tenant 2 product via API",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -1595,30 +1515,11 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 14,
+                      "workerIndex": 12,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 4712,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:260:29",
-                        "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 29,
-                          "line": 260
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 258 |\u001b[39m\n \u001b[90m 259 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 260 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 261 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 262 |\u001b[39m\n \u001b[90m 263 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 29,
-                            "line": 260
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m400\u001b[39m\nReceived array: \u001b[31m[403, 404, 401]\u001b[39m\n\n\u001b[0m \u001b[90m 258 |\u001b[39m\n \u001b[90m 259 |\u001b[39m     \u001b[90m// Should return 403 or 404\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 260 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 261 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 262 |\u001b[39m\n \u001b[90m 263 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot create employee for Tenant 2'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:260:29\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 4605,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
@@ -1626,33 +1527,12 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:19:18.997Z",
+                      "startTime": "2026-02-09T15:38:03.224Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-1dee5-te-Tenant-2-product-via-API-mobile\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 29,
-                        "line": 260
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "a93df9727312381a518f-e3431e4892ecb2a5196f",
@@ -1673,10 +1553,10 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 15,
+                      "workerIndex": 12,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4305,
+                      "duration": 5070,
                       "errors": [],
                       "stdout": [
                         {
@@ -1685,7 +1565,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:19:25.694Z",
+                      "startTime": "2026-02-09T15:38:07.849Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1700,7 +1580,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot view Tenant 2 analytics",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -1711,27 +1591,64 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 15,
+                      "workerIndex": 12,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 12173,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 12036,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/admin/**\" until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/admin/**\" until \"load\"\n============================================================\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:336:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:288:5",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 336
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:336\n\n\u001b[0m \u001b[90m 334 |\u001b[39m     \n \u001b[90m 335 |\u001b[39m     \u001b[90m// Wait for authentication to complete and redirect\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 336 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'**/admin/**'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 337 |\u001b[39m     \n \u001b[90m 338 |\u001b[39m     \u001b[90m// Wait for admin panel to load\u001b[39m\n \u001b[90m 339 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m'networkidle'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 336
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/admin/**\" until \"load\"\n============================================================\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:336\n\n\u001b[0m \u001b[90m 334 |\u001b[39m     \n \u001b[90m 335 |\u001b[39m     \u001b[90m// Wait for authentication to complete and redirect\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 336 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'**/admin/**'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 337 |\u001b[39m     \n \u001b[90m 338 |\u001b[39m     \u001b[90m// Wait for admin panel to load\u001b[39m\n \u001b[90m 339 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m'networkidle'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:336:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:288:5\u001b[22m"
+                        }
+                      ],
                       "stdout": [
                         {
                           "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
-                        },
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:19:30.119Z",
+                      "startTime": "2026-02-09T15:38:12.937Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-mobile\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 336
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "a93df9727312381a518f-8bc4fedf6b3ecbcfdb00",
@@ -1752,35 +1669,34 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 15,
+                      "workerIndex": 13,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 30272,
+                      "status": "failed",
+                      "duration": 2814,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:314:11",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
                       },
                       "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
                         {
                           "location": {
                             "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
                             "column": 16,
-                            "line": 355
+                            "line": 315
                           },
-                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Cerrar Sesión\")')\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors min-h-[44px]\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    46 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 z-40\"></div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:355\n\n\u001b[0m \u001b[90m 353 |\u001b[39m     \n \u001b[90m 354 |\u001b[39m     \u001b[90m// Click logout button\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 355 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Cerrar Sesión\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 356 |\u001b[39m     \n \u001b[90m 357 |\u001b[39m     \u001b[90m// Wait for logout to complete\u001b[39m\n \u001b[90m 358 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m1000\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at logoutFromAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:355:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:323:5\u001b[22m"
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:314:11\u001b[22m"
                         }
                       ],
-                      "stdout": [
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:19:42.305Z",
+                      "startTime": "2026-02-09T15:38:26.694Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1792,13 +1708,13 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-d0297-ot-view-Tenant-2-audit-logs-mobile\\error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -1822,41 +1738,34 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 16,
+                      "workerIndex": 14,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 14334,
+                      "duration": 2826,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"\"\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"\"\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:363:29",
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:342:11",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 29,
-                          "line": 363
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
                         },
-                        "snippet": "\u001b[0m \u001b[90m 361 |\u001b[39m\n \u001b[90m 362 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 363 |\u001b[39m     expect(tenant1Name)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Name)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 364 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 365 |\u001b[39m\n \u001b[90m 366 |\u001b[39m   test(\u001b[32m'✅ RLS: Cross-tenant API calls are blocked'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 29,
-                            "line": 363
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"\"\u001b[39m\n\n\u001b[0m \u001b[90m 361 |\u001b[39m\n \u001b[90m 362 |\u001b[39m     \u001b[90m// Verify they are different\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 363 |\u001b[39m     expect(tenant1Name)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(tenant2Name)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 364 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 365 |\u001b[39m\n \u001b[90m 366 |\u001b[39m   test(\u001b[32m'✅ RLS: Cross-tenant API calls are blocked'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:363:29\u001b[22m"
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:342:11\u001b[22m"
                         }
                       ],
-                      "stdout": [
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
-                        },
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:20:14.332Z",
+                      "startTime": "2026-02-09T15:38:31.301Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1868,17 +1777,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-13bcb-nnot-view-Tenant-2-settings-mobile\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 29,
-                        "line": 363
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
                       }
                     }
                   ],
@@ -1903,38 +1807,34 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 17,
+                      "workerIndex": 15,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 5366,
+                      "duration": 2768,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:379:40",
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:368:11",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 40,
-                          "line": 379
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
                         },
-                        "snippet": "\u001b[0m \u001b[90m 377 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 378 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 379 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 380 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 381 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 382 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 40,
-                            "line": 379
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 377 |\u001b[39m       \u001b[36mconst\u001b[39m employees \u001b[33m=\u001b[39m data\u001b[33m.\u001b[39mdata \u001b[33m||\u001b[39m data\u001b[33m;\u001b[39m\n \u001b[90m 378 |\u001b[39m       \u001b[90m// Should return empty array or only Tenant 1 employees\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 379 |\u001b[39m       expect(\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(employees))\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 380 |\u001b[39m       \u001b[90m// If it returns data, it should be for Tenant 1\u001b[39m\n \u001b[90m 381 |\u001b[39m       \u001b[36mif\u001b[39m (employees\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\n \u001b[90m 382 |\u001b[39m         expect(employees[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:379:40\u001b[22m"
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:368:11\u001b[22m"
                         }
                       ],
-                      "stdout": [
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:20:30.624Z",
+                      "startTime": "2026-02-09T15:38:35.946Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1946,17 +1846,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-6b2af-enant-API-calls-are-blocked-mobile\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 40,
-                        "line": 379
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
                       }
                     }
                   ],
@@ -1970,7 +1865,7 @@
             },
             {
               "title": "✅ RLS: Tenant switching clears previous tenant data",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -1981,30 +1876,55 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 18,
+                      "workerIndex": 16,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 30205,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                      "status": "failed",
+                      "duration": 2856,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:391:11",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
                         },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
                         {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222\n"
-                        },
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:391:11\u001b[22m"
                         }
                       ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:20:37.904Z",
+                      "startTime": "2026-02-09T15:38:40.485Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-f8d5e-clears-previous-tenant-data-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-f8d5e-clears-previous-tenant-data-mobile\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "a93df9727312381a518f-d4ad5653f9c1b5d7addb",
@@ -2014,7 +1934,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot bulk import data for Tenant 2",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -2025,24 +1945,55 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 18,
+                      "workerIndex": 17,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4624,
-                      "errors": [],
-                      "stdout": [
+                      "status": "failed",
+                      "duration": 2808,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:474:11",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
                         {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:474:11\u001b[22m"
                         }
                       ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:21:08.234Z",
+                      "startTime": "2026-02-09T15:38:45.078Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-59d2e-lk-import-data-for-Tenant-2-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-59d2e-lk-import-data-for-Tenant-2-mobile\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "a93df9727312381a518f-bab68fd6617153ad028a",
@@ -2066,35 +2017,31 @@
                       "workerIndex": 18,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 10716,
+                      "duration": 2834,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:509:34",
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:498:11",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 34,
-                          "line": 509
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
                         },
-                        "snippet": "\u001b[0m \u001b[90m 507 |\u001b[39m\n \u001b[90m 508 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 509 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 510 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 511 |\u001b[39m\n \u001b[90m 512 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 34,
-                            "line": 509
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 507 |\u001b[39m\n \u001b[90m 508 |\u001b[39m     \u001b[90m// Should fail\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 509 |\u001b[39m     expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 510 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 511 |\u001b[39m\n \u001b[90m 512 |\u001b[39m   test(\u001b[32m'✅ RLS: Tenant 1 cannot restore Tenant 2 backup'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:509:34\u001b[22m"
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:498:11\u001b[22m"
                         }
                       ],
-                      "stdout": [
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:21:12.878Z",
+                      "startTime": "2026-02-09T15:38:49.668Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2106,17 +2053,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-0b806-cannot-export-Tenant-2-data-mobile\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 34,
-                        "line": 509
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
                       }
                     }
                   ],
@@ -2130,7 +2072,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot restore Tenant 2 backup",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -2143,22 +2085,53 @@
                     {
                       "workerIndex": 19,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4654,
-                      "errors": [],
-                      "stdout": [
+                      "status": "failed",
+                      "duration": 2814,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:514:11",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
                         {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:514:11\u001b[22m"
                         }
                       ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:21:25.922Z",
+                      "startTime": "2026-02-09T15:38:54.287Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-f600f-not-restore-Tenant-2-backup-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-f600f-not-restore-Tenant-2-backup-mobile\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "a93df9727312381a518f-2dfb699a4673c33993e8",
@@ -2179,38 +2152,34 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 19,
+                      "workerIndex": 20,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6095,
+                      "duration": 2818,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:546:36",
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:530:11",
                         "location": {
-                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                          "column": 36,
-                          "line": 546
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
                         },
-                        "snippet": "\u001b[0m \u001b[90m 544 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 545 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 546 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 547 |\u001b[39m     }\n \u001b[90m 548 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 549 |\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                            "column": 36,
-                            "line": 546
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m500\u001b[39m\nReceived array: \u001b[31m[403, 404, 401, 400]\u001b[39m\n\n\u001b[0m \u001b[90m 544 |\u001b[39m       expect(data\u001b[33m.\u001b[39mtenant_id)\u001b[33m.\u001b[39mtoBe(tenant1\u001b[33m.\u001b[39mid)\u001b[33m;\u001b[39m\n \u001b[90m 545 |\u001b[39m     } \u001b[36melse\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 546 |\u001b[39m       expect([\u001b[35m403\u001b[39m\u001b[33m,\u001b[39m \u001b[35m404\u001b[39m\u001b[33m,\u001b[39m \u001b[35m401\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(response\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 547 |\u001b[39m     }\n \u001b[90m 548 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 549 |\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:546:36\u001b[22m"
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:530:11\u001b[22m"
                         }
                       ],
-                      "stdout": [
-                        {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:21:30.744Z",
+                      "startTime": "2026-02-09T15:38:58.858Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2222,17 +2191,12 @@
                           "name": "video",
                           "contentType": "video/webm",
                           "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-20d64-dify-Tenant-2-configuration-mobile\\error-context.md"
                         }
                       ],
                       "errorLocation": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts",
-                        "column": 36,
-                        "line": 546
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
                       }
                     }
                   ],
@@ -2246,7 +2210,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot view Tenant 2 quotas",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -2257,24 +2221,55 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 20,
+                      "workerIndex": 21,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4384,
-                      "errors": [],
-                      "stdout": [
+                      "status": "failed",
+                      "duration": 2811,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:552:11",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
                         {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:552:11\u001b[22m"
                         }
                       ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:21:38.776Z",
+                      "startTime": "2026-02-09T15:39:03.379Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-001e1-cannot-view-Tenant-2-quotas-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-001e1-cannot-view-Tenant-2-quotas-mobile\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "a93df9727312381a518f-43b917457540249aeee9",
@@ -2284,7 +2279,7 @@
             },
             {
               "title": "✅ RLS: Tenant 1 cannot modify Tenant 2 quotas",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -2295,24 +2290,55 @@
                   "projectName": "mobile",
                   "results": [
                     {
-                      "workerIndex": 20,
+                      "workerIndex": 22,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4493,
-                      "errors": [],
-                      "stdout": [
+                      "status": "failed",
+                      "duration": 2790,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:572:11",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                          "column": 16,
+                          "line": 315
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
                         {
-                          "text": "[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111\n"
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                            "column": 16,
+                            "line": 315
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"load\"\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\test-utils.ts:315\n\n\u001b[0m \u001b[90m 313 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m authenticateAsAdmin(page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m pin\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m \u001b[33mTEST_PINS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mADMIN\u001b[39m\u001b[33m,\u001b[39m tenantId\u001b[33m?\u001b[39m\u001b[33m:\u001b[39m string)\u001b[33m:\u001b[39m \u001b[33mPromise\u001b[39m\u001b[33m<\u001b[39m\u001b[36mvoid\u001b[39m\u001b[33m>\u001b[39m {\n \u001b[90m 314 |\u001b[39m     \u001b[90m// Navigate to admin panel\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 315 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:3000/admin'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 316 |\u001b[39m     \n \u001b[90m 317 |\u001b[39m     \u001b[90m// Set tenant_id in localStorage if provided (for multi-tenant E2E tests)\u001b[39m\n \u001b[90m 318 |\u001b[39m     \u001b[90m// This will be read by PinModal and sent to the auth API\u001b[39m\u001b[0m\n\u001b[2m    at authenticateAsAdmin (E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts:315:16)\u001b[22m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\multi-tenant-rls-isolation.spec.ts:572:11\u001b[22m"
                         }
                       ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T05:21:43.290Z",
+                      "startTime": "2026-02-09T15:39:07.964Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c3c3b-nnot-modify-Tenant-2-quotas-mobile\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\multi-tenant-rls-isolation-c3c3b-nnot-modify-Tenant-2-quotas-mobile\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\helpers\\test-utils.ts",
+                        "column": 16,
+                        "line": 315
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "a93df9727312381a518f-8aa817d3994fe7c0d305",
@@ -2327,11 +2353,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-09T05:13:55.406Z",
-    "duration": 472492.60699999996,
-    "expected": 19,
+    "startTime": "2026-02-09T15:32:20.919Z",
+    "duration": 410045.954,
+    "expected": 16,
     "skipped": 0,
-    "unexpected": 19,
+    "unexpected": 22,
     "flaky": 0
   }
 }
