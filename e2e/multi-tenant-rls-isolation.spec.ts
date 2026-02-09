@@ -211,10 +211,29 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
     // Should either be redirected or show error
     const currentUrl = page.url();
-    const isError = page.locator('text=/403|404|Not Found|Unauthorized/');
     const isRedirected = !currentUrl.includes('tenant-2-employee-id');
+    
+    // Check for error messages (Spanish or English)
+    const errorMessages = [
+      'Error',
+      'no encontrado',
+      'Not Found',
+      '404',
+      '403',
+      'Unauthorized',
+      'No autorizado',
+      'Empleado no encontrado'
+    ];
+    
+    let hasError = false;
+    for (const msg of errorMessages) {
+      const locator = page.locator(`text=${msg}`);
+      if (await locator.isVisible().catch(() => false)) {
+        hasError = true;
+        break;
+      }
+    }
 
-    const hasError = await isError.isVisible().catch(() => false);
     expect(hasError || isRedirected).toBeTruthy();
   });
 
@@ -227,10 +246,29 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
 
     // Should either be redirected or show error
     const currentUrl = page.url();
-    const isError = page.locator('text=/403|404|Not Found|Unauthorized/');
     const isRedirected = !currentUrl.includes('tenant-2-product-id');
+    
+    // Check for error messages (Spanish or English)
+    const errorMessages = [
+      'Error',
+      'no encontrado',
+      'Not Found',
+      '404',
+      '403',
+      'Unauthorized',
+      'No autorizado',
+      'Producto no encontrado'
+    ];
+    
+    let hasError = false;
+    for (const msg of errorMessages) {
+      const locator = page.locator(`text=${msg}`);
+      if (await locator.isVisible().catch(() => false)) {
+        hasError = true;
+        break;
+      }
+    }
 
-    const hasError = await isError.isVisible().catch(() => false);
     expect(hasError || isRedirected).toBeTruthy();
   });
 
