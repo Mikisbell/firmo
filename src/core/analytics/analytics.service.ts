@@ -93,11 +93,14 @@ export async function getRealtimeMetrics(
   const businessDate = getCurrentBusinessDate();
   const targetShiftId = shiftId || await getCurrentShiftId(tenantId);
 
+  // Convert business_date string to DateTime for Prisma
+  const businessDateTime = new Date(`${businessDate}T00:00:00.000Z`);
+
   // Get paid orders for the shift/date
   const orders = await prisma.orders.findMany({
     where: {
       tenant_id: tenantId,
-      business_date: businessDate,
+      business_date: businessDateTime,
       ...(targetShiftId ? { shift_id: targetShiftId } : {}),
       order_status: 'CLOSED',
     },
@@ -201,11 +204,14 @@ export async function getRealtimeMetrics(
 export async function getStationMetrics(tenantId: string): Promise<StationMetrics[]> {
   const businessDate = getCurrentBusinessDate();
   
+  // Convert business_date string to DateTime for Prisma
+  const businessDateTime = new Date(`${businessDate}T00:00:00.000Z`);
+  
   // Get orders with pending items
   const orders = await prisma.orders.findMany({
     where: {
       tenant_id: tenantId,
-      business_date: businessDate,
+      business_date: businessDateTime,
       fulfillment_status: { in: ['COOKING', 'PARTIALLY_READY'] },
     },
     select: {
@@ -279,10 +285,13 @@ export async function getTopProducts(
 ): Promise<TopProduct[]> {
   const businessDate = getCurrentBusinessDate();
 
+  // Convert business_date string to DateTime for Prisma
+  const businessDateTime = new Date(`${businessDate}T00:00:00.000Z`);
+
   const orders = await prisma.orders.findMany({
     where: {
       tenant_id: tenantId,
-      business_date: businessDate,
+      business_date: businessDateTime,
       order_status: 'CLOSED',
     },
     select: {
@@ -350,11 +359,14 @@ export async function getComparison(tenantId: string): Promise<ComparisonMetrics
   
   // Convert Date to business_date string format (YYYY-MM-DD)
   const lastWeekBusinessDate = getBusinessDate(lastWeekDate);
+  
+  // Convert business_date string to DateTime for Prisma
+  const lastWeekBusinessDateTime = new Date(`${lastWeekBusinessDate}T00:00:00.000Z`);
 
   const previousOrders = await prisma.orders.findMany({
     where: {
       tenant_id: tenantId,
-      business_date: lastWeekBusinessDate,
+      business_date: lastWeekBusinessDateTime,
       order_status: 'CLOSED',
     },
     select: {
@@ -410,10 +422,13 @@ export async function getComparison(tenantId: string): Promise<ComparisonMetrics
 export async function getHourlySales(tenantId: string): Promise<HourlySales[]> {
   const businessDate = getCurrentBusinessDate();
 
+  // Convert business_date string to DateTime for Prisma
+  const businessDateTime = new Date(`${businessDate}T00:00:00.000Z`);
+
   const orders = await prisma.orders.findMany({
     where: {
       tenant_id: tenantId,
-      business_date: businessDate,
+      business_date: businessDateTime,
       order_status: 'CLOSED',
     },
     select: {
