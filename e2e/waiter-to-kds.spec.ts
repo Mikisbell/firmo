@@ -222,7 +222,7 @@ test.describe("Waiter to KDS Flow", () => {
         await kdsPage.close();
     });
 
-    test.skip("multiple waiters can submit orders (sequential)", async ({ page, context }) => {
+    test.skip("multiple waiters can submit orders simultaneously", async ({ page, context }) => {
         // KNOWN ISSUE: IndexedDB isolation en Playwright
         // Cada página tiene su propia instancia de IndexedDB, los eventos no se propagan
         // entre páginas automáticamente. Este test requiere sincronización vía servidor real.

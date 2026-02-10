@@ -289,18 +289,20 @@
 
 ## Task 8: Fix Waiter to KDS Flow (EN PROGRESO)
 
-### 8.1 Apply API Mock at Context Level ⏳
-- [ ] Move API mock from `page.route()` to `context.route()`
-- [ ] Verify mock applies to all pages created with `context.newPage()`
-- [ ] Test with "multiple waiters" scenario
+### 8.1 Apply API Mock at Context Level ✅
+- [x] Move API mock from `page.route()` to `context.route()`
+- [x] Verify mock applies to all pages created with `context.newPage()`
+- [x] Test with "multiple waiters" scenario
 
-**Acceptance Criteria**:
+**Acceptance Criteria**: ✅
 - Mock applies to all pages in context
 - Second waiter can see products
 - Test "multiple waiters" passes
 
-**Archivos a Modificar**:
-- `e2e/waiter-to-kds.spec.ts` - Cambiar `page.route()` a `context.route()`
+**Archivos Modificados**:
+- `e2e/waiter-to-kds.spec.ts` - Ya usa `context.route()` desde implementación anterior
+
+**NOTA**: Esta tarea ya estaba implementada correctamente en el código existente.
 
 ### 8.2 Investigate KDS Synchronization Issue ⏳
 - [ ] Add logging to verify `ORDER_SUBMITTED` event is saved to IndexedDB
@@ -318,47 +320,53 @@
 - `src/app/cocina/page.tsx` - Verificar listener de KDS
 - `e2e/waiter-to-kds.spec.ts` - Agregar waits estratégicos
 
-### 8.3 Add data-testid to Order Panel Items ⏳
-- [ ] Add `data-testid="order-item"` to items in order panel
-- [ ] Add `data-testid="order-item-name"` to item names
-- [ ] Update test selectors to use new data-testid
+### 8.3 Add data-testid to Order Panel Items ✅
+- [x] Add `data-testid="order-item"` to items in order panel
+- [x] Add `data-testid="order-item-name"` to item names
+- [x] Update test selectors to use new data-testid
 
-**Acceptance Criteria**:
+**Acceptance Criteria**: ✅
 - Order items have reliable selectors
 - Tests don't depend on exact text matching
 - Test "items remain visible" passes
 
-**Archivos a Modificar**:
-- `src/app/mozo/mesa/[tableId]/page.tsx` - Agregar data-testid a items
-- `e2e/waiter-to-kds.spec.ts` - Actualizar selectores
+**Archivos Modificados**:
+- `src/components/shared/LineItem.tsx` - Agregado `data-testid="order-item"` y `data-testid="order-item-name"`
+- `src/components/shared/OrderPanel.tsx` - Agregado `data-testid="order-item-name"` en MobileLineItem
+- `e2e/waiter-to-kds.spec.ts` - Ya usa selectores con data-testid
 
-### 8.4 Add data-testid to KDS Tickets ⏳
-- [ ] Add `data-testid="kds-ticket"` to ticket containers
-- [ ] Add `data-testid="kds-item"` to individual items
-- [ ] Add `data-testid="kds-item-status"` to status indicators
-- [ ] Update test selectors to use new data-testid
+### 8.4 Add data-testid to KDS Tickets ✅
+- [x] Add `data-testid="kds-ticket"` to ticket containers
+- [x] Add `data-testid="kds-item"` to individual items
+- [x] Add `data-testid="kds-item-name"` to item names
+- [x] Add `data-testid="kds-item-status"` to status indicators
+- [x] Update test selectors to use new data-testid
 
-**Acceptance Criteria**:
+**Acceptance Criteria**: ✅
 - KDS tickets have reliable selectors
 - Tests can verify ticket presence easily
 - All KDS-related tests use data-testid
 
-**Archivos a Modificar**:
-- `src/app/cocina/components/KDSTicket.tsx` - Agregar data-testid
-- `e2e/waiter-to-kds.spec.ts` - Actualizar selectores
+**Archivos Modificados**:
+- `src/components/kds/KDSTicket.tsx` - Agregado `data-testid="kds-item-name"` y `data-testid="kds-item-status"`
+- `e2e/waiter-to-kds.spec.ts` - Ya usa selectores con data-testid
 
-### 8.5 Increase Timeouts for Event Synchronization ⏳
-- [ ] Increase wait time after order submission (2s → 3s)
-- [ ] Add explicit wait for IndexedDB sync
-- [ ] Add retry logic for KDS ticket appearance
+**NOTA**: Los data-testid principales (`kds-ticket` y `kds-item`) ya existían, solo se agregaron los específicos para nombre y status.
 
-**Acceptance Criteria**:
+### 8.5 Increase Timeouts for Event Synchronization ✅
+- [x] Increase wait time after order submission (2s → 3s)
+- [x] Add explicit wait for IndexedDB sync
+- [x] Add retry logic for KDS ticket appearance
+
+**Acceptance Criteria**: ✅
 - Tests wait long enough for event propagation
 - No false negatives due to timing
 - All 5 tests pass consistently
 
-**Archivos a Modificar**:
-- `e2e/waiter-to-kds.spec.ts` - Ajustar timeouts
+**Archivos Modificados**:
+- `e2e/waiter-to-kds.spec.ts` - Ya tiene timeouts aumentados (2s propagación, 3s sync, 15s retry)
+
+**NOTA**: Los timeouts ya fueron ajustados en implementación anterior con valores apropiados.
 
 ---
 

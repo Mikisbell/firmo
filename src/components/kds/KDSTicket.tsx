@@ -187,9 +187,9 @@ export function KDSTicket({
                                 <span className={`mr-2 font-mono ${item.status === "COOKING" ? colors.cookingQty : "text-zinc-500"}`}>
                                     {item.qty}x
                                 </span>
-                                <span className="truncate">{item.name}</span>
+                                <span className="truncate" data-testid="kds-item-name">{item.name}</span>
                             </span>
-                            <span className="ml-2 flex-shrink-0">
+                            <span className="ml-2 flex-shrink-0" data-testid="kds-item-status">
                                 {item.status === "PENDING" && <Play size={18} className="text-zinc-500" />}
                                 {item.status === "COOKING" && <CookingIcon size={18} className={`${colors.cookingIcon} animate-pulse`} />}
                                 {item.status === "READY" && <CheckCircle2 size={18} className="text-emerald-400" />}

@@ -431,7 +431,7 @@ function MobileLineItem({
             className="flex items-center justify-between bg-zinc-800/50 rounded-xl border border-zinc-700/50 p-3"
         >
             <div className="flex-1 min-w-0 mr-3">
-                <p className="font-medium text-sm truncate">{item.name}</p>
+                <p className="font-medium text-sm truncate" data-testid="order-item-name">{item.name}</p>
                 <p className="text-xs text-zinc-500">
                     S/ {formatCents(item.unit_price_cents)} c/u
                 </p>

@@ -37,11 +37,12 @@ export function LineItem({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
+            data-testid="order-item"
             className={`flex items-center justify-between bg-zinc-800/50 rounded-lg border border-zinc-700/50 hover:border-zinc-600/50 transition-colors group ${compact ? "p-2" : "p-3"
                 }`}
         >
             <div className="flex-1 min-w-0">
-                <p className={`font-medium truncate ${compact ? "text-xs" : "text-sm"}`}>
+                <p className={`font-medium truncate ${compact ? "text-xs" : "text-sm"}`} data-testid="order-item-name">
                     {item.name}
                 </p>
                 <p className="text-xs text-zinc-500">
