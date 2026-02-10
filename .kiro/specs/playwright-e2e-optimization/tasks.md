@@ -259,7 +259,196 @@
 
 ---
 
-**Status**: ✅ **COMPLETADO** - Optimización exitosa  
-**Resultado**: 56% reducción en tiempo de ejecución (3.9m → 1.7m)  
-**Tests**: 20/21 pasando (95%)  
-**Próximo Paso**: Monitorear performance en CI y ajustar si es necesario
+**Status**: ⚠️ **EN PROGRESO** - Fase 1 completa, Fase 2 iniciada  
+**Fase 1 Resultado**: 56% reducción en tiempo de ejecución (3.9m → 1.7m), 20/21 tests pasando (95%)  
+**Fase 2**: Corrección de tests E2E Waiter → KDS (2/5 pasando actualmente)  
+**Próximo Paso**: Completar Fase 2 - Waiter to KDS Flow
+
+---
+
+## FASE 2: Waiter to KDS Flow Optimization (EN PROGRESO)
+
+**Fecha Inicio**: 10 Febrero 2026  
+**Estado Actual**: 2/5 tests pasando (40%)  
+**Objetivo**: Alcanzar 5/5 tests pasando (100%)
+
+### Problemas Identificados
+
+1. **Mock de API no aplica a páginas nuevas** - Segundo waiter no tiene productos
+2. **Pedidos no aparecen en KDS** - Problema de sincronización IndexedDB
+3. **Selectores de texto muy específicos** - Tests frágiles
+
+### Cambios Ya Implementados ✅
+
+1. ✅ Agregado `data-testid` a productos en `CatalogGrid.tsx`
+2. ✅ Implementado mock de API `/api/catalog/latest` en `beforeEach`
+3. ✅ Refactorizado selectores para usar `[data-testid^="product-"]`
+4. ✅ Tests "order with no items" y "KDS change status" pasando
+
+---
+
+## Task 8: Fix Waiter to KDS Flow (EN PROGRESO)
+
+### 8.1 Apply API Mock at Context Level ⏳
+- [ ] Move API mock from `page.route()` to `context.route()`
+- [ ] Verify mock applies to all pages created with `context.newPage()`
+- [ ] Test with "multiple waiters" scenario
+
+**Acceptance Criteria**:
+- Mock applies to all pages in context
+- Second waiter can see products
+- Test "multiple waiters" passes
+
+**Archivos a Modificar**:
+- `e2e/waiter-to-kds.spec.ts` - Cambiar `page.route()` a `context.route()`
+
+### 8.2 Investigate KDS Synchronization Issue ⏳
+- [ ] Add logging to verify `ORDER_SUBMITTED` event is saved to IndexedDB
+- [ ] Verify KDS is listening to IndexedDB changes correctly
+- [ ] Add explicit wait for event propagation (increase timeout if needed)
+- [ ] Test with "waiter creates order" scenario
+
+**Acceptance Criteria**:
+- Orders appear on KDS after submission
+- Event propagation is reliable
+- Test "waiter creates order" passes
+
+**Archivos a Investigar**:
+- `src/core/sync/client.ts` - Verificar propagación de eventos
+- `src/app/cocina/page.tsx` - Verificar listener de KDS
+- `e2e/waiter-to-kds.spec.ts` - Agregar waits estratégicos
+
+### 8.3 Add data-testid to Order Panel Items ⏳
+- [ ] Add `data-testid="order-item"` to items in order panel
+- [ ] Add `data-testid="order-item-name"` to item names
+- [ ] Update test selectors to use new data-testid
+
+**Acceptance Criteria**:
+- Order items have reliable selectors
+- Tests don't depend on exact text matching
+- Test "items remain visible" passes
+
+**Archivos a Modificar**:
+- `src/app/mozo/mesa/[tableId]/page.tsx` - Agregar data-testid a items
+- `e2e/waiter-to-kds.spec.ts` - Actualizar selectores
+
+### 8.4 Add data-testid to KDS Tickets ⏳
+- [ ] Add `data-testid="kds-ticket"` to ticket containers
+- [ ] Add `data-testid="kds-item"` to individual items
+- [ ] Add `data-testid="kds-item-status"` to status indicators
+- [ ] Update test selectors to use new data-testid
+
+**Acceptance Criteria**:
+- KDS tickets have reliable selectors
+- Tests can verify ticket presence easily
+- All KDS-related tests use data-testid
+
+**Archivos a Modificar**:
+- `src/app/cocina/components/KDSTicket.tsx` - Agregar data-testid
+- `e2e/waiter-to-kds.spec.ts` - Actualizar selectores
+
+### 8.5 Increase Timeouts for Event Synchronization ⏳
+- [ ] Increase wait time after order submission (2s → 3s)
+- [ ] Add explicit wait for IndexedDB sync
+- [ ] Add retry logic for KDS ticket appearance
+
+**Acceptance Criteria**:
+- Tests wait long enough for event propagation
+- No false negatives due to timing
+- All 5 tests pass consistently
+
+**Archivos a Modificar**:
+- `e2e/waiter-to-kds.spec.ts` - Ajustar timeouts
+
+---
+
+## Task 9: Create Waiter/KDS Page Object Models (PENDIENTE)
+
+### 9.1 Create WaiterPage POM ⏳
+- [ ] Create `e2e/pages/WaiterPage.ts`
+- [ ] Implement `selectTable(tableNumber)` method
+- [ ] Implement `addProduct(productId)` method
+- [ ] Implement `submitOrder()` method
+- [ ] Implement `getOrderItems()` method
+
+**Acceptance Criteria**:
+- WaiterPage encapsulates all waiter interactions
+- Methods hide implementation details
+- Tests use WaiterPage instead of direct page interactions
+
+### 9.2 Create KDSPage POM ⏳
+- [ ] Create `e2e/pages/KDSPage.ts`
+- [ ] Implement `getTickets()` method
+- [ ] Implement `getTicketItems(ticketId)` method
+- [ ] Implement `changeItemStatus(itemId, status)` method
+- [ ] Implement `waitForNewTicket()` method
+
+**Acceptance Criteria**:
+- KDSPage encapsulates all KDS interactions
+- Methods hide implementation details
+- Tests use KDSPage instead of direct page interactions
+
+### 9.3 Refactor Waiter-KDS Tests to Use POMs ⏳
+- [ ] Update all 5 tests to use WaiterPage and KDSPage
+- [ ] Remove direct page.locator() calls
+- [ ] Simplify test logic
+
+**Acceptance Criteria**:
+- All tests use POMs consistently
+- Tests are more readable
+- Reduced code duplication
+
+---
+
+## Task 10: Documentation and Verification (PENDIENTE)
+
+### 10.1 Run Full Waiter-KDS Test Suite ⏳
+- [ ] Execute `npm run test:e2e -- e2e/waiter-to-kds.spec.ts`
+- [ ] Verify all 5 tests pass
+- [ ] Verify execution time < 2 minutes
+
+**Acceptance Criteria**:
+- All 5 tests pass (100%)
+- No flaky tests
+- Reasonable execution time
+
+### 10.2 Update Documentation ⏳
+- [ ] Document Waiter-KDS flow testing strategy
+- [ ] Document API mocking approach
+- [ ] Document synchronization considerations
+- [ ] Add examples to README
+
+**Acceptance Criteria**:
+- Documentation is complete
+- Examples are clear
+- Easy for new developers to understand
+
+---
+
+## Success Metrics - Fase 2
+
+- [ ] **All 5 Waiter-KDS tests passing (100%)**
+- [ ] **Execution time < 2 minutes**
+- [ ] **No flaky tests**
+- [ ] **POMs implemented for Waiter and KDS pages**
+- [ ] **API mocking works across all pages**
+- [ ] **Event synchronization is reliable**
+
+---
+
+## Implementation Order - Fase 2
+
+1. **Task 8.1** (15 min): Apply API mock at context level
+2. **Task 8.2** (30 min): Investigate KDS synchronization issue
+3. **Task 8.3** (15 min): Add data-testid to order panel items
+4. **Task 8.4** (15 min): Add data-testid to KDS tickets
+5. **Task 8.5** (10 min): Increase timeouts for event synchronization
+6. **Task 9** (45 min): Create Waiter/KDS Page Object Models
+7. **Task 10** (15 min): Documentation and verification
+
+**Total Estimado**: 2 horas 25 minutos
+
+---
+
+**Última Actualización**: 11 Febrero 2026  
+**Próxima Acción**: Completar Task 8.1 - Apply API mock at context level

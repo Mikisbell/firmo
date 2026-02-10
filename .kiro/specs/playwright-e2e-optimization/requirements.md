@@ -138,3 +138,74 @@ Este documento define los requisitos para la optimización completa del sistema 
 3. THE Test_System SHALL documentar el uso de fixtures personalizados
 4. THE Test_System SHALL documentar la estrategia de datos de prueba
 5. THE Test_System SHALL incluir ejemplos de tests bien escritos como referencia
+
+
+---
+
+## FASE 2: Waiter to KDS Flow Requirements
+
+### Requirement 11: API Mocking a Nivel de Contexto
+
+**User Story:** Como desarrollador de tests, quiero que los mocks de API se apliquen a todas las páginas del contexto, para que tests con múltiples páginas funcionen correctamente.
+
+#### Acceptance Criteria
+
+1. WHEN un mock de API se configura en `beforeEach`, THE mock SHALL aplicarse a todas las páginas creadas con `context.newPage()`
+2. WHEN un test crea múltiples páginas, THE mock SHALL estar disponible en todas ellas sin configuración adicional
+3. THE Test_System SHALL usar `context.route()` en lugar de `page.route()` para mocks globales
+4. WHEN un test requiere mocks específicos por página, THE Test_System SHALL permitir override con `page.route()`
+5. THE Test_System SHALL documentar la diferencia entre `page.route()` y `context.route()`
+
+### Requirement 12: Sincronización de Eventos IndexedDB
+
+**User Story:** Como desarrollador de tests, quiero que los tests esperen correctamente la sincronización de eventos entre componentes, para que no haya falsos negativos por timing issues.
+
+#### Acceptance Criteria
+
+1. WHEN un mesero envía un pedido, THE Test_System SHALL esperar que el evento se guarde en IndexedDB antes de continuar
+2. WHEN un KDS carga, THE Test_System SHALL esperar que los eventos se sincronicen desde IndexedDB antes de verificar tickets
+3. THE Test_System SHALL proveer un helper `waitForEventSync()` para esperas de sincronización
+4. WHEN un evento no se sincroniza en el tiempo esperado, THE Test_System SHALL fallar con un mensaje descriptivo
+5. THE Test_System SHALL configurar timeouts apropiados para sincronización (2-3 segundos)
+
+### Requirement 13: Selectores Robustos para Componentes Dinámicos
+
+**User Story:** Como desarrollador de tests, quiero que los componentes de pedidos y tickets tengan data-testid attributes, para que los tests no dependan de texto que puede cambiar.
+
+#### Acceptance Criteria
+
+1. WHEN se renderiza un item de pedido, THE component SHALL incluir `data-testid="order-item"`
+2. WHEN se renderiza un ticket de KDS, THE component SHALL incluir `data-testid="kds-ticket"`
+3. WHEN se renderiza un item de KDS, THE component SHALL incluir `data-testid="kds-item"`
+4. THE Test_System SHALL usar data-testid como selector primario para estos componentes
+5. THE Test_System SHALL evitar selectores basados en texto para componentes dinámicos
+
+### Requirement 14: Page Object Models para Waiter y KDS
+
+**User Story:** Como desarrollador de tests, quiero POMs específicos para las páginas de Mesero y KDS, para que los tests sean más legibles y mantenibles.
+
+#### Acceptance Criteria
+
+1. THE Test_System SHALL proveer un `WaiterPage` POM con métodos para operaciones de mesero
+2. THE Test_System SHALL proveer un `KDSPage` POM con métodos para operaciones de KDS
+3. THE `WaiterPage` SHALL incluir métodos: `selectTable()`, `addProduct()`, `submitOrder()`, `getOrderItems()`
+4. THE `KDSPage` SHALL incluir métodos: `waitForTickets()`, `getTicketItems()`, `changeItemStatus()`
+5. WHEN los tests usan estos POMs, THE code SHALL ser más legible y fácil de mantener
+
+### Requirement 15: Retry Logic para Operaciones Asíncronas
+
+**User Story:** Como desarrollador de tests, quiero retry logic automático para operaciones asíncronas, para que los tests sean más resilientes a timing issues.
+
+#### Acceptance Criteria
+
+1. WHEN un test espera por tickets en KDS, THE Test_System SHALL usar `expect().toPass()` con retry
+2. WHEN un test verifica sincronización de eventos, THE Test_System SHALL reintentar hasta el timeout
+3. THE Test_System SHALL configurar timeout de retry de 10 segundos para operaciones críticas
+4. WHEN un retry falla después del timeout, THE Test_System SHALL reportar el último error observado
+5. THE Test_System SHALL documentar cuándo usar retry logic vs esperas fijas
+
+---
+
+**Última Actualización**: 11 Febrero 2026  
+**Fase**: 2 - Waiter to KDS Flow Optimization  
+**Estado**: Requirements definidos, listos para implementación
