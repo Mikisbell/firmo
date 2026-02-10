@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "auth_token",
+      "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmZmM1NjIwMS01MTg2LTQ0NTUtYTc3ZS1lZWYxNzk0MmNkOGUiLCJ0aWQiOiIyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjIiLCJyb2xlIjoiQURNSU4iLCJuYW1lIjoiQWRtaW4gVGVuYW50IDIiLCJzaWQiOiIzZmRhM2I3MjZlNzY5MjZlNjk5YmY3ODJiMDU4Y2UxZSIsImlhdCI6MTc3MDY5MTM4NSwiaXNzIjoicGFyay1wb3MiLCJhdWQiOiJwYXJrLXBvcy1jbGllbnQiLCJleHAiOjE3NzA2OTMxODV9.-mGodDRdcep-__S08CJmGMEJBle7PAsRIgNMJrZnbAo",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1770720185.846904,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "tenant_id",
+          "value": "22222222-2222-2222-2222-222222222222"
+        }
+      ]
+    }
+  ]
+}

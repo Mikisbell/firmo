@@ -221,6 +221,7 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
                                             layout
                                             variants={itemVariant}
                                             key={p.id}
+                                            data-testid={`product-${p.id}`}
                                             onClick={() => shiftOpen ? onAdd(p) : alert("Abre un turno para vender")}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.95 }}

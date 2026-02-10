@@ -15,6 +15,45 @@ import { setupTerminalConfig } from "./helpers/terminal-setup";
 
 test.describe("Waiter to KDS Flow", () => {
     test.beforeEach(async ({ page, context }) => {
+        // CRITICAL: Mock catalog API to provide test products
+        await page.route('/api/catalog/latest', async route => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    items: [
+                        { 
+                            id: 'e2e-pollo', 
+                            sku: 'POLLO-001',
+                            name: 'Pollo a la Brasa', 
+                            price_cents: 3500, 
+                            station: 'PARRILLA',
+                            category: 'POLLOS',
+                            is_active: true
+                        },
+                        { 
+                            id: 'e2e-papas', 
+                            sku: 'GUARN-001',
+                            name: 'Papas Fritas', 
+                            price_cents: 800, 
+                            station: 'COCINA',
+                            category: 'GUARNICIONES',
+                            is_active: true
+                        },
+                        { 
+                            id: 'e2e-gaseosa', 
+                            sku: 'BEB-001',
+                            name: 'Gaseosa 1.5L', 
+                            price_cents: 500, 
+                            station: 'BAR',
+                            category: 'BEBIDAS',
+                            is_active: true
+                        },
+                    ],
+                }),
+            });
+        });
+
         // CRITICAL: Set localStorage AND sessionStorage BEFORE any page loads
         // This ensures terminal config and auth session are available when components mount
         await context.addInitScript(() => {
@@ -57,31 +96,28 @@ test.describe("Waiter to KDS Flow", () => {
         await page.click('text=Mesa 1');
         await page.waitForLoadState("networkidle");
 
-        // Step 2: Add items to order
-        // Add item for PARRILLA
-        const polloButton = page.locator('button:has-text("Pollo")').first();
-        if (await polloButton.isVisible()) {
-            await polloButton.click();
-            await page.waitForTimeout(500);
+        // Step 2: Wait for catalog to load
+        await page.waitForSelector('[data-testid^="product-"]', { timeout: 10000 });
+
+        // Step 3: Add 3 different products (any available products)
+        const productButtons = page.locator('[data-testid^="product-"]');
+        const productCount = await productButtons.count();
+        
+        if (productCount === 0) {
+            throw new Error("No products found in catalog");
         }
 
-        // Add item for COCINA
-        const papasButton = page.locator('button:has-text("Papas")').first();
-        if (await papasButton.isVisible()) {
-            await papasButton.click();
-            await page.waitForTimeout(500);
+        // Add first 3 products (or less if not enough products)
+        const itemsToAdd = Math.min(3, productCount);
+        for (let i = 0; i < itemsToAdd; i++) {
+            await productButtons.nth(i).click();
+            await page.waitForTimeout(300);
         }
 
-        // Add item for BAR
-        const gaseosaButton = page.locator('button:has-text("Gaseosa")').first();
-        if (await gaseosaButton.isVisible()) {
-            await gaseosaButton.click();
-            await page.waitForTimeout(500);
-        }
-
-        // Step 3: Submit order to kitchen
+        // Step 4: Submit order to kitchen
         const sendButton = page.locator('button:has-text("Enviar")');
         await expect(sendButton).toBeVisible();
+        await expect(sendButton).toBeEnabled({ timeout: 5000 });
         await sendButton.click();
 
         // Wait for success toast
@@ -133,15 +169,15 @@ test.describe("Waiter to KDS Flow", () => {
         await page.click('text=Mesa 2');
         await page.waitForLoadState("networkidle");
 
-        // Add item
-        const polloButton = page.locator('button:has-text("Pollo")').first();
-        if (await polloButton.isVisible()) {
-            await polloButton.click();
-            await page.waitForTimeout(500);
-        }
+        // Wait for catalog and add first product
+        await page.waitForSelector('[data-testid^="product-"]', { timeout: 10000 });
+        const firstProduct = page.locator('[data-testid^="product-"]').first();
+        await firstProduct.click();
+        await page.waitForTimeout(500);
 
         // Submit
         const sendButton = page.locator('button:has-text("Enviar")');
+        await expect(sendButton).toBeEnabled({ timeout: 5000 });
         await sendButton.click();
         await expect(page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
         await page.waitForTimeout(1000);
@@ -183,11 +219,10 @@ test.describe("Waiter to KDS Flow", () => {
         await page.click('text=Mesa 3');
         await page.waitForLoadState("networkidle");
 
-        const polloButton1 = page.locator('button:has-text("Pollo")').first();
-        if (await polloButton1.isVisible()) {
-            await polloButton1.click();
-            await page.waitForTimeout(300);
-        }
+        await page.waitForSelector('[data-testid^="product-"]', { timeout: 10000 });
+        const product1 = page.locator('[data-testid^="product-"]').first();
+        await product1.click();
+        await page.waitForTimeout(300);
 
         // Waiter 2: Mesa 4 (new tab)
         const waiter2Page = await context.newPage();
@@ -196,15 +231,17 @@ test.describe("Waiter to KDS Flow", () => {
         await waiter2Page.click('text=Mesa 4');
         await waiter2Page.waitForLoadState("networkidle");
 
-        const papasButton2 = waiter2Page.locator('button:has-text("Papas")').first();
-        if (await papasButton2.isVisible()) {
-            await papasButton2.click();
-            await waiter2Page.waitForTimeout(300);
-        }
+        await waiter2Page.waitForSelector('[data-testid^="product-"]', { timeout: 10000 });
+        const product2 = waiter2Page.locator('[data-testid^="product-"]').nth(1);
+        await product2.click();
+        await waiter2Page.waitForTimeout(300);
 
         // Submit both orders simultaneously
         const sendButton1 = page.locator('button:has-text("Enviar")');
         const sendButton2 = waiter2Page.locator('button:has-text("Enviar")');
+
+        await expect(sendButton1).toBeEnabled({ timeout: 5000 });
+        await expect(sendButton2).toBeEnabled({ timeout: 5000 });
 
         await Promise.all([
             sendButton1.click(),
@@ -257,18 +294,22 @@ test.describe("Waiter to KDS Flow", () => {
         await page.click('text=Mesa 6');
         await page.waitForLoadState("networkidle");
 
-        // Add item
-        const polloButton = page.locator('button:has-text("Pollo")').first();
-        if (await polloButton.isVisible()) {
-            await polloButton.click();
-            await page.waitForTimeout(500);
-        }
+        // Wait for catalog and add first product
+        await page.waitForSelector('[data-testid^="product-"]', { timeout: 10000 });
+        const firstProduct = page.locator('[data-testid^="product-"]').first();
+        
+        // Get product name for verification
+        const productName = await firstProduct.textContent();
+        await firstProduct.click();
+        await page.waitForTimeout(500);
 
-        // Verify item appears in order panel
-        await expect(page.locator('text=Pollo').nth(1)).toBeVisible(); // nth(1) because first is in catalog
+        // Verify item appears in order panel (should appear twice: once in catalog, once in order)
+        const itemInOrder = page.locator(`text=${productName}`).nth(1);
+        await expect(itemInOrder).toBeVisible();
 
         // Submit
         const sendButton = page.locator('button:has-text("Enviar")');
+        await expect(sendButton).toBeEnabled({ timeout: 5000 });
         await sendButton.click();
         await expect(page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
         await page.waitForTimeout(500);

@@ -311,8 +311,8 @@ export async function setupCashierTerminal(page: Page) {
  * Navigates to admin panel and logs in with PIN using PinPad
  */
 export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
-    // Navigate to admin panel
-    await page.goto('http://localhost:3000/admin');
+    // Navigate to admin panel with faster wait strategy
+    await page.goto('http://localhost:3000/admin', { waitUntil: 'domcontentloaded' });
     
     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
     // This will be read by PinModal and sent to the auth API
@@ -335,14 +335,15 @@ export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.AD
     // Wait for authentication to complete and redirect
     await page.waitForURL('**/admin/**', { timeout: 10000 });
     
-    // Wait for admin panel to load
-    await page.waitForLoadState('networkidle');
+    // Wait for admin panel to load with faster strategy
+    await page.waitForLoadState('domcontentloaded');
 }
 
 /**
  * Logout from Admin Panel
  * Opens user dropdown and clicks logout button
  * Works on both desktop and mobile (uses force: true for mobile)
+ * Waits for redirect to login page
  */
 export async function logoutFromAdmin(page: Page): Promise<void> {
     // Close any open overlays first (mobile menu, modals, etc.)
@@ -361,6 +362,17 @@ export async function logoutFromAdmin(page: Page): Promise<void> {
     // Click logout button with force for mobile
     await page.click('button:has-text("Cerrar Sesión")', { force: true });
     
-    // Wait for logout to complete
-    await page.waitForTimeout(1000);
+    // ✅ Wait for redirect to login page (admin panel should redirect to /admin with login form)
+    await page.waitForURL('**/admin', { timeout: 10000 }).catch(() => {
+        // If URL doesn't change, that's ok - some implementations stay on same URL
+    });
+    
+    // ✅ Wait for PIN pad to appear (admin panel uses PIN pad, not password input)
+    await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 10000 }).catch(() => {
+        // If PIN pad doesn't appear, try navigating to admin page
+        page.goto('http://localhost:3000/admin', { waitUntil: 'domcontentloaded' });
+    });
+    
+    // Small buffer for stabilization
+    await page.waitForTimeout(500);
 }

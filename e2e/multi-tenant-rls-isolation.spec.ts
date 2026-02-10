@@ -14,6 +14,10 @@
 
 import { test, expect } from '@playwright/test';
 import { authenticateAsAdmin, logoutFromAdmin } from './helpers/test-utils';
+import { AdminEmployeesPage } from './pages/AdminEmployeesPage';
+import { AdminProductsPage } from './pages/AdminProductsPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminSettingsPage } from './pages/AdminSettingsPage';
 
 test.describe('Multi-Tenant RLS Isolation E2E', () => {
   const baseURL = 'http://localhost:3000';
@@ -36,31 +40,19 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
-    // Navigate to employees page (Spanish route)
-    await page.goto(`${baseURL}/admin/empleados`);
-
-    // Wait for page to load with shorter timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-
-    // Try to find employee rows with fallback
-    const tenant1EmployeeSelector = '[data-testid="employee-row"], table tbody tr, .employee-row';
-    await page.waitForSelector(tenant1EmployeeSelector, { timeout: 5000 }).catch(() => {
-      console.log('⚠️ No employee rows found for Tenant 1 - data may not be provisioned');
-    });
-
-    // Get list of employees for Tenant 1
-    const tenant1Employees = page.locator(tenant1EmployeeSelector);
-    const tenant1Count = await tenant1Employees.count();
+    // Use POM for employees page
+    const employeesPage = new AdminEmployeesPage(page);
+    await employeesPage.navigate();
 
     // Skip test if no data is provisioned
-    if (tenant1Count === 0) {
+    if (!(await employeesPage.hasEmployees())) {
       console.log('⚠️ Skipping test - no employees found for Tenant 1. Run: npx tsx scripts/provision-e2e-test-tenants.ts');
       test.skip();
       return;
     }
 
-    // Get employee names visible
-    const tenant1Names = await page.locator('[data-testid="employee-name"]').allTextContents();
+    // Get employee names for Tenant 1
+    const tenant1Names = await employeesPage.getEmployeeNames();
 
     // Logout
     await logoutFromAdmin(page);
@@ -68,66 +60,37 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
-    // Navigate to employees page (Spanish route)
-    await page.goto(`${baseURL}/admin/empleados`);
-
-    // Wait for page to load with shorter timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-
-    // Try to find employee rows with fallback
-    await page.waitForSelector(tenant1EmployeeSelector, { timeout: 5000 }).catch(() => {
-      console.log('⚠️ No employee rows found for Tenant 2 - data may not be provisioned');
-    });
-
-    // Get list of employees for Tenant 2
-    const tenant2Employees = page.locator(tenant1EmployeeSelector);
-    const tenant2Count = await tenant2Employees.count();
+    // Navigate to employees page
+    await employeesPage.navigate();
 
     // Skip test if no data is provisioned
-    if (tenant2Count === 0) {
+    if (!(await employeesPage.hasEmployees())) {
       console.log('⚠️ Skipping test - no employees found for Tenant 2. Run: npx tsx scripts/provision-e2e-test-tenants.ts');
       test.skip();
       return;
     }
 
-    // Get employee names visible
-    const tenant2Names = await page.locator('[data-testid="employee-name"]').allTextContents();
-
     // Verify that Tenant 2 does NOT see Tenant 1's employees
-    for (const name of tenant1Names) {
-      expect(tenant2Names).not.toContain(name);
-    }
+    await employeesPage.verifyEmployeeNamesDoNotContain(tenant1Names);
   });
 
   test('✅ RLS: Tenant 1 cannot see Tenant 2 products', async ({ page }) => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
-    // Navigate to products page (Spanish route)
-    await page.goto(`${baseURL}/admin/productos`);
-
-    // Wait for page to load with shorter timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-
-    // Try to find product rows with fallback
-    const productRowSelector = '[data-testid="product-row"], table tbody tr, .product-row';
-    await page.waitForSelector(productRowSelector, { timeout: 5000 }).catch(() => {
-      console.log('⚠️ No product rows found for Tenant 1 - data may not be provisioned');
-    });
-
-    // Get list of products for Tenant 1
-    const tenant1Products = page.locator(productRowSelector);
-    const tenant1Count = await tenant1Products.count();
+    // Use POM for products page
+    const productsPage = new AdminProductsPage(page);
+    await productsPage.navigate();
 
     // Skip test if no data is provisioned
-    if (tenant1Count === 0) {
+    if (!(await productsPage.hasProducts())) {
       console.log('⚠️ Skipping test - no products found for Tenant 1. Run: npx tsx scripts/provision-e2e-test-tenants.ts');
       test.skip();
       return;
     }
 
-    // Get product names visible
-    const tenant1Names = await page.locator('[data-testid="product-name"]').allTextContents();
+    // Get product names for Tenant 1
+    const tenant1Names = await productsPage.getProductNames();
 
     // Logout
     await logoutFromAdmin(page);
@@ -135,35 +98,18 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
-    // Navigate to products page (Spanish route)
-    await page.goto(`${baseURL}/admin/productos`);
-
-    // Wait for page to load with shorter timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-
-    // Try to find product rows with fallback
-    await page.waitForSelector(productRowSelector, { timeout: 5000 }).catch(() => {
-      console.log('⚠️ No product rows found for Tenant 2 - data may not be provisioned');
-    });
-
-    // Get list of products for Tenant 2
-    const tenant2Products = page.locator(productRowSelector);
-    const tenant2Count = await tenant2Products.count();
+    // Navigate to products page
+    await productsPage.navigate();
 
     // Skip test if no data is provisioned
-    if (tenant2Count === 0) {
+    if (!(await productsPage.hasProducts())) {
       console.log('⚠️ Skipping test - no products found for Tenant 2. Run: npx tsx scripts/provision-e2e-test-tenants.ts');
       test.skip();
       return;
     }
 
-    // Get product names visible
-    const tenant2Names = await page.locator('[data-testid="product-name"]').allTextContents();
-
     // Verify that Tenant 2 does NOT see Tenant 1's products
-    for (const name of tenant1Names) {
-      expect(tenant2Names).not.toContain(name);
-    }
+    await productsPage.verifyProductNamesDoNotContain(tenant1Names);
   });
 
   test('✅ RLS: Tenant 1 cannot see Tenant 2 orders', async ({ page }) => {
@@ -173,11 +119,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Navigate to reportes page (Spanish route)
     await page.goto(`${baseURL}/admin/reportes`);
 
-    // Get list of orders for Tenant 1
-    const tenant1Orders = page.locator('[data-testid="order-row"]');
-    const tenant1Count = await tenant1Orders.count();
-
-    // Get order IDs visible
+    // Get order IDs visible for Tenant 1
     const tenant1OrderIds = await page.locator('[data-testid="order-id"]').allTextContents();
 
     // Logout
@@ -189,11 +131,7 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Navigate to reportes page (Spanish route)
     await page.goto(`${baseURL}/admin/reportes`);
 
-    // Get list of orders for Tenant 2
-    const tenant2Orders = page.locator('[data-testid="order-row"]');
-    const tenant2Count = await tenant2Orders.count();
-
-    // Get order IDs visible
+    // Get order IDs visible for Tenant 2
     const tenant2OrderIds = await page.locator('[data-testid="order-id"]').allTextContents();
 
     // Verify that Tenant 2 does NOT see Tenant 1's orders
@@ -325,19 +263,12 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
-    // Navigate to dashboard (Spanish route)
-    await page.goto(`${baseURL}/admin/dashboard`);
-
-    // ✅ Wait for data to load (not "..." placeholder)
-    await page.waitForFunction(() => {
-      const element = document.querySelector('[data-testid="total-revenue"]');
-      return element && element.textContent && element.textContent.trim() !== '...' && element.textContent.trim() !== '';
-    }, { timeout: 15000 }).catch(() => {
-      console.log('⚠️ Tenant 1 analytics data did not load - may be empty');
-    });
+    // Use POM for dashboard page
+    const dashboardPage = new AdminDashboardPage(page);
+    await dashboardPage.navigate();
 
     // Get Tenant 1 analytics data
-    const tenant1Revenue = await page.locator('[data-testid="total-revenue"]').textContent();
+    const tenant1Revenue = await dashboardPage.getTotalRevenue();
 
     // Logout
     await logoutFromAdmin(page);
@@ -351,19 +282,11 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
-    // Navigate to dashboard (Spanish route)
-    await page.goto(`${baseURL}/admin/dashboard`);
-
-    // ✅ Wait for data to load (not "..." placeholder)
-    await page.waitForFunction(() => {
-      const element = document.querySelector('[data-testid="total-revenue"]');
-      return element && element.textContent && element.textContent.trim() !== '...' && element.textContent.trim() !== '';
-    }, { timeout: 15000 }).catch(() => {
-      console.log('⚠️ Tenant 2 analytics data did not load - may be empty');
-    });
+    // Navigate to dashboard
+    await dashboardPage.navigate();
 
     // Get Tenant 2 analytics data
-    const tenant2Revenue = await page.locator('[data-testid="total-revenue"]').textContent();
+    const tenant2Revenue = await dashboardPage.getTotalRevenue();
 
     // Verify they are different
     expect(tenant1Revenue).not.toBe(tenant2Revenue);
@@ -403,19 +326,12 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
-    // Navigate to settings (Spanish route)
-    await page.goto(`${baseURL}/admin/configuracion`);
-
-    // ✅ Esperar a que el campo tenga un valor no vacío
-    await page.waitForFunction(() => {
-      const input = document.querySelector('[data-testid="tenant-name"]') as HTMLInputElement;
-      return input && input.value && input.value.trim() !== '';
-    }, { timeout: 10000 }).catch(() => {
-      console.log('⚠️ Tenant 1 name field is empty - data may not be provisioned');
-    });
+    // Use POM for settings page
+    const settingsPage = new AdminSettingsPage(page);
+    await settingsPage.navigate();
 
     // Get Tenant 1 settings
-    const tenant1Name = await page.locator('[data-testid="tenant-name"]').inputValue();
+    const tenant1Name = await settingsPage.getTenantName();
 
     // Logout
     await logoutFromAdmin(page);
@@ -429,19 +345,11 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
 
-    // Navigate to settings (Spanish route)
-    await page.goto(`${baseURL}/admin/configuracion`);
-
-    // ✅ Esperar a que el campo tenga un valor no vacío
-    await page.waitForFunction(() => {
-      const input = document.querySelector('[data-testid="tenant-name"]') as HTMLInputElement;
-      return input && input.value && input.value.trim() !== '';
-    }, { timeout: 10000 }).catch(() => {
-      console.log('⚠️ Tenant 2 name field is empty - data may not be provisioned');
-    });
+    // Navigate to settings
+    await settingsPage.navigate();
 
     // Get Tenant 2 settings
-    const tenant2Name = await page.locator('[data-testid="tenant-name"]').inputValue();
+    const tenant2Name = await settingsPage.getTenantName();
 
     // Verify they are different
     expect(tenant1Name).not.toBe(tenant2Name);
@@ -488,80 +396,85 @@ test.describe('Multi-Tenant RLS Isolation E2E', () => {
     // Authenticate as Tenant 1 admin
     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
 
-    // Navigate to employees (Spanish route)
-    await page.goto(`${baseURL}/admin/empleados`);
-
-    // Wait for page to load with shorter timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-
-    // Try to find employee rows with fallback
-    const employeeSelector = '[data-testid="employee-row"], table tbody tr, .employee-row';
-    await page.waitForSelector(employeeSelector, { timeout: 5000 }).catch(() => {
-      console.log('⚠️ No employee rows found for Tenant 1');
-    });
-
-    // Get Tenant 1 employees
-    const tenant1EmployeesLocator = page.locator('[data-testid="employee-name"]');
-    const tenant1Count = await tenant1EmployeesLocator.count();
+    // Use POM for employees page
+    const employeesPage = new AdminEmployeesPage(page);
+    await employeesPage.navigate();
     
     // Skip test if no data
-    if (tenant1Count === 0) {
+    if (!(await employeesPage.hasEmployees())) {
       console.log('⚠️ Skipping test - no employees found. Run: npx tsx scripts/provision-e2e-test-tenants.ts');
       test.skip();
       return;
     }
     
-    const tenant1Employees = await tenant1EmployeesLocator.allTextContents();
+    // Get Tenant 1 employees
+    const tenant1Employees = await employeesPage.getEmployeeNames();
 
     // Logout using helper function
     await logoutFromAdmin(page);
+    
+    // ✅ Espera robusta: Verificar que el PIN pad está visible (admin usa PIN pad, no input password)
+    await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(1000);
 
     // Authenticate as Tenant 2 admin
     await authenticateAsAdmin(page, tenant2.adminPin, tenant2.id);
+    
+    // ✅ Espera robusta: Verificar que estamos en admin panel
+    await page.waitForURL('**/admin/**', { timeout: 10000 });
+    await page.waitForTimeout(1000);
 
-    // Navigate to employees (Spanish route)
-    await page.goto(`${baseURL}/admin/empleados`);
-
-    // Wait for page to load with shorter timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-
-    // Try to find employee rows
-    await page.waitForSelector(employeeSelector, { timeout: 5000 }).catch(() => {
-      console.log('⚠️ No employee rows found for Tenant 2');
-    });
-
-    // Get Tenant 2 employees
-    const tenant2EmployeesLocator = page.locator('[data-testid="employee-name"]');
-    const tenant2Count = await tenant2EmployeesLocator.count();
+    // Navigate to employees page
+    await employeesPage.navigate();
     
     // Skip test if no data
-    if (tenant2Count === 0) {
+    if (!(await employeesPage.hasEmployees())) {
       console.log('⚠️ Skipping test - no employees found for Tenant 2. Run: npx tsx scripts/provision-e2e-test-tenants.ts');
       test.skip();
       return;
     }
     
-    const tenant2Employees = await tenant2EmployeesLocator.allTextContents();
+    // Get Tenant 2 employees
+    const tenant2Employees = await employeesPage.getEmployeeNames();
 
     // Verify they are different
     expect(tenant1Employees).not.toEqual(tenant2Employees);
 
     // Logout and re-authenticate as Tenant 1
     await logoutFromAdmin(page);
+    
+    // ✅ Espera robusta: Verificar que el PIN pad está visible (admin usa PIN pad, no input password)
+    await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(2000);
+    
+    // ✅ Forzar navegación para limpiar estado completamente
+    await page.goto('http://localhost:3000/admin', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
+    
     await authenticateAsAdmin(page, tenant1.adminPin, tenant1.id);
+    
+    // ✅ Espera robusta: Verificar que estamos en admin panel
+    await page.waitForURL('**/admin/**', { timeout: 10000 });
+    await page.waitForTimeout(2000);
 
-    // Navigate to employees (Spanish route)
-    await page.goto(`${baseURL}/admin/empleados`);
-
-    // Wait for page to load with shorter timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-
-    // Try to find employee rows
-    await page.waitForSelector(employeeSelector, { timeout: 5000 }).catch(() => {});
+    // Navigate to employees page
+    await employeesPage.navigate();
+    
+    // ✅ Espera robusta: Verificar que la tabla está visible
+    await page.waitForSelector('[data-testid="employee-name"]', { state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
+    // ✅ Verificar que hay empleados antes de obtenerlos
+    if (!(await employeesPage.hasEmployees())) {
+      console.log('⚠️ Warning: No employees found after re-authentication. Retrying...');
+      // Intentar recargar la página
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('[data-testid="employee-name"]', { state: 'visible', timeout: 10000 });
+      await page.waitForTimeout(1000);
+    }
 
     // Get Tenant 1 employees again
-    const tenant1EmployeesAgainLocator = page.locator('[data-testid="employee-name"]');
-    const tenant1EmployeesAgain = await tenant1EmployeesAgainLocator.allTextContents();
+    const tenant1EmployeesAgain = await employeesPage.getEmployeeNames();
 
     // Verify we're back to Tenant 1 data
     expect(tenant1EmployeesAgain).toEqual(tenant1Employees);

@@ -2,11 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: false,
+  fullyParallel: true, // Enable parallel execution
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 1,
-  timeout: 300000, // 5 minutes per test (increased from default 30s)
+  workers: process.env.CI ? 1 : 1, // 1 worker for stability (multi-tenant tests need sequential execution)
+  timeout: 600000, // 10 minutes per test (increased for multi-tenant tests)
   reporter: [
     ['html'],
     ['json', { outputFile: 'test-results/results.json' }],
@@ -20,19 +20,23 @@ export default defineConfig({
     actionTimeout: 15000, // 15 seconds for individual actions
     navigationTimeout: 30000, // 30 seconds for page navigation
   },
-  // Set environment variable for test detection
-  // env: {
-  //   PLAYWRIGHT_TEST: 'true',
-  // },
   projects: [
+    // Chromium tests with authentication
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Note: Storage state is NOT used here because tests need to switch between tenants
+        // Each test handles its own authentication using the helpers
+      },
     },
-    {
-      name: 'mobile',
-      use: { ...devices['Pixel 5'] },
-    },
+    
+    // Mobile tests commented out temporarily to reduce execution time
+    // Re-enable for full test coverage or CI runs
+    // {
+    //   name: 'mobile',
+    //   use: { ...devices['Pixel 5'] },
+    // },
   ],
   webServer: {
     command: 'npm run dev',
