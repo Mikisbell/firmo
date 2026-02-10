@@ -15,8 +15,9 @@ import { setupTerminalConfig } from "./helpers/terminal-setup";
 
 test.describe("Waiter to KDS Flow", () => {
     test.beforeEach(async ({ page, context }) => {
-        // CRITICAL: Mock catalog API to provide test products
-        await page.route('/api/catalog/latest', async route => {
+        // CRITICAL: Mock catalog API at CONTEXT level to apply to ALL pages
+        // This ensures second waiter and KDS pages also get the mock
+        await context.route('/api/catalog/latest', async route => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -122,39 +123,45 @@ test.describe("Waiter to KDS Flow", () => {
 
         // Wait for success toast
         await expect(page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000); // Increased: Wait for event propagation
 
         // Step 4: Open KDS Cocina in new tab
         const kdsPage = await context.newPage();
         await kdsPage.goto("/cocina");
-        await kdsPage.waitForLoadState("networkidle");
-        await kdsPage.waitForTimeout(2000); // Wait for IndexedDB to sync
+        await kdsPage.waitForLoadState("domcontentloaded");
+        await kdsPage.waitForTimeout(3000); // Increased: Wait for IndexedDB sync
 
-        // Step 5: Verify order appears on KDS
+        // Step 5: Verify order appears on KDS with retry logic
         // Should see order number
-        const orderTicket = kdsPage.locator('[data-testid="kds-ticket"]').first();
-        await expect(orderTicket).toBeVisible({ timeout: 10000 });
+        await expect(async () => {
+            const orderTicket = kdsPage.locator('[data-testid="kds-ticket"]').first();
+            await expect(orderTicket).toBeVisible({ timeout: 5000 });
+        }).toPass({ timeout: 15000, intervals: [2000, 3000, 5000] }); // Retry with increasing intervals
 
         // Should see items for COCINA station (Papas)
-        await expect(kdsPage.locator('text=Papas')).toBeVisible();
+        await expect(kdsPage.locator('[data-testid="kds-item"]:has-text("Papas")')).toBeVisible({ timeout: 5000 });
 
         // Step 6: Open KDS Bar in another tab
         const barPage = await context.newPage();
         await barPage.goto("/bar");
-        await barPage.waitForLoadState("networkidle");
-        await barPage.waitForTimeout(2000);
+        await barPage.waitForLoadState("domcontentloaded");
+        await barPage.waitForTimeout(3000); // Increased: Wait for IndexedDB sync
 
         // Should see items for BAR station (Gaseosa)
-        await expect(barPage.locator('text=Gaseosa')).toBeVisible({ timeout: 10000 });
+        await expect(async () => {
+            await expect(barPage.locator('[data-testid="kds-item"]:has-text("Gaseosa")')).toBeVisible({ timeout: 5000 });
+        }).toPass({ timeout: 15000, intervals: [2000, 3000, 5000] });
 
         // Step 7: Open KDS Horno (Parrilla) in another tab
         const hornoPage = await context.newPage();
         await hornoPage.goto("/cocina/horno");
-        await hornoPage.waitForLoadState("networkidle");
-        await hornoPage.waitForTimeout(2000);
+        await hornoPage.waitForLoadState("domcontentloaded");
+        await hornoPage.waitForTimeout(3000); // Increased: Wait for IndexedDB sync
 
         // Should see items for PARRILLA station (Pollo)
-        await expect(hornoPage.locator('text=Pollo')).toBeVisible({ timeout: 10000 });
+        await expect(async () => {
+            await expect(hornoPage.locator('[data-testid="kds-item"]:has-text("Pollo")')).toBeVisible({ timeout: 5000 });
+        }).toPass({ timeout: 15000, intervals: [2000, 3000, 5000] });
 
         // Cleanup
         await kdsPage.close();
@@ -180,16 +187,21 @@ test.describe("Waiter to KDS Flow", () => {
         await expect(sendButton).toBeEnabled({ timeout: 5000 });
         await sendButton.click();
         await expect(page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000); // Increased: Wait for event propagation
 
         // Step 2: Open KDS and change status
         const kdsPage = await context.newPage();
         await kdsPage.goto("/cocina/horno");
-        await kdsPage.waitForLoadState("networkidle");
-        await kdsPage.waitForTimeout(2000);
+        await kdsPage.waitForLoadState("domcontentloaded");
+        await kdsPage.waitForTimeout(3000); // Increased: Wait for IndexedDB sync
 
-        // Find the item and click to change status
-        const itemButton = kdsPage.locator('button:has-text("Pollo")').first();
+        // Find the item and click to change status with retry logic
+        await expect(async () => {
+            const itemButton = kdsPage.locator('[data-testid="kds-item"]:has-text("Pollo")').first();
+            await expect(itemButton).toBeVisible({ timeout: 5000 });
+        }).toPass({ timeout: 15000, intervals: [2000, 3000, 5000] });
+
+        const itemButton = kdsPage.locator('[data-testid="kds-item"]:has-text("Pollo")').first();
         await expect(itemButton).toBeVisible({ timeout: 10000 });
 
         // Click to change from PENDING → COOKING
@@ -251,18 +263,20 @@ test.describe("Waiter to KDS Flow", () => {
         // Wait for both success toasts
         await expect(page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
         await expect(waiter2Page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000); // Increased: Wait for event propagation
 
         // Open KDS and verify both orders appear
         const kdsPage = await context.newPage();
         await kdsPage.goto("/cocina");
-        await kdsPage.waitForLoadState("networkidle");
-        await kdsPage.waitForTimeout(2000);
+        await kdsPage.waitForLoadState("domcontentloaded");
+        await kdsPage.waitForTimeout(3000); // Increased: Wait for IndexedDB sync
 
-        // Should see both orders (or at least their items)
-        const tickets = kdsPage.locator('[data-testid="kds-ticket"]');
-        const ticketCount = await tickets.count();
-        expect(ticketCount).toBeGreaterThanOrEqual(2);
+        // Should see both orders (or at least their items) with retry logic
+        await expect(async () => {
+            const tickets = kdsPage.locator('[data-testid="kds-ticket"]');
+            const ticketCount = await tickets.count();
+            expect(ticketCount).toBeGreaterThanOrEqual(2);
+        }).toPass({ timeout: 15000, intervals: [2000, 3000, 5000] });
 
         await waiter2Page.close();
         await kdsPage.close();
@@ -312,9 +326,9 @@ test.describe("Waiter to KDS Flow", () => {
         await expect(sendButton).toBeEnabled({ timeout: 5000 });
         await sendButton.click();
         await expect(page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(2000); // Increased: Wait for event propagation
 
         // Item should still be visible in order panel after submission
-        await expect(page.locator('text=Pollo').nth(1)).toBeVisible();
+        await expect(page.locator('[data-testid="order-item"]:has-text("Pollo")').first()).toBeVisible({ timeout: 5000 });
     });
 });

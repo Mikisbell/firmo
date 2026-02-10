@@ -124,6 +124,7 @@ export function KDSTicket({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
+            data-testid="kds-ticket"
             className={`
                 bg-zinc-900/90 rounded-xl md:rounded-2xl 
                 border-2 ${colors.border} 
@@ -166,6 +167,7 @@ export function KDSTicket({
                         layout
                         onClick={() => onItemClick(orderId, item.line_id, item.status)}
                         whileTap={{ scale: 0.98 }}
+                        data-testid="kds-item"
                         className={`
                             w-full text-left p-3 md:p-3.5 rounded-lg md:rounded-xl 
                             border-2 text-base md:text-lg font-bold transition-all

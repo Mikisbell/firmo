@@ -427,6 +427,7 @@ function MobileLineItem({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
+            data-testid="order-item"
             className="flex items-center justify-between bg-zinc-800/50 rounded-xl border border-zinc-700/50 p-3"
         >
             <div className="flex-1 min-w-0 mr-3">
