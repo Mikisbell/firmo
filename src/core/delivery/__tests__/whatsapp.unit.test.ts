@@ -12,7 +12,7 @@
  * @module delivery/__tests__/whatsapp-unit
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WhatsAppService, MESSAGE_TEMPLATES } from '../whatsapp.service';
 import type { OrderId } from '../types-2026';
 import { toOrderId } from '../types-2026';

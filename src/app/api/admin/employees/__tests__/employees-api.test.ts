@@ -333,7 +333,7 @@ describe('Employee API Unit Tests', () => {
       });
 
       const request = createMockRequest(updateData);
-      const response = await PUT(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await PUT(request, { params: Promise.resolve({ id: employeeId }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -378,7 +378,7 @@ describe('Employee API Unit Tests', () => {
       });
 
       const request = createMockRequest(updateData);
-      const response = await PUT(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await PUT(request, { params: Promise.resolve({ id: employeeId }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -394,7 +394,7 @@ describe('Employee API Unit Tests', () => {
       };
 
       const request = createMockRequest(updateData);
-      const response = await PUT(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await PUT(request, { params: Promise.resolve({ id: employeeId }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -412,7 +412,7 @@ describe('Employee API Unit Tests', () => {
       vi.mocked(prisma.employees.findFirst).mockResolvedValue(null);
 
       const request = createMockRequest(updateData);
-      const response = await PUT(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await PUT(request, { params: Promise.resolve({ id: employeeId }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -452,7 +452,7 @@ describe('Employee API Unit Tests', () => {
       });
 
       const request = createMockRequest(updateData);
-      await PUT(request, Promise.resolve({ params: { id: employeeId } }));
+      await PUT(request, { params: Promise.resolve({ id: employeeId }) });
 
       expect(mockAuditCreate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -502,7 +502,7 @@ describe('Employee API Unit Tests', () => {
       });
 
       const request = {} as NextRequest;
-      const response = await DELETE(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await DELETE(request, { params: Promise.resolve({ id: employeeId }) });
 
       expect(response.status).toBe(204);
       expect(mockUpdate).toHaveBeenCalledWith(
@@ -519,7 +519,7 @@ describe('Employee API Unit Tests', () => {
       vi.mocked(prisma.employees.findFirst).mockResolvedValue(null);
 
       const request = {} as NextRequest;
-      const response = await DELETE(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await DELETE(request, { params: Promise.resolve({ id: employeeId }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -554,7 +554,7 @@ describe('Employee API Unit Tests', () => {
       });
 
       const request = {} as NextRequest;
-      await DELETE(request, Promise.resolve({ params: { id: employeeId } }));
+      await DELETE(request, { params: Promise.resolve({ id: employeeId }) });
 
       expect(mockAuditCreate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -601,7 +601,7 @@ describe('Employee API Unit Tests', () => {
       });
 
       const request = {} as NextRequest;
-      await DELETE(request, Promise.resolve({ params: { id: employeeId } }));
+      await DELETE(request, { params: Promise.resolve({ id: employeeId }) });
 
       // Verify record still exists with is_active = false
       expect(employeeAfterDelete.id).toBe(employeeId);
@@ -665,7 +665,7 @@ describe('Employee API Unit Tests', () => {
       vi.mocked(prisma.employees.findFirst).mockResolvedValue(mockEmployee as any);
 
       const request = {} as NextRequest;
-      const response = await GET_BY_ID(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await GET_BY_ID(request, { params: Promise.resolve({ id: employeeId }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -679,7 +679,7 @@ describe('Employee API Unit Tests', () => {
       vi.mocked(prisma.employees.findFirst).mockResolvedValue(null);
 
       const request = {} as NextRequest;
-      const response = await GET_BY_ID(request, Promise.resolve({ params: { id: employeeId } }));
+      const response = await GET_BY_ID(request, { params: Promise.resolve({ id: employeeId }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
