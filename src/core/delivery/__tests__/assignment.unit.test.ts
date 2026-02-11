@@ -323,7 +323,7 @@ describe('Assignment Algorithm - Unit Tests', () => {
         data: {
           id: testOrderId,
           tenant_id: testTenantId,
-          customer_name: 'John Doe',
+          customer_phone: 'John Doe',
           customer_phone: '1234567890',
           delivery_address: JSON.stringify(testLocation2),
           pickup_location: JSON.stringify(testLocation1),

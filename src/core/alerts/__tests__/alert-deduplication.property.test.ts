@@ -34,7 +34,7 @@ describe('Property: Alert Deduplication', () => {
     await prisma.alert_events.deleteMany({
       where: {
         tenant_id: {
-          contains: 'test-tenant-',
+          // contains: 'test-tenant-',
         },
       },
     });
@@ -42,7 +42,7 @@ describe('Property: Alert Deduplication', () => {
     await prisma.alert_configurations.deleteMany({
       where: {
         tenant_id: {
-          contains: 'test-tenant-',
+          // contains: 'test-tenant-',
         },
       },
     });
