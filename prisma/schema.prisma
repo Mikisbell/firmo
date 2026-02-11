@@ -1969,3 +1969,55 @@ model maintenance_windows {
   @@index([tenant_id])
   @@index([tenant_id, start_time, end_time])
 }
+
+
+// ============================================
+// Observability: Log Configuration
+// ============================================
+
+/// Configuración de niveles de log por módulo
+/// Permite ajustar dinámicamente la verbosidad de logs sin redeployment
+model log_configuration {
+  module     String   @id // auth, sync, events, orders, global
+  level      String   // DEBUG, INFO, WARN, ERROR, FATAL
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_by String?
+}
+
+/// Historial de cambios de configuración de logs (audit trail)
+/// Registra todos los cambios para troubleshooting y compliance
+model log_configuration_change {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  module         String   // auth, sync, events, orders, global
+  previous_level String   // DEBUG, INFO, WARN, ERROR, FATAL
+  new_level      String   // DEBUG, INFO, WARN, ERROR, FATAL
+  changed_by     String   // user_id o "system"
+  changed_at     DateTime @default(now()) @db.Timestamptz(6)
+  reason         String?  // Razón del cambio (opcional)
+
+  @@index([module])
+  @@index([changed_at(sort: Desc)])
+}
+
+/// Registro de auditoría de acciones de recuperación
+/// Registra todas las acciones de recuperación manual y automática para troubleshooting
+model recovery_action_log {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action_type         String   // CLEAR_CACHE, RESET_SYNC, REBUILD_PROJECTIONS, RESTART_SERVICE, PURGE_QUEUE
+  tenant_id           String?  @db.Uuid
+  user_id             String?  @db.Uuid
+  reason              String
+  success             Boolean
+  message             String
+  duration_ms         Int
+  metadata            Json?
+  details             Json?
+  rollback_available  Boolean  @default(false)
+  timestamp           DateTime @db.Timestamptz(6)
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, timestamp(sort: Desc)])
+  @@index([action_type, timestamp(sort: Desc)])
+  @@index([user_id, timestamp(sort: Desc)])
+  @@index([success, timestamp(sort: Desc)])
+}

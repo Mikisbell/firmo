@@ -419,7 +419,7 @@ The implementation follows a phased approach:
     - _Requirements: 12.2, 12.3_
 
 - [ ] 17. Implement Error Recovery System
-  - [ ] 17.1 Create error recovery service
+  - [x] 17.1 Create error recovery service
     - Create `src/core/recovery/recovery-service.ts` with RecoveryService class
     - Implement automatic retry with exponential backoff for transient errors
     - Provide manual recovery endpoints (clear cache, reset sync, rebuild projections)
@@ -429,12 +429,12 @@ The implementation follows a phased approach:
     - Send notifications on recovery success/failure
     - _Requirements: 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8_
   
-  - [ ] 17.2 Write property test for automatic recovery
+  - [x] 17.2 Write property test for automatic recovery
     - **Property: Automatic Recovery**
     - Test that transient errors trigger retry with backoff
     - **Validates: Requirements 13.3**
   
-  - [ ] 17.3 Write property test for recovery action logging
+  - [x] 17.3 Write property test for recovery action logging
     - **Property: Recovery Action Logging**
     - Test that all recovery actions are logged
     - **Validates: Requirements 13.5**
