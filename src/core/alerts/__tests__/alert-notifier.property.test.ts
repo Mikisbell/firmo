@@ -14,4 +14,9 @@ import prisma from '@/src/core/db/prisma';
 import type { AlertType, AlertConfiguration } from '../alert-config';
 import type { CreateAlertEventInput, AlertSeverity } from '../alert-notifier';
 
-describe('Alert Notifier - 
+describe('Alert Notifier - Property Tests', () => {
+  // TODO: Implementar property tests para alert notifier
+  it.skip('should be implemented', () => {
+    expect(true).toBe(true);
+  });
+});

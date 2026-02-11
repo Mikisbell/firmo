@@ -30,9 +30,19 @@ export const positiveCentavosArb = fc.integer({ min: 1, max: 999999999 });
 export const centavosArb = fc.integer({ min: 0, max: 999999999 });
 
 /**
+ * Arbitrary for small centavos amounts (for testing)
+ */
+export const smallCentavosArb = fc.integer({ min: 0, max: 100000 });
+
+/**
  * Arbitrary for positive quantities
  */
 export const quantityArb = fc.integer({ min: 1, max: 1000 });
+
+/**
+ * Arbitrary for user roles
+ */
+export const roleArb = fc.constantFrom('ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KDS');
 
 /**
  * Arbitrary for order numbers
@@ -219,6 +229,27 @@ export function generateRealisticCheck() {
     tax_cents: Math.floor(Math.random() * 10000),
     total_cents: Math.floor(Math.random() * 100000) + 1000,
     status: 'OPEN',
+  };
+}
+
+/**
+ * Generate a realistic shift object
+ */
+export function generateRealisticShift() {
+  return {
+    id: randomUUID(),
+    tenant_id: randomUUID(),
+    terminal_id: `CAJA-${String(Math.floor(Math.random() * 99) + 1).padStart(2, '0')}`,
+    opened_by: randomUUID(),
+    opened_at: new Date(),
+    closed_at: null,
+    closed_by: null,
+    status: 'OPEN',
+    cash_opening_cents: Math.floor(Math.random() * 100000),
+    cash_closing_cents: null,
+    business_date: new Date().toISOString().split('T')[0],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -581,3 +612,33 @@ export function expectProjectionConsistency(projection1: any, projection2: any) 
     throw new Error(`Expected consistent projections`);
   }
 }
+
+/**
+ * Expect valid discount (discount <= subtotal)
+ */
+export function expectValidDiscount(subtotal: number, discount: number) {
+  if (!Number.isInteger(discount) || discount < 0) {
+    throw new Error(`Expected valid discount (non-negative integer), got: ${discount}`);
+  }
+  if (discount > subtotal) {
+    throw new Error(`Expected discount <= subtotal, got discount: ${discount}, subtotal: ${subtotal}`);
+  }
+}
+
+/**
+ * Expect valid payment
+ */
+export function expectValidPayment(value: any) {
+  if (!value || typeof value !== 'object') {
+    throw new Error(`Expected valid payment object, got: ${value}`);
+  }
+  expectUUID(value.id);
+  expectCentavos(value.amount_cents);
+  if (!['CASH', 'CARD', 'YAPE', 'PLIN', 'TRANSFER'].includes(value.method)) {
+    throw new Error(`Expected valid payment method, got: ${value.method}`);
+  }
+  if (!['PENDING', 'COMPLETED', 'FAILED', 'REFUNDED'].includes(value.status)) {
+    throw new Error(`Expected valid payment status, got: ${value.status}`);
+  }
+}
+
