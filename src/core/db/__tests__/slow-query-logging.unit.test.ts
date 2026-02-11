@@ -52,8 +52,8 @@ describe('Prisma Slow Query Logging Middleware', () => {
       // The middleware is installed during client creation if $use is available
       // In test environments, $use might not be available, which is fine
       // The middleware will be installed in production
-      if (typeof prisma.$use === 'function') {
-        expect(typeof prisma.$use).toBe('function')
+      if (typeof (prisma as any).$use === 'function') {
+        expect(typeof (prisma as any).$use).toBe('function')
       } else {
         // In test environment without $use, just verify client exists
         expect(prisma).toBeDefined()
