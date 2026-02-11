@@ -10,11 +10,11 @@
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import {
-    hashPin,
     generateToken,
     validateToken,
     AUTH_CONFIG,
 } from '../auth.service';
+import { hashPin } from '../crypto-utils';
 
 describe('Authentication Service', () => {
     describe('hashPin', () => {

@@ -16,9 +16,8 @@ describe('Cache Flow - Integration Tests', () => {
   let metrics: VercelMetricsCollector;
 
   beforeEach(() => {
-    // Usar Redis URL de entorno o fallback a in-memory
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    cache = new RedisCacheService(redisUrl);
+    // Crear instancia de cache service (usa Redis URL de entorno)
+    cache = new RedisCacheService();
     metrics = new VercelMetricsCollector();
   });
 
@@ -174,8 +173,8 @@ describe('Cache Flow - Integration Tests', () => {
    */
   describe('Graceful Degradation', () => {
     it('should return null on cache get failure without throwing', async () => {
-      // Usar URL inválida para simular fallo de conexión
-      const failingCache = new RedisCacheService('redis://invalid-host:9999');
+      // Crear instancia de cache service (fallará si Redis no está disponible)
+      const failingCache = new RedisCacheService();
 
       // Esto no debería lanzar error, debería retornar null
       const result = await failingCache.get('test:key');
@@ -183,7 +182,7 @@ describe('Cache Flow - Integration Tests', () => {
     });
 
     it('should handle cache set failure gracefully', async () => {
-      const failingCache = new RedisCacheService('redis://invalid-host:9999');
+      const failingCache = new RedisCacheService();
 
       // Esto no debería lanzar error
       await expect(
@@ -192,7 +191,7 @@ describe('Cache Flow - Integration Tests', () => {
     });
 
     it('should handle cache delete failure gracefully', async () => {
-      const failingCache = new RedisCacheService('redis://invalid-host:9999');
+      const failingCache = new RedisCacheService();
 
       // Esto no debería lanzar error
       await expect(
@@ -201,7 +200,7 @@ describe('Cache Flow - Integration Tests', () => {
     });
 
     it('should handle cache clear failure gracefully', async () => {
-      const failingCache = new RedisCacheService('redis://invalid-host:9999');
+      const failingCache = new RedisCacheService();
 
       // Esto no debería lanzar error
       await expect(

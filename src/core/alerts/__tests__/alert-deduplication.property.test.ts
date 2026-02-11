@@ -93,15 +93,15 @@ describe('Property: Alert Deduplication', () => {
             tenantId: config.tenant_id,
             alertType: config.alert_type as AlertType,
             thresholdValue: Number(config.threshold_value),
-            thresholdUnit: config.threshold_unit,
-            comparisonOperator: config.comparison_operator,
+            thresholdUnit: config.threshold_unit as import('../alert-config').ThresholdUnit,
+            comparisonOperator: config.comparison_operator as import('../alert-config').ComparisonOperator,
             enabled: config.enabled,
             notificationChannels: config.notification_channels as any[],
             notificationConfig: config.notification_config as any,
             createdAt: config.created_at,
             updatedAt: config.updated_at,
-            createdBy: config.created_by,
-            updatedBy: config.updated_by,
+            createdBy: config.created_by ?? undefined,
+            updatedBy: config.updated_by ?? undefined,
           };
 
           const alertInput: CreateAlertEventInput = {
