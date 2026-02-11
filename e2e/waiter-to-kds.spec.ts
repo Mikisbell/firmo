@@ -54,6 +54,9 @@ test.describe("Waiter to KDS Flow", () => {
                 }),
             });
         });
+        
+        // IMPORTANT: DO NOT mock /api/events/ingest - let it reach the real server
+        // This allows events to sync via server and SSE, enabling cross-page communication
 
         // CRITICAL: Set localStorage AND sessionStorage BEFORE any page loads
         // This ensures terminal config and auth session are available when components mount
@@ -222,25 +225,36 @@ test.describe("Waiter to KDS Flow", () => {
         await kdsPage.close();
     });
 
-    test.skip("multiple waiters can submit orders simultaneously", async ({ page, context }) => {
-        // KNOWN ISSUE: IndexedDB isolation en Playwright
-        // Cada página tiene su propia instancia de IndexedDB, los eventos no se propagan
-        // entre páginas automáticamente. Este test requiere sincronización vía servidor real.
+    test.skip("multiple waiters can submit orders (sequential)", async ({ page, context }) => {
+        // REQUIRES MANUAL TESTING: Multi-terminal synchronization via real server + SSE
         // 
-        // Ver diagnóstico completo: .kiro/specs/playwright-e2e-optimization/PHASE2_TEST3_DIAGNOSIS.md
+        // This test validates that multiple waiters can submit orders and all appear in KDS.
+        // However, it requires real server synchronization with SSE, which doesn't work
+        // reliably in Playwright E2E tests due to:
+        // 
+        // 1. IndexedDB isolation - each page has its own IndexedDB instance
+        // 2. SSE connection issues - SSE doesn't establish correctly in Playwright
+        // 3. Offline-first architecture - events sync asynchronously via server
         //
-        // Para probar multi-waiter en producción:
-        // 1. Usar servidor real (no mocks)
-        // 2. Eventos se sincronizan vía API /api/events/ingest
-        // 3. SSE propaga eventos a todas las páginas conectadas
+        // SOLUTION: Manual testing required for this scenario
+        // See: .kiro/specs/playwright-e2e-optimization/WAITER_KDS_MULTI_TERMINAL_SOLUTION.md
         //
-        // Este test se puede habilitar cuando se implemente testing con servidor real.
+        // Manual Testing Checklist:
+        // 1. Open 2 browsers (Chrome + Firefox)
+        // 2. Browser 1: Waiter on Mesa 3, add product, submit
+        // 3. Browser 2: Waiter on Mesa 4, add product, submit  
+        // 4. Browser 3: KDS Cocina
+        // 5. Verify: BOTH orders appear in KDS after server sync
+        //
+        // This test is skipped in CI/CD but should be executed manually before releases.
         
-        // Open KDS FIRST (before any orders)
+        // Open KDS FIRST (before any orders) to establish SSE connection
         const kdsPage = await context.newPage();
         await kdsPage.goto("/cocina");
         await kdsPage.waitForLoadState("domcontentloaded");
-        await kdsPage.waitForTimeout(2000);
+        
+        // Wait for SSE connection to establish
+        await kdsPage.waitForTimeout(3000);
 
         // Waiter 1: Mesa 3
         await page.goto("/mozo");
@@ -258,16 +272,18 @@ test.describe("Waiter to KDS Flow", () => {
         await expect(sendButton1).toBeEnabled({ timeout: 5000 });
         await sendButton1.click();
         await expect(page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
-        await page.waitForTimeout(2000);
+        
+        // Wait for server sync + SSE propagation
+        await page.waitForTimeout(3000);
 
         // Verify first ticket appears in KDS
         await expect(async () => {
             const tickets = kdsPage.locator('[data-testid="kds-ticket"]');
             const count = await tickets.count();
             expect(count).toBeGreaterThanOrEqual(1);
-        }).toPass({ timeout: 10000, intervals: [2000, 3000] });
+        }).toPass({ timeout: 15000, intervals: [3000, 5000] });
 
-        // Waiter 2: Mesa 4 (new tab)
+        // Waiter 2: Mesa 4 (new tab) - SEQUENTIAL after first order confirmed
         const waiter2Page = await context.newPage();
         await waiter2Page.goto("/mozo");
         await waiter2Page.waitForLoadState("networkidle");
@@ -284,14 +300,16 @@ test.describe("Waiter to KDS Flow", () => {
         await expect(sendButton2).toBeEnabled({ timeout: 5000 });
         await sendButton2.click();
         await expect(waiter2Page.locator('text=¡Enviado!')).toBeVisible({ timeout: 5000 });
-        await waiter2Page.waitForTimeout(2000);
+        
+        // Wait for server sync + SSE propagation
+        await waiter2Page.waitForTimeout(3000);
 
-        // Verify second ticket appears in KDS
+        // Verify second ticket appears in KDS (now should have 2 tickets)
         await expect(async () => {
             const tickets = kdsPage.locator('[data-testid="kds-ticket"]');
             const count = await tickets.count();
             expect(count).toBeGreaterThanOrEqual(2);
-        }).toPass({ timeout: 10000, intervals: [2000, 3000] });
+        }).toPass({ timeout: 15000, intervals: [3000, 5000] });
 
         await waiter2Page.close();
         await kdsPage.close();

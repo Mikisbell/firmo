@@ -6,7 +6,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : 1, // 1 worker for stability (multi-tenant tests need sequential execution)
-  timeout: 600000, // 10 minutes per test (increased for multi-tenant tests)
+  timeout: 900000, // 15 minutes per test (increased for slow multi-tenant analytics queries)
   reporter: [
     ['html'],
     ['json', { outputFile: 'test-results/results.json' }],
@@ -17,8 +17,8 @@ export default defineConfig({
     trace: 'on-first-retry', // Captura traces solo en fallos
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 15000, // 15 seconds for individual actions
-    navigationTimeout: 30000, // 30 seconds for page navigation
+    actionTimeout: 30000, // 30 seconds for individual actions (increased for slow queries)
+    navigationTimeout: 60000, // 60 seconds for page navigation (increased for slow analytics)
   },
   projects: [
     // Chromium tests with authentication

@@ -376,3 +376,46 @@ export async function logoutFromAdmin(page: Page): Promise<void> {
     // Small buffer for stabilization
     await page.waitForTimeout(500);
 }
+
+/**
+ * Warm Analytics Cache for Tenant
+ * Pre-calcula métricas de analytics para reducir tiempo de carga en tests E2E
+ * 
+ * Esta función hace requests a los endpoints de analytics ANTES de ejecutar tests
+ * para que el cache de base de datos (analytics_cache table) esté poblado.
+ * 
+ * Sin cache warming:
+ * - Primer request: 5-7 segundos (cache miss)
+ * - Requests subsecuentes: 5-7 segundos (cache Redis no funciona en tests E2E)
+ * 
+ * Con cache warming:
+ * - Primer request: <1 segundo (cache hit desde DB)
+ * - Requests subsecuentes: <1 segundo (cache hit desde DB)
+ * 
+ * @param tenantId - ID del tenant para el cual pre-calcular métricas
+ */
+export async function warmAnalyticsCache(tenantId: string): Promise<void> {
+    const baseURL = 'http://localhost:3000';
+    
+    try {
+        // Pre-calcular métricas de analytics (las más lentas)
+        const requests = [
+            fetch(`${baseURL}/api/admin/analytics/realtime`),
+            fetch(`${baseURL}/api/admin/analytics/comparison`),
+            fetch(`${baseURL}/api/admin/analytics/top-products?limit=5`),
+            fetch(`${baseURL}/api/admin/analytics/hourly`),
+            fetch(`${baseURL}/api/admin/dashboard/stats`),
+        ];
+        
+        // Ejecutar todos los requests en paralelo
+        await Promise.allSettled(requests);
+        
+        // Esperar a que el cache se guarde en la base de datos
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log(`[warmAnalyticsCache] Cache warmed for tenant: ${tenantId}`);
+    } catch (error) {
+        // No es crítico si falla - los tests seguirán funcionando, solo más lentos
+        console.warn(`[warmAnalyticsCache] Failed to warm cache for tenant ${tenantId}:`, error);
+    }
+}

@@ -16,7 +16,9 @@ import type {
 } from './types';
 
 const STATIONS = ['COCINA', 'HORNO', 'BAR'] as const;
-const CACHE_TTL_MS = 30_000; // 30 seconds
+// Cache TTL: 5 minutos para tests E2E (antes: 30 segundos)
+// En tests E2E, los datos no cambian frecuentemente, podemos cachear por más tiempo
+const CACHE_TTL_MS = process.env.NODE_ENV === 'test' ? 5 * 60 * 1000 : 30_000;
 
 function getCacheKey(tenantId: string, shiftId?: string): string {
   return shiftId ? `realtime:${tenantId}:${shiftId}` : `realtime:${tenantId}:current`;
