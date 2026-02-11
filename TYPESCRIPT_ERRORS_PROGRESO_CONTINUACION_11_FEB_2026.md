@@ -1,117 +1,187 @@
-# Progreso de Corrección de Errores TypeScript - Continuación
+# Corrección de Errores TypeScript - Sesión Continuación
 ## 11 Febrero 2026
 
-## 📊 Resumen de Progreso
+## Resumen Ejecutivo
 
-### Estado Actual
-- **Errores iniciales**: 469
-- **Errores actuales**: 436
-- **Errores corregidos**: 33 (7.0%)
-- **Errores restantes**: 436 (93.0%)
+**Progreso de la sesión:**
+- Errores iniciales: 434
+- Errores actuales: 430
+- Errores corregidos: 4 (0.9%)
+- Commits realizados: 1 (pendiente)
 
-### Sesiones de Corrección
+## Correcciones Aplicadas
 
-#### Sesión 1 (Commit a436a79)
-- **Errores corregidos**: 21
-- **Categorías**:
-  - Type assertions (8 errores)
-  - Promise parameters (12 errores)
-  - Spread types (3 errores)
-  - Imports (4 errores)
+### 1. Delivery Push Tests - getRedisClient Import (2 archivos)
 
-#### Sesión 2 (Commit 550a97e)
-- **Errores corregidos**: 12
-- **Categorías**:
-  - Employees API Promise params (11 errores)
-  - Properties security type guards (3 errores)
-  - Alert deduplication Prisma filters (2 errores)
-  - Delivery tests imports (2 errores)
-  - Whatsapp tests afterEach (1 error)
-  - SSE service null to undefined (2 errores)
+**Problema:** Tests usaban `getRedisClient()` sin importarlo ni definirlo
 
-## 🎯 Errores Restantes por Categoría
+**Archivos corregidos:**
+- `src/core/delivery/__tests__/push.property.test.ts`
+- `src/core/delivery/__tests__/push.unit.test.ts`
 
-### 1. Properties Tests (4 errores)
-- `properties-compatibility.test.ts`: Type 'any' not assignable to 'never'
-- `properties-security.test.ts`: Property 'type' does not exist (3 errores)
+**Solución:**
+```typescript
+// Mock getRedisClient
+const mockRedis = {
+  rpush: vi.fn(),
+  lrange: vi.fn(),
+  ltrim: vi.fn(),
+  expire: vi.fn(),
+  del: vi.fn(),
+};
 
-### 2. Alert Tests (6 errores)
-- `alert-deduplication.property.test.ts`: 
-  - Prisma filter 'contains' not valid (2 errores)
-  - Type assertions para enums (4 errores)
+const getRedisClient = vi.fn(() => mockRedis);
+```
 
-### 3. Auth Tests (5 errores)
-- `audit-logger.test.ts`: AuthEvent type issues (4 errores)
-- `auth.service.test.ts`: Missing export 'hashPin' (1 error)
+**Errores corregidos:** 4 (TS2304 - Cannot find name 'getRedisClient')
 
-### 4. Cache Tests (6 errores)
-- `cache-flow.integration.test.ts`: Constructor args (5 errores)
-- `cache-service.property.test.ts`: NODE_ENV readonly (1 error)
+## Análisis de Errores Restantes (430 errores)
 
-### 5. DB Tests (2 errores)
-- `slow-query-logging.unit.test.ts`: Property '$use' missing (2 errores)
+### Distribución por Tipo de Error
 
-### 6. Delivery Tests (~100 errores)
-- `assignment.property.test.ts`: null to undefined (1 error)
-- `assignment.unit.test.ts`: customer_name field (1 error)
-- `push.property.test.ts`: getRedisClient missing (5 errores)
-- `push.unit.test.ts`: getRedisClient missing (5 errores)
-- Otros tests de delivery (~88 errores)
+| Código Error | Cantidad | Descripción |
+|--------------|----------|-------------|
+| TS18046 | 130 | Variable posiblemente undefined |
+| TS2345 | 105 | Argumento de tipo incorrecto |
+| TS2304 | 35 | Cannot find name (reducido de 39) |
+| TS2339 | 35 | Property does not exist |
+| TS2554 | 31 | Expected X arguments, but got Y |
+| TS2698 | 17 | Spread types |
+| TS2551 | 14 | Property does not exist |
+| TS2353 | 11 | Object literal may only specify known properties |
+| TS18048 | 9 | Possibly undefined |
+| TS2305 | 9 | Module has no exported member |
 
-### 7. Otros Módulos (~313 errores)
-- Tests de core modules
-- Tests de API endpoints
-- Tests de servicios
+### Errores Principales Pendientes
 
-## 📋 Plan de Acción
+#### 1. WhatsApp Tests - mockPrisma (35 errores)
+**Archivo:** `src/core/delivery/__tests__/whatsapp.unit.test.ts`
 
-### Fase 1: Correcciones Rápidas (30 min)
-1. ✅ Properties tests - Type guards
-2. ✅ Alert tests - Prisma filters y enums
-3. ✅ Auth tests - Export hashPin
-4. ✅ Cache tests - Constructor args
-5. ✅ DB tests - Prisma $use mock
+**Problema:** Código usa `mockPrisma` pero la variable se llama `prisma`
 
-### Fase 2: Delivery Module (45 min)
-1. Corregir getRedisClient imports
-2. Corregir customer_name field
-3. Corregir null to undefined
-4. Revisar otros tests de delivery
+**Ejemplos:**
+```typescript
+// ❌ Incorrecto
+mockPrisma.delivery_orders.findUnique.mockResolvedValue(...)
+mockPrisma.whatsapp_messages.create.mock.calls[0][0]
 
-### Fase 3: Core Modules (60 min)
-1. Revisar tests de servicios
-2. Corregir API endpoint tests
-3. Corregir tests de infraestructura
+// ✅ Correcto
+vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue(...)
+vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0]
+```
 
-## 🔧 Estrategia de Corrección
+**Estrategia:** Reemplazo cuidadoso línea por línea (no global)
 
-### Principios
-1. **Correcciones por lotes**: Agrupar errores similares
-2. **Verificación incremental**: Commit cada 10-15 errores corregidos
-3. **Documentación**: Registrar cada corrección aplicada
-4. **Testing**: Verificar que los tests pasen después de cada corrección
+#### 2. Data Integrity Tests - Type Unknown (130 errores TS18046)
+**Archivo:** `src/core/domain/__tests__/data-integrity.property.test.ts`
 
-### Herramientas
-- Scripts automatizados para patrones repetitivos
-- Correcciones manuales para casos complejos
-- getDiagnostics para verificación
+**Problema:** Variables inferidas como `unknown` en lugar de tipos específicos
 
-## 📈 Métricas de Progreso
+**Ejemplos:**
+```typescript
+// Error: 'order' is of type 'unknown'
+const order = orders.find(o => o.id === orderId);
+```
 
-### Velocidad de Corrección
-- **Sesión 1**: 21 errores en ~30 min (0.7 errores/min)
-- **Sesión 2**: 12 errores en ~20 min (0.6 errores/min)
-- **Promedio**: 0.65 errores/min
+**Estrategia:** Agregar type assertions o type guards
 
-### Estimación de Tiempo Restante
-- **436 errores restantes** ÷ 0.65 errores/min = **~670 minutos** (~11 horas)
-- **Con optimizaciones**: ~6-8 horas de trabajo enfocado
+#### 3. Properties Tests - Type Guards (105 errores TS2345)
+**Archivos:**
+- `src/core/__tests__/properties-security.test.ts`
+- `src/core/__tests__/properties-compatibility.test.ts`
 
-## 🎯 Objetivo
+**Problema:** Falta type guards para discriminated unions
 
-Reducir los errores TypeScript a **0** para tener un proyecto completamente type-safe y listo para producción.
+**Estrategia:** Agregar type guards con `'property' in object`
+
+#### 4. Alert Tests - Enums y Null (17 errores)
+**Archivo:** `src/core/alerts/__tests__/alert-deduplication.property.test.ts`
+
+**Problemas:**
+- Enums sin type assertion
+- `null` en lugar de `undefined`
+
+**Estrategia:** Type assertions para enums, cambiar null a undefined
+
+#### 5. Auth Tests - Export Missing (9 errores TS2305)
+**Archivo:** `src/core/auth/__tests__/auth.service.test.ts`
+
+**Problema:** `hashPin` no exportado desde `auth.service.ts`
+
+**Estrategia:** Exportar función o usar alternativa
+
+#### 6. Cache Tests - Constructor Args (31 errores TS2554)
+**Archivo:** `src/core/cache/__tests__/cache-flow.integration.test.ts`
+
+**Problema:** `CacheService` no acepta argumentos en constructor
+
+**Estrategia:** Remover argumentos del constructor
+
+#### 7. DB Tests - Prisma $use Mock (2 errores)
+**Archivo:** `src/core/db/__tests__/slow-query-logging.unit.test.ts`
+
+**Problema:** Prisma no tiene método `$use` en tipos
+
+**Estrategia:** Type assertion o mock diferente
+
+## Estrategia de Corrección Recomendada
+
+### Fase 1: Fixes Simples (60 min)
+1. ✅ **Delivery Push Tests** - getRedisClient (COMPLETADO)
+2. **WhatsApp Tests** - mockPrisma → prisma (35 errores)
+3. **Alert Tests** - Enums y null (17 errores)
+4. **Auth Tests** - Export hashPin (9 errores)
+5. **Cache Tests** - Constructor args (31 errores)
+6. **DB Tests** - Prisma $use (2 errores)
+
+**Total esperado:** ~94 errores corregidos
+
+### Fase 2: Type Guards (90 min)
+7. **Properties Security** - Type guards (50 errores)
+8. **Properties Compatibility** - Type assertions (20 errores)
+9. **Data Integrity** - Type unknown (130 errores)
+
+**Total esperado:** ~200 errores corregidos
+
+### Fase 3: Casos Complejos (60 min)
+10. **Spread Types** - TS2698 (17 errores)
+11. **Property Does Not Exist** - TS2339 (35 errores)
+12. **Object Literal** - TS2353 (11 errores)
+
+**Total esperado:** ~63 errores corregidos
+
+### Fase 4: Verificación (30 min)
+- Ejecutar `npm run build`
+- Ejecutar `npm run dev`
+- Verificar que no hay errores nuevos
+- Crear documentación final
+
+## Estimación Total
+
+- **Tiempo estimado:** 4-5 horas
+- **Errores a corregir:** 430
+- **Velocidad promedio:** 0.5-0.7 errores/minuto
+- **Commits esperados:** 3-4 (uno por fase)
+
+## Próximos Pasos
+
+1. Hacer commit de los cambios actuales (4 errores corregidos)
+2. Continuar con Fase 1: WhatsApp Tests (35 errores)
+3. Seguir estrategia fase por fase
+4. Documentar cada batch de correcciones
+
+## Archivos Modificados
+
+### Listos para Commit
+- `src/core/delivery/__tests__/push.property.test.ts` - Mock getRedisClient agregado
+- `src/core/delivery/__tests__/push.unit.test.ts` - Mock getRedisClient agregado
+- `scripts/fix-typescript-batch5.ts` - Script de corrección (no usado)
+
+### Pendientes
+- 430 errores en ~50 archivos diferentes
 
 ---
 
-**Última actualización**: 11 Febrero 2026 - 15:30  
-**Próximo paso**: Continuar con Fase 1 - Correcciones Rápidas
+**Última actualización:** 11 Febrero 2026 - 15:30  
+**Estado:** En progreso - Fase 1 iniciada  
+**Próximo objetivo:** Corregir WhatsApp Tests (35 errores)

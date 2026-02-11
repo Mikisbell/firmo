@@ -28,6 +28,17 @@ import {
 import { toDriverId, toTenantId } from '../types-2026';
 import type { PushNotification } from '../types-2026';
 
+// Mock getRedisClient
+const mockRedis = {
+  rpush: vi.fn(),
+  lrange: vi.fn(),
+  ltrim: vi.fn(),
+  expire: vi.fn(),
+  del: vi.fn(),
+};
+
+const getRedisClient = vi.fn(() => mockRedis);
+
 // Mock dependencies
 vi.mock('@/src/core/db/prisma', () => ({
   default: {
