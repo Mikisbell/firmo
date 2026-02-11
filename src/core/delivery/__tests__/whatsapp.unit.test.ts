@@ -152,14 +152,14 @@ describe('WhatsApp Service - Unit Tests', () => {
     it('should check messages from today only', async () => {
       await service.canSendMessage(mockPhoneNumber);
       
-      const countCall = vi.mocked(prisma.whatsapp_messages.count).mock.calls[0][0];
-      expect(countCall.where.phone_number).toBe(mockPhoneNumber);
-      expect(countCall.where.created_at.gte).toBeInstanceOf(Date);
+      const countCall = vi.mocked(prisma.whatsapp_messages.count).mock.calls[0]?.[0];
+      expect(countCall?.where?.phone_number).toBe(mockPhoneNumber);
+      expect(countCall?.where?.created_at?.gte).toBeInstanceOf(Date);
       
       // Verify date is today at midnight
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      expect(countCall.where.created_at.gte.getTime()).toBe(today.getTime());
+      expect((countCall?.where?.created_at as any)?.gte?.getTime()).toBe(today.getTime());
     });
   });
 
@@ -188,13 +188,13 @@ describe('WhatsApp Service - Unit Tests', () => {
     });
 
     it('should throw error when order not found', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue(null);
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue(null);
 
       await expect(service.sendOrderAssigned(mockOrderId)).rejects.toThrow('Order not found');
     });
 
     it('should throw error when driver not assigned', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_name: 'Juan Pérez',
         customer_phone: mockPhoneNumber,
