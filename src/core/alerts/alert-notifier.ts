@@ -707,6 +707,36 @@ export class AlertNotifier {
   }
 
   /**
+   * Obtener eventos de alertas con filtros
+   * 
+   * @param tenantId - ID del tenant
+   * @param filters - Filtros opcionales
+   * @returns Lista de eventos de alertas
+   */
+  async getAlertEvents(
+    tenantId: string,
+    filters?: {
+      status?: AlertStatus;
+      alertType?: AlertType;
+      limit?: number;
+    }
+  ): Promise<AlertEvent[]> {
+    const alerts = await prisma.alert_events.findMany({
+      where: {
+        tenant_id: tenantId,
+        ...(filters?.status && { status: filters.status }),
+        ...(filters?.alertType && { alert_type: filters.alertType }),
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+      take: filters?.limit || 50,
+    });
+
+    return alerts.map(alert => this.mapToAlertEvent(alert));
+  }
+
+  /**
    * Mapear modelo de Prisma a interfaz de dominio (AlertEvent)
    */
   private mapToAlertEvent(event: any): AlertEvent {

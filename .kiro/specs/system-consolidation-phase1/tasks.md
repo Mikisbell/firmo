@@ -385,7 +385,7 @@ The implementation follows a phased approach:
     - Test that unacknowledged alerts escalate after 15 minutes
     - **Validates: Requirements 15.8**
   
-  - [ ] 15.5 Create alert configuration UI
+  - [x] 15.5 Create alert configuration UI
     - Create `src/app/admin/alerts/page.tsx` for alert configuration
     - Display current alert thresholds
     - Allow editing of thresholds

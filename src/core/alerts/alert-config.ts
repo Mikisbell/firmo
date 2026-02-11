@@ -222,6 +222,13 @@ export class AlertConfigService {
   }
 
   /**
+   * Alias para getAlertConfigs (compatibilidad con API)
+   */
+  async getAllAlertConfigs(tenantId: string): Promise<AlertConfiguration[]> {
+    return this.getAlertConfigs(tenantId, false);
+  }
+
+  /**
    * Obtener configuración de alerta por tipo
    * 
    * @param tenantId - ID del tenant
