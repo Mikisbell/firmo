@@ -119,7 +119,7 @@ export default function WaiterPage() {
     // Mostrar loading mientras verifica autenticación
     if (isLoading || !isAuthenticated || zonesLoading) {
         return (
-            <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+            <div className="min-h-screen bg-zinc-950 flex items-center justify-center" data-testid="tables-loading">
                 <div className="text-center">
                     <div className="w-12 h-12 border-4 border-zinc-700 border-t-violet-500 rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-zinc-400">Verificando sesión...</p>
@@ -333,6 +333,7 @@ export default function WaiterPage() {
                 {/* Tables Grid - Responsive columns */}
                 <motion.div
                     layout
+                    data-testid="tables-loaded"
                     className={`grid gap-2 md:gap-4 ${
                         isMobile 
                             ? 'grid-cols-2' 
@@ -347,6 +348,7 @@ export default function WaiterPage() {
                             return (
                             <motion.button
                                 key={t.id}
+                                data-testid={`table-${t.number}`}
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}

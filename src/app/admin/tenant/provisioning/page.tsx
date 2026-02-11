@@ -412,6 +412,7 @@ export default function TenantProvisioningPage() {
                 Legal Name *
               </label>
               <input
+                data-testid="legal-name-input"
                 type="text"
                 name="legal_name"
                 value={formData.legal_name}
@@ -461,6 +462,7 @@ export default function TenantProvisioningPage() {
                 Admin Name *
               </label>
               <input
+                data-testid="admin-name-input"
                 type="text"
                 name="admin_name"
                 value={formData.admin_name}
@@ -476,6 +478,7 @@ export default function TenantProvisioningPage() {
                 Admin PIN (4 digits) *
               </label>
               <input
+                data-testid="admin-pin-input"
                 type="password"
                 name="admin_pin"
                 value={formData.admin_pin}

@@ -13,16 +13,16 @@ class MockFileReader {
   onload: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null = null;
   onerror: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null = null;
 
-  readAsDataURL(blob: Blob) {
+  readAsDataURL = (blob: Blob) => {
     setTimeout(() => {
       this.result = 'data:image/jpeg;base64,mockbase64data';
       if (this.onload) {
-        this.onload({ target: this } as any);
+        this.onload.call(this as any, { target: this } as any);
       }
     }, 0);
   }
 
-  readAsArrayBuffer(blob: Blob) {
+  readAsArrayBuffer = (blob: Blob) => {
     setTimeout(() => {
       // Mock JPEG signature: FF D8 FF
       const buffer = new ArrayBuffer(12);
@@ -32,7 +32,7 @@ class MockFileReader {
       view[2] = 0xFF;
       this.result = buffer;
       if (this.onload) {
-        this.onload({ target: this } as any);
+        this.onload.call(this as any, { target: this } as any);
       }
     }, 0);
   }

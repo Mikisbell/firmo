@@ -24,7 +24,16 @@
       - button "0" [ref=e35]
       - button "⌫" [ref=e36]
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e42] [cursor=pointer]:
-    - img [ref=e43]
-  - alert [ref=e46]
+  - generic [ref=e41] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e42]:
+      - img [ref=e43]
+    - generic [ref=e46]:
+      - button "Open issues overlay" [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]: "0"
+          - generic [ref=e50]: "1"
+        - generic [ref=e51]: Issue
+      - button "Collapse issues badge" [ref=e52]:
+        - img [ref=e53]
+  - alert [ref=e55]
 ```

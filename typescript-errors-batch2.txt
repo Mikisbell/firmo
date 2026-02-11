@@ -1,0 +1,152 @@
+
+e2e/03-concurrency.spec.ts(324,22): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+e2e/03-concurrency.spec.ts(328,45): error TS2339: Property 'ok' does not exist on type 'never'.
+src/app/admin/monitoring/__tests__/page.test.tsx(388,46): error TS2339: Property 'avg' does not exist on type 'never'.
+src/app/admin/monitoring/__tests__/page.test.tsx(520,70): error TS18046: 'value' is of type 'unknown'.
+src/app/admin/monitoring/__tests__/page.test.tsx(542,9): error TS2698: Spread types may only be created from object types.
+src/app/admin/monitoring/__tests__/page.test.tsx(543,9): error TS2698: Spread types may only be created from object types.
+src/app/admin/monitoring/__tests__/page.test.tsx(558,9): error TS2698: Spread types may only be created from object types.
+src/app/admin/monitoring/__tests__/page.test.tsx(769,26): error TS2339: Property 'avg' does not exist on type 'never'.
+src/app/admin/monitoring/__tests__/page.test.tsx(864,34): error TS2345: Argument of type '"# Tenant ID: tenant-123"' is not assignable to parameter of type 'never'.
+src/app/admin/monitoring/__tests__/page.test.tsx(865,36): error TS2345: Argument of type '"# Terminal ID: terminal-456"' is not assignable to parameter of type 'never'.
+src/app/admin/productos/components/__tests__/ImageUpload.test.tsx(3,35): error TS2307: Cannot find module '@/core/types/product-images' or its corresponding type declarations.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(336,55): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(381,55): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(397,55): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(415,55): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(455,38): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(505,58): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(522,58): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(557,41): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(604,41): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(632,30): error TS2554: Expected 1 arguments, but got 0.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(644,30): error TS2554: Expected 1 arguments, but got 0.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(666,61): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/employees/__tests__/employees-api.test.ts(680,61): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Promise<{ id: string; }>'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(81,34): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(107,34): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(119,34): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(132,34): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(159,66): error TS2353: Object literal may only specify known properties, and 'terminalId' does not exist in type 'Promise<{ terminalId: string; }>'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(188,66): error TS2353: Object literal may only specify known properties, and 'terminalId' does not exist in type 'Promise<{ terminalId: string; }>'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(209,43): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(237,43): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(251,43): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(267,43): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/app/api/admin/terminals-v2/[terminalId]/__tests__/terminal-detail-api.test.ts(284,43): error TS2345: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+src/core/__tests__/properties-compatibility.test.ts(131,27): error TS2322: Type 'any' is not assignable to type 'never'.
+src/core/__tests__/properties-security.test.ts(134,25): error TS2339: Property 'type' does not exist on type '{ product_ids: string[]; updates: { is_active: boolean | undefined; category: "BEBIDAS" | "POLLOS" | "GUARNICIONES" | "POSTRES" | "COMBOS" | "EXTRAS" | "PARRILLAS" | undefined; station: "PARRILLA" | ... 6 more ... | undefined; }; } | { ...; }'.
+src/core/__tests__/properties-security.test.ts(167,27): error TS2339: Property 'updates' does not exist on type '{ product_ids: string[]; updates: { is_active: boolean | undefined; category: "BEBIDAS" | "POLLOS" | "GUARNICIONES" | "POSTRES" | "COMBOS" | "EXTRAS" | "PARRILLAS" | undefined; station: "PARRILLA" | ... 6 more ... | undefined; }; } | { ...; }'.
+src/core/__tests__/properties-security.test.ts(180,29): error TS2339: Property 'updates' does not exist on type '{ product_ids: string[]; updates: { is_active: boolean | undefined; category: "BEBIDAS" | "POLLOS" | "GUARNICIONES" | "POSTRES" | "COMBOS" | "EXTRAS" | "PARRILLAS" | undefined; station: "PARRILLA" | ... 6 more ... | undefined; }; } | { ...; }'.
+src/core/admin/schemas/product-image.schema.ts(41,30): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/admin/schemas/product-image.schema.ts(42,38): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/admin/schemas/product-image.schema.ts(45,17): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/admin/schemas/product-image.schema.ts(46,31): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/admin/schemas/product-image.schema.ts(75,10): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/admin/schemas/product-image.schema.ts(75,78): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/admin/schemas/product-image.schema.ts(98,8): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/admin/schemas/product-image.schema.ts(98,81): error TS2304: Cannot find name 'IMAGE_CONSTANTS'.
+src/core/alerts/__tests__/alert-deduplication.property.test.ts(37,11): error TS2353: Object literal may only specify known properties, and 'startsWith' does not exist in type 'UuidFilter<"alert_events">'.
+src/core/alerts/__tests__/alert-deduplication.property.test.ts(45,11): error TS2353: Object literal may only specify known properties, and 'startsWith' does not exist in type 'UuidFilter<"alert_configurations">'.
+src/core/alerts/__tests__/alert-deduplication.property.test.ts(96,13): error TS2322: Type 'string' is not assignable to type 'ThresholdUnit'.
+src/core/alerts/__tests__/alert-deduplication.property.test.ts(97,13): error TS2322: Type 'string' is not assignable to type 'ComparisonOperator'.
+src/core/alerts/__tests__/alert-deduplication.property.test.ts(103,13): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+src/core/alerts/__tests__/alert-deduplication.property.test.ts(104,13): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+src/core/auth/__tests__/audit-logger.test.ts(1339,26): error TS2345: Argument of type 'AuthEvent' is not assignable to parameter of type 'never'.
+src/core/auth/__tests__/audit-logger.test.ts(1356,31): error TS2339: Property 'tenant_id' does not exist on type 'never'.
+src/core/auth/__tests__/audit-logger.test.ts(1357,31): error TS2339: Property 'terminal_id' does not exist on type 'never'.
+src/core/auth/__tests__/audit-logger.test.ts(1358,31): error TS2339: Property 'event_type' does not exist on type 'never'.
+src/core/auth/__tests__/auth.service.test.ts(13,5): error TS2305: Module '"../auth.service"' has no exported member 'hashPin'.
+src/core/cache/__tests__/cache-flow.integration.test.ts(21,35): error TS2554: Expected 0 arguments, but got 1.
+src/core/cache/__tests__/cache-flow.integration.test.ts(178,50): error TS2554: Expected 0 arguments, but got 1.
+src/core/cache/__tests__/cache-flow.integration.test.ts(186,50): error TS2554: Expected 0 arguments, but got 1.
+src/core/cache/__tests__/cache-flow.integration.test.ts(195,50): error TS2554: Expected 0 arguments, but got 1.
+src/core/cache/__tests__/cache-flow.integration.test.ts(204,50): error TS2554: Expected 0 arguments, but got 1.
+src/core/cache/__tests__/cache-service.property.test.ts(133,17): error TS2540: Cannot assign to 'NODE_ENV' because it is a read-only property.
+src/core/db/__tests__/slow-query-logging.unit.test.ts(55,25): error TS2339: Property '$use' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/core/db/__tests__/slow-query-logging.unit.test.ts(56,30): error TS2339: Property '$use' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/core/delivery/__tests__/assignment.property.test.ts(345,64): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+src/core/delivery/__tests__/assignment.unit.test.ts(326,11): error TS2561: Object literal may only specify known properties, but 'customer_name' does not exist in type 'Without<delivery_ordersCreateInput, delivery_ordersUncheckedCreateInput> & delivery_ordersUncheckedCreateInput'. Did you mean to write 'customer_phone'?
+src/core/delivery/__tests__/geolocation.unit.test.ts(24,10): error TS2614: Module '"@/src/core/db/prisma"' has no exported member 'prisma'. Did you mean to use 'import prisma from "@/src/core/db/prisma"' instead?
+src/core/delivery/__tests__/push.property.test.ts(63,24): error TS2307: Cannot find module '@/lib/prisma' or its corresponding type declarations.
+src/core/delivery/__tests__/push.property.test.ts(64,10): error TS2305: Module '"../redis-connection"' has no exported member 'getRedisClient'.
+src/core/delivery/__tests__/push.property.test.ts(234,51): error TS2769: No overload matches this call.
+src/core/delivery/__tests__/push.property.test.ts(376,51): error TS2769: No overload matches this call.
+src/core/delivery/__tests__/push.unit.test.ts(63,24): error TS2307: Cannot find module '@/lib/prisma' or its corresponding type declarations.
+src/core/delivery/__tests__/push.unit.test.ts(64,10): error TS2305: Module '"../redis-connection"' has no exported member 'getRedisClient'.
+src/core/delivery/__tests__/sse-service.property.test.ts(340,15): error TS2322: Type 'null' is not assignable to type 'TenantId | undefined'.
+src/core/delivery/__tests__/sse-service.property.test.ts(341,15): error TS2322: Type 'null' is not assignable to type 'DriverId | undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(71,3): error TS2304: Cannot find name 'afterEach'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(156,14): error TS18048: 'countCall' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(156,14): error TS18048: 'countCall.where' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(157,14): error TS18048: 'countCall' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(157,14): error TS18048: 'countCall.where' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(157,14): error TS18048: 'countCall.where.created_at' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(157,41): error TS2339: Property 'gte' does not exist on type 'string | Date | DateTimeFilter<"whatsapp_messages">'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(162,14): error TS18048: 'countCall' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(162,14): error TS18048: 'countCall.where' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(162,14): error TS18048: 'countCall.where.created_at' is possibly 'undefined'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(162,41): error TS2339: Property 'gte' does not exist on type 'string | Date | DateTimeFilter<"whatsapp_messages">'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(191,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(197,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(210,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(218,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(229,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(236,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(243,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(250,14): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(254,14): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(258,14): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(264,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(271,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(282,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(289,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(300,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(301,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(310,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(320,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(347,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(356,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(365,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(374,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(383,7): error TS2304: Cannot find name 'mockPrisma'.
+src/core/delivery/__tests__/whatsapp.unit.test.ts(394,26): error TS2304: Cannot find name 'mockPrisma'.
+src/core/domain/__tests__/branded-types.property.test.ts(35,3): error TS2305: Module '"@/src/test-utils"' has no exported member 'tenantIdArb'.
+src/core/domain/__tests__/branded-types.property.test.ts(58,9): error TS2554: Expected 2 arguments, but got 3.
+src/core/domain/__tests__/branded-types.property.test.ts(64,52): error TS2353: Object literal may only specify known properties, and 'noInfinity' does not exist in type 'FloatConstraints'.
+src/core/domain/__tests__/branded-types.property.test.ts(66,9): error TS2554: Expected 2 arguments, but got 3.
+src/core/domain/__tests__/branded-types.property.test.ts(81,9): error TS2554: Expected 2 arguments, but got 3.
+src/core/domain/__tests__/data-integrity.property.test.ts(20,3): error TS2724: '"@/src/test-utils"' has no exported member named 'generateRealisticInventoryItem'. Did you mean 'generateRealisticOrder'?
+src/core/domain/__tests__/data-integrity.property.test.ts(21,3): error TS2305: Module '"@/src/test-utils"' has no exported member 'tenantIdArb'.
+src/core/domain/__tests__/data-integrity.property.test.ts(31,3): error TS2724: '"@/src/test-utils"' has no exported member named 'expectAllHaveTenantId'. Did you mean 'expectValidTenantId'?
+src/core/domain/__tests__/data-integrity.property.test.ts(90,9): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(98,9): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; terminal_id: string; opened_by: `${string}-${string}-${string}-${string}-${string}`; opened_at: Date; closed_at: null; ... 6 more ...; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(114,9): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(117,33): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(130,20): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(150,22): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(151,13): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(154,58): error TS2345: Argument of type 'unknown[]' is not assignable to parameter of type '{ tenant_id: string; order_number: number; }[]'.
+src/core/domain/__tests__/data-integrity.property.test.ts(157,20): error TS18046: 'o' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(157,36): error TS18046: 'newOrder' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(160,20): error TS18046: 'o' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(160,39): error TS18046: 'newOrder' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(178,53): error TS2554: Expected 0 arguments, but got 1.
+src/core/domain/__tests__/data-integrity.property.test.ts(182,53): error TS2554: Expected 0 arguments, but got 1.
+src/core/domain/__tests__/data-integrity.property.test.ts(200,20): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(205,29): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(206,26): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(208,24): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(230,21): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(232,30): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(243,21): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(245,31): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(255,9): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(258,30): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(273,21): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(275,35): error TS18046: 'order' is of type 'unknown'.
+src/core/domain/__tests__/data-integrity.property.test.ts(283,21): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(296,13): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(297,22): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+src/core/domain/__tests__/data-integrity.property.test.ts(314,21): error TS2345: Argument of type '() => { id: `${string}-${string}-${string}-${string}-${string}`; tenant_id: `${string}-${string}-${string}-${string}-${string}`; order_number: number; order_type: string; order_status: string; total_cents: number; items: never[]; checks: never[]; created_at: string; updated_at: string; }' is not assignable to parameter of type 'Arbitrary<unknown>'.
+

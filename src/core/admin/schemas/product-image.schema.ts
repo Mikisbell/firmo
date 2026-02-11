@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod';
-import { IMAGE_CONSTANTS } from '@/src/core/types/product-images';
+import { IMAGE_VALIDATION } from '@/src/core/types/product-images';
 
 /**
  * Product Image Schema
@@ -38,12 +38,12 @@ export const ImageUploadRequestSchema = z.object({
     'File must be a valid File object'
   )
     .refine(
-      (file) => file.size <= IMAGE_CONSTANTS.MAX_FILE_SIZE,
-      `File size must be less than ${IMAGE_CONSTANTS.MAX_FILE_SIZE / (1024 * 1024)}MB`
+      (file) => file.size <= IMAGE_VALIDATION.MAX_FILE_SIZE,
+      `File size must be less than ${IMAGE_VALIDATION.MAX_FILE_SIZE / (1024 * 1024)}MB`
     )
     .refine(
-      (file) => IMAGE_CONSTANTS.ACCEPTED_MIME_TYPES.includes(file.type as any),
-      `File must be one of: ${IMAGE_CONSTANTS.ACCEPTED_MIME_TYPES.join(', ')}`
+      (file) => IMAGE_VALIDATION.ALLOWED_FORMATS.includes(file.type as any),
+      `File must be one of: ${IMAGE_VALIDATION.ALLOWED_FORMATS.join(', ')}`
     ),
 });
 
@@ -72,7 +72,7 @@ export const ImageReorderRequestSchema = z.object({
       order: z.number().int().min(0).max(4, 'Order must be between 0 and 4'),
     })
   ).min(1, 'At least one image order must be specified')
-    .max(IMAGE_CONSTANTS.MAX_IMAGES_PER_PRODUCT, `Cannot reorder more than ${IMAGE_CONSTANTS.MAX_IMAGES_PER_PRODUCT} images`),
+    .max(IMAGE_VALIDATION.MAX_IMAGES, `Cannot reorder more than ${IMAGE_VALIDATION.MAX_IMAGES} images`),
 });
 
 export type ImageReorderRequestDTO = z.infer<typeof ImageReorderRequestSchema>;
@@ -95,7 +95,7 @@ export type ImageOptimizeOptionsDTO = z.infer<typeof ImageOptimizeOptionsSchema>
  * Validates the entire images array for a product
  */
 export const ProductImagesArraySchema = z.array(ProductImageSchema)
-  .max(IMAGE_CONSTANTS.MAX_IMAGES_PER_PRODUCT, `Product cannot have more than ${IMAGE_CONSTANTS.MAX_IMAGES_PER_PRODUCT} images`)
+  .max(IMAGE_VALIDATION.MAX_IMAGES, `Product cannot have more than ${IMAGE_VALIDATION.MAX_IMAGES} images`)
   .refine(
     (images) => {
       // Check that orders are unique and sequential (0, 1, 2, ...)

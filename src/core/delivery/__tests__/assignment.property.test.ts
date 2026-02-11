@@ -14,6 +14,7 @@
  * - Property 20: Assignment Distance Calculation
  */
 
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import fc from 'fast-check';
 import {
   calculateAssignmentScore,

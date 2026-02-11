@@ -3,9 +3,11 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, X, GripVertical, Image as ImageIcon } from 'lucide-react';
 import type { ProductImage } from '@/src/core/types/product-images';
-import { IMAGE_CONSTANTS } from '@/src/core/types/product-images';
+import { IMAGE_VALIDATION } from '@/src/core/types/product-images';
 
-const { MAX_FILE_SIZE, MAX_IMAGES_PER_PRODUCT, ACCEPTED_MIME_TYPES } = IMAGE_CONSTANTS;
+const MAX_FILE_SIZE = IMAGE_VALIDATION.MAX_FILE_SIZE;
+const MAX_IMAGES_PER_PRODUCT = IMAGE_VALIDATION.MAX_IMAGES;
+const ACCEPTED_MIME_TYPES = IMAGE_VALIDATION.ALLOWED_FORMATS;
 
 interface ImageUploadProps {
   productId?: string;
