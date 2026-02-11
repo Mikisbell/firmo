@@ -383,9 +383,9 @@ describe('Dashboard de Monitoreo - Procesamiento de Datos', () => {
 
     it('debe retornar 0 cuando no hay datos de Web Vitals', () => {
       // Requirement 11.1: Métricas se muestran correctamente
-      const emptyHistograms = {};
+      const emptyHistograms: any = {};
       const stats = emptyHistograms['web_vitals_ttfb' as keyof typeof emptyHistograms];
-      const value = stats ? Math.round(stats.avg * 100) / 100 : 0;
+      const value = stats ? Math.round((stats as any).avg * 100) / 100 : 0;
       
       expect(value).toBe(0);
     });
@@ -508,7 +508,7 @@ describe('Dashboard de Monitoreo - Procesamiento de Datos', () => {
 
     it('debe retornar array vacío cuando no hay datos de status', () => {
       // Requirement 11.1: Métricas se muestran correctamente
-      const emptyCounters = {};
+      const emptyCounters: any = {};
       const statusCounts: Record<string, number> = {};
       
       for (const [key, value] of Object.entries(emptyCounters)) {
@@ -517,7 +517,7 @@ describe('Dashboard de Monitoreo - Procesamiento de Datos', () => {
           if (match) {
             const status = match[1];
             const category = status.startsWith('2') ? '2xx Success' : 'Other';
-            statusCounts[category] = (statusCounts[category] || 0) + value;
+            statusCounts[category] = (statusCounts[category] || 0) + (value as number);
           }
         }
       }
@@ -537,11 +537,11 @@ describe('Dashboard de Monitoreo - Filtros', () => {
       const tenantId = '';
       const terminalId = '';
       
-      const params = new URLSearchParams({
-        period,
-        ...(tenantId && { tenantId }),
-        ...(terminalId && { terminalId }),
-      });
+      const paramsObj: Record<string, string> = { period };
+      if (tenantId) paramsObj.tenantId = tenantId;
+      if (terminalId) paramsObj.terminalId = terminalId;
+      
+      const params = new URLSearchParams(paramsObj);
       
       expect(params.toString()).toBe('period=24h');
     });
@@ -552,11 +552,11 @@ describe('Dashboard de Monitoreo - Filtros', () => {
       const tenantId = 'tenant-123';
       const terminalId = '';
       
-      const params = new URLSearchParams({
-        period,
-        ...(tenantId && { tenantId }),
-        ...(terminalId && { terminalId }),
-      });
+      const paramsObj: Record<string, string> = { period };
+      if (tenantId) paramsObj.tenantId = tenantId;
+      if (terminalId) paramsObj.terminalId = terminalId;
+      
+      const params = new URLSearchParams(paramsObj);
       
       expect(params.toString()).toBe('period=24h&tenantId=tenant-123');
     });
@@ -569,8 +569,8 @@ describe('Dashboard de Monitoreo - Filtros', () => {
       
       const params = new URLSearchParams({
         period,
-        ...(tenantId && { tenantId }),
-        ...(terminalId && { terminalId }),
+        ...(tenantId ? { tenantId } : {}),
+        ...(terminalId ? { terminalId } : {}),
       });
       
       expect(params.toString()).toBe('period=7d&tenantId=tenant-123&terminalId=terminal-456');
@@ -764,7 +764,7 @@ describe('Dashboard de Monitoreo - Edge Cases', () => {
 
     it('debe manejar histograms vacíos correctamente', () => {
       // Requirement 11.1: Métricas se muestran correctamente
-      const emptyHistograms = {};
+      const emptyHistograms: any = {};
       const stats = emptyHistograms['http_request_duration_ms' as keyof typeof emptyHistograms];
       const avg = stats?.avg || 0;
       
@@ -859,7 +859,7 @@ describe('Dashboard de Monitoreo - Exportación CSV', () => {
       // Requirement 11.10: Exportar métricas en CSV
       const tenantId = 'tenant-123';
       const terminalId = 'terminal-456';
-      const filters = [];
+      const filters: string[] = [];
       
       if (tenantId) filters.push(`# Tenant ID: ${tenantId}`);
       if (terminalId) filters.push(`# Terminal ID: ${terminalId}`);

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ImageUpload } from '../ImageUpload';
-import type { ProductImage } from '@/core/types/product-images';
+import type { ProductImage } from '@/src/core/types/product-images';
 
 /**
  * NOTE: This test file uses only Vitest utilities (no @testing-library/react)

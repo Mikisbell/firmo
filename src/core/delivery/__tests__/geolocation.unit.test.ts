@@ -21,7 +21,7 @@ import {
 } from '../geolocation.service';
 import { toDriverId, Location } from '../types-2026';
 import { deliveryRedisService } from '../redis-connection';
-import { prisma } from '@/src/core/db/prisma';
+import prisma from '@/src/core/db/prisma';
 
 describe('Geolocation Service - Unit Tests', () => {
   beforeEach(async () => {

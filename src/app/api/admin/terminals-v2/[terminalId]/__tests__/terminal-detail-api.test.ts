@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NextRequest } from 'next/server';
 import { GET } from '../route';
 import { POST as RegenerateCode } from '../regenerate-code/route';
 import { PATCH as UpdateStatus } from '../status/route';
@@ -77,8 +78,8 @@ describe('Terminal Detail API', () => {
       (prisma.terminal_devices.findFirst as any).mockResolvedValue(mockTerminal);
       (prisma.activation_codes.findMany as any).mockResolvedValue(mockActivationCodes);
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01');
-      const response = await GET(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {} as NextRequest;
+      const response = await GET(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -103,8 +104,8 @@ describe('Terminal Detail API', () => {
         activeCode,
       ]);
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01');
-      const response = await GET(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {} as NextRequest;
+      const response = await GET(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(data.current_code).toBeDefined();
@@ -115,8 +116,8 @@ describe('Terminal Detail API', () => {
     it('should return 404 if terminal not found', async () => {
       (prisma.terminal_devices.findFirst as any).mockResolvedValue(null);
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/INVALID');
-      const response = await GET(request, { params: { terminalId: 'INVALID' } });
+      const request = {} as NextRequest;
+      const response = await GET(request, { params: Promise.resolve({ terminalId: 'INVALID' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -128,8 +129,8 @@ describe('Terminal Detail API', () => {
         new Error('Database error')
       );
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01');
-      const response = await GET(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {} as NextRequest;
+      const response = await GET(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -153,10 +154,8 @@ describe('Terminal Detail API', () => {
       (prisma.activation_codes.updateMany as any).mockResolvedValue({ count: 1 });
       (prisma.activation_codes.create as any).mockResolvedValue(newCode);
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/regenerate-code', {
-        method: 'POST',
-      });
-      const response = await RegenerateCode(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {} as NextRequest;
+      const response = await RegenerateCode(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -182,10 +181,8 @@ describe('Terminal Detail API', () => {
         new Error('Database error')
       );
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/regenerate-code', {
-        method: 'POST',
-      });
-      const response = await RegenerateCode(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {} as NextRequest;
+      const response = await RegenerateCode(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -201,12 +198,10 @@ describe('Terminal Detail API', () => {
         status: 'disabled',
       });
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'disabled' }),
-      });
-      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {
+        json: async () => ({ status: 'disabled' })
+      } as NextRequest;
+      const response = await UpdateStatus(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -229,12 +224,10 @@ describe('Terminal Detail API', () => {
         status: 'active',
       });
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'active' }),
-      });
-      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {
+        json: async () => ({ status: 'active' })
+      } as NextRequest;
+      const response = await UpdateStatus(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -243,12 +236,10 @@ describe('Terminal Detail API', () => {
     });
 
     it('should reject invalid status values', async () => {
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'invalid' }),
-      });
-      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {
+        json: async () => ({ status: 'invalid' })
+      } as NextRequest;
+      const response = await UpdateStatus(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -259,12 +250,10 @@ describe('Terminal Detail API', () => {
       (prisma.terminal_devices.updateMany as any).mockResolvedValue({ count: 0 });
       (prisma.terminal_devices.findFirst as any).mockResolvedValue(null);
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/INVALID/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'disabled' }),
-      });
-      const response = await UpdateStatus(request, { params: { terminalId: 'INVALID' } });
+      const request = {
+        json: async () => ({ status: 'disabled' })
+      } as NextRequest;
+      const response = await UpdateStatus(request, { params: Promise.resolve({ terminalId: 'INVALID' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -276,12 +265,10 @@ describe('Terminal Detail API', () => {
         new Error('Database error')
       );
 
-      const request = new Request('http://localhost/api/admin/terminals-v2/CAJA_01/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'disabled' }),
-      });
-      const response = await UpdateStatus(request, { params: { terminalId: 'CAJA_01' } });
+      const request = {
+        json: async () => ({ status: 'disabled' })
+      } as NextRequest;
+      const response = await UpdateStatus(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);

@@ -318,14 +318,14 @@ test.describe('Rate Limiting', () => {
     });
 
     // Send sequentially to avoid overwhelming the server
-    const responses = [];
+    const responses: any[] = [];
     for (const event of events) {
       const response = await ingestEvent(request, event, terminalId, 1);
       responses.push(response);
     }
 
     // At least some should succeed
-    const okCount = responses.filter(r => r.ok()).length;
+    const okCount = responses.filter((r: any) => r.ok()).length;
     expect(okCount).toBeGreaterThan(0);
   });
 });

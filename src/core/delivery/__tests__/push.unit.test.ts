@@ -29,8 +29,8 @@ import { toDriverId, toTenantId } from '../types-2026';
 import type { PushNotification } from '../types-2026';
 
 // Mock dependencies
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
+vi.mock('@/src/core/db/prisma', () => ({
+  default: {
     push_subscriptions: {
       upsert: vi.fn(),
       deleteMany: vi.fn(),
@@ -60,8 +60,9 @@ vi.mock('web-push', () => ({
 }));
 
 // Import mocked modules
-import { prisma } from '@/lib/prisma';
-import { getRedisClient } from '../redis-connection';
+import prisma from '@/src/core/db/prisma';
+// Note: getRedisClient is not exported, commenting out for now
+// import { getRedisClient } from '../redis-connection';
 import webpush from 'web-push';
 
 describe('Push Service - Unit Tests', () => {
