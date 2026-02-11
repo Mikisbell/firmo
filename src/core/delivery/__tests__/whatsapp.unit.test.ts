@@ -207,15 +207,15 @@ describe('WhatsApp Service - Unit Tests', () => {
 
   describe('sendOrderDispatched', () => {
     it('should send ORDER_DISPATCHED message with tracking link', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         driver: { name: 'Carlos Ruiz' },
-      });
+      } as any);
 
       await service.sendOrderDispatched(mockOrderId);
 
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       
       expect(createCall.data.template_name).toBe('ORDER_DISPATCHED');
       expect(createCall.data.message_body).toContain('Carlos Ruiz');
@@ -226,49 +226,49 @@ describe('WhatsApp Service - Unit Tests', () => {
 
   describe('sendETAUpdate', () => {
     it('should send ETA_UPDATE message', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-      });
+      } as any);
 
       await service.sendETAUpdate(mockOrderId, 25);
 
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       
       expect(createCall.data.template_name).toBe('ETA_UPDATE');
       expect(createCall.data.message_body).toContain('25');
     });
 
     it('should debounce rapid ETA updates', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-      });
+      } as any);
 
       // Send first update
       await service.sendETAUpdate(mockOrderId, 30);
-      expect(mockPrisma.whatsapp_messages.create).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(prisma.whatsapp_messages.create)).toHaveBeenCalledTimes(1);
 
       // Send second update immediately (should be debounced)
       await service.sendETAUpdate(mockOrderId, 25);
-      expect(mockPrisma.whatsapp_messages.create).toHaveBeenCalledTimes(1); // Still 1
+      expect(vi.mocked(prisma.whatsapp_messages.create)).toHaveBeenCalledTimes(1); // Still 1
 
       // Send third update immediately (should be debounced)
       await service.sendETAUpdate(mockOrderId, 20);
-      expect(mockPrisma.whatsapp_messages.create).toHaveBeenCalledTimes(1); // Still 1
+      expect(vi.mocked(prisma.whatsapp_messages.create)).toHaveBeenCalledTimes(1); // Still 1
     });
   });
 
   describe('sendOrderDelivered', () => {
     it('should send ORDER_DELIVERED message with feedback link', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-      });
+      } as any);
 
       await service.sendOrderDelivered(mockOrderId);
 
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       
       expect(createCall.data.template_name).toBe('ORDER_DELIVERED');
       expect(createCall.data.message_body).toContain('✅');
@@ -279,14 +279,14 @@ describe('WhatsApp Service - Unit Tests', () => {
 
   describe('sendOrderFailed', () => {
     it('should send ORDER_FAILED message with reason', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-      });
+      } as any);
 
       await service.sendOrderFailed(mockOrderId, 'Dirección incorrecta');
 
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       
       expect(createCall.data.template_name).toBe('ORDER_FAILED');
       expect(createCall.data.message_body).toContain('❌');
@@ -297,17 +297,17 @@ describe('WhatsApp Service - Unit Tests', () => {
 
   describe('Rate Limiting', () => {
     it('should queue message when rate limit exceeded', async () => {
-      mockPrisma.whatsapp_messages.count.mockResolvedValue(10);
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.whatsapp_messages.count).mockResolvedValue(10);
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_name: 'Juan Pérez',
         customer_phone: mockPhoneNumber,
         driver: { name: 'Carlos Ruiz' },
-      });
+      } as any);
 
       await service.sendOrderAssigned(mockOrderId);
 
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       
       expect(createCall.data.status).toBe('QUEUED');
       expect(createCall.data.error_message).toContain('Rate limit exceeded');
@@ -317,12 +317,12 @@ describe('WhatsApp Service - Unit Tests', () => {
 
   describe('Twilio API Integration', () => {
     it('should call Twilio API with correct parameters', async () => {
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_name: 'Juan Pérez',
         customer_phone: mockPhoneNumber,
         driver: { name: 'Carlos Ruiz' },
-      });
+      } as any);
 
       await service.sendOrderAssigned(mockOrderId);
 
@@ -344,16 +344,16 @@ describe('WhatsApp Service - Unit Tests', () => {
         text: async () => 'Twilio error message',
       });
 
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_name: 'Juan Pérez',
         customer_phone: mockPhoneNumber,
         driver: { name: 'Carlos Ruiz' },
-      });
+      } as any);
 
       await service.sendOrderAssigned(mockOrderId);
 
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       
       expect(createCall.data.status).toBe('FAILED');
       expect(createCall.data.error_message).toContain('Twilio API error');
@@ -362,16 +362,16 @@ describe('WhatsApp Service - Unit Tests', () => {
     it('should handle network error', async () => {
       (global.fetch as any).mockRejectedValue(new Error('Network error'));
 
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_name: 'Juan Pérez',
         customer_phone: mockPhoneNumber,
         driver: { name: 'Carlos Ruiz' },
-      });
+      } as any);
 
       await service.sendOrderAssigned(mockOrderId);
 
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       
       expect(createCall.data.status).toBe('FAILED');
       expect(createCall.data.error_message).toContain('Network error');
@@ -380,18 +380,18 @@ describe('WhatsApp Service - Unit Tests', () => {
     it('should skip Twilio when credentials not configured', async () => {
       delete process.env.TWILIO_ACCOUNT_SID;
 
-      mockPrisma.delivery_orders.findUnique.mockResolvedValue({
+      vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_name: 'Juan Pérez',
         customer_phone: mockPhoneNumber,
         driver: { name: 'Carlos Ruiz' },
-      });
+      } as any);
 
       await service.sendOrderAssigned(mockOrderId);
 
       expect(global.fetch).not.toHaveBeenCalled();
       
-      const createCall = mockPrisma.whatsapp_messages.create.mock.calls[0][0];
+      const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
       expect(createCall.data.status).toBe('FAILED');
       expect(createCall.data.error_message).toContain('not configured');
     });
