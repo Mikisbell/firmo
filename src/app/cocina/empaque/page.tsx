@@ -11,6 +11,7 @@ import { useKitchenTicketsByGroup } from "../hooks/useKitchenTickets";
 import { useState, useEffect } from "react";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { Package, PackageCheck } from "lucide-react";
+import { useSyncClient } from "@/src/hooks/useSyncClient";
 import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
 import { type ItemStatus } from "@/src/core/domain/events";
 import { getTerminalConfig } from "@/src/core/config/terminal";
@@ -20,6 +21,9 @@ import { KDSLayout, KDSTicket } from "@/src/components/kds";
 const config = getTerminalConfig("SPC_EMPAQUE");
 
 export default function EmpaqueKDSPage() {
+    // CRÍTICO: Iniciar SyncClient para recibir eventos en tiempo real vía SSE
+    useSyncClient();
+    
     // Empaque muestra solo items de EMPAQUE station
     const tickets = useKitchenTicketsByGroup("EMPAQUE");
     const { isLoading, isAuthenticated } = useRequireTerminal();

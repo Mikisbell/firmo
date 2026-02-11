@@ -12,6 +12,7 @@ import { useKitchenTicketsByGroup } from "../hooks/useKitchenTickets";
 import { useState, useEffect } from "react";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { Flame } from "lucide-react";
+import { useSyncClient } from "@/src/hooks/useSyncClient";
 import { type ItemStatus } from "@/src/core/domain/events";
 import { getTerminalConfig } from "@/src/core/config/terminal";
 import { canTransition, getNextNormalState } from "@/src/core/domain/item-status-machine";
@@ -21,6 +22,9 @@ import { KDSLayout, KDSTicket } from "@/src/components/kds";
 const config = getTerminalConfig("SPC_HORNO");
 
 export default function HornoKDSPage() {
+    // CRÍTICO: Iniciar SyncClient para recibir eventos en tiempo real vía SSE
+    useSyncClient();
+    
     const tickets = useKitchenTicketsByGroup("HORNO");
     const { isLoading, isAuthenticated } = useRequireTerminal();
     const [now, setNow] = useState<number | null>(null);

@@ -98,12 +98,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 19285,
+                      "duration": 22378,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-11T00:39:53.574Z",
+                      "startTime": "2026-02-11T02:12:26.804Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -113,7 +113,7 @@
               ],
               "id": "228a1db58e85fbc53db5-20ff7447ab52bc321d0e",
               "file": "waiter-to-kds.spec.ts",
-              "line": 94,
+              "line": 97,
               "column": 5
             },
             {
@@ -132,12 +132,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 9950,
+                      "duration": 9686,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-11T00:40:13.355Z",
+                      "startTime": "2026-02-11T02:12:50.357Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -147,60 +147,92 @@
               ],
               "id": "228a1db58e85fbc53db5-0ac4117d052a005a906a",
               "file": "waiter-to-kds.spec.ts",
-              "line": 175,
+              "line": 178,
               "column": 5
             },
             {
               "title": "multiple waiters can submit orders (sequential)",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 900000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\waiter-to-kds.spec.ts",
-                        "line": 228,
-                        "column": 10
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
+                  "annotations": [],
+                  "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": -1,
-                      "parallelIndex": -1,
-                      "status": "skipped",
-                      "duration": 0,
-                      "errors": [],
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 23746,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 15000ms exceeded while waiting on the predicate",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 15000ms exceeded while waiting on the predicate\n    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\waiter-to-kds.spec.ts:268:12",
+                        "location": {
+                          "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\waiter-to-kds.spec.ts",
+                          "column": 12,
+                          "line": 268
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 266 |\u001b[39m             \u001b[36mconst\u001b[39m count \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m tickets\u001b[33m.\u001b[39mcount()\u001b[33m;\u001b[39m\n \u001b[90m 267 |\u001b[39m             expect(count)\u001b[33m.\u001b[39mtoBeGreaterThanOrEqual(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 268 |\u001b[39m         })\u001b[33m.\u001b[39mtoPass({ timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m\u001b[33m,\u001b[39m intervals\u001b[33m:\u001b[39m [\u001b[35m3000\u001b[39m\u001b[33m,\u001b[39m \u001b[35m5000\u001b[39m] })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 269 |\u001b[39m\n \u001b[90m 270 |\u001b[39m         \u001b[90m// Waiter 2: Mesa 4 (new tab) - SEQUENTIAL after first order confirmed\u001b[39m\n \u001b[90m 271 |\u001b[39m         \u001b[36mconst\u001b[39m waiter2Page \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m context\u001b[33m.\u001b[39mnewPage()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\waiter-to-kds.spec.ts",
+                            "column": 12,
+                            "line": 268
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m1\u001b[39m\nReceived:    \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 15000ms exceeded while waiting on the predicate\n\n\u001b[0m \u001b[90m 266 |\u001b[39m             \u001b[36mconst\u001b[39m count \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m tickets\u001b[33m.\u001b[39mcount()\u001b[33m;\u001b[39m\n \u001b[90m 267 |\u001b[39m             expect(count)\u001b[33m.\u001b[39mtoBeGreaterThanOrEqual(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 268 |\u001b[39m         })\u001b[33m.\u001b[39mtoPass({ timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m\u001b[33m,\u001b[39m intervals\u001b[33m:\u001b[39m [\u001b[35m3000\u001b[39m\u001b[33m,\u001b[39m \u001b[35m5000\u001b[39m] })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 269 |\u001b[39m\n \u001b[90m 270 |\u001b[39m         \u001b[90m// Waiter 2: Mesa 4 (new tab) - SEQUENTIAL after first order confirmed\u001b[39m\n \u001b[90m 271 |\u001b[39m         \u001b[36mconst\u001b[39m waiter2Page \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m context\u001b[33m.\u001b[39mnewPage()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\waiter-to-kds.spec.ts:268:12\u001b[22m"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-11T00:40:23.323Z",
-                      "annotations": [
+                      "startTime": "2026-02-11T02:13:00.061Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "skip",
-                          "location": {
-                            "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\waiter-to-kds.spec.ts",
-                            "line": 228,
-                            "column": 10
-                          }
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\\test-failed-2.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\\video-1.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\test-results\\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\FREECLOUD\\FREECLOUD-IA\\PROYECTOS\\park\\e2e\\waiter-to-kds.spec.ts",
+                        "column": 12,
+                        "line": 268
+                      }
                     }
                   ],
-                  "status": "skipped"
+                  "status": "unexpected"
                 }
               ],
               "id": "228a1db58e85fbc53db5-be1b912b1a161eac114f",
               "file": "waiter-to-kds.spec.ts",
-              "line": 228,
-              "column": 10
+              "line": 231,
+              "column": 5
             },
             {
               "title": "order with no items cannot be submitted",
@@ -215,15 +247,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1856,
+                      "duration": 1824,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-11T00:40:23.330Z",
+                      "startTime": "2026-02-11T02:13:25.548Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -233,7 +265,7 @@
               ],
               "id": "228a1db58e85fbc53db5-15c2ed0a4c0195bfa952",
               "file": "waiter-to-kds.spec.ts",
-              "line": 318,
+              "line": 302,
               "column": 5
             },
             {
@@ -249,15 +281,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5499,
+                      "duration": 5006,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-11T00:40:25.202Z",
+                      "startTime": "2026-02-11T02:13:27.509Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -267,7 +299,7 @@
               ],
               "id": "228a1db58e85fbc53db5-68b4f37fc73e6e6c26df",
               "file": "waiter-to-kds.spec.ts",
-              "line": 338,
+              "line": 322,
               "column": 5
             }
           ]
@@ -277,11 +309,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-11T00:39:42.528Z",
-    "duration": 49107.034999999996,
+    "startTime": "2026-02-11T02:12:10.958Z",
+    "duration": 81973.20300000001,
     "expected": 4,
-    "skipped": 1,
-    "unexpected": 0,
+    "skipped": 0,
+    "unexpected": 1,
     "flaky": 0
   }
 }

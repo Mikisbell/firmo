@@ -12,6 +12,7 @@ import { useKitchenTicketsByGroup } from "../cocina/hooks/useKitchenTickets";
 import { useState, useEffect } from "react";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { Beer, GlassWater } from "lucide-react";
+import { useSyncClient } from "@/src/hooks/useSyncClient";
 import { type ItemStatus } from "@/src/core/domain/events";
 import { getTerminalConfig } from "@/src/core/config/terminal";
 import { canTransition, getNextNormalState } from "@/src/core/domain/item-status-machine";
@@ -20,6 +21,9 @@ import { KDSLayout, KDSTicket } from "@/src/components/kds";
 const config = getTerminalConfig("SPC_BAR");
 
 export default function BarKDSPage() {
+    // CRÍTICO: Iniciar SyncClient para recibir eventos en tiempo real vía SSE
+    useSyncClient();
+    
     const tickets = useKitchenTicketsByGroup("BAR");
     const [now, setNow] = useState<number | null>(null);
     const [mounted, setMounted] = useState(false);

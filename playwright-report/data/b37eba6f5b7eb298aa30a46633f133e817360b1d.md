@@ -1,0 +1,121 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - button [ref=e4]:
+        - img [ref=e5]
+      - generic [ref=e7]:
+        - heading "Mesa 3" [level=1] [ref=e8]
+        - text: "Pedido #723"
+      - generic [ref=e9]:
+        - img [ref=e10]
+        - generic [ref=e13]: 09:13 PM
+    - generic [ref=e14]:
+      - main [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - img [ref=e18]
+            - textbox "Buscar producto..." [ref=e21]
+          - generic [ref=e22]:
+            - button "Todo 3" [ref=e23]:
+              - img [ref=e24]
+              - generic [ref=e26]: Todo
+              - generic [ref=e27]: "3"
+            - button "Pollos 1" [ref=e28]:
+              - img [ref=e29]
+              - generic [ref=e32]: Pollos
+              - generic [ref=e33]: "1"
+            - button "Combos" [ref=e34]:
+              - img [ref=e35]
+              - generic [ref=e37]: Combos
+            - button "Guarniciones 1" [ref=e38]:
+              - img [ref=e39]
+              - generic [ref=e44]: Guarniciones
+              - generic [ref=e45]: "1"
+            - button "Bebidas 1" [ref=e46]:
+              - img [ref=e47]
+              - generic [ref=e51]: Bebidas
+              - generic [ref=e52]: "1"
+            - button "Extras" [ref=e53]:
+              - img [ref=e54]
+              - generic [ref=e59]: Extras
+            - button "Postres" [ref=e60]:
+              - img [ref=e61]
+              - generic [ref=e65]: Postres
+          - generic [ref=e67]:
+            - button "PARRILLA Pollo a la Brasa S/ 35.00" [ref=e68]:
+              - generic [ref=e69]:
+                - img [ref=e71]
+                - generic [ref=e74]: PARRILLA
+              - generic [ref=e75]:
+                - heading "Pollo a la Brasa" [level=3] [ref=e76]
+                - generic [ref=e77]:
+                  - generic [ref=e78]: S/
+                  - generic [ref=e79]: "35.00"
+            - button "COCINA Papas Fritas S/ 8.00" [ref=e80]:
+              - generic [ref=e81]:
+                - img [ref=e83]
+                - generic [ref=e88]: COCINA
+              - generic [ref=e89]:
+                - heading "Papas Fritas" [level=3] [ref=e90]
+                - generic [ref=e91]:
+                  - generic [ref=e92]: S/
+                  - generic [ref=e93]: "8.00"
+            - button "BAR Gaseosa 1.5L S/ 5.00" [ref=e94]:
+              - generic [ref=e95]:
+                - img [ref=e97]
+                - generic [ref=e101]: BAR
+              - generic [ref=e102]:
+                - heading "Gaseosa 1.5L" [level=3] [ref=e103]
+                - generic [ref=e104]:
+                  - generic [ref=e105]: S/
+                  - generic [ref=e106]: "5.00"
+      - complementary [ref=e107]:
+        - complementary [ref=e108]:
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - heading "Mesa 3" [level=2] [ref=e112]
+              - generic [ref=e113]: "Pedido #723"
+            - generic [ref=e114]: 1 items
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - paragraph [ref=e119]: Pollo a la Brasa
+              - paragraph [ref=e120]: S/ 35.00 c/u
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - button [ref=e123]:
+                  - img [ref=e124]
+                - generic [ref=e125]: "1"
+                - button [ref=e126]:
+                  - img [ref=e127]
+              - generic [ref=e128]: S/ 35.00
+              - button [ref=e129]:
+                - img [ref=e130]
+          - generic [ref=e133]:
+            - generic [ref=e134]:
+              - generic [ref=e135]:
+                - generic [ref=e136]: Subtotal
+                - generic [ref=e137]: S/ 35.00
+              - generic [ref=e138]:
+                - generic [ref=e139]: Total
+                - generic [ref=e140]: S/ 35.00
+            - generic [ref=e141]:
+              - button "QR Pago" [ref=e142]:
+                - img [ref=e143]
+                - generic [ref=e149]: QR Pago
+              - button "Pre-cuenta" [ref=e150]:
+                - img [ref=e151]
+                - generic [ref=e155]: Pre-cuenta
+            - button "ENVIAR A COCINA" [active] [ref=e156]:
+              - img [ref=e157]
+              - generic [ref=e160]: ENVIAR A COCINA
+            - button "LLAMAR CUENTA" [ref=e161]:
+              - img [ref=e162]
+              - generic [ref=e165]: LLAMAR CUENTA
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e171] [cursor=pointer]:
+    - img [ref=e172]
+  - alert [ref=e175]
+```

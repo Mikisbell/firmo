@@ -1,20 +1,66 @@
-<testsuites id="" name="" tests="5" failures="0" skipped="1" errors="0" time="49.107034999999996">
-<testsuite name="waiter-to-kds.spec.ts" timestamp="2026-02-11T00:39:51.916Z" hostname="chromium" tests="5" failures="0" skipped="1" time="36.59" errors="0">
-<testcase name="Waiter to KDS Flow › waiter creates order and submits to kitchen, KDS shows order" classname="waiter-to-kds.spec.ts" time="19.285">
+<testsuites id="" name="" tests="5" failures="1" skipped="0" errors="0" time="81.97320300000001">
+<testsuite name="waiter-to-kds.spec.ts" timestamp="2026-02-11T02:12:21.404Z" hostname="chromium" tests="5" failures="1" skipped="0" time="62.64" errors="0">
+<testcase name="Waiter to KDS Flow › waiter creates order and submits to kitchen, KDS shows order" classname="waiter-to-kds.spec.ts" time="22.378">
 </testcase>
-<testcase name="Waiter to KDS Flow › KDS can change item status after submission" classname="waiter-to-kds.spec.ts" time="9.95">
+<testcase name="Waiter to KDS Flow › KDS can change item status after submission" classname="waiter-to-kds.spec.ts" time="9.686">
 </testcase>
-<testcase name="Waiter to KDS Flow › multiple waiters can submit orders (sequential)" classname="waiter-to-kds.spec.ts" time="0">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Waiter to KDS Flow › multiple waiters can submit orders (sequential)" classname="waiter-to-kds.spec.ts" time="23.746">
+<failure message="waiter-to-kds.spec.ts:231:5 multiple waiters can submit orders (sequential)" type="FAILURE">
+<![CDATA[  [chromium] › waiter-to-kds.spec.ts:231:5 › Waiter to KDS Flow › multiple waiters can submit orders (sequential) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 1
+    Received:    0
+
+    Call Log:
+    - Timeout 15000ms exceeded while waiting on the predicate
+
+      266 |             const count = await tickets.count();
+      267 |             expect(count).toBeGreaterThanOrEqual(1);
+    > 268 |         }).toPass({ timeout: 15000, intervals: [3000, 5000] });
+          |            ^
+      269 |
+      270 |         // Waiter 2: Mesa 4 (new tab) - SEQUENTIAL after first order confirmed
+      271 |         const waiter2Page = await context.newPage();
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\waiter-to-kds.spec.ts:268:12
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\video-1.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\test-failed-2.png]]
+
+[[ATTACHMENT|waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\test-failed-1.png]]
+
+[[ATTACHMENT|waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\video-1.webm]]
+
+[[ATTACHMENT|waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\video.webm]]
+
+[[ATTACHMENT|waiter-to-kds-Waiter-to-KD-a668c-n-submit-orders-sequential--chromium\error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="Waiter to KDS Flow › order with no items cannot be submitted" classname="waiter-to-kds.spec.ts" time="1.856">
+<testcase name="Waiter to KDS Flow › order with no items cannot be submitted" classname="waiter-to-kds.spec.ts" time="1.824">
 </testcase>
-<testcase name="Waiter to KDS Flow › submitted items remain visible on waiter screen" classname="waiter-to-kds.spec.ts" time="5.499">
+<testcase name="Waiter to KDS Flow › submitted items remain visible on waiter screen" classname="waiter-to-kds.spec.ts" time="5.006">
 </testcase>
 </testsuite>
 </testsuites>

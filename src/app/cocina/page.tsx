@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { UtensilsCrossed, ChefHat } from "lucide-react";
 import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
+import { useSyncClient } from "@/src/hooks/useSyncClient";
 import { type ItemStatus } from "@/src/core/domain/events";
 import { getTerminalConfig } from "@/src/core/config/terminal";
 import { canTransition, getNextNormalState } from "@/src/core/domain/item-status-machine";
@@ -21,6 +22,9 @@ import { KDSLayout, KDSTicket } from "@/src/components/kds";
 const config = getTerminalConfig("SPC_COCINA");
 
 export default function CocinaKDSPage() {
+    // CRÍTICO: Iniciar SyncClient para recibir eventos en tiempo real vía SSE
+    useSyncClient();
+    
     // Cocina muestra: COCINA, FRIOS, POSTRES, FREIDORA (usando grupo centralizado)
     const tickets = useKitchenTicketsByGroup("COCINA");
     const { isLoading, isAuthenticated } = useRequireTerminal();
