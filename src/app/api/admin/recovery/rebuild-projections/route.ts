@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { RecoveryService } from '@/src/core/recovery/recovery-service';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
+import prisma from '@/src/core/db/prisma';
 
 /**
  * Schema de validación para la solicitud de reconstrucción de proyecciones
@@ -35,7 +36,7 @@ type RebuildProjectionsRequest = z.infer<typeof RebuildProjectionsRequestSchema>
 export async function POST(request: NextRequest) {
   try {
     // 1. Autenticación - Verificar que el usuario es admin
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     
     if (!session) {
       return NextResponse.json(

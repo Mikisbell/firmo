@@ -201,28 +201,28 @@ export class LogConfigService {
 
     // Persistir en base de datos
     try {
-      await prisma.logConfiguration.upsert({
+      await prisma.log_configuration.upsert({
         where: { module },
         update: {
           level,
-          updatedAt: new Date(),
-          updatedBy: userId,
+          updated_at: new Date(),
+          updated_by: userId,
         },
         create: {
           module,
           level,
-          updatedBy: userId,
+          updated_by: userId,
         },
       });
 
       // Registrar cambio en audit trail
-      await prisma.logConfigurationChange.create({
+      await prisma.log_configuration_change.create({
         data: {
           module,
-          previousLevel,
-          newLevel: level,
-          changedBy: userId || 'system',
-          changedAt: new Date(),
+          previous_level: previousLevel,
+          new_level: level,
+          changed_by: userId || 'system',
+          changed_at: new Date(),
           reason,
         },
       });
@@ -266,7 +266,7 @@ export class LogConfigService {
    */
   public async loadFromDatabase(): Promise<void> {
     try {
-      const configs = await prisma.logConfiguration.findMany();
+      const configs = await prisma.log_configuration.findMany();
       
       for (const config of configs) {
         if (this.isValidModule(config.module) && this.isValidLevel(config.level)) {
@@ -292,19 +292,19 @@ export class LogConfigService {
    */
   public async getChangeHistory(module?: LogModule, limit: number = 50): Promise<LogConfigChange[]> {
     try {
-      const changes = await prisma.logConfigurationChange.findMany({
+      const changes = await prisma.log_configuration_change.findMany({
         where: module ? { module } : undefined,
-        orderBy: { changedAt: 'desc' },
+        orderBy: { changed_at: 'desc' },
         take: limit,
       });
 
       return changes.map(change => ({
         id: change.id,
         module: change.module as LogModule,
-        previousLevel: change.previousLevel as LogLevel,
-        newLevel: change.newLevel as LogLevel,
-        changedBy: change.changedBy,
-        changedAt: change.changedAt,
+        previousLevel: change.previous_level as LogLevel,
+        newLevel: change.new_level as LogLevel,
+        changedBy: change.changed_by,
+        changedAt: change.changed_at,
         reason: change.reason || undefined,
       }));
     } catch (error) {

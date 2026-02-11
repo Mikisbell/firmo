@@ -12,8 +12,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { logConfig, LogLevel, LogModule } from '@/core/observability/log-config';
-import { getSessionFromRequest } from '@/core/auth/auth.service';
+import { logConfig, LogLevel, LogModule } from '@/src/core/observability/log-config';
+import { getSessionFromRequest } from '@/src/core/auth/auth.service';
+import prisma from '@/src/core/db/prisma';
 
 /**
  * GET /api/admin/log-config
@@ -25,7 +26,7 @@ import { getSessionFromRequest } from '@/core/auth/auth.service';
 export async function GET(request: NextRequest) {
   try {
     // Verificar autenticación
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     if (!session) {
       return NextResponse.json(
         { error: 'No autorizado' },
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verificar autenticación
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     if (!session) {
       return NextResponse.json(
         { error: 'No autorizado' },

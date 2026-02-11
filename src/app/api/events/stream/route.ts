@@ -106,9 +106,9 @@ export async function GET(req: NextRequest) {
                 clearInterval(keepAlive);
                 // Manejar unsubscribe asíncrono si es necesario
                 if (typeof unsubscribe === 'function') {
-                    const unsubResult = unsubscribe();
-                    if (unsubResult instanceof Promise) {
-                        await unsubResult;
+                    const unsubResult = unsubscribe() as void | Promise<void>;
+                    if (unsubResult && typeof (unsubResult as any).then === 'function') {
+                        await (unsubResult as Promise<void>);
                     }
                 }
                 console.log("[SSE] Cliente desconectado, recursos liberados");

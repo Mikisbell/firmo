@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AlertConfigService } from '@/src/core/alerts/alert-config';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { logger } from '@/src/core/observability/structured-logger';
+import prisma from '@/src/core/db/prisma';
 
 const alertConfigService = new AlertConfigService();
 
@@ -21,10 +22,10 @@ const alertConfigService = new AlertConfigService();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json(
@@ -33,8 +34,9 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
     const configuration = await alertConfigService.getAlertConfig(
-      params.id,
+      id,
       session.tenantId
     );
 
@@ -60,10 +62,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json(
@@ -73,13 +75,14 @@ export async function PATCH(
     }
 
     const body = await request.json();
+    const { id } = await params;
     
     const configuration = await alertConfigService.updateAlertConfig(
-      params.id,
+      id,
       session.tenantId,
       {
         ...body,
-        updatedBy: session.userId,
+        updatedBy: session.employeeId,
       }
     );
 
@@ -98,10 +101,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json(
@@ -110,7 +113,8 @@ export async function DELETE(
       );
     }
 
-    await alertConfigService.deleteAlertConfig(params.id, session.tenantId);
+    const { id } = await params;
+    await alertConfigService.deleteAlertConfig(id, session.tenantId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AlertConfigService } from '@/src/core/alerts/alert-config';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { logger } from '@/src/core/observability/structured-logger';
+import prisma from '@/src/core/db/prisma';
 
 const alertConfigService = new AlertConfigService();
 
@@ -22,7 +23,7 @@ const alertConfigService = new AlertConfigService();
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json(
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request, prisma);
     
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json(
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
       enabled: body.enabled ?? true,
       notificationChannels: body.notificationChannels,
       notificationConfig: body.notificationConfig,
-      createdBy: session.userId,
+      createdBy: session.employeeId,
     });
 
     return NextResponse.json(configuration, { status: 201 });
