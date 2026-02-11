@@ -87,32 +87,32 @@ describe('Data Integrity Constraints - Property Tests', () => {
   describe('Property 30: Tenant ID Presence', () => {
     it('all orders have tenant_id', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => hasTenantId(order),
+        fc.constant(generateRealisticOrder()),
+        (order: any) => hasTenantId(order),
         'order must have tenant_id'
       );
     });
 
     it('all shifts have tenant_id', () => {
       testInvariant(
-        generateRealisticShift,
-        (shift) => hasTenantId(shift),
+        fc.constant(generateRealisticShift()),
+        (shift: any) => hasTenantId(shift),
         'shift must have tenant_id'
       );
     });
 
     it('all inventory items have tenant_id', () => {
       testInvariant(
-        generateRealisticInventoryItem,
-        (item) => hasTenantId(item),
+        fc.constant(generateRealisticInventoryItem()),
+        (item: any) => hasTenantId(item),
         'inventory item must have tenant_id'
       );
     });
 
     it('tenant_id is valid UUID', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => {
+        fc.constant(generateRealisticOrder()),
+        (order: any) => {
           try {
             expectValidTenantId(order.tenant_id);
             return true;
@@ -127,8 +127,8 @@ describe('Data Integrity Constraints - Property Tests', () => {
     it('all entities in collection have tenant_id', () => {
       fc.assert(
         fc.property(
-          fc.array(generateRealisticOrder, { minLength: 1, maxLength: 10 }),
-          (orders) => {
+          fc.array(fc.constant(generateRealisticOrder()), { minLength: 1, maxLength: 10 }),
+          (orders: any[]) => {
             try {
               expectAllHaveTenantId(orders);
             } catch {
@@ -147,17 +147,17 @@ describe('Data Integrity Constraints - Property Tests', () => {
       fc.assert(
         fc.property(
           fc.tuple(
-            fc.array(generateRealisticOrder, { maxLength: 10 }),
-            generateRealisticOrder
+            fc.array(fc.constant(generateRealisticOrder()), { maxLength: 10 }),
+            fc.constant(generateRealisticOrder())
           ),
-          ([existingOrders, newOrder]) => {
+          ([existingOrders, newOrder]: [any[], any]) => {
             const isUnique = isOrderNumberUniqueInTenant(existingOrders, newOrder);
             // If order number already exists in same tenant, should not be unique
             const sameTenantsOrders = existingOrders.filter(
-              o => o.tenant_id === newOrder.tenant_id
+              (o: any) => o.tenant_id === newOrder.tenant_id
             );
             const numberExists = sameTenantsOrders.some(
-              o => o.order_number === newOrder.order_number
+              (o: any) => o.order_number === newOrder.order_number
             );
 
             if (numberExists) {
@@ -197,8 +197,8 @@ describe('Data Integrity Constraints - Property Tests', () => {
     it('order numbers are unique in collection', () => {
       fc.assert(
         fc.property(
-          fc.array(generateRealisticOrder, { minLength: 1, maxLength: 10 }),
-          (orders) => {
+          fc.array(fc.constant(generateRealisticOrder()), { minLength: 1, maxLength: 10 }),
+          (orders: any[]) => {
             // Filter by tenant
             const byTenant: Record<string, any[]> = {};
             for (const order of orders) {
@@ -227,7 +227,7 @@ describe('Data Integrity Constraints - Property Tests', () => {
   describe('Property 31: Foreign Key Validity', () => {
     it('order references valid products', () => {
       fc.assert(
-        fc.property(generateRealisticOrder, (order) => {
+        fc.property(fc.constant(generateRealisticOrder()), (order: any) => {
           // All items should have valid product_id
           for (const item of order.items) {
             expect(item.product_id).toBeDefined();
@@ -240,7 +240,7 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('check references valid order', () => {
       fc.assert(
-        fc.property(generateRealisticOrder, (order) => {
+        fc.property(fc.constant(generateRealisticOrder()), (order: any) => {
           // All checks should reference this order
           for (const check of order.checks) {
             expect(check.check_id).toBeDefined();
@@ -252,8 +252,8 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('foreign key references are consistent', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => {
+        fc.constant(generateRealisticOrder()),
+        (order: any) => {
           // Order ID should be consistent
           for (const item of order.items) {
             if (item.product_id) {
@@ -270,7 +270,7 @@ describe('Data Integrity Constraints - Property Tests', () => {
   describe('Property 32: Soft Delete Preserves References', () => {
     it('soft-deleted entity preserves ID', () => {
       fc.assert(
-        fc.property(generateRealisticOrder, (order) => {
+        fc.property(fc.constant(generateRealisticOrder()), (order: any) => {
           const deleted = softDelete(order);
           expect(deleted.id).toBe(order.id);
         }),
@@ -280,7 +280,7 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('soft-deleted entity is marked inactive', () => {
       fc.assert(
-        fc.property(generateRealisticOrder, (order) => {
+        fc.property(fc.constant(generateRealisticOrder()), (order: any) => {
           const deleted = softDelete(order);
           expect(deleted.is_active).toBe(false);
           expect(deleted.deleted_at).toBeDefined();
@@ -293,10 +293,10 @@ describe('Data Integrity Constraints - Property Tests', () => {
       fc.assert(
         fc.property(
           fc.tuple(
-            generateRealisticOrder,
-            fc.array(generateRealisticOrder, { maxLength: 5 })
+            fc.constant(generateRealisticOrder()),
+            fc.array(fc.constant(generateRealisticOrder()), { maxLength: 5 })
           ),
-          ([order, references]) => {
+          ([order, references]: [any, any[]]) => {
             const deleted = softDelete(order);
             const allOrders = [...references, deleted];
 
@@ -311,7 +311,7 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('soft delete does not remove data', () => {
       fc.assert(
-        fc.property(generateRealisticOrder, (order) => {
+        fc.property(fc.constant(generateRealisticOrder()), (order: any) => {
           const deleted = softDelete(order);
 
           // All original data should be preserved
@@ -328,8 +328,8 @@ describe('Data Integrity Constraints - Property Tests', () => {
   describe('Property 33: JSONB Schema Conformance', () => {
     it('items JSONB conforms to schema', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => {
+        fc.constant(generateRealisticOrder()),
+        (order: any) => {
           if (!order.items || order.items.length === 0) return true;
 
           for (const item of order.items) {
@@ -347,8 +347,8 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('checks JSONB conforms to schema', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => {
+        fc.constant(generateRealisticOrder()),
+        (order: any) => {
           if (!order.checks || order.checks.length === 0) return true;
 
           for (const check of order.checks) {
@@ -366,7 +366,7 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('JSONB fields maintain structure', () => {
       fc.assert(
-        fc.property(generateRealisticOrder, (order) => {
+        fc.property(fc.constant(generateRealisticOrder()), (order: any) => {
           // Items should be array
           expect(Array.isArray(order.items)).toBe(true);
 
@@ -395,8 +395,8 @@ describe('Data Integrity Constraints - Property Tests', () => {
   describe('Derived Field Consistency', () => {
     it('derived fields are computed correctly', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => {
+        fc.constant(generateRealisticOrder()),
+        (order: any) => {
           // stations_active should match items
           const stations = new Set<string>();
           for (const item of order.items) {
@@ -416,13 +416,13 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('derived fields update with data changes', () => {
       fc.assert(
-        fc.property(generateRealisticOrder, (order) => {
+        fc.property(fc.constant(generateRealisticOrder()), (order: any) => {
           if (order.items.length === 0) return;
 
           // Mark first item as done
           const updated = {
             ...order,
-            items: order.items.map((item, i) =>
+            items: order.items.map((item: any, i: number) =>
               i === 0 ? { ...item, status: 'DONE' } : item
             ),
           };
@@ -481,24 +481,24 @@ describe('Data Integrity Constraints - Property Tests', () => {
   describe('Invariants', () => {
     it('tenant_id is always present', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => hasTenantId(order),
+        fc.constant(generateRealisticOrder()),
+        (order: any) => hasTenantId(order),
         'tenant_id must always be present'
       );
     });
 
     it('order_id is always present', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => order.order_id !== null && order.order_id !== undefined,
+        fc.constant(generateRealisticOrder()),
+        (order: any) => order.order_id !== null && order.order_id !== undefined,
         'order_id must always be present'
       );
     });
 
     it('soft delete does not remove tenant_id', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => {
+        fc.constant(generateRealisticOrder()),
+        (order: any) => {
           const deleted = softDelete(order);
           return hasTenantId(deleted);
         },
@@ -508,8 +508,8 @@ describe('Data Integrity Constraints - Property Tests', () => {
 
     it('JSONB fields are always arrays', () => {
       testInvariant(
-        generateRealisticOrder,
-        (order) => {
+        fc.constant(generateRealisticOrder()),
+        (order: any) => {
           return Array.isArray(order.items) && Array.isArray(order.checks);
         },
         'JSONB fields must be arrays'

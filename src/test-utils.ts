@@ -71,6 +71,11 @@ export const isoDateArb = fc.date().map(d => d.toISOString());
 export const orderIdArb = uuidArb;
 
 /**
+ * Arbitrary for tenant IDs (branded type)
+ */
+export const tenantIdArb = uuidArb;
+
+/**
  * Arbitrary for shift IDs (branded type)
  */
 export const shiftIdArb = uuidArb;
@@ -170,7 +175,7 @@ export const checkMarkedPaidEventArb = fc.record({
 /**
  * Generate a realistic order object
  */
-export function generateRealisticOrder() {
+export function generateRealisticOrder(overrides?: Partial<any>) {
   return {
     id: randomUUID(),
     tenant_id: randomUUID(),
@@ -182,6 +187,7 @@ export function generateRealisticOrder() {
     checks: [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    ...overrides,
   };
 }
 
@@ -262,6 +268,22 @@ export function generateRealisticEventSequence(count: number = 10): any[] {
     events.push(generateRealisticOrderCreatedEvent());
   }
   return events;
+}
+
+/**
+ * Generate a realistic inventory item object
+ */
+export function generateRealisticInventoryItem() {
+  return {
+    id: randomUUID(),
+    tenant_id: randomUUID(),
+    product_id: randomUUID(),
+    quantity: Math.floor(Math.random() * 1000),
+    unit: 'kg',
+    cost_cents: Math.floor(Math.random() * 50000) + 100,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
 }
 
 // ============================================================================
@@ -517,9 +539,18 @@ export function expectValidCheck(value: any) {
 /**
  * Expect a value to be valid JSONB (serializable)
  */
-export function expectValidJSONB(value: any) {
+export function expectValidJSONB(value: any, requiredFields?: string[]) {
   try {
     JSON.stringify(value);
+    
+    // Verificar campos requeridos si se especifican
+    if (requiredFields) {
+      for (const field of requiredFields) {
+        if (!(field in value)) {
+          throw new Error(`Missing required field: ${field}`);
+        }
+      }
+    }
   } catch (err) {
     throw new Error(`Expected valid JSONB, got: ${value}`);
   }
@@ -583,6 +614,17 @@ export function expectSplitBillSums(splits: number[], total: number) {
   const sum = splits.reduce((a, b) => a + b, 0);
   if (sum !== total) {
     throw new Error(`Expected split sum ${total}, got: ${sum}`);
+  }
+}
+
+/**
+ * Expect all entities in collection have tenant_id
+ */
+export function expectAllHaveTenantId(entities: any[]) {
+  for (const entity of entities) {
+    if (!entity.tenant_id) {
+      throw new Error(`Entity missing tenant_id: ${JSON.stringify(entity)}`);
+    }
   }
 }
 
