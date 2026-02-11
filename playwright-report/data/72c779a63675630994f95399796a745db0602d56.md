@@ -1,0 +1,181 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T"
+    - button "Abrir menú" [ref=e3]:
+      - img [ref=e4]
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - 'link "Pollería El Sabrosón S.A.C. RUC: 20123456789" [ref=e7] [cursor=pointer]':
+          - /url: /admin
+          - img [ref=e9]
+          - generic [ref=e13]:
+            - generic [ref=e14]: Pollería El Sabrosón S.A.C.
+            - generic [ref=e15]: "RUC: 20123456789"
+        - button "Cerrar menú" [ref=e16]:
+          - img [ref=e17]
+      - navigation [ref=e20]:
+        - link "Dashboard" [ref=e22] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e23]
+          - generic [ref=e28]: Dashboard
+        - link "Productos" [ref=e30] [cursor=pointer]:
+          - /url: /admin/productos
+          - img [ref=e31]
+          - generic [ref=e35]: Productos
+        - link "Mesas" [ref=e37] [cursor=pointer]:
+          - /url: /admin/mesas
+          - img [ref=e38]
+          - generic [ref=e40]: Mesas
+        - link "Empleados" [ref=e42] [cursor=pointer]:
+          - /url: /admin/empleados
+          - img [ref=e43]
+          - generic [ref=e48]: Empleados
+        - link "Terminales" [ref=e50] [cursor=pointer]:
+          - /url: /admin/terminales
+          - img [ref=e51]
+          - generic [ref=e53]: Terminales
+        - link "Auditoría 18 notificaciones" [ref=e55] [cursor=pointer]:
+          - /url: /admin/auditoria
+          - img [ref=e56]
+          - generic [ref=e58]: Auditoría
+          - generic "18 notificaciones" [ref=e59]: "18"
+        - link "Promociones" [ref=e61] [cursor=pointer]:
+          - /url: /admin/promociones
+          - img [ref=e62]
+          - generic [ref=e66]: Promociones
+        - link "Estaciones KDS" [ref=e68] [cursor=pointer]:
+          - /url: /admin/estaciones
+          - img [ref=e69]
+          - generic [ref=e71]: Estaciones KDS
+        - link "Delivery" [ref=e73] [cursor=pointer]:
+          - /url: /admin/delivery
+          - img [ref=e74]
+          - generic [ref=e79]: Delivery
+        - link "Motorizados" [ref=e81] [cursor=pointer]:
+          - /url: /admin/drivers
+          - img [ref=e82]
+          - generic [ref=e87]: Motorizados
+        - link "Inventario" [ref=e89] [cursor=pointer]:
+          - /url: /inventario
+          - img [ref=e90]
+          - generic [ref=e93]: Inventario
+        - link "Monitoreo" [ref=e95] [cursor=pointer]:
+          - /url: /admin/monitoring
+          - img [ref=e96]
+          - generic [ref=e98]: Monitoreo
+        - link "Configuración" [ref=e100] [cursor=pointer]:
+          - /url: /admin/configuracion
+          - img [ref=e101]
+          - generic [ref=e104]: Configuración
+        - link "Reportes" [ref=e106] [cursor=pointer]:
+          - /url: /admin/reportes
+          - img [ref=e107]
+          - generic [ref=e109]: Reportes
+      - paragraph [ref=e111]: Panel de Administración
+    - generic [ref=e112]:
+      - banner [ref=e113]:
+        - generic [ref=e114]:
+          - img [ref=e116]
+          - button "Notificaciones (próximamente)" [disabled] [ref=e120]:
+            - img [ref=e121]
+          - button [ref=e125]:
+            - img [ref=e127]
+            - img [ref=e130]
+      - main [ref=e132]:
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - heading "Provision New Tenant" [level=1] [ref=e135]
+            - paragraph [ref=e136]: Create a new tenant with all required configuration
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - heading "Business Information" [level=2] [ref=e139]:
+                - img [ref=e140]
+                - text: Business Information
+              - generic [ref=e144]:
+                - generic [ref=e145]:
+                  - generic [ref=e146]: Legal Name *
+                  - textbox "Pollería El Buen Sabor" [ref=e147]
+                - generic [ref=e148]:
+                  - generic [ref=e149]: RUC
+                  - textbox "20123456789" [ref=e150]
+                - generic [ref=e151]:
+                  - generic [ref=e152]: Address
+                  - textbox "Av. Principal 123, Lima" [ref=e153]
+            - generic [ref=e154]:
+              - heading "Admin Information" [level=2] [ref=e155]:
+                - img [ref=e156]
+                - text: Admin Information
+              - generic [ref=e159]:
+                - generic [ref=e160]:
+                  - generic [ref=e161]: Admin Name *
+                  - textbox "Juan Pérez" [ref=e162]
+                - generic [ref=e163]:
+                  - generic [ref=e164]: Admin PIN (4 digits) *
+                  - textbox "1234" [ref=e165]
+            - generic [ref=e166]:
+              - heading "Regional Settings" [level=2] [ref=e167]:
+                - img [ref=e168]
+                - text: Regional Settings
+              - generic [ref=e171]:
+                - generic [ref=e172]:
+                  - generic [ref=e173]: Timezone
+                  - combobox [ref=e174]:
+                    - option "America/Lima" [selected]
+                    - option "America/New_York"
+                    - option "America/Los_Angeles"
+                    - option "America/Chicago"
+                    - option "America/Denver"
+                    - option "America/Anchorage"
+                    - option "America/Caracas"
+                    - option "America/Bogota"
+                    - option "America/Santiago"
+                    - option "America/Buenos_Aires"
+                - generic [ref=e175]:
+                  - generic [ref=e176]: Currency
+                  - combobox [ref=e177]:
+                    - option "PEN" [selected]
+                    - option "USD"
+                    - option "EUR"
+                    - option "BRL"
+                    - option "CLP"
+                    - option "COP"
+                    - option "ARS"
+            - generic [ref=e178]:
+              - heading "Optional Settings" [level=2] [ref=e179]:
+                - img [ref=e180]
+                - text: Optional Settings
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - generic [ref=e184]: Receipt Footer Text
+                  - textbox "Thank you for your purchase!" [ref=e185]
+                - generic [ref=e186]:
+                  - generic [ref=e187]:
+                    - generic [ref=e188]: Default Delivery Fee (cents)
+                    - spinbutton [ref=e189]: "0"
+                  - generic [ref=e190]:
+                    - generic [ref=e191]: Max Offline Coupons per Order
+                    - spinbutton [ref=e192]: "5"
+                - generic [ref=e193]:
+                  - generic [ref=e194] [cursor=pointer]:
+                    - checkbox "Enable Tips" [checked] [ref=e195]
+                    - generic [ref=e196]: Enable Tips
+                  - generic [ref=e197] [cursor=pointer]:
+                    - checkbox "Show Tips on Invoice" [ref=e198]
+                    - generic [ref=e199]: Show Tips on Invoice
+                  - generic [ref=e200] [cursor=pointer]:
+                    - checkbox "Allow Offline Coupons" [checked] [ref=e201]
+                    - generic [ref=e202]: Allow Offline Coupons
+                  - generic [ref=e203] [cursor=pointer]:
+                    - checkbox "Require Manager for Offline" [ref=e204]
+                    - generic [ref=e205]: Require Manager for Offline
+            - button "Provision Tenant" [ref=e207]:
+              - img [ref=e208]
+              - text: Provision Tenant
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e216] [cursor=pointer]:
+    - img [ref=e217]
+  - alert [ref=e220]
+```

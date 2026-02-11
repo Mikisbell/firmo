@@ -84,16 +84,13 @@ export async function POST(request: NextRequest) {
 
     // 3. Ejecutar acción de recuperación
     const recoveryService = RecoveryService.getInstance();
-    const result = await recoveryService.executeRecoveryAction(
-      'RESET_SYNC',
-      {
-        reason,
-        terminalId,
-        force,
-        initiatedBy: session.userId,
-        tenantId: session.tenantId,
-      }
-    );
+    const result = await recoveryService.executeRecoveryAction({
+      actionType: 'RESET_SYNC',
+      reason,
+      tenantId: session.tenantId,
+      userId: session.employeeId,
+      metadata: { terminalId, force },
+    });
 
     // 4. Retornar resultado
     if (result.success) {
@@ -115,7 +112,7 @@ export async function POST(request: NextRequest) {
         {
           error: {
             code: 'RECOVERY_FAILED',
-            message: result.error || 'Error al reiniciar la sincronización',
+            message: result.message || 'Error al reiniciar la sincronización',
             timestamp: new Date().toISOString(),
           },
         },

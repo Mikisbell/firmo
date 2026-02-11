@@ -64,10 +64,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe retornar 403 si el usuario no es admin', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'user-123',
+        employeeId: 'user-123',
         tenantId: 'tenant-123',
         role: 'WAITER',
-        terminalId: 'terminal-123',
+        name: 'Test User',
+        sessionId: 'session-123',
       });
       const request = new MockNextRequest({
         reason: 'Test de limpieza de caché',
@@ -85,10 +86,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe retornar 400 si la razón es muy corta', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
       const request = new MockNextRequest({
         reason: 'Corto', // Menos de 10 caracteres
@@ -106,15 +108,21 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe ejecutar la acción de limpieza de caché exitosamente', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
 
       const recoveryService = RecoveryService.getInstance();
       const executeSpy = vi.spyOn(recoveryService, 'executeRecoveryAction').mockResolvedValue({
         success: true,
+        actionType: 'CLEAR_CACHE',
+        timestamp: new Date().toISOString(),
+        duration: 100,
+        message: 'Caché limpiado exitosamente',
+        rollbackAvailable: false,
       });
 
       const request = new MockNextRequest({
@@ -130,27 +138,34 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.message).toContain('exitosamente');
-      expect(executeSpy).toHaveBeenCalledWith('CLEAR_CACHE', {
+      expect(executeSpy).toHaveBeenCalledWith({
+        actionType: 'CLEAR_CACHE',
         reason: 'Limpieza de caché por mantenimiento programado',
-        tags: ['products', 'tenants'],
-        initiatedBy: 'admin-123',
         tenantId: 'tenant-123',
+        userId: 'admin-123',
+        metadata: { tags: ['products', 'tenants'] },
       });
     });
 
     it('debe retornar 500 si la acción falla', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
 
       const recoveryService = RecoveryService.getInstance();
       vi.spyOn(recoveryService, 'executeRecoveryAction').mockResolvedValue({
         success: false,
-        error: 'Redis no disponible',
+        actionType: 'CLEAR_CACHE',
+        timestamp: new Date().toISOString(),
+        duration: 50,
+        message: 'Error al ejecutar acción: Redis no disponible',
+        details: { error: 'Redis no disponible' },
+        rollbackAvailable: false,
       });
 
       const request = new MockNextRequest({
@@ -164,7 +179,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       // Assert
       expect(response.status).toBe(500);
       expect(data.error.code).toBe('RECOVERY_FAILED');
-      expect(data.error.message).toContain('Redis no disponible');
+      expect(data.error.message).toContain('Error al ejecutar acción');
     });
   });
 
@@ -188,10 +203,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe retornar 403 si el usuario no es admin', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'user-123',
+        employeeId: 'user-123',
         tenantId: 'tenant-123',
         role: 'CASHIER',
-        terminalId: 'terminal-123',
+        name: 'Test User',
+        sessionId: 'session-123',
       });
       const request = new MockNextRequest({
         reason: 'Test de reset de sincronización',
@@ -209,10 +225,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe retornar 400 si el terminalId no es UUID válido', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
       const request = new MockNextRequest({
         reason: 'Reset de sincronización por error',
@@ -231,15 +248,21 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe ejecutar el reset de sincronización exitosamente', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
 
       const recoveryService = RecoveryService.getInstance();
       const executeSpy = vi.spyOn(recoveryService, 'executeRecoveryAction').mockResolvedValue({
         success: true,
+        actionType: 'RESET_SYNC',
+        timestamp: new Date().toISOString(),
+        duration: 150,
+        message: 'Estado de sincronización reseteado exitosamente',
+        rollbackAvailable: true,
       });
 
       const request = new MockNextRequest({
@@ -256,12 +279,15 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.message).toContain('exitosamente');
-      expect(executeSpy).toHaveBeenCalledWith('RESET_SYNC', {
+      expect(executeSpy).toHaveBeenCalledWith({
+        actionType: 'RESET_SYNC',
         reason: 'Reset de sincronización por backlog acumulado',
-        terminalId: '123e4567-e89b-12d3-a456-426614174000',
-        force: true,
-        initiatedBy: 'admin-123',
         tenantId: 'tenant-123',
+        userId: 'admin-123',
+        metadata: {
+          terminalId: '123e4567-e89b-12d3-a456-426614174000',
+          force: true,
+        },
       });
     });
   });
@@ -286,10 +312,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe retornar 403 si el usuario no es admin', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'user-123',
+        employeeId: 'user-123',
         tenantId: 'tenant-123',
         role: 'KDS',
-        terminalId: 'terminal-123',
+        name: 'Test User',
+        sessionId: 'session-123',
       });
       const request = new MockNextRequest({
         reason: 'Test de reconstrucción de proyecciones',
@@ -307,10 +334,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe retornar 400 si el projectionType es inválido', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
       const request = new MockNextRequest({
         reason: 'Reconstrucción de proyecciones por inconsistencia',
@@ -329,15 +357,21 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('debe ejecutar la reconstrucción de proyecciones exitosamente', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
 
       const recoveryService = RecoveryService.getInstance();
       const executeSpy = vi.spyOn(recoveryService, 'executeRecoveryAction').mockResolvedValue({
         success: true,
+        actionType: 'REBUILD_PROJECTIONS',
+        timestamp: new Date().toISOString(),
+        duration: 200,
+        message: 'Proyecciones reconstruidas exitosamente',
+        rollbackAvailable: true,
       });
 
       const request = new MockNextRequest({
@@ -355,28 +389,38 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.message).toContain('exitosamente');
-      expect(executeSpy).toHaveBeenCalledWith('REBUILD_PROJECTIONS', {
+      expect(executeSpy).toHaveBeenCalledWith({
+        actionType: 'REBUILD_PROJECTIONS',
         reason: 'Reconstrucción de proyecciones por inconsistencia detectada',
-        projectionType: 'sales',
-        fromDate: '2026-02-01T00:00:00Z',
-        dryRun: false,
-        initiatedBy: 'admin-123',
         tenantId: 'tenant-123',
+        userId: 'admin-123',
+        metadata: {
+          projectionType: 'sales',
+          fromDate: '2026-02-01T00:00:00Z',
+          dryRun: false,
+        },
       });
     });
 
     it('debe ejecutar dry run exitosamente', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
 
       const recoveryService = RecoveryService.getInstance();
       vi.spyOn(recoveryService, 'executeRecoveryAction').mockResolvedValue({
         success: true,
+        actionType: 'REBUILD_PROJECTIONS',
+        timestamp: new Date().toISOString(),
+        duration: 180,
+        message: 'Simulación de reconstrucción completada',
+        details: { dryRun: true },
+        rollbackAvailable: true,
       });
 
       const request = new MockNextRequest({
@@ -406,10 +450,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       for (const role of nonAdminRoles) {
         for (const endpoint of endpoints) {
           vi.mocked(getSessionFromRequest).mockResolvedValue({
-            userId: 'user-123',
+            employeeId: 'user-123',
             tenantId: 'tenant-123',
             role: role as any,
-            terminalId: 'terminal-123',
+            name: 'Test User',
+            sessionId: 'session-123',
           });
 
           const request = new MockNextRequest({
@@ -432,10 +477,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('todos los endpoints deben validar que reason tenga mínimo 10 caracteres', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
 
       const endpoints = [clearCachePOST, resetSyncPOST, rebuildProjectionsPOST];
@@ -458,10 +504,11 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
     it('todos los endpoints deben validar que reason no exceda 500 caracteres', async () => {
       // Arrange
       vi.mocked(getSessionFromRequest).mockResolvedValue({
-        userId: 'admin-123',
+        employeeId: 'admin-123',
         tenantId: 'tenant-123',
         role: 'ADMIN',
-        terminalId: 'terminal-123',
+        name: 'Admin User',
+        sessionId: 'session-123',
       });
 
       const endpoints = [clearCachePOST, resetSyncPOST, rebuildProjectionsPOST];

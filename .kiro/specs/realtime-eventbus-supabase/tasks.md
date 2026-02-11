@@ -224,7 +224,7 @@ Este plan implementa la migración del EventBus in-memory a Supabase Realtime us
     - Manejar errores de suscripción con try/catch
     - _Requirements: 4.1, 4.2, 4.5_
   
-  - [ ]* 7.2 Escribir property test para propagación SSE
+  - [ ] 7.2 Escribir property test para propagación SSE
     - **Property 5: Propagación de Eventos a Clientes SSE**
     - Para cualquier evento recibido del canal, debe enviarse a todos los clientes SSE del mismo tenant en JSON
     - **Validates: Requirements 4.3**

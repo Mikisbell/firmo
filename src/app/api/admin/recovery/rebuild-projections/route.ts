@@ -85,17 +85,13 @@ export async function POST(request: NextRequest) {
 
     // 3. Ejecutar acción de recuperación
     const recoveryService = RecoveryService.getInstance();
-    const result = await recoveryService.executeRecoveryAction(
-      'REBUILD_PROJECTIONS',
-      {
-        reason,
-        projectionType,
-        fromDate,
-        dryRun,
-        initiatedBy: session.userId,
-        tenantId: session.tenantId,
-      }
-    );
+    const result = await recoveryService.executeRecoveryAction({
+      actionType: 'REBUILD_PROJECTIONS',
+      reason,
+      tenantId: session.tenantId,
+      userId: session.employeeId,
+      metadata: { projectionType, fromDate, dryRun },
+    });
 
     // 4. Retornar resultado
     if (result.success) {
@@ -120,7 +116,7 @@ export async function POST(request: NextRequest) {
         {
           error: {
             code: 'RECOVERY_FAILED',
-            message: result.error || 'Error al reconstruir las proyecciones',
+            message: result.message || 'Error al reconstruir las proyecciones',
             timestamp: new Date().toISOString(),
           },
         },

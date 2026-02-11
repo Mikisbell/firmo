@@ -83,15 +83,13 @@ export async function POST(request: NextRequest) {
 
     // 3. Ejecutar acción de recuperación
     const recoveryService = RecoveryService.getInstance();
-    const result = await recoveryService.executeRecoveryAction(
-      'CLEAR_CACHE',
-      {
-        reason,
-        tags,
-        initiatedBy: session.userId,
-        tenantId: session.tenantId,
-      }
-    );
+    const result = await recoveryService.executeRecoveryAction({
+      actionType: 'CLEAR_CACHE',
+      reason,
+      tenantId: session.tenantId,
+      userId: session.employeeId,
+      metadata: { tags },
+    });
 
     // 4. Retornar resultado
     if (result.success) {
@@ -112,7 +110,7 @@ export async function POST(request: NextRequest) {
         {
           error: {
             code: 'RECOVERY_FAILED',
-            message: result.error || 'Error al limpiar la caché',
+            message: result.message || 'Error al limpiar la caché',
             timestamp: new Date().toISOString(),
           },
         },
