@@ -380,7 +380,7 @@ The implementation follows a phased approach:
     - Test that duplicate alerts within 5 minutes are suppressed
     - **Validates: Requirements 15.7**
   
-  - [ ] 15.4 Write property test for alert escalation
+  - [x] 15.4 Write property test for alert escalation
     - **Property: Alert Escalation**
     - Test that unacknowledged alerts escalate after 15 minutes
     - **Validates: Requirements 15.8**

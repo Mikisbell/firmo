@@ -214,8 +214,8 @@ Este plan implementa la migración del EventBus in-memory a Supabase Realtime us
   - Verificar advertencias en logs cuando usa fallback
   - Asegurar que TODOS los tests pasan antes de continuar
 
-- [ ] 7. Integrar con SSE streaming endpoint
-  - [ ] 7.1 Actualizar /api/events/stream para usar SupabaseEventBus
+- [x] 7. Integrar con SSE streaming endpoint
+  - [x] 7.1 Actualizar /api/events/stream para usar SupabaseEventBus
     - Importar eventBus desde factory (singleton global)
     - Mantener validación de tenant_id del query string
     - Usar await si subscribe() retorna Promise
@@ -229,7 +229,7 @@ Este plan implementa la migración del EventBus in-memory a Supabase Realtime us
     - Para cualquier evento recibido del canal, debe enviarse a todos los clientes SSE del mismo tenant en JSON
     - **Validates: Requirements 4.3**
   
-  - [ ] 7.3 Implementar cancelación de suscripción en desconexión SSE
+  - [x] 7.3 Implementar cancelación de suscripción en desconexión SSE
     - Llamar función de cleanup en stream.cancel()
     - Llamar función de cleanup en catch de errores
     - Limpiar timer de keep-alive con clearInterval
@@ -248,8 +248,8 @@ Este plan implementa la migración del EventBus in-memory a Supabase Realtime us
     - Test que múltiples clientes reciben mismo evento
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 8. Integrar con Outbox Pattern en ingest endpoint
-  - [ ] 8.1 Actualizar /api/events/ingest para usar SupabaseEventBus
+- [x] 8. Integrar con Outbox Pattern en ingest endpoint
+  - [x] 8.1 Actualizar /api/events/ingest para usar SupabaseEventBus
     - Importar eventBus desde factory (singleton global)
     - Mantener guardado en event_outbox ANTES de publish (orden crítico)
     - Usar try/catch para manejar errores de publish
@@ -291,7 +291,7 @@ Este plan implementa la migración del EventBus in-memory a Supabase Realtime us
     - Test que sistema acepta eventos con Supabase down
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 9. Checkpoint - Validar integración completa
+- [x] 9. Checkpoint - Validar integración completa
   - Ejecutar tests de integración: `npm test src/app/api/events/__tests__/`
   - Verificar flujo completo: ingest → outbox → publish → SSE
   - Verificar que Outbox Pattern funciona correctamente

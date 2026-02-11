@@ -71,8 +71,7 @@ CREATE TABLE maintenance_windows (
 
 -- Índices para ventanas de mantenimiento
 CREATE INDEX idx_maintenance_windows_tenant ON maintenance_windows(tenant_id);
-CREATE INDEX idx_maintenance_windows_active ON maintenance_windows(tenant_id, start_time, end_time) 
-  WHERE start_time <= NOW() AND end_time >= NOW();
+CREATE INDEX idx_maintenance_windows_time ON maintenance_windows(tenant_id, start_time, end_time);
 
 -- Comentarios para documentación
 COMMENT ON TABLE alert_configurations IS 'Configuración de umbrales y canales de notificación para alertas del sistema';

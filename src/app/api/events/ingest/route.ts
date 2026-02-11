@@ -392,7 +392,12 @@ export async function POST(req: Request) {
         for (const ev of acceptedEvents) {
             try {
                 const { eventBus } = await import("@/src/core/infra/event-bus");
-                eventBus.publish(tenant_id, ev);
+                
+                // Manejar publish asíncrono (Supabase) o síncrono (InMemory)
+                const publishResult = eventBus.publish(tenant_id, ev);
+                if (publishResult instanceof Promise) {
+                    await publishResult;
+                }
                 
                 // Mark as published (fire and forget - worker will catch failures)
                 prisma.event_outbox.updateMany({
@@ -400,7 +405,8 @@ export async function POST(req: Request) {
                     data: { published: true, published_at: new Date() },
                 }).catch(() => { /* Worker will handle */ });
             } catch (e) {
-                console.warn("[Bus] Failed to publish, outbox worker will retry", e);
+                console.warn("[Bus] Fallo al publicar, outbox worker reintentará", e);
+                // NO fallar la transacción - el evento está guardado en outbox
             }
         }
 

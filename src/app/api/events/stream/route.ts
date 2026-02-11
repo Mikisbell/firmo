@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     let closed = false;
 
     const stream = new ReadableStream({
-        start(controller) {
+        async start(controller) {
             const encoder = new TextEncoder();
 
             const send = (data: string) => {
@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
             send(JSON.stringify({ type: "CONNECTED", tenantId }));
 
             // Connect to EventBus with tenant-scoped filtering
+            // Soporta tanto subscribe síncrono (InMemory) como asíncrono (Supabase)
             const onEvent = (event: ParkEvent) => {
                 if (closed) return;
                 
@@ -77,7 +78,12 @@ export async function GET(req: NextRequest) {
                     closed = true;
                 }
             };
-            const unsubscribe = eventBus.subscribe(tenantId, onEvent);
+            
+            // Manejar subscribe asíncrono (Supabase) o síncrono (InMemory)
+            const subscribeResult = eventBus.subscribe(tenantId, onEvent);
+            const unsubscribe = subscribeResult instanceof Promise 
+                ? await subscribeResult 
+                : subscribeResult;
 
             // Keep-alive every 15 seconds
             const keepAlive = setInterval(() => {
@@ -95,17 +101,23 @@ export async function GET(req: NextRequest) {
             }, 15000);
 
             // Store cleanup for cancel
-            (controller as any)._cleanup = () => {
+            (controller as any)._cleanup = async () => {
                 closed = true;
                 clearInterval(keepAlive);
-                unsubscribe();
-                console.log("[SSE] Client disconnected, cleaned up");
+                // Manejar unsubscribe asíncrono si es necesario
+                if (typeof unsubscribe === 'function') {
+                    const unsubResult = unsubscribe();
+                    if (unsubResult instanceof Promise) {
+                        await unsubResult;
+                    }
+                }
+                console.log("[SSE] Cliente desconectado, recursos liberados");
             };
         },
-        cancel(controller) {
+        async cancel(controller) {
             closed = true;
             if ((controller as any)?._cleanup) {
-                (controller as any)._cleanup();
+                await (controller as any)._cleanup();
             }
         }
     });
