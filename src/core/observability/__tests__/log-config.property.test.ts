@@ -189,7 +189,7 @@ describe('LogConfigService - Property Tests', () => {
    * 
    * Entonces:
    * - Se llama a prisma.log_configuration.upsert()
-   * - Se llama a prisma.log_configurationChange.create()
+   * - Se llama a prisma.log_configuration_change.create()
    * 
    * Validates: Requirements 12.5, 12.7
    */
@@ -212,7 +212,7 @@ describe('LogConfigService - Property Tests', () => {
           );
 
           // Verificar que se registró en audit trail
-          expect(prisma.log_configurationChange.create).toHaveBeenCalledWith(
+          expect(prisma.log_configuration_change.create).toHaveBeenCalledWith(
             expect.objectContaining({
               data: expect.objectContaining({
                 module,

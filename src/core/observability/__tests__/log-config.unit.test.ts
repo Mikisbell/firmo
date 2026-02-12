@@ -72,7 +72,7 @@ describe('LogConfigService', () => {
     it('debe persistir configuración en base de datos', async () => {
       await service.setLevel('sync', 'ERROR', 'user-456');
 
-      expect(prisma.logConfiguration.upsert).toHaveBeenCalledWith({
+      expect(prisma.log_configuration.upsert).toHaveBeenCalledWith({
         where: { module: 'sync' },
         update: expect.objectContaining({
           level: 'ERROR',
@@ -91,7 +91,7 @@ describe('LogConfigService', () => {
 
       await service.setLevel('events', 'DEBUG', 'user-789', 'Testing');
 
-      expect(prisma.logConfigurationChange.create).toHaveBeenCalledWith({
+      expect(prisma.log_configurationChange.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           module: 'events',
           previousLevel: 'INFO',
@@ -127,7 +127,7 @@ describe('LogConfigService', () => {
 
     it('debe continuar funcionando si falla persistencia en DB', async () => {
       // Simular error de base de datos
-      vi.mocked(prisma.logConfiguration.upsert).mockRejectedValueOnce(
+      vi.mocked(prisma.log_configuration.upsert).mockRejectedValueOnce(
         new Error('DB error')
       );
 
@@ -173,7 +173,7 @@ describe('LogConfigService', () => {
   describe('loadFromDatabase', () => {
     it('debe cargar configuración desde base de datos', async () => {
       // Mock de datos de DB
-      vi.mocked(prisma.logConfiguration.findMany).mockResolvedValueOnce([
+      vi.mocked(prisma.log_configuration.findMany).mockResolvedValueOnce([
         { module: 'auth', level: 'DEBUG', updatedAt: new Date(), updatedBy: null },
         { module: 'sync', level: 'ERROR', updatedAt: new Date(), updatedBy: null },
       ]);
@@ -185,7 +185,7 @@ describe('LogConfigService', () => {
     });
 
     it('debe ignorar configuraciones inválidas de DB', async () => {
-      vi.mocked(prisma.logConfiguration.findMany).mockResolvedValueOnce([
+      vi.mocked(prisma.log_configuration.findMany).mockResolvedValueOnce([
         { module: 'auth', level: 'DEBUG', updatedAt: new Date(), updatedBy: null },
         { module: 'invalid', level: 'INFO', updatedAt: new Date(), updatedBy: null },
         { module: 'sync', level: 'INVALID', updatedAt: new Date(), updatedBy: null },
@@ -199,7 +199,7 @@ describe('LogConfigService', () => {
     });
 
     it('debe continuar funcionando si falla carga de DB', async () => {
-      vi.mocked(prisma.logConfiguration.findMany).mockRejectedValueOnce(
+      vi.mocked(prisma.log_configuration.findMany).mockRejectedValueOnce(
         new Error('DB error')
       );
 
@@ -231,7 +231,7 @@ describe('LogConfigService', () => {
         },
       ];
 
-      vi.mocked(prisma.logConfigurationChange.findMany).mockResolvedValueOnce(
+      vi.mocked(prisma.log_configurationChange.findMany).mockResolvedValueOnce(
         mockChanges
       );
 
@@ -248,7 +248,7 @@ describe('LogConfigService', () => {
     it('debe filtrar por módulo si se especifica', async () => {
       await service.getChangeHistory('auth', 10);
 
-      expect(prisma.logConfigurationChange.findMany).toHaveBeenCalledWith({
+      expect(prisma.log_configurationChange.findMany).toHaveBeenCalledWith({
         where: { module: 'auth' },
         orderBy: { changedAt: 'desc' },
         take: 10,
@@ -256,7 +256,7 @@ describe('LogConfigService', () => {
     });
 
     it('debe retornar array vacío si falla consulta', async () => {
-      vi.mocked(prisma.logConfigurationChange.findMany).mockRejectedValueOnce(
+      vi.mocked(prisma.log_configurationChange.findMany).mockRejectedValueOnce(
         new Error('DB error')
       );
 
