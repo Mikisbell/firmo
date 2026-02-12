@@ -94,9 +94,9 @@ describe('LogConfigService', () => {
       expect(prisma.log_configuration_change.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           module: 'events',
-          previousLevel: 'INFO',
-          newLevel: 'DEBUG',
-          changedBy: 'user-789',
+          previous_level: 'INFO',
+          new_level: 'DEBUG',
+          changed_by: 'user-789',
           reason: 'Testing',
         }),
       });
@@ -214,19 +214,19 @@ describe('LogConfigService', () => {
         {
           id: '1',
           module: 'auth',
-          previousLevel: 'INFO',
-          newLevel: 'DEBUG',
-          changedBy: 'user-123',
-          changedAt: new Date(),
+          previous_level: 'INFO',
+          new_level: 'DEBUG',
+          changed_by: 'user-123',
+          changed_at: new Date(),
           reason: 'Testing',
         },
         {
           id: '2',
           module: 'sync',
-          previousLevel: 'WARN',
-          newLevel: 'ERROR',
-          changedBy: 'user-456',
-          changedAt: new Date(),
+          previous_level: 'WARN',
+          new_level: 'ERROR',
+          changed_by: 'user-456',
+          changed_at: new Date(),
           reason: null,
         },
       ];
@@ -240,8 +240,8 @@ describe('LogConfigService', () => {
       expect(history).toHaveLength(2);
       expect(history[0]).toMatchObject({
         module: 'auth',
-        previousLevel: 'INFO',
-        newLevel: 'DEBUG',
+        previous_level: 'INFO',
+        new_level: 'DEBUG',
       });
     });
 
@@ -250,7 +250,7 @@ describe('LogConfigService', () => {
 
       expect(prisma.log_configuration_change.findMany).toHaveBeenCalledWith({
         where: { module: 'auth' },
-        orderBy: { changedAt: 'desc' },
+        orderBy: { changed_at: 'desc' },
         take: 10,
       });
     });

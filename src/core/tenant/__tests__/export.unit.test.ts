@@ -100,7 +100,7 @@ describe('Tenant Export Service', () => {
       expect(result).toBeDefined();
       expect(result.export_id).toBeDefined();
       expect(result.tenant_id).toBe(mockTenantId);
-      expect(result.format).toBeUndefined(); // Not in result interface
+      expect((result as any).format || "json").toBeUndefined(); // Not in result interface
       expect(result.file_url).toBeDefined();
       expect(result.file_size_mb).toBeGreaterThan(0);
       expect(result.encryption_key).toBeDefined();

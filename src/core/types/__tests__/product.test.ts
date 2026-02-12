@@ -58,7 +58,9 @@ describe('Product Type Utilities', () => {
     created_at: new Date('2026-01-27T09:00:00Z'),
     updated_at: new Date('2026-01-27T09:00:00Z'),
     created_by: 'user-1',
-    updated_by: 'user-1',
+    updated_by: 'user-123',
+    components: [],
+    recipe: null
   };
 
   describe('getPrimaryImage', () => {

@@ -15,7 +15,7 @@ describe('Rate Limiting', () => {
         // const result = checkRateLimit('tenant-1', 'terminal-1', '192.168.1.1');
         // expect(result.allowed).toBe(true);
         // expect(result.remaining).toBeDefined();
-        expect(true).toBe(true); // Placeholder hasta implementar
+        expect(true).toBe(true); // TODO: Implementar cuando checkRateLimit esté disponible
     });
 
     it('tracks remaining requests', () => {
@@ -35,7 +35,7 @@ describe('Rate Limiting', () => {
         // const result = checkRateLimit('tenant-1', 'terminal-1', '192.168.1.1');
         // expect(result.allowed).toBe(false);
         // expect(result.retryAfter).toBeGreaterThan(0);
-        expect(true).toBe(true); // Placeholder hasta implementar
+        expect(true).toBe(true); // TODO: Implementar cuando checkRateLimit esté disponible
     });
 
     it('allows different terminals independently', () => {
@@ -47,7 +47,7 @@ describe('Rate Limiting', () => {
         // terminal-2 should still work
         // const result = checkRateLimit('tenant-1', 'terminal-2', '192.168.1.1');
         // expect(result.allowed).toBe(true);
-        expect(true).toBe(true); // Placeholder hasta implementar
+        expect(true).toBe(true); // TODO: Implementar cuando checkRateLimit esté disponible
     });
 
     it('blocks after IP limit exceeded', () => {
@@ -58,7 +58,7 @@ describe('Rate Limiting', () => {
         
         // const result = checkRateLimit('tenant-1', 'terminal-new', '192.168.1.1');
         // expect(result.allowed).toBe(false);
-        expect(true).toBe(true); // Placeholder hasta implementar
+        expect(true).toBe(true); // TODO: Implementar cuando checkRateLimit esté disponible
     });
 
     it('allows different IPs independently', () => {
@@ -70,7 +70,7 @@ describe('Rate Limiting', () => {
         // Different IP should work
         // const result = checkRateLimit('tenant-1', 'terminal-1', '192.168.1.2');
         // expect(result.allowed).toBe(true);
-        expect(true).toBe(true); // Placeholder hasta implementar
+        expect(true).toBe(true); // TODO: Implementar cuando checkRateLimit esté disponible
     });
 
     it('provides stats', () => {
@@ -79,7 +79,7 @@ describe('Rate Limiting', () => {
         
         // const stats = getRateLimitStats();
         // expect(stats.entriesCount).toBeGreaterThan(0);
-        expect(true).toBe(true); // Placeholder hasta implementar
+        expect(true).toBe(true); // TODO: Implementar cuando getRateLimitStats esté disponible
     });
 
     it('reset clears all limits', () => {
