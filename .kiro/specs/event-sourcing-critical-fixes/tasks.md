@@ -91,7 +91,7 @@ Este plan de implementación corrige los problemas críticos de Event Sourcing i
   - Test: alerta con >10 eventos encolados
   - _Requirements: 5.1, 5.5, 5.6, 5.7, 5.8_
 
-- [ ] 6. Implementar Rate Limiter con Redis
+- [x] 6. Implementar Rate Limiter con Redis
   - Crear `RateLimiterService` con sliding window algorithm
   - Implementar función `checkLimit()` usando Redis sorted sets
   - Configurar límites: 100 req/s normal, 200 req/s burst

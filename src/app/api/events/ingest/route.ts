@@ -8,6 +8,7 @@ import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver"
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
 import { v4 as uuidv4 } from 'uuid';
 import { outOfOrderQueue, startCleanupJob } from "@/src/core/events/out-of-order-queue";
+import { rateLimiter } from "@/src/core/rate-limiting/rate-limiter";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -382,11 +383,44 @@ export async function POST(req: Request) {
 
     const { tenant_id, terminal_id, events, to_terminal_sequence } = result.data;
 
+    // RATE LIMITING: Verificar límites por tenant_id
+    const rateLimitResult = await rateLimiter.checkLimit(tenant_id);
+    
+    if (!rateLimitResult.allowed) {
+        const errorCode = rateLimitResult.limitType === 'burst' 
+            ? 'BURST_LIMIT_EXCEEDED' 
+            : 'RATE_LIMIT_EXCEEDED';
+        
+        return NextResponse.json(
+            {
+                accepted: false,
+                error: {
+                    error_code: errorCode,
+                    severity: 'WARN',
+                    message: rateLimitResult.limitType === 'burst' 
+                        ? 'Límite de burst excedido' 
+                        : 'Límite de rate excedido',
+                    user_action: `Espera ${rateLimitResult.retryAfter} segundo(s) antes de reintentar`,
+                    retryable: true,
+                    context: {
+                        current_count: rateLimitResult.currentCount,
+                        limit: rateLimitResult.limit,
+                        retry_after: rateLimitResult.retryAfter || 1,
+                        limit_type: rateLimitResult.limitType,
+                    },
+                },
+            },
+            {
+                status: 429,
+                headers: {
+                    'Retry-After': String(rateLimitResult.retryAfter || 1),
+                },
+            }
+        );
+    }
+
     // Register notification handlers for this tenant (idempotent)
     registerNotificationHandlers(tenant_id);
-
-    // Note: Rate limiting for this endpoint is handled at infrastructure level
-    // (e.g., Vercel Edge Config, Cloudflare) due to high throughput requirements
 
     // Fast path: empty batch
     if (events.length === 0) {

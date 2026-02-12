@@ -595,6 +595,14 @@ export const metricsHelpers = {
     metrics.increment(MetricNames.CACHE_MISSES_TOTAL, { key });
   },
   
+  // Rate limiting metrics
+  recordRateLimitAllowed: (tenantId: string) => {
+    metrics.increment('rate_limit.allowed', { tenant_id: tenantId });
+  },
+  recordRateLimitRejection: (tenantId: string, limitType: 'normal' | 'burst') => {
+    metrics.increment('rate_limit.rejected', { tenant_id: tenantId, limit_type: limitType });
+  },
+  
   // HTTP metrics
   recordHttpRequest: (method: string, pathname: string, status: number, durationMs: number) => {
     metrics.increment(MetricNames.HTTP_REQUESTS_TOTAL, { method, pathname, status: String(status) });
