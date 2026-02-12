@@ -336,9 +336,9 @@ describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
             for (const event of events) {
               // Ensure each event has a unique ID
               event.id = `event-${Date.now()}-${Math.random()}`;
-              // Set restaurantId and driverId to null so they match the unfiltered client
-              event.restaurantId = null;
-              event.driverId = null;
+              // Set restaurantId and driverId to undefined so they match the unfiltered client
+              event.restaurantId = undefined;
+              event.driverId = undefined;
               await sseBroadcaster.broadcast(event);
             }
             

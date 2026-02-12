@@ -342,7 +342,7 @@ describe('Feature: delivery-2026-modernization - Assignment Algorithm Properties
             // Note: This will fail if order doesn't exist, which is expected
             // In a real scenario, we'd need to create the order first
             try {
-              await handleRejection(orderId, rejectedDriverId, reason);
+              await handleRejection(orderId, rejectedDriverId, reason ?? undefined);
               // If successful, order should be reassigned or queued
               return true;
             } catch (error) {

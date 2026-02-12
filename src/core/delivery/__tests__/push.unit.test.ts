@@ -33,6 +33,7 @@ const mockRedis = {
   rpush: vi.fn(),
   lrange: vi.fn(),
   ltrim: vi.fn(),
+  lrem: vi.fn(),
   expire: vi.fn(),
   del: vi.fn(),
 };

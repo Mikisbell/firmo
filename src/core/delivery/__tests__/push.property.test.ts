@@ -33,6 +33,7 @@ const mockRedis = {
   rpush: vi.fn(),
   lrange: vi.fn(),
   ltrim: vi.fn(),
+  lrem: vi.fn(),
   expire: vi.fn(),
   del: vi.fn(),
 };
@@ -243,7 +244,7 @@ describe('Feature: delivery-2026-modernization, Push Service Properties', () => 
         fc.asyncProperty(
           arbitraryTenantId(),
           arbitraryDriverId(),
-          arbitraryPushNotification().filter(n => n.actions && n.actions.length > 0),
+          fc.constant(arbitraryPushNotification()).filter((n: any) => n.actions && n.actions.length > 0),
           async (tenantId, driverId, notification) => {
             // Mock subscription exists
             (prisma.push_subscriptions.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([{
@@ -385,7 +386,7 @@ describe('Feature: delivery-2026-modernization, Push Service Properties', () => 
         fc.asyncProperty(
           arbitraryTenantId(),
           arbitraryDriverId(),
-          arbitraryPushNotification().filter(n => n.priority === 'urgent' && n.expiresAt && n.expiresAt > new Date()),
+          fc.constant(arbitraryPushNotification()).filter((n: any) => n.priority === 'urgent' && n.expiresAt && n.expiresAt > new Date()),
           async (tenantId, driverId, notification) => {
             const redis = getRedisClient();
             (redis.rpush as ReturnType<typeof vi.fn>).mockResolvedValue(1);
