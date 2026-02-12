@@ -2023,3 +2023,29 @@ model recovery_action_log {
   @@index([user_id, timestamp(sort: Desc)])
   @@index([success, timestamp(sort: Desc)])
 }
+
+// ============================================
+// Out-of-Order Event Queue
+// ============================================
+
+/// Cola de eventos muertos (Dead Letter Queue)
+/// Almacena eventos que expiraron en la cola de out-of-order (timeout 60s)
+/// Usado para análisis y debugging de eventos problemáticos
+model dead_letter_queue {
+  id           String   @id @db.Uuid
+  tenant_id    String   @db.Uuid
+  event_id     String   @db.Uuid
+  event_type   String
+  aggregate_id String   @db.Uuid
+  payload      Json
+  reason       String // DEPENDENCY_MISSING, OUT_OF_ORDER, TIMEOUT
+  enqueued_at  DateTime @db.Timestamptz(6)
+  expired_at   DateTime @default(now()) @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id])
+  @@index([event_id])
+  @@index([aggregate_id])
+  @@index([expired_at(sort: Desc)])
+  @@index([tenant_id, expired_at(sort: Desc)])
+}

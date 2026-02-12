@@ -71,7 +71,7 @@ Este plan de implementación corrige los problemas críticos de Event Sourcing i
   - Test: solicitud de nuevo rango al agotar
   - _Requirements: 4.3, 4.4, 4.7_
 
-- [ ] 5. Implementar Out-of-Order Event Queue
+- [x] 5. Implementar Out-of-Order Event Queue
   - Crear clase `OutOfOrderQueue` con Map<aggregate_id, QueuedEvent[]>
   - Implementar función `enqueue()` para eventos fuera de orden
   - Implementar función `processQueuedEvents()` para procesar cola

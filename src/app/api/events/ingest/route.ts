@@ -7,9 +7,13 @@ import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service"
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
 import { v4 as uuidv4 } from 'uuid';
+import { outOfOrderQueue, startCleanupJob } from "@/src/core/events/out-of-order-queue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Iniciar cleanup job al cargar el módulo
+startCleanupJob();
 
 // Error Helpers
 type ApiError = {
@@ -41,27 +45,145 @@ function serverError(apiError: ApiError, status = 500) {
     return NextResponse.json({ accepted: false, error: apiError }, { status });
 }
 
+/**
+ * Verifica si un evento tiene todas sus dependencias satisfechas
+ * 
+ * @returns { hasDependency: boolean, reason?: string }
+ */
+async function checkDependencies(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent
+): Promise<{ hasDependency: boolean; reason?: string }> {
+    const { event_type, aggregate_id, aggregate_type } = event;
+    
+    // ORDER_ITEM_ADDED requiere que ORDER_CREATED exista
+    if (event_type === 'ORDER_ITEM_ADDED') {
+        const order = await tx.orders.findUnique({
+            where: { id: aggregate_id },
+            select: { id: true }
+        });
+        
+        if (!order) {
+            return {
+                hasDependency: true,
+                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
+            };
+        }
+    }
+    
+    // CHECK_PAYMENT_ADDED requiere que ORDER_CREATED exista
+    if (event_type === 'CHECK_PAYMENT_ADDED') {
+        const order = await tx.orders.findUnique({
+            where: { id: aggregate_id },
+            select: { id: true }
+        });
+        
+        if (!order) {
+            return {
+                hasDependency: true,
+                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
+            };
+        }
+    }
+    
+    // CHECK_MARKED_PAID requiere que ORDER_CREATED exista
+    if (event_type === 'CHECK_MARKED_PAID') {
+        const order = await tx.orders.findUnique({
+            where: { id: aggregate_id },
+            select: { id: true }
+        });
+        
+        if (!order) {
+            return {
+                hasDependency: true,
+                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
+            };
+        }
+    }
+    
+    // ORDER_ITEM_STATUS_CHANGED requiere que ORDER_CREATED exista
+    if (event_type === 'ORDER_ITEM_STATUS_CHANGED') {
+        const order = await tx.orders.findUnique({
+            where: { id: aggregate_id },
+            select: { id: true }
+        });
+        
+        if (!order) {
+            return {
+                hasDependency: true,
+                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
+            };
+        }
+    }
+    
+    // INVOICE_ISSUED requiere que ORDER_CREATED exista
+    if (event_type === 'INVOICE_ISSUED') {
+        const order = await tx.orders.findUnique({
+            where: { id: aggregate_id },
+            select: { id: true }
+        });
+        
+        if (!order) {
+            return {
+                hasDependency: true,
+                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
+            };
+        }
+    }
+    
+    return { hasDependency: false };
+}
+
+/**
+ * Marca un evento como procesado de manera atómica.
+ * Usa INSERT con manejo de constraint violation para idempotencia.
+ * 
+ * @returns { isDuplicate: boolean } - true si el evento ya fue procesado
+ */
+async function markAsProcessed(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent
+): Promise<{ isDuplicate: boolean }> {
+    try {
+        // Intentar insertar en processed_events
+        // Si el evento ya existe, el constraint UNIQUE en event_id causará P2002
+        await tx.processed_events.create({
+            data: {
+                event_id: event.event_id,
+                tenant_id: event.tenant_id,
+                aggregate_id: event.aggregate_id,
+                event_type: event.event_type,
+                processor: 'ingest-api',
+            }
+        });
+        
+        return { isDuplicate: false };
+    } catch (e: unknown) {
+        // P2002 = Unique constraint violation (evento duplicado)
+        if (e && typeof e === 'object' && 'code' in e && e.code === 'P2002') {
+            // Logging estructurado para eventos deduplicados
+            console.log(JSON.stringify({
+                level: 'INFO',
+                event: 'deduplication.duplicate_detected',
+                message: `Event ${event.event_id} already processed`,
+                context: {
+                    event_id: event.event_id,
+                    tenant_id: event.tenant_id,
+                    event_type: event.event_type,
+                    aggregate_id: event.aggregate_id,
+                    processor: 'ingest-api'
+                }
+            }));
+            return { isDuplicate: true };
+        }
+        // Otro error - propagar
+        throw e;
+    }
+}
+
 // Projections using Prisma (with idempotency check)
 async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Promise<boolean> {
     const { event_type, tenant_id, payload, occurred_at, terminal_id, actor_id } = event;
-
-    // 1. Check if already processed (idempotency)
-    const exists = await tx.processed_events.findUnique({
-        where: { event_id: event.event_id }
-    });
-
-    if (exists) {
-        console.log(`[Projection] Event ${event.event_id} already processed, skipping`);
-        return false; // Already processed
-    }
-
-    // 2. Mark as processed BEFORE projecting (prevents race conditions)
-    await tx.processed_events.create({
-        data: {
-            event_id: event.event_id,
-            tenant_id: event.tenant_id,
-        }
-    });
 
     // 3. Project the event
     try {
@@ -280,7 +402,17 @@ export async function POST(req: Request) {
 
         await prisma.$transaction(async (tx: any) => {
             for (const ev of events as ParkEvent[]) {
-                // 1. VALIDATE business rules FIRST
+                // 1. DEDUPLICATION CHECK FIRST (atomic with constraint)
+                // Marcar como procesado ANTES de cualquier otra operación
+                const dedupResult = await markAsProcessed(tx, ev);
+                
+                if (dedupResult.isDuplicate) {
+                    // Evento ya procesado - retornar éxito (idempotente)
+                    deduped_event_ids.push(ev.event_id);
+                    continue;
+                }
+
+                // 2. VALIDATE business rules
                 const validation: ValidationResult = await validateEvent(tx, ev);
                 
                 if (!validation.valid) {
@@ -292,7 +424,19 @@ export async function POST(req: Request) {
                     continue; // Skip this event
                 }
 
-                // 2. CONFLICT DETECTION for ORDER events
+                // 3. CHECK DEPENDENCIES (Out-of-Order Queue)
+                const depCheck = await checkDependencies(tx, ev);
+                
+                if (depCheck.hasDependency) {
+                    // Encolar evento hasta que llegue la dependencia
+                    outOfOrderQueue.enqueue(ev, depCheck.reason!);
+                    
+                    // NO agregar a rejected - el evento está encolado
+                    // NO continuar - el evento se procesará cuando llegue la dependencia
+                    continue;
+                }
+
+                // 4. CONFLICT DETECTION for ORDER events
                 if (ev.aggregate_type === "ORDER") {
                     const order = await tx.orders.findUnique({
                         where: { id: ev.aggregate_id },
@@ -331,36 +475,28 @@ export async function POST(req: Request) {
                     }
                 }
 
-                // 3. Try to create event, skip if duplicate
-                try {
-                    await tx.events.create({
-                        data: {
-                            id: ev.event_id,
-                            tenant_id: ev.tenant_id,
-                            occurred_at: new Date(ev.occurred_at),
-                            type: ev.event_type,
-                            entity_type: ev.aggregate_type,
-                            entity_id: ev.aggregate_id,
-                            actor_id: ev.actor_id ?? null,
-                            actor_role_snapshot: ev.actor_role_snapshot ?? null,
-                            terminal_id: ev.terminal_id,
-                            payload_version: ev.schema_version,
-                            payload: ev.payload as any,
-                        },
-                    });
-                } catch (e: unknown) {
-                    // Unique constraint = duplicate, skip
-                    if (e && typeof e === 'object' && 'code' in e && e.code === "P2002") {
-                        deduped_event_ids.push(ev.event_id);
-                        continue;
-                    }
-                    throw e;
-                }
+                // 4. Insert into events table
+                // Ya no necesitamos try-catch para P2002 porque processed_events es el lock
+                await tx.events.create({
+                    data: {
+                        id: ev.event_id,
+                        tenant_id: ev.tenant_id,
+                        occurred_at: new Date(ev.occurred_at),
+                        type: ev.event_type,
+                        entity_type: ev.aggregate_type,
+                        entity_id: ev.aggregate_id,
+                        actor_id: ev.actor_id ?? null,
+                        actor_role_snapshot: ev.actor_role_snapshot ?? null,
+                        terminal_id: ev.terminal_id,
+                        payload_version: ev.schema_version,
+                        payload: ev.payload as any,
+                    },
+                });
 
-                // Project the event
+                // 5. Project the event (apply to projections)
                 await projectEvent(tx, ev);
 
-                // INCREMENT REVISION for ORDER events after projection
+                // 6. INCREMENT REVISION for ORDER events after projection
                 if (ev.aggregate_type === "ORDER") {
                     await tx.orders.update({
                         where: { id: ev.aggregate_id },
@@ -370,7 +506,86 @@ export async function POST(req: Request) {
                     });
                 }
 
-                // Add to outbox (ATOMIC with event insert)
+                // 7. PROCESS QUEUED EVENTS if this event creates an aggregate
+                // Si este evento es ORDER_CREATED, procesar eventos encolados para esta orden
+                if (ev.event_type === 'ORDER_CREATED') {
+                    const queuedEvents = await outOfOrderQueue.processQueuedEvents(ev.aggregate_id);
+                    
+                    if (queuedEvents.length > 0) {
+                        console.log(JSON.stringify({
+                            level: 'INFO',
+                            event: 'out_of_order.processing_queued',
+                            message: `Processing ${queuedEvents.length} queued events for order ${ev.aggregate_id}`,
+                            context: {
+                                aggregate_id: ev.aggregate_id,
+                                queued_count: queuedEvents.length,
+                            }
+                        }));
+                        
+                        // Procesar eventos encolados en orden
+                        for (const queuedEvent of queuedEvents) {
+                            // Marcar como procesado
+                            const qDedupResult = await markAsProcessed(tx, queuedEvent);
+                            if (qDedupResult.isDuplicate) {
+                                deduped_event_ids.push(queuedEvent.event_id);
+                                continue;
+                            }
+                            
+                            // Validar
+                            const qValidation = await validateEvent(tx, queuedEvent);
+                            if (!qValidation.valid) {
+                                rejected.push({
+                                    event_id: queuedEvent.event_id,
+                                    error: qValidation.error || "VALIDATION_FAILED",
+                                    details: qValidation.details,
+                                });
+                                continue;
+                            }
+                            
+                            // Insertar en events table
+                            await tx.events.create({
+                                data: {
+                                    id: queuedEvent.event_id,
+                                    tenant_id: queuedEvent.tenant_id,
+                                    occurred_at: new Date(queuedEvent.occurred_at),
+                                    type: queuedEvent.event_type,
+                                    entity_type: queuedEvent.aggregate_type,
+                                    entity_id: queuedEvent.aggregate_id,
+                                    actor_id: queuedEvent.actor_id ?? null,
+                                    actor_role_snapshot: queuedEvent.actor_role_snapshot ?? null,
+                                    terminal_id: queuedEvent.terminal_id,
+                                    payload_version: queuedEvent.schema_version,
+                                    payload: queuedEvent.payload as any,
+                                },
+                            });
+                            
+                            // Proyectar
+                            await projectEvent(tx, queuedEvent);
+                            
+                            // Incrementar revision
+                            if (queuedEvent.aggregate_type === "ORDER") {
+                                await tx.orders.update({
+                                    where: { id: queuedEvent.aggregate_id },
+                                    data: { revision: { increment: 1 } }
+                                }).catch(() => {});
+                            }
+                            
+                            // Agregar a outbox
+                            await tx.event_outbox.create({
+                                data: {
+                                    id: uuidv4(),
+                                    tenant_id: queuedEvent.tenant_id,
+                                    event_id: queuedEvent.event_id,
+                                    payload: queuedEvent as any,
+                                },
+                            });
+                            
+                            acceptedEvents.push(queuedEvent);
+                        }
+                    }
+                }
+
+                // 8. Add to outbox (ATOMIC with event insert)
                 await tx.event_outbox.create({
                     data: {
                         id: uuidv4(),
@@ -385,6 +600,7 @@ export async function POST(req: Request) {
         }, {
             timeout: 30000, // 30 seconds
             maxWait: 10000, // 10 seconds max wait for transaction slot
+            isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead, // Suficiente para prevenir phantom reads
         });
 
         // Publish events from outbox AFTER transaction commits
@@ -409,6 +625,23 @@ export async function POST(req: Request) {
                 // NO fallar la transacción - el evento está guardado en outbox
             }
         }
+
+        // Logging estructurado de resumen de procesamiento
+        console.log(JSON.stringify({
+            level: 'INFO',
+            event: 'ingest.batch_processed',
+            message: `Batch processed: ${acceptedEvents.length} accepted, ${deduped_event_ids.length} deduped, ${rejected.length} rejected`,
+            context: {
+                tenant_id,
+                terminal_id,
+                total_events: events.length,
+                accepted: acceptedEvents.length,
+                deduped: deduped_event_ids.length,
+                rejected: rejected.length,
+                merged: merged.length,
+                acked_through: to_terminal_sequence
+            }
+        }));
 
         return NextResponse.json(
             {
