@@ -325,11 +325,11 @@ describe('Assignment Algorithm - Unit Tests', () => {
           tenant_id: testTenantId,
           customer_name: 'John Doe',
           customer_phone: '1234567890',
-          delivery_addresses: JSON.stringify(testLocation2),
+          address_text: JSON.stringify(testLocation2),
           pickup_location: JSON.stringify(testLocation1),
           status: 'ASSIGNED',
           driver_id: testDriverId1,
-        },
+        } as any,
       });
 
       // Mock no available drivers

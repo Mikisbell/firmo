@@ -58,7 +58,7 @@ const invalidTenantIdArbitrary = () =>
  * Generates entities with tenant_id
  */
 const entityArbitrary = (tenant_id: string) =>
-    fc.object({
+    fc.record({
         tenant_id: fc.constant(tenant_id),
         data: fc.string(),
         id: fc.uuid(),
@@ -118,7 +118,7 @@ describe('Tenant Validation Middleware - Properties', () => {
                 fc.property(
                     validUuidArbitrary(),
                     validUuidArbitrary(),
-                    fc.array(fc.object({ tenant_id: fc.constant(''), data: fc.string() }), {
+                    fc.array(fc.record({ tenant_id: fc.constant(''), data: fc.string() }), {
                         minLength: 2,
                         maxLength: 10,
                     }),
@@ -142,7 +142,7 @@ describe('Tenant Validation Middleware - Properties', () => {
             fc.assert(
                 fc.property(
                     validUuidArbitrary(),
-                    fc.array(fc.object({ tenant_id: fc.constant(''), data: fc.string() }), {
+                    fc.array(fc.record({ tenant_id: fc.constant(''), data: fc.string() }), {
                         minLength: 1,
                         maxLength: 10,
                     }),
@@ -204,11 +204,11 @@ describe('Tenant Validation Middleware - Properties', () => {
                 fc.property(
                     validUuidArbitrary(),
                     validUuidArbitrary(),
-                    fc.array(fc.object({ tenant_id: fc.constant(''), data: fc.string() }), {
+                    fc.array(fc.record({ tenant_id: fc.constant(''), data: fc.string() }), {
                         minLength: 1,
                         maxLength: 5,
                     }),
-                    fc.array(fc.object({ tenant_id: fc.constant(''), data: fc.string() }), {
+                    fc.array(fc.record({ tenant_id: fc.constant(''), data: fc.string() }), {
                         minLength: 1,
                         maxLength: 5,
                     }),
@@ -248,7 +248,7 @@ describe('Tenant Validation Middleware - Properties', () => {
                 fc.property(
                     validUuidArbitrary(),
                     validUuidArbitrary(),
-                    fc.object({ tenant_id: fc.constant(''), data: fc.string() }),
+                    fc.record({ tenant_id: fc.constant(''), data: fc.string() }),
                     (tenant1, tenant2, entity) => {
                         fc.pre(tenant1 !== tenant2);
 
@@ -275,7 +275,7 @@ describe('Tenant Validation Middleware - Properties', () => {
             fc.assert(
                 fc.property(
                     validUuidArbitrary(),
-                    fc.array(fc.object({ tenant_id: fc.constant(''), data: fc.string() }), {
+                    fc.array(fc.record({ tenant_id: fc.constant(''), data: fc.string() }), {
                         minLength: 1,
                         maxLength: 10,
                     }),
@@ -350,7 +350,7 @@ describe('Tenant Validation Middleware - Properties', () => {
                 fc.property(
                     validUuidArbitrary(),
                     validUuidArbitrary(),
-                    fc.array(fc.object({ tenant_id: fc.constant(''), data: fc.string() }), {
+                    fc.array(fc.record({ tenant_id: fc.constant(''), data: fc.string() }), {
                         minLength: 1,
                         maxLength: 5,
                     }),
@@ -376,7 +376,7 @@ describe('Tenant Validation Middleware - Properties', () => {
                 fc.property(
                     validUuidArbitrary(),
                     validUuidArbitrary(),
-                    fc.object({ tenant_id: fc.constant(''), data: fc.string() }),
+                    fc.record({ tenant_id: fc.constant(''), data: fc.string() }),
                     (tenant1, tenant2, entity) => {
                         fc.pre(tenant1 !== tenant2);
 
@@ -396,7 +396,7 @@ describe('Tenant Validation Middleware - Properties', () => {
                 fc.property(
                     validUuidArbitrary(),
                     validUuidArbitrary(),
-                    fc.array(fc.object({ tenant_id: fc.constant(''), data: fc.string() }), {
+                    fc.array(fc.record({ tenant_id: fc.constant(''), data: fc.string() }), {
                         minLength: 2,
                         maxLength: 10,
                     }),

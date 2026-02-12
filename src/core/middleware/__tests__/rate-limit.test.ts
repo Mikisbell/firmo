@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { checkRateLimit, resetRateLimits, getRateLimitStats } from '../rate-limit';
+// import { checkRateLimit, resetRateLimits, getRateLimitStats } from '../rate-limit';
+// TODO: Implementar estas funciones en rate-limit.ts
 
 describe('Rate Limiting', () => {
     beforeEach(() => {

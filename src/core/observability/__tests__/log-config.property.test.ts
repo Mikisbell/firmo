@@ -188,8 +188,8 @@ describe('LogConfigService - Property Tests', () => {
    * - Se actualiza la configuración
    * 
    * Entonces:
-   * - Se llama a prisma.logConfiguration.upsert()
-   * - Se llama a prisma.logConfigurationChange.create()
+   * - Se llama a prisma.log_configuration.upsert()
+   * - Se llama a prisma.log_configurationChange.create()
    * 
    * Validates: Requirements 12.5, 12.7
    */
@@ -203,7 +203,7 @@ describe('LogConfigService - Property Tests', () => {
           await service.setLevel(module, level);
 
           // Verificar que se persistió en DB
-          expect(prisma.logConfiguration.upsert).toHaveBeenCalledWith(
+          expect(prisma.log_configuration.upsert).toHaveBeenCalledWith(
             expect.objectContaining({
               where: { module },
               update: expect.objectContaining({ level }),
@@ -212,7 +212,7 @@ describe('LogConfigService - Property Tests', () => {
           );
 
           // Verificar que se registró en audit trail
-          expect(prisma.logConfigurationChange.create).toHaveBeenCalledWith(
+          expect(prisma.log_configurationChange.create).toHaveBeenCalledWith(
             expect.objectContaining({
               data: expect.objectContaining({
                 module,
@@ -327,7 +327,7 @@ describe('LogConfigService - Property Tests', () => {
         fc.constantFrom<LogLevel>('DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'),
         async (module, level) => {
           // Simular fallo de base de datos
-          vi.mocked(prisma.logConfiguration.upsert).mockRejectedValueOnce(
+          vi.mocked(prisma.log_configuration.upsert).mockRejectedValueOnce(
             new Error('DB connection failed')
           );
 

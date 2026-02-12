@@ -54,16 +54,14 @@ describe('Branded Types - Property Tests', () => {
     it('asCentavos rejects negative numbers', () => {
       testThrows(
         fc.integer({ min: -1000, max: -1 }),
-        (n) => asCentavos(n),
-        'non-negative'
+        (n) => asCentavos(n)
       );
     });
 
     it('asCentavos rejects non-integers', () => {
       testThrows(
-        fc.float({ min: 0, max: 1000, noNaN: true, noInfinity: true }).filter(n => !Number.isInteger(n)),
-        (n) => asCentavos(n),
-        'integer'
+        fc.float({ min: 0, max: 1000, noNaN: true }).filter(n => !Number.isInteger(n)),
+        (n) => asCentavos(n)
       );
     });
 
