@@ -146,6 +146,7 @@ export class SyncClient {
     private running = false;
     private syncing = false;
     private attempt = 0;
+    private retryCount = 0; // Contador de reintentos para límite de 5
     private timer: number | null = null;
     private onOnlineBound: () => void;
 
@@ -425,38 +426,75 @@ export class SyncClient {
                 const data = (await r.json()) as IngestResponse;
 
                 if (!r.ok && data?.error) {
+                    const statusCode = r.status;
+                    
                     logger.error('sync.server_rejected', 'Server rejected batch', undefined, { 
                         error_code: data.error.error_code,
-                        message: data.error.message 
+                        message: data.error.message,
+                        status: statusCode,
+                        retryable: data.error.retryable
                     });
                     
-                    // If SCHEMA_VALIDATION_FAILED with actor_id issues, mark events as synced to stop retry loop
-                    if (data.error.error_code === 'SCHEMA_VALIDATION_FAILED' && data.error.context?.issues) {
-                        const issues = data.error.context.issues as Array<{ path?: string[]; validation?: string }>;
-                        const hasActorIdIssue = issues.some(i => 
-                            i.path?.includes('actor_id') && i.validation === 'uuid'
-                        );
+                    // HTTP 429 → Respetar Retry-After header
+                    if (statusCode === 429) {
+                        const retryAfter = parseInt(r.headers.get('Retry-After') || '1');
+                        logger.warn('sync.rate_limited', `Rate limited, respecting Retry-After: ${retryAfter}s`, {
+                            retry_after: retryAfter,
+                            error_code: data.error.error_code
+                        });
                         
-                        if (hasActorIdIssue) {
-                            logger.warn('sync.invalid_actor_id', 'Detected invalid actor_id in batch, marking events as synced to prevent retry loop');
-                            // Mark all events in this batch as synced
-                            await db.transaction('rw', db.events, async () => {
-                                for (const ev of contiguous) {
-                                    if ((ev as any).id) {
-                                        await db.events.update((ev as any).id, { synced: 1 });
+                        // Esperar el tiempo especificado antes de lanzar error para retry
+                        await sleep(retryAfter * 1000);
+                        throw new Error('RATE_LIMIT_RETRY');
+                    }
+                    
+                    // HTTP 4xx (excepto 429) → NO reintentar
+                    if (statusCode >= 400 && statusCode < 500) {
+                        logger.error('sync.client_error', `Client error ${statusCode}, NOT retrying`, undefined, {
+                            error_code: data.error.error_code,
+                            status: statusCode,
+                            message: data.error.message
+                        });
+                        
+                        // If SCHEMA_VALIDATION_FAILED with actor_id issues, mark events as synced to stop retry loop
+                        if (data.error.error_code === 'SCHEMA_VALIDATION_FAILED' && data.error.context?.issues) {
+                            const issues = data.error.context.issues as Array<{ path?: string[]; validation?: string }>;
+                            const hasActorIdIssue = issues.some(i => 
+                                i.path?.includes('actor_id') && i.validation === 'uuid'
+                            );
+                            
+                            if (hasActorIdIssue) {
+                                logger.warn('sync.invalid_actor_id', 'Detected invalid actor_id in batch, marking events as synced to prevent retry loop');
+                                // Mark all events in this batch as synced
+                                await db.transaction('rw', db.events, async () => {
+                                    for (const ev of contiguous) {
+                                        if ((ev as any).id) {
+                                            await db.events.update((ev as any).id, { synced: 1 });
+                                        }
                                     }
-                                }
-                            });
-                            // Return a non-retryable response
-                            return {
-                                accepted: false,
-                                acked_through_terminal_sequence: null,
-                                error: {
-                                    ...data.error,
-                                    retryable: false,
-                                },
-                            };
+                                });
+                            }
                         }
+                        
+                        // Return error without retrying
+                        return {
+                            accepted: false,
+                            acked_through_terminal_sequence: null,
+                            error: {
+                                ...data.error,
+                                retryable: false,
+                            },
+                        };
+                    }
+                    
+                    // HTTP 5xx → Reintentar con exponential backoff
+                    if (statusCode >= 500) {
+                        logger.warn('sync.server_error', `Server error ${statusCode}, will retry with backoff`, {
+                            error_code: data.error.error_code,
+                            status: statusCode,
+                            message: data.error.message
+                        });
+                        throw new Error(data.error.message || `HTTP ${statusCode}`);
                     }
                 }
 
@@ -527,8 +565,10 @@ export class SyncClient {
     }
 
     private onOnline() {
-        // Reset backoff on network reconnect
+        // Reset backoff and retry count on network reconnect
         this.attempt = 0;
+        this.retryCount = 0;
+        logger.info('sync.network_reconnected', 'Network reconnected, resetting retry counters');
         void this.syncNow();
     }
 
@@ -547,11 +587,13 @@ export class SyncClient {
             if (result === null) {
                 // No pending events
                 this.attempt = 0;
+                this.retryCount = 0;
                 return;
             }
 
             if (result.accepted) {
                 this.attempt = 0;
+                this.retryCount = 0;
                 
                 // Handle conflicts - emit events for UI
                 await this.handleConflictResponse(result);
@@ -562,16 +604,49 @@ export class SyncClient {
                     void this.syncNow();
                 }
             } else {
-                // Retry with backoff
+                // Check if error is retryable
+                if (result.error && !result.error.retryable) {
+                    logger.error('sync.non_retryable_error', 'Non-retryable error, stopping retry attempts', undefined, {
+                        error_code: result.error.error_code,
+                        message: result.error.message
+                    });
+                    this.attempt = 0;
+                    this.retryCount = 0;
+                    return;
+                }
+                
+                // Increment retry counter
+                this.retryCount++;
+                
+                // Check if we've exceeded max retries (5 for 5xx errors)
+                if (this.retryCount > 5) {
+                    logger.error('sync.max_retries_exceeded', 'Max retries (5) exceeded, stopping retry attempts', undefined, {
+                        retry_count: this.retryCount,
+                        error_code: result.error?.error_code
+                    });
+                    this.attempt = 0;
+                    this.retryCount = 0;
+                    return;
+                }
+                
+                // Retry with exponential backoff
                 this.attempt++;
                 const delay = jitter(nextBackoff(this.attempt, this.minBackoffMs, this.maxBackoffMs), this.jitterRatio);
-                logger.warn('sync.batch_rejected', `Batch rejected, retrying in ${delay}ms...`, { delay_ms: delay });
+                
+                logger.warn('sync.batch_rejected', `Batch rejected, retrying in ${delay}ms (attempt ${this.retryCount}/5)`, { 
+                    delay_ms: delay,
+                    retry_count: this.retryCount,
+                    attempt: this.attempt,
+                    error_code: result.error?.error_code
+                });
+                
                 await sleep(delay);
                 void this.syncNow();
             }
         } catch (e) {
             logger.error('sync.error', 'syncNow error', e instanceof Error ? e : new Error(String(e)));
             this.attempt++;
+            this.retryCount++;
         } finally {
             this.syncing = false;
         }

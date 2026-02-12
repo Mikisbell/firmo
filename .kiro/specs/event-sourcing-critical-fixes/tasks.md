@@ -111,7 +111,7 @@ Este plan de implementación corrige los problemas críticos de Event Sourcing i
   - Test: rate limiting por tenant_id (no por terminal_id)
   - _Requirements: 6.2, 6.3, 6.4, 6.6, 6.7_
 
-- [ ] 7. Mejorar Retry Logic en SyncClient
+- [x] 7. Mejorar Retry Logic en SyncClient
   - Implementar exponential backoff (1s → 60s)
   - Agregar jitter aleatorio del 20%
   - Respetar header Retry-After para HTTP 429
