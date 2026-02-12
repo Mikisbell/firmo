@@ -10,9 +10,9 @@
  * **Validates: Requirements 1.1, 1.2, 1.5, 1.6**
  */
 
-import { describe, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { cents, add, sub, mul, formatCents, parseMoneyToCents } from '@/src/core/domain/money';
+import { cents, add, sub, mul, formatCents, parseMoneyToCents, type Cents } from '@/src/core/domain/money';
 import {
   centavosArb,
   smallCentavosArb,
@@ -35,7 +35,7 @@ describe('Money Calculation - Property Tests', () => {
     it('addition preserves integer type', () => {
       fc.assert(
         fc.property(centavosArb, centavosArb, (a, b) => {
-          const result = add(a, b);
+          const result = add(a as Cents, b as Cents);
           expectCentavos(result);
         }),
         { numRuns: 100 }
@@ -47,7 +47,7 @@ describe('Money Calculation - Property Tests', () => {
         fc.property(centavosArb, centavosArb, (a, b) => {
           // Only test when a >= b to avoid negative results
           if ((a as number) >= (b as number)) {
-            const result = sub(a, b);
+            const result = sub(a as Cents, b as Cents);
             expectCentavos(result);
           }
         }),
@@ -58,7 +58,7 @@ describe('Money Calculation - Property Tests', () => {
     it('multiplication preserves integer type', () => {
       fc.assert(
         fc.property(centavosArb, quantityArb, (a, qty) => {
-          const result = mul(a, qty);
+          const result = mul(a as Cents, qty);
           expectCentavos(result);
         }),
         { numRuns: 100 }
@@ -128,7 +128,7 @@ describe('Money Calculation - Property Tests', () => {
     it('addition result is non-negative', () => {
       testInvariant(
         fc.tuple(centavosArb, centavosArb),
-        ([a, b]) => (add(a, b) as number) >= 0,
+        ([a, b]) => (add(a as Cents, b as Cents) as number) >= 0,
         'Addition result must be non-negative'
       );
     });
@@ -136,7 +136,7 @@ describe('Money Calculation - Property Tests', () => {
     it('multiplication result is non-negative', () => {
       testInvariant(
         fc.tuple(centavosArb, quantityArb),
-        ([a, qty]) => (mul(a, qty) as number) >= 0,
+        ([a, qty]) => (mul(a as Cents, qty) as number) >= 0,
         'Multiplication result must be non-negative'
       );
     });
@@ -146,8 +146,7 @@ describe('Money Calculation - Property Tests', () => {
     it('a + b === b + a', () => {
       testCommutativity(
         centavosArb,
-        centavosArb,
-        (a, b) => add(a, b),
+        (a, b) => add(a as Cents, b as Cents),
         (a, b) => (a as number) === (b as number)
       );
     });
@@ -157,9 +156,7 @@ describe('Money Calculation - Property Tests', () => {
     it('(a + b) + c === a + (b + c)', () => {
       testAssociativity(
         centavosArb,
-        centavosArb,
-        centavosArb,
-        (a, b) => add(a, b),
+        (a, b) => add(a as Cents, b as Cents),
         (a, b) => (a as number) === (b as number)
       );
     });

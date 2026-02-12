@@ -97,6 +97,10 @@ export const eventEnvelopeArb = fc.record({
   occurred_at: isoDateArb,
   schema_version: fc.integer({ min: 1, max: 10 }),
   terminal_sequence: fc.integer({ min: 0, max: 1000000 }),
+  causation_id: fc.option(uuidArb, { nil: null }),
+  actor_id: fc.option(uuidArb, { nil: null }),
+  actor_role_snapshot: fc.option(fc.constantFrom('ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KDS'), { nil: null }),
+  business_date: fc.option(businessDateArb, { nil: null }),
   payload: fc.record({
     order_id: fc.option(uuidArb),
     order_number: fc.option(orderNumberArb),
@@ -127,6 +131,12 @@ export const orderCreatedEventArb = fc.record({
       quantity: quantityArb,
       unit_price_cents: positiveCentavosArb,
     }), { minLength: 1, maxLength: 50 }),
+    checks: fc.array(fc.record({
+      check_id: uuidArb,
+      check_number: fc.integer({ min: 1, max: 999 }),
+      items: fc.array(uuidArb, { minLength: 0, maxLength: 50 }),
+      total_cents: positiveCentavosArb,
+    }), { minLength: 0, maxLength: 10 }),
   }),
 });
 
