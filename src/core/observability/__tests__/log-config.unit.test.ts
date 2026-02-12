@@ -91,7 +91,7 @@ describe('LogConfigService', () => {
 
       await service.setLevel('events', 'DEBUG', 'user-789', 'Testing');
 
-      expect(prisma.log_configurationChange.create).toHaveBeenCalledWith({
+      expect(prisma.log_configuration_change.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           module: 'events',
           previousLevel: 'INFO',
@@ -174,8 +174,8 @@ describe('LogConfigService', () => {
     it('debe cargar configuración desde base de datos', async () => {
       // Mock de datos de DB
       vi.mocked(prisma.log_configuration.findMany).mockResolvedValueOnce([
-        { module: 'auth', level: 'DEBUG', updatedAt: new Date(), updatedBy: null },
-        { module: 'sync', level: 'ERROR', updatedAt: new Date(), updatedBy: null },
+        { module: 'auth', level: 'DEBUG', updated_at: new Date(), updated_by: null },
+        { module: 'sync', level: 'ERROR', updated_at: new Date(), updated_by: null },
       ]);
 
       await service.loadFromDatabase();
@@ -186,9 +186,9 @@ describe('LogConfigService', () => {
 
     it('debe ignorar configuraciones inválidas de DB', async () => {
       vi.mocked(prisma.log_configuration.findMany).mockResolvedValueOnce([
-        { module: 'auth', level: 'DEBUG', updatedAt: new Date(), updatedBy: null },
-        { module: 'invalid', level: 'INFO', updatedAt: new Date(), updatedBy: null },
-        { module: 'sync', level: 'INVALID', updatedAt: new Date(), updatedBy: null },
+        { module: 'auth', level: 'DEBUG', updated_at: new Date(), updated_by: null },
+        { module: 'invalid', level: 'INFO', updated_at: new Date(), updated_by: null },
+        { module: 'sync', level: 'INVALID', updated_at: new Date(), updated_by: null },
       ]);
 
       await service.loadFromDatabase();
@@ -231,7 +231,7 @@ describe('LogConfigService', () => {
         },
       ];
 
-      vi.mocked(prisma.log_configurationChange.findMany).mockResolvedValueOnce(
+      vi.mocked(prisma.log_configuration_change.findMany).mockResolvedValueOnce(
         mockChanges
       );
 
@@ -248,7 +248,7 @@ describe('LogConfigService', () => {
     it('debe filtrar por módulo si se especifica', async () => {
       await service.getChangeHistory('auth', 10);
 
-      expect(prisma.log_configurationChange.findMany).toHaveBeenCalledWith({
+      expect(prisma.log_configuration_change.findMany).toHaveBeenCalledWith({
         where: { module: 'auth' },
         orderBy: { changedAt: 'desc' },
         take: 10,
@@ -256,7 +256,7 @@ describe('LogConfigService', () => {
     });
 
     it('debe retornar array vacío si falla consulta', async () => {
-      vi.mocked(prisma.log_configurationChange.findMany).mockRejectedValueOnce(
+      vi.mocked(prisma.log_configuration_change.findMany).mockRejectedValueOnce(
         new Error('DB error')
       );
 
