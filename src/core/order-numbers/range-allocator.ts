@@ -20,53 +20,71 @@ export interface NumberRange {
 }
 
 /**
- * Asigna un nuevo rango de números a un terminal
+ * Asigna un nuevo rango de números a un terminal.
+ * Usa SELECT FOR UPDATE para prevenir race conditions.
+ * 
+ * **Requirement 4.2:** SELECT FOR UPDATE para asignación atómica
  */
 export async function allocateRange(
     prisma: PrismaClient,
     tenantId: string,
     terminalId: string
 ): Promise<NumberRange> {
-    // Buscar si ya tiene rango asignado
-    const existing = await prisma.terminal_number_ranges.findUnique({
-        where: { terminal_id: terminalId }
-    });
+    return await prisma.$transaction(async (tx) => {
+        // Buscar si ya tiene rango asignado
+        const existing = await tx.terminal_number_ranges.findUnique({
+            where: { 
+                tenant_id_terminal_id: {
+                    tenant_id: tenantId,
+                    terminal_id: terminalId
+                }
+            }
+        });
 
-    if (existing) {
-        return {
-            terminal_id: existing.terminal_id,
-            range_start: existing.range_start,
-            range_end: existing.range_end,
-            current_number: existing.current_number,
-        };
-    }
-
-    // Buscar el último rango asignado para este tenant
-    const lastRange = await prisma.terminal_number_ranges.findFirst({
-        where: { tenant_id: tenantId },
-        orderBy: { range_end: 'desc' }
-    });
-
-    const rangeStart = (lastRange?.range_end ?? 0) + 1;
-    const rangeEnd = rangeStart + RANGE_SIZE - 1;
-
-    // Crear nuevo rango
-    const newRange = await prisma.terminal_number_ranges.create({
-        data: {
-            terminal_id: terminalId,
-            tenant_id: tenantId,
-            range_start: rangeStart,
-            range_end: rangeEnd,
-            current_number: rangeStart,
+        if (existing) {
+            return {
+                terminal_id: existing.terminal_id,
+                range_start: existing.range_start,
+                range_end: existing.range_end,
+                current_number: existing.current_number,
+            };
         }
-    });
 
-    return {
-        terminal_id: newRange.terminal_id,
-        range_start: newRange.range_start,
-        range_end: newRange.range_end,
-        current_number: newRange.current_number,
-    };
+        // SELECT FOR UPDATE para lock - previene race conditions
+        // Múltiples terminales solicitando rango al mismo tiempo
+        const lastRange = await tx.$queryRaw<Array<{
+            range_end: number;
+        }>>`
+            SELECT range_end
+            FROM terminal_number_ranges
+            WHERE tenant_id = ${tenantId}::uuid
+            ORDER BY range_end DESC
+            LIMIT 1
+            FOR UPDATE
+        `;
+
+        const rangeStart = (lastRange[0]?.range_end ?? 0) + 1;
+        const rangeEnd = rangeStart + RANGE_SIZE - 1;
+
+        // Crear nuevo rango
+        const newRange = await tx.terminal_number_ranges.create({
+            data: {
+                terminal_id: terminalId,
+                tenant_id: tenantId,
+                range_start: rangeStart,
+                range_end: rangeEnd,
+                current_number: rangeStart,
+                allocated_at: new Date(),
+            }
+        });
+
+        return {
+            terminal_id: newRange.terminal_id,
+            range_start: newRange.range_start,
+            range_end: newRange.range_end,
+            current_number: newRange.current_number,
+        };
+    });
 }
 
 /**
@@ -75,10 +93,16 @@ export async function allocateRange(
  */
 export async function getNextOrderNumber(
     prisma: PrismaClient,
+    tenantId: string,
     terminalId: string
 ): Promise<number> {
     const range = await prisma.terminal_number_ranges.findUnique({
-        where: { terminal_id: terminalId }
+        where: { 
+            tenant_id_terminal_id: {
+                tenant_id: tenantId,
+                terminal_id: terminalId
+            }
+        }
     });
 
     if (!range) {
@@ -91,7 +115,12 @@ export async function getNextOrderNumber(
 
     // Incrementar y retornar
     const updated = await prisma.terminal_number_ranges.update({
-        where: { terminal_id: terminalId },
+        where: { 
+            tenant_id_terminal_id: {
+                tenant_id: tenantId,
+                terminal_id: terminalId
+            }
+        },
         data: { current_number: { increment: 1 } }
     });
 
@@ -103,11 +132,17 @@ export async function getNextOrderNumber(
  */
 export async function needsNewRange(
     prisma: PrismaClient,
+    tenantId: string,
     terminalId: string,
     threshold: number = 100 // Alertar cuando quedan menos de 100
 ): Promise<boolean> {
     const range = await prisma.terminal_number_ranges.findUnique({
-        where: { terminal_id: terminalId }
+        where: { 
+            tenant_id_terminal_id: {
+                tenant_id: tenantId,
+                terminal_id: terminalId
+            }
+        }
     });
 
     if (!range) return true;
@@ -125,7 +160,12 @@ export async function extendRange(
     terminalId: string
 ): Promise<NumberRange> {
     const existing = await prisma.terminal_number_ranges.findUnique({
-        where: { terminal_id: terminalId }
+        where: { 
+            tenant_id_terminal_id: {
+                tenant_id: tenantId,
+                terminal_id: terminalId
+            }
+        }
     });
 
     if (!existing) {
@@ -142,7 +182,12 @@ export async function extendRange(
 
     // Extender el rango existente
     const updated = await prisma.terminal_number_ranges.update({
-        where: { terminal_id: terminalId },
+        where: { 
+            tenant_id_terminal_id: {
+                tenant_id: tenantId,
+                terminal_id: terminalId
+            }
+        },
         data: { range_end: newRangeEnd }
     });
 

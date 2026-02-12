@@ -26,7 +26,12 @@ export async function GET(req: Request) {
 
     try {
         const range = await prisma.terminal_number_ranges.findUnique({
-            where: { terminal_id: terminalId }
+            where: { 
+                tenant_id_terminal_id: {
+                    tenant_id: tenantId,
+                    terminal_id: terminalId
+                }
+            }
         });
 
         if (!range) {
@@ -36,7 +41,7 @@ export async function GET(req: Request) {
             );
         }
 
-        const needsExtension = await needsNewRange(prisma, terminalId);
+        const needsExtension = await needsNewRange(prisma, tenantId, terminalId);
 
         return NextResponse.json({
             terminal_id: range.terminal_id,

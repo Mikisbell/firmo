@@ -1218,13 +1218,15 @@ model tenant_settings {
 }
 
 model terminal_number_ranges {
-  terminal_id    String    @id
+  terminal_id    String
   tenant_id      String    @db.Uuid
   range_start    Int
   range_end      Int
   current_number Int
   allocated_at   DateTime? @db.Timestamptz(6)
   exhausted_at   DateTime? @db.Timestamptz(6)
+
+  @@id([tenant_id, terminal_id])
 }
 
 model terminals {

@@ -111,6 +111,9 @@ export async function validateEvent(
 
     // 3. EVENT-SPECIFIC VALIDATION
     switch (event.event_type) {
+        case "ORDER_CREATED":
+            return validateOrderCreated(tx, event);
+
         case "CHECK_MARKED_PAID":
             return validateCheckMarkedPaid(tx, event);
 
@@ -138,6 +141,57 @@ export async function validateEvent(
         default:
             return { valid: true };
     }
+}
+
+/**
+ * Valida ORDER_CREATED
+ * - Terminal debe tener rango asignado
+ * - order_number debe estar dentro del rango del terminal
+ * 
+ * **Requirement 4.3:** Validación de order_number en rango asignado
+ */
+async function validateOrderCreated(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent
+): Promise<ValidationResult> {
+    const payload = event.payload as {
+        order_number: number;
+    };
+
+    // Obtener rango del terminal
+    const range = await tx.terminal_number_ranges.findUnique({
+        where: { 
+            tenant_id_terminal_id: {
+                tenant_id: event.tenant_id,
+                terminal_id: event.terminal_id
+            }
+        }
+    });
+
+    if (!range) {
+        return { 
+            valid: false, 
+            error: "NO_RANGE_ALLOCATED",
+            details: { terminal_id: event.terminal_id }
+        };
+    }
+
+    // Validar que order_number esté en el rango
+    if (payload.order_number < range.range_start || 
+        payload.order_number > range.range_end) {
+        return {
+            valid: false,
+            error: "ORDER_NUMBER_OUT_OF_RANGE",
+            details: {
+                order_number: payload.order_number,
+                range_start: range.range_start,
+                range_end: range.range_end,
+                terminal_id: event.terminal_id
+            }
+        };
+    }
+
+    return { valid: true };
 }
 
 /**
