@@ -694,3 +694,80 @@ export function expectValidPayment(value: any) {
   }
 }
 
+
+/**
+ * Generate a realistic recipe object
+ */
+export function generateRealisticRecipe() {
+  return {
+    id: randomUUID(),
+    tenant_id: randomUUID(),
+    product_id: randomUUID(),
+    ingredients: [
+      {
+        inventory_item_id: randomUUID(),
+        quantity: Math.floor(Math.random() * 10) + 1,
+        unit: 'kg',
+      },
+    ],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Generate a realistic waste log object
+ */
+export function generateRealisticWasteLog() {
+  return {
+    id: randomUUID(),
+    tenant_id: randomUUID(),
+    inventory_item_id: randomUUID(),
+    quantity: Math.floor(Math.random() * 10) + 1,
+    reason: 'Expired',
+    logged_by: randomUUID(),
+    logged_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Generate a realistic purchase order object
+ */
+export function generateRealisticPurchaseOrder() {
+  return {
+    id: randomUUID(),
+    tenant_id: randomUUID(),
+    supplier_id: randomUUID(),
+    items: [
+      {
+        inventory_item_id: randomUUID(),
+        quantity: Math.floor(Math.random() * 100) + 10,
+        unit_cost_cents: Math.floor(Math.random() * 50000) + 100,
+      },
+    ],
+    total_cents: Math.floor(Math.random() * 500000) + 1000,
+    status: 'PENDING',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Generate a realistic inventory transaction sequence
+ */
+export function generateRealisticInventoryTransactionSequence(count: number = 10): any[] {
+  const transactions: any[] = [];
+  for (let i = 0; i < count; i++) {
+    transactions.push({
+      id: randomUUID(),
+      tenant_id: randomUUID(),
+      inventory_item_id: randomUUID(),
+      type: ['PURCHASE', 'SALE', 'WASTE', 'ADJUSTMENT'][Math.floor(Math.random() * 4)],
+      quantity: Math.floor(Math.random() * 100) + 1,
+      cost_cents: Math.floor(Math.random() * 50000) + 100,
+      created_at: new Date().toISOString(),
+    });
+  }
+  return transactions;
+}
