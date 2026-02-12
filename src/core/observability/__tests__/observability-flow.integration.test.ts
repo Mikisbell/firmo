@@ -47,7 +47,7 @@ describe('Observability Flow - Integration Tests', () => {
 
   beforeEach(() => {
     // Set test environment
-    process.env.NODE_ENV = 'test';
+    Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true });
     process.env.LOG_LEVEL = 'debug';
     
     mockOutput();

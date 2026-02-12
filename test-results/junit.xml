@@ -1,0 +1,1909 @@
+<testsuites id="" name="" tests="228" failures="38" skipped="1" errors="0" time="1694.0066040000002">
+<testsuite name="01-sale-flow.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="13" failures="1" skipped="0" time="22.273" errors="0">
+<testcase name="Complete Sale Flow — Caja Module › should process payment with cash" classname="01-sale-flow.spec.ts" time="2.055">
+</testcase>
+<testcase name="Complete Sale Flow — Caja Module › should handle insufficient amount" classname="01-sale-flow.spec.ts" time="1.131">
+</testcase>
+<testcase name="Complete Sale Flow — Caja Module › should use quick amount buttons" classname="01-sale-flow.spec.ts" time="1.226">
+</testcase>
+<testcase name="Complete Sale Flow — Caja Module › should use exact amount button" classname="01-sale-flow.spec.ts" time="1.142">
+</testcase>
+<testcase name="Complete Sale Flow — Caja Module › should retry payment on network error" classname="01-sale-flow.spec.ts" time="6.54">
+<failure message="01-sale-flow.spec.ts:96:3 should retry payment on network error" type="FAILURE">
+<![CDATA[  [chromium] › 01-sale-flow.spec.ts:96:3 › Complete Sale Flow — Caja Module › should retry payment on network error 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('[data-testid="payment-error-message"]')
+    Expected substring: "Payment failed"
+    Received string:    "Failed to fetchReintentar (1/3)"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('[data-testid="payment-error-message"]')
+        5 × locator resolved to <div data-testid="payment-error-message" class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex gap-2">…</div>
+          - unexpected value "Failed to fetchReintentar (1/3)"
+
+
+       at helpers\CashierPOM.ts:88
+
+      86 |   async assertErrorMessage(expectedError: string) {
+      87 |     const errorMsg = this.page.locator('[data-testid="payment-error-message"]');
+    > 88 |     await expect(errorMsg).toContainText(expectedError);
+         |                            ^
+      89 |   }
+      90 |
+      91 |   /**
+        at CashierPOM.assertErrorMessage (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\CashierPOM.ts:88:28)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\01-sale-flow.spec.ts:118:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\01-sale-flow-Complete-Sale-3cd2a-ry-payment-on-network-error-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\01-sale-flow-Complete-Sale-3cd2a-ry-payment-on-network-error-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\01-sale-flow-Complete-Sale-3cd2a-ry-payment-on-network-error-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-sale-flow-Complete-Sale-3cd2a-ry-payment-on-network-error-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|01-sale-flow-Complete-Sale-3cd2a-ry-payment-on-network-error-chromium\video.webm]]
+
+[[ATTACHMENT|01-sale-flow-Complete-Sale-3cd2a-ry-payment-on-network-error-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete Sale Flow — Caja Module › should close payment terminal" classname="01-sale-flow.spec.ts" time="1.402">
+</testcase>
+<testcase name="Complete Sale Flow — Caja Module › should handle high latency (&gt;5000ms)" classname="01-sale-flow.spec.ts" time="1.151">
+</testcase>
+<testcase name="Complete Sale Flow — Caja Module › should select different payment methods" classname="01-sale-flow.spec.ts" time="1.349">
+</testcase>
+<testcase name="Complete Sale Flow — Waiter Module › should load waiter interface" classname="01-sale-flow.spec.ts" time="1.528">
+</testcase>
+<testcase name="Complete Sale Flow — Waiter Module › should display table/zone selection" classname="01-sale-flow.spec.ts" time="1.054">
+</testcase>
+<testcase name="Complete Sale Flow — KDS Module › should load kitchen display" classname="01-sale-flow.spec.ts" time="1.252">
+</testcase>
+<testcase name="Complete Sale Flow — KDS Module › should load horno/parrilla display" classname="01-sale-flow.spec.ts" time="1.274">
+</testcase>
+<testcase name="Complete Sale Flow — KDS Module › should load bar display" classname="01-sale-flow.spec.ts" time="1.169">
+</testcase>
+</testsuite>
+<testsuite name="02-offline-sync.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="9" failures="1" skipped="0" time="12.727" errors="0">
+<testcase name="Offline Mode › should detect online/offline status" classname="02-offline-sync.spec.ts" time="1.533">
+</testcase>
+<testcase name="Offline Mode › should handle network disconnection gracefully" classname="02-offline-sync.spec.ts" time="3.231">
+</testcase>
+<testcase name="Offline Mode › should queue events when offline" classname="02-offline-sync.spec.ts" time="1.153">
+</testcase>
+<testcase name="Offline Mode › should sync queued events on reconnection" classname="02-offline-sync.spec.ts" time="3.822">
+</testcase>
+<testcase name="Event Synchronization › should handle duplicate event submission (idempotency)" classname="02-offline-sync.spec.ts" time="0.491">
+<failure message="02-offline-sync.spec.ts:81:3 should handle duplicate event submission (idempotency)" type="FAILURE">
+<![CDATA[  [chromium] › 02-offline-sync.spec.ts:81:3 › Event Synchronization › should handle duplicate event submission (idempotency) 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      121 |     });
+      122 |     
+    > 123 |     expect(response1.ok()).toBeTruthy();
+          |                            ^
+      124 |     const data1 = await response1.json();
+      125 |     expect(data1.accepted).toBeTruthy();
+      126 |
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\02-offline-sync.spec.ts:123:28
+]]>
+</failure>
+</testcase>
+<testcase name="Event Synchronization › should reject events without authentication" classname="02-offline-sync.spec.ts" time="0.051">
+</testcase>
+<testcase name="Event Synchronization › should validate event schema" classname="02-offline-sync.spec.ts" time="0.022">
+</testcase>
+<testcase name="IndexedDB Storage › should have IndexedDB available" classname="02-offline-sync.spec.ts" time="0.742">
+</testcase>
+<testcase name="IndexedDB Storage › should persist data in IndexedDB" classname="02-offline-sync.spec.ts" time="1.682">
+</testcase>
+</testsuite>
+<testsuite name="03-concurrency.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="9" failures="8" skipped="0" time="0.804" errors="0">
+<testcase name="Multi-Terminal Concurrency › should handle simultaneous orders from multiple waiters" classname="03-concurrency.spec.ts" time="0.055">
+<failure message="03-concurrency.spec.ts:73:3 should handle simultaneous orders from multiple waiters" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:73:3 › Multi-Terminal Concurrency › should handle simultaneous orders from multiple waiters 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      85 |     // All orders should be accepted
+      86 |     for (const response of responses) {
+    > 87 |       expect(response.ok()).toBeTruthy();
+         |                             ^
+      88 |       const data = await response.json();
+      89 |       expect(data.accepted).toBeTruthy();
+      90 |     }
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:87:29
+]]>
+</failure>
+</testcase>
+<testcase name="Multi-Terminal Concurrency › should handle same product added from 2 terminals to same order" classname="03-concurrency.spec.ts" time="0.08">
+<failure message="03-concurrency.spec.ts:93:3 should handle same product added from 2 terminals to same order" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:93:3 › Multi-Terminal Concurrency › should handle same product added from 2 terminals to same order 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+       98 |     
+       99 |     const createResponse = await ingestEvent(request, orderEvent, TERMINALS.CAJA, 1);
+    > 100 |     expect(createResponse.ok()).toBeTruthy();
+          |                                 ^
+      101 |
+      102 |     // Two terminals add items to the same order simultaneously
+      103 |     const productId = 'PROD_POLLO_ENTERO';
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:100:33
+]]>
+</failure>
+</testcase>
+<testcase name="Multi-Terminal Concurrency › should handle order number collision prevention" classname="03-concurrency.spec.ts" time="0.053">
+<failure message="03-concurrency.spec.ts:118:3 should handle order number collision prevention" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:118:3 › Multi-Terminal Concurrency › should handle order number collision prevention 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      131 |
+      132 |     // First should succeed, second may fail or be handled by conflict resolution
+    > 133 |     expect(response1.ok()).toBeTruthy();
+          |                            ^
+      134 |     // Note: Current implementation may accept both - conflict resolution is P1
+      135 |   });
+      136 |
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:133:28
+]]>
+</failure>
+</testcase>
+<testcase name="Multi-Terminal Concurrency › should handle rapid sequential events from same terminal" classname="03-concurrency.spec.ts" time="0.093">
+<failure message="03-concurrency.spec.ts:137:3 should handle rapid sequential events from same terminal" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:137:3 › Multi-Terminal Concurrency › should handle rapid sequential events from same terminal 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      143 |     const orderEvent = createOrderEvent(orderId, orderNumber, terminalId, 1);
+      144 |     const orderResponse = await ingestEvent(request, orderEvent, terminalId, 1);
+    > 145 |     expect(orderResponse.ok()).toBeTruthy();
+          |                                ^
+      146 |
+      147 |     // Add items sequentially (each with unique sequence number)
+      148 |     let successCount = 0;
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:145:32
+]]>
+</failure>
+</testcase>
+<testcase name="Multi-Terminal Concurrency › should handle 15 waiters + 1 cashier simultaneous operations" classname="03-concurrency.spec.ts" time="0.213">
+<failure message="03-concurrency.spec.ts:162:3 should handle 15 waiters + 1 cashier simultaneous operations" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:162:3 › Multi-Terminal Concurrency › should handle 15 waiters + 1 cashier simultaneous operations 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 11
+    Received:    0
+
+      186 |
+      187 |     // At least 70% should succeed under load (rate limiting may affect some)
+    > 188 |     expect(successCount).toBeGreaterThanOrEqual(Math.floor(terminals.length * 0.7));
+          |                          ^
+      189 |   });
+      190 | });
+      191 |
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:188:26
+]]>
+</failure>
+</testcase>
+<testcase name="Shift Operations Concurrency › should handle shift operations gracefully" classname="03-concurrency.spec.ts" time="0.111">
+</testcase>
+<testcase name="Event Deduplication › should deduplicate identical events sent multiple times" classname="03-concurrency.spec.ts" time="0.048">
+<failure message="03-concurrency.spec.ts:249:3 should deduplicate identical events sent multiple times" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:249:3 › Event Deduplication › should deduplicate identical events sent multiple times 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      282 |     // All should succeed (idempotent)
+      283 |     for (const response of responses) {
+    > 284 |       expect(response.ok()).toBeTruthy();
+          |                             ^
+      285 |     }
+      286 |   });
+      287 |
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:284:29
+]]>
+</failure>
+</testcase>
+<testcase name="Event Deduplication › should handle out-of-order event delivery" classname="03-concurrency.spec.ts" time="0.061">
+<failure message="03-concurrency.spec.ts:288:3 should handle out-of-order event delivery" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:288:3 › Event Deduplication › should handle out-of-order event delivery 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      300 |     // Then order
+      301 |     const orderResponse = await ingestEvent(request, orderEvent, terminalId, 1);
+    > 302 |     expect(orderResponse.ok()).toBeTruthy();
+          |                                ^
+      303 |
+      304 |     // System should handle this gracefully (no 500 errors)
+      305 |     expect(itemResponse.status()).toBeLessThan(500);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:302:32
+]]>
+</failure>
+</testcase>
+<testcase name="Rate Limiting › should handle burst of events gracefully" classname="03-concurrency.spec.ts" time="0.09">
+<failure message="03-concurrency.spec.ts:311:3 should handle burst of events gracefully" type="FAILURE">
+<![CDATA[  [chromium] › 03-concurrency.spec.ts:311:3 › Rate Limiting › should handle burst of events gracefully 
+
+    Error: expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      327 |     // At least some should succeed
+      328 |     const okCount = responses.filter((r: any) => r.ok()).length;
+    > 329 |     expect(okCount).toBeGreaterThan(0);
+          |                     ^
+      330 |   });
+      331 | });
+      332 |
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\03-concurrency.spec.ts:329:21
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="04-admin-employees-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="14" failures="0" skipped="0" time="35.783" errors="0">
+<testcase name="Admin Panel - Employee CRUD › Page Loading › should load admin panel" classname="04-admin-employees-crud.spec.ts" time="2.112">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Page Loading › should display employees section" classname="04-admin-employees-crud.spec.ts" time="2.785">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Page Loading › should display employees list" classname="04-admin-employees-crud.spec.ts" time="2.432">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Page Loading › should have create employee button" classname="04-admin-employees-crud.spec.ts" time="2.089">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Create Employee › should create a new employee via API" classname="04-admin-employees-crud.spec.ts" time="7.873">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Create Employee › should validate required fields when creating employee" classname="04-admin-employees-crud.spec.ts" time="4.814">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Create Employee › should validate PIN format" classname="04-admin-employees-crud.spec.ts" time="4.776">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Update Employee › should update employee information" classname="04-admin-employees-crud.spec.ts" time="0.288">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Delete Employee › should deactivate employee (soft delete)" classname="04-admin-employees-crud.spec.ts" time="0.283">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Error Handling › should handle API errors gracefully" classname="04-admin-employees-crud.spec.ts" time="1.464">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › State Management › should maintain state after page refresh" classname="04-admin-employees-crud.spec.ts" time="2.377">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Filtering &amp; Pagination › should display employee role correctly" classname="04-admin-employees-crud.spec.ts" time="1.482">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Filtering &amp; Pagination › should filter employees by role" classname="04-admin-employees-crud.spec.ts" time="1.449">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD › Filtering &amp; Pagination › should paginate employee list" classname="04-admin-employees-crud.spec.ts" time="1.559">
+</testcase>
+</testsuite>
+<testsuite name="05-admin-products-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="16" failures="0" skipped="0" time="60.768" errors="0">
+<testcase name="Admin Panel - Product CRUD › Page Loading › should load admin panel products page" classname="05-admin-products-crud.spec.ts" time="1.476">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Page Loading › should display products list" classname="05-admin-products-crud.spec.ts" time="1.36">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Page Loading › should have create product button" classname="05-admin-products-crud.spec.ts" time="1.289">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Create Product › should create a new product via API" classname="05-admin-products-crud.spec.ts" time="6.3">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Create Product › should validate SKU uniqueness" classname="05-admin-products-crud.spec.ts" time="4.957">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Create Product › should validate required fields" classname="05-admin-products-crud.spec.ts" time="4.406">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Create Product › should validate category and station enums" classname="05-admin-products-crud.spec.ts" time="4.365">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Money Safety › should store price as integer centavos" classname="05-admin-products-crud.spec.ts" time="6.132">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Update Product › should update product information" classname="05-admin-products-crud.spec.ts" time="8.737">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Update Product › should increment catalog version on update" classname="05-admin-products-crud.spec.ts" time="7.398">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Delete Product › should deactivate product (soft delete)" classname="05-admin-products-crud.spec.ts" time="7.337">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Error Handling › should handle API errors gracefully" classname="05-admin-products-crud.spec.ts" time="1.265">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › State Management › should maintain state after page refresh" classname="05-admin-products-crud.spec.ts" time="2">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Filtering &amp; Pagination › should display product categories" classname="05-admin-products-crud.spec.ts" time="1.221">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Filtering &amp; Pagination › should filter products by category" classname="05-admin-products-crud.spec.ts" time="1.283">
+</testcase>
+<testcase name="Admin Panel - Product CRUD › Filtering &amp; Pagination › should paginate product list" classname="05-admin-products-crud.spec.ts" time="1.242">
+</testcase>
+</testsuite>
+<testsuite name="06-admin-drivers-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="14" failures="0" skipped="0" time="38.364" errors="0">
+<testcase name="Admin Panel - Driver CRUD › Page Loading › should load admin panel drivers page" classname="06-admin-drivers-crud.spec.ts" time="1.459">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Page Loading › should display drivers list" classname="06-admin-drivers-crud.spec.ts" time="1.259">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Page Loading › should have create driver button" classname="06-admin-drivers-crud.spec.ts" time="1.229">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Create Driver › should create a new driver via API" classname="06-admin-drivers-crud.spec.ts" time="5.197">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Create Driver › should validate required fields when creating driver" classname="06-admin-drivers-crud.spec.ts" time="4.281">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Update Driver › should update driver information" classname="06-admin-drivers-crud.spec.ts" time="7.363">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Delete Driver › should deactivate driver (soft delete)" classname="06-admin-drivers-crud.spec.ts" time="7.127">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Error Handling › should handle API errors gracefully" classname="06-admin-drivers-crud.spec.ts" time="1.389">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › State Management › should maintain state after page refresh" classname="06-admin-drivers-crud.spec.ts" time="2.2">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Filtering &amp; Pagination › should list active drivers only" classname="06-admin-drivers-crud.spec.ts" time="1.249">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Filtering &amp; Pagination › should display driver status" classname="06-admin-drivers-crud.spec.ts" time="1.33">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Filtering &amp; Pagination › should paginate driver list" classname="06-admin-drivers-crud.spec.ts" time="1.319">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Filtering &amp; Pagination › should search drivers by name" classname="06-admin-drivers-crud.spec.ts" time="1.535">
+</testcase>
+<testcase name="Admin Panel - Driver CRUD › Filtering &amp; Pagination › should display driver phone number" classname="06-admin-drivers-crud.spec.ts" time="1.427">
+</testcase>
+</testsuite>
+<testsuite name="07-admin-promotions-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="16" failures="0" skipped="0" time="50.194" errors="0">
+<testcase name="Admin Panel - Promotion CRUD › Page Loading › should load admin panel promotions page" classname="07-admin-promotions-crud.spec.ts" time="1.619">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Page Loading › should display promotions list" classname="07-admin-promotions-crud.spec.ts" time="1.338">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Page Loading › should have create promotion button" classname="07-admin-promotions-crud.spec.ts" time="1.458">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Create Promotion › should create a new promotion via API" classname="07-admin-promotions-crud.spec.ts" time="5.844">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Create Promotion › should validate required fields" classname="07-admin-promotions-crud.spec.ts" time="4.382">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Create Promotion › should validate promotion type" classname="07-admin-promotions-crud.spec.ts" time="4.494">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Date Validation › should validate date range" classname="07-admin-promotions-crud.spec.ts" time="4.699">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Update Promotion › should update promotion information" classname="07-admin-promotions-crud.spec.ts" time="7.907">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Delete Promotion › should deactivate promotion (soft delete)" classname="07-admin-promotions-crud.spec.ts" time="7.891">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Error Handling › should handle API errors gracefully" classname="07-admin-promotions-crud.spec.ts" time="1.413">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › State Management › should maintain state after page refresh" classname="07-admin-promotions-crud.spec.ts" time="2.203">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Filtering &amp; Pagination › should display promotion types correctly" classname="07-admin-promotions-crud.spec.ts" time="1.482">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Filtering &amp; Pagination › should filter promotions by status" classname="07-admin-promotions-crud.spec.ts" time="1.341">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Filtering &amp; Pagination › should paginate promotion list" classname="07-admin-promotions-crud.spec.ts" time="1.337">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Filtering &amp; Pagination › should display promotion discount value" classname="07-admin-promotions-crud.spec.ts" time="1.378">
+</testcase>
+<testcase name="Admin Panel - Promotion CRUD › Filtering &amp; Pagination › should display promotion date range" classname="07-admin-promotions-crud.spec.ts" time="1.408">
+</testcase>
+</testsuite>
+<testsuite name="08-admin-permission-denied.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="13" failures="0" skipped="0" time="28.479" errors="0">
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to create employee for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.349">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to create product for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.315">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to create promotion for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.335">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to create driver for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.331">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to update configuration for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.461">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to delete employee for non-admin users" classname="08-admin-permission-denied.spec.ts" time="1.511">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to delete product for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.316">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to delete promotion for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.332">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Non-Admin API Access Denied › should deny API access to delete driver for non-admin users" classname="08-admin-permission-denied.spec.ts" time="0.378">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Admin API Access Allowed › should allow admin API access to create employee" classname="08-admin-permission-denied.spec.ts" time="6.386">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Admin API Access Allowed › should allow admin API access to create product" classname="08-admin-permission-denied.spec.ts" time="6.824">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Admin API Access Allowed › should allow admin API access to create promotion" classname="08-admin-permission-denied.spec.ts" time="5.733">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › Admin API Access Allowed › should allow admin API access to create driver" classname="08-admin-permission-denied.spec.ts" time="5.208">
+</testcase>
+</testsuite>
+<testsuite name="09-admin-promotions-network-throttling.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="1" failures="1" skipped="0" time="47.225" errors="0">
+<testcase name="Admin Panel - Promotions with Network Throttling › should handle timeout with slow network" classname="09-admin-promotions-network-throttling.spec.ts" time="47.225">
+<failure message="09-admin-promotions-network-throttling.spec.ts:24:3 should handle timeout with slow network" type="FAILURE">
+<![CDATA[  [chromium] › 09-admin-promotions-network-throttling.spec.ts:24:3 › Admin Panel - Promotions with Network Throttling › should handle timeout with slow network 
+
+    TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="pin-pad"]') to be visible
+
+
+       at helpers\test-utils.ts:327
+
+      325 |     
+      326 |     // Wait for PinPad to appear
+    > 327 |     await page.waitForSelector('[data-testid="pin-pad"]', { timeout: 10000 });
+          |                ^
+      328 |     
+      329 |     // Enter PIN using PinPad buttons
+      330 |     for (const digit of pin) {
+        at authenticateAsAdmin (E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\helpers\test-utils.ts:327:16)
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\09-admin-promotions-network-throttling.spec.ts:55:7
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\video.webm]]
+
+[[ATTACHMENT|09-admin-promotions-networ-56352-e-timeout-with-slow-network-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="admin-auditoria.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="13" failures="11" skipped="0" time="242.317" errors="0">
+<testcase name="Admin Audit Page › should display page title and description" classname="admin-auditoria.spec.ts" time="7.052">
+<failure message="admin-auditoria.spec.ts:24:3 should display page title and description" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:24:3 › Admin Audit Page › should display page title and description 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Auditoría de Autenticación')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText('Auditoría de Autenticación')
+
+
+      23 |
+      24 |   test('should display page title and description', async ({ page }) => {
+    > 25 |     await expect(page.getByText('Auditoría de Autenticación')).toBeVisible();
+         |                                                                ^
+      26 |     await expect(page.getByText('Registro completo de eventos de seguridad')).toBeVisible();
+      27 |   });
+      28 |
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:25:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-21be1--page-title-and-description-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-21be1--page-title-and-description-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audi-21be1--page-title-and-description-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audi-21be1--page-title-and-description-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-21be1--page-title-and-description-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-21be1--page-title-and-description-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should display summary statistics cards" classname="admin-auditoria.spec.ts" time="7.1">
+<failure message="admin-auditoria.spec.ts:29:3 should display summary statistics cards" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:29:3 › Admin Audit Page › should display summary statistics cards 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Total Eventos')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText('Total Eventos')
+
+
+      28 |
+      29 |   test('should display summary statistics cards', async ({ page }) => {
+    > 30 |     await expect(page.getByText('Total Eventos')).toBeVisible();
+         |                                                   ^
+      31 |     await expect(page.getByText('Login Exitoso')).toBeVisible();
+      32 |     await expect(page.getByText('Login Fallido')).toBeVisible();
+      33 |     await expect(page.getByText('Alertas')).toBeVisible();
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:30:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-e08a9-ay-summary-statistics-cards-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-e08a9-ay-summary-statistics-cards-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audi-e08a9-ay-summary-statistics-cards-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audi-e08a9-ay-summary-statistics-cards-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-e08a9-ay-summary-statistics-cards-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-e08a9-ay-summary-statistics-cards-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should display filter controls" classname="admin-auditoria.spec.ts" time="6.872">
+<failure message="admin-auditoria.spec.ts:36:3 should display filter controls" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:36:3 › Admin Audit Page › should display filter controls ────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByLabel('Fecha Inicio')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByLabel('Fecha Inicio')
+
+
+      36 |   test('should display filter controls', async ({ page }) => {
+      37 |     // Check all filter inputs exist
+    > 38 |     await expect(page.getByLabel('Fecha Inicio')).toBeVisible();
+         |                                                   ^
+      39 |     await expect(page.getByLabel('Fecha Fin')).toBeVisible();
+      40 |     await expect(page.getByLabel('Terminal')).toBeVisible();
+      41 |     await expect(page.getByLabel('Empleado')).toBeVisible();
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:38:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-74c0d-uld-display-filter-controls-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-74c0d-uld-display-filter-controls-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audi-74c0d-uld-display-filter-controls-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audi-74c0d-uld-display-filter-controls-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-74c0d-uld-display-filter-controls-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-74c0d-uld-display-filter-controls-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should display events table" classname="admin-auditoria.spec.ts" time="6.885">
+<failure message="admin-auditoria.spec.ts:45:3 should display events table" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:45:3 › Admin Audit Page › should display events table ───────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Fecha/Hora')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText('Fecha/Hora')
+
+
+      45 |   test('should display events table', async ({ page }) => {
+      46 |     // Check table headers
+    > 47 |     await expect(page.getByText('Fecha/Hora')).toBeVisible();
+         |                                                ^
+      48 |     await expect(page.getByText('Evento')).toBeVisible();
+      49 |     await expect(page.getByText('Terminal')).toBeVisible();
+      50 |     await expect(page.getByText('Empleado')).toBeVisible();
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:47:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-display-events-table-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-display-events-table-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audit-Page-should-display-events-table-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-display-events-table-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-display-events-table-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-display-events-table-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should filter by terminal" classname="admin-auditoria.spec.ts" time="34.559">
+<failure message="admin-auditoria.spec.ts:56:3 should filter by terminal" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:56:3 › Admin Audit Page › should filter by terminal ─────────
+
+    TimeoutError: locator.selectOption: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Terminal')
+
+
+      60 |     // Select a terminal from dropdown
+      61 |     const terminalSelect = page.getByLabel('Terminal');
+    > 62 |     await terminalSelect.selectOption({ index: 1 }); // Select first non-empty option
+         |                          ^
+      63 |     
+      64 |     // Wait for filter to apply
+      65 |     await page.waitForTimeout(500);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:62:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-filter-by-terminal-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-filter-by-terminal-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audit-Page-should-filter-by-terminal-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-filter-by-terminal-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-filter-by-terminal-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-filter-by-terminal-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should filter by event type" classname="admin-auditoria.spec.ts" time="34.239">
+<failure message="admin-auditoria.spec.ts:71:3 should filter by event type" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:71:3 › Admin Audit Page › should filter by event type ───────
+
+    TimeoutError: locator.selectOption: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Tipo de Evento')
+
+
+      75 |     // Select an event type
+      76 |     const eventTypeSelect = page.getByLabel('Tipo de Evento');
+    > 77 |     await eventTypeSelect.selectOption('login_success');
+         |                           ^
+      78 |     
+      79 |     // Wait for filter to apply
+      80 |     await page.waitForTimeout(500);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:77:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-filter-by-event-type-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-filter-by-event-type-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audit-Page-should-filter-by-event-type-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-filter-by-event-type-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-filter-by-event-type-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-filter-by-event-type-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should clear filters" classname="admin-auditoria.spec.ts" time="34.042">
+<failure message="admin-auditoria.spec.ts:87:3 should clear filters" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:87:3 › Admin Audit Page › should clear filters ──────────────
+
+    TimeoutError: locator.selectOption: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Terminal')
+
+
+      91 |     // Apply a filter
+      92 |     const terminalSelect = page.getByLabel('Terminal');
+    > 93 |     await terminalSelect.selectOption({ index: 1 });
+         |                          ^
+      94 |     
+      95 |     // Wait for filter to apply
+      96 |     await page.waitForTimeout(500);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:93:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-clear-filters-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audit-Page-should-clear-filters-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audit-Page-should-clear-filters-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-clear-filters-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-clear-filters-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audit-Page-should-clear-filters-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should refresh events when refresh button is clicked" classname="admin-auditoria.spec.ts" time="33.901">
+<failure message="admin-auditoria.spec.ts:106:3 should refresh events when refresh button is clicked" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:106:3 › Admin Audit Page › should refresh events when refresh button is clicked 
+
+    TimeoutError: locator.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for getByTitle('Actualizar')
+
+
+      110 |     // Click refresh button
+      111 |     const refreshButton = page.getByTitle('Actualizar');
+    > 112 |     await refreshButton.click();
+          |                         ^
+      113 |     
+      114 |     // Wait for refresh to complete
+      115 |     await page.waitForTimeout(500);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:112:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-c5334-n-refresh-button-is-clicked-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-c5334-n-refresh-button-is-clicked-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audi-c5334-n-refresh-button-is-clicked-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audi-c5334-n-refresh-button-is-clicked-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-c5334-n-refresh-button-is-clicked-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-c5334-n-refresh-button-is-clicked-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should display event details correctly" classname="admin-auditoria.spec.ts" time="2.301">
+</testcase>
+<testcase name="Admin Audit Page › should validate requirement 6.4 - support all required filters" classname="admin-auditoria.spec.ts" time="6.509">
+<failure message="admin-auditoria.spec.ts:141:3 should validate requirement 6.4 - support all required filters" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:141:3 › Admin Audit Page › should validate requirement 6.4 - support all required filters 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByLabel('Fecha Inicio')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByLabel('Fecha Inicio')
+
+
+      145 |     const startDateInput = page.getByLabel('Fecha Inicio');
+      146 |     const endDateInput = page.getByLabel('Fecha Fin');
+    > 147 |     await expect(startDateInput).toBeVisible();
+          |                                  ^
+      148 |     await expect(endDateInput).toBeVisible();
+      149 |     await expect(startDateInput).toBeEnabled();
+      150 |     await expect(endDateInput).toBeEnabled();
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:147:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-10a9f-upport-all-required-filters-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-10a9f-upport-all-required-filters-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audi-10a9f-upport-all-required-filters-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audi-10a9f-upport-all-required-filters-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-10a9f-upport-all-required-filters-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-10a9f-upport-all-required-filters-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should display risk score badges with appropriate colors" classname="admin-auditoria.spec.ts" time="2.276">
+</testcase>
+<testcase name="Admin Audit Page › should handle empty state gracefully" classname="admin-auditoria.spec.ts" time="33.039">
+<failure message="admin-auditoria.spec.ts:188:3 should handle empty state gracefully" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:188:3 › Admin Audit Page › should handle empty state gracefully 
+
+    TimeoutError: locator.selectOption: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Tipo de Evento')
+
+
+      189 |     // Apply filters that return no results
+      190 |     const eventTypeSelect = page.getByLabel('Tipo de Evento');
+    > 191 |     await eventTypeSelect.selectOption('security_alert');
+          |                           ^
+      192 |     
+      193 |     // Set a very specific date range that likely has no events
+      194 |     const startDateInput = page.getByLabel('Fecha Inicio');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:191:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-0d223-ndle-empty-state-gracefully-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-0d223-ndle-empty-state-gracefully-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audi-0d223-ndle-empty-state-gracefully-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audi-0d223-ndle-empty-state-gracefully-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-0d223-ndle-empty-state-gracefully-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-0d223-ndle-empty-state-gracefully-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Audit Page › should be accessible via admin sidebar" classname="admin-auditoria.spec.ts" time="33.542">
+<failure message="admin-auditoria.spec.ts:207:3 should be accessible via admin sidebar" type="FAILURE">
+<![CDATA[  [chromium] › admin-auditoria.spec.ts:207:3 › Admin Audit Page › should be accessible via admin sidebar 
+
+    TimeoutError: locator.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('link', { name: /Auditoría/i })
+
+
+      214 |     
+      215 |     // Click the link
+    > 216 |     await auditoriaLink.click();
+          |                         ^
+      217 |     
+      218 |     // Verify we're on the audit page
+      219 |     await expect(page).toHaveURL(/\/admin\/auditoria/);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-auditoria.spec.ts:216:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-0d2a3-ccessible-via-admin-sidebar-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-auditoria-Admin-Audi-0d2a3-ccessible-via-admin-sidebar-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\admin-auditoria-Admin-Audi-0d2a3-ccessible-via-admin-sidebar-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-auditoria-Admin-Audi-0d2a3-ccessible-via-admin-sidebar-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-0d2a3-ccessible-via-admin-sidebar-chromium\video.webm]]
+
+[[ATTACHMENT|admin-auditoria-Admin-Audi-0d2a3-ccessible-via-admin-sidebar-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="admin-drivers-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="10" failures="0" skipped="0" time="30.244" errors="0">
+<testcase name="Admin Panel - Drivers CRUD › should load admin panel drivers page" classname="admin-drivers-crud.spec.ts" time="2.009">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should display drivers list" classname="admin-drivers-crud.spec.ts" time="4.034">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should create a new driver with phone" classname="admin-drivers-crud.spec.ts" time="2.938">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should create a new driver without phone (optional)" classname="admin-drivers-crud.spec.ts" time="2.905">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should validate required name field" classname="admin-drivers-crud.spec.ts" time="2.904">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should validate phone format" classname="admin-drivers-crud.spec.ts" time="2.924">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should update driver information" classname="admin-drivers-crud.spec.ts" time="2.929">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should deactivate driver (soft delete)" classname="admin-drivers-crud.spec.ts" time="2.994">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should handle API errors gracefully" classname="admin-drivers-crud.spec.ts" time="2.981">
+</testcase>
+<testcase name="Admin Panel - Drivers CRUD › should maintain state after page refresh" classname="admin-drivers-crud.spec.ts" time="3.626">
+</testcase>
+</testsuite>
+<testsuite name="admin-employees-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="15" failures="0" skipped="0" time="46.306" errors="0">
+<testcase name="Admin Panel - Employees CRUD › should load admin panel employees page" classname="admin-employees-crud.spec.ts" time="1.979">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should display employees list with pagination" classname="admin-employees-crud.spec.ts" time="4.004">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should create a new employee" classname="admin-employees-crud.spec.ts" time="2.935">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should filter employees by status" classname="admin-employees-crud.spec.ts" time="2.938">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should paginate through employees" classname="admin-employees-crud.spec.ts" time="3.558">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should search employees by name" classname="admin-employees-crud.spec.ts" time="2.932">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should view employee details" classname="admin-employees-crud.spec.ts" time="2.949">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should update employee information" classname="admin-employees-crud.spec.ts" time="3.055">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should deactivate employee (soft delete)" classname="admin-employees-crud.spec.ts" time="3.244">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should validate required fields" classname="admin-employees-crud.spec.ts" time="2.959">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should validate PIN format" classname="admin-employees-crud.spec.ts" time="3.035">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should prevent duplicate PINs" classname="admin-employees-crud.spec.ts" time="2.949">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should display employee roles correctly" classname="admin-employees-crud.spec.ts" time="2.969">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should handle API errors gracefully" classname="admin-employees-crud.spec.ts" time="3.012">
+</testcase>
+<testcase name="Admin Panel - Employees CRUD › should maintain state after page refresh" classname="admin-employees-crud.spec.ts" time="3.788">
+</testcase>
+</testsuite>
+<testsuite name="admin-panel-employee-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="4" failures="0" skipped="0" time="22.013" errors="0">
+<testcase name="Admin Panel - Employee CRUD (Legacy) › should create a new employee" classname="admin-panel-employee-crud.spec.ts" time="7.442">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD (Legacy) › should list employees" classname="admin-panel-employee-crud.spec.ts" time="0.551">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD (Legacy) › should update an employee" classname="admin-panel-employee-crud.spec.ts" time="6.955">
+</testcase>
+<testcase name="Admin Panel - Employee CRUD (Legacy) › should delete an employee" classname="admin-panel-employee-crud.spec.ts" time="7.065">
+</testcase>
+</testsuite>
+<testsuite name="admin-permission-denied.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="19" failures="1" skipped="0" time="28.563" errors="0">
+<testcase name="Admin Panel - Permission Denied › should deny access to employees page for non-admin users" classname="admin-permission-denied.spec.ts" time="2.175">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny access to products page for non-admin users" classname="admin-permission-denied.spec.ts" time="2.197">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny access to promotions page for non-admin users" classname="admin-permission-denied.spec.ts" time="2.234">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny access to drivers page for non-admin users" classname="admin-permission-denied.spec.ts" time="2.214">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny access to configuration page for non-admin users" classname="admin-permission-denied.spec.ts" time="2.33">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to create employee for non-admin users" classname="admin-permission-denied.spec.ts" time="0.208">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to create product for non-admin users" classname="admin-permission-denied.spec.ts" time="0.204">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to create promotion for non-admin users" classname="admin-permission-denied.spec.ts" time="0.211">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to create driver for non-admin users" classname="admin-permission-denied.spec.ts" time="0.204">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to update configuration for non-admin users" classname="admin-permission-denied.spec.ts" time="0.215">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to delete employee for non-admin users" classname="admin-permission-denied.spec.ts" time="0.233">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to delete product for non-admin users" classname="admin-permission-denied.spec.ts" time="0.283">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to delete promotion for non-admin users" classname="admin-permission-denied.spec.ts" time="0.264">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should deny API access to delete driver for non-admin users" classname="admin-permission-denied.spec.ts" time="0.304">
+<failure message="admin-permission-denied.spec.ts:195:3 should deny API access to delete driver for non-admin users" type="FAILURE">
+<![CDATA[  [chromium] › admin-permission-denied.spec.ts:195:3 › Admin Panel - Permission Denied › should deny API access to delete driver for non-admin users 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      198 |     
+      199 |     // Should return 401 or 403
+    > 200 |     expect(response.status() === 401 || response.status() === 403).toBeTruthy();
+          |                                                                    ^
+      201 |   });
+      202 |
+      203 |   test('should allow admin users to access employees page', async ({ page }) => {
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\admin-permission-denied.spec.ts:200:68
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\admin-permission-denied-Ad-c2e8a--driver-for-non-admin-users-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\admin-permission-denied-Ad-c2e8a--driver-for-non-admin-users-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-permission-denied-Ad-c2e8a--driver-for-non-admin-users-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|admin-permission-denied-Ad-c2e8a--driver-for-non-admin-users-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should allow admin users to access employees page" classname="admin-permission-denied.spec.ts" time="3.079">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should allow admin users to access products page" classname="admin-permission-denied.spec.ts" time="3.109">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should allow admin users to access promotions page" classname="admin-permission-denied.spec.ts" time="3.071">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should allow admin users to access drivers page" classname="admin-permission-denied.spec.ts" time="2.997">
+</testcase>
+<testcase name="Admin Panel - Permission Denied › should allow admin users to access configuration page" classname="admin-permission-denied.spec.ts" time="3.031">
+</testcase>
+</testsuite>
+<testsuite name="admin-products-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="12" failures="0" skipped="0" time="37.551" errors="0">
+<testcase name="Admin Panel - Products CRUD › should load admin panel products page" classname="admin-products-crud.spec.ts" time="2.024">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should display products list" classname="admin-products-crud.spec.ts" time="4.159">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should create a new product" classname="admin-products-crud.spec.ts" time="3.107">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should validate SKU uniqueness" classname="admin-products-crud.spec.ts" time="3.084">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should store price as integer centavos" classname="admin-products-crud.spec.ts" time="3.055">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should increment catalog version on update" classname="admin-products-crud.spec.ts" time="3.059">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should update product information" classname="admin-products-crud.spec.ts" time="3.14">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should deactivate product (soft delete)" classname="admin-products-crud.spec.ts" time="3.05">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should validate required fields" classname="admin-products-crud.spec.ts" time="3.067">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should validate category and station enums" classname="admin-products-crud.spec.ts" time="3.022">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should handle API errors gracefully" classname="admin-products-crud.spec.ts" time="3.104">
+</testcase>
+<testcase name="Admin Panel - Products CRUD › should maintain state after page refresh" classname="admin-products-crud.spec.ts" time="3.68">
+</testcase>
+</testsuite>
+<testsuite name="admin-promotions-crud.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="11" failures="0" skipped="0" time="34.325" errors="0">
+<testcase name="Admin Panel - Promotions CRUD › should load admin panel promotions page" classname="admin-promotions-crud.spec.ts" time="1.965">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should display promotions list" classname="admin-promotions-crud.spec.ts" time="4.037">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should create a new promotion" classname="admin-promotions-crud.spec.ts" time="3.046">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should validate date range" classname="admin-promotions-crud.spec.ts" time="2.994">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should update promotion information" classname="admin-promotions-crud.spec.ts" time="2.991">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should deactivate promotion (soft delete)" classname="admin-promotions-crud.spec.ts" time="3.023">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should validate required fields" classname="admin-promotions-crud.spec.ts" time="3.049">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should validate promotion type" classname="admin-promotions-crud.spec.ts" time="3.188">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should display promotion types correctly" classname="admin-promotions-crud.spec.ts" time="3.045">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should handle API errors gracefully" classname="admin-promotions-crud.spec.ts" time="3.117">
+</testcase>
+<testcase name="Admin Panel - Promotions CRUD › should maintain state after page refresh" classname="admin-promotions-crud.spec.ts" time="3.87">
+</testcase>
+</testsuite>
+<testsuite name="complete-waiter-flow.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="4" failures="4" skipped="0" time="146.127" errors="0">
+<testcase name="Complete Waiter Flow - End to End › complete flow: waiter login → order → submit → KDS + cashier receive" classname="complete-waiter-flow.spec.ts" time="38.506">
+<failure message="complete-waiter-flow.spec.ts:27:5 complete flow: waiter login → order → submit → KDS + cashier receive" type="FAILURE">
+<![CDATA[  [chromium] › complete-waiter-flow.spec.ts:27:5 › Complete Waiter Flow - End to End › complete flow: waiter login → order → submit → KDS + cashier receive 
+
+    Error: Tables did not load - see screenshot and logs
+
+       95 |             }
+       96 |             
+    >  97 |             throw new Error("Tables did not load - see screenshot and logs");
+          |                   ^
+       98 |         }
+       99 |         
+      100 |         console.log(`  ✅ Mesa ${tableNumber} button found and visible`);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\complete-waiter-flow.spec.ts:97:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-36244-ubmit-→-KDS-cashier-receive-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-36244-ubmit-→-KDS-cashier-receive-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\complete-waiter-flow-Compl-36244-ubmit-→-KDS-cashier-receive-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🚀 Starting Complete Waiter Flow Test
+📱 STEP 1: Waiter accessing system
+✅ Waiter page loaded successfully
+🪑 STEP 2: Selecting table
+  → Waiting for page to finish loading...
+  → Looking for table buttons...
+  → Found 13 buttons on page
+  → Found 0 elements with "Mesa" text
+  → Trying alternative selector...
+  ❌ Tables not found! Screenshot saved
+  → Page title: PARK POS
+  → URL: http://localhost:3000/mozo
+  → Has 'MESERO' text: [33mtrue[39m
+
+[[ATTACHMENT|complete-waiter-flow-Compl-36244-ubmit-→-KDS-cashier-receive-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-36244-ubmit-→-KDS-cashier-receive-chromium\video.webm]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-36244-ubmit-→-KDS-cashier-receive-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete Waiter Flow - End to End › verify order status changes propagate across all screens" classname="complete-waiter-flow.spec.ts" time="38.579">
+<failure message="complete-waiter-flow.spec.ts:297:5 verify order status changes propagate across all screens" type="FAILURE">
+<![CDATA[  [chromium] › complete-waiter-flow.spec.ts:297:5 › Complete Waiter Flow - End to End › verify order status changes propagate across all screens 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('text=Mesa 2')
+
+
+      301 |         await page.goto("/mozo");
+      302 |         await page.waitForLoadState("networkidle");
+    > 303 |         await page.click('text=Mesa 2');
+          |                    ^
+      304 |         await page.waitForLoadState("networkidle");
+      305 |
+      306 |         // Add item
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\complete-waiter-flow.spec.ts:303:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-5686c-ropagate-across-all-screens-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-5686c-ropagate-across-all-screens-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\complete-waiter-flow-Compl-5686c-ropagate-across-all-screens-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔄 Starting Order Status Propagation Test
+
+[[ATTACHMENT|complete-waiter-flow-Compl-5686c-ropagate-across-all-screens-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-5686c-ropagate-across-all-screens-chromium\video.webm]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-5686c-ropagate-across-all-screens-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete Waiter Flow - End to End › verify multiple waiters can work simultaneously" classname="complete-waiter-flow.spec.ts" time="34.712">
+<failure message="complete-waiter-flow.spec.ts:350:5 verify multiple waiters can work simultaneously" type="FAILURE">
+<![CDATA[  [chromium] › complete-waiter-flow.spec.ts:350:5 › Complete Waiter Flow - End to End › verify multiple waiters can work simultaneously 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('text=Mesa 3')
+
+
+      354 |         await page.goto("/mozo");
+      355 |         await page.waitForLoadState("networkidle");
+    > 356 |         await page.click('text=Mesa 3');
+          |                    ^
+      357 |         await page.waitForLoadState("networkidle");
+      358 |
+      359 |         const pollo1 = page.locator('button:has-text("Pollo")').first();
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\complete-waiter-flow.spec.ts:356:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-2cb4e-ers-can-work-simultaneously-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-2cb4e-ers-can-work-simultaneously-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\complete-waiter-flow-Compl-2cb4e-ers-can-work-simultaneously-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[👥 Starting Multiple Waiters Test
+
+[[ATTACHMENT|complete-waiter-flow-Compl-2cb4e-ers-can-work-simultaneously-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-2cb4e-ers-can-work-simultaneously-chromium\video.webm]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-2cb4e-ers-can-work-simultaneously-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete Waiter Flow - End to End › verify order persists after page refresh" classname="complete-waiter-flow.spec.ts" time="34.33">
+<failure message="complete-waiter-flow.spec.ts:411:5 verify order persists after page refresh" type="FAILURE">
+<![CDATA[  [chromium] › complete-waiter-flow.spec.ts:411:5 › Complete Waiter Flow - End to End › verify order persists after page refresh 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('text=Mesa 5')
+
+
+      415 |         await page.goto("/mozo");
+      416 |         await page.waitForLoadState("networkidle");
+    > 417 |         await page.click('text=Mesa 5');
+          |                    ^
+      418 |         await page.waitForLoadState("networkidle");
+      419 |
+      420 |         // Add item
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\complete-waiter-flow.spec.ts:417:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-8e66e-persists-after-page-refresh-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\complete-waiter-flow-Compl-8e66e-persists-after-page-refresh-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\complete-waiter-flow-Compl-8e66e-persists-after-page-refresh-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔄 Starting Order Persistence Test
+
+[[ATTACHMENT|complete-waiter-flow-Compl-8e66e-persists-after-page-refresh-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-8e66e-persists-after-page-refresh-chromium\video.webm]]
+
+[[ATTACHMENT|complete-waiter-flow-Compl-8e66e-persists-after-page-refresh-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="debug-waiter-page.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.228" errors="0">
+<testcase name="Waiter Page Diagnosis › diagnose waiter page loading" classname="debug-waiter-page.spec.ts" time="3.228">
+<system-out>
+<![CDATA[Navigating to /mozo...
+Page title: PARK POS
+Current URL: http://localhost:3000/mozo
+Body text (first 500 chars): MESEROT-01Toma de Pedidos • Mesas0OcupadasLIVECerrar sesiónTodasSalónTerrazaVIPSALMesa 1DisponibleSALMesa 2DisponibleSALMesa 3DisponibleTERMesa 4DisponibleTERMesa 5DisponibleTERMesa 6DisponibleVIPMesa 7DisponibleVIPMesa 8DisponibleVIPMesa 9DisponibleDisponibleOcupada <20m20-40m>40mPide cuentaMesasListosConfigself.__next_r="2oeyMmjHtI7CY8z50zQxZ"(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,"6:I[\"[project]/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-nod
+Found 9 mesa buttons
+Found 17 total buttons
+Button 0: 
+Button 1: 
+Button 2: Cerrar sesión
+Button 3: Todas
+Button 4: Salón
+
+=== Console Logs ===
+[error] Refused to apply style from 'http://localhost:3000/_next/static/css/app/layout.css' because its MIME type ('text/plain') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+[error] Failed to load resource: the server responded with a status of 404 (Not Found)
+[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[log] [HMR] connected
+[log] [useRequireTerminal] Config found {terminal_id: WAITER_TEST_01}
+[log] [useRequireTerminal] Config found {terminal_id: WAITER_TEST_01}
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[log] [Fast Refresh] rebuilding
+[log] [Fast Refresh] done in 203ms
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="multi-tenant-provisioning.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="10" failures="10" skipped="0" time="318.128" errors="0">
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant" classname="multi-tenant-provisioning.spec.ts" time="38.21">
+<failure message="multi-tenant-provisioning.spec.ts:15:3 ✅ Flujo completo: Provisionar nuevo tenant" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:15:3 › Multi-Tenant Provisioning E2E › ✅ Flujo completo: Provisionar nuevo tenant 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+
+
+      25 |     // 3. Llenar formulario - Información del negocio
+      26 |     const legalNameInput = page.locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first();
+    > 27 |     await legalNameInput.fill('Pollería E2E Test');
+         |                          ^
+      28 |
+      29 |     // 4. Llenar información del admin
+      30 |     const adminNameInput = page.locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1);
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:27:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--09554-to-Provisionar-nuevo-tenant-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos" classname="multi-tenant-provisioning.spec.ts" time="35.826">
+<failure message="multi-tenant-provisioning.spec.ts:74:3 ✅ Validación: PIN debe ser 4 dígitos" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:74:3 › Multi-Tenant Provisioning E2E › ✅ Validación: PIN debe ser 4 dígitos 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1)
+
+
+      80 |     // Llenar con PIN inválido (solo 2 dígitos)
+      81 |     const adminNameInput = page.locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1);
+    > 82 |     await adminNameInput.fill('Test');
+         |                          ^
+      83 |
+      84 |     const adminPinInput = page.locator('input[placeholder*="PIN"], input[type="password"]').first();
+      85 |     await adminPinInput.fill('12');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:82:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--f8913-ción-PIN-debe-ser-4-dígitos-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido" classname="multi-tenant-provisioning.spec.ts" time="35.747">
+<failure message="multi-tenant-provisioning.spec.ts:94:3 ✅ Validación: Legal name es requerido" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:94:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Legal name es requerido 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1)
+
+
+      100 |     // Dejar legal_name vacío
+      101 |     const adminNameInput = page.locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1);
+    > 102 |     await adminNameInput.fill('Test');
+          |                          ^
+      103 |
+      104 |     const adminPinInput = page.locator('input[placeholder*="PIN"], input[type="password"]').first();
+      105 |     await adminPinInput.fill('1234');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:102:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--da9fb-ión-Legal-name-es-requerido-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido" classname="multi-tenant-provisioning.spec.ts" time="38.296">
+<failure message="multi-tenant-provisioning.spec.ts:114:3 ✅ Validación: Admin name es requerido" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:114:3 › Multi-Tenant Provisioning E2E › ✅ Validación: Admin name es requerido 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+
+
+      120 |     // Dejar admin_name vacío
+      121 |     const legalNameInput = page.locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first();
+    > 122 |     await legalNameInput.fill('Test');
+          |                          ^
+      123 |
+      124 |     const adminPinInput = page.locator('input[placeholder*="PIN"], input[type="password"]').first();
+      125 |     await adminPinInput.fill('1234');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:122:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--3abb8-ión-Admin-name-es-requerido-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles" classname="multi-tenant-provisioning.spec.ts" time="38.255">
+<failure message="multi-tenant-provisioning.spec.ts:134:3 ✅ Funcionalidad: Copiar credenciales al portapapeles" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:134:3 › Multi-Tenant Provisioning E2E › ✅ Funcionalidad: Copiar credenciales al portapapeles 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+
+
+      140 |     // Provisionar tenant
+      141 |     const legalNameInput = page.locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first();
+    > 142 |     await legalNameInput.fill('Copy Test');
+          |                          ^
+      143 |
+      144 |     const adminNameInput = page.locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1);
+      145 |     await adminNameInput.fill('Admin');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:142:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--3eacd-redenciales-al-portapapeles-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants" classname="multi-tenant-provisioning.spec.ts" time="39.187">
+<failure message="multi-tenant-provisioning.spec.ts:169:3 ✅ Flujo: Provisionar múltiples tenants" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:169:3 › Multi-Tenant Provisioning E2E › ✅ Flujo: Provisionar múltiples tenants 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+
+
+      175 |     // Provisionar tenant 1
+      176 |     const legalNameInput1 = page.locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first();
+    > 177 |     await legalNameInput1.fill('Tenant 1 E2E');
+          |                           ^
+      178 |
+      179 |     const adminNameInput1 = page.locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1);
+      180 |     await adminNameInput1.fill('Admin 1');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:177:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--16300-ovisionar-múltiples-tenants-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones" classname="multi-tenant-provisioning.spec.ts" time="7.002">
+<failure message="multi-tenant-provisioning.spec.ts:219:3 ✅ UI: Formulario tiene todas las secciones" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:219:3 › Multi-Tenant Provisioning E2E › ✅ UI: Formulario tiene todas las secciones 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('text=/Business|Information/i')
+    Expected: visible
+    Error: strict mode violation: locator('text=/Business|Information/i') resolved to 2 elements:
+        1) <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">…</h2> aka getByRole('heading', { name: 'Business Information' })
+        2) <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">…</h2> aka getByRole('heading', { name: 'Admin Information' })
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=/Business|Information/i')
+
+
+      224 |
+      225 |     // Verificar secciones - usar selectores más robustos
+    > 226 |     await expect(page.locator('text=/Business|Information/i')).toBeVisible();
+          |                                                                ^
+      227 |     await expect(page.locator('text=/Admin|Information/i')).toBeVisible();
+      228 |     await expect(page.locator('text=/Regional|Settings/i')).toBeVisible();
+      229 |
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:226:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--7c6b5-o-tiene-todas-las-secciones-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos" classname="multi-tenant-provisioning.spec.ts" time="38.351">
+<failure message="multi-tenant-provisioning.spec.ts:238:3 ✅ UI: Onboarding checklist muestra 6 pasos" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:238:3 › Multi-Tenant Provisioning E2E › ✅ UI: Onboarding checklist muestra 6 pasos 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+
+
+      244 |     // Provisionar tenant
+      245 |     const legalNameInput = page.locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first();
+    > 246 |     await legalNameInput.fill('Checklist Test');
+          |                          ^
+      247 |
+      248 |     const adminNameInput = page.locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1);
+      249 |     await adminNameInput.fill('Admin');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:246:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--53703-g-checklist-muestra-6-pasos-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile" classname="multi-tenant-provisioning.spec.ts" time="36.809">
+<failure message="multi-tenant-provisioning.spec.ts:270:3 ✅ Responsividad: Formulario funciona en mobile" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:270:3 › Multi-Tenant Provisioning E2E › ✅ Responsividad: Formulario funciona en mobile 
+
+    TimeoutError: locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+
+
+      279 |     // Llenar formulario
+      280 |     const legalNameInput = page.locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first();
+    > 281 |     await legalNameInput.fill('Mobile Test');
+          |                          ^
+      282 |
+      283 |     const adminNameInput = page.locator('input[placeholder*="Admin"], input[placeholder*="Name"]').nth(1);
+      284 |     await adminNameInput.fill('Admin');
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:281:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--fc12d-rmulario-funciona-en-mobile-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos" classname="multi-tenant-provisioning.spec.ts" time="10.445">
+<failure message="multi-tenant-provisioning.spec.ts:297:3 ✅ Accesibilidad: Formulario tiene labels correctos" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-provisioning.spec.ts:297:3 › Multi-Tenant Provisioning E2E › ✅ Accesibilidad: Formulario tiene labels correctos 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[placeholder*="Legal"], input[placeholder*="Name"]').first()
+
+
+      306 |     const adminPinInput = page.locator('input[placeholder*="PIN"], input[type="password"]').first();
+      307 |
+    > 308 |     await expect(legalNameInput).toBeVisible();
+          |                                  ^
+      309 |     await expect(adminNameInput).toBeVisible();
+      310 |     await expect(adminPinInput).toBeVisible();
+      311 |   });
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-provisioning.spec.ts:308:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-provisioning--fafb0-ario-tiene-labels-correctos-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="multi-tenant-rls-isolation.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="19" failures="1" skipped="0" time="358.917" errors="0">
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 employees" classname="multi-tenant-rls-isolation.spec.ts" time="37.431">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 products" classname="multi-tenant-rls-isolation.spec.ts" time="32.393">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot see Tenant 2 orders" classname="multi-tenant-rls-isolation.spec.ts" time="34.873">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 employee via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="11.278">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot access Tenant 2 product via direct URL" classname="multi-tenant-rls-isolation.spec.ts" time="10.506">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot edit Tenant 2 employee via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.305">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot delete Tenant 2 product via API" classname="multi-tenant-rls-isolation.spec.ts" time="4.744">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot create employee for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="4.367">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" classname="multi-tenant-rls-isolation.spec.ts" time="40.772">
+<failure message="multi-tenant-rls-isolation.spec.ts:262:3 ✅ RLS: Tenant 1 cannot view Tenant 2 analytics" type="FAILURE">
+<![CDATA[  [chromium] › multi-tenant-rls-isolation.spec.ts:262:3 › Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 analytics 
+
+    Error: expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "S/ 0.00"
+
+      290 |
+      291 |     // Verify they are different
+    > 292 |     expect(tenant1Revenue).not.toBe(tenant2Revenue);
+          |                                ^
+      293 |     expect(tenant1Revenue).not.toBe('...');
+      294 |     expect(tenant2Revenue).not.toBe('...');
+      295 |   });
+        at E:\FREECLOUD\FREECLOUD-IA\PROYECTOS\park\e2e\multi-tenant-rls-isolation.spec.ts:292:32
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
+
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\video.webm]]
+
+[[ATTACHMENT|multi-tenant-rls-isolation-79500-not-view-Tenant-2-analytics-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 audit logs" classname="multi-tenant-rls-isolation.spec.ts" time="30.936">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 settings" classname="multi-tenant-rls-isolation.spec.ts" time="34.913">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Cross-tenant API calls are blocked" classname="multi-tenant-rls-isolation.spec.ts" time="5.12">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant switching clears previous tenant data" classname="multi-tenant-rls-isolation.spec.ts" time="71.404">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+[authenticateAsAdmin] Set tenant_id in localStorage: 22222222-2222-2222-2222-222222222222
+[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot bulk import data for Tenant 2" classname="multi-tenant-rls-isolation.spec.ts" time="4.297">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot export Tenant 2 data" classname="multi-tenant-rls-isolation.spec.ts" time="7.934">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot restore Tenant 2 backup" classname="multi-tenant-rls-isolation.spec.ts" time="4.167">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 configuration" classname="multi-tenant-rls-isolation.spec.ts" time="7.912">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot view Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="6.364">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+<testcase name="Multi-Tenant RLS Isolation E2E › ✅ RLS: Tenant 1 cannot modify Tenant 2 quotas" classname="multi-tenant-rls-isolation.spec.ts" time="5.201">
+<system-out>
+<![CDATA[[authenticateAsAdmin] Set tenant_id in localStorage: 11111111-1111-1111-1111-111111111111
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="waiter-to-kds.spec.ts" timestamp="2026-02-12T17:02:24.906Z" hostname="chromium" tests="5" failures="0" skipped="1" time="34.045" errors="0">
+<testcase name="Waiter to KDS Flow › waiter creates order and submits to kitchen, KDS shows order" classname="waiter-to-kds.spec.ts" time="16.962">
+</testcase>
+<testcase name="Waiter to KDS Flow › KDS can change item status after submission" classname="waiter-to-kds.spec.ts" time="9.572">
+</testcase>
+<testcase name="Waiter to KDS Flow › multiple waiters can submit orders (sequential)" classname="waiter-to-kds.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Waiter to KDS Flow › order with no items cannot be submitted" classname="waiter-to-kds.spec.ts" time="1.902">
+</testcase>
+<testcase name="Waiter to KDS Flow › submitted items remain visible on waiter screen" classname="waiter-to-kds.spec.ts" time="5.609">
+</testcase>
+</testsuite>
+</testsuites>

@@ -437,7 +437,7 @@ describe('Inventory - Property Tests', () => {
     it('current_qty is non-negative', () => {
       testInvariant(
         fc.constant(generateRealisticInventoryItem()),
-        (item) => item.current_qty >= 0,
+        (item: any) => item.current_qty >= 0,
         'current_qty must be non-negative'
       );
     });
@@ -445,7 +445,7 @@ describe('Inventory - Property Tests', () => {
     it('unit_cost_cents is positive', () => {
       testInvariant(
         fc.constant(generateRealisticInventoryItem()),
-        (item) => (item.unit_cost_cents as number) > 0,
+        (item: any) => (item.unit_cost_cents as number) > 0,
         'unit_cost_cents must be positive'
       );
     });
@@ -453,7 +453,7 @@ describe('Inventory - Property Tests', () => {
     it('weighted_avg_cost_cents is non-negative', () => {
       testInvariant(
         fc.constant(generateRealisticInventoryItem()),
-        (item) => (item.weighted_avg_cost_cents as number) >= 0,
+        (item: any) => (item.weighted_avg_cost_cents as number) >= 0,
         'weighted_avg_cost_cents must be non-negative'
       );
     });
@@ -461,7 +461,7 @@ describe('Inventory - Property Tests', () => {
     it('reorder_level is non-negative', () => {
       testInvariant(
         fc.constant(generateRealisticInventoryItem()),
-        (item) => item.reorder_level >= 0,
+        (item: any) => item.reorder_level >= 0,
         'reorder_level must be non-negative'
       );
     });
