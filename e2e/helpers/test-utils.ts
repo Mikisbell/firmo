@@ -5,7 +5,7 @@ import { Page } from '@playwright/test';
 import { v4 as uuidv4 } from 'uuid';
 
 export const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-export const API_SECRET = 'park_secret_mvp_2025';
+export const API_SECRET = process.env.PARK_API_SECRET || 'trZSA6uzhY4SIGbQ+bCl8t2BhffTrT35DVnXf5fOgao=';
 
 // Test PINs from seed.ts
 export const TEST_PINS = {
