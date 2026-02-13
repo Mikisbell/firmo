@@ -752,11 +752,6 @@ function StationModal({
 function GlobalStatsCard({ stations }: { stations: Station[] }) {
   const activeStations = stations.filter(s => s.is_active);
   
-  // Aggregate metrics from all active stations
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [avgTime, setAvgTime] = useState(0);
-  const [globalEfficiency, setGlobalEfficiency] = useState(0);
-  
   // Fetch metrics for all stations (hooks must be called unconditionally)
   const station1Metrics = useStationMetrics({ stationId: activeStations[0]?.id || '' });
   const station2Metrics = useStationMetrics({ stationId: activeStations[1]?.id || '' });
@@ -773,7 +768,7 @@ function GlobalStatsCard({ stations }: { stations: Station[] }) {
   ].filter((m, idx) => idx < activeStations.length && m !== null);
   
   // Optimización: Combinar 3 reduce en una sola iteración con useMemo
-  // Reduce complejidad de O(4n) a O(n) y evita setState innecesarios
+  // Reduce complejidad de O(4n) a O(n) y calcula valores directamente
   const { totalOrders, avgTime, globalEfficiency } = useMemo(() => {
     const validMetrics = stationMetrics.filter(m => m !== null);
     if (validMetrics.length === 0) {
@@ -796,13 +791,6 @@ function GlobalStatsCard({ stations }: { stations: Station[] }) {
       globalEfficiency: Math.round(sumEfficiency / validMetrics.length),
     };
   }, [stationMetrics]);
-  
-  // Actualizar estados cuando cambien los valores calculados
-  useEffect(() => {
-    setTotalOrders(totalOrders);
-    setAvgTime(avgTime);
-    setGlobalEfficiency(globalEfficiency);
-  }, [totalOrders, avgTime, globalEfficiency]);
   
   return (
     <>
