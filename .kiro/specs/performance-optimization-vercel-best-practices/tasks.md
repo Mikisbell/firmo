@@ -284,7 +284,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Para cualquier función estable, useCallback mantiene referencia
     - _Requirements: 5.3_
 
-  - [ ] 7.9 Identificar cálculos costosos que necesitan useMemo
+  - [x] 7.9 Identificar cálculos costosos que necesitan useMemo
     - Buscar operaciones O(n log n) o superiores (sort, filter, map encadenados)
     - Identificar al menos 5 casos
     - Documentar componente y cálculo
