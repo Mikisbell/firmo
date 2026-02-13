@@ -3,7 +3,7 @@
  * Tests offline capabilities and sync behavior
  */
 import { test, expect } from '@playwright/test';
-import { setupTerminal, TERMINALS, uuid, generateOrderNumber, TENANT_ID, API_SECRET } from './helpers/test-utils';
+import { setupTerminal, TERMINALS, uuid, generateOrderNumber, TENANT_ID, API_SECRET, createEventWithRole } from './helpers/test-utils';
 
 test.describe('Offline Mode', () => {
   
@@ -83,7 +83,7 @@ test.describe('Event Synchronization', () => {
     const orderId = uuid();
     const orderNumber = generateOrderNumber();
     
-    const event = {
+    const event = createEventWithRole({
       event_id: eventId,
       event_type: 'ORDER_CREATED',
       tenant_id: TENANT_ID,
@@ -101,7 +101,7 @@ test.describe('Event Synchronization', () => {
         items: [],
         checks: [{ check_id: uuid(), lines: [], payment: { status: 'UNPAID', payments: [] } }],
       },
-    };
+    }, 'CASHIER');
 
     const body = {
       tenant_id: TENANT_ID,

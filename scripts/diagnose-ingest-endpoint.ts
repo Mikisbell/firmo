@@ -38,6 +38,8 @@ async function testIngestEndpoint() {
     schema_version: 1,
     terminal_sequence: 1,
     correlation_id: uuid(),
+    actor_id: uuid(), // UUID completo válido
+    actor_role_snapshot: 'CASHIER',
     payload: {
       order_id: orderId,
       order_number: orderNumber,

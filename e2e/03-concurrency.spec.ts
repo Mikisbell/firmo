@@ -3,7 +3,7 @@
  * Tests concurrent operations from multiple terminals
  */
 import { test, expect } from '@playwright/test';
-import { TENANT_ID, API_SECRET, TERMINALS, uuid, generateOrderNumber } from './helpers/test-utils';
+import { TENANT_ID, API_SECRET, TERMINALS, uuid, generateOrderNumber, createEventWithRole } from './helpers/test-utils';
 
 const ingestEvent = async (request: any, event: any, terminalId: string, sequence: number) => {
   return request.post('/api/events/ingest', {
@@ -21,7 +21,7 @@ const ingestEvent = async (request: any, event: any, terminalId: string, sequenc
   });
 };
 
-const createOrderEvent = (orderId: string, orderNumber: number, terminalId: string, sequence: number) => ({
+const createOrderEvent = (orderId: string, orderNumber: number, terminalId: string, sequence: number) => createEventWithRole({
   event_id: uuid(),
   event_type: 'ORDER_CREATED',
   tenant_id: TENANT_ID,
@@ -39,9 +39,9 @@ const createOrderEvent = (orderId: string, orderNumber: number, terminalId: stri
     items: [],
     checks: [{ check_id: uuid(), lines: [], payment: { status: 'UNPAID', payments: [] }, total_cents: 0 }],
   },
-});
+}, terminalId.startsWith('CAJA') ? 'CASHIER' : 'WAITER');
 
-const createItemAddedEvent = (orderId: string, terminalId: string, sequence: number, productId: string, qty: number) => ({
+const createItemAddedEvent = (orderId: string, terminalId: string, sequence: number, productId: string, qty: number) => createEventWithRole({
   event_id: uuid(),
   event_type: 'ORDER_ITEM_ADDED',
   tenant_id: TENANT_ID,
@@ -66,7 +66,7 @@ const createItemAddedEvent = (orderId: string, terminalId: string, sequence: num
       mods: [],
     },
   },
-});
+}, 'WAITER');
 
 test.describe('Multi-Terminal Concurrency', () => {
 
@@ -197,7 +197,7 @@ test.describe('Shift Operations Concurrency', () => {
     const actorId = uuid();
 
     // Open shift with correct payload
-    const shiftOpenEvent = {
+    const shiftOpenEvent = createEventWithRole({
       event_id: uuid(),
       event_type: 'SHIFT_OPENED',
       tenant_id: TENANT_ID,
@@ -213,14 +213,14 @@ test.describe('Shift Operations Concurrency', () => {
         shift_id: shiftId,
         cash_opening_cents: 50000,
       },
-    };
+    }, 'CASHIER');
 
     const openResponse = await ingestEvent(request, shiftOpenEvent, terminalId, 1);
     // API should respond (may fail validation but not crash)
     expect(openResponse.status()).toBeDefined();
 
     // Try to close shift
-    const shiftCloseEvent = {
+    const shiftCloseEvent = createEventWithRole({
       event_id: uuid(),
       event_type: 'SHIFT_CLOSED',
       tenant_id: TENANT_ID,
@@ -236,7 +236,7 @@ test.describe('Shift Operations Concurrency', () => {
         shift_id: shiftId,
         cash_counted_cents: 50000,
       },
-    };
+    }, 'CASHIER');
 
     const closeResponse = await ingestEvent(request, shiftCloseEvent, terminalId, 2);
     // API should respond
@@ -252,7 +252,7 @@ test.describe('Event Deduplication', () => {
     const orderNumber = generateOrderNumber();
     const terminalId = TERMINALS.CAJA;
 
-    const event = {
+    const event = createEventWithRole({
       event_id: eventId, // Same event_id
       event_type: 'ORDER_CREATED',
       tenant_id: TENANT_ID,
@@ -270,7 +270,7 @@ test.describe('Event Deduplication', () => {
         items: [],
         checks: [{ check_id: uuid(), lines: [], payment: { status: 'UNPAID', payments: [] }, total_cents: 0 }],
       },
-    };
+    }, 'CASHIER');
 
     // Send same event 3 times (simulating network retry)
     const responses = await Promise.all([

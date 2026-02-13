@@ -135,6 +135,22 @@ export function uuid(): string {
 }
 
 /**
+ * Create event with actor role snapshot
+ * Agrega actor_id y actor_role_snapshot a un evento para pasar validación de roles
+ * 
+ * @param eventData - Datos del evento base
+ * @param role - Rol del actor (CASHIER, WAITER, KITCHEN, MANAGER, ADMIN)
+ * @returns Evento con actor_id y actor_role_snapshot
+ */
+export function createEventWithRole(eventData: any, role: string = 'CASHIER'): any {
+  return {
+    ...eventData,
+    actor_id: uuidv4(), // UUID completo válido
+    actor_role_snapshot: role,
+  };
+}
+
+/**
  * Setup Waiter Terminal with Session
  * Configures localStorage with waiter terminal and session data
  */
