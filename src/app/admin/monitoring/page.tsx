@@ -19,7 +19,7 @@
  * @module admin/monitoring
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   LineChart,
   Line,
@@ -47,6 +47,7 @@ import {
   RefreshCw,
   Download,
 } from 'lucide-react';
+import { useMetrics } from '@/src/hooks/useSWRHooks';
 
 // Tipos de datos
 interface MetricsSummary {
@@ -110,64 +111,22 @@ const CHART_COLORS = [
 ];
 
 export default function MonitoringDashboard() {
-  const [metricsData, setMetricsData] = useState<MetricsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
   // Filtros
   const [period, setPeriod] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
   const [tenantId, setTenantId] = useState<string>('');
   const [terminalId, setTerminalId] = useState<string>('');
-  const [autoRefresh, setAutoRefresh] = useState(true);
-
-  // Cargar métricas
-  const loadMetrics = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params = new URLSearchParams({
-        period,
-        ...(tenantId && { tenantId }),
-        ...(terminalId && { terminalId }),
-      });
-
-      const response = await fetch(`/api/metrics?${params}`);
-      
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      
-      if (result.success) {
-        setMetricsData(result.data);
-      } else {
-        throw new Error(result.error || 'Error desconocido');
-      }
-    } catch (err) {
-      console.error('Error cargando métricas:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Cargar métricas al montar y cuando cambien los filtros
-  useEffect(() => {
-    loadMetrics();
-  }, [period, tenantId, terminalId]);
-
-  // Auto-refresh cada 30 segundos
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(() => {
-      loadMetrics();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [autoRefresh, period, tenantId, terminalId]);
+  
+  // Construir parámetros para el hook
+  const params: Record<string, string> = { period };
+  if (tenantId) params.tenantId = tenantId;
+  if (terminalId) params.terminalId = terminalId;
+  
+  // Migrado a SWR - deduplicación automática, revalidación cada 30s
+  const { data: result, error, isLoading: loading, mutate } = useMetrics(params, {
+    refreshInterval: 30000, // Auto-refresh cada 30 segundos
+  });
+  
+  const metricsData = result?.success ? result.data : null;
 
   // Calcular error rate
   const calculateErrorRate = (): number => {
@@ -205,11 +164,12 @@ export default function MonitoringDashboard() {
         const match = key.match(/pathname:([^,}]+)/);
         const endpoint = match ? match[1] : 'unknown';
         
+        const histStats = stats as HistogramStats;
         data.push({
           endpoint,
-          avg: Math.round(stats.avg),
-          p95: Math.round(stats.p95),
-          p99: Math.round(stats.p99),
+          avg: Math.round(histStats.avg),
+          p95: Math.round(histStats.p95),
+          p99: Math.round(histStats.p99),
         });
       }
     }
@@ -275,7 +235,8 @@ export default function MonitoringDashboard() {
                           status.startsWith('4') ? '4xx Client Error' :
                           status.startsWith('5') ? '5xx Server Error' : 'Other';
           
-          statusCounts[category] = (statusCounts[category] || 0) + value;
+          const count = typeof value === 'number' ? value : 0;
+          statusCounts[category] = (statusCounts[category] || 0) + count;
         }
       }
     }
@@ -408,9 +369,9 @@ export default function MonitoringDashboard() {
         <div className="text-center max-w-md">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Error al cargar métricas</h2>
-          <p className="text-zinc-400 mb-4">{error}</p>
+          <p className="text-zinc-400 mb-4">{error.message || 'Error desconocido'}</p>
           <button
-            onClick={loadMetrics}
+            onClick={() => mutate()}
             className="px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-600 transition-colors"
           >
             Reintentar
@@ -485,23 +446,16 @@ export default function MonitoringDashboard() {
             />
           </div>
 
-          {/* Auto-refresh */}
+          {/* Auto-refresh - Ahora controlado por SWR */}
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="autoRefresh"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="w-4 h-4 text-amber-500 bg-zinc-800 border-zinc-700 rounded focus:ring-amber-500"
-            />
-            <label htmlFor="autoRefresh" className="text-sm text-zinc-400">
-              Auto-refresh (30s)
-            </label>
+            <span className="text-sm text-zinc-400">
+              Auto-refresh: 30s
+            </span>
           </div>
 
           {/* Botón de refresh manual */}
           <button
-            onClick={loadMetrics}
+            onClick={() => mutate()}
             disabled={loading}
             className="px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >

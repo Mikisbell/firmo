@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ArrowLeft, Shield, Trash2 } from 'lucide-react';
+import { useEmployee } from '@/src/hooks/useSWRHooks';
 
 const ROLE_OPTIONS = [
   { value: 'OWNER', label: 'Dueño' },
@@ -34,13 +35,15 @@ interface Employee {
 export default function EditEmployeePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [employeeId, setEmployeeId] = useState<string | null>(null);
-  const [employee, setEmployee] = useState<Employee | null>(null);
+  
+  // Migrado a SWR - deduplicación automática, revalidación inteligente
+  const { data: employee, error: fetchError, isLoading: loading, mutate } = useEmployee(employeeId);
+  
   const [form, setForm] = useState({
     name: '',
     role: '',
     is_active: true,
   });
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,28 +52,14 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
   }, [params]);
 
   useEffect(() => {
-    if (!employeeId) return;
+    if (!employee) return;
     
-    const fetchEmployee = async () => {
-      try {
-        const res = await fetch(`/api/admin/employees/${employeeId}`);
-        if (!res.ok) throw new Error('Empleado no encontrado');
-        const data = await res.json();
-        setEmployee(data);
-        setForm({
-          name: data.name,
-          role: data.role,
-          is_active: data.is_active,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar empleado');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEmployee();
-  }, [employeeId]);
+    setForm({
+      name: employee.name,
+      role: employee.role,
+      is_active: employee.is_active,
+    });
+  }, [employee]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +83,10 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       toast.success('Empleado actualizado exitosamente', {
         description: `Los cambios de ${form.name} han sido guardados`,
       });
+      
+      // Revalidar datos después de actualizar
+      mutate();
+      
       router.push('/admin/empleados');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al guardar';
@@ -140,7 +133,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
     );
   }
 
-  if (error && !employee) {
+  if ((fetchError || error) && !employee) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -153,7 +146,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
           <h1 className="text-2xl font-bold">Error</h1>
         </div>
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-          {error}
+          {fetchError?.message || error}
         </div>
       </div>
     );

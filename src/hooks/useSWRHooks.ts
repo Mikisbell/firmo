@@ -349,6 +349,258 @@ export function useDrivers(config?: SWRConfiguration) {
   );
 }
 
+// ============ FASE 3 - NUEVOS HOOKS ============
+
+/**
+ * Hook para obtener reportes administrativos
+ * 
+ * @param period - Período del reporte ('today', 'week', 'month', 'year')
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading } = useAdminReports('today');
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <ReportsView reports={data} />;
+ */
+export function useAdminReports(period: string, config?: SWRConfiguration) {
+  return useSWR(
+    period ? `/api/admin/reports?period=${period}` : null,
+    fetcher,
+    {
+      // Reportes cambian cada hora, revalidar moderadamente
+      refreshInterval: 60 * 60 * 1000,
+      revalidateOnFocus: true,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener detalles de un producto específico
+ * 
+ * @param id - ID del producto
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = useProduct('prod-123');
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <ProductDetails product={data} onUpdate={mutate} />;
+ */
+export function useProduct(id: string | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? `/api/admin/products/${id}` : null,
+    fetcher,
+    {
+      // Productos no cambian frecuentemente
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener detalles de un empleado específico
+ * 
+ * @param id - ID del empleado
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = useEmployee('emp-123');
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <EmployeeDetails employee={data} onUpdate={mutate} />;
+ */
+export function useEmployee(id: string | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? `/api/admin/employees/${id}` : null,
+    fetcher,
+    {
+      // Empleados no cambian frecuentemente
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener métricas del sistema
+ * 
+ * @param params - Parámetros de las métricas (opcional)
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading } = useMetrics({ timeRange: '1h' });
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <MetricsChart metrics={data} />;
+ */
+export function useMetrics(params?: Record<string, string>, config?: SWRConfiguration) {
+  const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
+  
+  return useSWR(
+    `/api/metrics${queryString}`,
+    fetcher,
+    {
+      // Métricas en tiempo real, revalidar frecuentemente
+      refreshInterval: 30 * 1000,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener estado de notificaciones
+ * 
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = useNotificationStatus();
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <NotificationBadge count={data.unread} onUpdate={mutate} />;
+ */
+export function useNotificationStatus(config?: SWRConfiguration) {
+  return useSWR(
+    '/api/admin/notifications/status',
+    fetcher,
+    {
+      // Notificaciones cambian frecuentemente
+      refreshInterval: 30 * 1000,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener lista de promociones
+ * 
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = usePromotions();
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <PromotionsList promotions={data.promotions} onUpdate={mutate} />;
+ */
+export function usePromotions(config?: SWRConfiguration) {
+  return useSWR(
+    '/api/admin/promotions',
+    fetcher,
+    {
+      // Promociones no cambian frecuentemente
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener detalles de una promoción específica
+ * 
+ * @param id - ID de la promoción
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = usePromotion('promo-123');
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <PromotionDetails promotion={data} onUpdate={mutate} />;
+ */
+export function usePromotion(id: string | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? `/api/admin/promotions/${id}` : null,
+    fetcher,
+    {
+      // Promociones no cambian frecuentemente
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener lista de mesas
+ * 
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = useTables();
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <TablesList tables={data.tables} onUpdate={mutate} />;
+ */
+export function useTables(config?: SWRConfiguration) {
+  return useSWR(
+    '/api/admin/tables',
+    fetcher,
+    {
+      // Mesas no cambian frecuentemente
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener lista de estaciones de cocina
+ * 
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = useStations();
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <StationsList stations={data.stations} onUpdate={mutate} />;
+ */
+export function useStations(config?: SWRConfiguration) {
+  return useSWR(
+    '/api/admin/stations',
+    fetcher,
+    {
+      // Estaciones no cambian frecuentemente
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      ...config,
+    }
+  );
+}
+
+/**
+ * Hook para obtener estadísticas de inventario
+ * 
+ * @param tenantId - ID del tenant
+ * @returns {object} { data, error, isLoading, mutate }
+ * 
+ * @example
+ * const { data, error, isLoading, mutate } = useInventoryStats('tenant-123');
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error />;
+ * return <InventoryDashboard stats={data} onUpdate={mutate} />;
+ */
+export function useInventoryStats(tenantId: string | null, config?: SWRConfiguration) {
+  return useSWR(
+    tenantId ? `/api/inventory/stats?tenant_id=${tenantId}` : null,
+    fetcher,
+    {
+      // Inventario cambia moderadamente
+      refreshInterval: 5 * 60 * 1000,
+      revalidateOnFocus: true,
+      ...config,
+    }
+  );
+}
+
 // ============ EXPORTS ============
 
 export type {

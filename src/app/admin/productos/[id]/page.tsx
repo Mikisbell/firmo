@@ -13,6 +13,7 @@ import { ArrowLeft, Package, DollarSign, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '../components/ImageUpload';
 import type { ProductImage } from '@/src/core/types/product-images';
+import { useProduct } from '@/src/hooks/useSWRHooks';
 
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
@@ -53,7 +54,10 @@ interface Product {
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [productId, setProductId] = useState<string | null>(null);
-  const [product, setProduct] = useState<Product | null>(null);
+  
+  // Migrado a SWR - deduplicación automática, revalidación inteligente
+  const { data: product, error: fetchError, isLoading: loading, mutate } = useProduct(productId);
+  
   const [form, setForm] = useState({
     sku: '',
     name: '',
@@ -66,7 +70,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   });
   const [images, setImages] = useState<ProductImage[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,34 +78,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   }, [params]);
 
   useEffect(() => {
-    if (!productId) return;
+    if (!product) return;
     
-    const fetchProduct = async () => {
-      try {
-        const res = await fetch(`/api/admin/products/${productId}`);
-        if (!res.ok) throw new Error('Producto no encontrado');
-        const data = await res.json();
-        setProduct(data);
-        setImages(data.images || []);
-        setForm({
-          sku: data.sku,
-          name: data.name,
-          short_name: data.short_name || '',
-          price_soles: (data.price_cents / 100).toFixed(2),
-          category: data.category,
-          station: data.station,
-          type: data.type,
-          is_active: data.is_active,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar producto');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [productId]);
+    setImages(product.images || []);
+    setForm({
+      sku: product.sku,
+      name: product.name,
+      short_name: product.short_name || '',
+      price_soles: (product.price_cents / 100).toFixed(2),
+      category: product.category,
+      station: product.station,
+      type: product.type,
+      is_active: product.is_active,
+    });
+  }, [product]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,6 +176,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       toast.success('Producto actualizado', {
         description: `${form.name} ha sido actualizado exitosamente`,
       });
+      
+      // Revalidar datos después de actualizar
+      mutate();
+      
       router.push('/admin/productos');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al guardar';
@@ -233,7 +226,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  if (error && !product) {
+  if ((fetchError || error) && !product) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -246,7 +239,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           <h1 className="text-2xl font-bold">Error</h1>
         </div>
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-          {error}
+          {fetchError?.message || error}
         </div>
       </div>
     );

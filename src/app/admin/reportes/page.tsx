@@ -5,8 +5,9 @@
  * Requirements: 9.1, 9.2, 9.3, 9.4
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Calendar, Download, TrendingUp, CreditCard, Banknote, Percent } from 'lucide-react';
+import { useAdminReports } from '@/src/hooks/useSWRHooks';
 
 interface ReportData {
   period: string;
@@ -21,25 +22,9 @@ type Period = 'daily' | 'weekly' | 'monthly';
 
 export default function ReportsPage() {
   const [period, setPeriod] = useState<Period>('daily');
-  const [report, setReport] = useState<ReportData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchReport = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/reports?period=${period}`);
-      if (!res.ok) throw new Error('Failed to fetch');
-      setReport(await res.json());
-      setError(null);
-    } catch {
-      setError('Error al cargar reporte');
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => { fetchReport(); }, [fetchReport]);
+  
+  // Migrado a SWR - deduplicación automática, revalidación inteligente
+  const { data: report, error, isLoading: loading } = useAdminReports(period);
 
   const formatCurrency = (cents: number) => `S/ ${(cents / 100).toFixed(2)}`;
 
@@ -85,7 +70,7 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">{error}</div>}
+      {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">{error.message || 'Error al cargar reporte'}</div>}
 
       {loading ? (
         <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" /></div>

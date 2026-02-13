@@ -301,7 +301,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Para cualquier cálculo costoso, useMemo cachea el resultado
     - _Requirements: 5.4_
 
-- [ ] 8. Checkpoint - Verificar Fase 2
+- [x] 8. Checkpoint - Verificar Fase 2
   - Ejecutar todos los tests (unit + property)
   - Verificar que requests duplicados < 10%
   - Verificar que TTFB mejoró > 300ms
@@ -310,7 +310,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
 
 ### Fase 3: Migración Completa y Auditoría Final (Mes 1 - 14 horas)
 
-- [ ] 9. Migrar resto de componentes a SWR
+- [-] 9. Migrar resto de componentes a SWR
   - Identificar todos los componentes restantes con fetch directo
   - Migrar a useSWR (15+ componentes)
   - Implementar loading/error states consistentes
@@ -318,19 +318,19 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
   - _Requirements: 2.1, 2.3, 2.6_
   - _Tiempo: 6 horas_
 
-  - [ ] 9.1 Identificar componentes restantes con fetch directo
+  - [x] 9.1 Identificar componentes restantes con fetch directo
     - Buscar en codebase: `useEffect.*fetch`
     - Excluir componentes ya migrados en Fase 2
     - Crear lista de 15+ componentes
     - _Requirements: 2.1_
 
-  - [ ] 9.2 Crear hooks personalizados para componentes restantes
+  - [x] 9.2 Crear hooks personalizados para componentes restantes
     - Crear hook para cada endpoint único
     - Reutilizar hooks donde sea posible
     - Documentar hooks en `src/lib/swr-config.ts`
     - _Requirements: 2.1, 2.4_
 
-  - [ ] 9.3 Migrar componentes en lotes de 5
+  - [x] 9.3 Migrar componentes en lotes de 5
     - Lote 1: Migrar 5 componentes
     - Lote 2: Migrar 5 componentes
     - Lote 3: Migrar 5+ componentes restantes
