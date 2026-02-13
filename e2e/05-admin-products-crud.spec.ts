@@ -36,6 +36,7 @@ test.describe('Admin Panel - Product CRUD', () => {
   
   test.describe('Page Loading', () => {
     test('should load admin panel products page', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/productos`);
       await page.waitForLoadState('networkidle');
       
@@ -43,6 +44,7 @@ test.describe('Admin Panel - Product CRUD', () => {
     });
 
     test('should display products list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/productos`);
       await page.waitForLoadState('networkidle');
       
@@ -50,6 +52,7 @@ test.describe('Admin Panel - Product CRUD', () => {
     });
 
     test('should have create product button', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/productos`);
       await page.waitForLoadState('networkidle');
       
@@ -234,6 +237,8 @@ test.describe('Admin Panel - Product CRUD', () => {
 
   test.describe('Error Handling', () => {
     test('should handle API errors gracefully', async ({ page }) => {
+      await authenticateAsAdmin(page);
+      
       await page.route('**/api/admin/products', route => {
         route.abort('failed');
       });
@@ -247,6 +252,7 @@ test.describe('Admin Panel - Product CRUD', () => {
 
   test.describe('State Management', () => {
     test('should maintain state after page refresh', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/productos?page=1&is_active=true`);
       await page.waitForLoadState('networkidle');
 
@@ -259,6 +265,7 @@ test.describe('Admin Panel - Product CRUD', () => {
 
   test.describe('Filtering & Pagination', () => {
     test('should display product categories', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/productos`);
       await page.waitForLoadState('networkidle');
 
@@ -266,6 +273,7 @@ test.describe('Admin Panel - Product CRUD', () => {
     });
 
     test('should filter products by category', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/productos?category=POLLOS`);
       await page.waitForLoadState('networkidle');
 
@@ -273,6 +281,7 @@ test.describe('Admin Panel - Product CRUD', () => {
     });
 
     test('should paginate product list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/productos?page=1`);
       await page.waitForLoadState('networkidle');
 

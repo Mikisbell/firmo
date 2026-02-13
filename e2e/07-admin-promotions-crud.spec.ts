@@ -32,6 +32,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
   
   test.describe('Page Loading', () => {
     test('should load admin panel promotions page', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones`);
       await page.waitForLoadState('networkidle');
       
@@ -39,6 +40,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should display promotions list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones`);
       await page.waitForLoadState('networkidle');
       
@@ -46,6 +48,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should have create promotion button', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones`);
       await page.waitForLoadState('networkidle');
       
@@ -233,6 +236,8 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
   test.describe('Error Handling', () => {
     test('should handle API errors gracefully', async ({ page }) => {
+      await authenticateAsAdmin(page);
+      
       await page.route('**/api/admin/promotions', route => {
         route.abort('failed');
       });
@@ -246,6 +251,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
   test.describe('State Management', () => {
     test('should maintain state after page refresh', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones?page=1&is_active=true`);
       await page.waitForLoadState('networkidle');
 
@@ -258,6 +264,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
 
   test.describe('Filtering & Pagination', () => {
     test('should display promotion types correctly', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones`);
       await page.waitForLoadState('networkidle');
 
@@ -265,6 +272,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should filter promotions by status', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones?is_active=true`);
       await page.waitForLoadState('networkidle');
 
@@ -272,6 +280,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should paginate promotion list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones?page=1`);
       await page.waitForLoadState('networkidle');
 
@@ -279,6 +288,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should display promotion discount value', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones`);
       await page.waitForLoadState('networkidle');
 
@@ -286,6 +296,7 @@ test.describe('Admin Panel - Promotion CRUD', () => {
     });
 
     test('should display promotion date range', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/promociones`);
       await page.waitForLoadState('networkidle');
 

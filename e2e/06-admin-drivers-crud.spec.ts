@@ -33,6 +33,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
   
   test.describe('Page Loading', () => {
     test('should load admin panel drivers page', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers`);
       await page.waitForLoadState('networkidle');
       
@@ -40,6 +41,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should display drivers list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers`);
       await page.waitForLoadState('networkidle');
       
@@ -47,6 +49,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should have create driver button', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers`);
       await page.waitForLoadState('networkidle');
       
@@ -144,6 +147,8 @@ test.describe('Admin Panel - Driver CRUD', () => {
 
   test.describe('Error Handling', () => {
     test('should handle API errors gracefully', async ({ page }) => {
+      await authenticateAsAdmin(page);
+      
       await page.route('**/api/drivers', route => {
         route.abort('failed');
       });
@@ -157,6 +162,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
 
   test.describe('State Management', () => {
     test('should maintain state after page refresh', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers?page=1&is_active=true`);
       await page.waitForLoadState('networkidle');
 
@@ -169,6 +175,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
 
   test.describe('Filtering & Pagination', () => {
     test('should list active drivers only', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers?is_active=true`);
       await page.waitForLoadState('networkidle');
 
@@ -176,6 +183,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should display driver status', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers`);
       await page.waitForLoadState('networkidle');
 
@@ -183,6 +191,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should paginate driver list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers?page=1`);
       await page.waitForLoadState('networkidle');
 
@@ -190,6 +199,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should search drivers by name', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers?search=Miguel`);
       await page.waitForLoadState('networkidle');
 
@@ -197,6 +207,7 @@ test.describe('Admin Panel - Driver CRUD', () => {
     });
 
     test('should display driver phone number', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/drivers`);
       await page.waitForLoadState('networkidle');
 

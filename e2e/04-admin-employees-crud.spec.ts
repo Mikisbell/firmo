@@ -33,16 +33,17 @@ const UPDATED_EMPLOYEE = {
 test.describe('Admin Panel - Employee CRUD', () => {
   
   test.describe('Page Loading', () => {
-    test.beforeEach(async ({ page }) => {
+    test('should load admin panel', async ({ page }) => {
+      // FIX: Autenticar ANTES de navegar para evitar redirect loop
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin`);
       await page.waitForLoadState('networkidle');
-    });
-
-    test('should load admin panel', async ({ page }) => {
+      
       await expect(page.locator('body')).toBeVisible();
     });
 
     test('should display employees section', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/empleados`);
       await page.waitForLoadState('networkidle');
       
@@ -51,6 +52,7 @@ test.describe('Admin Panel - Employee CRUD', () => {
     });
 
     test('should display employees list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/empleados`);
       await page.waitForLoadState('networkidle');
       
@@ -58,6 +60,7 @@ test.describe('Admin Panel - Employee CRUD', () => {
     });
 
     test('should have create employee button', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/empleados`);
       await page.waitForLoadState('networkidle');
       
@@ -168,6 +171,8 @@ test.describe('Admin Panel - Employee CRUD', () => {
 
   test.describe('Error Handling', () => {
     test('should handle API errors gracefully', async ({ page }) => {
+      await authenticateAsAdmin(page);
+      
       await page.route('**/api/admin/employees', route => {
         route.abort('failed');
       });
@@ -181,6 +186,7 @@ test.describe('Admin Panel - Employee CRUD', () => {
 
   test.describe('State Management', () => {
     test('should maintain state after page refresh', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/empleados?page=1&role=WAITER`);
       await page.waitForLoadState('networkidle');
 
@@ -193,6 +199,7 @@ test.describe('Admin Panel - Employee CRUD', () => {
 
   test.describe('Filtering & Pagination', () => {
     test('should display employee role correctly', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/empleados`);
       await page.waitForLoadState('networkidle');
 
@@ -200,6 +207,7 @@ test.describe('Admin Panel - Employee CRUD', () => {
     });
 
     test('should filter employees by role', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/empleados?role=WAITER`);
       await page.waitForLoadState('networkidle');
 
@@ -207,6 +215,7 @@ test.describe('Admin Panel - Employee CRUD', () => {
     });
 
     test('should paginate employee list', async ({ page }) => {
+      await authenticateAsAdmin(page);
       await page.goto(`${BASE_URL}/admin/empleados?page=1`);
       await page.waitForLoadState('networkidle');
 
