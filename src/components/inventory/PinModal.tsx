@@ -8,8 +8,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PinPad } from '@/src/components/auth/PinPad';
+import PinPad from '@/src/components/auth/PinPad';
 import { X, Lock, AlertTriangle } from 'lucide-react';
+import { safeStorage } from '@/src/lib/storage';
 
 export type InventoryRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'KITCHEN';
 
@@ -69,7 +70,7 @@ export function PinModal({
 
     try {
       // Get tenant_id from localStorage (for multi-tenant E2E tests)
-      const tenantId = typeof window !== 'undefined' ? localStorage.getItem('tenant_id') : null;
+      const tenantId = typeof window !== 'undefined' ? safeStorage.getItem('tenant_id') : null;
       console.log('[PinModal] Tenant ID from localStorage:', tenantId);
 
       const requestBody = { 

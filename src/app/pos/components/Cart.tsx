@@ -6,7 +6,7 @@ import type { SaleProjection } from "@/src/core/projections/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { Trash2, ShoppingCart } from "lucide-react";
 
-export default function Cart({
+const Cart = React.memo(function Cart({
     sale,
     onConfirm,
     onStartSale
@@ -116,4 +116,6 @@ export default function Cart({
             </div>
         </div>
     );
-}
+});
+
+export default Cart;

@@ -1,29 +1,19 @@
 "use client";
 
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCents } from "@/src/core/domain/money";
 import { Trash2, Plus, Minus } from "lucide-react";
 
 export interface LineItemData {
     line_id: string;
-    product_id: string;
     name: string;
     qty: number;
     unit_price_cents: number;
     line_total_cents: number;
-    status?: string;
 }
 
-interface LineItemProps {
-    item: LineItemData;
-    onIncrement?: (lineId: string) => void;
-    onDecrement?: (lineId: string) => void;
-    onRemove?: (lineId: string) => void;
-    readonly?: boolean;
-    compact?: boolean;
-}
-
-export function LineItem({
+export const LineItem = React.memo(function LineItem({
     item,
     onIncrement,
     onDecrement,
@@ -90,6 +80,15 @@ export function LineItem({
             </div>
         </motion.div>
     );
+});
+
+interface LineItemProps {
+    item: LineItemData;
+    onIncrement?: (lineId: string) => void;
+    onDecrement?: (lineId: string) => void;
+    onRemove?: (lineId: string) => void;
+    readonly?: boolean;
+    compact?: boolean;
 }
 
 interface LineItemListProps {

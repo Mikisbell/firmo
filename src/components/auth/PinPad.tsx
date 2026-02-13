@@ -3,7 +3,7 @@
 // src/components/auth/PinPad.tsx
 // PIN entry component with numeric keypad
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { cn } from '@/src/lib/utils';
 
 interface PinPadProps {
@@ -13,16 +13,16 @@ interface PinPadProps {
   maxLength?: number;
 }
 
-export function PinPad({ onSubmit, disabled, error, maxLength = 4 }: PinPadProps) {
+const PinPad = React.memo(function PinPad({ onSubmit, disabled, error, maxLength = 4 }: PinPadProps) {
   const [pin, setPin] = useState('');
 
   const handleDigit = useCallback((digit: string) => {
     if (disabled) return;
     if (pin.length >= maxLength) return;
-    
+
     const newPin = pin + digit;
     setPin(newPin);
-    
+
     // Auto-submit when complete
     if (newPin.length === maxLength) {
       onSubmit(newPin);
@@ -81,7 +81,7 @@ export function PinPad({ onSubmit, disabled, error, maxLength = 4 }: PinPadProps
             {digit}
           </button>
         ))}
-        
+
         {/* Bottom row */}
         <button
           onClick={handleClear}
@@ -95,7 +95,7 @@ export function PinPad({ onSubmit, disabled, error, maxLength = 4 }: PinPadProps
         >
           Borrar
         </button>
-        
+
         <button
           onClick={() => handleDigit('0')}
           disabled={disabled}
@@ -108,7 +108,7 @@ export function PinPad({ onSubmit, disabled, error, maxLength = 4 }: PinPadProps
         >
           0
         </button>
-        
+
         <button
           onClick={handleBackspace}
           disabled={disabled}
@@ -124,4 +124,6 @@ export function PinPad({ onSubmit, disabled, error, maxLength = 4 }: PinPadProps
       </div>
     </div>
   );
-}
+});
+
+export default PinPad;

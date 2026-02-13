@@ -4,7 +4,7 @@
 // PIN login screen for registered terminals with risk-based authentication
 
 import { useState, useEffect } from 'react';
-import { PinPad } from './PinPad';
+import PinPad from './PinPad';
 import { 
   isLocked, 
   recordPinAttempt,
