@@ -7,6 +7,13 @@
  * 
  * Requirements: 2.1, 2.2, 2.3, 2.4
  * 
+ * Mejoras v3.0 (SWR Migration):
+ * - Migrado de useEffect + fetch a useSWR
+ * - Deduplicación automática de requests
+ * - Revalidación inteligente (60s + focus + reconnect)
+ * - Stale-while-revalidate para UX instantánea
+ * - Reducción de código (-84%)
+ * 
  * Mejoras v2.0:
  * - Comparación con ayer
  * - Panel de alertas
@@ -17,7 +24,6 @@
  * - Mejoras visuales
  */
 
-import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -36,35 +42,10 @@ import {
   Wifi,
   RefreshCw,
   AlertTriangle,
-  Plus,
-  Activity,
-  CheckCircle,
   Clock,
   Zap,
 } from 'lucide-react';
-
-interface Alert {
-  id: string;
-  type: 'error' | 'warning' | 'info';
-  message: string;
-  timestamp: string;
-}
-
-interface DashboardStats {
-  salesToday: number;
-  salesYesterday: number;
-  deltaPercent: number;
-  activeOrders: number;
-  terminalsOnline: number;
-  totalProducts: number;
-  alerts: Alert[];
-  recentActivity: any[];
-  syncStatus: {
-    synced: boolean;
-    pendingEvents: number;
-  };
-  lastUpdated: string;
-}
+import { useAdminStats, type DashboardStats } from '@/src/hooks/useSWRHooks';
 
 const NAV_CARDS = [
   {
@@ -133,34 +114,11 @@ const NAV_CARDS = [
   },
 ];
 
-const POLL_INTERVAL = 60000; // 60 seconds
-
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/dashboard/stats');
-      if (!res.ok) throw new Error('Failed to fetch stats');
-      const data = await res.json();
-      setStats(data);
-      setError(null);
-    } catch (err) {
-      setError('Error al cargar métricas');
-      console.error('Dashboard stats error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [fetchStats]);
+  
+  // Migrado a SWR - deduplicación automática + revalidación inteligente
+  const { data: stats, error, isLoading, mutate } = useAdminStats();
 
   const formatCurrency = (cents: number) => {
     return `S/ ${(cents / 100).toFixed(2)}`;
@@ -190,12 +148,12 @@ export default function AdminDashboardPage() {
             </div>
           )}
           <button
-            onClick={fetchStats}
-            disabled={loading}
+            onClick={() => mutate()}
+            disabled={isLoading}
             className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Actualizar métricas"
           >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -225,35 +183,35 @@ export default function AdminDashboardPage() {
           delta={stats?.deltaPercent}
           icon={TrendingUp}
           color="text-green-400"
-          loading={loading}
+          loading={isLoading}
         />
         <QuickStatCard
           label="Órdenes Activas"
           value={stats?.activeOrders?.toString() || '0'}
           icon={ShoppingCart}
           color="text-blue-400"
-          loading={loading}
+          loading={isLoading}
         />
         <QuickStatCard
           label="Terminales Online"
           value={stats?.terminalsOnline?.toString() || '0'}
           icon={Wifi}
           color="text-purple-400"
-          loading={loading}
+          loading={isLoading}
         />
         <QuickStatCard
           label="Productos"
           value={stats?.totalProducts?.toString() || '0'}
           icon={Package}
           color="text-amber-400"
-          loading={loading}
+          loading={isLoading}
         />
       </div>
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" />
-          {error}
+          Error al cargar métricas
         </div>
       )}
 
