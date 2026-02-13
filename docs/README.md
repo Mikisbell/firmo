@@ -76,6 +76,9 @@
 - [ESTADO.md](05-improvements/ESTADO.md) — Estado actual del proyecto
 - [RESUMEN.md](05-improvements/RESUMEN.md) — Resumen ejecutivo
 
+### 06-deployment/ — Despliegue a Producción
+- [DEPLOYMENT.md](06-deployment/DEPLOYMENT.md) — 🆕 Guía completa de despliegue a Vercel + Supabase
+
 ### adr/ — Decisiones Arquitectónicas
 - [001-event-sourcing.md](adr/001-event-sourcing.md)
 - [002-device-sot.md](adr/002-device-sot.md)
