@@ -5,7 +5,7 @@
  * Tres columnas: PENDIENTES, EN CAMINO, COMPLETADOS
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { DeliveryCard } from './components/DeliveryCard';
 import { MetricsSummary } from './components/MetricsSummary';
 
@@ -92,9 +92,21 @@ export default function DeliveryDispatchPage() {
     }
   };
 
-  const pending = deliveries.filter(d => d.status === 'PENDING');
-  const enCamino = deliveries.filter(d => d.status === 'ASSIGNED' || d.status === 'DISPATCHED');
-  const completados = deliveries.filter(d => d.status === 'DELIVERED' || d.status === 'FAILED');
+  // Optimización: Combinar 3 filter en una sola iteración con useMemo
+  // Reduce complejidad de O(3n) a O(n)
+  const { pending, enCamino, completados } = useMemo(() => {
+    const p: DeliveryOrder[] = [];
+    const ec: DeliveryOrder[] = [];
+    const c: DeliveryOrder[] = [];
+    
+    for (const d of deliveries) {
+      if (d.status === 'PENDING') p.push(d);
+      else if (d.status === 'ASSIGNED' || d.status === 'DISPATCHED') ec.push(d);
+      else if (d.status === 'DELIVERED' || d.status === 'FAILED') c.push(d);
+    }
+    
+    return { pending: p, enCamino: ec, completados: c };
+  }, [deliveries]);
 
   if (loading) {
     return (

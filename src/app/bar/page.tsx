@@ -9,7 +9,7 @@
  */
 
 import { useKitchenTicketsByGroup } from "../cocina/hooks/useKitchenTickets";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { Beer, GlassWater } from "lucide-react";
 import { useSyncClient } from "@/src/hooks/useSyncClient";
@@ -55,8 +55,21 @@ export default function BarKDSPage() {
         );
     };
 
-    const pendingCount = tickets.reduce((acc, t) => acc + Object.values(t.lines).filter(l => l.status === "PENDING").length, 0);
-    const preparingCount = tickets.reduce((acc, t) => acc + Object.values(t.lines).filter(l => l.status === "COOKING").length, 0);
+    // Optimización: Combinar dos reduce+filter en una sola iteración con useMemo
+    // Reduce complejidad de O(2n*m) a O(n*m) y evita re-cálculo en renders sin cambios
+    const { pendingCount, preparingCount } = useMemo(() => {
+        let pending = 0;
+        let preparing = 0;
+        
+        for (const ticket of tickets) {
+            for (const line of Object.values(ticket.lines)) {
+                if (line.status === "PENDING") pending++;
+                else if (line.status === "COOKING") preparing++;
+            }
+        }
+        
+        return { pendingCount: pending, preparingCount: preparing };
+    }, [tickets]);
 
     const currentTime = mounted && now 
         ? new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 

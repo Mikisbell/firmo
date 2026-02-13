@@ -87,7 +87,11 @@ export function OrderPanel({
     const [showQR, setShowQR] = useState(false);
     const { isMobile } = useResponsive();
 
-    const itemCount = items.reduce((a, b) => a + b.qty, 0);
+    // Optimización: Memoizar conteo de items para evitar reduce en cada render
+    const itemCount = useMemo(() => {
+        return items.reduce((a, b) => a + b.qty, 0);
+    }, [items]);
+    
     const isWaiter = mode === "waiter";
     const isCashier = mode === "cashier";
 

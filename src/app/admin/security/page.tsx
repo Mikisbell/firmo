@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Lock, Shield, Smartphone } from 'lucide-react';
 import { useSecurityData } from '@/src/hooks/useSWRHooks';
@@ -55,6 +55,12 @@ export default function SecurityDashboard() {
   
   // Usar SWR para fetch con deduplicación y revalidación automática
   const { sessions, devices, alerts, error, isLoading, mutate } = useSecurityData();
+
+  // Optimización: Memoizar sesiones activas para evitar filtrar dos veces
+  // Reduce complejidad de O(2n) a O(n)
+  const activeSessions = useMemo(() => {
+    return sessions.filter(s => s.is_active);
+  }, [sessions]);
 
   const handleBlockDevice = async (macAddress: string) => {
     if (!confirm(`Block device ${macAddress}?`)) return;
@@ -128,12 +134,12 @@ export default function SecurityDashboard() {
       <div className="grid grid-cols-1 gap-6">
         {/* Active Sessions Tab */}
         <div className="border rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Active Sessions ({sessions.filter(s => s.is_active).length})</h2>
-          {sessions.filter(s => s.is_active).length === 0 ? (
+          <h2 className="text-xl font-bold mb-4">Active Sessions ({activeSessions.length})</h2>
+          {activeSessions.length === 0 ? (
             <p className="text-gray-500">No active sessions</p>
           ) : (
             <div className="space-y-4">
-              {sessions.filter(s => s.is_active).map((session) => (
+              {activeSessions.map((session) => (
                 <div key={session.id} className="border rounded-lg p-4 space-y-2">
                   <div className="flex items-start justify-between">
                     <div>

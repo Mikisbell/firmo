@@ -8,7 +8,7 @@
  */
 
 import { useKitchenTicketsByGroup } from "../hooks/useKitchenTickets";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { Package, PackageCheck } from "lucide-react";
 import { useSyncClient } from "@/src/hooks/useSyncClient";
@@ -58,8 +58,21 @@ export default function EmpaqueKDSPage() {
         );
     };
 
-    const pendingCount = tickets.reduce((acc, t) => acc + Object.values(t.lines).filter(l => l.status === "PENDING").length, 0);
-    const packagingCount = tickets.reduce((acc, t) => acc + Object.values(t.lines).filter(l => l.status === "COOKING").length, 0);
+    // Optimización: Combinar dos reduce+filter en una sola iteración con useMemo
+    // Reduce complejidad de O(2n*m) a O(n*m) y evita re-cálculo en renders sin cambios
+    const { pendingCount, packagingCount } = useMemo(() => {
+        let pending = 0;
+        let packaging = 0;
+        
+        for (const ticket of tickets) {
+            for (const line of Object.values(ticket.lines)) {
+                if (line.status === "PENDING") pending++;
+                else if (line.status === "COOKING") packaging++;
+            }
+        }
+        
+        return { pendingCount: pending, packagingCount: packaging };
+    }, [tickets]);
 
     const currentTime = mounted && now 
         ? new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 

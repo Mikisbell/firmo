@@ -312,6 +312,16 @@ function OrdersModalWithData({
     limit: 20 
   });
   
+  // Optimización: Memoizar órdenes ordenadas por tiempo de espera
+  // Evita sort O(n log n) en cada render
+  const sortedOrders = useMemo(() => {
+    return [...orders].sort((a, b) => {
+      const waitTimeA = Math.floor((Date.now() - new Date(a.submittedAt).getTime()) / 60000);
+      const waitTimeB = Math.floor((Date.now() - new Date(b.submittedAt).getTime()) / 60000);
+      return waitTimeB - waitTimeA; // Mayor tiempo primero
+    });
+  }, [orders]);
+  
   if (!station) return null;
   
   const STATION_ICONS: Record<string, string> = {
@@ -350,7 +360,7 @@ function OrdersModalWithData({
             <div className="text-center text-zinc-500 py-8">No hay órdenes activas</div>
           ) : (
             <div className="space-y-3">
-              {orders.map(order => {
+              {sortedOrders.map(order => {
                 const waitTime = Math.floor((Date.now() - new Date(order.submittedAt).getTime()) / 60000);
                 return (
                   <div
@@ -762,19 +772,37 @@ function GlobalStatsCard({ stations }: { stations: Station[] }) {
     station5Metrics.metrics,
   ].filter((m, idx) => idx < activeStations.length && m !== null);
   
-  // Calculate aggregates when metrics change
-  useEffect(() => {
+  // Optimización: Combinar 3 reduce en una sola iteración con useMemo
+  // Reduce complejidad de O(4n) a O(n) y evita setState innecesarios
+  const { totalOrders, avgTime, globalEfficiency } = useMemo(() => {
     const validMetrics = stationMetrics.filter(m => m !== null);
-    if (validMetrics.length === 0) return;
+    if (validMetrics.length === 0) {
+      return { totalOrders: 0, avgTime: 0, globalEfficiency: 0 };
+    }
     
-    const total = validMetrics.reduce((sum, m) => sum + (m?.activeOrders || 0), 0);
-    const avgT = validMetrics.reduce((sum, m) => sum + (m?.avgTime || 0), 0) / validMetrics.length;
-    const avgE = validMetrics.reduce((sum, m) => sum + (m?.efficiency || 0), 0) / validMetrics.length;
+    let total = 0;
+    let sumTime = 0;
+    let sumEfficiency = 0;
     
-    setTotalOrders(total);
-    setAvgTime(Math.round(avgT));
-    setGlobalEfficiency(Math.round(avgE));
+    for (const m of validMetrics) {
+      total += m?.activeOrders || 0;
+      sumTime += m?.avgTime || 0;
+      sumEfficiency += m?.efficiency || 0;
+    }
+    
+    return {
+      totalOrders: total,
+      avgTime: Math.round(sumTime / validMetrics.length),
+      globalEfficiency: Math.round(sumEfficiency / validMetrics.length),
+    };
   }, [stationMetrics]);
+  
+  // Actualizar estados cuando cambien los valores calculados
+  useEffect(() => {
+    setTotalOrders(totalOrders);
+    setAvgTime(avgTime);
+    setGlobalEfficiency(globalEfficiency);
+  }, [totalOrders, avgTime, globalEfficiency]);
   
   return (
     <>

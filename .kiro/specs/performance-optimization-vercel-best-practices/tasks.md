@@ -290,7 +290,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Documentar componente y cálculo
     - _Requirements: 5.4_
 
-  - [ ] 7.10 Aplicar useMemo a cálculos costosos
+  - [x] 7.10 Aplicar useMemo a cálculos costosos
     - Envolver cálculos con useMemo
     - Usar dependencias específicas
     - _Requirements: 5.4_
