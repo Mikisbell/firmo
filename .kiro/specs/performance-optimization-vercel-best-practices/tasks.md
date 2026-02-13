@@ -330,7 +330,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Documentar hooks en `src/lib/swr-config.ts`
     - _Requirements: 2.1, 2.4_
 
-  - [x] 9.3 Migrar componentes en lotes de 5
+  - [-] 9.3 Migrar componentes en lotes de 5
     - Lote 1: Migrar 5 componentes
     - Lote 2: Migrar 5 componentes
     - Lote 3: Migrar 5+ componentes restantes

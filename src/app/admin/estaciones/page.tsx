@@ -7,13 +7,14 @@
  * Requirements: KDS stations management
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Monitor, AlertTriangle, Clock, TrendingUp } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { useStationMetrics } from './hooks/useStationMetrics';
 import { useStationOrders } from './hooks/useStationOrders';
 import { useStationAlerts } from './hooks/useStationAlerts';
+import { useStations } from '@/src/hooks/useSWRHooks';
 
 interface Station {
   id: string;
@@ -59,7 +60,11 @@ const filters: FilterConfig[] = [
 ];
 
 export default function StationsPage() {
-  const { data: stations, loading, error, refetch } = useAdminData<Station>('/api/admin/stations');
+  // Migrado a SWR - Tarea 9.3 Lote 2
+  const { data, error: swrError, isLoading: loading, mutate } = useStations();
+  const stations = data?.stations || [];
+  const error = swrError ? 'Error al cargar estaciones' : null;
+  
   const [showModal, setShowModal] = useState(false);
   const [editingStation, setEditingStation] = useState<Station | null>(null);
   const [showOrdersModal, setShowOrdersModal] = useState<string | null>(null);
@@ -92,7 +97,7 @@ export default function StationsPage() {
         const data = await res.json();
         throw new Error(data.error || 'Failed to delete');
       }
-      refetch();
+      mutate(); // Revalidar con SWR
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error al eliminar');
     }
@@ -283,7 +288,7 @@ export default function StationsPage() {
         <StationModal
           station={editingStation}
           onClose={() => { setShowModal(false); setEditingStation(null); }}
-          onSave={() => { setShowModal(false); setEditingStation(null); refetch(); }}
+          onSave={() => { setShowModal(false); setEditingStation(null); mutate(); }}
         />
       )}
       

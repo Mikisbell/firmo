@@ -7,9 +7,10 @@
  * Requirements: 2.1, 2.2, 2.3
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Check, X, MapPin } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
+import { useTables } from '@/src/hooks/useSWRHooks';
 
 interface Zone {
   id: string;
@@ -32,43 +33,31 @@ interface Table {
 }
 
 export default function TablesPage() {
-  const [tables, setTables] = useState<Table[]>([]);
+  // Migrado a SWR - Tarea 9.3 Lote 2
+  const { data, error: swrError, isLoading: loading, mutate } = useTables();
+  const tables = data?.items || data || [];
+  const error = swrError ? 'Error al cargar datos' : null;
+  
   const [zones, setZones] = useState<Zone[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
-      const [tablesRes, zonesRes] = await Promise.all([
-        fetch('/api/admin/tables'),
-        fetch('/api/admin/zones'),
-      ]);
+      // Solo necesitamos cargar zones, tables viene de SWR
+      const zonesRes = await fetch('/api/admin/zones');
       
-      if (!tablesRes.ok || !zonesRes.ok) throw new Error('Failed to fetch data');
+      if (!zonesRes.ok) throw new Error('Failed to fetch zones');
       
-      const [tablesData, zonesData] = await Promise.all([
-        tablesRes.json(),
-        zonesRes.json(),
-      ]);
-      
-      // API returns paginated response: { items: [...], pagination: {...} }
-      setTables(tablesData.items || tablesData);
+      const zonesData = await zonesRes.json();
       setZones(zonesData.items || zonesData);
-      setError(null);
+      
+      // Revalidar tables con SWR
+      mutate();
     } catch (err) {
-      setError('Error al cargar datos');
       console.error('Fetch error:', err);
-    } finally {
-      setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  }, [mutate]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Desactivar esta mesa?')) return;
@@ -79,7 +68,7 @@ export default function TablesPage() {
         const data = await res.json();
         throw new Error(data.error || 'Failed to delete');
       }
-      fetchData();
+      mutate(); // Revalidar con SWR
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error al eliminar');
     }
@@ -223,7 +212,7 @@ export default function TablesPage() {
           table={editingTable}
           zones={zones}
           onClose={() => { setShowModal(false); setEditingTable(null); }}
-          onSave={() => { setShowModal(false); setEditingTable(null); fetchData(); }}
+          onSave={() => { setShowModal(false); setEditingTable(null); mutate(); }}
         />
       )}
     </div>

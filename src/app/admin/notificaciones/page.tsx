@@ -12,7 +12,7 @@
  * Requirements: 7.1, 7.2, 7.3
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Bell,
@@ -25,48 +25,21 @@ import {
   User,
 } from 'lucide-react';
 import type { EmployeeSubscriptionStatus } from '@/src/core/notifications/types';
+import { useNotificationStatus } from '@/src/hooks/useSWRHooks';
 
 export default function NotificacionesAdminPage() {
-  const [employees, setEmployees] = useState<EmployeeSubscriptionStatus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Migrado a SWR - Tarea 9.3 Lote 2
+  const { data, error: swrError, isLoading: loading, mutate } = useNotificationStatus();
+  const employees = data?.employees || [];
+  const error = swrError ? 'Error al cargar estado de notificaciones' : null;
+  
   const [sendingTo, setSendingTo] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const fetchStatus = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/notifications/status', {
-        credentials: 'include', // Include httpOnly cookies for authentication
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-        
-        if (res.status === 401) {
-          throw new Error('No autenticado. Por favor, inicia sesión nuevamente.');
-        } else if (res.status === 403) {
-          throw new Error('Acceso denegado. Se requiere rol de ADMIN u OWNER.');
-        } else {
-          throw new Error(errorData.error || 'Error al cargar estado');
-        }
-      }
-      
-      const data = await res.json();
-      setEmployees(data.employees || []);
-      setError(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al cargar estado de notificaciones';
-      setError(errorMessage);
-      console.error('Notification status error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+  const fetchStatus = useCallback(() => {
+    // Revalidar datos con SWR
+    mutate();
+  }, [mutate]);
 
   const sendTestNotification = async (employeeId: string, employeeName: string) => {
     try {

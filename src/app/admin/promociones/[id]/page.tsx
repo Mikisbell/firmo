@@ -5,10 +5,11 @@
  * Requirements: 3.3, 3.4, 3.7, 3.9
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save, AlertCircle, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { usePromotion } from '@/src/hooks/useSWRHooks';
 
 const TYPE_OPTIONS = [
   { value: 'PERCENT', label: 'Porcentaje (%)' },
@@ -23,55 +24,45 @@ export default function EditPromotionPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [loading, setLoading] = useState(true);
+  // Migrado a SWR - Tarea 9.3 Lote 2
+  const { data, error: swrError, isLoading: loading, mutate } = usePromotion(id);
+  const error = swrError ? 'Promoción no encontrada' : null;
+
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
-    name: '',
-    type: 'PERCENT' as string,
-    value: 0,
-    starts_at: '',
-    ends_at: '',
-    rules: '{}',
-    is_active: true,
+    name: data?.name || '',
+    type: data?.type || 'PERCENT' as string,
+    value: data?.value || 0,
+    starts_at: data?.starts_at ? new Date(data.starts_at).toISOString().slice(0, 16) : '',
+    ends_at: data?.ends_at ? new Date(data.ends_at).toISOString().slice(0, 16) : '',
+    rules: JSON.stringify(data?.rules || {}, null, 2),
+    is_active: data?.is_active ?? true,
   });
 
-  useEffect(() => {
-    const fetchPromotion = async () => {
-      try {
-        const res = await fetch(`/api/admin/promotions/${id}`);
-        if (!res.ok) throw new Error('Promoción no encontrada');
-        const data = await res.json();
-
-        setForm({
-          name: data.name,
-          type: data.type,
-          value: data.value,
-          starts_at: new Date(data.starts_at).toISOString().slice(0, 16),
-          ends_at: new Date(data.ends_at).toISOString().slice(0, 16),
-          rules: JSON.stringify(data.rules || {}, null, 2),
-          is_active: data.is_active,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPromotion();
-  }, [id]);
+  // Actualizar form cuando data cambia
+  if (data && !form.name) {
+    setForm({
+      name: data.name,
+      type: data.type,
+      value: data.value,
+      starts_at: new Date(data.starts_at).toISOString().slice(0, 16),
+      ends_at: new Date(data.ends_at).toISOString().slice(0, 16),
+      rules: JSON.stringify(data.rules || {}, null, 2),
+      is_active: data.is_active,
+    });
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError(null);
+    setFormError(null);
 
     // Validate dates
     if (new Date(form.starts_at) >= new Date(form.ends_at)) {
-      setError('La fecha de inicio debe ser anterior a la fecha de fin');
+      setFormError('La fecha de inicio debe ser anterior a la fecha de fin');
       setSaving(false);
       return;
     }
@@ -80,7 +71,7 @@ export default function EditPromotionPage() {
     try {
       JSON.parse(form.rules);
     } catch {
-      setError('Las reglas deben ser un JSON válido');
+      setFormError('Las reglas deben ser un JSON válido');
       setSaving(false);
       return;
     }
@@ -102,9 +93,10 @@ export default function EditPromotionPage() {
         throw new Error(data.error || 'Error al actualizar promoción');
       }
 
+      mutate(); // Revalidar con SWR
       router.push('/admin/promociones');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar');
+      setFormError(err instanceof Error ? err.message : 'Error al guardar');
     } finally {
       setSaving(false);
     }
@@ -114,7 +106,7 @@ export default function EditPromotionPage() {
     if (!confirm('¿Desactivar esta promoción?')) return;
 
     setDeleting(true);
-    setError(null);
+    setFormError(null);
 
     try {
       const res = await fetch(`/api/admin/promotions/${id}`, {
@@ -126,9 +118,10 @@ export default function EditPromotionPage() {
         throw new Error(data.error || 'Error al desactivar');
       }
 
+      mutate(); // Revalidar con SWR
       router.push('/admin/promociones');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar');
+      setFormError(err instanceof Error ? err.message : 'Error al eliminar');
     } finally {
       setDeleting(false);
     }
@@ -157,10 +150,10 @@ export default function EditPromotionPage() {
         </div>
       </div>
 
-      {error && (
+      {formError && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
           <AlertCircle className="w-4 h-4" />
-          {error}
+          {formError}
         </div>
       )}
 

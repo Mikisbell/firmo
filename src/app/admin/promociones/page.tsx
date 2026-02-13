@@ -11,6 +11,7 @@ import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useAdminData } from '@/src/hooks/useAdminData';
+import { usePromotions } from '@/src/hooks/useSWRHooks';
 
 interface Promotion {
   id: string;
@@ -40,7 +41,10 @@ const filters: FilterConfig[] = [
 ];
 
 export default function PromotionsPage() {
-  const { data: promotions, loading, error, refetch } = useAdminData<Promotion>('/api/admin/promotions');
+  // Migrado a SWR - Tarea 9.3 Lote 2
+  const { data, error: swrError, isLoading: loading, mutate } = usePromotions();
+  const promotions = data?.promotions || [];
+  const error = swrError ? 'Error al cargar promociones' : null;
 
   const isExpired = (endsAt: string) => new Date(endsAt) < new Date();
 
@@ -58,14 +62,14 @@ export default function PromotionsPage() {
       toast.success('Promoción desactivada', {
         description: 'La promoción ha sido desactivada exitosamente',
       });
-      refetch();
+      mutate(); // Revalidar con SWR
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al eliminar';
       toast.error('Error al desactivar promoción', {
         description: errorMessage,
       });
     }
-  }, [refetch]);
+  }, [mutate]);
 
   const columns: Column<Promotion>[] = [
     { key: 'name', label: 'Nombre' },

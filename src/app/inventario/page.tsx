@@ -42,6 +42,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { clearTerminalConfig } from '@/src/core/auth/fingerprint';
 import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
+import { useInventoryStats } from '@/src/hooks/useSWRHooks';
 
 type TabType = 'dashboard' | 'recepcion' | 'conteo' | 'merma' | 'alertas';
 
@@ -233,6 +234,15 @@ export default function InventarioPage() {
     }
   };
 
+  // Migrado a SWR - Tarea 9.3 Lote 2
+  // Hook para stats de inventario con auto-refresh
+  const { data: inventoryStats, mutate: mutateStats } = useInventoryStats(DEFAULT_TENANT_ID);
+  
+  // Actualizar stats locales cuando SWR actualiza
+  if (inventoryStats && inventoryStats !== stats) {
+    setStats(inventoryStats);
+  }
+
   // Handlers para acciones de StockView
   const handleReceive = useCallback((item: InventoryItem) => {
     setSelectedItem(item);
@@ -316,6 +326,7 @@ export default function InventarioPage() {
             <button
               onClick={() => {
                 loadStats();
+                mutateStats(); // Revalidar con SWR
                 setRefreshKey(k => k + 1);
                 addToast('info', 'Actualizando datos...');
               }}
