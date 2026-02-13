@@ -5,6 +5,7 @@
 
 "use client";
 
+import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, X, Check, Clock, ChefHat, Receipt, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,13 +22,13 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   const router = useRouter();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearRead } = useWaiterNotifications();
 
-  const handleNotificationClick = (notification: WaiterNotification) => {
+  const handleNotificationClick = useCallback((notification: WaiterNotification) => {
     markAsRead(notification.id);
     onClose();
     
     // Navegar a la mesa correspondiente
     router.push(`/mozo/mesa/${notification.tableNumber}`);
-  };
+  }, [markAsRead, onClose, router]);
 
   const getNotificationIcon = (type: WaiterNotification['type']) => {
     switch (type) {

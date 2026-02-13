@@ -230,7 +230,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Documentar mejora (target: 800ms → 500ms, -37%)
     - _Requirements: 4.2, 4.5_
 
-- [~] 7. Optimizar dependencias de useEffect
+- [x] 7. Optimizar dependencias de useEffect
   - Auditar todos los useEffect en componentes principales
   - Reemplazar dependencias amplias (objetos completos) con específicas (primitivos)
   - Aplicar useCallback para funciones estables
@@ -238,13 +238,13 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6_
   - _Tiempo: 2 horas_
 
-  - [ ] 7.1 Auditar useEffect con dependencias amplias
+  - [x] 7.1 Auditar useEffect con dependencias amplias
     - Buscar useEffect con objetos completos como dependencias
     - Identificar al menos 10 casos
     - Documentar componente y línea
     - _Requirements: 5.1, 5.6_
 
-  - [ ] 7.2 Refactorizar useEffect con dependencias específicas
+  - [x] 7.2 Refactorizar useEffect con dependencias específicas
     - Reemplazar `[user]` con `[user.id]`
     - Reemplazar `[config]` con `[config.url]`
     - Aplicar en los 10 casos identificados
@@ -256,24 +256,24 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Para cualquier useEffect, dependencias deben ser mínimas
     - _Requirements: 5.6_
 
-  - [ ] 7.4 Identificar componentes que necesitan React.memo
+  - [x] 7.4 Identificar componentes que necesitan React.memo
     - Buscar componentes costosos que se re-renderizan frecuentemente
     - Identificar al menos 5 componentes
     - Documentar componente y razón
     - _Requirements: 5.2_
 
-  - [ ] 7.5 Aplicar React.memo a componentes costosos
+  - [x] 7.5 Aplicar React.memo a componentes costosos
     - Envolver componentes con React.memo
     - Verificar que reduce re-renders
     - _Requirements: 5.2_
 
-  - [ ] 7.6 Identificar funciones que necesitan useCallback
+  - [x] 7.6 Identificar funciones que necesitan useCallback
     - Buscar funciones pasadas como props que no cambian
     - Identificar al menos 10 casos
     - Documentar componente y función
     - _Requirements: 5.3_
 
-  - [ ] 7.7 Aplicar useCallback a funciones estables
+  - [x] 7.7 Aplicar useCallback a funciones estables
     - Envolver funciones con useCallback
     - Usar dependencias vacías para funciones estables
     - _Requirements: 5.3_
@@ -301,7 +301,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Para cualquier cálculo costoso, useMemo cachea el resultado
     - _Requirements: 5.4_
 
-- [~] 8. Checkpoint - Verificar Fase 2
+- [ ] 8. Checkpoint - Verificar Fase 2
   - Ejecutar todos los tests (unit + property)
   - Verificar que requests duplicados < 10%
   - Verificar que TTFB mejoró > 300ms

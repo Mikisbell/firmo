@@ -7,9 +7,10 @@
  * Requirements: 2.1, 3.1, 6.1 (Terminal Architecture v2)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { RefreshCw, Check, Wifi, WifiOff, Copy, Smartphone, Monitor, ChefHat, Wine, Plus, X, Eye } from 'lucide-react';
 import TerminalDetailPanel from '@/src/components/admin/TerminalDetailPanel';
+import { useTerminals } from '@/src/hooks/useSWRHooks';
 
 interface ActivationCode {
   code: string;
@@ -63,38 +64,16 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function TerminalsPage() {
-  const [devices, setDevices] = useState<TerminalDevice[]>([]);
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedTerminalId, setSelectedTerminalId] = useState<string | null>(null);
 
-  const fetchDevices = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/terminals-v2', {
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Failed to fetch devices');
-      const data = await res.json();
-      setDevices(data.devices);
-      setSummary(data.summary);
-      setError(null);
-    } catch (err) {
-      setError('Error al cargar terminales');
-      console.error('Devices fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchDevices();
-  }, [fetchDevices]);
+  // Usar SWR para fetch con deduplicación y revalidación automática
+  const { data, error, isLoading, mutate } = useTerminals();
+  const devices = data?.devices || [];
+  const summary = data?.summary || null;
 
   const copyCode = (code: string) => {
     const formatted = `${code.slice(0, 3)}-${code.slice(3)}`;
@@ -139,8 +118,8 @@ export default function TerminalsPage() {
       // Show success message with activation code
       alert(`Terminal creado exitosamente!\n\nCódigo de activación: ${data.activation_code.formatted}\nExpira: ${new Date(data.activation_code.expires_at).toLocaleString()}`);
       
-      // Refresh list
-      await fetchDevices();
+      // Revalidar lista con SWR
+      await mutate();
       setShowCreateModal(false);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error al crear terminal');
@@ -166,12 +145,12 @@ export default function TerminalsPage() {
             Nuevo Terminal
           </button>
           <button
-            onClick={fetchDevices}
-            disabled={loading}
+            onClick={() => mutate()}
+            disabled={isLoading}
             className="p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors min-h-[44px] min-w-[44px]"
             title="Actualizar"
           >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -222,7 +201,7 @@ export default function TerminalsPage() {
       )}
 
       {/* Devices Grid */}
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
             <div key={i} className="h-48 bg-zinc-800/50 rounded-lg animate-pulse" />
@@ -322,7 +301,7 @@ export default function TerminalsPage() {
         </div>
       )}
 
-      {!loading && filteredDevices.length === 0 && (
+      {!isLoading && filteredDevices.length === 0 && (
         <div className="text-center py-12 text-zinc-500">
           No hay terminales {filter !== 'all' ? `con estado "${STATUS_LABELS[filter]}"` : ''}
         </div>
@@ -342,7 +321,7 @@ export default function TerminalsPage() {
         <TerminalDetailPanel
           terminalId={selectedTerminalId}
           onClose={() => setSelectedTerminalId(null)}
-          onUpdate={fetchDevices}
+          onUpdate={mutate}
         />
       )}
     </div>

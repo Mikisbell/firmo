@@ -159,55 +159,55 @@ export default function KardexModal({
   });
 
   // Fetch kardex data
-  const fetchKardex = useCallback(async () => {
+  useEffect(() => {
     if (!isOpen) return;
     
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const params = new URLSearchParams({
-        tenant_id: tenantId,
-        page: pagination.page.toString(),
-        page_size: pagination.pageSize.toString(),
-      });
+    const fetchKardex = async () => {
+      setIsLoading(true);
+      setError(null);
       
-      if (filters.startDate) params.append('start_date', filters.startDate);
-      if (filters.endDate) params.append('end_date', filters.endDate);
-      if (filters.type) params.append('type', filters.type);
-      
-      const response = await fetch(`/api/inventory/kardex/${inventoryCode}?${params}`);
-      
-      if (!response.ok) {
+      try {
+        const params = new URLSearchParams({
+          tenant_id: tenantId,
+          page: pagination.page.toString(),
+          page_size: pagination.pageSize.toString(),
+        });
+        
+        if (filters.startDate) params.append('start_date', filters.startDate);
+        if (filters.endDate) params.append('end_date', filters.endDate);
+        if (filters.type) params.append('type', filters.type);
+        
+        const response = await fetch(`/api/inventory/kardex/${inventoryCode}?${params}`);
+        
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Error al cargar kardex');
+        }
+        
         const data = await response.json();
-        throw new Error(data.error || 'Error al cargar kardex');
+        setEntries(data.entries);
+        setSummary(data.summary);
+        setPagination(prev => ({ ...prev, total: data.pagination.total }));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      } finally {
+        setIsLoading(false);
       }
-      
-      const data = await response.json();
-      setEntries(data.entries);
-      setSummary(data.summary);
-      setPagination(prev => ({ ...prev, total: data.pagination.total }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isOpen, inventoryCode, tenantId, pagination.page, pagination.pageSize, filters]);
-
-  useEffect(() => {
+    };
+    
     fetchKardex();
-  }, [fetchKardex]);
+  }, [isOpen, inventoryCode, tenantId, pagination.page, pagination.pageSize, filters.startDate, filters.endDate, filters.type]);
 
   // Reset page when filters change
   useEffect(() => {
     setPagination(prev => ({ ...prev, page: 1 }));
-  }, [filters]);
+  }, [filters.startDate, filters.endDate, filters.type]);
 
   const totalPages = Math.ceil(pagination.total / pagination.pageSize);
 
   const handleApplyFilters = () => {
     setShowFilters(false);
-    fetchKardex();
+    // El useEffect se encargará de refetch cuando cambien los filtros
   };
 
   const handleClearFilters = () => {

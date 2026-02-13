@@ -12,6 +12,7 @@
 import { useState, useEffect } from "react";
 import { Monitor, X, Smartphone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { safeStorage } from "@/src/lib/storage";
 
 interface MobileWarningProps {
     /** Title of the warning */
@@ -44,7 +45,7 @@ export function MobileWarning({
         
         // Check if already dismissed
         if (storageKey) {
-            const dismissed = localStorage.getItem(storageKey);
+            const dismissed = safeStorage.getItem(storageKey);
             if (dismissed === "true") return;
         }
 
@@ -61,7 +62,7 @@ export function MobileWarning({
     const handleDismiss = () => {
         setShow(false);
         if (storageKey) {
-            localStorage.setItem(storageKey, "true");
+            safeStorage.setItem(storageKey, "true");
         }
         onDismiss?.();
     };

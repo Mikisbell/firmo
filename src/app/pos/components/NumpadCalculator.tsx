@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Delete, Check, X } from "lucide-react";
 
@@ -21,32 +21,38 @@ export function NumpadCalculator({
 }: NumpadCalculatorProps) {
     const [display, setDisplay] = useState(initialValue > 0 ? String(initialValue / 100) : "");
 
-    const handleDigit = (digit: string) => {
-        const newDisplay = display + digit;
-        const value = parseFloat(newDisplay) * 100;
-        if (value <= maxValue) {
-            setDisplay(newDisplay);
-        }
-    };
+    const handleDigit = useCallback((digit: string) => {
+        setDisplay(prev => {
+            const newDisplay = prev + digit;
+            const value = parseFloat(newDisplay) * 100;
+            if (value <= maxValue) {
+                return newDisplay;
+            }
+            return prev;
+        });
+    }, [maxValue]);
 
-    const handleDecimal = () => {
-        if (!display.includes(".")) {
-            setDisplay((display || "0") + ".");
-        }
-    };
+    const handleDecimal = useCallback(() => {
+        setDisplay(prev => {
+            if (!prev.includes(".")) {
+                return (prev || "0") + ".";
+            }
+            return prev;
+        });
+    }, []);
 
-    const handleBackspace = () => {
-        setDisplay(display.slice(0, -1));
-    };
+    const handleBackspace = useCallback(() => {
+        setDisplay(prev => prev.slice(0, -1));
+    }, []);
 
-    const handleClear = () => {
+    const handleClear = useCallback(() => {
         setDisplay("");
-    };
+    }, []);
 
-    const handleConfirm = () => {
+    const handleConfirm = useCallback(() => {
         const value = Math.round(parseFloat(display || "0") * 100);
         onConfirm(value);
-    };
+    }, [display, onConfirm]);
 
     const currentValue = parseFloat(display || "0") * 100;
 

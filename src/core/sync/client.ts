@@ -3,6 +3,7 @@ import { db } from "@/src/core/db/schema";
 import { ingestRequestSchema, type IngestRequest, type ParkEvent } from "@/src/core/domain/events";
 import { syncCircuitBreaker } from "./circuit-breaker";
 import { logger, logEvents } from "@/src/core/observability/logger";
+import { safeStorage } from "@/src/lib/storage";
 
 export type IngestResponse = {
     accepted: boolean;
@@ -226,7 +227,7 @@ export class SyncClient {
 
         // Get tenant_id from localStorage (set during terminal setup)
         const tenantId = typeof localStorage !== 'undefined' 
-            ? localStorage.getItem('park_pos_tenant_id') 
+            ? safeStorage.getItem('park_pos_tenant_id') 
             : null;
         
         if (!tenantId) {

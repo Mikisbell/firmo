@@ -7,6 +7,7 @@
  * Task 5.1 - Mobile Responsive Spec
  */
 
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -27,7 +28,7 @@ export interface BottomNavigationProps {
 const NAV_HEIGHT = 64;
 const MAX_ITEMS = 5;
 
-export function BottomNavigation({
+export const BottomNavigation = React.memo(function BottomNavigation({
   items,
   activeId,
   className = '',
@@ -127,7 +128,7 @@ export function BottomNavigation({
       </nav>
     </>
   );
-}
+});
 
 /**
  * Hook to check if bottom navigation is visible

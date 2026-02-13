@@ -63,7 +63,8 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
             return;
         }
         setTerminalConfig(config);
-    }, [router]);
+    }, []); // Solo ejecutar en mount - router no cambia
+    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     // 1. Resolve existing order for this table
     useEffect(() => {

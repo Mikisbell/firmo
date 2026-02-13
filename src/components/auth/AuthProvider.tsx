@@ -3,7 +3,7 @@
 // src/components/auth/AuthProvider.tsx
 // Auth wrapper - handles login flow for protected routes with risk-based authentication
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
 import { LoginScreen } from './LoginScreen';
 import { getStoredTerminalConfig, clearTerminalConfig } from '@/src/core/auth/fingerprint';
 import type { TerminalConfig, AuthSession } from '@/src/core/auth/types';
@@ -20,6 +20,7 @@ import { generateFingerprintV2, type FingerprintResult } from '@/src/core/auth/f
 import { assessRisk, type RiskAssessment } from '@/src/core/auth/risk-validator';
 import { getTerminal } from '@/src/core/auth/terminal-registry';
 import { StepUpAuthModal } from './StepUpAuthModal';
+import { safeStorage } from '@/src/lib/storage';
 
 interface AuthContextValue {
   terminal: TerminalConfig | null;
@@ -70,7 +71,7 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       setTerminal(storedConfig);
 
       // Check if we're in E2E test mode - bypass authentication
-      const isE2E = typeof window !== 'undefined' && localStorage.getItem('e2e_mode') === 'true';
+      const isE2E = typeof window !== 'undefined' && safeStorage.getItem('e2e_mode') === 'true';
       if (isE2E) {
         // Create a mock session for E2E tests
         const mockSession: SecureSession = {
@@ -148,6 +149,19 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
     };
   }, []);
 
+  // Función de logout consolidada con useCallback
+  // Se usa tanto en el Context Provider como en el useEffect de validación periódica
+  const handleLogout = useCallback(() => {
+    if (session) {
+      logoutV2(session.id);
+    }
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    stopPeriodicFingerprintValidation();
+    setSession(null);
+    setRiskAssessment(null);
+    setNeedsLogin(true);
+  }, [session]);
+
   // Track activity and update session
   useEffect(() => {
     if (!session) return;
@@ -171,17 +185,6 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
   useEffect(() => {
     if (!session) return;
 
-    const handleLogout = () => {
-      if (session) {
-        logoutV2(session.id);
-      }
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-      stopPeriodicFingerprintValidation();
-      setSession(null);
-      setRiskAssessment(null);
-      setNeedsLogin(true);
-    };
-
     const interval = setInterval(() => {
       const validation = validateSessionV2(session.id);
       
@@ -197,9 +200,9 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
     }, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [session]);
+  }, [session, handleLogout]);
 
-  const handleLogin = async (newSession: SecureSession, risk: RiskAssessment) => {
+  const handleLogin = useCallback(async (newSession: SecureSession, risk: RiskAssessment) => {
     // Store session in sessionStorage
     sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newSession));
     
@@ -216,34 +219,23 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       setStepUpReason('Se requiere confirmación de manager debido a cambios en el dispositivo');
       setShowStepUpAuth(true);
     }
-  };
+  }, []);
 
-  const handleStepUpAuthComplete = () => {
+  const handleStepUpAuthComplete = useCallback(() => {
     setShowStepUpAuth(false);
     setStepUpReason('');
-  };
+  }, []);
 
-  const handleStepUpAuthCancel = () => {
+  const handleStepUpAuthCancel = useCallback(() => {
     // If step-up auth is cancelled, logout
     handleLogout();
-  };
+  }, [handleLogout]);
 
-  const handleTerminalError = () => {
+  const handleTerminalError = useCallback(() => {
     clearTerminalConfig();
     handleLogout();
     window.location.href = '/';
-  };
-
-  const handleLogout = () => {
-    if (session) {
-      logoutV2(session.id);
-    }
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    stopPeriodicFingerprintValidation();
-    setSession(null);
-    setRiskAssessment(null);
-    setNeedsLogin(true);
-  };
+  }, [handleLogout]);
 
   const logout = handleLogout;
 

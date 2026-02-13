@@ -8,7 +8,7 @@
  * Requirements: 6.1, 6.6, 6.7
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Store } from 'lucide-react';
 
 interface TenantLogoProps {
@@ -24,7 +24,7 @@ const sizeClasses = {
   lg: 'w-16 h-16',
 };
 
-export function TenantLogo({
+export const TenantLogo = React.memo(function TenantLogo({
   logoUrl,
   legalName = 'PARK POS',
   size = 'md',
@@ -33,14 +33,14 @@ export function TenantLogo({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(!!logoUrl);
 
-  const handleImageError = () => {
+  const handleImageError = useCallback(() => {
     setImageError(true);
     setIsLoading(false);
-  };
+  }, []);
 
-  const handleImageLoad = () => {
+  const handleImageLoad = useCallback(() => {
     setIsLoading(false);
-  };
+  }, []);
 
   // If logo URL is provided and hasn't failed, try to display it
   if (logoUrl && !imageError) {
@@ -70,4 +70,4 @@ export function TenantLogo({
       <Store className={`w-${size === 'sm' ? '4' : size === 'md' ? '6' : '8'} h-${size === 'sm' ? '4' : size === 'md' ? '6' : '8'} text-amber-500`} />
     </div>
   );
-}
+});

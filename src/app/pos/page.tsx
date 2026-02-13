@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import CatalogGrid from "./components/CatalogGrid";
 import { CheckDetail } from "./components/CheckDetail";
 import { ShiftModal, ShiftStatus } from "./components/ShiftModal";
@@ -38,7 +38,6 @@ export default function POSPage() {
     const shift = projections?.shift ?? null;
 
     const [showSuccess, setShowSuccess] = useState(false);
-    const [recommendations, setRecommendations] = useState<string[]>([]);
     const [currentOrder, setCurrentOrder] = useState<{ order_id: string; check_id: string } | null>(null);
     const [selectedCheckId, setSelectedCheckId] = useState<string>("c1");
     const [isOnline, setIsOnline] = useState(true);
@@ -90,16 +89,15 @@ export default function POSPage() {
         recommender.train().catch(console.error);
     }, []);
 
-    // Update recommendations when cart changes
-    useEffect(() => {
-        if (activeSale && Object.keys(activeSale.lines).length > 0) {
-            const currentIds = Object.values(activeSale.lines).map(l => l.product_id);
-            const preds = recommender.predict(currentIds);
-            setRecommendations(preds.map(p => p.id));
-        } else {
-            setRecommendations([]);
+    // Derive recommendations from activeSale using useMemo (optimized)
+    const recommendations = useMemo(() => {
+        if (!activeSale || Object.keys(activeSale.lines).length === 0) {
+            return [];
         }
-    }, [activeSale]);
+        const currentIds = Object.values(activeSale.lines).map(l => l.product_id);
+        const preds = recommender.predict(currentIds);
+        return preds.map(p => p.id);
+    }, [activeSale?.lines]); // ✅ Depende solo de lines, no del objeto completo
 
     // Get active check
     const activeCheck = activeSale?.checks.find(c => c.check_id === selectedCheckId) ?? activeSale?.checks[0] ?? null;

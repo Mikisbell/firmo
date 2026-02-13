@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { formatCents } from "@/src/core/domain/money";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Coffee, Beer, Drumstick, UtensilsCrossed, Search, Star, IceCream, Salad } from "lucide-react";
@@ -8,6 +8,7 @@ import type { CatalogItem } from "@/src/core/catalog/service";
 import { CategoryTabs } from "./CategoryTabs";
 import { useResponsive } from "@/src/hooks/useResponsive";
 import { VirtualizedGrid } from "./VirtualizedGrid";
+import { useCatalog } from "@/src/hooks/useSWRHooks";
 
 // Threshold for enabling virtualization
 const VIRTUALIZATION_THRESHOLD = 50;
@@ -52,39 +53,26 @@ interface CatalogGridProps {
 }
 
 export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = true }: CatalogGridProps) {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("ALL");
+    const [searchQuery, setSearchQuery] = React.useState("");
+    const [selectedCategory, setSelectedCategory] = React.useState("ALL");
     const { isMobile } = useResponsive();
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Fetch catalog on mount
-    useEffect(() => {
-        async function loadCatalog() {
-            try {
-                const res = await fetch("/api/catalog/latest");
-                if (!res.ok) throw new Error("Failed to load catalog");
-                const data = await res.json();
+    // Usar SWR para fetch con deduplicación automática
+    const { data, error, isLoading } = useCatalog();
 
-                setProducts(data.items.map((item: CatalogItem) => ({
-                    id: item.id,
-                    name: item.name,
-                    price: item.price_cents,
-                    sku: item.sku,
-                    station: item.station,
-                    category: item.category,
-                })));
-            } catch (e) {
-                setError("Error al cargar catálogo");
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadCatalog();
-    }, []);
+    // Transformar datos del catálogo a formato de productos
+    const products = useMemo(() => {
+        if (!data?.items) return [];
+        return data.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price_cents,
+            sku: item.sku,
+            station: item.station,
+            category: item.category,
+        }));
+    }, [data]);
 
     // Category counts
     const categoryCounts = useMemo(() => {
@@ -140,7 +128,7 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
         show: { opacity: 1, y: 0 }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="animate-pulse text-zinc-500">Cargando catálogo...</div>
@@ -151,7 +139,7 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
     if (error) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="text-red-400">{error}</div>
+                <div className="text-red-400">Error al cargar catálogo</div>
             </div>
         );
     }

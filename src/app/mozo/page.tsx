@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTableStatus, useZones, TableStatus } from "./hooks/useTableStatus";
 import { useWaiterNotifications } from "./hooks/useWaiterNotifications";
@@ -140,18 +140,18 @@ export default function WaiterPage() {
     ).length;
     const readyItemsTotal = tables.reduce((sum, t) => sum + (t.readyItemsCount ?? 0), 0);
 
-    const handleExit = () => {
+    const handleExit = useCallback(() => {
         clearTerminalConfig();
         router.push("/");
-    };
+    }, [router]);
 
-    const handleHome = () => {
+    const handleHome = useCallback(() => {
         router.push("/");
-    };
+    }, [router]);
 
-    const toggleNotificationPanel = () => {
-        setNotificationPanelOpen(!notificationPanelOpen);
-    };
+    const toggleNotificationPanel = useCallback(() => {
+        setNotificationPanelOpen(prev => !prev);
+    }, []);
 
     // Bottom navigation items for mobile
     const navItems: BottomNavItem[] = [

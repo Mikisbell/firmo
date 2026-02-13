@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { PWAProvider } from "@/src/components/pwa/PWAProvider";
+import { SWRProvider } from "@/src/components/providers/SWRProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -62,10 +63,12 @@ export default function RootLayout({
                 <link rel="dns-prefetch" href="https://vercel.live" />
             </head>
             <body className={`${inter.className} bg-zinc-950 text-white antialiased`}>
-                <PWAProvider>
-                    {children}
-                </PWAProvider>
-                <Toaster position="top-center" richColors theme="dark" />
+                <SWRProvider>
+                    <PWAProvider>
+                        {children}
+                    </PWAProvider>
+                    <Toaster position="top-center" richColors theme="dark" />
+                </SWRProvider>
             </body>
         </html>
     );

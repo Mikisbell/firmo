@@ -3,6 +3,8 @@
  * Detects device MAC address using WebRTC or falls back to Device ID
  */
 
+import { safeStorage } from '@/src/lib/storage';
+
 /**
  * Detects MAC address using WebRTC
  * Returns MAC address in format: AA:BB:CC:DD:EE:FF
@@ -75,7 +77,7 @@ async function getMACFromWebRTC(): Promise<string | null> {
  * Stores in localStorage for persistence
  */
 export function getOrCreateDeviceId(): string {
-  const stored = localStorage.getItem('park_pos_device_id');
+  const stored = safeStorage.getItem('park_pos_device_id');
 
   if (stored) {
     return stored;
@@ -83,7 +85,7 @@ export function getOrCreateDeviceId(): string {
 
   // Generate UUID v4
   const deviceId = crypto.randomUUID();
-  localStorage.setItem('park_pos_device_id', deviceId);
+  safeStorage.setItem('park_pos_device_id', deviceId);
 
   return deviceId;
 }

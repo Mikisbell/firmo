@@ -5,10 +5,11 @@
  * Vista móvil para gestionar entregas asignadas
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { DeliveryDetail } from './components/DeliveryDetail';
 import { FailureModal } from './components/FailureModal';
 import PhotoCapture from './components/PhotoCapture';
+import { useDeliveryOrders, useDrivers } from '@/src/hooks/useSWRHooks';
 
 interface DeliveryOrder {
   id: string;
@@ -24,9 +25,6 @@ interface DeliveryOrder {
 }
 
 export default function DriverAppPage() {
-  const [deliveries, setDeliveries] = useState<DeliveryOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [failingDelivery, setFailingDelivery] = useState<string | null>(null);
   const [capturingPhoto, setCapturingPhoto] = useState<string | null>(null);
   const [driverId, setDriverId] = useState<string | null>(null);
@@ -39,31 +37,9 @@ export default function DriverAppPage() {
     }
   }, []);
 
-  const fetchDeliveries = useCallback(async () => {
-    if (!driverId) return;
-    
-    try {
-      const res = await fetch(`/api/delivery/driver/${driverId}`);
-      if (!res.ok) throw new Error('Error fetching deliveries');
-      
-      const data = await res.json();
-      setDeliveries(data.deliveries || []);
-      setError(null);
-    } catch (err) {
-      setError('Error cargando entregas');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [driverId]);
-
-  useEffect(() => {
-    if (driverId) {
-      fetchDeliveries();
-      const interval = setInterval(fetchDeliveries, 15000);
-      return () => clearInterval(interval);
-    }
-  }, [driverId, fetchDeliveries]);
+  // Usar SWR para fetch con deduplicación y revalidación automática
+  const { data, error, isLoading, mutate } = useDeliveryOrders(driverId);
+  const deliveries = data?.deliveries || [];
 
   const handleDispatch = async (deliveryId: string) => {
     try {
@@ -74,7 +50,7 @@ export default function DriverAppPage() {
         const data = await res.json();
         throw new Error(data.error || 'Error');
       }
-      await fetchDeliveries();
+      await mutate(); // Revalidar datos con SWR
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error al despachar');
     }
@@ -91,7 +67,7 @@ export default function DriverAppPage() {
         const data = await res.json();
         throw new Error(data.error || 'Error');
       }
-      await fetchDeliveries();
+      await mutate(); // Revalidar datos con SWR
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error al entregar');
     }
@@ -118,7 +94,7 @@ export default function DriverAppPage() {
         throw new Error(data.error || 'Error');
       }
       setFailingDelivery(null);
-      await fetchDeliveries();
+      await mutate(); // Revalidar datos con SWR
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error al reportar fallo');
     }
@@ -134,7 +110,7 @@ export default function DriverAppPage() {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
@@ -239,20 +215,11 @@ export default function DriverAppPage() {
 }
 
 function DriverSetup({ onSetDriver }: { onSetDriver: (id: string) => void }) {
-  const [drivers, setDrivers] = useState<{ id: string; name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Usar SWR para fetch de drivers con deduplicación
+  const { data, isLoading } = useDrivers();
+  const drivers = data?.drivers?.filter((d) => d.is_active) || [];
 
-  useEffect(() => {
-    fetch('/api/drivers')
-      .then(res => res.json())
-      .then(data => {
-        setDrivers(data.drivers?.filter((d: { is_active: boolean; id: string; name: string }) => d.is_active) || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />

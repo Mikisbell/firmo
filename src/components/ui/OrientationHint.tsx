@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw, X } from 'lucide-react';
+import { safeStorage } from '@/src/lib/storage';
 
 export interface OrientationHintProps {
   /** Orientación recomendada */
@@ -36,7 +37,7 @@ export function OrientationHint({
   useEffect(() => {
     // Check if already dismissed
     if (showOnce) {
-      const dismissed = localStorage.getItem(`${STORAGE_PREFIX}${storageKey}`);
+      const dismissed = safeStorage.getItem(`${STORAGE_PREFIX}${storageKey}`);
       if (dismissed === 'true') return;
     }
 
@@ -74,7 +75,7 @@ export function OrientationHint({
   const handleDismiss = () => {
     setIsVisible(false);
     if (showOnce) {
-      localStorage.setItem(`${STORAGE_PREFIX}${storageKey}`, 'true');
+      safeStorage.setItem(`${STORAGE_PREFIX}${storageKey}`, 'true');
     }
   };
 

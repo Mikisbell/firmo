@@ -14,7 +14,7 @@ interface ReceiptFooterProps {
   className?: string;
 }
 
-export function ReceiptFooter({ footerText, className = '' }: ReceiptFooterProps) {
+export const ReceiptFooter = React.memo(function ReceiptFooter({ footerText, className = '' }: ReceiptFooterProps) {
   if (!footerText) {
     return null;
   }
@@ -24,4 +24,4 @@ export function ReceiptFooter({ footerText, className = '' }: ReceiptFooterProps
       <p className="whitespace-pre-wrap">{footerText}</p>
     </div>
   );
-}
+});

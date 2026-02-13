@@ -1,5 +1,7 @@
 'use client';
 
+import React from 'react';
+
 /**
  * Detalle de entrega para la app del motorizado
  */
@@ -22,9 +24,9 @@ interface Props {
   onFail: () => void;
 }
 
-export function DeliveryDetail({ delivery, onDispatch, onDeliver, onFail }: Props) {
+export const DeliveryDetail = React.memo(function DeliveryDetail({ delivery, onDispatch, onDeliver, onFail }: Props) {
   const isDispatched = delivery.status === 'DISPATCHED';
-  
+
   // Generar link de Google Maps
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(delivery.address_text)}`;
 
@@ -36,8 +38,8 @@ export function DeliveryDetail({ delivery, onDispatch, onDeliver, onFail }: Prop
             Pedido #{delivery.order_id.slice(0, 8)}
           </span>
           <span className={`text-xs px-2 py-1 rounded ${
-            isDispatched 
-              ? 'bg-purple-100 text-purple-700' 
+            isDispatched
+              ? 'bg-purple-100 text-purple-700'
               : 'bg-blue-100 text-blue-700'
           }`}>
             {isDispatched ? 'En camino' : 'Asignado'}
@@ -100,4 +102,5 @@ export function DeliveryDetail({ delivery, onDispatch, onDeliver, onFail }: Prop
       </div>
     </div>
   );
-}
+});
+

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import type { TerminalConfig } from '@/src/core/auth/types';
+import { safeStorage } from '@/src/lib/storage';
 
 /**
  * Hook que verifica si hay un terminal configurado.
@@ -26,7 +27,7 @@ export function useRequireTerminal() {
       // Check if we're in development or E2E test mode
       // In browser, process.env.NODE_ENV is replaced at build time
       const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-      const isE2E = typeof window !== 'undefined' && localStorage.getItem('e2e_mode') === 'true';
+      const isE2E = typeof window !== 'undefined' && safeStorage.getItem('e2e_mode') === 'true';
       
       console.log('[useRequireTerminal] No config found', { isDev, isE2E, hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown' });
       
@@ -48,7 +49,7 @@ export function useRequireTerminal() {
         
         // Store it for consistency (use correct key: park_terminal_config)
         if (typeof window !== 'undefined') {
-          localStorage.setItem('park_terminal_config', JSON.stringify(defaultConfig));
+          safeStorage.setItem('park_terminal_config', JSON.stringify(defaultConfig));
         }
         
         setTerminalId(defaultConfig.terminal_id);

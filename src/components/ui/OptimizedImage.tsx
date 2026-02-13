@@ -8,7 +8,7 @@
  * Requirements: 9.3
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/src/lib/utils";
 
 interface OptimizedImageProps {
@@ -71,15 +71,15 @@ export function OptimizedImage({
     return () => observer.disconnect();
   }, [lazy]);
 
-  const handleLoad = () => {
+  const handleLoad = useCallback(() => {
     setIsLoaded(true);
     onLoad?.();
-  };
+  }, [onLoad]);
 
-  const handleError = () => {
+  const handleError = useCallback(() => {
     setHasError(true);
     onError?.();
-  };
+  }, [onError]);
 
   return (
     <div

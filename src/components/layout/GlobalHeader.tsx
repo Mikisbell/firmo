@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { LogOut, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
@@ -25,15 +26,15 @@ export function GlobalHeader({
 }: GlobalHeaderProps) {
   const router = useRouter();
 
-  const handleExit = () => {
+  const handleExit = useCallback(() => {
     // Clear terminal config and redirect to home
     clearTerminalConfig();
     router.push("/");
-  };
+  }, [router]);
 
-  const handleHome = () => {
+  const handleHome = useCallback(() => {
     router.push("/");
-  };
+  }, [router]);
 
   return (
     <header

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Lock, Shield, Smartphone } from 'lucide-react';
+import { useSecurityData } from '@/src/hooks/useSWRHooks';
 
 interface Session {
   id: string;
@@ -51,51 +52,9 @@ interface Alert {
 
 export default function SecurityDashboard() {
   const router = useRouter();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchSecurityData();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchSecurityData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchSecurityData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch sessions
-      const sessionsRes = await fetch('/api/admin/security/sessions');
-      if (sessionsRes.ok) {
-        const data = await sessionsRes.json();
-        setSessions(data.sessions || []);
-      }
-
-      // Fetch devices
-      const devicesRes = await fetch('/api/admin/security/devices');
-      if (devicesRes.ok) {
-        const data = await devicesRes.json();
-        setDevices(data.devices || []);
-      }
-
-      // Fetch alerts
-      const alertsRes = await fetch('/api/admin/security/alerts');
-      if (alertsRes.ok) {
-        const data = await alertsRes.json();
-        setAlerts(data.alerts || []);
-      }
-    } catch (err) {
-      console.error('Error fetching security data:', err);
-      setError('Error loading security data');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  // Usar SWR para fetch con deduplicación y revalidación automática
+  const { sessions, devices, alerts, error, isLoading, mutate } = useSecurityData();
 
   const handleBlockDevice = async (macAddress: string) => {
     if (!confirm(`Block device ${macAddress}?`)) return;
@@ -109,7 +68,7 @@ export default function SecurityDashboard() {
 
       if (res.ok) {
         alert('Device blocked successfully');
-        fetchSecurityData();
+        mutate(); // Revalidar datos con SWR
       } else {
         alert('Error blocking device');
       }
@@ -129,7 +88,7 @@ export default function SecurityDashboard() {
 
       if (res.ok) {
         alert('Session revoked successfully');
-        fetchSecurityData();
+        mutate(); // Revalidar datos con SWR
       } else {
         alert('Error revoking session');
       }
@@ -139,7 +98,7 @@ export default function SecurityDashboard() {
     }
   };
 
-  if (loading && sessions.length === 0) {
+  if (isLoading && sessions.length === 0) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">

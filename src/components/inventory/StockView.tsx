@@ -367,59 +367,59 @@ export default function StockView({
   }, [searchQuery]);
 
   // Fetch inventory data
-  const fetchStock = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const params = new URLSearchParams({ tenant_id: tenantId });
-      if (locationId) params.append('location_id', locationId);
-      if (debouncedQuery) params.append('search', debouncedQuery);
-      if (showLowStockOnly) params.append('low_stock_only', 'true');
+  useEffect(() => {
+    const fetchStock = async () => {
+      setIsLoading(true);
+      setError(null);
       
-      const response = await fetch(`/api/inventory/stock?${params}`);
-      
-      if (!response.ok) {
-        throw new Error('Error al cargar inventario');
+      try {
+        const params = new URLSearchParams({ tenant_id: tenantId });
+        if (locationId) params.append('location_id', locationId);
+        if (debouncedQuery) params.append('search', debouncedQuery);
+        if (showLowStockOnly) params.append('low_stock_only', 'true');
+        
+        const response = await fetch(`/api/inventory/stock?${params}`);
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar inventario');
+        }
+        
+        const data = await response.json();
+        setItems(data.items);
+        setSummary(data.summary);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      } finally {
+        setIsLoading(false);
       }
-      
-      const data = await response.json();
-      setItems(data.items);
-      setSummary(data.summary);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setIsLoading(false);
-    }
+    };
+    
+    fetchStock();
   }, [tenantId, locationId, debouncedQuery, showLowStockOnly]);
 
-  useEffect(() => {
-    fetchStock();
-  }, [fetchStock]);
-
   // Fetch recent movements
-  const fetchRecentMovements = useCallback(async () => {
-    setIsLoadingMovements(true);
-    try {
-      const params = new URLSearchParams({ tenant_id: tenantId, limit: '10' });
-      if (locationId) params.append('location_id', locationId);
-      
-      const response = await fetch(`/api/inventory/movements/recent?${params}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setRecentMovements(data.movements || []);
-      }
-    } catch {
-      // Silently fail - recent movements are not critical
-    } finally {
-      setIsLoadingMovements(false);
-    }
-  }, [tenantId, locationId]);
-
   useEffect(() => {
+    const fetchRecentMovements = async () => {
+      setIsLoadingMovements(true);
+      try {
+        const params = new URLSearchParams({ tenant_id: tenantId, limit: '10' });
+        if (locationId) params.append('location_id', locationId);
+        
+        const response = await fetch(`/api/inventory/movements/recent?${params}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setRecentMovements(data.movements || []);
+        }
+      } catch {
+        // Silently fail - recent movements are not critical
+      } finally {
+        setIsLoadingMovements(false);
+      }
+    };
+    
     fetchRecentMovements();
-  }, [fetchRecentMovements]);
+  }, [tenantId, locationId]);
 
   // Handle movement click - highlight the item in the list
   const handleMovementClick = useCallback((code: string) => {

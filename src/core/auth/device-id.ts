@@ -8,6 +8,8 @@
  * Requirements: Terminal Architecture v2 - Requirement 2.4
  */
 
+import { safeStorage } from '@/src/lib/storage';
+
 const DEVICE_ID_KEY = 'park_pos_device_id';
 
 /**
@@ -32,14 +34,14 @@ function generateUUID(): string {
 export function getOrCreateDeviceId(): string {
   // Try to get from localStorage
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(DEVICE_ID_KEY);
+    const stored = safeStorage.getItem(DEVICE_ID_KEY);
     if (stored) {
       return stored;
     }
     
     // Generate new UUID
     const deviceId = generateUUID();
-    localStorage.setItem(DEVICE_ID_KEY, deviceId);
+    safeStorage.setItem(DEVICE_ID_KEY, deviceId);
     return deviceId;
   }
   
@@ -52,7 +54,7 @@ export function getOrCreateDeviceId(): string {
  */
 export function getDeviceId(): string | null {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem(DEVICE_ID_KEY);
+    return safeStorage.getItem(DEVICE_ID_KEY);
   }
   return null;
 }
@@ -62,7 +64,7 @@ export function getDeviceId(): string | null {
  */
 export function clearDeviceId(): void {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem(DEVICE_ID_KEY);
+    safeStorage.removeItem(DEVICE_ID_KEY);
   }
 }
 
@@ -71,7 +73,7 @@ export function clearDeviceId(): void {
  */
 export function isDeviceRegistered(): boolean {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem(DEVICE_ID_KEY) !== null;
+    return safeStorage.getItem(DEVICE_ID_KEY) !== null;
   }
   return false;
 }

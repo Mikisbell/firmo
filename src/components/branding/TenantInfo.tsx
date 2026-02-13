@@ -18,7 +18,7 @@ interface TenantInfoProps {
   className?: string;
 }
 
-export function TenantInfo({
+export const TenantInfo = React.memo(function TenantInfo({
   legalName,
   ruc,
   address,
@@ -46,4 +46,4 @@ export function TenantInfo({
   }
 
   return null;
-}
+});
