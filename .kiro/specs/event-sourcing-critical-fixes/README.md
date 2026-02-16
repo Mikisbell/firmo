@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Event Sourcing Critical Fixes
 
-> Fix de envío de órdenes a KDS
+> Fixes críticos del Event Sourcing
 
 ---
 
@@ -9,15 +9,15 @@
 | Atributo | Valor |
 |----------|-------|
 | **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+event-sourcing, critical
 ```
 
 ---
@@ -28,7 +28,9 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`conflict-resolution`](../conflict-resolution/)
+- [`event-schema-versioning`](../event-schema-versioning/)
+- [`saga-pattern`](../saga-pattern/)
 
 ---
 

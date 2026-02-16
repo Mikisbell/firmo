@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Performance Optimization Vercel Best Practices
 
-> Fix de envío de órdenes a KDS
+> Best practices de Vercel
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
+| **Fase** | P2 |
 | **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Tipo** | Performance |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+performance, vercel
 ```
 
 ---
@@ -28,7 +28,7 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`react-cache-optimization`](../react-cache-optimization/)
 
 ---
 

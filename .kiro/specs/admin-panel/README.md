@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Admin Panel
 
-> Fix de envío de órdenes a KDS
+> Panel de administración básico
 
 ---
 
@@ -9,15 +9,15 @@
 | Atributo | Valor |
 |----------|-------|
 | **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Features - Admin Panel |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+admin, crud, ui
 ```
 
 ---
@@ -28,7 +28,8 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`admin-panel-crud`](../admin-panel-crud/)
+- [`admin-panel-location-fix`](../admin-panel-location-fix/)
 
 ---
 

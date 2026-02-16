@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Multi Tenant Improvements
 
-> Fix de envío de órdenes a KDS
+> RLS, provisioning, quotas multi-tenant
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
+| **Fase** | P2 |
 | **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Tipo** | Security |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+multi-tenant, rls
 ```
 
 ---
@@ -25,10 +25,12 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`security-multi-factor`](../security-multi-factor/)
+- [`system-consolidation-phase1`](../system-consolidation-phase1/)
 
 ### Requerido por:
-_Ninguna_
+- [`delivery-2026-modernization`](../delivery-2026-modernization/)
+- [`enterprise-upgrade`](../enterprise-upgrade/)
 
 ---
 

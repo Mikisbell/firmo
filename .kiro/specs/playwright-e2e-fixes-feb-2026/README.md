@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Playwright E2e Fixes Feb 2026
 
-> Fix de envío de órdenes a KDS
+> Fixes de tests E2E febrero 2026
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P1 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Testing |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+testing, e2e
 ```
 
 ---
@@ -25,7 +25,7 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`playwright-e2e-optimization`](../playwright-e2e-optimization/)
 
 ### Requerido por:
 _Ninguna_

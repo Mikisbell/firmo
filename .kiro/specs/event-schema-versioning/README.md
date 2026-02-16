@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Event Schema Versioning
 
-> Fix de envío de órdenes a KDS
+> Versionado de schemas de eventos
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P1 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+event-sourcing, versioning
 ```
 
 ---
@@ -25,7 +25,7 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`event-sourcing-critical-fixes`](../event-sourcing-critical-fixes/)
 
 ### Requerido por:
 _Ninguna_

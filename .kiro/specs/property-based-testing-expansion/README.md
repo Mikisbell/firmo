@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Property Based Testing Expansion
 
-> Fix de envío de órdenes a KDS
+> Expansión de property-based testing
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
+| **Fase** | P2 |
 | **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Tipo** | Testing |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+testing, pbt
 ```
 
 ---

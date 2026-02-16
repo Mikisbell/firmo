@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Branded Types Migration
 
-> Fix de envío de órdenes a KDS
+> Migración a tipos seguros (Centavos, OrderId)
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P1 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+types, safety
 ```
 
 ---
@@ -28,7 +28,7 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`admin-panel-crud`](../admin-panel-crud/)
 
 ---
 

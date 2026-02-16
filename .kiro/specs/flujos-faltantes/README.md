@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Flujos Faltantes
 
-> Fix de envío de órdenes a KDS
+> Flujos pendientes (propinas, reservas)
 
 ---
 
@@ -8,8 +8,8 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
+| **Fase** | P3 |
+| **Estado** | ⬜ Planificado |
 | **Tipo** | Features - POS Core |
 
 ---
@@ -17,7 +17,7 @@
 ## 🏷️ Tags
 
 ```
-kds, orders
+pos, features
 ```
 
 ---
@@ -25,7 +25,7 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`waiter-module`](../waiter-module/)
 
 ### Requerido por:
 _Ninguna_

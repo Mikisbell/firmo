@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Enterprise Upgrade
 
-> Fix de envío de órdenes a KDS
+> Upgrade enterprise
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P3 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Enterprise |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+enterprise, scalability
 ```
 
 ---
@@ -25,7 +25,7 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`multi-tenant-improvements`](../multi-tenant-improvements/)
 
 ### Requerido por:
 _Ninguna_

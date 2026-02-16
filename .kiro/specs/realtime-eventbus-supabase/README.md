@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Realtime Eventbus Supabase
 
-> Fix de envío de órdenes a KDS
+> EventBus en tiempo real con Supabase
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P2 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Operations |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+operations, realtime
 ```
 
 ---
@@ -25,7 +25,8 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`event-sourcing-critical-fixes`](../event-sourcing-critical-fixes/)
+- [`system-consolidation-phase1`](../system-consolidation-phase1/)
 
 ### Requerido por:
 _Ninguna_

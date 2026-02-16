@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# System Consolidation Phase1
 
-> Fix de envío de órdenes a KDS
+> Consolidación del sistema (observabilidad, health checks)
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
+| **Fase** | P1 |
 | **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Tipo** | Operations |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+operations, monitoring
 ```
 
 ---
@@ -28,7 +28,9 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`multi-tenant-improvements`](../multi-tenant-improvements/)
+- [`premium-dashboard`](../premium-dashboard/)
+- [`realtime-eventbus-supabase`](../realtime-eventbus-supabase/)
 
 ---
 

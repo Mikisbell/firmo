@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Products P1 Improvements
 
-> Fix de envío de órdenes a KDS
+> Mejoras de productos (CSV, bulk operations)
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P2 |
+| **Estado** | 🟡 En Progreso |
+| **Tipo** | Features - Inventory |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+inventory, products, csv
 ```
 
 ---
@@ -25,7 +25,8 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`admin-panel-crud`](../admin-panel-crud/)
+- [`inventory-ui`](../inventory-ui/)
 
 ### Requerido por:
 _Ninguna_

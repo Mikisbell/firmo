@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Delivery Module
 
-> Fix de envío de órdenes a KDS
+> Módulo de delivery completo
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P2 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Features - Delivery |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+delivery, tracking
 ```
 
 ---
@@ -28,7 +28,7 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`delivery-2026-modernization`](../delivery-2026-modernization/)
 
 ---
 

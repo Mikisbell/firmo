@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# React Cache Optimization
 
-> Fix de envío de órdenes a KDS
+> Optimización de caché React con SWR
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
+| **Fase** | P2 |
 | **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Tipo** | Performance |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+performance, cache, swr
 ```
 
 ---
@@ -25,10 +25,10 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`performance-optimization-vercel-best-practices`](../performance-optimization-vercel-best-practices/)
 
 ### Requerido por:
-_Ninguna_
+- [`premium-dashboard`](../premium-dashboard/)
 
 ---
 

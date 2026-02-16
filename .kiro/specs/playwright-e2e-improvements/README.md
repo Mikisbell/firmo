@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Playwright E2e Improvements
 
-> Fix de envío de órdenes a KDS
+> Mejoras de tests E2E
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P1 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Testing |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+testing, e2e
 ```
 
 ---
@@ -28,7 +28,7 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`playwright-e2e-optimization`](../playwright-e2e-optimization/)
 
 ---
 

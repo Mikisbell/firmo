@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Premium Dashboard
 
-> Fix de envío de órdenes a KDS
+> Dashboard premium con analytics
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P2 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Features - Analytics |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+analytics, dashboard
 ```
 
 ---
@@ -25,7 +25,8 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`system-consolidation-phase1`](../system-consolidation-phase1/)
+- [`react-cache-optimization`](../react-cache-optimization/)
 
 ### Requerido por:
 _Ninguna_

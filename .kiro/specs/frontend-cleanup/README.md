@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Frontend Cleanup
 
-> Fix de envío de órdenes a KDS
+> Limpieza de frontend
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P3 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Frontend & UX |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+frontend, cleanup
 ```
 
 ---

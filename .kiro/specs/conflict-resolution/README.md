@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Conflict Resolution
 
-> Fix de envío de órdenes a KDS
+> Resolución de conflictos multi-terminal
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P1 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+event-sourcing, crdt
 ```
 
 ---
@@ -25,10 +25,10 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`event-sourcing-critical-fixes`](../event-sourcing-critical-fixes/)
 
 ### Requerido por:
-_Ninguna_
+- [`saga-pattern`](../saga-pattern/)
 
 ---
 

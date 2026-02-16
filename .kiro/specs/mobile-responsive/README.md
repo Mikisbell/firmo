@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Mobile Responsive
 
-> Fix de envío de órdenes a KDS
+> Responsive mobile
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P3 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Frontend & UX |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+mobile, responsive
 ```
 
 ---

@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Schema Completeness
 
-> Fix de envío de órdenes a KDS
+> Completitud de schemas Prisma
 
 ---
 
@@ -9,15 +9,15 @@
 | Atributo | Valor |
 |----------|-------|
 | **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+database, prisma
 ```
 
 ---
@@ -28,7 +28,7 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`admin-panel-location-fix`](../admin-panel-location-fix/)
 
 ---
 

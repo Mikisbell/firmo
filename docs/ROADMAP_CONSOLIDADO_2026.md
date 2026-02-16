@@ -8,6 +8,18 @@
 
 ---
 
+## 📚 NAVEGACIÓN RÁPIDA
+
+| Necesito... | Ir a |
+|-------------|------|
+| **Ver TODOS los specs organizados** | [📚 Índice Completo](INDICE_COMPLETO.md) ⭐ |
+| **Buscar specs por tags** | [🏷️ Índice de Tags](.kiro/specs/auditoria-documentacion-profesional/INDICE_TAGS.md) |
+| **Ver categorización completa** | [📊 Categorización](.kiro/specs/auditoria-documentacion-profesional/CATEGORIZACION_COMPLETA.md) |
+| **Ver dependencias entre specs** | [🔗 Matriz de Dependencias](.kiro/specs/auditoria-documentacion-profesional/CATEGORIZACION_COMPLETA.md#matriz-de-dependencias) |
+| Ver este roadmap | Estás aquí 👇 |
+
+---
+
 ## 📊 RESUMEN EJECUTIVO
 
 ### Estado General del Proyecto

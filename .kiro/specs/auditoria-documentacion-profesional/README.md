@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Auditoria Documentacion Profesional
 
-> Fix de envío de órdenes a KDS
+> Auditoría y organización de documentación
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P1 |
+| **Estado** | 🟡 En Progreso |
+| **Tipo** | Operations |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+documentation, audit
 ```
 
 ---

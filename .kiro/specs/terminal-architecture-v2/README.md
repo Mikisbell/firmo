@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Terminal Architecture V2
 
-> Fix de envío de órdenes a KDS
+> Arquitectura v2 de terminales
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P3 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+architecture, terminals
 ```
 
 ---
@@ -25,7 +25,7 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`conflict-resolution`](../conflict-resolution/)
 
 ### Requerido por:
 _Ninguna_

@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Admin Panel Ux Improvements
 
-> Fix de envío de órdenes a KDS
+> Mejoras UX del admin panel
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P3 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Features - Admin Panel |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+admin, ux
 ```
 
 ---
@@ -25,7 +25,7 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`admin-panel-crud`](../admin-panel-crud/)
 
 ### Requerido por:
 _Ninguna_

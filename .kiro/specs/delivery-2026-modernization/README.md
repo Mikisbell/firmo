@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Delivery 2026 Modernization
 
-> Fix de envío de órdenes a KDS
+> Modernización del módulo de delivery
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
+| **Fase** | P2 |
 | **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Tipo** | Features - Delivery |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+delivery, modernization
 ```
 
 ---
@@ -25,7 +25,8 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`delivery-module`](../delivery-module/)
+- [`multi-tenant-improvements`](../multi-tenant-improvements/)
 
 ### Requerido por:
 _Ninguna_

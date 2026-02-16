@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Waiter Module
 
-> Fix de envío de órdenes a KDS
+> Módulo de mesero (15 terminales)
 
 ---
 
@@ -9,7 +9,7 @@
 | Atributo | Valor |
 |----------|-------|
 | **Fase** | P0 |
-| **Estado** | ✅ Completado |
+| **Estado** | ⬜ Planificado |
 | **Tipo** | Features - POS Core |
 
 ---
@@ -17,7 +17,7 @@
 ## 🏷️ Tags
 
 ```
-kds, orders
+pos, waiter
 ```
 
 ---
@@ -28,7 +28,7 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`flujos-faltantes`](../flujos-faltantes/)
 
 ---
 

@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Inventory Ui
 
-> Fix de envío de órdenes a KDS
+> UI de gestión de inventario
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P2 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Features - Inventory |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+inventory, ui
 ```
 
 ---
@@ -28,7 +28,7 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`products-p1-improvements`](../products-p1-improvements/)
 
 ---
 

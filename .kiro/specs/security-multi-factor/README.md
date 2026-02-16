@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Security Multi Factor
 
-> Fix de envío de órdenes a KDS
+> Autenticación JWT con PIN y lockout
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
+| **Fase** | P1 |
 | **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Tipo** | Security |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+security, jwt, authentication
 ```
 
 ---
@@ -28,7 +28,8 @@ kds, orders
 _Ninguna_
 
 ### Requerido por:
-_Ninguna_
+- [`admin-panel-crud`](../admin-panel-crud/)
+- [`multi-tenant-improvements`](../multi-tenant-improvements/)
 
 ---
 

@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Database Integrity
 
-> Fix de envío de órdenes a KDS
+> Integridad de base de datos
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P3 |
+| **Estado** | ⬜ Planificado |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+database, integrity
 ```
 
 ---
@@ -25,7 +25,7 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`event-sourcing-critical-fixes`](../event-sourcing-critical-fixes/)
 
 ### Requerido por:
 _Ninguna_

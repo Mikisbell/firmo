@@ -1,6 +1,6 @@
-# Kds Order Submission Fix
+# Saga Pattern
 
-> Fix de envío de órdenes a KDS
+> Patrón Saga con compensating transactions
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Atributo | Valor |
 |----------|-------|
-| **Fase** | P0 |
-| **Estado** | ✅ Completado |
-| **Tipo** | Features - POS Core |
+| **Fase** | P2 |
+| **Estado** | 🟡 En Progreso |
+| **Tipo** | Core System |
 
 ---
 
 ## 🏷️ Tags
 
 ```
-kds, orders
+event-sourcing, saga
 ```
 
 ---
@@ -25,7 +25,8 @@ kds, orders
 ## 🔗 Dependencias
 
 ### Depende de:
-_Ninguna_
+- [`event-sourcing-critical-fixes`](../event-sourcing-critical-fixes/)
+- [`conflict-resolution`](../conflict-resolution/)
 
 ### Requerido por:
 _Ninguna_
