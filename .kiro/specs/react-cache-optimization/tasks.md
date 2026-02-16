@@ -285,27 +285,27 @@
 
 ### 16. Crear Performance Dashboard
 
-- [ ] 16.1 Implementar UI de métricas
-  - [ ] 16.1.1 Crear `src/app/admin/performance/page.tsx`
-  - [ ] 16.1.2 Crear componente `MetricCard`
-  - [ ] 16.1.3 Mostrar cache hit rate
-  - [ ] 16.1.4 Mostrar avg response time
-  - [ ] 16.1.5 Mostrar cache size
-  - [ ] 16.1.6 Mostrar memory usage
-  - [ ] 16.1.7 Agregar gráficos de tendencias
+- [x] 16.1 Implementar UI de métricas
+  - [x] 16.1.1 Crear `src/app/admin/performance/page.tsx`
+  - [x] 16.1.2 Crear componente `MetricCard`
+  - [x] 16.1.3 Mostrar cache hit rate
+  - [x] 16.1.4 Mostrar avg response time
+  - [x] 16.1.5 Mostrar cache size
+  - [x] 16.1.6 Mostrar memory usage
+  - [x] 16.1.7 Agregar gráficos de tendencias
 
-- [ ] 16.2 Implementar API de métricas
-  - [ ] 16.2.1 Crear `src/app/api/admin/performance/metrics/route.ts`
-  - [ ] 16.2.2 Endpoint GET para obtener métricas actuales
-  - [ ] 16.2.3 Endpoint POST para reset de métricas
-  - [ ] 16.2.4 Agregar autenticación
-  - [ ] 16.2.5 Agregar rate limiting
+- [x] 16.2 Implementar API de métricas
+  - [x] 16.2.1 Crear `src/app/api/admin/performance/metrics/route.ts`
+  - [x] 16.2.2 Endpoint GET para obtener métricas actuales
+  - [x] 16.2.3 Endpoint POST para reset de métricas
+  - [x] 16.2.4 Agregar autenticación
+  - [x] 16.2.5 Agregar rate limiting
 
-- [ ] 16.3 Tests de Performance Dashboard
-  - [ ] 16.3.1 Test: Dashboard renderiza correctamente
-  - [ ] 16.3.2 Test: Métricas se actualizan
-  - [ ] 16.3.3 Test: Reset funciona
-  - [ ] 16.3.4 Test: Gráficos muestran datos correctos
+- [x] 16.3 Tests de Performance Dashboard
+  - [x] 16.3.1 Test: Dashboard renderiza correctamente
+  - [x] 16.3.2 Test: Métricas se actualizan
+  - [x] 16.3.3 Test: Reset funciona
+  - [x] 16.3.4 Test: Gráficos muestran datos correctos
 
 ### 17. Configurar Alertas de Performance
 
