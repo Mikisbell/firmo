@@ -12,6 +12,9 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
     reactStrictMode: true,
     
+    // Optimizar fuentes de Google
+    optimizeFonts: true,
+    
     // Code Splitting Optimization
     experimental: {
         // Enable optimized package imports for better code splitting
@@ -68,6 +71,20 @@ const nextConfig = {
     async headers() {
         return [
             {
+                // Apply correct MIME types for static assets
+                source: '/_next/static/:path*',
+                headers: [
+                    {
+                        key: 'Content-Type',
+                        value: 'text/css; charset=utf-8',
+                    },
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=31536000, immutable',
+                    },
+                ],
+            },
+            {
                 // Apply CORS headers to all API routes
                 source: '/api/:path*',
                 headers: [
@@ -119,7 +136,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.push.apple.com https://updates.push.services.mozilla.com; frame-ancestors 'none';",
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; img-src 'self' data: https: blob:; font-src 'self' data: https://vercel.live https://*.vercel.app; connect-src 'self' https://api.push.apple.com https://updates.push.services.mozilla.com https://vercel.live https://*.vercel.app wss://*.vercel.app; frame-ancestors 'none'; media-src 'self' blob:;",
                     },
                 ],
             },

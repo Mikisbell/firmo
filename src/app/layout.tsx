@@ -38,23 +38,6 @@ export default function RootLayout({
     return (
         <html lang="es" className="dark">
             <head>
-                {/* Preload critical resources for improved TTFB and FCP */}
-                {/* Preload Inter font (variable font) - Next.js optimizes this automatically */}
-                <link
-                    rel="preload"
-                    href="/_next/static/media/inter-latin.woff2"
-                    as="font"
-                    type="font/woff2"
-                    crossOrigin="anonymous"
-                />
-                
-                {/* Preload critical CSS - Next.js bundles this automatically */}
-                <link
-                    rel="preload"
-                    href="/_next/static/css/app/layout.css"
-                    as="style"
-                />
-                
                 {/* Preconnect to external domains for faster resource loading */}
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
