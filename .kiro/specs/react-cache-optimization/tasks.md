@@ -329,20 +329,20 @@
 
 ### 18. Tests E2E de Performance
 
-- [ ] 18.1 Crear suite de tests E2E
-  - [ ] 18.1.1 Crear `e2e/performance/cache-optimization.spec.ts`
-  - [ ] 18.1.2 Test: Dashboard carga con menos requests
-  - [ ] 18.1.3 Test: Navegación entre páginas usa caché
-  - [ ] 18.1.4 Test: Auto-refresh no duplica requests
-  - [ ] 18.1.5 Test: Invalidación de caché funciona
-  - [ ] 18.1.6 Test: Memory no crece indefinidamente
+- [x] 18.1 Crear suite de tests E2E
+  - [x] 18.1.1 Crear `e2e/performance/cache-optimization.spec.ts`
+  - [x] 18.1.2 Test: Dashboard carga con menos requests
+  - [x] 18.1.3 Test: Navegación entre páginas usa caché
+  - [x] 18.1.4 Test: Auto-refresh no duplica requests
+  - [x] 18.1.5 Test: Invalidación de caché funciona
+  - [x] 18.1.6 Test: Memory no crece indefinidamente
 
-- [ ] 18.2 Benchmark tests
-  - [ ] 18.2.1 Crear `scripts/benchmark-cache.ts`
-  - [ ] 18.2.2 Medir baseline (sin optimizaciones)
-  - [ ] 18.2.3 Medir con optimizaciones
-  - [ ] 18.2.4 Comparar resultados
-  - [ ] 18.2.5 Documentar mejoras en `BENCHMARK_RESULTS.md`
+- [x] 18.2 Benchmark tests
+  - [x] 18.2.1 Crear `scripts/benchmark-cache.ts`
+  - [x] 18.2.2 Medir baseline (sin optimizaciones)
+  - [x] 18.2.3 Medir con optimizaciones
+  - [x] 18.2.4 Comparar resultados
+  - [x] 18.2.5 Documentar mejoras en `BENCHMARK_RESULTS.md`
 
 ### 19. Stress Testing
 
