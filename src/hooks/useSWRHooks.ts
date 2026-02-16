@@ -45,6 +45,84 @@ interface DeliveryResponse {
   deliveries: DeliveryOrder[];
 }
 
+interface Employee {
+  id: string;
+  tenant_id: string;
+  name: string;
+  role: string;
+  is_active: boolean;
+  pin_hash?: string;
+}
+
+interface Station {
+  id: string;
+  code: string;
+  name: string;
+  is_active: boolean;
+  terminals_count: number;
+  printers_count: number;
+}
+
+interface StationsResponse {
+  stations: Station[];
+}
+
+interface Table {
+  id: string;
+  number: string;
+  display_name: string | null;
+  capacity: number;
+  shape: string;
+  status: string;
+  is_active: boolean;
+  zone_id: string | null;
+  zone: { id: string; code: string; name: string; color: string } | null;
+}
+
+interface TablesResponse {
+  items: Table[];
+}
+
+interface MetricsData {
+  metrics: Array<{
+    name: string;
+    type: string;
+    count: number;
+    sum: number;
+    min: number;
+    max: number;
+    avg: number;
+    latest: number;
+    tags: Record<string, string[]>;
+  }>;
+  summary: {
+    totalMetrics: number;
+    period: string;
+    startTime: string;
+    endTime: string;
+    filters: {
+      tenantId: string | null;
+      terminalId: string | null;
+      metricType: string | null;
+    };
+  };
+  counters: Record<string, number>;
+  histograms: Record<string, {
+    count: number;
+    min: number;
+    max: number;
+    avg: number;
+    p50: number;
+    p95: number;
+    p99: number;
+  }>;
+}
+
+interface MetricsResponse {
+  success: boolean;
+  data: MetricsData;
+}
+
 interface TerminalDevice {
   id: string;
   terminal_id: string;
@@ -351,6 +429,18 @@ export function useDrivers(config?: SWRConfiguration) {
 
 // ============ FASE 3 - NUEVOS HOOKS ============
 
+interface AdminReportsResponse {
+  period: string;
+  sales_net: number;
+  discounts: number;
+  tips: number;
+  order_count: number;
+  by_payment_method: Array<{
+    method: string;
+    total: number;
+  }>;
+}
+
 /**
  * Hook para obtener reportes administrativos
  * 
@@ -364,7 +454,7 @@ export function useDrivers(config?: SWRConfiguration) {
  * return <ReportsView reports={data} />;
  */
 export function useAdminReports(period: string, config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<AdminReportsResponse>(
     period ? `/api/admin/reports?period=${period}` : null,
     fetcher,
     {
@@ -374,6 +464,35 @@ export function useAdminReports(period: string, config?: SWRConfiguration) {
       ...config,
     }
   );
+}
+
+interface ProductImage {
+  id: string;
+  url: string;
+  thumbnail_url: string;
+  medium_url: string;
+  size_bytes: number;
+  format: 'jpeg' | 'png' | 'webp';
+  order: number;
+  uploaded_at: string;
+  uploaded_by: string;
+}
+
+interface Product {
+  id: string;
+  tenant_id: string;
+  name: string;
+  sku: string;
+  short_name: string | null;
+  price_cents: number;
+  category: string;
+  station: string;
+  type: string;
+  is_active: boolean;
+  stock_quantity?: number;
+  low_stock_threshold?: number;
+  images?: ProductImage[];
+  description?: string;
 }
 
 /**
@@ -389,7 +508,7 @@ export function useAdminReports(period: string, config?: SWRConfiguration) {
  * return <ProductDetails product={data} onUpdate={mutate} />;
  */
 export function useProduct(id: string | null, config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<Product>(
     id ? `/api/admin/products/${id}` : null,
     fetcher,
     {
@@ -414,7 +533,7 @@ export function useProduct(id: string | null, config?: SWRConfiguration) {
  * return <EmployeeDetails employee={data} onUpdate={mutate} />;
  */
 export function useEmployee(id: string | null, config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<Employee>(
     id ? `/api/admin/employees/${id}` : null,
     fetcher,
     {
@@ -441,7 +560,7 @@ export function useEmployee(id: string | null, config?: SWRConfiguration) {
 export function useMetrics(params?: Record<string, string>, config?: SWRConfiguration) {
   const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
   
-  return useSWR(
+  return useSWR<MetricsResponse>(
     `/api/metrics${queryString}`,
     fetcher,
     {
@@ -452,6 +571,18 @@ export function useMetrics(params?: Record<string, string>, config?: SWRConfigur
       ...config,
     }
   );
+}
+
+interface EmployeeSubscriptionStatus {
+  employee_id: string;
+  employee_name: string;
+  has_subscription: boolean;
+  last_active: string | null;
+  days_inactive: number;
+}
+
+interface NotificationStatusResponse {
+  employees: EmployeeSubscriptionStatus[];
 }
 
 /**
@@ -466,7 +597,7 @@ export function useMetrics(params?: Record<string, string>, config?: SWRConfigur
  * return <NotificationBadge count={data.unread} onUpdate={mutate} />;
  */
 export function useNotificationStatus(config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<NotificationStatusResponse>(
     '/api/admin/notifications/status',
     fetcher,
     {
@@ -477,6 +608,28 @@ export function useNotificationStatus(config?: SWRConfiguration) {
       ...config,
     }
   );
+}
+
+interface Promotion {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string;
+  type: 'PERCENT' | 'FIXED' | 'HAPPY_HOUR' | '2X1' | 'COMBO';
+  value: number;
+  starts_at: string;
+  end_date: string;
+  ends_at: string;
+  is_active: boolean;
+  rules?: Record<string, any>;
+  conditions?: Record<string, any>;
+  discount_type?: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  discount_value?: number;
+  start_date?: string;
+}
+
+interface PromotionsResponse {
+  promotions: Promotion[];
 }
 
 /**
@@ -491,7 +644,7 @@ export function useNotificationStatus(config?: SWRConfiguration) {
  * return <PromotionsList promotions={data.promotions} onUpdate={mutate} />;
  */
 export function usePromotions(config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<PromotionsResponse>(
     '/api/admin/promotions',
     fetcher,
     {
@@ -516,7 +669,7 @@ export function usePromotions(config?: SWRConfiguration) {
  * return <PromotionDetails promotion={data} onUpdate={mutate} />;
  */
 export function usePromotion(id: string | null, config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<Promotion>(
     id ? `/api/admin/promotions/${id}` : null,
     fetcher,
     {
@@ -540,7 +693,7 @@ export function usePromotion(id: string | null, config?: SWRConfiguration) {
  * return <TablesList tables={data.tables} onUpdate={mutate} />;
  */
 export function useTables(config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<TablesResponse>(
     '/api/admin/tables',
     fetcher,
     {
@@ -564,7 +717,7 @@ export function useTables(config?: SWRConfiguration) {
  * return <StationsList stations={data.stations} onUpdate={mutate} />;
  */
 export function useStations(config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<StationsResponse>(
     '/api/admin/stations',
     fetcher,
     {
@@ -574,6 +727,18 @@ export function useStations(config?: SWRConfiguration) {
       ...config,
     }
   );
+}
+
+interface InventoryStatsResponse {
+  totalProducts: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  totalValue: number;
+  categories: Array<{
+    name: string;
+    count: number;
+    value: number;
+  }>;
 }
 
 /**
@@ -589,7 +754,7 @@ export function useStations(config?: SWRConfiguration) {
  * return <InventoryDashboard stats={data} onUpdate={mutate} />;
  */
 export function useInventoryStats(tenantId: string | null, config?: SWRConfiguration) {
-  return useSWR(
+  return useSWR<InventoryStatsResponse>(
     tenantId ? `/api/inventory/stats?tenant_id=${tenantId}` : null,
     fetcher,
     {
@@ -617,4 +782,12 @@ export type {
   SecurityResponse,
   DashboardAlert,
   DashboardStats,
+  EmployeeSubscriptionStatus,
+  NotificationStatusResponse,
+  AdminReportsResponse,
+  ProductImage,
+  Product,
+  Promotion,
+  PromotionsResponse,
+  InventoryStatsResponse,
 };

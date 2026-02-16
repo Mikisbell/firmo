@@ -1,11 +1,10 @@
 /**
- * Configuración global de SWR para PARK POS
+ * Configuración global de SWR para optimización de performance
  * 
- * Implementa:
- * - Deduplicación de requests HTTP (2000ms window)
- * - Revalidación automática en focus y reconexión
- * - Retry automático con backoff
- * - Stale-while-revalidate pattern
+ * Este archivo define las configuraciones de SWR para diferentes tipos de endpoints:
+ * - Global: Configuración por defecto para todos los componentes
+ * - High Frequency: Para datos en tiempo real (monitoring, alerts)
+ * - Low Frequency: Para datos estáticos (configuración, catálogos)
  * 
  * @module lib/swr-config
  */
@@ -13,70 +12,215 @@
 import { SWRConfiguration } from 'swr';
 
 /**
- * Configuración global de SWR
+ * Configuración global de SWR para optimización de performance
  * 
- * Validates: Requirements 2.2, 2.5
+ * Features:
+ * - Deduplicación automática de requests (2s window)
+ * - Caché persistente en memoria
+ * - Revalidación inteligente
+ * - Error retry con backoff exponencial
+ * 
+ * @example
+ * ```tsx
+ * import { SWRConfig } from 'swr';
+ * import { swrGlobalConfig } from '@/lib/swr-config';
+ * 
+ * export default function Layout({ children }) {
+ *   return (
+ *     <SWRConfig value={swrGlobalConfig}>
+ *       {children}
+ *     </SWRConfig>
+ *   );
+ * }
+ * ```
  */
-export const swrConfig: SWRConfiguration = {
-  // Deduplicación: requests idénticos en 2s se deduplicarán
-  // Esto reduce requests duplicados de 40% a 10%
+export const swrGlobalConfig: SWRConfiguration = {
+  // === DEDUPLICATION ===
+  // Requests idénticos dentro de 2s se deduplicarán automáticamente
+  // Esto previene llamadas duplicadas cuando múltiples componentes
+  // solicitan los mismos datos simultáneamente
   dedupingInterval: 2000,
   
-  // Revalidación automática cuando la ventana recibe foco
-  // Asegura que los datos estén frescos cuando el usuario regresa
-  revalidateOnFocus: true,
+  // === REVALIDATION ===
+  // No revalidar en focus (evita requests innecesarios cuando el usuario
+  // cambia de tab y regresa)
+  revalidateOnFocus: false,
   
-  // Revalidación automática cuando se reconecta la red
-  // Crítico para sistema offline-first como PARK POS
+  // Revalidar al reconectar (importante para offline-first)
+  // Cuando el usuario recupera conexión, refrescar datos automáticamente
   revalidateOnReconnect: true,
   
-  // Retry en caso de error
-  // 3 intentos con intervalo de 5s entre cada uno
-  shouldRetryOnError: true,
+  // No revalidar en mount si hay datos en caché
+  // Esto mejora la percepción de velocidad mostrando datos cacheados inmediatamente
+  revalidateIfStale: false,
+  
+  // === CACHE ===
+  // Provider personalizado para caché persistente en memoria
+  // Usa Map nativo de JavaScript para máxima performance
+  provider: () => new Map(),
+  
+  // === ERROR HANDLING ===
+  // Retry 3 veces con 5s de intervalo
+  // Esto maneja errores transitorios de red automáticamente
   errorRetryCount: 3,
   errorRetryInterval: 5000,
   
-  // Stale-while-revalidate: mostrar datos stale mientras se revalidan
-  // (comportamiento por defecto de SWR, no requiere configuración explícita)
+  // === PERFORMANCE ===
+  // Suspense mode deshabilitado (no compatible con auto-refresh)
+  suspense: false,
+  
+  // Keep previous data mientras revalida
+  // Esto previene "flashing" de loading states
+  keepPreviousData: true,
 };
 
 /**
- * Fetcher global para todas las requests de SWR
+ * Configuración específica para endpoints de alta frecuencia
  * 
- * Maneja:
- * - Errores HTTP (404, 500, etc.)
- * - Parsing de JSON
- * - Información de error enriquecida
+ * Usar para datos que cambian frecuentemente y requieren actualizaciones
+ * en tiempo real:
+ * - Monitoring metrics
+ * - Alertas activas
+ * - Estados de estaciones KDS
+ * - Órdenes en progreso
+ * 
+ * @example
+ * ```tsx
+ * import useSWR from 'swr';
+ * import { swrHighFrequencyConfig } from '@/lib/swr-config';
+ * 
+ * export function MonitoringPage() {
+ *   const { data } = useSWR(
+ *     '/api/admin/monitoring/metrics',
+ *     fetcher,
+ *     swrHighFrequencyConfig
+ *   );
+ * }
+ * ```
+ */
+export const swrHighFrequencyConfig: SWRConfiguration = {
+  ...swrGlobalConfig,
+  
+  // Deduplicación más agresiva (1s) para datos en tiempo real
+  dedupingInterval: 1000,
+  
+  // Auto-refresh cada 5 segundos
+  // Mantiene los datos actualizados sin intervención del usuario
+  refreshInterval: 5000,
+  
+  // Revalidar en focus para datos críticos
+  // Cuando el usuario regresa a la página, refrescar inmediatamente
+  revalidateOnFocus: true,
+};
+
+/**
+ * Configuración específica para endpoints de baja frecuencia
+ * 
+ * Usar para datos que cambian raramente:
+ * - Configuración del sistema
+ * - Catálogos de productos
+ * - Lista de empleados
+ * - Templates de tenant
+ * 
+ * @example
+ * ```tsx
+ * import useSWR from 'swr';
+ * import { swrLowFrequencyConfig } from '@/lib/swr-config';
+ * 
+ * export function ConfigPage() {
+ *   const { data } = useSWR(
+ *     '/api/admin/config',
+ *     fetcher,
+ *     swrLowFrequencyConfig
+ *   );
+ * }
+ * ```
+ */
+export const swrLowFrequencyConfig: SWRConfiguration = {
+  ...swrGlobalConfig,
+  
+  // Deduplicación más relajada (5s) para datos estáticos
+  dedupingInterval: 5000,
+  
+  // Revalidar si los datos son muy viejos
+  // Esto asegura que datos estáticos eventualmente se actualicen
+  revalidateIfStale: true,
+  
+  // No auto-refresh (datos cambian raramente)
+  refreshInterval: 0,
+};
+
+/**
+ * Fetcher por defecto para SWR
+ * 
+ * Esta función se usa como fetcher estándar en todos los hooks useSWR.
+ * Maneja errores HTTP automáticamente y parsea JSON.
  * 
  * @param url - URL del endpoint a consultar
- * @returns Datos parseados como JSON
- * @throws Error con información detallada si la request falla
+ * @returns Promise con los datos parseados
+ * @throws Error si la respuesta no es OK (status >= 400)
  * 
- * Validates: Requirements 2.2
+ * @example
+ * ```tsx
+ * import useSWR from 'swr';
+ * import { fetcher } from '@/lib/swr-config';
+ * 
+ * const { data, error } = useSWR('/api/admin/employees', fetcher);
+ * ```
  */
-export const fetcher = async (url: string) => {
-  const res = await fetch(url);
+export const fetcher = async <T = any>(url: string): Promise<T> => {
+  const response = await fetch(url);
   
-  if (!res.ok) {
-    const error = new Error('An error occurred while fetching the data.');
-    // @ts-ignore - Agregamos propiedades adicionales al error
-    error.info = await res.json().catch(() => ({ message: 'Failed to parse error response' }));
-    // @ts-ignore
-    error.status = res.status;
+  if (!response.ok) {
+    const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // Agregar información adicional al error para debugging
+    (error as any).status = response.status;
+    (error as any).url = url;
     throw error;
   }
   
-  return res.json();
+  return response.json();
 };
 
 /**
- * Hook personalizado para usar SWR con configuración por defecto
+ * Fetcher con autenticación para endpoints protegidos
  * 
- * Ejemplo de uso:
- * ```typescript
- * import { useSwrWithConfig } from '@/lib/swr-config';
+ * Similar al fetcher estándar pero incluye el token de autenticación
+ * en el header Authorization.
  * 
- * const { data, error, isLoading } = useSwrWithConfig('/api/products');
+ * @param url - URL del endpoint a consultar
+ * @param token - Token JWT de autenticación
+ * @returns Promise con los datos parseados
+ * @throws Error si la respuesta no es OK
+ * 
+ * @example
+ * ```tsx
+ * import useSWR from 'swr';
+ * import { authenticatedFetcher } from '@/lib/swr-config';
+ * 
+ * const token = getAuthToken();
+ * const { data } = useSWR(
+ *   ['/api/admin/secure-data', token],
+ *   ([url, token]) => authenticatedFetcher(url, token)
+ * );
  * ```
  */
-export { default as useSWR } from 'swr';
+export const authenticatedFetcher = async <T = any>(
+  url: string,
+  token: string
+): Promise<T> => {
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  if (!response.ok) {
+    const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+    (error as any).status = response.status;
+    (error as any).url = url;
+    throw error;
+  }
+  
+  return response.json();
+};

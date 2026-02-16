@@ -34,6 +34,7 @@ import {
   Database,
   Zap,
 } from 'lucide-react';
+import { cachedFetch } from '../../../../lib/fetch-cache';
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
@@ -106,30 +107,24 @@ export default function TenantAdminDashboardPage() {
     try {
       setError(null);
 
-      // Fetch all data in parallel
+      // Fetch all data in parallel con caché optimizado
+      // TTLs basados en frecuencia de cambio de datos:
+      // - Configuration: 30s (cambia raramente)
+      // - Metrics: 10s (actualiza frecuentemente)
+      // - Health: 5s (tiempo real)
+      // - Activity: 5s (tiempo real)
       const [configRes, metricsRes, healthRes, activityRes] = await Promise.allSettled([
-        fetch('/api/tenant/configuration'),
-        fetch('/api/admin/tenants/current/metrics'),
-        fetch('/api/admin/tenants/current/health'),
-        fetch('/api/admin/tenants/current/activity?limit=10'),
+        cachedFetch<TenantConfiguration>('/api/tenant/configuration', undefined, 30000),
+        cachedFetch<TenantMetrics>('/api/admin/tenants/current/metrics', undefined, 10000),
+        cachedFetch<TenantHealthStatus>('/api/admin/tenants/current/health', undefined, 5000),
+        cachedFetch<RecentActivity[]>('/api/admin/tenants/current/activity?limit=10', undefined, 5000),
       ]);
 
       // Extract data with fallbacks
-      const configData = configRes.status === 'fulfilled' && configRes.value.ok
-        ? await configRes.value.json()
-        : null;
-
-      const metricsData = metricsRes.status === 'fulfilled' && metricsRes.value.ok
-        ? await metricsRes.value.json()
-        : null;
-
-      const healthData = healthRes.status === 'fulfilled' && healthRes.value.ok
-        ? await healthRes.value.json()
-        : null;
-
-      const activityData = activityRes.status === 'fulfilled' && activityRes.value.ok
-        ? await activityRes.value.json()
-        : [];
+      const configData = configRes.status === 'fulfilled' ? configRes.value : null;
+      const metricsData = metricsRes.status === 'fulfilled' ? metricsRes.value : null;
+      const healthData = healthRes.status === 'fulfilled' ? healthRes.value : null;
+      const activityData = activityRes.status === 'fulfilled' ? activityRes.value : [];
 
       setConfiguration(configData);
       setMetrics(metricsData);
@@ -139,7 +134,7 @@ export default function TenantAdminDashboardPage() {
 
       // Show warning if some APIs failed
       const failedApis = [configRes, metricsRes, healthRes, activityRes]
-        .filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok))
+        .filter(r => r.status === 'rejected')
         .length;
 
       if (failedApis > 0) {

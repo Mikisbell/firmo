@@ -330,7 +330,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Documentar hooks en `src/lib/swr-config.ts`
     - _Requirements: 2.1, 2.4_
 
-  - [-] 9.3 Migrar componentes en lotes de 5
+  - [x] 9.3 Migrar componentes en lotes de 5
     - Lote 1: Migrar 5 componentes
     - Lote 2: Migrar 5 componentes
     - Lote 3: Migrar 5+ componentes restantes
@@ -344,7 +344,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
     - Documentar resultado final
     - _Requirements: 2.6_
 
-- [ ] 10. Implementar React.cache en todos los RSC
+- [-] 10. Implementar React.cache en todos los RSC
   - Identificar todos los Server Components con múltiples fetches
   - Implementar React.cache para cada fetch
   - Usar Promise.all para paralelización
@@ -352,7 +352,7 @@ Este plan implementa 5 optimizaciones críticas de performance para PARK POS bas
   - _Requirements: 4.1, 4.3, 4.5_
   - _Tiempo: 4 horas_
 
-  - [ ] 10.1 Auditar todos los Server Components
+  - [x] 10.1 Auditar todos los Server Components
     - Buscar archivos en `src/app/**/page.tsx`
     - Identificar componentes con múltiples fetches
     - Crear lista de componentes a optimizar

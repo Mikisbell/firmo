@@ -35,7 +35,7 @@ interface Table {
 export default function TablesPage() {
   // Migrado a SWR - Tarea 9.3 Lote 2
   const { data, error: swrError, isLoading: loading, mutate } = useTables();
-  const tables = data?.items || data || [];
+  const tables = data?.items || [];
   const error = swrError ? 'Error al cargar datos' : null;
   
   const [zones, setZones] = useState<Zone[]>([]);

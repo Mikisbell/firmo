@@ -31,10 +31,10 @@ export default function NotificacionesAdminPage() {
   // Migrado a SWR - Tarea 9.3 Lote 2
   const { data, error: swrError, isLoading: loading, mutate } = useNotificationStatus();
   const employees = data?.employees || [];
-  const error = swrError ? 'Error al cargar estado de notificaciones' : null;
   
   const [sendingTo, setSendingTo] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(swrError ? 'Error al cargar estado de notificaciones' : null);
 
   const fetchStatus = useCallback(() => {
     // Revalidar datos con SWR

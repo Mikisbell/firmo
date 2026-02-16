@@ -16,7 +16,7 @@
  * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.1, 3.1
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import type { RealtimeMetrics, StationMetrics, TopProduct, ComparisonMetrics, HourlySales } from '@/src/core/analytics/types';
 import { unsafeCentavos } from '@/src/core/types/shared';
+import { cachedFetch } from '@/src/lib/fetch-cache';
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
@@ -57,20 +58,13 @@ export default function AnalyticsDashboardPage() {
     try {
       // If viewing historical data, use history endpoint
       if (isHistorical && selectedDate !== getTodayDate()) {
-        const historyRes = await fetch(
-          `/api/admin/analytics/history?from=${selectedDate}&to=${selectedDate}`
+        const historyData = await cachedFetch<any[]>(
+          `/api/admin/analytics/history?from=${selectedDate}&to=${selectedDate}`,
+          { method: 'GET' },
+          5000 // 5s TTL para datos históricos
         );
         
-        if (!historyRes.ok) {
-          console.warn('Historical data not available');
-          setError('No hay datos históricos para esta fecha');
-          setLoading(false);
-          return;
-        }
-        
-        const historyData = await historyRes.json();
-        
-        if (historyData.length > 0) {
+        if (historyData && historyData.length > 0) {
           const dayData = historyData[0];
           setMetrics({
             ...dayData,
@@ -85,19 +79,21 @@ export default function AnalyticsDashboardPage() {
           setComparison(null);
           setTopProducts([]);
           setHourlySales([]);
+        } else {
+          setError('No hay datos históricos para esta fecha');
         }
         setLastUpdated(new Date());
-        setError(null);
         setLoading(false);
         return;
       }
 
       // Real-time data - fetch each API independently with error handling
+      // Usar cachedFetch con TTL corto (2s) para datos en tiempo real
       const [metricsResult, comparisonResult, topResult, hourlyResult] = await Promise.allSettled([
-        fetch('/api/admin/analytics/realtime').then(r => r.ok ? r.json() : null),
-        fetch('/api/admin/analytics/comparison').then(r => r.ok ? r.json() : null),
-        fetch('/api/admin/analytics/top-products?limit=5').then(r => r.ok ? r.json() : null),
-        fetch('/api/admin/analytics/hourly').then(r => r.ok ? r.json() : null),
+        cachedFetch<RealtimeMetrics>('/api/admin/analytics/realtime', { method: 'GET' }, 2000),
+        cachedFetch<ComparisonMetrics>('/api/admin/analytics/comparison', { method: 'GET' }, 2000),
+        cachedFetch<{ products: TopProduct[] }>('/api/admin/analytics/top-products?limit=5', { method: 'GET' }, 2000),
+        cachedFetch<{ hourly: HourlySales[] }>('/api/admin/analytics/hourly', { method: 'GET' }, 2000),
       ]);
 
       // Extract data with fallbacks
@@ -193,6 +189,45 @@ export default function AnalyticsDashboardPage() {
   useEffect(() => {
     fetchData();
   }, [selectedDate, isHistorical, fetchData]);
+
+  // === STRATEGY 3: useMemo para cálculos derivados ===
+  
+  // Formatear datos de chart con useMemo
+  const formattedChartData = useMemo(() => {
+    if (!hourlySales || hourlySales.length === 0) return [];
+    
+    return hourlySales.map(item => ({
+      ...item,
+      heightPercent: Math.max(...hourlySales.map(d => d.sales_cents), 1) > 0
+        ? (item.sales_cents / Math.max(...hourlySales.map(d => d.sales_cents), 1)) * 100
+        : 0,
+    }));
+  }, [hourlySales]);
+
+  // Calcular totales de ventas por hora con useMemo
+  const hourlySalesTotals = useMemo(() => {
+    if (!hourlySales || hourlySales.length === 0) {
+      return { totalSales: 0, totalOrders: 0 };
+    }
+    
+    return {
+      totalSales: hourlySales.reduce((sum, d) => sum + d.sales_cents, 0),
+      totalOrders: hourlySales.reduce((sum, d) => sum + d.orders_count, 0),
+    };
+  }, [hourlySales]);
+
+  // Calcular estadísticas de estaciones con useMemo
+  const stationStats = useMemo(() => {
+    if (!metrics?.stations || metrics.stations.length === 0) {
+      return { totalPending: 0, hasAlerts: false, avgPrepTime: 0 };
+    }
+    
+    return {
+      totalPending: metrics.stations.reduce((sum, s) => sum + s.pending_items, 0),
+      hasAlerts: metrics.stations.some(s => s.has_alert),
+      avgPrepTime: metrics.stations.reduce((sum, s) => sum + s.avg_prep_time_minutes, 0) / metrics.stations.length,
+    };
+  }, [metrics?.stations]);
 
   const formatCurrency = (cents: number) => `S/ ${(cents / 100).toFixed(2)}`;
 
@@ -350,7 +385,11 @@ export default function AnalyticsDashboardPage() {
           <Clock className="w-5 h-5 text-blue-400" />
           Ventas por Hora
         </h2>
-        <HourlySalesChart data={hourlySales} loading={loading} />
+        <HourlySalesChart 
+          data={formattedChartData} 
+          totals={hourlySalesTotals}
+          loading={loading} 
+        />
       </div>
 
       {/* Footer */}
@@ -473,7 +512,15 @@ function TopProductRow({ product, rank }: { product: TopProduct; rank: number })
   );
 }
 
-function HourlySalesChart({ data, loading }: { data: HourlySales[]; loading?: boolean }) {
+function HourlySalesChart({ 
+  data, 
+  totals,
+  loading 
+}: { 
+  data: (HourlySales & { heightPercent?: number })[]; 
+  totals: { totalSales: number; totalOrders: number };
+  loading?: boolean;
+}) {
   const formatCurrency = (cents: number) => `S/ ${(cents / 100).toFixed(0)}`;
   const formatHour = (hour: number) => `${hour.toString().padStart(2, '0')}:00`;
 
@@ -497,14 +544,12 @@ function HourlySalesChart({ data, loading }: { data: HourlySales[]; loading?: bo
     );
   }
 
-  const maxSales = Math.max(...data.map(d => d.sales_cents), 1);
-
   return (
     <div className="space-y-2">
       {/* Chart */}
       <div className="flex items-end gap-1 h-40">
         {data.map((item) => {
-          const heightPercent = (item.sales_cents / maxSales) * 100;
+          const heightPercent = item.heightPercent || 0;
           return (
             <div
               key={item.hour}
@@ -535,10 +580,10 @@ function HourlySalesChart({ data, loading }: { data: HourlySales[]; loading?: bo
           </div>
         ))}
       </div>
-      {/* Summary */}
+      {/* Summary - Usar datos pre-calculados */}
       <div className="flex justify-between text-xs text-zinc-500 pt-2 border-t border-zinc-800">
-        <span>Total: {formatCurrency(data.reduce((sum, d) => sum + d.sales_cents, 0))}</span>
-        <span>{data.reduce((sum, d) => sum + d.orders_count, 0)} órdenes</span>
+        <span>Total: {formatCurrency(totals.totalSales)}</span>
+        <span>{totals.totalOrders} órdenes</span>
       </div>
     </div>
   );

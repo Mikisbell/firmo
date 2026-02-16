@@ -12,7 +12,7 @@
 'use client';
 
 import { SWRConfig } from 'swr';
-import { swrConfig, fetcher } from '@/src/lib/swr-config';
+import { swrGlobalConfig } from '@/src/lib/swr-config';
 
 interface SWRProviderProps {
   children: React.ReactNode;
@@ -27,7 +27,7 @@ interface SWRProviderProps {
  */
 export function SWRProvider({ children }: SWRProviderProps) {
   return (
-    <SWRConfig value={{ ...swrConfig, fetcher }}>
+    <SWRConfig value={swrGlobalConfig}>
       {children}
     </SWRConfig>
   );

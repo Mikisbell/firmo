@@ -8,10 +8,12 @@
  * 
  * Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 10.1, 10.2, 10.3
  * UX Improvements: Toast notifications (P0), httpOnly cookies (P0 - SECURITY)
+ * Performance: SWR global config para deduplicación y caché optimizado
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { SWRConfig } from 'swr';
 import { Toaster } from 'sonner';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
@@ -19,6 +21,7 @@ import { PinModal } from '@/src/components/inventory/PinModal';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TenantBrandingProvider } from '@/src/core/tenant/branding-context';
+import { swrGlobalConfig } from '@/src/lib/swr-config';
 
 interface AuthEmployee {
   id: string;
@@ -160,7 +163,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AuthProvider>
       <TenantBrandingProvider>
-        <AdminLayoutContent>{children}</AdminLayoutContent>
+        {/* 
+          SWRConfig proporciona configuración global de caché para todos los componentes hijos.
+          Esto habilita:
+          - Deduplicación automática de requests (2s window)
+          - Caché persistente en memoria
+          - Revalidación inteligente
+          - Error retry con backoff exponencial
+          
+          Todos los hooks useSWR en componentes hijos heredarán esta configuración.
+        */}
+        <SWRConfig value={swrGlobalConfig}>
+          <AdminLayoutContent>{children}</AdminLayoutContent>
+        </SWRConfig>
       </TenantBrandingProvider>
     </AuthProvider>
   );
