@@ -9,7 +9,7 @@
 **PARK POS** = Sistema POS offline-first para pollerías peruanas
 - **Arquitectura:** Event Sourcing + Device-SoT + IndexedDB/PostgreSQL
 - **Stack:** Next.js 15 + Prisma + Dexie + Supabase + Tailwind
-- **Fase actual:** P0 (MVP) ✅ + P1 (Multi-Terminal) ✅ → P2 pendiente
+- **Fase actual:** P0 (MVP) ✅ + P1 (Multi-Terminal) ✅ → P2 (Growth) 35% 🟡
 
 **Reglas de oro:**
 - 💰 Dinero SIEMPRE en centavos (int), NUNCA float
@@ -17,6 +17,8 @@
 - 🔌 Funciona 100% offline, sincroniza cuando hay conexión
 
 **Tests:** 214 unit + 10 stress + 52 E2E (Playwright)
+
+**Roadmap completo:** Ver `docs/ROADMAP_CONSOLIDADO_2026.md`
 
 ---
 
@@ -72,10 +74,12 @@
 - [x] **Premium Dashboard** → `.kiro/specs/premium-dashboard/` ✅ (98 analytics + notifications tests, Dashboard UI completo)
 - [x] **Delivery Module** → `.kiro/specs/delivery-module/` ✅ (Services, APIs, UIs, Notifications, POS Integration)
 - [x] **Admin Panel CRUD** → `.kiro/specs/admin-panel-crud/` ✅ (Employees & Products CRUD completo, 100% tests passing)
-- [x] **Saga Pattern** → `.kiro/specs/saga-pattern/` ✅ (Spec completo: Requirements, Design, Tasks)
-- [x] **Property-Based Testing** → `.kiro/specs/property-based-testing-expansion/` ✅ (Spec completo: 33 properties, 112+ tests)
-- [x] **Multi-tenant improvements** → `.kiro/specs/multi-tenant-improvements/` ✅ (RLS, provisioning, quotas, **19/19 tests E2E pasando - 100% completo**)
 - [x] **React Cache Optimization** → `.kiro/specs/react-cache-optimization/` ✅ (Fases 1-3 completas: 29 tests, 11+ componentes optimizados, 30-40% reducción requests)
+- [x] **Multi-tenant improvements** → `.kiro/specs/multi-tenant-improvements/` ✅ (RLS, provisioning, quotas, **19/19 tests E2E pasando - 100% completo**)
+- [ ] **Saga Pattern** → `.kiro/specs/saga-pattern/` ⏳ (Spec completo: Requirements, Design, Tasks - Implementación pendiente)
+- [ ] **Property-Based Testing** → `.kiro/specs/property-based-testing-expansion/` ⏳ (Spec completo: 33 properties, 112+ tests - Implementación pendiente)
+- [ ] **Inventory Management** → `.kiro/specs/inventory-ui/` ⏳ (Pendiente)
+- [ ] **Products P1 Improvements** → `.kiro/specs/products-p1-improvements/` ⏳ (Pendiente)
 
 ---
 
@@ -149,6 +153,7 @@ docs/
 
 | Necesito... | Archivo |
 |-------------|---------|
+| **🔴 ROADMAP CONSOLIDADO 2026** | `docs/ROADMAP_CONSOLIDADO_2026.md` |
 | **🔴 AUDITORÍA CRÍTICA** | `docs/02-architecture/AUDITORIA_CRITICA.md` |
 | **🔴 SEGURIDAD FINANCIERA** | `docs/02-architecture/MONEY_SAFETY.md` |
 | **🔴 IMPLEMENTACIÓN PASO A PASO** | `docs/02-architecture/IMPLEMENTACION_PASO_A_PASO.md` |
@@ -160,7 +165,7 @@ docs/
 | Lista de eventos | `docs/02-architecture/EVENTS.md` |
 | Gaps críticos | `docs/05-improvements/GAPS.md` |
 | Mejoras a implementar | `docs/05-improvements/MEJORAS.md` |
-| Plan de trabajo | `docs/05-improvements/ROADMAP.md` |
+| Plan de trabajo original | `docs/05-improvements/ROADMAP.md` |
 | **Flujo Cajero/Split Bill** | `docs/03-features/FLUJO_CAJERO.md` |
 | **Flujo Mesero (15 terminales)** | `docs/03-features/FLUJO_MESERO.md` |
 | **Flujo KDS (5 estaciones)** | `docs/03-features/FLUJO_KDS.md` |
@@ -231,9 +236,10 @@ docs/
 
 ---
 
-**Última actualización:** 16 Febrero 2026  
-**Próxima tarea pendiente:** React Cache Optimization - Fase 4 (Integration Testing) - Opcional  
-**Última implementación:** React Cache Optimization ✅ - Fases 1-3 completas (29 tests, 11+ componentes optimizados)
+**Última actualización:** 17 Febrero 2026  
+**Próxima tarea pendiente:** P2 - Saga Pattern (Implementación) + Property-Based Testing Expansion  
+**Última implementación:** React Cache Optimization ✅ - Fases 1-3 completas (29 tests, 11+ componentes optimizados)  
+**Roadmap completo:** Ver `docs/ROADMAP_CONSOLIDADO_2026.md`
 
 ---
 

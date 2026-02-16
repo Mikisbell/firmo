@@ -12,7 +12,8 @@
 | Ver la arquitectura | [Arquitectura](02-architecture/ARCHITECTURE.md) |
 | Conocer los eventos | [Eventos](02-architecture/EVENTS.md) |
 | Ver qué falta por hacer | [Gaps](05-improvements/GAPS.md) |
-| Ver el plan de trabajo | [Roadmap](05-improvements/ROADMAP.md) |
+| Ver el plan de trabajo completo | [🗺️ Roadmap Consolidado 2026](ROADMAP_CONSOLIDADO_2026.md) |
+| Ver el roadmap original | [Roadmap](05-improvements/ROADMAP.md) |
 
 ---
 
@@ -96,12 +97,15 @@
 | Fase | Progreso | Estado |
 |------|----------|--------|
 | P0 — MVP | 100% | ✅ Completado |
-| P1 — Multi-Terminal | 15% | 🟡 En progreso |
-| P2 — Growth | 0% | ⬜ Pendiente |
+| P1 — Multi-Terminal | 100% | ✅ Completado |
+| P2 — Growth | 35% | 🟡 En progreso |
+| P3 — Enterprise | 0% | ⬜ Planificado |
 
-**Tests:** 101 unit + 10 stress + 52 E2E (Playwright)
+**Tests:** 214 unit + 10 stress + 52 E2E (Playwright)
 
-**Próxima tarea:** P1 - Conflict Resolution
+**Próxima tarea:** P2 - Saga Pattern + Property-Based Testing
+
+**Ver roadmap completo:** [🗺️ Roadmap Consolidado 2026](ROADMAP_CONSOLIDADO_2026.md)
 
 ---
 
