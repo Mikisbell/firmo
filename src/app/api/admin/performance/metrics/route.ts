@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
       cacheSize,
       memoryUsage,
       totalRequests: metrics.totalRequests,
-      cacheHits: metrics.cacheHits,
-      cacheMisses: metrics.cacheMisses,
+      cacheHits: metrics.cachedRequests,
+      cacheMisses: metrics.totalRequests - metrics.cachedRequests,
       p95ResponseTime: metrics.p95ResponseTime,
       p99ResponseTime: metrics.p99ResponseTime,
     });

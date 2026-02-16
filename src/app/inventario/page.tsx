@@ -239,9 +239,17 @@ export default function InventarioPage() {
   const { data: inventoryStats, mutate: mutateStats } = useInventoryStats(DEFAULT_TENANT_ID);
   
   // Actualizar stats locales cuando SWR actualiza
-  if (inventoryStats && inventoryStats !== stats) {
-    setStats(inventoryStats);
-  }
+  useEffect(() => {
+    if (inventoryStats) {
+      // Mapear InventoryStatsResponse al formato del estado local
+      setStats({
+        lowStockCount: inventoryStats.lowStockProducts,
+        pendingReceipts: 0, // No disponible en InventoryStatsResponse
+        pendingCounts: 0, // No disponible en InventoryStatsResponse
+        todayWaste: 0, // No disponible en InventoryStatsResponse
+      });
+    }
+  }, [inventoryStats]);
 
   // Handlers para acciones de StockView
   const handleReceive = useCallback((item: InventoryItem) => {
