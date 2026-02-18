@@ -96,6 +96,7 @@ export function canAccessRoute(role: string | null | undefined, route: string): 
     '/admin/estaciones': 'manage_stations',
     '/admin/configuracion': 'manage_config',
     '/admin/reportes': 'view_reports',
+    '/admin/reports/profitability': 'view_reports',
   };
 
   const permission = routePermissions[route];

@@ -35,6 +35,7 @@ import {
   Shield,
   Store,
   Activity,
+  TrendingUp,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -65,6 +66,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/monitoring', label: 'Monitoreo', icon: Activity, permission: 'view_dashboard' },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, permission: 'manage_config' },
   { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, permission: 'view_reports' },
+  { href: '/admin/reports/profitability', label: 'Rentabilidad', icon: TrendingUp, permission: 'view_reports' },
 ];
 
 interface AdminSidebarProps {

@@ -426,6 +426,48 @@ import {
 } from "./inventory-events";
 
 // ============================================================================
+// PROFITABILITY Events (P2)
+// ============================================================================
+
+// COGS_CALCULATED - COGS calculado para un producto
+const COGSCalculatedPayload = z.object({
+    product_id: uuidSchema,
+    cogs_cents: positiveCentsSchema,
+    recipe_id: uuidSchema.nullish(),
+    ingredient_count: z.number().int().nonnegative().optional(),
+    calculated_at: isoDateSchema,
+});
+
+// INGREDIENT_COST_CHANGED - Costo de ingrediente cambió
+const IngredientCostChangedPayload = z.object({
+    inventory_code: z.string().min(1),
+    inventory_item_id: uuidSchema.nullish(),
+    old_cost_cents: positiveCentsSchema,
+    new_cost_cents: positiveCentsSchema,
+    affected_products: z.array(uuidSchema).optional(),
+    changed_by: uuidSchema.nullish(),
+    changed_at: isoDateSchema,
+});
+
+// PROFITABILITY_REPORT_GENERATED - Reporte de rentabilidad generado
+const ProfitabilityReportGeneratedPayload = z.object({
+    report_id: uuidSchema,
+    report_type: z.enum(['FULL', 'BY_PRODUCT', 'BY_CATEGORY', 'MARGIN_ANALYSIS']),
+    period_start: isoDateSchema,
+    period_end: isoDateSchema,
+    product_count: z.number().int().nonnegative(),
+    total_revenue_cents: positiveCentsSchema,
+    total_profit_cents: centsSchema, // Can be negative
+    average_margin_percent: z.number(), // Can be negative
+    generated_by: uuidSchema.nullish(),
+    generated_at: isoDateSchema,
+    filters: z.object({
+        product_ids: z.array(uuidSchema).optional(),
+        category_ids: z.array(z.string()).optional(),
+    }).optional(),
+});
+
+// ============================================================================
 // SAGA Events (P2)
 // ============================================================================
 
@@ -725,6 +767,42 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         payload: InventoryDeductedPayload,
     }),
 
+    // PROFITABILITY events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("COGS_CALCULATED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: z.object({
+            product_id: uuidSchema,
+            cogs_cents: positiveCentsSchema,
+            calculation_date: isoDateSchema,
+            recipe_version: z.number().int().positive().optional(),
+        }),
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("INGREDIENT_COST_CHANGED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: z.object({
+            inventory_item_id: uuidSchema.nullable(),
+            ingredient_id: uuidSchema,
+            old_cost_cents: positiveCentsSchema,
+            new_cost_cents: positiveCentsSchema,
+            changed_by: uuidSchema,
+            reason: z.string().optional(),
+        }),
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PROFITABILITY_REPORT_GENERATED"),
+        aggregate_type: z.literal("INVENTORY"),
+        payload: z.object({
+            report_id: uuidSchema,
+            generated_at: isoDateSchema,
+            period_start: isoDateSchema,
+            period_end: isoDateSchema,
+            total_products: z.number().int().nonnegative(),
+            generated_by: uuidSchema,
+        }),
+    }),
+
     // DELIVERY events
     BaseEnvelopeSchema.extend({
         event_type: z.literal("DELIVERY_ASSIGNED"),
@@ -790,6 +868,10 @@ export type InventoryDeductedEvent = Extract<ParkEvent, { event_type: "INVENTORY
 export type DeliveryAssignedEvent = Extract<ParkEvent, { event_type: "DELIVERY_ASSIGNED" }>;
 export type DeliveryStatusChangedEvent = Extract<ParkEvent, { event_type: "DELIVERY_STATUS_CHANGED" }>;
 export type HandoffStatusChangedEvent = Extract<ParkEvent, { event_type: "HANDOFF_STATUS_CHANGED" }>;
+// Profitability event types
+export type COGSCalculatedEvent = Extract<ParkEvent, { event_type: "COGS_CALCULATED" }>;
+export type IngredientCostChangedEvent = Extract<ParkEvent, { event_type: "INGREDIENT_COST_CHANGED" }>;
+export type ProfitabilityReportGeneratedEvent = Extract<ParkEvent, { event_type: "PROFITABILITY_REPORT_GENERATED" }>;
 
 // ============================================================================
 // Ingest Request Schema

@@ -35,9 +35,9 @@ describe('RequestCache Property-Based Tests', () => {
    *   Múltiples requests con la misma key dentro del TTL
    *   deben deduplicarse (fetcher se llama solo 1 vez)
    */
-  it('Property 2.1: Deduplication within TTL', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.1: Deduplication within TTL', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.string({ minLength: 1 }), // key
         fc.integer({ min: 100, max: 5000 }), // ttl
         fc.integer({ min: 2, max: 20 }), // número de requests
