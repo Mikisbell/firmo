@@ -2092,18 +2092,16 @@ model employee_documents {
   tenant_id     String    @db.Uuid
   employee_id   String    @db.Uuid
   document_type String // CONTRACT, CERTIFICATE, BACKGROUND_CHECK, ID_COPY, etc.
-  file_url      String // URL en Supabase Storage
-  file_name     String
-  file_size     Int // bytes
-  issue_date    DateTime? @db.Date
+  document_url  String // URL en Supabase Storage
   expiry_date   DateTime? @db.Date
-  uploaded_by   String    @db.Uuid
+  notes         String?
+  uploaded_by   String?   @db.Uuid
   uploaded_at   DateTime  @default(now()) @db.Timestamptz(6)
   
   employee      employees @relation(fields: [employee_id], references: [id])
   
   @@index([tenant_id, employee_id])
-  @@index([tenant_id, document_type])
+  @@index([tenant_id, expiry_date])
 }
 
 /// Horarios de trabajo (asignaciones específicas)
