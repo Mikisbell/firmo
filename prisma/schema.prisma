@@ -285,6 +285,29 @@ model employees {
   pin_hash                           String?
   is_active                          Boolean                   @default(true)
   created_at                         DateTime                  @default(now()) @db.Timestamptz(6)
+  
+  // NUEVOS CAMPOS - Información Personal
+  dni                                String?                   @unique
+  email                              String?
+  phone                              String?
+  address                            String?
+  birth_date                         DateTime?                 @db.Date
+  profile_photo_url                  String?
+  
+  // NUEVOS CAMPOS - Información Laboral
+  hire_date                          DateTime?                 @db.Date
+  position                           String?
+  base_salary_cents                  Int?
+  contract_type                      String?
+  work_schedule_type                 String?
+  location_id                        String?                   @db.Uuid
+  
+  // NUEVOS CAMPOS - Configuración
+  commission_rate                    Decimal?                  @db.Decimal(5, 2)
+  pension_system                     String?
+  has_health_insurance               Boolean                   @default(false)
+  
+  // Relaciones existentes
   notification_preferences           notification_preferences?
   orders                             orders[]
   push_subscriptions                 push_subscriptions[]
@@ -292,8 +315,20 @@ model employees {
   shifts_shifts_opened_byToemployees shifts[]                  @relation("shifts_opened_byToemployees")
   station_alerts                     station_alerts[]
   tips                               tips[]
+  
+  // NUEVAS RELACIONES
+  emergency_contacts                 emergency_contacts[]
+  employee_documents                 employee_documents[]
+  employee_schedules                 employee_schedules[]
+  leave_requests                     leave_requests[]
+  advances                           advances[]
+  evaluations                        evaluations[]
+  training_records                   training_records[]
+  payroll_records                    payroll_records[]
 
   @@index([tenant_id, is_active])
+  @@index([tenant_id, dni])
+  @@index([tenant_id, location_id])
 }
 
 model event_outbox {
@@ -935,28 +970,6 @@ model reservations {
 
   @@index([tenant_id, customer_phone])
   @@index([tenant_id, location_id, date, status])
-}
-
-model schedules {
-  id                   String   @id @db.Uuid
-  tenant_id            String   @db.Uuid
-  location_id          String   @db.Uuid
-  employee_id          String   @db.Uuid
-  date                 DateTime @db.Date
-  shift_start          String
-  shift_end            String
-  break_minutes        Int      @default(60)
-  zone_id              String?  @db.Uuid
-  status               String   @default("SCHEDULED")
-  original_employee_id String?  @db.Uuid
-  swap_approved_by     String?  @db.Uuid
-  notes                String?
-  created_by           String   @db.Uuid
-  created_at           DateTime @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime @default(now()) @db.Timestamptz(6)
-
-  @@index([tenant_id, employee_id, date])
-  @@index([tenant_id, location_id, date])
 }
 
 model segment_members {
@@ -2048,4 +2061,277 @@ model dead_letter_queue {
   @@index([aggregate_id])
   @@index([expired_at(sort: Desc)])
   @@index([tenant_id, expired_at(sort: Desc)])
+}
+
+// ============================================
+// Sistema de Gestión de Recursos Humanos (RRHH)
+// ============================================
+
+/// Contactos de emergencia de empleados
+/// Almacena información de contacto para emergencias
+model emergency_contacts {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id    String    @db.Uuid
+  employee_id  String    @db.Uuid
+  name         String
+  relationship String // SPOUSE, PARENT, SIBLING, FRIEND, etc.
+  phone        String
+  address      String?
+  is_primary   Boolean   @default(false)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  
+  employee     employees @relation(fields: [employee_id], references: [id])
+  
+  @@index([tenant_id, employee_id])
+}
+
+/// Documentos laborales de empleados
+/// Almacena contratos, certificados, antecedentes, etc. en Supabase Storage
+model employee_documents {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id     String    @db.Uuid
+  employee_id   String    @db.Uuid
+  document_type String // CONTRACT, CERTIFICATE, BACKGROUND_CHECK, ID_COPY, etc.
+  file_url      String // URL en Supabase Storage
+  file_name     String
+  file_size     Int // bytes
+  issue_date    DateTime? @db.Date
+  expiry_date   DateTime? @db.Date
+  uploaded_by   String    @db.Uuid
+  uploaded_at   DateTime  @default(now()) @db.Timestamptz(6)
+  
+  employee      employees @relation(fields: [employee_id], references: [id])
+  
+  @@index([tenant_id, employee_id])
+  @@index([tenant_id, document_type])
+}
+
+/// Horarios de trabajo (asignaciones específicas)
+/// Asigna horarios específicos a empleados por fecha
+model schedules {
+  id                   String   @id @db.Uuid
+  tenant_id            String   @db.Uuid
+  location_id          String   @db.Uuid
+  employee_id          String   @db.Uuid
+  date                 DateTime @db.Date
+  shift_start          String
+  shift_end            String
+  break_minutes        Int      @default(60)
+  zone_id              String?  @db.Uuid
+  status               String   @default("SCHEDULED")
+  original_employee_id String?  @db.Uuid
+  swap_approved_by     String?  @db.Uuid
+  notes                String?
+  created_by           String   @db.Uuid
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, employee_id, date])
+  @@index([tenant_id, location_id, date])
+}
+
+/// Plantillas de horarios reutilizables (NUEVA TABLA)
+/// Define turnos y horarios estándar para asignar a empleados
+model schedule_templates {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id          String               @db.Uuid
+  location_id        String               @db.Uuid
+  name               String // "Turno Mañana", "Turno Tarde", etc.
+  schedule_type      String // FIXED, ROTATING
+  days_of_week       Int[] // [1,2,3,4,5] = Lunes a Viernes
+  start_time         String // "08:00"
+  end_time           String // "17:00"
+  break_minutes      Int                  @default(60)
+  is_active          Boolean              @default(true)
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  
+  employee_schedules employee_schedules[]
+  
+  @@index([tenant_id, location_id, is_active])
+}
+
+/// Asignación de horarios a empleados
+/// Relaciona empleados con sus plantillas de horarios
+model employee_schedules {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String             @db.Uuid
+  employee_id String             @db.Uuid
+  template_id String             @db.Uuid
+  start_date  DateTime           @db.Date
+  end_date    DateTime?          @db.Date
+  is_active   Boolean            @default(true)
+  created_at  DateTime           @default(now()) @db.Timestamptz(6)
+  
+  employee    employees          @relation(fields: [employee_id], references: [id])
+  template    schedule_templates @relation(fields: [template_id], references: [id])
+  
+  @@index([tenant_id, employee_id, is_active])
+  @@index([tenant_id, template_id])
+}
+
+/// Solicitudes de cambio de turno
+/// Permite a empleados solicitar cambios de turno con aprobación
+model shift_change_requests {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id          String    @db.Uuid
+  requester_id       String    @db.Uuid
+  target_employee_id String?   @db.Uuid // Empleado con quien quiere cambiar
+  original_date      DateTime  @db.Date
+  new_date           DateTime? @db.Date
+  reason             String
+  status             String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  approved_by        String?   @db.Uuid
+  approved_at        DateTime? @db.Timestamptz(6)
+  rejection_reason   String?
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  
+  @@index([tenant_id, requester_id, status])
+  @@index([tenant_id, status, created_at(sort: Desc)])
+}
+
+/// Solicitudes de vacaciones y permisos
+/// Gestiona solicitudes de ausencias con aprobación
+model leave_requests {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id        String    @db.Uuid
+  employee_id      String    @db.Uuid
+  leave_type       String // VACATION, SICK_LEAVE, PERSONAL_LEAVE, MATERNITY, PATERNITY
+  start_date       DateTime  @db.Date
+  end_date         DateTime  @db.Date
+  days_requested   Int
+  reason           String?
+  with_pay         Boolean   @default(true)
+  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  approved_by      String?   @db.Uuid
+  approved_at      DateTime? @db.Timestamptz(6)
+  rejection_reason String?
+  certificate_url  String? // URL del certificado médico (si aplica)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  
+  employee         employees @relation(fields: [employee_id], references: [id])
+  
+  @@index([tenant_id, employee_id, status])
+  @@index([tenant_id, status, start_date])
+}
+
+/// Adelantos de sueldo
+/// Gestiona solicitudes de adelantos con límites y aprobación
+model advances {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id             String    @db.Uuid
+  employee_id           String    @db.Uuid
+  amount_cents          Int // Monto solicitado en centavos
+  reason                String
+  status                String    @default("PENDING") // PENDING, APPROVED, REJECTED, PAID
+  approved_by           String?   @db.Uuid
+  approved_at           DateTime? @db.Timestamptz(6)
+  paid_at               DateTime? @db.Timestamptz(6)
+  deducted_from_payroll String?   @db.Uuid // ID del payroll_record donde se descontó
+  rejection_reason      String?
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  
+  employee              employees @relation(fields: [employee_id], references: [id])
+  
+  @@index([tenant_id, employee_id, status])
+  @@index([tenant_id, status, created_at(sort: Desc)])
+}
+
+/// Evaluaciones de desempeño
+/// Registra evaluaciones periódicas de empleados
+model evaluations {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id         String    @db.Uuid
+  employee_id       String    @db.Uuid
+  evaluator_id      String    @db.Uuid
+  period_start      DateTime  @db.Date
+  period_end        DateTime  @db.Date
+  scores            Json // {punctuality: 4, quality: 5, attitude: 4, sales: 5}
+  automatic_metrics Json // {total_sales: 50000, avg_tips: 1500, attendance_rate: 0.95}
+  comments          String?
+  employee_comments String?
+  goals             Json? // [{goal: "Aumentar ventas 10%", progress: 0.8}]
+  status            String    @default("DRAFT") // DRAFT, COMPLETED, REVIEWED
+  completed_at      DateTime? @db.Timestamptz(6)
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  
+  employee          employees @relation(fields: [employee_id], references: [id])
+  
+  @@index([tenant_id, employee_id, period_end(sort: Desc)])
+  @@index([tenant_id, status])
+}
+
+/// Registros de capacitaciones
+/// Almacena capacitaciones completadas por empleados
+model training_records {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id       String    @db.Uuid
+  employee_id     String    @db.Uuid
+  training_name   String
+  training_type   String // MANDATORY, OPTIONAL, CERTIFICATION
+  provider        String?
+  duration_hours  Int?
+  completion_date DateTime  @db.Date
+  certificate_url String?
+  score           Int? // Calificación (0-100)
+  notes           String?
+  assigned_by     String?   @db.Uuid
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  
+  employee        employees @relation(fields: [employee_id], references: [id])
+  
+  @@index([tenant_id, employee_id, completion_date(sort: Desc)])
+  @@index([tenant_id, training_type])
+}
+
+/// Registros de planilla mensual
+/// Almacena el cálculo de planilla de cada empleado por mes
+model payroll_records {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id              String    @db.Uuid
+  employee_id            String    @db.Uuid
+  period_month           String // "2026-01"
+  business_date_start    DateTime  @db.Date
+  business_date_end      DateTime  @db.Date
+  
+  // Componentes del salario
+  base_salary_cents      Int
+  commission_cents       Int       @default(0)
+  tips_cents             Int       @default(0)
+  overtime_cents         Int       @default(0)
+  bonuses_cents          Int       @default(0)
+  
+  // Deducciones
+  advances_cents         Int       @default(0)
+  absences_cents         Int       @default(0)
+  other_deductions_cents Int       @default(0)
+  
+  // Aportes legales
+  essalud_cents          Int // 9% del bruto
+  pension_cents          Int // ONP 13% o AFP ~13%
+  
+  // Totales
+  gross_salary_cents     Int // Bruto antes de descuentos
+  net_salary_cents       Int // Neto a pagar
+  
+  // Metadata
+  days_worked            Int
+  hours_worked           Int
+  overtime_hours         Int
+  absences_count         Int
+  
+  // Archivos
+  payslip_url            String? // URL del PDF de boleta
+  
+  // Auditoría
+  calculated_by          String    @db.Uuid
+  calculated_at          DateTime  @default(now()) @db.Timestamptz(6)
+  paid_at                DateTime? @db.Timestamptz(6)
+  
+  employee               employees @relation(fields: [employee_id], references: [id])
+  
+  @@unique([tenant_id, employee_id, period_month])
+  @@index([tenant_id, period_month])
+  @@index([tenant_id, employee_id, period_month(sort: Desc)])
 }

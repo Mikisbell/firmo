@@ -61,7 +61,7 @@ Cada fase termina con:
 
 ### Fase 1: Schema y Modelos Base
 
-- [ ] 1. Extender schema de Prisma con tablas de RRHH
+- [x] 1. Extender schema de Prisma con tablas de RRHH
   - Agregar campos nuevos a modelo `employees` existente
   - Crear modelos: `emergency_contacts`, `employee_documents`, `schedules`, `employee_schedules`
   - Crear modelos: `shift_change_requests`, `leave_requests`, `advances`
