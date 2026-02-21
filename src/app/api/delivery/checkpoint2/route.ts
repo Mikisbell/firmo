@@ -14,13 +14,7 @@ import { PrismaClient } from '@prisma/client';
 import EnhancedPushService from '@/src/services/push-enhanced.service';
 import EnhancedETACalculator from '@/src/services/eta-enhanced.service';
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
+const prisma = new PrismaClient();
 
 const pushService = new EnhancedPushService(prisma);
 const etaCalculator = new EnhancedETACalculator(prisma);

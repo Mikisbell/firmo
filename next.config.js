@@ -11,6 +11,7 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
+    output: 'standalone',
     
     // Optimizar fuentes de Google
     optimizeFonts: true,

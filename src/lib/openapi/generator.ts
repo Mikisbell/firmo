@@ -46,6 +46,13 @@ export function generateOpenAPISpec(): OpenAPIV3.Document {
       { name: 'Admin', description: 'Administrative endpoints' },
       { name: 'Health', description: 'System health and monitoring endpoints' },
       { name: 'Metrics', description: 'Performance and business metrics endpoints' },
+      { name: 'HR', description: 'Human resources management endpoints' },
+      { name: 'POS', description: 'Point-of-sale terminal endpoints' },
+      { name: 'Invoicing', description: 'SUNAT electronic invoicing endpoints' },
+      { name: 'Delivery', description: 'Delivery management and driver tracking' },
+      { name: 'Recipes', description: 'Recipe and cost management' },
+      { name: 'Finance', description: 'Petty cash, purchases, reconciliation, P&L' },
+      { name: 'Platforms', description: 'Third-party delivery platform integrations' },
     ],
     paths: {
       ...getAuthPaths(),
@@ -56,6 +63,12 @@ export function generateOpenAPISpec(): OpenAPIV3.Document {
       ...getAdminPaths(),
       ...getHealthPaths(),
       ...getMetricsPaths(),
+      ...getHRPaths(),
+      ...getPOSPaths(),
+      ...getInvoicingPaths(),
+      ...getRecipePaths(),
+      ...getFinancePaths(),
+      ...getPlatformPaths(),
     },
     components: {
       securitySchemes: getSecuritySchemes(),
@@ -1045,6 +1058,188 @@ function getSchemas(): Record<string, OpenAPIV3.SchemaObject> {
           },
         },
       },
+    },
+  };
+}
+
+// ============================================================================
+// New Module Paths (Phases A, B, E, F1-F3)
+// ============================================================================
+
+function getHRPaths(): OpenAPIV3.PathsObject {
+  return {
+    '/api/hr/employees': {
+      get: { tags: ['HR'], summary: 'List employees', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Employee list' } } },
+      post: { tags: ['HR'], summary: 'Create employee', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { name: { type: 'string' }, position: { type: 'string' }, dni: { type: 'string' } }, required: ['name', 'position', 'dni'] } } } }, responses: { '201': { description: 'Employee created' } } },
+    },
+    '/api/hr/employees/{id}': {
+      get: { tags: ['HR'], summary: 'Get employee details', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { '200': { description: 'Employee details' } } },
+      put: { tags: ['HR'], summary: 'Update employee', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { '200': { description: 'Employee updated' } } },
+    },
+    '/api/hr/attendance': {
+      get: { tags: ['HR'], summary: 'List attendance records', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Attendance list' } } },
+      post: { tags: ['HR'], summary: 'Clock in/out', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { employeeId: { type: 'string' }, type: { type: 'string', enum: ['CLOCK_IN', 'CLOCK_OUT'] } } } } } }, responses: { '200': { description: 'Attendance recorded' } } },
+    },
+    '/api/hr/payroll/calculate': {
+      post: { tags: ['HR'], summary: 'Calculate payroll for period', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { periodMonth: { type: 'string', example: '2026-02' } } } } } }, responses: { '200': { description: 'Payroll calculated' } } },
+    },
+    '/api/hr/leave-requests': {
+      get: { tags: ['HR'], summary: 'List leave requests', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Leave request list' } } },
+      post: { tags: ['HR'], summary: 'Submit leave request', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Leave request created' } } },
+    },
+    '/api/hr/schedules': {
+      get: { tags: ['HR'], summary: 'List schedules', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Schedule list' } } },
+      post: { tags: ['HR'], summary: 'Create schedule', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Schedule created' } } },
+    },
+    '/api/hr/evaluations': {
+      get: { tags: ['HR'], summary: 'List performance evaluations', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Evaluation list' } } },
+      post: { tags: ['HR'], summary: 'Create evaluation', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Evaluation created' } } },
+    },
+    '/api/hr/training': {
+      get: { tags: ['HR'], summary: 'List training modules', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Training list' } } },
+      post: { tags: ['HR'], summary: 'Create training module', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Training created' } } },
+    },
+    '/api/hr/advances': {
+      get: { tags: ['HR'], summary: 'List salary advances', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Advance list' } } },
+      post: { tags: ['HR'], summary: 'Request salary advance', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Advance requested' } } },
+    },
+    '/api/hr/me': {
+      get: { tags: ['HR'], summary: 'Get current employee profile (self-service)', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Employee profile' } } },
+    },
+    '/api/hr/reports': {
+      get: { tags: ['HR'], summary: 'Generate HR reports (headcount, rotation, absenteeism)', security: [{ bearerAuth: [] }], parameters: [{ name: 'type', in: 'query', schema: { type: 'string', enum: ['headcount', 'rotation', 'absenteeism'] } }], responses: { '200': { description: 'Report data' } } },
+    },
+  };
+}
+
+function getPOSPaths(): OpenAPIV3.PathsObject {
+  return {
+    '/api/pos/shifts': {
+      get: { tags: ['POS'], summary: 'Get current shift status', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Shift info' } } },
+      post: { tags: ['POS'], summary: 'Open/close shift', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { action: { type: 'string', enum: ['OPEN', 'CLOSE'] }, initialCash: { type: 'integer', description: 'Initial cash in centavos' } } } } } }, responses: { '200': { description: 'Shift updated' } } },
+    },
+    '/api/pos/payments': {
+      post: { tags: ['POS'], summary: 'Process payment', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { orderId: { type: 'string' }, method: { type: 'string', enum: ['CASH', 'CARD', 'YAPE', 'PLIN'] }, amount: { type: 'integer', description: 'Amount in centavos' } } } } } }, responses: { '200': { description: 'Payment processed' } } },
+    },
+    '/api/pos/invoices': {
+      post: { tags: ['POS'], summary: 'Generate electronic invoice (boleta/factura)', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { orderId: { type: 'string' }, type: { type: 'string', enum: ['BOLETA', 'FACTURA'] }, customerRuc: { type: 'string' } } } } } }, responses: { '200': { description: 'Invoice generated' } } },
+    },
+    '/api/pos/payment-qr': {
+      post: { tags: ['POS'], summary: 'Generate Yape/Plin QR code for payment', security: [{ bearerAuth: [] }], responses: { '200': { description: 'QR code data' } } },
+    },
+  };
+}
+
+function getInvoicingPaths(): OpenAPIV3.PathsObject {
+  return {
+    '/api/admin/facturacion': {
+      get: { tags: ['Invoicing'], summary: 'List invoices', security: [{ bearerAuth: [] }], parameters: [{ name: 'status', in: 'query', schema: { type: 'string', enum: ['PENDING', 'SENT', 'ACCEPTED', 'REJECTED', 'VOIDED'] } }], responses: { '200': { description: 'Invoice list' } } },
+      post: { tags: ['Invoicing'], summary: 'Create invoice', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Invoice created' } } },
+    },
+    '/api/admin/facturacion/{invoiceId}': {
+      get: { tags: ['Invoicing'], summary: 'Get invoice details', security: [{ bearerAuth: [] }], parameters: [{ name: 'invoiceId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Invoice details' } } },
+    },
+    '/api/admin/facturacion/{invoiceId}/pdf': {
+      get: { tags: ['Invoicing'], summary: 'Download invoice PDF', security: [{ bearerAuth: [] }], parameters: [{ name: 'invoiceId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'PDF file' } } },
+    },
+    '/api/admin/facturacion/{invoiceId}/void': {
+      post: { tags: ['Invoicing'], summary: 'Void invoice', security: [{ bearerAuth: [] }], parameters: [{ name: 'invoiceId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Invoice voided' } } },
+    },
+    '/api/admin/facturacion/stats': {
+      get: { tags: ['Invoicing'], summary: 'Invoicing statistics', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Stats data' } } },
+    },
+  };
+}
+
+function getRecipePaths(): OpenAPIV3.PathsObject {
+  return {
+    '/api/admin/recipes': {
+      get: { tags: ['Recipes'], summary: 'List recipes', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Recipe list' } } },
+      post: { tags: ['Recipes'], summary: 'Create recipe with ingredients', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { name: { type: 'string' }, productId: { type: 'string' }, ingredients: { type: 'array', items: { type: 'object', properties: { inventoryItemCode: { type: 'string' }, quantity: { type: 'number' }, unit: { type: 'string' } } } } } } } } }, responses: { '201': { description: 'Recipe created' } } },
+    },
+    '/api/admin/recipes/{id}': {
+      put: { tags: ['Recipes'], summary: 'Update recipe', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Recipe updated' } } },
+      delete: { tags: ['Recipes'], summary: 'Delete recipe', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '204': { description: 'Recipe deleted' } } },
+    },
+    '/api/admin/pollo-control': {
+      get: { tags: ['Recipes'], summary: 'Get chicken production status', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Production data' } } },
+    },
+    '/api/admin/pollo-control/production': {
+      post: { tags: ['Recipes'], summary: 'Register chicken production batch', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Production registered' } } },
+    },
+    '/api/admin/products/{id}/availability': {
+      put: { tags: ['Recipes'], summary: 'Toggle product availability (auto-86)', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Availability updated' } } },
+    },
+  };
+}
+
+function getFinancePaths(): OpenAPIV3.PathsObject {
+  return {
+    '/api/admin/petty-cash': {
+      get: { tags: ['Finance'], summary: 'List petty cash transactions', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Transaction list' } } },
+      post: { tags: ['Finance'], summary: 'Register petty cash expense', security: [{ bearerAuth: [] }], requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { amount: { type: 'integer', description: 'Amount in centavos' }, description: { type: 'string' }, category: { type: 'string' } } } } } }, responses: { '201': { description: 'Expense registered' } } },
+    },
+    '/api/admin/petty-cash/{id}/approve': {
+      post: { tags: ['Finance'], summary: 'Approve petty cash expense', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Expense approved' } } },
+    },
+    '/api/admin/petty-cash/reconcile': {
+      post: { tags: ['Finance'], summary: 'Reconcile petty cash for period', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Reconciliation complete' } } },
+    },
+    '/api/admin/purchases': {
+      get: { tags: ['Finance'], summary: 'List purchase orders', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Purchase order list' } } },
+      post: { tags: ['Finance'], summary: 'Create purchase order', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Purchase order created' } } },
+    },
+    '/api/admin/purchases/{id}': {
+      put: { tags: ['Finance'], summary: 'Update purchase order', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Purchase order updated' } } },
+    },
+    '/api/admin/reconciliation': {
+      get: { tags: ['Finance'], summary: 'List payment settlements', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Settlement list' } } },
+      post: { tags: ['Finance'], summary: 'Create reconciliation', security: [{ bearerAuth: [] }], responses: { '201': { description: 'Reconciliation created' } } },
+    },
+    '/api/admin/reconciliation/export': {
+      get: { tags: ['Finance'], summary: 'Export reconciliation report', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Export file' } } },
+    },
+    '/api/admin/pnl': {
+      get: { tags: ['Finance'], summary: 'Get profit & loss report', security: [{ bearerAuth: [] }], parameters: [{ name: 'startDate', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'endDate', in: 'query', schema: { type: 'string', format: 'date' } }], responses: { '200': { description: 'P&L report data' } } },
+    },
+    '/api/admin/pnl/export': {
+      get: { tags: ['Finance'], summary: 'Export P&L report as Excel', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Excel file' } } },
+    },
+  };
+}
+
+function getPlatformPaths(): OpenAPIV3.PathsObject {
+  return {
+    '/api/admin/platform-config': {
+      get: { tags: ['Platforms'], summary: 'List platform configurations (PedidosYa, LlamaFood)', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Platform config list' } } },
+      post: { tags: ['Platforms'], summary: 'Update platform configuration', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Config updated' } } },
+    },
+    '/api/admin/platform-orders': {
+      get: { tags: ['Platforms'], summary: 'List platform orders', security: [{ bearerAuth: [] }], parameters: [{ name: 'platform', in: 'query', schema: { type: 'string', enum: ['PEDIDOSYA', 'LLAMAFOOD'] } }, { name: 'status', in: 'query', schema: { type: 'string' } }], responses: { '200': { description: 'Platform order list' } } },
+    },
+    '/api/admin/platform-orders/{id}/accept': {
+      post: { tags: ['Platforms'], summary: 'Accept platform order', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Order accepted' } } },
+    },
+    '/api/admin/platform-orders/{id}/reject': {
+      post: { tags: ['Platforms'], summary: 'Reject platform order', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Order rejected' } } },
+    },
+    '/api/admin/waiter-ranking': {
+      get: { tags: ['Platforms'], summary: 'Get waiter ranking metrics', security: [{ bearerAuth: [] }], parameters: [{ name: 'period', in: 'query', schema: { type: 'string', enum: ['daily', 'weekly', 'monthly'] } }], responses: { '200': { description: 'Waiter ranking data' } } },
+    },
+    '/api/admin/waiter-ranking/export': {
+      get: { tags: ['Platforms'], summary: 'Export waiter ranking report', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Export file' } } },
+    },
+    '/api/webhooks/pedidosya': {
+      post: { tags: ['Platforms'], summary: 'PedidosYa webhook receiver', responses: { '200': { description: 'Webhook processed' } } },
+    },
+    '/api/webhooks/llamafood': {
+      post: { tags: ['Platforms'], summary: 'LlamaFood webhook receiver', responses: { '200': { description: 'Webhook processed' } } },
+    },
+    '/api/menu/{tenantSlug}/{tableId}': {
+      get: { tags: ['Platforms'], summary: 'Public menu for QR table ordering', parameters: [{ name: 'tenantSlug', in: 'path', required: true, schema: { type: 'string' } }, { name: 'tableId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Public menu data' } } },
+    },
+    '/api/menu/{tenantSlug}/{tableId}/call-waiter': {
+      post: { tags: ['Platforms'], summary: 'Call waiter from table QR', parameters: [{ name: 'tenantSlug', in: 'path', required: true, schema: { type: 'string' } }, { name: 'tableId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Waiter notified' } } },
     },
   };
 }
