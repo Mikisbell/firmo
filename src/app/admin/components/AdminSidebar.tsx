@@ -36,6 +36,19 @@ import {
   Store,
   Activity,
   TrendingUp,
+  Briefcase,
+  BookOpen,
+  Egg,
+  Smartphone,
+  QrCode,
+  FileText,
+  Award,
+  Wallet,
+  ShoppingCart,
+  PieChart,
+  Scale,
+  Globe,
+  LayoutGrid,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -54,8 +67,13 @@ export interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
   { href: '/admin/productos', label: 'Productos', icon: Package, permission: 'manage_products' },
+  { href: '/admin/recetas', label: 'Recetas', icon: BookOpen, permission: 'manage_products' },
+  { href: '/admin/pollo-control', label: 'Control Pollo', icon: Egg, permission: 'manage_products' },
   { href: '/admin/mesas', label: 'Mesas', icon: Grid3X3, permission: 'manage_config' },
+  { href: '/admin/mesas/qr', label: 'QR Mesas', icon: QrCode, permission: 'manage_config' },
+  { href: '/admin/mesas/operaciones', label: 'Operaciones Mesa', icon: LayoutGrid, permission: 'manage_config' },
   { href: '/admin/empleados', label: 'Empleados', icon: Users, permission: 'manage_employees' },
+  { href: '/admin/hr', label: 'Recursos Humanos', icon: Briefcase, permission: 'manage_employees' },
   { href: '/admin/terminales', label: 'Terminales', icon: Monitor, permission: 'manage_terminals' },
   { href: '/admin/auditoria', label: 'Auditoría', icon: Shield, permission: 'manage_terminals', badgeKey: 'auditoria' },
   { href: '/admin/promociones', label: 'Promociones', icon: Gift, permission: 'manage_promotions' },
@@ -65,8 +83,18 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/inventario', label: 'Inventario', icon: Warehouse, permission: 'manage_products' },
   { href: '/admin/monitoring', label: 'Monitoreo', icon: Activity, permission: 'view_dashboard' },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, permission: 'manage_config' },
+  { href: '/admin/configuracion/yape-plin', label: 'Yape / Plin', icon: Smartphone, permission: 'manage_config' },
+  { href: '/admin/facturacion', label: 'Facturación', icon: FileText, permission: 'manage_config' },
+  { href: '/admin/ranking-meseros', label: 'Ranking Meseros', icon: Award, permission: 'view_reports' },
+  { href: '/admin/caja-chica', label: 'Caja Chica', icon: Wallet, permission: 'manage_config' },
+  { href: '/admin/compras', label: 'Compras', icon: ShoppingCart, permission: 'manage_products' },
+  { href: '/admin/estado-resultados', label: 'Estado Resultados', icon: PieChart, permission: 'view_reports' },
+  { href: '/admin/conciliacion', label: 'Conciliación', icon: Scale, permission: 'view_reports' },
+  { href: '/admin/plataformas', label: 'Plataformas', icon: Globe, permission: 'manage_config' },
+  { href: '/admin/plataformas/pedidos', label: 'Pedidos App', icon: Smartphone, permission: 'manage_config' },
   { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, permission: 'view_reports' },
   { href: '/admin/reports/profitability', label: 'Rentabilidad', icon: TrendingUp, permission: 'view_reports' },
+  { href: '/employee', label: 'Portal Empleado', icon: Store, permission: 'manage_employees' },
 ];
 
 interface AdminSidebarProps {
