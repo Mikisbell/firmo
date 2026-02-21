@@ -9,3 +9,15 @@ export {
     type CleanupResult,
 } from './cleanup';
 export { withTransaction, type TransactionOptions } from './transaction';
+export {
+    hrOfflineDb,
+    getHrOfflineDb,
+    HROfflineDB,
+    type PendingHREvent,
+    type CachedEmployee,
+    type CachedSchedule,
+    type CachedAttendance,
+    type CachedLeaveRequest,
+    type HREventType,
+    type SyncStatus as HRSyncStatus,
+} from './hr-offline-db';

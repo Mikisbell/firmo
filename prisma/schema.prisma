@@ -190,6 +190,7 @@ model daily_sales_summary {
   created_at         DateTime @default(now()) @db.Timestamptz(6)
 
   @@id([tenant_id, business_date])
+  @@index([tenant_id, business_date(sort: Desc)])
 }
 
 model delivery_addresses {
@@ -478,6 +479,7 @@ model inventory_log {
   inventory     inventory @relation(fields: [inventory_id], references: [id])
 
   @@index([tenant_id, inventory_id, created_at(sort: Desc)])
+  @@index([inventory_id])
 }
 
 model locations {
@@ -822,15 +824,17 @@ model products {
   components  Json?
   recipe      Json?
   images      Json     @default("[]")
-  is_active   Boolean  @default(true)
-  version     Int      @default(1)
-  updated_at  DateTime @default(now()) @db.Timestamptz(6)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  created_by  String?  @db.Uuid
-  updated_by  String?  @db.Uuid
+  is_active    Boolean  @default(true)
+  is_available Boolean  @default(true) // Auto-86: producto disponible para ordenar AHORA
+  version      Int      @default(1)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  created_by   String?  @db.Uuid
+  updated_by   String?  @db.Uuid
 
   @@unique([tenant_id, sku])
   @@index([tenant_id, category])
+  @@index([tenant_id, is_available])
 }
 
 model promotions {
@@ -894,16 +898,73 @@ model purchase_orders {
 }
 
 model recipes {
-  id          String   @id @db.Uuid
-  tenant_id   String   @db.Uuid
-  product_id  String   @db.Uuid
-  ingredients Json
-  yield_qty   Decimal  @default(1) @db.Decimal(10, 3)
-  is_active   Boolean  @default(true)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  id                       String    @id @db.Uuid
+  tenant_id                String    @db.Uuid
+  product_id               String    @db.Uuid
+  name                     String?
+  ingredients              Json // Array de { inventory_code, quantity, unit, is_optional? }
+  yield_qty                Decimal   @default(1) @db.Decimal(10, 3)
+  yield_unit               String    @default("UNIDADES") // PORCIONES, KG, LITROS, etc.
+  conversion_factor        Decimal   @default(1.0) @db.Decimal(5, 3) // ratio crudo→cocido (ej: 0.72 para pollo)
+  category                 String? // POLLO, ADEREZO, GUARNICION, SALSA, BEBIDA, POSTRE, OTRO
+  preparation_time_minutes Int?
+  notes                    String?
+  cost_cents               Int? // COGS cacheado en centavos
+  last_cost_at             DateTime? @db.Timestamptz(6)
+  is_active                Boolean   @default(true)
+  created_by               String?   @db.Uuid
+  updated_by               String?   @db.Uuid
+  created_at               DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime  @default(now()) @db.Timestamptz(6)
 
   @@unique([tenant_id, product_id])
+  @@index([tenant_id, category])
+  @@index([tenant_id, is_active])
+}
+
+model pollo_production_logs {
+  id               String    @id @db.Uuid
+  tenant_id        String    @db.Uuid
+  location_id      String    @db.Uuid
+  shift_id         String?   @db.Uuid
+  batch_number     Int // Número de lote del día
+  raw_units        Decimal   @db.Decimal(10, 3) // Pollos enteros crudos
+  raw_weight_kg    Decimal   @db.Decimal(10, 3) // Peso crudo en kg
+  cooked_units     Decimal?  @db.Decimal(10, 3) // Pollos después de cocinar
+  cooked_weight_kg Decimal?  @db.Decimal(10, 3) // Peso cocido en kg
+  yield_percent    Decimal?  @db.Decimal(5, 2) // Rendimiento %
+  waste_units      Decimal?  @db.Decimal(10, 3) // Merma en unidades
+  waste_reason     String? // Razón de merma
+  status           String    @default("CRUDO") // CRUDO, COCINANDO, COCIDO, SERVIDO
+  started_at       DateTime  @default(now()) @db.Timestamptz(6)
+  completed_at     DateTime? @db.Timestamptz(6)
+  recorded_by      String    @db.Uuid
+  notes            String?
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([tenant_id, location_id, created_at(sort: Desc)])
+  @@index([tenant_id, shift_id])
+  @@index([tenant_id, status])
+}
+
+model pollo_daily_summary {
+  id                    String   @id @db.Uuid
+  tenant_id             String   @db.Uuid
+  location_id           String   @db.Uuid
+  business_date         DateTime @db.Date
+  total_raw_units       Decimal  @db.Decimal(10, 3) // Total pollos crudos ingresados
+  total_cooked_units    Decimal  @db.Decimal(10, 3) // Total pollos cocidos
+  total_sold_units      Decimal  @db.Decimal(10, 3) // Total vendidos (desde órdenes)
+  total_waste_units     Decimal  @db.Decimal(10, 3) // Total merma
+  unaccounted_units     Decimal  @db.Decimal(10, 3) // Sin contabilizar (faltante/fraude)
+  avg_yield_percent     Decimal  @db.Decimal(5, 2) // Rendimiento promedio
+  aderezo_liters_used   Decimal? @db.Decimal(10, 3) // Litros de aderezo usados
+  aderezo_chicken_ratio Decimal? @db.Decimal(10, 3) // Pollos por litro
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, location_id, business_date])
+  @@index([tenant_id, business_date(sort: Desc)])
 }
 
 model refunds {
@@ -1225,6 +1286,11 @@ model tenant_settings {
   max_offline_coupons_per_order Int                @default(1)
   require_manager_for_offline   Boolean            @default(true)
   onboarding_status             String             @default("IN_PROGRESS")
+  // Yape/Plin merchant config
+  yape_merchant_phone           String?
+  yape_merchant_name            String?
+  plin_merchant_phone           String?
+  plin_merchant_name            String?
   updated_at                    DateTime           @default(now()) @db.Timestamptz(6)
   tenants                       tenants            @relation(fields: [tenant_id], references: [id])
   onboarding_steps              onboarding_steps[]
@@ -1527,6 +1593,7 @@ model credit_notes {
 model tenants {
   id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name            String
+  slug            String?          @unique
   is_active       Boolean          @default(true)
   created_at      DateTime         @default(now()) @db.Timestamptz(6)
   updated_at      DateTime         @default(now()) @db.Timestamptz(6)
@@ -2332,4 +2399,72 @@ model payroll_records {
   @@unique([tenant_id, employee_id, period_month])
   @@index([tenant_id, period_month])
   @@index([tenant_id, employee_id, period_month(sort: Desc)])
+}
+
+// ============================================================================
+// Fase C: Plataformas Externas + Conciliación
+// ============================================================================
+
+model platform_configs {
+  id              String   @id @db.Uuid
+  tenant_id       String   @db.Uuid
+  platform        String   // PEDIDOSYA, LLAMAFOOD, RAPPI
+  is_active       Boolean  @default(true)
+  api_key         String?
+  store_id        String?
+  webhook_secret  String?
+  commission_rate Decimal  @db.Decimal(5, 2)
+  markup_rate     Decimal  @default(0.20) @db.Decimal(5, 2)
+  auto_accept     Boolean  @default(false)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, platform])
+  @@index([tenant_id, is_active])
+}
+
+model platform_orders {
+  id                     String    @id @db.Uuid
+  tenant_id              String    @db.Uuid
+  platform               String
+  platform_order_id      String
+  order_id               String?   @db.Uuid
+  status                 String    @default("RECEIVED")
+  raw_payload            Json
+  customer_name          String?
+  customer_phone         String?
+  delivery_address       String?
+  platform_total_cents   Int
+  restaurant_total_cents Int
+  commission_cents       Int       @default(0)
+  items                  Json
+  notes                  String?
+  estimated_pickup       DateTime? @db.Timestamptz(6)
+  accepted_at            DateTime? @db.Timestamptz(6)
+  rejected_at            DateTime? @db.Timestamptz(6)
+  rejection_reason       String?
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, platform, platform_order_id])
+  @@index([tenant_id, status])
+  @@index([tenant_id, created_at(sort: Desc)])
+}
+
+model payment_settlements {
+  id               String    @id @db.Uuid
+  tenant_id        String    @db.Uuid
+  period_start     DateTime  @db.Date
+  period_end       DateTime  @db.Date
+  payment_method   String
+  expected_cents   Int
+  received_cents   Int?
+  difference_cents Int?
+  status           String    @default("PENDING")
+  notes            String?
+  reconciled_by    String?   @db.Uuid
+  reconciled_at    DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, period_start, period_end, payment_method])
+  @@index([tenant_id, status])
 }

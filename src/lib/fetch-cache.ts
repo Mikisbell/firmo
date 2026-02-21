@@ -113,16 +113,23 @@ export class RequestCache {
         // Registrar cache miss con duración real
         const duration = Date.now() - startTime;
         perfMonitor.recordRequest(key, false, duration);
-        return result;
-      })
-      .finally(() => {
-        // Limpiar caché después del TTL
+
+        // Limpiar caché después del TTL (solo para requests exitosos)
         // Esto previene memory leaks al eliminar entradas viejas
         setTimeout(() => {
           this.cache.delete(key);
           // Actualizar tamaño de caché después de eliminar
           perfMonitor.updateCacheSize(this.cache.size);
         }, ttl);
+
+        return result;
+      })
+      .catch((error) => {
+        // No cachear errores: eliminar inmediatamente para que
+        // el próximo request reintente
+        this.cache.delete(key);
+        perfMonitor.updateCacheSize(this.cache.size);
+        throw error;
       });
     
     // Guardar en caché inmediatamente (antes de que resuelva)

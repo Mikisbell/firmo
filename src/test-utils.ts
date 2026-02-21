@@ -63,7 +63,7 @@ export const businessDateArb = fc.tuple(
 /**
  * Arbitrary for ISO date strings
  */
-export const isoDateArb = fc.date().map(d => d.toISOString());
+export const isoDateArb = fc.date({ min: new Date('2020-01-01T00:00:00.000Z'), max: new Date('2030-12-31T23:59:59.999Z') }).filter(d => !isNaN(d.getTime())).map(d => d.toISOString());
 
 /**
  * Arbitrary for order IDs (branded type)
@@ -184,17 +184,80 @@ export const checkMarkedPaidEventArb = fc.record({
 
 /**
  * Generate a realistic order object
+ *
+ * Includes all fields expected by property tests:
+ * - items with line_id, product_id, sku, name, qty, unit_price_cents, station, status
+ * - checks with check_id, total_cents, payment.status
+ * - stations_active, unpaid_checks_count, subtotal_cents, fulfillment_status, handoff_status
  */
 export function generateRealisticOrder(overrides?: Partial<any>) {
+  const orderId = randomUUID();
+  const itemId = randomUUID();
+  const productId = randomUUID();
+  const checkId = randomUUID();
+
+  const itemQty = Math.floor(Math.random() * 5) + 1;
+  const itemPrice = Math.floor(Math.random() * 10000) + 500;
+  const subtotal = itemQty * itemPrice;
+  const total = subtotal; // no discount by default
+
+  const items = [
+    {
+      line_id: itemId,
+      item_id: itemId,
+      product_id: productId,
+      sku: `SKU-${productId.slice(0, 8)}`,
+      name: 'Test Item',
+      qty: itemQty,
+      quantity: itemQty,
+      unit_price_cents: itemPrice,
+      station: 'KITCHEN',
+      status: 'PENDING',
+      mods: [],
+      notes: null,
+      created_at: new Date().toISOString(),
+      started_cooking_at: null,
+      ready_at: null,
+      served_at: null,
+    },
+  ];
+
+  const checks = [
+    {
+      check_id: checkId,
+      check_number: 1,
+      items: [itemId],
+      total_cents: total,
+      subtotal_cents: subtotal,
+      tax_cents: 0,
+      discount_cents: 0,
+      payment: {
+        status: 'UNPAID',
+        method: null,
+        amount_cents: 0,
+      },
+    },
+  ];
+
+  // Compute derived fields
+  const stationsActive = ['KITCHEN'];
+  const unpaidChecksCount = checks.filter(c => c.payment.status !== 'PAID').length;
+
   return {
-    id: randomUUID(),
+    id: orderId,
+    order_id: orderId,
     tenant_id: randomUUID(),
-    order_number: Math.floor(Math.random() * 999999),
+    order_number: Math.floor(Math.random() * 999999) + 1,
     order_type: 'DINE_IN',
     order_status: 'OPEN',
-    total_cents: Math.floor(Math.random() * 100000) + 1000,
-    items: [],
-    checks: [],
+    fulfillment_status: 'COOKING',
+    handoff_status: 'WAITING',
+    subtotal_cents: subtotal,
+    total_cents: total,
+    items,
+    checks,
+    stations_active: stationsActive,
+    unpaid_checks_count: unpaidChecksCount,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
@@ -234,17 +297,34 @@ export function generateRealisticOrderCreatedEvent() {
 
 /**
  * Generate a realistic check object
+ *
+ * Includes all fields expected by property tests:
+ * - subtotal_cents, tax_cents, discount_cents, total_cents with correct invariant
+ * - payment.status, mode
  */
 export function generateRealisticCheck() {
+  const subtotal = Math.floor(Math.random() * 100000) + 1000;
+  const tax = Math.floor(Math.random() * Math.floor(subtotal * 0.2)); // tax up to 20%
+  const discount = 0; // no discount by default
+  const total = subtotal + tax - discount;
+
   return {
     id: randomUUID(),
+    check_id: randomUUID(),
     order_id: randomUUID(),
-    check_number: Math.floor(Math.random() * 999),
+    check_number: Math.floor(Math.random() * 999) + 1,
     items: [],
-    subtotal_cents: Math.floor(Math.random() * 100000) + 1000,
-    tax_cents: Math.floor(Math.random() * 10000),
-    total_cents: Math.floor(Math.random() * 100000) + 1000,
+    subtotal_cents: subtotal,
+    tax_cents: tax,
+    discount_cents: discount,
+    total_cents: total,
     status: 'OPEN',
+    mode: 'ITEMS',
+    payment: {
+      status: 'UNPAID',
+      method: null,
+      amount_cents: 0,
+    },
   };
 }
 
@@ -282,15 +362,23 @@ export function generateRealisticEventSequence(count: number = 10): any[] {
 
 /**
  * Generate a realistic inventory item object
+ *
+ * Includes fields expected by property tests:
+ * - current_qty, unit_cost_cents, weighted_avg_cost_cents, reorder_level
  */
 export function generateRealisticInventoryItem() {
+  const unitCost = Math.floor(Math.random() * 50000) + 100;
   return {
     id: randomUUID(),
     tenant_id: randomUUID(),
     product_id: randomUUID(),
     quantity: Math.floor(Math.random() * 1000),
+    current_qty: Math.floor(Math.random() * 1000),
     unit: 'kg',
-    cost_cents: Math.floor(Math.random() * 50000) + 100,
+    cost_cents: unitCost,
+    unit_cost_cents: unitCost,
+    weighted_avg_cost_cents: unitCost,
+    reorder_level: Math.floor(Math.random() * 50),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -755,6 +843,9 @@ export function generateRealisticPurchaseOrder() {
 
 /**
  * Generate a realistic inventory transaction sequence
+ *
+ * Uses `qty` field and types matching the reconcileInventory function:
+ * PURCHASE (+), DEDUCTION (-), WASTE (-), ADJUSTMENT (+)
  */
 export function generateRealisticInventoryTransactionSequence(count: number = 10): any[] {
   const transactions: any[] = [];
@@ -763,8 +854,9 @@ export function generateRealisticInventoryTransactionSequence(count: number = 10
       id: randomUUID(),
       tenant_id: randomUUID(),
       inventory_item_id: randomUUID(),
-      type: ['PURCHASE', 'SALE', 'WASTE', 'ADJUSTMENT'][Math.floor(Math.random() * 4)],
-      quantity: Math.floor(Math.random() * 100) + 1,
+      type: ['PURCHASE', 'DEDUCTION', 'WASTE', 'ADJUSTMENT'][Math.floor(Math.random() * 4)],
+      qty: Math.floor(Math.random() * 10) + 1, // smaller quantities to avoid going very negative
+      quantity: Math.floor(Math.random() * 10) + 1,
       cost_cents: Math.floor(Math.random() * 50000) + 100,
       created_at: new Date().toISOString(),
     });

@@ -217,12 +217,18 @@ interface DashboardStats {
   terminalsOnline: number;
   totalProducts: number;
   alerts: DashboardAlert[];
-  recentActivity: any[];
+  recentActivity: { id: string; type: string; message: string; timestamp: string }[];
   syncStatus: {
     synced: boolean;
     pendingEvents: number;
   };
   lastUpdated: string;
+  // E4: Enhanced KPIs
+  ordersCountToday?: number;
+  avgTicketCents?: number;
+  topProducts?: { name: string; qty: number; revenueCents: number }[];
+  paymentBreakdown?: Record<string, { count: number; totalCents: number }>;
+  hourlySales?: number[];
 }
 
 // ============ HOOKS ============
@@ -766,6 +772,229 @@ export function useInventoryStats(tenantId: string | null, config?: SWRConfigura
   );
 }
 
+// ============ FASE C3 - RANKING MESEROS ============
+
+import type { WaiterRankingReport, RankingSortField } from '@/src/core/types/waiter-ranking';
+
+interface WaiterRankingResponse {
+  rankings: WaiterRankingReport['rankings'];
+  summary: WaiterRankingReport['summary'];
+  period: WaiterRankingReport['period'];
+}
+
+/**
+ * Hook para obtener ranking de meseros
+ *
+ * @param params - start, end (YYYY-MM-DD), sort opcional
+ * @returns {object} { data, error, isLoading, mutate }
+ */
+export function useWaiterRanking(
+  params: { start: string; end: string; sort?: RankingSortField } | null,
+  config?: SWRConfiguration,
+) {
+  const queryString = params
+    ? `?start=${params.start}&end=${params.end}${params.sort ? `&sort=${params.sort}` : ''}`
+    : null;
+
+  return useSWR<WaiterRankingResponse>(
+    queryString ? `/api/admin/waiter-ranking${queryString}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+      ...config,
+    },
+  );
+}
+
+// ============ FASE C2 - CONTABILIDAD ============
+
+import type {
+  PettyCashBalance,
+  PettyCashTransaction,
+} from '@/src/core/services/petty-cash.service';
+import type { PurchaseOrder } from '@/src/core/services/purchases.service';
+import type { PnLReport } from '@/src/core/services/pnl-report.service';
+
+interface PettyCashResponse {
+  balance: PettyCashBalance;
+  transactions: PettyCashTransaction[];
+}
+
+/**
+ * Hook para obtener balance y transacciones de caja chica
+ */
+export function usePettyCash(locationId: string | null, config?: SWRConfiguration) {
+  return useSWR<PettyCashResponse>(
+    locationId ? `/api/admin/petty-cash?locationId=${locationId}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+      ...config,
+    },
+  );
+}
+
+/**
+ * Hook para obtener órdenes de compra
+ */
+export function usePurchaseOrders(
+  params: { locationId: string; status?: string } | null,
+  config?: SWRConfiguration,
+) {
+  const queryString = params
+    ? `?locationId=${params.locationId}${params.status ? `&status=${params.status}` : ''}`
+    : null;
+
+  return useSWR<{ orders: PurchaseOrder[] }>(
+    queryString ? `/api/admin/purchases${queryString}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+      ...config,
+    },
+  );
+}
+
+/**
+ * Hook para obtener reporte de Estado de Resultados (P&L)
+ */
+export function usePnLReport(
+  params: { start: string; end: string } | null,
+  config?: SWRConfiguration,
+) {
+  const queryString = params
+    ? `?start=${params.start}&end=${params.end}`
+    : null;
+
+  return useSWR<PnLReport>(
+    queryString ? `/api/admin/pnl${queryString}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 10000,
+      ...config,
+    },
+  );
+}
+
+// ============ FASE C4 - CONCILIACIÓN ============
+
+import type { Settlement } from '@/src/core/services/reconciliation.service';
+
+/**
+ * Hook para obtener liquidaciones de conciliación
+ */
+export function useSettlements(
+  params?: { status?: string; method?: string },
+  config?: SWRConfiguration,
+) {
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.set('status', params.status);
+  if (params?.method) searchParams.set('method', params.method);
+  const qs = searchParams.toString();
+
+  return useSWR<{ settlements: Settlement[] }>(
+    `/api/admin/reconciliation${qs ? `?${qs}` : ''}`,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+      ...config,
+    },
+  );
+}
+
+// ============ FASE C1 - PLATAFORMAS EXTERNAS ============
+
+import type { PlatformOrderRecord } from '@/src/core/services/platform-order.service';
+import type { PlatformName, PlatformOrderStatus } from '@/src/core/types/platform';
+
+interface PlatformOrdersResponse {
+  orders: PlatformOrderRecord[];
+}
+
+interface PlatformConfigItem {
+  id: string;
+  tenantId: string;
+  platform: PlatformName;
+  isActive: boolean;
+  apiKey: string | null;
+  storeId: string | null;
+  commissionRate: number;
+  markupRate: number;
+  autoAccept: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PlatformConfigsResponse {
+  configs: PlatformConfigItem[];
+}
+
+/**
+ * Hook para obtener pedidos de plataformas externas
+ */
+export function usePlatformOrders(
+  params?: { platform?: PlatformName; status?: PlatformOrderStatus; limit?: number },
+  config?: SWRConfiguration,
+) {
+  const searchParams = new URLSearchParams();
+  if (params?.platform) searchParams.set('platform', params.platform);
+  if (params?.status) searchParams.set('status', params.status);
+  if (params?.limit) searchParams.set('limit', String(params.limit));
+  const qs = searchParams.toString();
+
+  return useSWR<PlatformOrdersResponse>(
+    `/api/admin/platform-orders${qs ? `?${qs}` : ''}`,
+    fetcher,
+    {
+      refreshInterval: 15 * 1000,
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+      ...config,
+    },
+  );
+}
+
+/**
+ * Hook para obtener configuración de plataformas
+ */
+export function usePlatformConfigs(config?: SWRConfiguration) {
+  return useSWR<PlatformConfigsResponse>(
+    '/api/admin/platform-config',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 10000,
+      ...config,
+    },
+  );
+}
+
+// ============ FASE D1 - MESAS OPERACIONES ============
+
+import type { TableStatusSummary } from '@/src/core/services/mesa.service';
+
+/**
+ * Hook para obtener estado de mesas en tiempo real
+ */
+export function useTableStatus(locationId?: string, config?: SWRConfiguration) {
+  const qs = locationId ? `?location_id=${locationId}` : '';
+  return useSWR<TableStatusSummary>(
+    `/api/admin/mesas/status${qs}`,
+    fetcher,
+    {
+      refreshInterval: 10 * 1000,
+      revalidateOnFocus: true,
+      dedupingInterval: 3000,
+      ...config,
+    },
+  );
+}
+
 // ============ EXPORTS ============
 
 export type {
@@ -790,4 +1019,9 @@ export type {
   Promotion,
   PromotionsResponse,
   InventoryStatsResponse,
+  WaiterRankingResponse,
+  PettyCashResponse,
+  PlatformOrdersResponse,
+  PlatformConfigItem,
+  PlatformConfigsResponse,
 };

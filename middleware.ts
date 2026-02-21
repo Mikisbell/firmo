@@ -17,7 +17,7 @@ import { rateLimitMiddleware } from '@/src/middleware/rate-limit';
 const PROTECTED_ROUTES = ['/admin'];
 
 // Routes that should skip authentication (public or have their own auth)
-const PUBLIC_ROUTES = ['/api/auth', '/pos', '/mozo', '/cocina', '/caja', '/bar', '/inventario'];
+const PUBLIC_ROUTES = ['/api/auth', '/pos', '/mozo', '/cocina', '/caja', '/bar', '/inventario', '/menu', '/api/menu'];
 
 // API routes that handle their own authentication (should not be redirected)
 const API_ROUTES_WITH_OWN_AUTH = ['/api/admin', '/api/inventory'];

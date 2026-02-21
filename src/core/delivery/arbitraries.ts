@@ -77,13 +77,13 @@ export const arbitraryLocationId = (): fc.Arbitrary<LocationId> =>
  * Arbitrary for valid latitude (-90 to 90)
  */
 export const arbitraryLatitude = (): fc.Arbitrary<number> =>
-  fc.float({ min: -90, max: 90 });
+  fc.float({ min: -90, max: 90, noNaN: true });
 
 /**
  * Arbitrary for valid longitude (-180 to 180)
  */
 export const arbitraryLongitude = (): fc.Arbitrary<number> =>
-  fc.float({ min: -180, max: 180 });
+  fc.float({ min: -180, max: 180, noNaN: true });
 
 /**
  * Arbitrary for Location
@@ -92,10 +92,10 @@ export const arbitraryLocation = (): fc.Arbitrary<Location> =>
   fc.record({
     latitude: arbitraryLatitude(),
     longitude: arbitraryLongitude(),
-    accuracy: fc.float({ min: 0, max: 100 }),
+    accuracy: fc.float({ min: 0, max: 100, noNaN: true }),
     timestamp: fc.date(),
-    speed: fc.option(fc.float({ min: 0, max: 120 })),
-    heading: fc.option(fc.float({ min: 0, max: 360 })),
+    speed: fc.option(fc.float({ min: 0, max: 120, noNaN: true })),
+    heading: fc.option(fc.float({ min: 0, max: 360, noNaN: true })),
   });
 
 /**
@@ -159,9 +159,9 @@ export const arbitraryDeliveryEvent = (): fc.Arbitrary<DeliveryEvent> =>
  */
 export const arbitraryAssignmentWeights = (): fc.Arbitrary<AssignmentWeights> =>
   fc.record({
-    distance: fc.float({ min: 0, max: 1 }),
-    workload: fc.float({ min: 0, max: 1 }),
-    performance: fc.float({ min: 0, max: 1 }),
+    distance: fc.float({ min: 0, max: 1, noNaN: true }),
+    workload: fc.float({ min: 0, max: 1, noNaN: true }),
+    performance: fc.float({ min: 0, max: 1, noNaN: true }),
   }).filter(weights => {
     const sum = weights.distance + weights.workload + weights.performance;
     return Math.abs(sum - 1.0) < 0.01; // Sum should be ~1.0
@@ -198,7 +198,7 @@ export const arbitraryDriver = (): fc.Arbitrary<Driver> =>
     phone: fc.option(fc.string({ minLength: 10, maxLength: 15 })),
     location: fc.option(arbitraryLocation()),
     activeOrders: fc.array(arbitraryOrderId(), { maxLength: 5 }),
-    performanceRating: fc.float({ min: 0, max: 5 }),
+    performanceRating: fc.float({ min: 0, max: 5, noNaN: true }),
     status: arbitraryDriverStatus(),
     isActive: fc.boolean(),
   });

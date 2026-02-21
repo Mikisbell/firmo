@@ -48,7 +48,7 @@ export type Order = z.infer<typeof OrderCreatedPayload>;
 // Aggregate Types
 // ============================================================================
 
-export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON", "SAGA", "INVENTORY"]);
+export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON", "SAGA", "INVENTORY", "HR"]);
 
 // ============================================================================
 // Base Envelope (all events have this structure)
@@ -125,6 +125,9 @@ export const OrderLineSchema = z.object({
     status: ItemStatusSchema.default("PENDING"),
     mods: z.array(z.string()).default([]),
     notes: z.string().optional(),
+    // Course fire control
+    course: z.number().int().positive().optional(), // 1=entrada, 2=fondo, 3=postre
+    held: z.boolean().optional(), // Retenido por course (no entra a COOKING hasta fire)
     // Timestamps for item lifecycle tracking
     created_at: isoDateSchema.optional(),
     started_cooking_at: isoDateSchema.nullish(),
@@ -226,6 +229,13 @@ const RequestCheckPayload = z.object({
     requested_by: uuidSchema,
     requested_at: isoDateSchema,
     table_number: z.string().optional(),
+});
+
+// ORDER_COURSE_FIRED - Course released for cooking
+const OrderCourseFiredPayload = z.object({
+    order_id: uuidSchema,
+    course: z.number().int().positive(),
+    fired_at: isoDateSchema,
 });
 
 // ORDER_SUBMITTED - Order sent to kitchen
@@ -410,6 +420,20 @@ const CatalogVersionBumpedPayload = z.object({
     reason: z.string().optional(),
 });
 
+// Eventos de Disponibilidad de Producto (Auto-86)
+const ProductMarkedUnavailablePayload = z.object({
+    product_id: uuidSchema,
+    reason: z.enum(["MANUAL", "LOW_STOCK", "INGREDIENT_OUT"]),
+    disabled_by: uuidSchema.nullish(),
+    disabled_at: isoDateSchema,
+});
+
+const ProductMarkedAvailablePayload = z.object({
+    product_id: uuidSchema,
+    enabled_by: uuidSchema.nullish(),
+    enabled_at: isoDateSchema,
+});
+
 // ============================================================================
 // INVENTORY Events (P1)
 // ============================================================================
@@ -547,6 +571,177 @@ const SagaFailedPayload = z.object({
 });
 
 // ============================================================================
+// HR Events (P2 - RRHH)
+// ============================================================================
+
+// EMPLOYEE events
+const EmployeeCreatedPayload = z.object({
+    employee_id: uuidSchema,
+    name: z.string().min(1),
+    dni: z.string().optional(),
+    role: z.enum(["CASHIER", "WAITER", "COOK", "SUPERVISOR", "ADMIN"]),
+    hire_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    base_salary_cents: positiveCentsSchema,
+    contract_type: z.string().min(1),
+    location_id: uuidSchema.optional(),
+});
+
+const EmployeeProfileUpdatedPayload = z.object({
+    employee_id: uuidSchema,
+    changes: z.record(z.unknown()),
+    updated_by: uuidSchema,
+});
+
+const EmployeeDeactivatedPayload = z.object({
+    employee_id: uuidSchema,
+    reason: z.string().min(1),
+    deactivated_by: uuidSchema,
+});
+
+// ATTENDANCE events
+const AttendanceClockedInPayload = z.object({
+    attendance_id: uuidSchema,
+    employee_id: uuidSchema,
+    clock_in: isoDateSchema,
+    scheduled_start: isoDateSchema.optional(),
+    late_minutes: z.number().int().nonnegative(),
+});
+
+const AttendanceClockedOutPayload = z.object({
+    attendance_id: uuidSchema,
+    employee_id: uuidSchema,
+    clock_out: isoDateSchema,
+    worked_minutes: z.number().int().nonnegative(),
+    overtime_minutes: z.number().int().nonnegative(),
+});
+
+const AttendanceAbsenceDetectedPayload = z.object({
+    attendance_id: uuidSchema,
+    employee_id: uuidSchema,
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    scheduled_start: isoDateSchema,
+});
+
+const AttendanceJustifiedPayload = z.object({
+    attendance_id: uuidSchema,
+    employee_id: uuidSchema,
+    justification: z.string().min(1),
+    certificate_url: z.string().optional(),
+});
+
+// LEAVE REQUEST events
+const LeaveRequestCreatedPayload = z.object({
+    request_id: uuidSchema,
+    employee_id: uuidSchema,
+    leave_type: z.string().min(1),
+    start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    days_requested: z.number().int().positive(),
+});
+
+const LeaveRequestApprovedPayload = z.object({
+    request_id: uuidSchema,
+    employee_id: uuidSchema,
+    approved_by: uuidSchema,
+    days_deducted: z.number().int().positive(),
+});
+
+const LeaveRequestRejectedPayload = z.object({
+    request_id: uuidSchema,
+    employee_id: uuidSchema,
+    rejected_by: uuidSchema,
+    reason: z.string().min(1),
+});
+
+// ADVANCE events
+const AdvanceRequestedPayload = z.object({
+    advance_id: uuidSchema,
+    employee_id: uuidSchema,
+    amount_cents: positiveCentsSchema,
+    reason: z.string().min(1),
+});
+
+const AdvanceApprovedPayload = z.object({
+    advance_id: uuidSchema,
+    employee_id: uuidSchema,
+    approved_by: uuidSchema,
+    amount_cents: positiveCentsSchema,
+});
+
+// PAYROLL events
+const PayrollCalculatedPayload = z.object({
+    payroll_id: uuidSchema,
+    employee_id: uuidSchema,
+    period_month: z.string().regex(/^\d{4}-\d{2}$/),
+    gross_salary_cents: positiveCentsSchema,
+    net_salary_cents: positiveCentsSchema,
+    components: z.object({
+        base_salary_cents: positiveCentsSchema,
+        commission_cents: positiveCentsSchema,
+        tips_cents: positiveCentsSchema,
+        overtime_cents: positiveCentsSchema,
+        advances_cents: positiveCentsSchema,
+        essalud_cents: positiveCentsSchema,
+        pension_cents: positiveCentsSchema,
+    }),
+});
+
+// EVALUATION events
+const EvaluationCreatedPayload = z.object({
+    evaluation_id: uuidSchema,
+    employee_id: uuidSchema,
+    evaluator_id: uuidSchema,
+    period_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    period_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+// TRAINING events
+const TrainingCompletedPayload = z.object({
+    training_id: uuidSchema,
+    employee_id: uuidSchema,
+    training_name: z.string().min(1),
+    completion_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    certificate_url: z.string().optional(),
+});
+
+// ============================================================================
+// PLATFORM Events (P2)
+// ============================================================================
+
+const PlatformOrderReceivedPayload = z.object({
+    platform_order_id: z.string().min(1),
+    platform: z.enum(["PEDIDOSYA", "LLAMAFOOD", "RAPPI"]),
+    external_id: z.string().min(1),
+    customer_name: z.string().nullish(),
+    customer_phone: z.string().nullish(),
+    delivery_address: z.string().nullish(),
+    items: z.array(z.object({
+        name: z.string().min(1),
+        quantity: z.number().int().positive(),
+        unit_price_cents: positiveCentsSchema,
+        notes: z.string().optional(),
+    })),
+    platform_total_cents: positiveCentsSchema,
+    restaurant_total_cents: positiveCentsSchema,
+    commission_cents: positiveCentsSchema,
+    estimated_pickup: isoDateSchema.nullish(),
+    notes: z.string().nullish(),
+    received_at: isoDateSchema,
+});
+
+const PlatformOrderAcceptedPayload = z.object({
+    platform_order_id: z.string().min(1),
+    order_id: uuidSchema,
+    accepted_at: isoDateSchema,
+});
+
+const PlatformOrderRejectedPayload = z.object({
+    platform_order_id: z.string().min(1),
+    reason: z.string().min(1),
+    rejected_at: isoDateSchema,
+});
+
+// ============================================================================
 // Discriminated Union of All Events
 // ============================================================================
 
@@ -608,6 +803,11 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("ORDER_SUBMITTED"),
         aggregate_type: z.literal("ORDER"),
         payload: OrderSubmittedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ORDER_COURSE_FIRED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: OrderCourseFiredPayload,
     }),
 
     // CHECK events (split bill)
@@ -691,6 +891,16 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("CATALOG_VERSION_BUMPED"),
         aggregate_type: z.literal("CATALOG"),
         payload: CatalogVersionBumpedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PRODUCT_MARKED_UNAVAILABLE"),
+        aggregate_type: z.literal("CATALOG"),
+        payload: ProductMarkedUnavailablePayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PRODUCT_MARKED_AVAILABLE"),
+        aggregate_type: z.literal("CATALOG"),
+        payload: ProductMarkedAvailablePayload,
     }),
 
     // SAGA events
@@ -819,6 +1029,100 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("ORDER"),
         payload: HandoffStatusChangedPayload,
     }),
+
+    // PLATFORM events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PLATFORM_ORDER_RECEIVED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: PlatformOrderReceivedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PLATFORM_ORDER_ACCEPTED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: PlatformOrderAcceptedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PLATFORM_ORDER_REJECTED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: PlatformOrderRejectedPayload,
+    }),
+
+    // HR events (RRHH)
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("EMPLOYEE_CREATED"),
+        aggregate_type: z.literal("HR"),
+        payload: EmployeeCreatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("EMPLOYEE_PROFILE_UPDATED"),
+        aggregate_type: z.literal("HR"),
+        payload: EmployeeProfileUpdatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("EMPLOYEE_DEACTIVATED"),
+        aggregate_type: z.literal("HR"),
+        payload: EmployeeDeactivatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ATTENDANCE_CLOCKED_IN"),
+        aggregate_type: z.literal("HR"),
+        payload: AttendanceClockedInPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ATTENDANCE_CLOCKED_OUT"),
+        aggregate_type: z.literal("HR"),
+        payload: AttendanceClockedOutPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ATTENDANCE_ABSENCE_DETECTED"),
+        aggregate_type: z.literal("HR"),
+        payload: AttendanceAbsenceDetectedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ATTENDANCE_JUSTIFIED"),
+        aggregate_type: z.literal("HR"),
+        payload: AttendanceJustifiedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("LEAVE_REQUEST_CREATED"),
+        aggregate_type: z.literal("HR"),
+        payload: LeaveRequestCreatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("LEAVE_REQUEST_APPROVED"),
+        aggregate_type: z.literal("HR"),
+        payload: LeaveRequestApprovedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("LEAVE_REQUEST_REJECTED"),
+        aggregate_type: z.literal("HR"),
+        payload: LeaveRequestRejectedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ADVANCE_REQUESTED"),
+        aggregate_type: z.literal("HR"),
+        payload: AdvanceRequestedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ADVANCE_APPROVED"),
+        aggregate_type: z.literal("HR"),
+        payload: AdvanceApprovedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("PAYROLL_CALCULATED"),
+        aggregate_type: z.literal("HR"),
+        payload: PayrollCalculatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("EVALUATION_CREATED"),
+        aggregate_type: z.literal("HR"),
+        payload: EvaluationCreatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("TRAINING_COMPLETED"),
+        aggregate_type: z.literal("HR"),
+        payload: TrainingCompletedPayload,
+    }),
 ]);
 
 // ============================================================================
@@ -855,6 +1159,13 @@ export type PromotionAppliedTentativeEvent = Extract<ParkEvent, { event_type: "P
 export type PromotionValidatedAppliedEvent = Extract<ParkEvent, { event_type: "PROMOTION_VALIDATED_APPLIED" }>;
 export type PromotionRemovedEvent = Extract<ParkEvent, { event_type: "PROMOTION_REMOVED" }>;
 
+// Course fire event types
+export type OrderCourseFiredEvent = Extract<ParkEvent, { event_type: "ORDER_COURSE_FIRED" }>;
+
+// Catalog event types (Auto-86)
+export type ProductMarkedUnavailableEvent = Extract<ParkEvent, { event_type: "PRODUCT_MARKED_UNAVAILABLE" }>;
+export type ProductMarkedAvailableEvent = Extract<ParkEvent, { event_type: "PRODUCT_MARKED_AVAILABLE" }>;
+
 // Inventory event types
 export type PurchaseOrderCreatedEvent = Extract<ParkEvent, { event_type: "PURCHASE_ORDER_CREATED" }>;
 export type PurchaseOrderStatusChangedEvent = Extract<ParkEvent, { event_type: "PURCHASE_ORDER_STATUS_CHANGED" }>;
@@ -872,6 +1183,28 @@ export type HandoffStatusChangedEvent = Extract<ParkEvent, { event_type: "HANDOF
 export type COGSCalculatedEvent = Extract<ParkEvent, { event_type: "COGS_CALCULATED" }>;
 export type IngredientCostChangedEvent = Extract<ParkEvent, { event_type: "INGREDIENT_COST_CHANGED" }>;
 export type ProfitabilityReportGeneratedEvent = Extract<ParkEvent, { event_type: "PROFITABILITY_REPORT_GENERATED" }>;
+
+// Platform event types
+export type PlatformOrderReceivedEvent = Extract<ParkEvent, { event_type: "PLATFORM_ORDER_RECEIVED" }>;
+export type PlatformOrderAcceptedEvent = Extract<ParkEvent, { event_type: "PLATFORM_ORDER_ACCEPTED" }>;
+export type PlatformOrderRejectedEvent = Extract<ParkEvent, { event_type: "PLATFORM_ORDER_REJECTED" }>;
+
+// HR event types
+export type EmployeeCreatedEvent = Extract<ParkEvent, { event_type: "EMPLOYEE_CREATED" }>;
+export type EmployeeProfileUpdatedEvent = Extract<ParkEvent, { event_type: "EMPLOYEE_PROFILE_UPDATED" }>;
+export type EmployeeDeactivatedEvent = Extract<ParkEvent, { event_type: "EMPLOYEE_DEACTIVATED" }>;
+export type AttendanceClockedInEvent = Extract<ParkEvent, { event_type: "ATTENDANCE_CLOCKED_IN" }>;
+export type AttendanceClockedOutEvent = Extract<ParkEvent, { event_type: "ATTENDANCE_CLOCKED_OUT" }>;
+export type AttendanceAbsenceDetectedEvent = Extract<ParkEvent, { event_type: "ATTENDANCE_ABSENCE_DETECTED" }>;
+export type AttendanceJustifiedEvent = Extract<ParkEvent, { event_type: "ATTENDANCE_JUSTIFIED" }>;
+export type LeaveRequestCreatedEvent = Extract<ParkEvent, { event_type: "LEAVE_REQUEST_CREATED" }>;
+export type LeaveRequestApprovedEvent = Extract<ParkEvent, { event_type: "LEAVE_REQUEST_APPROVED" }>;
+export type LeaveRequestRejectedEvent = Extract<ParkEvent, { event_type: "LEAVE_REQUEST_REJECTED" }>;
+export type AdvanceRequestedEvent = Extract<ParkEvent, { event_type: "ADVANCE_REQUESTED" }>;
+export type AdvanceApprovedEvent = Extract<ParkEvent, { event_type: "ADVANCE_APPROVED" }>;
+export type PayrollCalculatedEvent = Extract<ParkEvent, { event_type: "PAYROLL_CALCULATED" }>;
+export type EvaluationCreatedEvent = Extract<ParkEvent, { event_type: "EVALUATION_CREATED" }>;
+export type TrainingCompletedEvent = Extract<ParkEvent, { event_type: "TRAINING_COMPLETED" }>;
 
 // ============================================================================
 // Ingest Request Schema

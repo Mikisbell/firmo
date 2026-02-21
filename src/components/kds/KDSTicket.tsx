@@ -9,7 +9,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Play, CheckCircle2, Check, LucideIcon } from "lucide-react";
+import { Play, CheckCircle2, Check, Lock, LucideIcon } from "lucide-react";
 import { type ItemStatus } from "@/src/core/domain/events";
 
 export interface KDSTicketItem {
@@ -17,6 +17,8 @@ export interface KDSTicketItem {
     name: string;
     qty: number;
     status: ItemStatus;
+    course?: number;
+    held?: boolean;
 }
 
 export interface KDSTicketProps {
@@ -160,44 +162,65 @@ export function KDSTicket({
             {/* Items */}
             <div className="p-2 md:p-3 space-y-1.5 md:space-y-2">
                 {items
-                    .sort((a, b) => a.line_id.localeCompare(b.line_id))
-                    .map((item) => (
+                    .sort((a, b) => {
+                        // Sort by course first, then by line_id
+                        const ca = a.course ?? 999;
+                        const cb = b.course ?? 999;
+                        if (ca !== cb) return ca - cb;
+                        return a.line_id.localeCompare(b.line_id);
+                    })
+                    .map((item) => {
+                    const isHeld = item.held === true;
+                    return (
                     <motion.button
                         key={item.line_id}
                         layout
-                        onClick={() => onItemClick(orderId, item.line_id, item.status)}
-                        whileTap={{ scale: 0.98 }}
+                        onClick={() => !isHeld && onItemClick(orderId, item.line_id, item.status)}
+                        whileTap={isHeld ? undefined : { scale: 0.98 }}
                         data-testid="kds-item"
                         className={`
-                            w-full text-left p-3 md:p-3.5 rounded-lg md:rounded-xl 
-                            border-2 text-base md:text-lg font-bold transition-all
+                            w-full text-left p-3 md:p-3.5 rounded-lg md:rounded-xl
+                            text-base md:text-lg font-bold transition-all
                             touch-manipulation min-h-[48px] md:min-h-[56px]
-                            ${item.status === "DONE" 
-                                ? "bg-zinc-800/50 text-zinc-600 line-through border-zinc-700/50" 
-                                : item.status === "COOKING" 
-                                    ? `${colors.cookingBg} ${colors.cookingBorder} ${colors.cookingText} ${colors.cookingShadow}` 
-                                    : item.status === "READY" 
-                                        ? "bg-emerald-900/30 border-emerald-500 text-emerald-200" 
-                                        : `bg-zinc-800/80 text-white border-zinc-600 ${colors.hoverBorder}`
+                            ${isHeld
+                                ? "bg-zinc-800/40 text-zinc-500 border-2 border-dashed border-zinc-600 opacity-60 cursor-not-allowed"
+                                : item.status === "DONE"
+                                    ? "bg-zinc-800/50 text-zinc-600 line-through border-2 border-zinc-700/50"
+                                    : item.status === "COOKING"
+                                        ? `border-2 ${colors.cookingBg} ${colors.cookingBorder} ${colors.cookingText} ${colors.cookingShadow}`
+                                        : item.status === "READY"
+                                            ? "bg-emerald-900/30 border-2 border-emerald-500 text-emerald-200"
+                                            : `bg-zinc-800/80 text-white border-2 border-zinc-600 ${colors.hoverBorder}`
                             }
                         `}
                     >
                         <div className="flex justify-between items-center">
-                            <span className="flex-1 min-w-0">
-                                <span className={`mr-2 font-mono ${item.status === "COOKING" ? colors.cookingQty : "text-zinc-500"}`}>
+                            <span className="flex-1 min-w-0 flex items-center gap-1.5">
+                                {item.course && (
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                        isHeld
+                                            ? 'bg-zinc-700 text-zinc-400'
+                                            : 'bg-cyan-500/20 text-cyan-300'
+                                    }`}>
+                                        T{item.course}
+                                    </span>
+                                )}
+                                <span className={`font-mono ${item.status === "COOKING" ? colors.cookingQty : "text-zinc-500"}`}>
                                     {item.qty}x
                                 </span>
                                 <span className="truncate" data-testid="kds-item-name">{item.name}</span>
                             </span>
                             <span className="ml-2 flex-shrink-0" data-testid="kds-item-status">
-                                {item.status === "PENDING" && <Play size={18} className="text-zinc-500" />}
-                                {item.status === "COOKING" && <CookingIcon size={18} className={`${colors.cookingIcon} animate-pulse`} />}
-                                {item.status === "READY" && <CheckCircle2 size={18} className="text-emerald-400" />}
-                                {item.status === "DONE" && <Check size={18} className="text-zinc-600" />}
+                                {isHeld && <Lock size={18} className="text-zinc-500" />}
+                                {!isHeld && item.status === "PENDING" && <Play size={18} className="text-zinc-500" />}
+                                {!isHeld && item.status === "COOKING" && <CookingIcon size={18} className={`${colors.cookingIcon} animate-pulse`} />}
+                                {!isHeld && item.status === "READY" && <CheckCircle2 size={18} className="text-emerald-400" />}
+                                {!isHeld && item.status === "DONE" && <Check size={18} className="text-zinc-600" />}
                             </span>
                         </div>
                     </motion.button>
-                ))}
+                    );
+                })}
             </div>
         </motion.div>
     );
