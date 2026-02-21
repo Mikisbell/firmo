@@ -8,15 +8,14 @@
  * Property 14: Justified absence has justification text
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
 import { AttendanceService } from '@/src/core/services/attendance.service';
 import type { BreakEntry } from '@/src/core/services/attendance.service';
 
-// We instantiate the service with a null prisma client since we only test
-// the pure calculation methods here. Prisma-dependent methods are covered
-// by the unit tests.
-const service = new AttendanceService(null as any);
+// Fresh service per describe block to avoid shared state across parallel workers.
+// Prisma is null since we only test pure calculation methods here.
+let service: AttendanceService;
 
 // ---------------------------------------------------------------------------
 // Arbitraries
@@ -92,6 +91,8 @@ const justificationArb = fc.string({ minLength: 1, maxLength: 300 });
 // ---------------------------------------------------------------------------
 
 describe('Property 10: Clock-in records have valid timestamps', () => {
+  beforeEach(() => { service = new AttendanceService(null as any); });
+
   it('clock-in time is always a valid Date', () => {
     fc.assert(
       fc.property(clockInArb, (clockIn) => {
@@ -118,6 +119,8 @@ describe('Property 10: Clock-in records have valid timestamps', () => {
 // ---------------------------------------------------------------------------
 
 describe('Property 11: Worked hours = clock_out - clock_in - breaks (always non-negative)', () => {
+  beforeEach(() => { service = new AttendanceService(null as any); });
+
   it('worked minutes = diff - breaks, clamped to 0', () => {
     fc.assert(
       fc.property(
@@ -180,6 +183,8 @@ describe('Property 11: Worked hours = clock_out - clock_in - breaks (always non-
 // ---------------------------------------------------------------------------
 
 describe('Property 12: Late minutes = max(0, clock_in - scheduled_start)', () => {
+  beforeEach(() => { service = new AttendanceService(null as any); });
+
   it('lateness is always >= 0', () => {
     fc.assert(
       fc.property(
@@ -241,6 +246,8 @@ describe('Property 12: Late minutes = max(0, clock_in - scheduled_start)', () =>
 // ---------------------------------------------------------------------------
 
 describe('Property 13: Overtime = max(0, worked_minutes - 480)', () => {
+  beforeEach(() => { service = new AttendanceService(null as any); });
+
   it('overtime is always >= 0', () => {
     fc.assert(
       fc.property(workedMinutesArb, (worked) => {
@@ -286,6 +293,8 @@ describe('Property 13: Overtime = max(0, worked_minutes - 480)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Property 14: Justified absence has justification text', () => {
+  beforeEach(() => { service = new AttendanceService(null as any); });
+
   it('justification text is always non-empty for justified absences', () => {
     fc.assert(
       fc.property(justificationArb, (justification) => {
