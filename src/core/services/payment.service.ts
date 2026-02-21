@@ -231,6 +231,85 @@ export class PaymentService {
       ));
     }
   }
+
+  /**
+   * Get all payments for a shift
+   */
+  async getPaymentsByShift(
+    tenantId: string,
+    shiftId: string
+  ): Promise<Result<any[], DomainError>> {
+    try {
+      const payments = await this.prisma.payments.findMany({
+        where: { tenant_id: tenantId, shift_id: shiftId },
+        orderBy: { processed_at: 'asc' },
+      });
+      return ok(payments);
+    } catch (error) {
+      return err(new DomainError('Failed to get payments by shift', 'QUERY_FAILED'));
+    }
+  }
+
+  /**
+   * Get all payments for an order
+   */
+  async getPaymentsByOrder(
+    tenantId: string,
+    orderId: string
+  ): Promise<Result<any[], DomainError>> {
+    try {
+      const payments = await this.prisma.payments.findMany({
+        where: { tenant_id: tenantId, order_id: orderId },
+        orderBy: { processed_at: 'asc' },
+      });
+      return ok(payments);
+    } catch (error) {
+      return err(new DomainError('Failed to get payments by order', 'QUERY_FAILED'));
+    }
+  }
+
+  /**
+   * Get payment summary for a shift (breakdown by method)
+   */
+  async getPaymentSummary(
+    tenantId: string,
+    shiftId: string
+  ): Promise<Result<PaymentSummary, DomainError>> {
+    try {
+      const payments = await this.prisma.payments.findMany({
+        where: { tenant_id: tenantId, shift_id: shiftId, status: 'COMPLETED' },
+      });
+
+      const breakdown: Record<string, { count: number; totalCents: number }> = {};
+      let totalCents = 0;
+
+      for (const p of payments) {
+        const method = p.payment_method;
+        if (!breakdown[method]) {
+          breakdown[method] = { count: 0, totalCents: 0 };
+        }
+        breakdown[method].count++;
+        breakdown[method].totalCents += p.amount_cents;
+        totalCents += p.amount_cents;
+      }
+
+      return ok({
+        shiftId,
+        totalPayments: payments.length,
+        totalCents,
+        breakdown,
+      });
+    } catch (error) {
+      return err(new DomainError('Failed to get payment summary', 'QUERY_FAILED'));
+    }
+  }
+}
+
+export interface PaymentSummary {
+  shiftId: string;
+  totalPayments: number;
+  totalCents: number;
+  breakdown: Record<string, { count: number; totalCents: number }>;
 }
 
 // ============================================================================

@@ -187,8 +187,15 @@ export default function POSPage() {
             return;
         }
 
-        // Update quantity - for MVP just show toast, full implementation needs ITEM_QTY_UPDATED event
-        toast.info("Editar cantidad próximamente");
+        const currentLine = activeSale.lines[lineId];
+        if (!currentLine) return;
+
+        await POSActions.updateItemQuantity(
+            TENANT_ID, TERM_ID, ACTOR_ID,
+            activeSale.order_id, lineId,
+            currentLine.qty, newQty
+        );
+        toast.success(`Cantidad: ${newQty}`);
     };
 
     // FR-005: UNDO last action - voids the most recent item

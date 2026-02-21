@@ -9,7 +9,7 @@
  */
 
 import { useKitchenTicketsByGroup } from "./hooks/useKitchenTickets";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { UtensilsCrossed, ChefHat } from "lucide-react";
 import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
@@ -17,7 +17,8 @@ import { useSyncClient } from "@/src/hooks/useSyncClient";
 import { type ItemStatus } from "@/src/core/domain/events";
 import { getTerminalConfig } from "@/src/core/config/terminal";
 import { canTransition, getNextNormalState } from "@/src/core/domain/item-status-machine";
-import { KDSLayout, KDSTicket } from "@/src/components/kds";
+import { KDSLayout, KDSTicket, CourseFireBar } from "@/src/components/kds";
+import { CourseFireService, type CourseStatusReport } from "@/src/core/services/course-fire.service";
 
 const config = getTerminalConfig("SPC_COCINA");
 
@@ -31,6 +32,8 @@ export default function CocinaKDSPage() {
     
     const [now, setNow] = useState<number | null>(null);
     const [mounted, setMounted] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+    const [courseReport, setCourseReport] = useState<CourseStatusReport | null>(null);
 
     useEffect(() => {
         setNow(Date.now());
@@ -58,6 +61,49 @@ export default function CocinaKDSPage() {
             "COCINA"
         );
     };
+
+    // Build course report for selected order (client-side, pure function)
+    const selectedTicket = useMemo(() => {
+        if (!selectedOrderId) return null;
+        return tickets.find(t => t.order_id === selectedOrderId) || null;
+    }, [selectedOrderId, tickets]);
+
+    useMemo(() => {
+        if (!selectedTicket) {
+            setCourseReport(null);
+            return;
+        }
+        const items = Object.values(selectedTicket.lines).map((line: any) => ({
+            line_id: line.line_id,
+            name: line.name,
+            qty: line.qty,
+            station: line.station || 'COCINA',
+            status: line.status,
+            course: line.course,
+            held: line.held,
+        }));
+        // Only show CourseFireBar if there are items with courses
+        const hasCourses = items.some(i => i.course);
+        if (!hasCourses) {
+            setCourseReport(null);
+            return;
+        }
+        const svc = new CourseFireService(null as any);
+        setCourseReport(svc.buildCourseReport(selectedTicket.order_id, items));
+    }, [selectedTicket]);
+
+    const handleFireCourse = useCallback(async (orderId: string, course: number) => {
+        const res = await fetch(`/api/admin/orders/${orderId}/courses/fire`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ course }),
+        });
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || 'Error al disparar tiempo');
+        }
+    }, []);
 
     // Optimización: Combinar dos reduce+filter en una sola iteración con useMemo
     // Reduce complejidad de O(2n*m) a O(n*m) y evita re-cálculo en renders sin cambios
@@ -92,38 +138,56 @@ export default function CocinaKDSPage() {
     }
 
     return (
-        <KDSLayout
-            title="COCINA"
-            subtitle="Papas • Arroz • Guarniciones"
-            icon={ChefHat}
-            accentColor="amber"
-            pendingCount={pendingCount}
-            cookingCount={cookingCount}
-            pendingLabel="Pendiente"
-            cookingLabel="Cocinando"
-            currentTime={currentTime}
-            emptyIcon={UtensilsCrossed}
-            emptyTitle="Cocina Lista"
-            emptySubtitle="Esperando pedidos..."
-            hasTickets={tickets.length > 0}
-        >
-            {tickets.map(ticket => (
-                <KDSTicket
-                    key={ticket.order_id}
-                    orderId={ticket.order_id}
-                    orderNumber={ticket.order_number}
-                    orderType={ticket.order_type as "DINE_IN" | "DELIVERY" | "TAKEOUT"}
-                    items={Object.values(ticket.lines).map(line => ({
-                        line_id: line.line_id,
-                        name: line.name,
-                        qty: line.qty,
-                        status: line.status,
-                    }))}
-                    accentColor="amber"
-                    cookingIcon={UtensilsCrossed}
-                    onItemClick={handleStatusClick}
-                />
-            ))}
-        </KDSLayout>
+        <>
+            <KDSLayout
+                title="COCINA"
+                subtitle="Papas • Arroz • Guarniciones"
+                icon={ChefHat}
+                accentColor="amber"
+                pendingCount={pendingCount}
+                cookingCount={cookingCount}
+                pendingLabel="Pendiente"
+                cookingLabel="Cocinando"
+                currentTime={currentTime}
+                emptyIcon={UtensilsCrossed}
+                emptyTitle="Cocina Lista"
+                emptySubtitle="Esperando pedidos..."
+                hasTickets={tickets.length > 0}
+            >
+                {tickets.map(ticket => (
+                    <div
+                        key={ticket.order_id}
+                        onClick={() => setSelectedOrderId(
+                            selectedOrderId === ticket.order_id ? null : ticket.order_id
+                        )}
+                        className={`cursor-pointer rounded-2xl ${
+                            selectedOrderId === ticket.order_id
+                                ? 'ring-2 ring-cyan-400/60'
+                                : ''
+                        }`}
+                    >
+                        <KDSTicket
+                            orderId={ticket.order_id}
+                            orderNumber={ticket.order_number}
+                            orderType={ticket.order_type as "DINE_IN" | "DELIVERY" | "TAKEOUT"}
+                            items={Object.values(ticket.lines).map((line: any) => ({
+                                line_id: line.line_id,
+                                name: line.name,
+                                qty: line.qty,
+                                status: line.status,
+                                course: line.course,
+                                held: line.held,
+                            }))}
+                            accentColor="amber"
+                            cookingIcon={UtensilsCrossed}
+                            onItemClick={handleStatusClick}
+                        />
+                    </div>
+                ))}
+            </KDSLayout>
+            {courseReport && (
+                <CourseFireBar report={courseReport} onFire={handleFireCourse} />
+            )}
+        </>
     );
 }

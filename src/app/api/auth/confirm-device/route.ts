@@ -19,6 +19,9 @@ import {
 } from '@/src/core/security/session-validator';
 import { logAction } from '@/src/core/security/rate-limiter';
 import { getClientIP } from '@/src/core/security/ip-validator';
+import { TerminalConfirmationService } from '@/src/core/services/terminal-confirmation.service';
+
+const confirmationService = new TerminalConfirmationService();
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,9 +45,6 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || undefined;
     const ipAddress = getClientIP(request.headers);
 
-    // TODO: Validate confirmation code (should be sent via email/SMS)
-    // For now, we'll accept any code as this is a placeholder
-
     // Get employee from session token (from previous login)
     // This is a simplified version - in production, you'd validate the token properly
     const sessionData = await prisma.active_sessions.findUnique({
@@ -59,6 +59,31 @@ export async function POST(request: NextRequest) {
     }
 
     const employeeId = sessionData.employee_id;
+
+    // Validate confirmation code with rate limiting
+    const verifyResult = confirmationService.verifyCode(
+      tenantId,
+      terminalId || sessionData.terminal_id,
+      employeeId,
+      confirmationCode,
+    );
+
+    if (!verifyResult.success) {
+      return NextResponse.json(
+        { error: verifyResult.error.message },
+        { status: 400 }
+      );
+    }
+
+    if (!verifyResult.data.verified) {
+      const msg = verifyResult.data.lockedUntil
+        ? `Dispositivo bloqueado. Intente después de ${verifyResult.data.lockedUntil.toLocaleTimeString()}`
+        : `Código incorrecto. ${verifyResult.data.attemptsRemaining} intento(s) restante(s)`;
+      return NextResponse.json(
+        { error: msg, attemptsRemaining: verifyResult.data.attemptsRemaining },
+        { status: 403 }
+      );
+    }
 
     // Register the MAC address (hybrid model)
     // If terminalId is provided, MAC is registered for that terminal only

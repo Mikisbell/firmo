@@ -15,6 +15,7 @@ import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
+import { DashboardService } from '@/src/core/services/dashboard.service';
 
 const TENANT_ID = getTenantId();
 
@@ -222,9 +223,33 @@ async function handleGET(request: NextRequest) {
       });
     }
     
-    // Recent activity (mock for now - would come from audit log)
-    const recentActivity: Activity[] = [];
+    // Recent activity - populated by DashboardService below
+    let recentActivity: any[] = [];
     
+    // E4: Enhanced KPIs
+    let enhancedKPIs: any = {};
+    try {
+      const dashboardService = new DashboardService(prisma);
+      const [kpiResult, activityResult] = await Promise.all([
+        dashboardService.getDailyKPIs(tenantId, new Date(businessDate)),
+        dashboardService.getRecentActivity(tenantId, 5),
+      ]);
+      if (kpiResult.success) {
+        enhancedKPIs = {
+          ordersCountToday: kpiResult.data.ordersCount,
+          avgTicketCents: kpiResult.data.avgTicketCents,
+          topProducts: kpiResult.data.topProducts,
+          paymentBreakdown: kpiResult.data.paymentBreakdown,
+          hourlySales: kpiResult.data.hourlySales,
+        };
+      }
+      if (activityResult.success) {
+        recentActivity = activityResult.data;
+      }
+    } catch {
+      // Non-critical — continue with existing stats
+    }
+
     const stats: DashboardStats = {
       salesToday: salesTodayValue,
       salesYesterday: salesYesterdayValue,
@@ -239,6 +264,7 @@ async function handleGET(request: NextRequest) {
         pendingEvents,
       },
       lastUpdated: new Date().toISOString(),
+      ...enhancedKPIs,
     };
 
     // Cache for 30 seconds (dashboard needs fresh data)

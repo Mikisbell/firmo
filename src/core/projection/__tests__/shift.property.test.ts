@@ -182,7 +182,9 @@ describe('Shift Projection - Property Tests', () => {
               diff_cents: (counted as number) - (opening as number),
             };
 
-            expectCentavos(closedShift.diff_cents);
+            // diff_cents can be negative (shortage), zero, or positive (overage)
+            expect(Number.isInteger(closedShift.diff_cents)).toBe(true);
+            expect(closedShift.diff_cents).toBe((counted as number) - (opening as number));
           }
         ),
         { numRuns: 100 }
@@ -283,9 +285,9 @@ describe('Shift Projection - Property Tests', () => {
       const afterCutoff = new Date('2026-01-15T06:00:00Z');
 
       // In real implementation, getBusinessDate() would handle this
-      // This test documents the expected behavior
-      expect(beforeCutoff.getHours()).toBeLessThan(6);
-      expect(afterCutoff.getHours()).toBeGreaterThanOrEqual(6);
+      // This test documents the expected behavior using UTC hours
+      expect(beforeCutoff.getUTCHours()).toBeLessThan(6);
+      expect(afterCutoff.getUTCHours()).toBeGreaterThanOrEqual(6);
     });
   });
 

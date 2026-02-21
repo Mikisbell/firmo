@@ -240,7 +240,25 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "CHECK_PAYMENT_ADDED": {
                 const p = payload as any;
-                console.log(`[Projection] CHECK_PAYMENT_ADDED for order ${p.order_id}, check ${p.check_id}`);
+                const paymentId = p.payment?.id || p.paymentId || uuidv4();
+                await tx.payments.upsert({
+                    where: { id: paymentId },
+                    create: {
+                        id: paymentId,
+                        tenant_id,
+                        order_id: p.order_id,
+                        check_id: p.check_id,
+                        amount_cents: p.payment?.amount_cents ?? p.amountCents ?? 0,
+                        payment_method: p.payment?.method ?? p.method ?? 'CASH',
+                        reference: p.payment?.ref ?? p.reference ?? null,
+                        status: 'COMPLETED',
+                        processed_at: new Date(occurred_at),
+                        processed_by: actor_id ?? null,
+                        shift_id: event.shift_id ?? null,
+                        terminal_id: terminal_id ?? '',
+                    },
+                    update: {},
+                });
                 break;
             }
 
@@ -314,6 +332,33 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         diff_cents: p.diff_cents,
                     },
                 });
+                break;
+            }
+
+            case "ORDER_ITEM_QTY_CHANGED": {
+                const p = payload as any;
+                const order = await tx.orders.findUnique({ where: { id: p.order_id } });
+                if (order) {
+                    const items = (order.items as any[]) || [];
+                    const itemIndex = items.findIndex((i: any) => i.line_id === p.line_id);
+                    if (itemIndex >= 0) {
+                        const oldItem = items[itemIndex];
+                        const oldLineCents = (oldItem.qty || 1) * (oldItem.unit_price_cents || 0);
+                        const newLineCents = (p.to_qty) * (oldItem.unit_price_cents || 0);
+                        const diff = newLineCents - oldLineCents;
+                        const updatedItems = [...items];
+                        updatedItems[itemIndex] = { ...oldItem, qty: p.to_qty };
+                        await tx.orders.update({
+                            where: { id: p.order_id },
+                            data: {
+                                items: updatedItems,
+                                subtotal_cents: order.subtotal_cents + diff,
+                                total_cents: order.total_cents + diff,
+                                updated_at: new Date(occurred_at),
+                            },
+                        });
+                    }
+                }
                 break;
             }
 

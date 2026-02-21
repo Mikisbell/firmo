@@ -287,13 +287,15 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
 
                 {showInvoiceModal && (
                     <InvoiceModal
+                        orderId={order.order_id}
                         checkId={check.check_id}
                         totalCents={check.total_cents}
                         onClose={() => setShowInvoiceModal(false)}
-                        onIssue={(type) => {
-                            onInvoice(type);
+                        onEmit={(data) => {
+                            onInvoice(data.invoiceType);
                             setShowInvoiceModal(false);
                         }}
+                        onSkip={() => setShowInvoiceModal(false)}
                     />
                 )}
 

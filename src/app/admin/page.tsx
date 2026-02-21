@@ -44,6 +44,7 @@ import {
   AlertTriangle,
   Clock,
   Zap,
+  Briefcase,
 } from 'lucide-react';
 import { useAdminStats, type DashboardStats } from '@/src/hooks/useSWRHooks';
 
@@ -63,6 +64,14 @@ const NAV_CARDS = [
     icon: Users,
     color: 'from-green-500/20 to-green-600/10',
     borderColor: 'border-green-500/30 hover:border-green-500/50',
+  },
+  {
+    href: '/admin/hr',
+    label: 'Recursos Humanos',
+    description: 'Gestión integral de RRHH',
+    icon: Briefcase,
+    color: 'from-teal-500/20 to-teal-600/10',
+    borderColor: 'border-teal-500/30 hover:border-teal-500/50',
   },
   {
     href: '/admin/terminales',
@@ -207,6 +216,80 @@ export default function AdminDashboardPage() {
           loading={isLoading}
         />
       </div>
+
+      {/* Enhanced KPIs - E4 */}
+      {stats?.ordersCountToday !== undefined && (
+        <div className="grid grid-cols-2 gap-4">
+          <QuickStatCard
+            label="Órdenes Hoy"
+            value={stats.ordersCountToday.toString()}
+            icon={ShoppingCart}
+            color="text-cyan-400"
+          />
+          <QuickStatCard
+            label="Ticket Promedio"
+            value={stats.avgTicketCents ? formatCurrency(stats.avgTicketCents) : 'S/ 0.00'}
+            icon={TrendingUp}
+            color="text-emerald-400"
+          />
+        </div>
+      )}
+
+      {/* Payment Breakdown - E4 */}
+      {stats?.paymentBreakdown && Object.keys(stats.paymentBreakdown).length > 0 && (
+        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase mb-3">Métodos de Pago</h2>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(stats.paymentBreakdown).map(([method, data]) => (
+              <div key={method} className="px-3 py-2 bg-zinc-800 rounded-lg flex items-center gap-2">
+                <span className="text-sm font-medium">{method}</span>
+                <span className="text-xs text-zinc-500">({data.count})</span>
+                <span className="text-sm font-mono text-emerald-400">{formatCurrency(data.totalCents)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Hourly Sales Chart - E4 */}
+      {stats?.hourlySales && stats.hourlySales.some(v => v > 0) && (
+        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase mb-3">Ventas por Hora</h2>
+          <div className="flex items-end gap-1 h-24">
+            {stats.hourlySales.map((val, hour) => {
+              const maxVal = Math.max(...(stats.hourlySales || [0]));
+              const height = maxVal > 0 ? (val / maxVal) * 100 : 0;
+              return (
+                <div key={hour} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className={`w-full rounded-t transition-all ${val > 0 ? 'bg-emerald-500/60' : 'bg-zinc-800'}`}
+                    style={{ height: `${Math.max(height, 2)}%` }}
+                    title={`${hour}:00 — ${formatCurrency(val)}`}
+                  />
+                  {hour % 4 === 0 && <span className="text-[9px] text-zinc-600">{hour}</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Activity - E4 */}
+      {stats?.recentActivity && stats.recentActivity.length > 0 && (
+        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase mb-3">Actividad Reciente</h2>
+          <div className="space-y-2">
+            {stats.recentActivity.map((activity: any) => (
+              <div key={activity.id} className="flex items-center justify-between py-1.5">
+                <span className="text-sm">{activity.message}</span>
+                <span className="text-xs text-zinc-500 ml-2 shrink-0">
+                  {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
