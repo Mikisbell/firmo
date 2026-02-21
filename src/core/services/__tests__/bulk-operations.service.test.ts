@@ -35,7 +35,7 @@ vi.mock('@/src/core/cache/redis.service', () => ({
 describe('BulkOperationsService', () => {
   let service: BulkOperationsService;
   const tenantId = 'tenant-123';
-  const userId = 'user-456';
+  const userId = '00000000-0000-4000-a000-000000000456';
 
   beforeEach(() => {
     service = new BulkOperationsService();
@@ -105,20 +105,21 @@ describe('BulkOperationsService', () => {
       const productIds = Array.from({ length: 120 }, (_, i) => `prod-${i}`);
       const updates = { is_active: true };
 
-      let transactionCallCount = 0;
+      let updateManyCallCount = 0;
       (prisma.$transaction as any).mockImplementation(async (callback: any) => {
-        transactionCallCount++;
-        const batchSize = transactionCallCount === 3 ? 20 : 50; // Last batch has 20
         return callback({
           products: {
             findMany: vi.fn().mockResolvedValue(
-              Array.from({ length: batchSize }, (_, i) => ({
-                id: `prod-${(transactionCallCount - 1) * 50 + i}`,
+              productIds.map((id, i) => ({
+                id,
                 sku: `SKU-${i}`,
                 version: 1,
               }))
             ),
-            updateMany: vi.fn().mockResolvedValue({ count: batchSize }),
+            updateMany: vi.fn().mockImplementation(() => {
+              updateManyCallCount++;
+              return { count: updateManyCallCount <= 2 ? 50 : 20 };
+            }),
           },
           catalog_meta: {
             upsert: vi.fn().mockResolvedValue({}),
@@ -131,7 +132,9 @@ describe('BulkOperationsService', () => {
 
       const result = await service.bulkUpdate(productIds, updates, tenantId, userId);
 
-      expect(transactionCallCount).toBe(3); // 50 + 50 + 20
+      // Single transaction, but 3 batch updateMany calls inside (50 + 50 + 20)
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(updateManyCallCount).toBe(3);
       expect(result.success_count).toBe(120);
       expect(result.failure_count).toBe(0);
     });

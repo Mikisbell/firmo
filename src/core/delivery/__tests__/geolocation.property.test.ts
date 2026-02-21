@@ -59,8 +59,10 @@ describe('Feature: delivery-2026-modernization, Geolocation Service Properties',
             // Verify location is stored
             const stored = await getDriverLocation(driverId);
             expect(stored).not.toBeNull();
-            expect(stored?.latitude).toBe(location.latitude);
-            expect(stored?.longitude).toBe(location.longitude);
+            // Use toEqual with Number() to handle -0 vs +0 after JSON round-trip
+            // JSON.stringify(-0) === "0", so -0 becomes +0 through serialization
+            expect(stored?.latitude).toBeCloseTo(location.latitude, 5);
+            expect(stored?.longitude).toBeCloseTo(location.longitude, 5);
 
             // Verify TTL is set (Redis TTL command returns seconds remaining)
             // Note: We can't check exact TTL due to timing, but we can verify it's set
@@ -224,8 +226,8 @@ describe('Feature: delivery-2026-modernization, Geolocation Service Properties',
           arbitraryDriverId(),
           arbitraryLocation(),
           fc.oneof(
-            fc.float({ min: 90.01, max: 180 }),
-            fc.float({ min: -180, max: -90.01 })
+            fc.float({ min: Math.fround(90.01), max: 180, noNaN: true }),
+            fc.float({ min: -180, max: Math.fround(-90.01), noNaN: true })
           ),
           async (driverId, location, invalidLatitude) => {
             const invalidLocation = {
@@ -252,8 +254,8 @@ describe('Feature: delivery-2026-modernization, Geolocation Service Properties',
           arbitraryDriverId(),
           arbitraryLocation(),
           fc.oneof(
-            fc.float({ min: 180.01, max: 360 }),
-            fc.float({ min: -360, max: -180.01 })
+            fc.float({ min: Math.fround(180.01), max: 360, noNaN: true }),
+            fc.float({ min: -360, max: Math.fround(-180.01), noNaN: true })
           ),
           async (driverId, location, invalidLongitude) => {
             const invalidLocation = {

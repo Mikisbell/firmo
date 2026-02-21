@@ -13,11 +13,11 @@ import prisma from '@/src/core/db/prisma';
 // Mock de Prisma
 vi.mock('@/src/core/db/prisma', () => ({
   default: {
-    logConfiguration: {
+    log_configuration: {
       upsert: vi.fn(),
       findMany: vi.fn(),
     },
-    logConfigurationChange: {
+    log_configuration_change: {
       create: vi.fn(),
       findMany: vi.fn(),
     },
@@ -76,12 +76,12 @@ describe('LogConfigService', () => {
         where: { module: 'sync' },
         update: expect.objectContaining({
           level: 'ERROR',
-          updatedBy: 'user-456',
+          updated_by: 'user-456',
         }),
         create: expect.objectContaining({
           module: 'sync',
           level: 'ERROR',
-          updatedBy: 'user-456',
+          updated_by: 'user-456',
         }),
       });
     });
@@ -240,8 +240,8 @@ describe('LogConfigService', () => {
       expect(history).toHaveLength(2);
       expect(history[0]).toMatchObject({
         module: 'auth',
-        previous_level: 'INFO',
-        new_level: 'DEBUG',
+        previousLevel: 'INFO',
+        newLevel: 'DEBUG',
       });
     });
 

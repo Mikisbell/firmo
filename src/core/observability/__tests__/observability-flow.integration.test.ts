@@ -47,11 +47,11 @@ describe('Observability Flow - Integration Tests', () => {
 
   beforeEach(() => {
     // Set test environment
-    Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true });
+    (process.env as any).NODE_ENV = 'test';
     process.env.LOG_LEVEL = 'debug';
-    
+
     mockOutput();
-    
+
     logger = new StructuredLogger('integration-test');
     errorTracker = new MockSentryErrorTracker();
     metrics = new VercelMetricsCollector();
@@ -60,7 +60,7 @@ describe('Observability Flow - Integration Tests', () => {
   afterEach(() => {
     restoreOutput();
     delete process.env.LOG_LEVEL;
-    metrics.clear();
+    if (metrics) metrics.clear();
   });
 
   /**

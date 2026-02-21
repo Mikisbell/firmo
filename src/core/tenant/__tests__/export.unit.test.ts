@@ -49,7 +49,7 @@ describe('Tenant Export Service', () => {
   describe('12.1 JSON Export Format', () => {
     it('should export tenant data in JSON format', async () => {
       // Mock tenant settings
-      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         legal_name: 'Test Restaurant',
         ruc: '12345678901',
@@ -71,7 +71,7 @@ describe('Tenant Export Service', () => {
       } as any);
 
       // Mock catalog meta
-      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
@@ -100,7 +100,7 @@ describe('Tenant Export Service', () => {
       expect(result).toBeDefined();
       expect(result.export_id).toBeDefined();
       expect(result.tenant_id).toBe(mockTenantId);
-      expect((result as any).format || "json").toBeUndefined(); // Not in result interface
+      expect((result as any).format).toBeUndefined(); // Not in result interface
       expect(result.file_url).toBeDefined();
       expect(result.file_size_mb).toBeGreaterThan(0);
       expect(result.encryption_key).toBeDefined();
@@ -109,7 +109,7 @@ describe('Tenant Export Service', () => {
     });
 
     it('should include metadata in JSON export', async () => {
-      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         legal_name: 'Test Restaurant',
         ruc: '12345678901',
@@ -130,7 +130,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       } as any);
 
-      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
@@ -159,7 +159,7 @@ describe('Tenant Export Service', () => {
 
   describe('12.2 SQL Export Format', () => {
     it('should export tenant data in SQL format', async () => {
-      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         legal_name: 'Test Restaurant',
         ruc: '12345678901',
@@ -180,7 +180,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       } as any);
 
-      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
@@ -219,7 +219,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       };
 
-      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         legal_name: 'Test Restaurant',
         ruc: '12345678901',
@@ -240,7 +240,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       } as any);
 
-      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
@@ -270,7 +270,7 @@ describe('Tenant Export Service', () => {
 
   describe('12.2 Data Completeness Validation', () => {
     it('should validate that all requested data is present', async () => {
-      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         legal_name: 'Test Restaurant',
         ruc: '12345678901',
@@ -291,7 +291,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       } as any);
 
-      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
@@ -333,7 +333,7 @@ describe('Tenant Export Service', () => {
 
   describe('12.2 Encryption', () => {
     it('should encrypt exported data', async () => {
-      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         legal_name: 'Test Restaurant',
         ruc: '12345678901',
@@ -354,7 +354,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       } as any);
 
-      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
@@ -443,7 +443,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       };
 
-      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.tenant_settings.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         legal_name: 'Test Restaurant',
         ruc: '12345678901',
@@ -464,7 +464,7 @@ describe('Tenant Export Service', () => {
         updated_at: new Date(),
       } as any);
 
-      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValueOnce({
+      vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),

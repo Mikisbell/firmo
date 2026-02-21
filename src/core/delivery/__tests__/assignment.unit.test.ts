@@ -37,10 +37,10 @@ import type {
 } from '../types-2026';
 
 describe('Assignment Algorithm - Unit Tests', () => {
-  const testTenantId = 'test-tenant-123' as TenantId;
-  const testOrderId = 'test-order-123' as OrderId;
-  const testDriverId1 = 'test-driver-1' as DriverId;
-  const testDriverId2 = 'test-driver-2' as DriverId;
+  const testTenantId = '00000000-0000-4000-a000-000000000001' as TenantId;
+  const testOrderId = '00000000-0000-4000-a000-000000000002' as OrderId;
+  const testDriverId1 = '00000000-0000-4000-a000-000000000003' as DriverId;
+  const testDriverId2 = '00000000-0000-4000-a000-000000000004' as DriverId;
 
   const testLocation1: Location = {
     latitude: 40.7128,
@@ -64,7 +64,7 @@ describe('Assignment Algorithm - Unit Tests', () => {
     vi.clearAllMocks();
     await deliveryRedisService.del('pending_assignments');
     await prisma.assignment_logs.deleteMany({});
-    await prisma.assignment_weights.deleteMany({});
+    await prisma.assignment_weights.deleteMany({ where: { tenant_id: testTenantId } });
   });
 
   afterAll(async () => {
@@ -298,8 +298,8 @@ describe('Assignment Algorithm - Unit Tests', () => {
     });
 
     it('should handle queue processing errors gracefully', async () => {
-      // Add invalid order ID to queue
-      await deliveryRedisService.rpush('pending_assignments', 'invalid-order-id');
+      // Add non-existent order ID (valid UUID format) to queue
+      await deliveryRedisService.rpush('pending_assignments', '00000000-0000-4000-a000-ffffffffffff');
 
       // Should not throw
       await expect(processAssignmentQueue()).resolves.not.toThrow();
@@ -318,21 +318,35 @@ describe('Assignment Algorithm - Unit Tests', () => {
     });
 
     it('should queue order if no other drivers available', async () => {
-      // Create test order in database
-      await prisma.delivery_orders.create({
-        data: {
+      // Save original methods
+      const origFindUnique = prisma.delivery_orders.findUnique;
+      const origUpdate = (prisma.delivery_orders as any).update;
+      const origLogCreate = prisma.assignment_logs.create;
+
+      // Mock the order lookup to return a test order with required relations
+      (prisma.delivery_orders as any).findUnique = vi.fn().mockResolvedValue({
+        id: testOrderId,
+        tenant_id: testTenantId,
+        customer_name: 'John Doe',
+        customer_phone: '1234567890',
+        address_text: `${testLocation2.latitude},${testLocation2.longitude}`,
+        pickup_location: JSON.stringify(testLocation1),
+        status: 'ASSIGNED',
+        driver_id: testDriverId1,
+        order_id: testOrderId,
+        orders: {
           id: testOrderId,
-          tenant_id: testTenantId,
-          customer_name: 'John Doe',
-          customer_phone: '1234567890',
-          address_text: JSON.stringify(testLocation2),
-          pickup_location: JSON.stringify(testLocation1),
-          status: 'ASSIGNED',
-          driver_id: testDriverId1,
-        } as any,
+          customers: { name: 'John Doe' },
+          locations: { address: `${testLocation1.latitude},${testLocation1.longitude}` },
+        },
       });
 
-      // Mock no available drivers
+      // Mock the update call
+      (prisma.delivery_orders as any).update = vi.fn().mockResolvedValue({});
+
+      // Mock assignment_logs.create
+      (prisma.assignment_logs as any).create = vi.fn().mockResolvedValue({});
+
       const result = await handleRejection(testOrderId, testDriverId1, 'Too far');
 
       // Should return null and queue order
@@ -341,15 +355,17 @@ describe('Assignment Algorithm - Unit Tests', () => {
       const queueLength = await deliveryRedisService.llen('pending_assignments');
       expect(queueLength).toBe(1);
 
-      // Clean up
-      await prisma.delivery_orders.delete({ where: { id: testOrderId } });
+      // Restore original methods
+      (prisma.delivery_orders as any).findUnique = origFindUnique;
+      (prisma.delivery_orders as any).update = origUpdate;
+      (prisma.assignment_logs as any).create = origLogCreate;
     });
   });
 
   describe('manualAssign', () => {
     it('should throw error if driver not found', async () => {
       await expect(
-        manualAssign(testOrderId, 'non-existent-driver' as DriverId)
+        manualAssign(testOrderId, '00000000-0000-4000-a000-ffffffffffff' as DriverId)
       ).rejects.toThrow('not found');
     });
 

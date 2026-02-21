@@ -213,14 +213,18 @@ describe('Health Check Flow - Integration Tests', () => {
 
       const { database, redis, eventSourcing } = result.components;
 
-      if (database.status === 'down') {
-        // Database down = unhealthy
+      const components = [database, redis, eventSourcing];
+      const hasDown = components.some(c => c.status === 'down');
+      const hasDegraded = components.some(c => c.status === 'degraded');
+
+      if (hasDown) {
+        // Any component down = unhealthy
         expect(result.status).toBe('unhealthy');
-      } else if (redis.status === 'down' || eventSourcing.status === 'down') {
-        // Redis o EventSourcing down = degraded
-        expect(['degraded', 'healthy']).toContain(result.status);
+      } else if (hasDegraded) {
+        // Any component degraded = degraded
+        expect(result.status).toBe('degraded');
       } else {
-        // Todos up = healthy
+        // All components up = healthy
         expect(result.status).toBe('healthy');
       }
     });

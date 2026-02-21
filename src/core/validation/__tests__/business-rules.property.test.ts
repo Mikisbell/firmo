@@ -127,8 +127,9 @@ describe('Business Rule Validation - Property Tests', () => {
     });
 
     it('item quantity must not exceed MAX_ITEMS', () => {
+      // Use constrained arbitrary matching the MAX_ITEMS limit of 100
       testForAll(
-        quantityArb,
+        fc.integer({ min: 1, max: 100 }),
         (qty) => isValidItemQuantity(qty),
         'item quantity must be within limits'
       );

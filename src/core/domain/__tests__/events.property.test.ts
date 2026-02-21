@@ -261,6 +261,7 @@ describe('Event Validation - Property Tests', () => {
         occurred_at: new Date().toISOString(),
         aggregate_type: 'ORDER' as const,
         aggregate_id: '00000000-0000-0000-0000-000000000001',
+        event_type: 'ORDER_CREATED',
         correlation_id: 'corr-1',
         causation_id: null,
         actor_id: null,

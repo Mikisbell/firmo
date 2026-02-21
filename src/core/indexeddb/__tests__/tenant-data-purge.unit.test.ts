@@ -1,14 +1,14 @@
 /**
  * Unit Tests for Tenant Data Purge
- * 
+ *
  * Task 18.10 - IndexedDB Tenant Isolation
- * 
+ *
  * Tests data purge functionality:
  * - Complete data removal
  * - Logout cleanup
  * - Tenant switch cleanup
  * - Error handling
- * 
+ *
  * Validates: Requirements 15.6
  */
 
@@ -26,6 +26,25 @@ import {
 const mockLocalStorage = new Map<string, string>();
 const mockSessionStorage = new Map<string, string>();
 
+/**
+ * Creates a mock IDBOpenDBRequest that fires onsuccess asynchronously
+ * after the caller has had a chance to set the callback.
+ */
+function createMockDeleteRequest() {
+    const request: any = {
+        onerror: null as any,
+        onsuccess: null as any,
+        onblocked: null as any,
+    };
+    // Fire onsuccess in next microtask (after caller sets callback)
+    Promise.resolve().then(() => {
+        if (request.onsuccess) request.onsuccess();
+    });
+    return request;
+}
+
+const mockDeleteDatabase = vi.fn(() => createMockDeleteRequest());
+
 Object.defineProperty(global, 'window', {
     value: {
         localStorage: {
@@ -33,7 +52,7 @@ Object.defineProperty(global, 'window', {
             setItem: (key: string, value: string) => mockLocalStorage.set(key, value),
             removeItem: (key: string) => mockLocalStorage.delete(key),
             clear: () => mockLocalStorage.clear(),
-            length: mockLocalStorage.size,
+            get length() { return mockLocalStorage.size; },
             key: (index: number) => Array.from(mockLocalStorage.keys())[index] || null,
         },
         sessionStorage: {
@@ -41,15 +60,11 @@ Object.defineProperty(global, 'window', {
             setItem: (key: string, value: string) => mockSessionStorage.set(key, value),
             removeItem: (key: string) => mockSessionStorage.delete(key),
             clear: () => mockSessionStorage.clear(),
-            length: mockSessionStorage.size,
+            get length() { return mockSessionStorage.size; },
             key: (index: number) => Array.from(mockSessionStorage.keys())[index] || null,
         },
         indexedDB: {
-            deleteDatabase: vi.fn((dbName: string) => ({
-                onerror: null,
-                onsuccess: null,
-                onblocked: null,
-            })),
+            deleteDatabase: mockDeleteDatabase,
         },
     },
     writable: true,
@@ -71,7 +86,8 @@ describe('Tenant Data Purge', () => {
     beforeEach(() => {
         mockLocalStorage.clear();
         mockSessionStorage.clear();
-        vi.clearAllMocks();
+        // Re-assign mock implementation (vi.clearAllMocks resets it)
+        mockDeleteDatabase.mockImplementation(() => createMockDeleteRequest());
     });
 
     afterEach(() => {
@@ -85,18 +101,6 @@ describe('Tenant Data Purge', () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key1`, 'value1');
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key2`, 'value2');
             mockSessionStorage.set(`parkpos-session-${TENANT_ID_1}-key1`, 'value1');
-
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
 
             // Execute purge
             const result = await purgeTenantData(TENANT_ID_1);
@@ -118,18 +122,6 @@ describe('Tenant Data Purge', () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key1`, 'value1');
             mockLocalStorage.set(`parkpos-${TENANT_ID_2}-key1`, 'value2');
 
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
-
             // Execute purge for tenant 1
             await purgeTenantData(TENANT_ID_1);
 
@@ -139,18 +131,6 @@ describe('Tenant Data Purge', () => {
         });
 
         it('should handle empty storage', async () => {
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
-
             // Execute purge with empty storage
             const result = await purgeTenantData(TENANT_ID_1);
 
@@ -163,18 +143,6 @@ describe('Tenant Data Purge', () => {
         });
 
         it('should return PurgeResult with correct structure', async () => {
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
-
             const result = await purgeTenantData(TENANT_ID_1);
 
             expect(result).toHaveProperty('tenant_id');
@@ -197,18 +165,6 @@ describe('Tenant Data Purge', () => {
         it('should purge data on logout', async () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key1`, 'value1');
 
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
-
             const result = await purgeOnLogout(TENANT_ID_1);
 
             expect(result.tenant_id).toBe(TENANT_ID_1);
@@ -220,18 +176,6 @@ describe('Tenant Data Purge', () => {
         it('should purge old tenant data on switch', async () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key1`, 'value1');
             mockLocalStorage.set(`parkpos-${TENANT_ID_2}-key1`, 'value2');
-
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
 
             const result = await purgeOnTenantSwitch(TENANT_ID_1, TENANT_ID_2);
 
@@ -245,18 +189,6 @@ describe('Tenant Data Purge', () => {
         it('should purge data on tenant deactivation', async () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key1`, 'value1');
 
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
-
             const result = await purgeOnTenantDeactivation(TENANT_ID_1);
 
             expect(result.tenant_id).toBe(TENANT_ID_1);
@@ -267,18 +199,6 @@ describe('Tenant Data Purge', () => {
     describe('purgeOnTenantDeletion', () => {
         it('should purge data on tenant deletion', async () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key1`, 'value1');
-
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
 
             const result = await purgeOnTenantDeletion(TENANT_ID_1);
 
@@ -294,18 +214,6 @@ describe('Tenant Data Purge', () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_1}-local2`, 'value2');
             mockSessionStorage.set(`parkpos-session-${TENANT_ID_1}-session1`, 'value1');
             mockSessionStorage.set(`parkpos-session-${TENANT_ID_1}-session2`, 'value2');
-
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
 
             // Execute purge
             const result = await purgeTenantData(TENANT_ID_1);
@@ -323,18 +231,6 @@ describe('Tenant Data Purge', () => {
                 mockLocalStorage.set(`parkpos-${TENANT_ID_1}-key${i}`, `value${i}`);
             }
 
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
-
             // Execute purge
             const result = await purgeTenantData(TENANT_ID_1);
 
@@ -351,18 +247,6 @@ describe('Tenant Data Purge', () => {
             mockLocalStorage.set(`parkpos-${TENANT_ID_2}-key1`, 'value1');
             mockLocalStorage.set(`parkpos-${TENANT_ID_2}-key2`, 'value2');
             mockLocalStorage.set('other-key', 'value');
-
-            // Mock IndexedDB delete
-            const deleteDbMock = vi.fn((dbName: string) => {
-                return {
-                    onerror: null,
-                    onsuccess: function() {
-                        if (this.onsuccess) this.onsuccess();
-                    },
-                    onblocked: null,
-                };
-            });
-            (window.indexedDB as any).deleteDatabase = deleteDbMock;
 
             // Execute purge for tenant 1
             const result = await purgeTenantData(TENANT_ID_1);

@@ -20,6 +20,10 @@ vi.mock('@/src/core/db/schema', () => {
           sagaLogs.set(entity.saga_id, entity);
           return entity.saga_id;
         }),
+        put: vi.fn(async (entity: any) => {
+          sagaLogs.set(entity.saga_id, entity);
+          return entity.saga_id;
+        }),
         get: vi.fn(async (sagaId: string) => {
           return sagaLogs.get(sagaId) || null;
         }),
@@ -144,6 +148,10 @@ describe('Saga Log Repository - Property Tests', () => {
           { minLength: 1, maxLength: 10 }
         ),
         async (sagaId, tenantId, stepResults) => {
+          // Clear mock database between property iterations
+          const { db } = await import('@/src/core/db/schema');
+          await db.saga_logs.clear();
+
           // Create saga log
           await repository.create({
             sagaId,
@@ -203,6 +211,10 @@ describe('Saga Log Repository - Property Tests', () => {
         fc.constantFrom('COMPLETE_SALE', 'VOID_SALE', 'APPLY_PROMOTION'),
         fc.constantFrom('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'COMPENSATED') as fc.Arbitrary<SagaStatus>,
         async (sagaId, tenantId, sagaName, finalStatus) => {
+          // Clear mock database between property iterations
+          const { db } = await import('@/src/core/db/schema');
+          await db.saga_logs.clear();
+
           // Create saga log
           await repository.create({
             sagaId,
@@ -265,8 +277,16 @@ describe('Saga Log Repository - Property Tests', () => {
           { minLength: 1, maxLength: 20 }
         ),
         async (tenantId, sagas) => {
+          // Clear mock database between property iterations
+          const { db } = await import('@/src/core/db/schema');
+          await db.saga_logs.clear();
+
+          // Deduplicate sagas by sagaId (Map uses saga_id as key, so duplicates overwrite)
+          const uniqueSagas = new Map(sagas.map(s => [s.sagaId, s]));
+          const deduped = Array.from(uniqueSagas.values());
+
           // Create all sagas
-          for (const saga of sagas) {
+          for (const saga of deduped) {
             await repository.create({
               sagaId: saga.sagaId,
               tenantId,
@@ -295,7 +315,7 @@ describe('Saga Log Repository - Property Tests', () => {
           const inProgress = await repository.findInProgress(tenantId);
 
           // Verify only IN_PROGRESS sagas are returned
-          const expectedCount = sagas.filter(s => s.status === 'IN_PROGRESS').length;
+          const expectedCount = deduped.filter(s => s.status === 'IN_PROGRESS').length;
           expect(inProgress).toHaveLength(expectedCount);
 
           for (const entry of inProgress) {
@@ -331,8 +351,16 @@ describe('Saga Log Repository - Property Tests', () => {
         fc.option(fc.constantFrom('COMPLETE_SALE', 'VOID_SALE', 'APPLY_PROMOTION'), { nil: undefined }),
         fc.option(fc.constantFrom('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED') as fc.Arbitrary<SagaStatus>, { nil: undefined }),
         async (tenantId, sagas, filterSagaName, filterStatus) => {
+          // Clear mock database between property iterations
+          const { db } = await import('@/src/core/db/schema');
+          await db.saga_logs.clear();
+
+          // Deduplicate sagas by sagaId (Map uses saga_id as key, so duplicates overwrite)
+          const uniqueSagas = new Map(sagas.map(s => [s.sagaId, s]));
+          const deduped = Array.from(uniqueSagas.values());
+
           // Create all sagas
-          for (const saga of sagas) {
+          for (const saga of deduped) {
             await repository.create({
               sagaId: saga.sagaId,
               tenantId,
@@ -375,8 +403,8 @@ describe('Saga Log Repository - Property Tests', () => {
             }
           }
 
-          // Verify count matches expected
-          const expectedSagas = sagas.filter(s => {
+          // Verify count matches expected (use deduped since Map deduplicates by saga_id)
+          const expectedSagas = deduped.filter(s => {
             if (filterSagaName && s.sagaName !== filterSagaName) return false;
             if (filterStatus && s.status !== filterStatus) return false;
             return true;

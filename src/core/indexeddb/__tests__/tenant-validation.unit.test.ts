@@ -6,6 +6,125 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+// ============================================================================
+// Mock tenant-database module with in-memory storage
+// ============================================================================
+
+// In-memory stores keyed by tenant_id
+const stores: Record<string, {
+    events: any[];
+    saga_logs: any[];
+    offline_saga_events: any[];
+    projections: any[];
+    snapshots: any[];
+}> = {};
+
+let autoId = 1;
+
+function getStore(tenantId: string) {
+    if (!stores[tenantId]) {
+        stores[tenantId] = {
+            events: [],
+            saga_logs: [],
+            offline_saga_events: [],
+            projections: [],
+            snapshots: [],
+        };
+    }
+    return stores[tenantId];
+}
+
+function createMockTable(tenantId: string, tableName: string) {
+    return {
+        add: vi.fn(async (item: any) => {
+            const id = autoId++;
+            const stored = { ...item, id };
+            getStore(tenantId)[tableName as keyof typeof stores[string]].push(stored);
+            return id;
+        }),
+        put: vi.fn(async (item: any) => {
+            const store = getStore(tenantId)[tableName as keyof typeof stores[string]];
+            // Use key field for projections, saga_id for saga_logs, otherwise id
+            const matchField = item.key ? 'key' : item.saga_id ? 'saga_id' : 'id';
+            const matchValue = item[matchField];
+            const idx = matchValue != null ? store.findIndex((e: any) => e[matchField] === matchValue) : -1;
+            if (idx >= 0) {
+                store[idx] = { ...item, id: store[idx].id };
+            } else {
+                const id = autoId++;
+                store.push({ ...item, id });
+            }
+            return item;
+        }),
+        toArray: vi.fn(async () => {
+            return [...getStore(tenantId)[tableName as keyof typeof stores[string]]];
+        }),
+        bulkAdd: vi.fn(async (items: any[]) => {
+            const ids: number[] = [];
+            for (const item of items) {
+                const id = autoId++;
+                getStore(tenantId)[tableName as keyof typeof stores[string]].push({ ...item, id });
+                ids.push(id);
+            }
+            return ids;
+        }),
+        bulkDelete: vi.fn(async (keys: any[]) => {
+            const store = getStore(tenantId)[tableName as keyof typeof stores[string]];
+            const filtered = store.filter((e: any) => !keys.includes(e.event_id) && !keys.includes(e.id));
+            getStore(tenantId)[tableName as keyof typeof stores[string]] = filtered as any;
+        }),
+        where: vi.fn((field: string) => ({
+            anyOf: vi.fn((values: any[]) => ({
+                delete: vi.fn(async () => {
+                    const store = getStore(tenantId)[tableName as keyof typeof stores[string]];
+                    const before = store.length;
+                    const filtered = store.filter((e: any) => !values.includes(e[field]));
+                    getStore(tenantId)[tableName as keyof typeof stores[string]] = filtered as any;
+                    return before - filtered.length;
+                }),
+                toArray: vi.fn(async () => {
+                    const store = getStore(tenantId)[tableName as keyof typeof stores[string]];
+                    return store.filter((e: any) => values.includes(e[field]));
+                }),
+            })),
+            equals: vi.fn((value: any) => ({
+                first: vi.fn(async () => {
+                    const store = getStore(tenantId)[tableName as keyof typeof stores[string]];
+                    return store.find((e: any) => e[field] === value) || null;
+                }),
+                toArray: vi.fn(async () => {
+                    const store = getStore(tenantId)[tableName as keyof typeof stores[string]];
+                    return store.filter((e: any) => e[field] === value);
+                }),
+            })),
+        })),
+        get: vi.fn(async (key: any) => {
+            const store = getStore(tenantId)[tableName as keyof typeof stores[string]];
+            // For projections, match by key field; otherwise by id
+            return store.find((e: any) => e.key === key || e.id === key) || undefined;
+        }),
+    };
+}
+
+function createMockDb(tenantId: string) {
+    return {
+        events: createMockTable(tenantId, 'events'),
+        saga_logs: createMockTable(tenantId, 'saga_logs'),
+        offline_saga_events: createMockTable(tenantId, 'offline_saga_events'),
+        projections: createMockTable(tenantId, 'projections'),
+        snapshots: createMockTable(tenantId, 'snapshots'),
+        close: vi.fn(),
+    };
+}
+
+vi.mock('../tenant-database', () => ({
+    getTenantDatabase: vi.fn((tenantId: string) => createMockDb(tenantId)),
+    closeTenantDatabase: vi.fn(async () => {}),
+    closeAllTenantDatabases: vi.fn(async () => {}),
+    TenantParkDB: class {},
+}));
+
 import {
     validateTenantId,
     validateEntityTenant,
@@ -28,19 +147,6 @@ import {
 } from '../tenant-validation';
 import { getTenantDatabase, closeTenantDatabase, closeAllTenantDatabases } from '../tenant-database';
 import type { EventEntity, SagaLogEntity, OfflineSagaEventEntity, ProjectionEntity, SnapshotEntity } from '../tenant-database';
-
-// Mock window object for browser environment
-beforeEach(() => {
-    if (typeof window === 'undefined') {
-        (global as any).window = {};
-    }
-});
-
-afterEach(() => {
-    if ((global as any).window) {
-        delete (global as any).window;
-    }
-});
 
 // ============================================================================
 // Test Data
@@ -100,6 +206,16 @@ const createMockSnapshot = (tenant_id: string, overrides?: Partial<SnapshotEntit
     state: { status: 'OPEN' },
     created_at: new Date().toISOString(),
     ...overrides,
+});
+
+// ============================================================================
+// Reset in-memory stores between tests
+// ============================================================================
+beforeEach(() => {
+    for (const key of Object.keys(stores)) {
+        delete stores[key];
+    }
+    autoId = 1;
 });
 
 // ============================================================================

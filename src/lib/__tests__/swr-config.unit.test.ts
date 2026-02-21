@@ -43,7 +43,7 @@ describe('SWR Config - Unit Tests', () => {
       expect(typeof swrGlobalConfig.provider).toBe('function');
       
       // Verificar que el provider retorna un Map
-      const cache = swrGlobalConfig.provider!();
+      const cache = swrGlobalConfig.provider!(new Map());
       expect(cache).toBeInstanceOf(Map);
     });
 

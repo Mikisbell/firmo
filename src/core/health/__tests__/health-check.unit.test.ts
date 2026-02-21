@@ -30,14 +30,21 @@ vi.mock('@/src/core/observability/metrics', () => ({
   },
 }));
 
-vi.mock('@/src/core/cache/cache-service', () => ({
-  cache: {
-    isAvailable: vi.fn(() => true),
-    getType: vi.fn(() => 'redis'),
-    set: vi.fn().mockResolvedValue(undefined),
-    get: vi.fn(),
-  },
-}));
+vi.mock('@/src/core/cache/cache-service', () => {
+  const store = new Map<string, any>();
+  return {
+    cache: {
+      isAvailable: vi.fn(() => true),
+      getType: vi.fn(() => 'redis'),
+      set: vi.fn(async (key: string, value: any) => {
+        store.set(key, value);
+      }),
+      get: vi.fn(async (key: string) => {
+        return store.get(key) ?? null;
+      }),
+    },
+  };
+});
 
 describe('Health Check Service - Unit Tests', () => {
   let healthCheckService: HealthCheckService;
@@ -54,14 +61,6 @@ describe('Health Check Service - Unit Tests', () => {
     };
 
     healthCheckService = new HealthCheckService(mockPrisma as unknown as PrismaClient);
-    
-    // Setup cache mock to return the test value
-    vi.mocked(cache.get).mockImplementation(async (key: string) => {
-      if (key === 'health:check') {
-        return Date.now().toString();
-      }
-      return null;
-    });
   });
 
   afterEach(async () => {
@@ -293,7 +292,7 @@ describe('Health Check Service - Unit Tests', () => {
 
       expect(mockPrisma.events.count).toHaveBeenCalledWith({
         where: {
-          created_at: {
+          occurred_at: {
             gte: expect.any(Date),
           },
         },

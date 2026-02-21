@@ -130,12 +130,12 @@ describe('Cache Service - Property Tests', () => {
 
   beforeEach(() => {
     // Set test environment
-    Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true });
+    (process.env as any).NODE_ENV = 'test';
     process.env.REDIS_URL = 'redis://localhost:6379';
-    
+
     // Clear mock calls
     vi.clearAllMocks();
-    
+
     cache = new RedisCacheService();
   });
 

@@ -1,15 +1,19 @@
 /**
  * Terminal Detail API Tests
- * 
+ *
  * Requirements: 2.1, 3.1, 3.3 (Terminal Architecture v2)
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { GET } from '../route';
-import { POST as RegenerateCode } from '../regenerate-code/route';
-import { PATCH as UpdateStatus } from '../status/route';
-import prisma from '@/src/core/db/prisma';
+
+// Mock admin-auth middleware
+vi.mock('@/src/core/middleware/admin-auth', () => ({
+  requireAdminAuth: vi.fn().mockResolvedValue({
+    authorized: true,
+    user: { tenantId: 'test-tenant', role: 'ADMIN', employeeId: 'admin-1' },
+  }),
+}));
 
 // Mock Prisma
 vi.mock('@/src/core/db/prisma', () => ({
@@ -27,6 +31,19 @@ vi.mock('@/src/core/db/prisma', () => ({
   },
 }));
 
+// Mock terminal-registry (used by status and regenerate-code routes)
+vi.mock('@/src/core/auth/terminal-registry', () => ({
+  updateTerminalStatus: vi.fn(),
+  generateActivationCode: vi.fn(),
+  formatActivationCode: vi.fn(),
+  generateActivationCodeValue: vi.fn(),
+}));
+
+// Mock config/employees
+vi.mock('@/src/core/config/employees', () => ({
+  getAdminEmployeeId: vi.fn().mockReturnValue('admin-1'),
+}));
+
 // Mock logger
 vi.mock('@/src/core/observability/logger', () => ({
   logger: {
@@ -35,6 +52,13 @@ vi.mock('@/src/core/observability/logger', () => ({
     error: vi.fn(),
   },
 }));
+
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { GET } from '../route';
+import { POST as RegenerateCode } from '../regenerate-code/route';
+import { PATCH as UpdateStatus } from '../status/route';
+import prisma from '@/src/core/db/prisma';
+import { updateTerminalStatus, generateActivationCode, formatActivationCode } from '@/src/core/auth/terminal-registry';
 
 describe('Terminal Detail API', () => {
   const mockTerminal = {
@@ -71,6 +95,12 @@ describe('Terminal Detail API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.TENANT_ID = 'test-tenant';
+
+    // Reset admin auth mock to authorized
+    vi.mocked(requireAdminAuth).mockResolvedValue({
+      authorized: true,
+      user: { tenantId: 'test-tenant', role: 'ADMIN', employeeId: 'admin-1' } as any,
+    });
   });
 
   describe('GET /api/admin/terminals-v2/[terminalId]', () => {
@@ -151,8 +181,8 @@ describe('Terminal Detail API', () => {
         created_at: new Date(),
       };
 
-      (prisma.activation_codes.updateMany as any).mockResolvedValue({ count: 1 });
-      (prisma.activation_codes.create as any).mockResolvedValue(newCode);
+      (generateActivationCode as any).mockResolvedValue(newCode);
+      (formatActivationCode as any).mockReturnValue('999-888');
 
       const request = {} as NextRequest;
       const response = await RegenerateCode(request, { params: Promise.resolve({ terminalId: 'CAJA_01' }) });
@@ -164,20 +194,12 @@ describe('Terminal Detail API', () => {
       expect(data.code.formatted).toBe('999-888');
       expect(data.code.expires_at).toBeDefined();
 
-      // Should invalidate existing codes
-      expect(prisma.activation_codes.updateMany).toHaveBeenCalledWith({
-        where: {
-          terminal_id: 'CAJA_01',
-          used: false,
-        },
-        data: {
-          used: true,
-        },
-      });
+      // Should call generateActivationCode
+      expect(generateActivationCode).toHaveBeenCalledWith('CAJA_01', 'admin-1');
     });
 
     it('should handle errors during code generation', async () => {
-      (prisma.activation_codes.updateMany as any).mockRejectedValue(
+      (generateActivationCode as any).mockRejectedValue(
         new Error('Database error')
       );
 
@@ -192,8 +214,7 @@ describe('Terminal Detail API', () => {
 
   describe('PATCH /api/admin/terminals-v2/[terminalId]/status', () => {
     it('should update terminal status to disabled', async () => {
-      (prisma.terminal_devices.updateMany as any).mockResolvedValue({ count: 1 });
-      (prisma.terminal_devices.findFirst as any).mockResolvedValue({
+      (updateTerminalStatus as any).mockResolvedValue({
         ...mockTerminal,
         status: 'disabled',
       });
@@ -208,18 +229,11 @@ describe('Terminal Detail API', () => {
       expect(data.success).toBe(true);
       expect(data.terminal.status).toBe('disabled');
 
-      expect(prisma.terminal_devices.updateMany).toHaveBeenCalledWith({
-        where: {
-          terminal_id: 'CAJA_01',
-          tenant_id: 'test-tenant',
-        },
-        data: { status: 'disabled' },
-      });
+      expect(updateTerminalStatus).toHaveBeenCalledWith('CAJA_01', 'test-tenant', 'disabled');
     });
 
     it('should update terminal status to active', async () => {
-      (prisma.terminal_devices.updateMany as any).mockResolvedValue({ count: 1 });
-      (prisma.terminal_devices.findFirst as any).mockResolvedValue({
+      (updateTerminalStatus as any).mockResolvedValue({
         ...mockTerminal,
         status: 'active',
       });
@@ -247,8 +261,7 @@ describe('Terminal Detail API', () => {
     });
 
     it('should return 404 if terminal not found', async () => {
-      (prisma.terminal_devices.updateMany as any).mockResolvedValue({ count: 0 });
-      (prisma.terminal_devices.findFirst as any).mockResolvedValue(null);
+      (updateTerminalStatus as any).mockResolvedValue(null);
 
       const request = {
         json: async () => ({ status: 'disabled' })
@@ -261,7 +274,7 @@ describe('Terminal Detail API', () => {
     });
 
     it('should handle database errors', async () => {
-      (prisma.terminal_devices.updateMany as any).mockRejectedValue(
+      (updateTerminalStatus as any).mockRejectedValue(
         new Error('Database error')
       );
 

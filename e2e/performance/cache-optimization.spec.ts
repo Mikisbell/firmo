@@ -152,8 +152,8 @@ test.describe('Cache Optimization - Performance Tests', () => {
   test('18.1.6 - Memory no crece indefinidamente', async () => {
     // Obtener memoria inicial
     const initialMemory = await page.evaluate(() => {
-      if (performance.memory) {
-        return performance.memory.usedJSHeapSize;
+      if ((performance as any).memory) {
+        return (performance as any).memory.usedJSHeapSize;
       }
       return 0;
     });
@@ -178,8 +178,8 @@ test.describe('Cache Optimization - Performance Tests', () => {
 
     // Obtener memoria final
     const finalMemory = await page.evaluate(() => {
-      if (performance.memory) {
-        return performance.memory.usedJSHeapSize;
+      if ((performance as any).memory) {
+        return (performance as any).memory.usedJSHeapSize;
       }
       return 0;
     });

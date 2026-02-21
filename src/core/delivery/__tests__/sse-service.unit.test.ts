@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { SSEConnectionManager } from '../sse-connection-manager';
+import { SSEConnectionManager, sseConnectionManager } from '../sse-connection-manager';
 import { SSEBroadcaster } from '../sse-broadcaster';
 import { DeliveryEvent, toTenantId } from '../types-2026';
 
@@ -206,22 +206,22 @@ describe('SSE Service Unit Tests', () => {
   
   describe('Broadcasting', () => {
     it('should broadcast event to all matching clients', async () => {
-      const manager = new SSEConnectionManager();
+      // Use the singleton sseConnectionManager since SSEBroadcaster uses it internally
       const broadcaster = new SSEBroadcaster();
       const receivedEvents: Array<{ clientId: string; data: string }> = [];
-      
-      // Add clients
+
+      // Add clients to the singleton manager
       for (let i = 1; i <= 3; i++) {
-        const clientId = `client-${i}`;
+        const clientId = `broadcast-client-${i}`;
         const controller = createMockController((data) => {
           receivedEvents.push({
             clientId,
             data: new TextDecoder().decode(data)
           });
         });
-        await manager.addClient(clientId, controller, 'restaurant-A');
+        await sseConnectionManager.addClient(clientId, controller, 'restaurant-A');
       }
-      
+
       // Broadcast event
       const event: DeliveryEvent = {
         id: 'test-event-1',
@@ -230,37 +230,39 @@ describe('SSE Service Unit Tests', () => {
         data: { orderId: 'order-123' },
         restaurantId: toTenantId('restaurant-A')
       };
-      
+
       await broadcaster.broadcast(event);
-      
+
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       // All clients should receive the event
       expect(receivedEvents.length).toBe(3);
-      
-      await manager.shutdown();
+
+      // Clean up - remove clients from singleton
+      for (let i = 1; i <= 3; i++) {
+        await sseConnectionManager.removeClient(`broadcast-client-${i}`);
+      }
       await broadcaster.shutdown();
     });
-    
+
     it('should only broadcast to clients matching restaurantId filter', async () => {
-      const manager = new SSEConnectionManager();
       const broadcaster = new SSEBroadcaster();
       const receivedEvents: string[] = [];
-      
-      // Add clients for different restaurants
-      await manager.addClient('client-A1', createMockController((data) => {
-        receivedEvents.push('client-A1');
+
+      // Add clients for different restaurants to the singleton
+      await sseConnectionManager.addClient('filter-client-A1', createMockController((data) => {
+        receivedEvents.push('filter-client-A1');
       }), 'restaurant-A');
-      
-      await manager.addClient('client-A2', createMockController((data) => {
-        receivedEvents.push('client-A2');
+
+      await sseConnectionManager.addClient('filter-client-A2', createMockController((data) => {
+        receivedEvents.push('filter-client-A2');
       }), 'restaurant-A');
-      
-      await manager.addClient('client-B1', createMockController((data) => {
-        receivedEvents.push('client-B1');
+
+      await sseConnectionManager.addClient('filter-client-B1', createMockController((data) => {
+        receivedEvents.push('filter-client-B1');
       }), 'restaurant-B');
-      
+
       // Broadcast event for restaurant-A only
       const event: DeliveryEvent = {
         id: 'test-event-2',
@@ -269,41 +271,43 @@ describe('SSE Service Unit Tests', () => {
         data: { orderId: 'order-456' },
         restaurantId: toTenantId('restaurant-A')
       };
-      
+
       await broadcaster.broadcast(event);
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       // Only restaurant-A clients should receive
       expect(receivedEvents.length).toBe(2);
-      expect(receivedEvents).toContain('client-A1');
-      expect(receivedEvents).toContain('client-A2');
-      expect(receivedEvents).not.toContain('client-B1');
-      
-      await manager.shutdown();
+      expect(receivedEvents).toContain('filter-client-A1');
+      expect(receivedEvents).toContain('filter-client-A2');
+      expect(receivedEvents).not.toContain('filter-client-B1');
+
+      // Clean up
+      await sseConnectionManager.removeClient('filter-client-A1');
+      await sseConnectionManager.removeClient('filter-client-A2');
+      await sseConnectionManager.removeClient('filter-client-B1');
       await broadcaster.shutdown();
     });
-    
+
     it('should format SSE message correctly', async () => {
-      const manager = new SSEConnectionManager();
       const broadcaster = new SSEBroadcaster();
       let receivedMessage = '';
-      
+
       const controller = createMockController((data) => {
         receivedMessage = new TextDecoder().decode(data);
       });
-      
-      await manager.addClient('client-1', controller);
-      
+
+      await sseConnectionManager.addClient('format-client-1', controller);
+
       const event: DeliveryEvent = {
         id: 'event-123',
         type: 'order_delivered',
         timestamp: new Date('2026-01-29T12:00:00Z'),
         data: { orderId: 'order-789', status: 'delivered' }
       };
-      
+
       await broadcaster.broadcast(event);
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       // Verify SSE format
       expect(receivedMessage).toContain('id: event-123');
       expect(receivedMessage).toContain('event: order_delivered');
@@ -311,18 +315,18 @@ describe('SSE Service Unit Tests', () => {
       expect(receivedMessage).toContain('"orderId":"order-789"');
       expect(receivedMessage).toContain('"status":"delivered"');
       expect(receivedMessage).toMatch(/\n\n$/); // Ends with double newline
-      
-      await manager.shutdown();
+
+      // Clean up
+      await sseConnectionManager.removeClient('format-client-1');
       await broadcaster.shutdown();
     });
   });
   
   describe('Error Handling', () => {
     it('should handle client send failure gracefully', async () => {
-      const manager = new SSEConnectionManager();
       const broadcaster = new SSEBroadcaster();
-      
-      // Add a failing client
+
+      // Add a failing client to the singleton
       const failingController = {
         enqueue: () => {
           throw new Error('Send failed');
@@ -331,40 +335,38 @@ describe('SSE Service Unit Tests', () => {
         error: vi.fn(),
         desiredSize: 1,
       } as unknown as ReadableStreamDefaultController;
-      
-      await manager.addClient('failing-client', failingController);
-      
+
+      await sseConnectionManager.addClient('failing-client', failingController);
+
       const event: DeliveryEvent = {
         id: 'test-event',
         type: 'order_created',
         timestamp: new Date(),
         data: {}
       };
-      
+
       // Should not throw, should handle error internally
       await expect(
         broadcaster.broadcast(event)
       ).resolves.not.toThrow();
-      
+
       // Failing client should be removed
       await new Promise(resolve => setTimeout(resolve, 50));
-      expect(manager.getActiveClients()).not.toContain('failing-client');
-      
-      await manager.shutdown();
+      expect(sseConnectionManager.getActiveClients()).not.toContain('failing-client');
+
       await broadcaster.shutdown();
     });
-    
+
     it('should handle missing event ID by generating one', async () => {
-      const manager = new SSEConnectionManager();
       const broadcaster = new SSEBroadcaster();
       let receivedMessage = '';
-      
+
       const controller = createMockController((data) => {
         receivedMessage = new TextDecoder().decode(data);
       });
-      
-      await manager.addClient('client-1', controller);
-      
+
+      await sseConnectionManager.addClient('gen-id-client-1', controller);
+
       // Event without ID
       const event: DeliveryEvent = {
         id: '', // Empty ID
@@ -372,14 +374,15 @@ describe('SSE Service Unit Tests', () => {
         timestamp: new Date(),
         data: {}
       };
-      
+
       await broadcaster.broadcast(event);
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       // Should have generated an ID
       expect(receivedMessage).toMatch(/id: \d+-\d+-[a-f0-9]+/);
-      
-      await manager.shutdown();
+
+      // Clean up
+      await sseConnectionManager.removeClient('gen-id-client-1');
       await broadcaster.shutdown();
     });
   });

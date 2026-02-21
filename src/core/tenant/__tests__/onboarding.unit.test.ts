@@ -532,6 +532,10 @@ describe('Onboarding Service', () => {
         allow_offline_coupon: false,
         max_offline_coupons_per_order: 1,
         require_manager_for_offline: true,
+        yape_merchant_phone: null,
+        yape_merchant_name: null,
+        plin_merchant_phone: null,
+        plin_merchant_name: null,
         onboarding_status: 'COMPLETED',
         updated_at: new Date(),
       });
@@ -597,6 +601,10 @@ describe('Onboarding Service', () => {
         allow_offline_coupon: false,
         max_offline_coupons_per_order: 1,
         require_manager_for_offline: true,
+        yape_merchant_phone: null,
+        yape_merchant_name: null,
+        plin_merchant_phone: null,
+        plin_merchant_name: null,
         onboarding_status: 'IN_PROGRESS',
         updated_at: new Date(),
       });
@@ -653,6 +661,10 @@ describe('Onboarding Service', () => {
         allow_offline_coupon: false,
         max_offline_coupons_per_order: 1,
         require_manager_for_offline: true,
+        yape_merchant_phone: null,
+        yape_merchant_name: null,
+        plin_merchant_phone: null,
+        plin_merchant_name: null,
         onboarding_status: 'IN_PROGRESS',
         updated_at: new Date(),
       });

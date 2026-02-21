@@ -28,18 +28,6 @@ import {
 import { toDriverId, toTenantId } from '../types-2026';
 import type { PushNotification } from '../types-2026';
 
-// Mock getRedisClient
-const mockRedis = {
-  rpush: vi.fn(),
-  lrange: vi.fn(),
-  ltrim: vi.fn(),
-  lrem: vi.fn(),
-  expire: vi.fn(),
-  del: vi.fn(),
-};
-
-const getRedisClient = vi.fn(() => mockRedis);
-
 // Mock dependencies
 vi.mock('@/src/core/db/prisma', () => ({
   default: {
@@ -62,6 +50,31 @@ vi.mock('../redis-connection', () => ({
     lrem: vi.fn(),
     keys: vi.fn(),
   })),
+  deliveryRedisService: {
+    rpush: vi.fn().mockResolvedValue(1),
+    expire: vi.fn().mockResolvedValue(1),
+    lrange: vi.fn().mockResolvedValue([]),
+    lrem: vi.fn().mockResolvedValue(1),
+    keys: vi.fn().mockResolvedValue([]),
+    get: vi.fn().mockResolvedValue(null),
+    setex: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    publish: vi.fn().mockResolvedValue(0),
+    subscribe: vi.fn().mockResolvedValue(undefined),
+    unsubscribe: vi.fn().mockResolvedValue(undefined),
+    lpop: vi.fn().mockResolvedValue(null),
+    llen: vi.fn().mockResolvedValue(0),
+    sadd: vi.fn().mockResolvedValue(1),
+    srem: vi.fn().mockResolvedValue(1),
+    incr: vi.fn().mockResolvedValue(1),
+    decr: vi.fn().mockResolvedValue(0),
+    hincrby: vi.fn().mockResolvedValue(1),
+    hgetall: vi.fn().mockResolvedValue({}),
+    lindex: vi.fn().mockResolvedValue(null),
+    isAvailable: vi.fn().mockReturnValue(true),
+    getType: vi.fn().mockReturnValue('memory'),
+    getClient: vi.fn().mockReturnValue(null),
+  },
 }));
 
 vi.mock('web-push', () => ({
@@ -73,8 +86,7 @@ vi.mock('web-push', () => ({
 
 // Import mocked modules
 import prisma from '@/src/core/db/prisma';
-// Note: getRedisClient is not exported, commenting out for now
-// import { getRedisClient } from '../redis-connection';
+import { deliveryRedisService } from '../redis-connection';
 import webpush from 'web-push';
 
 describe('Push Service - Unit Tests', () => {
@@ -384,12 +396,11 @@ describe('Push Service - Unit Tests', () => {
 
       (prisma.push_subscriptions.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-      const redis = getRedisClient();
-      (redis.rpush as ReturnType<typeof vi.fn>).mockResolvedValue(1);
+      (deliveryRedisService.rpush as ReturnType<typeof vi.fn>).mockResolvedValue(1);
 
       await sendNotification(tenantId, driverId, notification);
 
-      const rpushCalls = (redis.rpush as ReturnType<typeof vi.fn>).mock.calls;
+      const rpushCalls = (deliveryRedisService.rpush as ReturnType<typeof vi.fn>).mock.calls;
       expect(rpushCalls.length).toBeGreaterThan(0);
       expect(rpushCalls[rpushCalls.length - 1][0]).toBe(`push:queue:${tenantId}:${driverId}`);
     });
@@ -403,13 +414,12 @@ describe('Push Service - Unit Tests', () => {
         expiresAt,
       };
 
-      const redis = getRedisClient();
-      (redis.rpush as ReturnType<typeof vi.fn>).mockResolvedValue(1);
-      (redis.expire as ReturnType<typeof vi.fn>).mockResolvedValue(1);
+      (deliveryRedisService.rpush as ReturnType<typeof vi.fn>).mockResolvedValue(1);
+      (deliveryRedisService.expire as ReturnType<typeof vi.fn>).mockResolvedValue(1);
 
       await queueNotification(tenantId, driverId, notification);
 
-      expect(redis.expire).toHaveBeenCalled();
+      expect(deliveryRedisService.expire).toHaveBeenCalled();
     });
 
     it('should process queued notifications', async () => {
@@ -425,9 +435,8 @@ describe('Push Service - Unit Tests', () => {
         attempts: 0,
       };
 
-      const redis = getRedisClient();
-      (redis.lrange as ReturnType<typeof vi.fn>).mockResolvedValue([JSON.stringify(queueItem)]);
-      (redis.lrem as ReturnType<typeof vi.fn>).mockResolvedValue(1);
+      (deliveryRedisService.lrange as ReturnType<typeof vi.fn>).mockResolvedValue([JSON.stringify(queueItem)]);
+      (deliveryRedisService.lrem as ReturnType<typeof vi.fn>).mockResolvedValue(1);
 
       (prisma.push_subscriptions.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([{
         id: 'sub-id',
@@ -445,7 +454,7 @@ describe('Push Service - Unit Tests', () => {
       await processQueue(tenantId, driverId);
 
       expect(webpush.sendNotification).toHaveBeenCalled();
-      expect(redis.lrem).toHaveBeenCalled();
+      expect(deliveryRedisService.lrem).toHaveBeenCalled();
     });
 
     it('should skip expired notifications in queue', async () => {
@@ -462,9 +471,8 @@ describe('Push Service - Unit Tests', () => {
         attempts: 0,
       };
 
-      const redis = getRedisClient();
-      (redis.lrange as ReturnType<typeof vi.fn>).mockResolvedValue([JSON.stringify(queueItem)]);
-      (redis.lrem as ReturnType<typeof vi.fn>).mockResolvedValue(1);
+      (deliveryRedisService.lrange as ReturnType<typeof vi.fn>).mockResolvedValue([JSON.stringify(queueItem)]);
+      (deliveryRedisService.lrem as ReturnType<typeof vi.fn>).mockResolvedValue(1);
 
       (prisma.push_subscriptions.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([{
         id: 'sub-id',
@@ -557,8 +565,7 @@ describe('Push Service - Unit Tests', () => {
 
       (prisma.push_subscriptions.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-      const redis = getRedisClient();
-      (redis.rpush as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Redis connection failed'));
+      (deliveryRedisService.rpush as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Redis connection failed'));
 
       // Should throw (Redis is critical for queueing)
       await expect(sendNotification(tenantId, driverId, notification)).rejects.toThrow('Redis connection failed');

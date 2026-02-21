@@ -26,6 +26,10 @@ vi.mock('@/src/core/db/schema', () => {
           sagaLogs.set(entity.saga_id, entity);
           return entity.saga_id;
         }),
+        put: vi.fn(async (entity: any) => {
+          sagaLogs.set(entity.saga_id, entity);
+          return entity.saga_id;
+        }),
         get: vi.fn(async (sagaId: string) => {
           return sagaLogs.get(sagaId) || null;
         }),

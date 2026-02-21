@@ -1,56 +1,133 @@
 /**
  * Property Tests: Alert Deduplication
- * 
+ *
  * Valida que el sistema de alertas deduplica correctamente alertas duplicadas
  * dentro de la ventana de 5 minutos.
- * 
+ *
+ * Uses mocked Prisma to avoid requiring a real database connection.
+ *
  * **Validates: Requirements 15.7**
- * 
+ *
  * @module core/alerts/__tests__/alert-deduplication.property.test
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as fc from 'fast-check';
-import { AlertNotifier, type CreateAlertEventInput, type AlertSeverity } from '../alert-notifier';
-import { type AlertConfiguration, type AlertType } from '../alert-config';
-import prisma from '@/src/core/db/prisma';
+import type { AlertSeverity } from '../alert-notifier';
+import type { AlertType } from '../alert-config';
+import { randomUUID } from 'crypto';
 
 // Configure fast-check
 fc.configureGlobal({
-  numRuns: 10, // Reducir para tests más rápidos
+  numRuns: 10,
   verbose: false,
 });
 
+// In-memory stores for mocking
+let alertEventsStore: any[] = [];
+let alertConfigurationsStore: any[] = [];
+let maintenanceWindowsStore: any[] = [];
+
+// Mock Prisma before importing AlertNotifier
+vi.mock('@/src/core/db/prisma', () => ({
+  default: {
+    alert_events: {
+      create: vi.fn().mockImplementation(({ data }) => {
+        const record = {
+          id: randomUUID(),
+          ...data,
+          created_at: data.created_at ?? new Date(),
+          updated_at: data.updated_at ?? new Date(),
+        };
+        alertEventsStore.push(record);
+        return Promise.resolve(record);
+      }),
+      findFirst: vi.fn().mockImplementation(({ where }) => {
+        const match = alertEventsStore.find(e => {
+          if (where.tenant_id && e.tenant_id !== where.tenant_id) return false;
+          if (where.configuration_id && e.configuration_id !== where.configuration_id) return false;
+          if (where.status && e.status !== where.status) return false;
+          if (where.created_at?.gte) {
+            const cutoff = where.created_at.gte;
+            if (new Date(e.created_at) < cutoff) return false;
+          }
+          return true;
+        });
+        return Promise.resolve(match ?? null);
+      }),
+      findMany: vi.fn().mockImplementation(({ where } = {}) => {
+        let results = [...alertEventsStore];
+        if (where?.tenant_id) results = results.filter(e => e.tenant_id === where.tenant_id);
+        if (where?.configuration_id) results = results.filter(e => e.configuration_id === where.configuration_id);
+        return Promise.resolve(results);
+      }),
+      update: vi.fn().mockImplementation(({ where, data }) => {
+        const idx = alertEventsStore.findIndex(e => e.id === where.id);
+        if (idx >= 0) {
+          alertEventsStore[idx] = { ...alertEventsStore[idx], ...data };
+          return Promise.resolve(alertEventsStore[idx]);
+        }
+        return Promise.reject(new Error('Not found'));
+      }),
+      deleteMany: vi.fn().mockImplementation(() => Promise.resolve({ count: 0 })),
+    },
+    alert_configurations: {
+      create: vi.fn().mockImplementation(({ data }) => {
+        const record = {
+          id: randomUUID(),
+          ...data,
+          created_at: new Date(),
+          updated_at: new Date(),
+          created_by: data.created_by ?? null,
+          updated_by: data.updated_by ?? null,
+        };
+        alertConfigurationsStore.push(record);
+        return Promise.resolve(record);
+      }),
+      deleteMany: vi.fn().mockImplementation(() => Promise.resolve({ count: 0 })),
+    },
+    maintenance_windows: {
+      findFirst: vi.fn().mockResolvedValue(null), // No maintenance windows active
+    },
+  },
+}));
+
+// Mock logger to avoid console noise
+vi.mock('@/src/core/observability/structured-logger', () => ({
+  logger: {
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+// Mock metrics
+vi.mock('@/src/core/observability/metrics', () => ({
+  metrics: {
+    increment: vi.fn(),
+    gauge: vi.fn(),
+    timing: vi.fn(),
+  },
+}));
+
+// Import after mocks
+const { AlertNotifier } = await import('../alert-notifier');
+
 describe('Property: Alert Deduplication', () => {
-  let notifier: AlertNotifier;
+  let notifier: InstanceType<typeof AlertNotifier>;
 
   beforeEach(() => {
     notifier = new AlertNotifier();
+    alertEventsStore = [];
+    alertConfigurationsStore = [];
+    maintenanceWindowsStore = [];
     vi.clearAllMocks();
-  });
-
-  afterEach(async () => {
-    // Limpiar datos de prueba
-    await prisma.alert_events.deleteMany({
-      where: {
-        tenant_id: {
-          // contains: 'test-tenant-',
-        },
-      },
-    });
-
-    await prisma.alert_configurations.deleteMany({
-      where: {
-        tenant_id: {
-          // contains: 'test-tenant-',
-        },
-      },
-    });
   });
 
   /**
    * Property: Duplicate alerts within 5 minutes are suppressed
-   * 
+   *
    * Verifica que si se envía la misma alerta múltiples veces dentro de 5 minutos,
    * solo la primera se crea y las demás son deduplicadas.
    */
@@ -58,55 +135,41 @@ describe('Property: Alert Deduplication', () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
-          tenantId: fc.string({ minLength: 10, maxLength: 20 }).map(s => `test-tenant-${s}`),
-          alertType: fc.constantFrom<AlertType>(
-            'ERROR_RATE',
-            'RESPONSE_TIME'
-          ),
+          alertType: fc.constantFrom<AlertType>('ERROR_RATE', 'RESPONSE_TIME'),
           severity: fc.constantFrom<AlertSeverity>('INFO', 'WARNING'),
-          currentValue: fc.double({ min: 0, max: 100 }),
-          thresholdValue: fc.double({ min: 0, max: 100 }),
+          currentValue: fc.double({ min: 0, max: 100, noNaN: true }),
+          thresholdValue: fc.double({ min: 0, max: 100, noNaN: true }),
           message: fc.string({ minLength: 10, maxLength: 50 }),
           attemptCount: fc.integer({ min: 2, max: 3 }),
         }),
         async (input) => {
-          // Arrange: Crear configuración de alerta
-          const config = await prisma.alert_configurations.create({
-            data: {
-              tenant_id: input.tenantId,
-              alert_type: input.alertType,
-              threshold_value: input.thresholdValue,
-              threshold_unit: 'PERCENTAGE',
-              comparison_operator: 'GT',
-              enabled: true,
-              notification_channels: ['email'],
-              notification_config: {
-                email: {
-                  recipients: ['test@example.com'],
-                },
-              },
-            },
-          });
+          // Reset stores for each property test run
+          alertEventsStore = [];
+          alertConfigurationsStore = [];
 
-          const alertConfig: AlertConfiguration = {
-            id: config.id,
-            tenantId: config.tenant_id,
-            alertType: config.alert_type as AlertType,
-            thresholdValue: Number(config.threshold_value),
-            thresholdUnit: config.threshold_unit as import('../alert-config').ThresholdUnit,
-            comparisonOperator: config.comparison_operator as import('../alert-config').ComparisonOperator,
-            enabled: config.enabled,
-            notificationChannels: config.notification_channels as any[],
-            notificationConfig: config.notification_config as any,
-            createdAt: config.created_at,
-            updatedAt: config.updated_at,
-            createdBy: config.created_by ?? undefined,
-            updatedBy: config.updated_by ?? undefined,
+          const tenantId = randomUUID();
+          const configId = randomUUID();
+
+          // Create mock config
+          const alertConfig = {
+            id: configId,
+            tenantId: tenantId,
+            alertType: input.alertType,
+            thresholdValue: input.thresholdValue,
+            thresholdUnit: 'PERCENTAGE' as const,
+            comparisonOperator: 'GT' as const,
+            enabled: true,
+            notificationChannels: ['email' as const],
+            notificationConfig: {
+              email: { recipients: ['test@example.com'] },
+            },
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
 
-          const alertInput: CreateAlertEventInput = {
-            tenantId: input.tenantId,
-            configurationId: config.id,
+          const alertInput = {
+            tenantId,
+            configurationId: configId,
             alertType: input.alertType,
             severity: input.severity,
             currentValue: input.currentValue,
@@ -116,11 +179,10 @@ describe('Property: Alert Deduplication', () => {
 
           // Act: Intentar crear la misma alerta múltiples veces
           const results: (any | null)[] = [];
-          
+
           for (let i = 0; i < input.attemptCount; i++) {
             const result = await notifier.createAndNotify(alertConfig, alertInput);
             results.push(result);
-            await new Promise(resolve => setTimeout(resolve, 10));
           }
 
           // Assert: Solo la primera alerta debe ser creada
@@ -130,13 +192,10 @@ describe('Property: Alert Deduplication', () => {
           expect(createdAlerts).toHaveLength(1);
           expect(deduplicatedAlerts).toHaveLength(input.attemptCount - 1);
 
-          // Verificar que solo existe una alerta en la base de datos
-          const dbAlerts = await prisma.alert_events.findMany({
-            where: {
-              tenant_id: input.tenantId,
-              configuration_id: config.id,
-            },
-          });
+          // Verificar que solo existe una alerta en el store
+          const dbAlerts = alertEventsStore.filter(
+            e => e.tenant_id === tenantId && e.configuration_id === configId
+          );
 
           expect(dbAlerts).toHaveLength(1);
         }

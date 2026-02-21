@@ -473,8 +473,7 @@ describe('Type Safety', () => {
     expect(user.id).toBe(1);
     expect(user.name).toBe('Alice');
 
-    // @ts-expect-error - Esta propiedad no existe en User
-    // expect(user.email).toBe('test');
+    // user.email would be a type error here (property doesn't exist on User)
   });
 
   it('should work with arrays', async () => {

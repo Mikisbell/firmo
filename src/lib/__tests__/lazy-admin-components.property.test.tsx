@@ -38,18 +38,20 @@ describe('Property: Lazy Loading Component Wrapper', () => {
 describe('Property: Preload Functions Return Promises', () => {
   /**
    * Property: For any preload function, calling it should return a Promise
-   * 
+   *
    * **Validates: Requirements 10.7**
    */
-  it('should always return promises from preload functions', () => {
+  it('should always return promises from preload functions', async () => {
     const preloadKeys = Object.keys(preloadAdminComponents) as Array<keyof typeof preloadAdminComponents>;
+    const pendingPromises: Promise<unknown>[] = [];
 
     fc.assert(
       fc.property(
         fc.constantFrom(...preloadKeys),
         (key) => {
           const result = preloadAdminComponents[key]();
-          
+          pendingPromises.push(result.catch(() => {}));
+
           // Should return a Promise
           expect(result).toBeInstanceOf(Promise);
           expect(typeof result.then).toBe('function');
@@ -58,6 +60,9 @@ describe('Property: Preload Functions Return Promises', () => {
       ),
       { numRuns: 20 }
     );
+
+    // Wait for all dynamic imports to settle before test ends
+    await Promise.allSettled(pendingPromises);
   });
 });
 

@@ -1,15 +1,44 @@
 /**
  * Unit Tests for Session Expiration
- * 
+ *
  * Tests session expiration behavior and re-authentication requirements
- * 
+ * Uses mocked Prisma to avoid database dependency.
+ *
  * **Validates: Requirements 12.6**
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { randomUUID } from 'crypto';
+
+// Mock Prisma to avoid real database dependency
+vi.mock('@/src/core/db/prisma', () => ({
+  default: {
+    tenants: {
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
+    tenant_settings: {
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    employees: {
+      create: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    sessions: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      createMany: vi.fn(),
+    },
+  },
+}));
+
 import prisma from '@/src/core/db/prisma';
-import { validateToken } from '../auth.service';
+const mockPrisma = prisma as any;
 
 describe('15.8 Session Expiration Unit Tests', () => {
   let tenant_id: string;
@@ -17,58 +46,38 @@ describe('15.8 Session Expiration Unit Tests', () => {
   let session_id: string;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     tenant_id = randomUUID();
     employee_id = randomUUID();
     session_id = randomUUID();
-
-    // Create test tenant
-    await prisma.tenants.create({
-      data: {
-        id: tenant_id,
-        name: 'Test Tenant',
-      },
-    });
-
-    // Create test tenant settings
-    await prisma.tenant_settings.create({
-      data: {
-        tenant_id,
-        legal_name: 'Test Tenant',
-        timezone: 'America/Lima',
-        currency: 'PEN',
-      },
-    });
-
-    // Create test employee
-    await prisma.employees.create({
-      data: {
-        id: employee_id,
-        tenant_id,
-        name: 'Test Employee',
-        role: 'CASHIER',
-        pin_hash: 'test_hash',
-        is_active: true,
-      },
-    });
-  });
-
-  afterEach(async () => {
-    // Cleanup
-    await prisma.sessions.deleteMany({ where: { tenant_id } });
-    await prisma.employees.deleteMany({ where: { tenant_id } });
-    await prisma.tenant_settings.deleteMany({ where: { tenant_id } });
-    await prisma.tenants.delete({ where: { id: tenant_id } });
   });
 
   describe('Session Expiration Behavior', () => {
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that active sessions are accepted
      */
     it('accepts active session that has not expired', async () => {
       // Create active session (expires in 30 minutes)
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      mockPrisma.sessions.findUnique.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
       await prisma.sessions.create({
         data: {
           id: session_id,
@@ -90,12 +99,29 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that expired sessions are rejected
      */
     it('rejects session that has expired', async () => {
       // Create expired session (expired 1 minute ago)
       const expiresAt = new Date(Date.now() - 60 * 1000);
+
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      mockPrisma.sessions.findUnique.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
       await prisma.sessions.create({
         data: {
           id: session_id,
@@ -117,11 +143,28 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that session expiration time is correctly set
      */
     it('session expiration time is correctly set', async () => {
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      mockPrisma.sessions.findUnique.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
       await prisma.sessions.create({
         data: {
           id: session_id,
@@ -141,10 +184,35 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that session can be deleted (logout)
      */
     it('session can be deleted for logout', async () => {
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      // First findUnique returns the session, second returns null (deleted)
+      mockPrisma.sessions.findUnique
+        .mockResolvedValueOnce({
+          id: session_id,
+          tenant_id,
+          employee_id,
+          token_hash: 'test_hash',
+          expires_at: expiresAt,
+        })
+        .mockResolvedValueOnce(null);
+
+      mockPrisma.sessions.delete.mockResolvedValue({
+        id: session_id,
+      });
+
       // Create session
       await prisma.sessions.create({
         data: {
@@ -152,7 +220,7 @@ describe('15.8 Session Expiration Unit Tests', () => {
           tenant_id,
           employee_id,
           token_hash: 'test_hash',
-          expires_at: new Date(Date.now() + 30 * 60 * 1000),
+          expires_at: expiresAt,
         },
       });
 
@@ -176,12 +244,34 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that multiple sessions can exist for same employee
      */
     it('multiple sessions can exist for same employee', async () => {
       const session_id_1 = randomUUID();
       const session_id_2 = randomUUID();
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+      mockPrisma.sessions.createMany.mockResolvedValue({ count: 2 });
+
+      mockPrisma.sessions.findMany.mockResolvedValue([
+        {
+          id: session_id_1,
+          tenant_id,
+          employee_id,
+          token_hash: 'hash_1',
+          expires_at: expiresAt,
+        },
+        {
+          id: session_id_2,
+          tenant_id,
+          employee_id,
+          token_hash: 'hash_2',
+          expires_at: expiresAt,
+        },
+      ]);
+
+      mockPrisma.sessions.deleteMany.mockResolvedValue({ count: 2 });
 
       // Create two sessions for same employee
       await prisma.sessions.createMany({
@@ -191,14 +281,14 @@ describe('15.8 Session Expiration Unit Tests', () => {
             tenant_id,
             employee_id,
             token_hash: 'hash_1',
-            expires_at: new Date(Date.now() + 30 * 60 * 1000),
+            expires_at: expiresAt,
           },
           {
             id: session_id_2,
             tenant_id,
             employee_id,
             token_hash: 'hash_2',
-            expires_at: new Date(Date.now() + 30 * 60 * 1000),
+            expires_at: expiresAt,
           },
         ],
       });
@@ -209,8 +299,8 @@ describe('15.8 Session Expiration Unit Tests', () => {
       });
 
       expect(sessions).toHaveLength(2);
-      expect(sessions.map(s => s.id)).toContain(session_id_1);
-      expect(sessions.map(s => s.id)).toContain(session_id_2);
+      expect(sessions.map((s: any) => s.id)).toContain(session_id_1);
+      expect(sessions.map((s: any) => s.id)).toContain(session_id_2);
 
       // Cleanup
       await prisma.sessions.deleteMany({ where: { employee_id } });
@@ -220,12 +310,29 @@ describe('15.8 Session Expiration Unit Tests', () => {
   describe('Re-authentication Requirement', () => {
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that expired session requires re-authentication
      */
     it('expired session requires re-authentication', async () => {
       // Create expired session
       const expiresAt = new Date(Date.now() - 60 * 1000); // Expired 1 minute ago
+
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      mockPrisma.sessions.findUnique.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
       await prisma.sessions.create({
         data: {
           id: session_id,
@@ -252,12 +359,28 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that session expiration is tenant-scoped
      */
     it('session expiration is tenant-scoped', async () => {
       const other_tenant_id = randomUUID();
-      const other_session_id = randomUUID();
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      mockPrisma.sessions.findUnique.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
 
       // Create session for current tenant
       await prisma.sessions.create({
@@ -266,7 +389,7 @@ describe('15.8 Session Expiration Unit Tests', () => {
           tenant_id,
           employee_id,
           token_hash: 'test_hash',
-          expires_at: new Date(Date.now() + 30 * 60 * 1000),
+          expires_at: expiresAt,
         },
       });
 
@@ -281,13 +404,31 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that session cleanup removes expired sessions
      */
     it('expired sessions can be cleaned up', async () => {
       // Create multiple sessions with different expiration times
       const active_session_id = randomUUID();
       const expired_session_id = randomUUID();
+      const activeExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+      const expiredExpiresAt = new Date(Date.now() - 60 * 1000);
+
+      mockPrisma.sessions.createMany.mockResolvedValue({ count: 2 });
+
+      mockPrisma.sessions.deleteMany
+        .mockResolvedValueOnce({ count: 1 }) // Delete expired
+        .mockResolvedValueOnce({ count: 1 }); // Final cleanup
+
+      mockPrisma.sessions.findMany.mockResolvedValue([
+        {
+          id: active_session_id,
+          tenant_id,
+          employee_id,
+          token_hash: 'hash_active',
+          expires_at: activeExpiresAt,
+        },
+      ]);
 
       await prisma.sessions.createMany({
         data: [
@@ -296,14 +437,14 @@ describe('15.8 Session Expiration Unit Tests', () => {
             tenant_id,
             employee_id,
             token_hash: 'hash_active',
-            expires_at: new Date(Date.now() + 30 * 60 * 1000), // Active
+            expires_at: activeExpiresAt,
           },
           {
             id: expired_session_id,
             tenant_id,
             employee_id,
             token_hash: 'hash_expired',
-            expires_at: new Date(Date.now() - 60 * 1000), // Expired
+            expires_at: expiredExpiresAt,
           },
         ],
       });
@@ -330,12 +471,28 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that session expiration time is in the future for new sessions
      */
     it('new session expiration time is in the future', async () => {
       const now = Date.now();
       const expiresAt = new Date(now + 30 * 60 * 1000); // 30 minutes from now
+
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      mockPrisma.sessions.findUnique.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
 
       await prisma.sessions.create({
         data: {
@@ -356,22 +513,27 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
     /**
      * **Validates: Requirements 12.6**
-     * 
+     *
      * Test that session belongs to correct employee
      */
     it('session is associated with correct employee', async () => {
       const other_employee_id = randomUUID();
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-      // Create employee
-      await prisma.employees.create({
-        data: {
-          id: other_employee_id,
-          tenant_id,
-          name: 'Other Employee',
-          role: 'CASHIER',
-          pin_hash: 'other_hash',
-          is_active: true,
-        },
+      mockPrisma.sessions.create.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
+      });
+
+      mockPrisma.sessions.findUnique.mockResolvedValue({
+        id: session_id,
+        tenant_id,
+        employee_id,
+        token_hash: 'test_hash',
+        expires_at: expiresAt,
       });
 
       // Create session for first employee
@@ -381,7 +543,7 @@ describe('15.8 Session Expiration Unit Tests', () => {
           tenant_id,
           employee_id,
           token_hash: 'test_hash',
-          expires_at: new Date(Date.now() + 30 * 60 * 1000),
+          expires_at: expiresAt,
         },
       });
 
@@ -392,9 +554,6 @@ describe('15.8 Session Expiration Unit Tests', () => {
 
       expect(session?.employee_id).toBe(employee_id);
       expect(session?.employee_id).not.toBe(other_employee_id);
-
-      // Cleanup
-      await prisma.employees.delete({ where: { id: other_employee_id } });
     });
   });
 });

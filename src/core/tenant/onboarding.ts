@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import prisma from '@/src/core/db/prisma';
 
 export interface OnboardingStep {
   id: string;
@@ -9,8 +10,8 @@ export interface OnboardingStep {
   description?: string;
   is_required: boolean;
   is_completed: boolean;
-  completed_at?: Date;
-  completed_by?: string;
+  completed_at?: Date | null;
+  completed_by?: string | null;
   metadata?: any;
   created_at?: Date;
   updated_at?: Date;
@@ -77,17 +78,73 @@ const STANDARD_ONBOARDING_STEPS = [
 ];
 
 /**
+ * Calculate completion percentage from steps
+ */
+function calculateCompletionPercentage(steps: OnboardingStep[]): number {
+  if (steps.length === 0) return 0;
+  const completed = steps.filter((s) => s.is_completed).length;
+  return Math.round((completed / steps.length) * 100);
+}
+
+/**
+ * Determine status from steps
+ */
+function determineStatus(steps: OnboardingStep[]): 'IN_PROGRESS' | 'COMPLETED' {
+  const allRequiredDone = steps
+    .filter((s) => s.is_required)
+    .every((s) => s.is_completed);
+  return allRequiredDone && steps.some((s) => s.is_completed)
+    ? 'COMPLETED'
+    : 'IN_PROGRESS';
+}
+
+/**
  * Create onboarding checklist for a new tenant
  * Requirements: 13.1, 13.2
- * 
- * NOTE: This function requires the onboarding_steps table to be created via migration.
- * Run: npx prisma db push
  */
 export async function createOnboardingChecklist(
   tenant_id: string
 ): Promise<OnboardingChecklist> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  const steps: OnboardingStep[] = [];
+
+  for (const stepDef of STANDARD_ONBOARDING_STEPS) {
+    const step = await (prisma as any).onboarding_steps.create({
+      data: {
+        id: randomUUID(),
+        tenant_id,
+        step_number: stepDef.step_number,
+        step_key: stepDef.step_key,
+        title: stepDef.title,
+        description: stepDef.description,
+        is_required: stepDef.is_required,
+        is_completed: false,
+        completed_at: null,
+        completed_by: null,
+        metadata: {},
+      },
+    });
+
+    steps.push({
+      id: step.id,
+      tenant_id,
+      step_number: stepDef.step_number,
+      step_key: stepDef.step_key,
+      title: stepDef.title,
+      description: stepDef.description,
+      is_required: stepDef.is_required,
+      is_completed: false,
+      completed_at: null,
+      completed_by: null,
+      metadata: {},
+    });
+  }
+
+  return {
+    tenant_id,
+    status: 'IN_PROGRESS',
+    steps,
+    completion_percentage: 0,
+  };
 }
 
 /**
@@ -97,8 +154,24 @@ export async function createOnboardingChecklist(
 export async function getOnboardingChecklist(
   tenant_id: string
 ): Promise<OnboardingChecklist> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  const steps = await (prisma as any).onboarding_steps.findMany({
+    where: { tenant_id },
+    orderBy: { step_number: 'asc' },
+  });
+
+  if (!steps || steps.length === 0) {
+    throw new Error('Onboarding checklist not found');
+  }
+
+  const completion_percentage = calculateCompletionPercentage(steps);
+  const status = determineStatus(steps);
+
+  return {
+    tenant_id,
+    status,
+    steps,
+    completion_percentage,
+  };
 }
 
 /**
@@ -110,8 +183,28 @@ export async function completeOnboardingStep(
   step_key: string,
   completed_by?: string
 ): Promise<OnboardingStep> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  const step = await (prisma as any).onboarding_steps.findUnique({
+    where: {
+      tenant_id_step_key: { tenant_id, step_key },
+    },
+  });
+
+  if (!step) {
+    throw new Error(`Onboarding step ${step_key} not found`);
+  }
+
+  const updatedStep = await (prisma as any).onboarding_steps.update({
+    where: {
+      tenant_id_step_key: { tenant_id, step_key },
+    },
+    data: {
+      is_completed: true,
+      completed_at: new Date(),
+      completed_by: completed_by || null,
+    },
+  });
+
+  return updatedStep;
 }
 
 /**
@@ -122,8 +215,28 @@ export async function uncompleteOnboardingStep(
   tenant_id: string,
   step_key: string
 ): Promise<OnboardingStep> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  const step = await (prisma as any).onboarding_steps.findUnique({
+    where: {
+      tenant_id_step_key: { tenant_id, step_key },
+    },
+  });
+
+  if (!step) {
+    throw new Error(`Onboarding step ${step_key} not found`);
+  }
+
+  const updatedStep = await (prisma as any).onboarding_steps.update({
+    where: {
+      tenant_id_step_key: { tenant_id, step_key },
+    },
+    data: {
+      is_completed: false,
+      completed_at: null,
+      completed_by: null,
+    },
+  });
+
+  return updatedStep;
 }
 
 /**
@@ -137,8 +250,24 @@ export async function validateOnboardingComplete(
   missing_steps: string[];
   completion_percentage: number;
 }> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  const steps = await (prisma as any).onboarding_steps.findMany({
+    where: { tenant_id },
+    orderBy: { step_number: 'asc' },
+  });
+
+  const requiredSteps = (steps || []).filter((s: OnboardingStep) => s.is_required);
+  const incompleteRequired = requiredSteps.filter(
+    (s: OnboardingStep) => !s.is_completed
+  );
+  const missing_steps = incompleteRequired.map((s: OnboardingStep) => s.step_key);
+
+  const completion_percentage = calculateCompletionPercentage(steps || []);
+
+  return {
+    is_complete: incompleteRequired.length === 0,
+    missing_steps,
+    completion_percentage,
+  };
 }
 
 /**
@@ -146,8 +275,20 @@ export async function validateOnboardingComplete(
  * Requirements: 13.7
  */
 export async function markOnboardingComplete(tenant_id: string): Promise<void> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  const validation = await validateOnboardingComplete(tenant_id);
+
+  if (!validation.is_complete) {
+    throw new Error(
+      `Cannot mark onboarding complete: missing steps: ${validation.missing_steps.join(', ')}`
+    );
+  }
+
+  await prisma.tenant_settings.update({
+    where: { tenant_id },
+    data: {
+      onboarding_status: 'COMPLETED',
+    },
+  });
 }
 
 /**
@@ -157,8 +298,15 @@ export async function markOnboardingComplete(tenant_id: string): Promise<void> {
 export async function getOnboardingStatus(
   tenant_id: string
 ): Promise<'IN_PROGRESS' | 'COMPLETED'> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  const settings = await prisma.tenant_settings.findUnique({
+    where: { tenant_id },
+  });
+
+  if (!settings) {
+    throw new Error('Tenant not found');
+  }
+
+  return (settings as any).onboarding_status || 'IN_PROGRESS';
 }
 
 /**
@@ -166,6 +314,19 @@ export async function getOnboardingStatus(
  * Requirements: 13.3
  */
 export async function resetOnboarding(tenant_id: string): Promise<void> {
-  // TODO: Implement after migration is applied
-  throw new Error('Onboarding feature requires database migration. Run: npx prisma db push');
+  // Delete existing steps
+  await (prisma as any).onboarding_steps.deleteMany({
+    where: { tenant_id },
+  });
+
+  // Reset status in tenant_settings
+  await prisma.tenant_settings.update({
+    where: { tenant_id },
+    data: {
+      onboarding_status: 'IN_PROGRESS',
+    },
+  });
+
+  // Re-create checklist
+  await createOnboardingChecklist(tenant_id);
 }

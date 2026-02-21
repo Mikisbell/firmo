@@ -19,11 +19,11 @@ import { hashPin } from '../crypto-utils';
 describe('Authentication Service', () => {
     describe('hashPin', () => {
         // Property 1: Same PIN always produces same hash
-        it('Property 1: hashPin is deterministic', () => {
-            fc.assert(
-                fc.property(fc.string({ minLength: 4, maxLength: 6 }), (pin) => {
-                    const hash1 = hashPin(pin);
-                    const hash2 = hashPin(pin);
+        it('Property 1: hashPin is deterministic', async () => {
+            await fc.assert(
+                fc.asyncProperty(fc.string({ minLength: 4, maxLength: 6 }), async (pin) => {
+                    const hash1 = await hashPin(pin);
+                    const hash2 = await hashPin(pin);
                     expect(hash1).toBe(hash2);
                 }),
                 { numRuns: 100 }
@@ -31,15 +31,15 @@ describe('Authentication Service', () => {
         });
 
         // Property 2: Different PINs produce different hashes
-        it('Property 2: Different PINs produce different hashes', () => {
-            fc.assert(
-                fc.property(
+        it('Property 2: Different PINs produce different hashes', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.string({ minLength: 4, maxLength: 6 }),
                     fc.string({ minLength: 4, maxLength: 6 }),
-                    (pin1, pin2) => {
+                    async (pin1, pin2) => {
                         fc.pre(pin1 !== pin2);
-                        const hash1 = hashPin(pin1);
-                        const hash2 = hashPin(pin2);
+                        const hash1 = await hashPin(pin1);
+                        const hash2 = await hashPin(pin2);
                         expect(hash1).not.toBe(hash2);
                     }
                 ),
@@ -48,10 +48,10 @@ describe('Authentication Service', () => {
         });
 
         // Property 3: Hash is always 64 characters (SHA256 hex)
-        it('Property 3: Hash is always 64 characters', () => {
-            fc.assert(
-                fc.property(fc.string({ minLength: 1, maxLength: 10 }), (pin) => {
-                    const hash = hashPin(pin);
+        it('Property 3: Hash is always 64 characters', async () => {
+            await fc.assert(
+                fc.asyncProperty(fc.string({ minLength: 1, maxLength: 10 }), async (pin) => {
+                    const hash = await hashPin(pin);
                     expect(hash).toHaveLength(64);
                     expect(hash).toMatch(/^[a-f0-9]+$/);
                 }),

@@ -42,12 +42,14 @@ describe('RequestCache Property-Based Tests', () => {
         fc.integer({ min: 100, max: 5000 }), // ttl
         fc.integer({ min: 2, max: 20 }), // número de requests
         async (key, ttl, numRequests) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn().mockResolvedValue({ data: 'test' });
 
           // Hacer múltiples requests concurrentes
           const promises = Array(numRequests)
             .fill(null)
-            .map(() => cache.get(key, fetcher, ttl));
+            .map(() => localCache.get(key, fetcher, ttl));
 
           await Promise.all(promises);
 
@@ -65,25 +67,27 @@ describe('RequestCache Property-Based Tests', () => {
    * ∀ (key, ttl, ε) where ε > 0:
    *   Request después de (ttl + ε) debe ejecutar fetcher de nuevo
    */
-  it('Property 2.2: TTL Expiration', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.2: TTL Expiration', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.string({ minLength: 1 }), // key
         fc.integer({ min: 100, max: 2000 }), // ttl
         fc.integer({ min: 1, max: 100 }), // epsilon (tiempo extra)
         async (key, ttl, epsilon) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn()
             .mockResolvedValueOnce({ data: 'first' })
             .mockResolvedValueOnce({ data: 'second' });
 
           // Primera llamada
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
 
           // Avanzar tiempo más allá del TTL
           vi.advanceTimersByTime(ttl + epsilon);
 
           // Segunda llamada (después del TTL)
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
 
           // Fetcher debe llamarse 2 veces (caché expiró)
           expect(fetcher).toHaveBeenCalledTimes(2);
@@ -99,25 +103,27 @@ describe('RequestCache Property-Based Tests', () => {
    * ∀ (key):
    *   cache.invalidate(key) ⟹ próximo get() ejecuta fetcher
    */
-  it('Property 2.3: Invalidation clears cache', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.3: Invalidation clears cache', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.string({ minLength: 1 }), // key
         fc.integer({ min: 100, max: 5000 }), // ttl
         async (key, ttl) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn()
             .mockResolvedValueOnce({ data: 'first' })
             .mockResolvedValueOnce({ data: 'second' });
 
           // Primera llamada
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
           expect(fetcher).toHaveBeenCalledTimes(1);
 
           // Invalidar caché
-          cache.invalidate(key);
+          localCache.invalidate(key);
 
           // Segunda llamada (después de invalidar)
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
 
           // Fetcher debe llamarse 2 veces
           expect(fetcher).toHaveBeenCalledTimes(2);
@@ -133,27 +139,32 @@ describe('RequestCache Property-Based Tests', () => {
    * ∀ (key, ttl, n) where n > 0:
    *   Múltiples requests concurrentes deben retornar el mismo promise
    */
-  it('Property 2.4: Concurrent requests return same promise', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.4: Concurrent requests return same promise', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.string({ minLength: 1 }), // key
         fc.integer({ min: 100, max: 5000 }), // ttl
         fc.integer({ min: 2, max: 10 }), // número de requests
         async (key, ttl, numRequests) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn().mockResolvedValue({ data: 'test' });
 
           // Hacer múltiples requests concurrentes
           const promises = Array(numRequests)
             .fill(null)
-            .map(() => cache.get(key, fetcher, ttl));
+            .map(() => localCache.get(key, fetcher, ttl));
 
-          // Todos los promises deben ser el mismo objeto
-          const firstPromise = promises[0];
-          promises.forEach(promise => {
-            expect(promise).toBe(firstPromise);
+          const results = await Promise.all(promises);
+
+          // All results must be the same reference (deduplication)
+          const firstResult = results[0];
+          results.forEach(result => {
+            expect(result).toBe(firstResult);
           });
 
-          await Promise.all(promises);
+          // Fetcher should only be called once
+          expect(fetcher).toHaveBeenCalledTimes(1);
         }
       ),
       { numRuns: 50 }
@@ -166,22 +177,24 @@ describe('RequestCache Property-Based Tests', () => {
    * ∀ (keys):
    *   cache.size() === número de keys únicas cacheadas
    */
-  it('Property 2.5: Cache size reflects unique keys', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.5: Cache size reflects unique keys', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.array(fc.string({ minLength: 1 }), { minLength: 1, maxLength: 50 }), // keys
         fc.integer({ min: 100, max: 5000 }), // ttl
         async (keys, ttl) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn().mockResolvedValue({ data: 'test' });
 
           // Cachear todas las keys
           for (const key of keys) {
-            await cache.get(key, fetcher, ttl);
+            await localCache.get(key, fetcher, ttl);
           }
 
           // Tamaño del caché debe ser igual al número de keys únicas
           const uniqueKeys = new Set(keys);
-          expect(cache.size()).toBe(uniqueKeys.size);
+          expect(localCache.size()).toBe(uniqueKeys.size);
         }
       ),
       { numRuns: 50 }
@@ -194,27 +207,29 @@ describe('RequestCache Property-Based Tests', () => {
    * ∀ (keys):
    *   cache.clear() ⟹ cache.size() === 0
    */
-  it('Property 2.6: Clear removes all entries', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.6: Clear removes all entries', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.array(fc.string({ minLength: 1 }), { minLength: 1, maxLength: 50 }), // keys
         fc.integer({ min: 100, max: 5000 }), // ttl
         async (keys, ttl) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn().mockResolvedValue({ data: 'test' });
 
           // Cachear todas las keys
           for (const key of keys) {
-            await cache.get(key, fetcher, ttl);
+            await localCache.get(key, fetcher, ttl);
           }
 
           // Verificar que hay entradas
-          expect(cache.size()).toBeGreaterThan(0);
+          expect(localCache.size()).toBeGreaterThan(0);
 
           // Limpiar caché
-          cache.clear();
+          localCache.clear();
 
           // Tamaño debe ser 0
-          expect(cache.size()).toBe(0);
+          expect(localCache.size()).toBe(0);
         }
       ),
       { numRuns: 50 }
@@ -238,9 +253,9 @@ describe('cachedFetch Property-Based Tests', () => {
    * ∀ (url, options):
    *   Múltiples cachedFetch con mismo url + options deben deduplicarse
    */
-  it('Property 2.7: cachedFetch deduplicates by URL + options', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.7: cachedFetch deduplicates by URL + options', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.webUrl(), // url
         fc.constantFrom('GET', 'POST', 'PUT', 'DELETE'), // method
         fc.integer({ min: 2, max: 10 }), // número de requests
@@ -277,9 +292,9 @@ describe('cachedFetch Property-Based Tests', () => {
    * ∀ (url1, url2) where url1 ≠ url2:
    *   cachedFetch(url1) y cachedFetch(url2) deben hacer 2 requests
    */
-  it('Property 2.8: Different URLs are cached independently', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.8: Different URLs are cached independently', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.webUrl(), // url1
         fc.webUrl(), // url2
         async (url1, url2) => {
@@ -313,9 +328,9 @@ describe('cachedFetch Property-Based Tests', () => {
    * ∀ (url, statusCode) where statusCode >= 400:
    *   cachedFetch debe lanzar error si response.ok === false
    */
-  it('Property 2.9: HTTP errors are thrown', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.9: HTTP errors are thrown', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.webUrl(), // url
         fc.integer({ min: 400, max: 599 }), // status code
         async (url, statusCode) => {
@@ -339,9 +354,9 @@ describe('cachedFetch Property-Based Tests', () => {
    * ∀ (url):
    *   invalidateCachedFetch(url) ⟹ próximo cachedFetch(url) hace nuevo request
    */
-  it('Property 2.10: invalidateCachedFetch forces refetch', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.10: invalidateCachedFetch forces refetch', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.webUrl(), // url
         async (url) => {
           let fetchCallCount = 0;
@@ -391,19 +406,21 @@ describe('Edge Cases Property-Based Tests', () => {
    * 
    * Verificar que keys vacías o muy cortas funcionan correctamente
    */
-  it('Property 2.11: Empty and short keys work correctly', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.11: Empty and short keys work correctly', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.string({ maxLength: 3 }), // keys muy cortas (incluyendo vacías)
         fc.integer({ min: 100, max: 5000 }), // ttl
         async (key, ttl) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn().mockResolvedValue({ data: 'test' });
 
           // Primera llamada
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
 
           // Segunda llamada (debe usar caché)
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
 
           // Fetcher solo debe llamarse 1 vez
           expect(fetcher).toHaveBeenCalledTimes(1);
@@ -418,24 +435,26 @@ describe('Edge Cases Property-Based Tests', () => {
    * 
    * Verificar que TTLs muy cortos (< 100ms) funcionan correctamente
    */
-  it('Property 2.12: Very short TTLs work correctly', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.12: Very short TTLs work correctly', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.string({ minLength: 1 }), // key
         fc.integer({ min: 1, max: 50 }), // ttl muy corto
         async (key, ttl) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn()
             .mockResolvedValueOnce({ data: 'first' })
             .mockResolvedValueOnce({ data: 'second' });
 
           // Primera llamada
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
 
           // Avanzar tiempo más allá del TTL
           vi.advanceTimersByTime(ttl + 1);
 
           // Segunda llamada (después del TTL)
-          await cache.get(key, fetcher, ttl);
+          await localCache.get(key, fetcher, ttl);
 
           // Fetcher debe llamarse 2 veces (caché expiró)
           expect(fetcher).toHaveBeenCalledTimes(2);
@@ -451,21 +470,23 @@ describe('Edge Cases Property-Based Tests', () => {
    * ∀ (key):
    *   Si fetcher lanza error, próximo get() debe reintentar
    */
-  it('Property 2.13: Fetcher errors do not corrupt cache', () => {
-    fc.assert(
-      fc.property(
+  it('Property 2.13: Fetcher errors do not corrupt cache', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.string({ minLength: 1 }), // key
         fc.integer({ min: 100, max: 5000 }), // ttl
         async (key, ttl) => {
+          // Use a fresh cache per run to avoid cross-run interference
+          const localCache = new RequestCache();
           const fetcher = vi.fn()
             .mockRejectedValueOnce(new Error('Network error'))
             .mockResolvedValueOnce({ data: 'success' });
 
           // Primera llamada (falla)
-          await expect(cache.get(key, fetcher, ttl)).rejects.toThrow('Network error');
+          await expect(localCache.get(key, fetcher, ttl)).rejects.toThrow('Network error');
 
           // Segunda llamada (debe reintentar, no usar caché corrupto)
-          const result = await cache.get(key, fetcher, ttl);
+          const result = await localCache.get(key, fetcher, ttl);
 
           // Fetcher debe llamarse 2 veces
           expect(fetcher).toHaveBeenCalledTimes(2);

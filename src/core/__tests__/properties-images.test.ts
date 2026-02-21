@@ -86,11 +86,12 @@ describe('Image Upload and Management Properties', () => {
         userId,
         async (format, size, dimensions, prodId, tenant, user) => {
           // Arrange: Create valid image file
+          // Use a small buffer (1 byte) since we only test mock behavior, not real image processing
           const imageFile: ImageFile = {
             name: `test-image.${format.split('/')[1]}`,
             size,
             type: format,
-            buffer: Buffer.alloc(size),
+            buffer: Buffer.alloc(1),
           };
 
           // Mock successful upload
@@ -133,14 +134,14 @@ describe('Image Upload and Management Properties', () => {
         imageSize,
         imageDimensions,
         async (format, size, dimensions) => {
-          // Arrange: Mock image buffer
-          const imageBuffer = Buffer.alloc(size);
+          // Arrange: Mock image buffer (use small buffer since we only test mock behavior)
+          const imageBuffer = Buffer.alloc(1);
 
           // Mock optimization to generate 3 versions
           mockImageService.generateVersions.mockResolvedValue({
-            original: { buffer: Buffer.alloc(size * 0.7), width: Math.min(dimensions.width, 1920), height: Math.min(dimensions.height, 1920) },
-            medium: { buffer: Buffer.alloc(size * 0.3), width: 800, height: 800 },
-            thumbnail: { buffer: Buffer.alloc(size * 0.1), width: 200, height: 200 },
+            original: { buffer: Buffer.alloc(1), width: Math.min(dimensions.width, 1920), height: Math.min(dimensions.height, 1920) },
+            medium: { buffer: Buffer.alloc(1), width: 800, height: 800 },
+            thumbnail: { buffer: Buffer.alloc(1), width: 200, height: 200 },
           });
 
           // Act: Generate versions
@@ -390,7 +391,7 @@ describe('Image Upload and Management Properties', () => {
 
           // Act: Upload and get preview
           const result = await mockImageService.uploadImage(
-            { name: 'test.jpg', size, type: format, buffer: Buffer.alloc(size) },
+            { name: 'test.jpg', size, type: format, buffer: Buffer.alloc(1) },
             tenant,
             prodId
           );

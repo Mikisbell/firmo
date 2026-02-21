@@ -171,7 +171,8 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: { name: 'Carlos Ruiz' },
+        drivers: { name: 'Carlos Ruiz' },
+        orders: { customers: { name: 'Juan Pérez' } },
       } as any);
 
       await service.sendOrderAssigned(mockOrderId);
@@ -199,7 +200,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: null,
+        drivers: null,
       } as any);
 
       await expect(service.sendOrderAssigned(mockOrderId)).rejects.toThrow('no assigned driver');
@@ -211,7 +212,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: { name: 'Carlos Ruiz' },
+        drivers: { name: 'Carlos Ruiz' },
       } as any);
 
       await service.sendOrderDispatched(mockOrderId);
@@ -227,35 +228,39 @@ describe('WhatsApp Service - Unit Tests', () => {
 
   describe('sendETAUpdate', () => {
     it('should send ETA_UPDATE message', async () => {
+      // Use a unique orderId to avoid debounce interference with other tests
+      const etaOrderId = toOrderId('order-eta-send');
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
-        id: mockOrderId,
+        id: etaOrderId,
         customer_phone: mockPhoneNumber,
       } as any);
 
-      await service.sendETAUpdate(mockOrderId, 25);
+      await service.sendETAUpdate(etaOrderId, 25);
 
       const createCall = vi.mocked(prisma.whatsapp_messages.create).mock.calls[0][0];
-      
+
       expect(createCall.data.template_name).toBe('ETA_UPDATE');
       expect(createCall.data.message_body).toContain('25');
     });
 
     it('should debounce rapid ETA updates', async () => {
+      // Use a unique orderId to avoid debounce interference with other tests
+      const debounceOrderId = toOrderId('order-debounce-test');
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
-        id: mockOrderId,
+        id: debounceOrderId,
         customer_phone: mockPhoneNumber,
       } as any);
 
       // Send first update
-      await service.sendETAUpdate(mockOrderId, 30);
+      await service.sendETAUpdate(debounceOrderId, 30);
       expect(vi.mocked(prisma.whatsapp_messages.create)).toHaveBeenCalledTimes(1);
 
       // Send second update immediately (should be debounced)
-      await service.sendETAUpdate(mockOrderId, 25);
+      await service.sendETAUpdate(debounceOrderId, 25);
       expect(vi.mocked(prisma.whatsapp_messages.create)).toHaveBeenCalledTimes(1); // Still 1
 
       // Send third update immediately (should be debounced)
-      await service.sendETAUpdate(mockOrderId, 20);
+      await service.sendETAUpdate(debounceOrderId, 20);
       expect(vi.mocked(prisma.whatsapp_messages.create)).toHaveBeenCalledTimes(1); // Still 1
     });
   });
@@ -302,7 +307,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: { name: 'Carlos Ruiz' },
+        drivers: { name: 'Carlos Ruiz' },
       } as any);
 
       await service.sendOrderAssigned(mockOrderId);
@@ -320,7 +325,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: { name: 'Carlos Ruiz' },
+        drivers: { name: 'Carlos Ruiz' },
       } as any);
 
       await service.sendOrderAssigned(mockOrderId);
@@ -346,7 +351,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: { name: 'Carlos Ruiz' },
+        drivers: { name: 'Carlos Ruiz' },
       } as any);
 
       await service.sendOrderAssigned(mockOrderId);
@@ -363,7 +368,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: { name: 'Carlos Ruiz' },
+        drivers: { name: 'Carlos Ruiz' },
       } as any);
 
       await service.sendOrderAssigned(mockOrderId);
@@ -380,7 +385,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-        driver: { name: 'Carlos Ruiz' },
+        drivers: { name: 'Carlos Ruiz' },
       } as any);
 
       await service.sendOrderAssigned(mockOrderId);
@@ -397,7 +402,7 @@ describe('WhatsApp Service - Unit Tests', () => {
     it('should replace all variables in template', () => {
       const template = MESSAGE_TEMPLATES.ORDER_ASSIGNED;
       const variables = {
-        customer_phone: 'Juan Pérez',
+        customer_name: 'Juan Pérez',
         order_number: '123456',
         driver_name: 'Carlos Ruiz',
         eta: '30',
