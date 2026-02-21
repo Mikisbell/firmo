@@ -11,6 +11,7 @@ import prisma from '@/src/core/db/prisma';
 import { cache } from '@/src/core/cache/cache-service';
 import { logger } from '@/src/core/observability/structured-logger';
 import { metrics } from '@/src/core/observability/metrics';
+import { eventBus } from '@/src/core/infra/event-bus';
 
 // Mock de dependencias
 vi.mock('@/src/core/db/prisma', () => ({
@@ -31,7 +32,7 @@ vi.mock('@/src/core/cache/cache-service', () => ({
     set: vi.fn(),
     delete: vi.fn(),
   },
-  generateCacheKey: vi.fn((prefix, tenantId, productId) => `${prefix}:${tenantId}:${productId}`),
+  generateCacheKey: vi.fn((prefix: string, tenantId: string, productId: string) => `${prefix}:${tenantId}:${productId}`),
 }));
 
 vi.mock('@/src/core/observability/structured-logger', () => ({
@@ -48,6 +49,16 @@ vi.mock('@/src/core/observability/metrics', () => ({
     increment: vi.fn(),
     timing: vi.fn(),
   },
+}));
+
+vi.mock('@/src/core/infra/event-bus', () => ({
+  eventBus: {
+    publish: vi.fn(),
+  },
+}));
+
+vi.mock('uuid', () => ({
+  v4: vi.fn(() => '00000000-0000-4000-a000-000000000000'),
 }));
 
 describe('COGSCalculator - Invalidación Inteligente', () => {
@@ -136,19 +147,16 @@ describe('COGSCalculator - Invalidación Inteligente', () => {
           changedBy,
         })
       );
-      
-      // Debe emitir evento de auditoría
-      expect(logger.info).toHaveBeenCalledWith(
-        'INGREDIENT_COST_CHANGED event',
+
+      // Debe emitir evento de auditoría via eventBus
+      expect(eventBus.publish).toHaveBeenCalledWith(
+        tenantId,
         expect.objectContaining({
-          eventType: 'INGREDIENT_COST_CHANGED',
-          inventoryCode,
-          tenantId,
-          newCostCents,
-          changedBy,
+          event_type: 'INGREDIENT_COST_CHANGED',
+          tenant_id: tenantId,
         })
       );
-      
+
       // Debe registrar métricas
       expect(metrics.increment).toHaveBeenCalledWith('cogs.ingredient_cost_changed');
       expect(metrics.timing).toHaveBeenCalledWith(
@@ -157,30 +165,33 @@ describe('COGSCalculator - Invalidación Inteligente', () => {
       );
     });
     
-    it('debe manejar error gracefully sin lanzar excepción', async () => {
+    it('debe propagar error cuando falla la búsqueda de recetas', async () => {
       // Arrange
       const inventoryCode = 'ING-POLLO';
       const tenantId = 'tenant_123';
       const newCostCents = 1500;
-      
+
       vi.mocked(prisma.recipes.findMany).mockRejectedValue(new Error('DB error'));
-      
-      // Act - No debe lanzar excepción (graceful degradation)
-      await calculator.onIngredientCostChanged(inventoryCode, tenantId, newCostCents);
-      
+
+      // Act - Debe lanzar excepción (onIngredientCostChanged re-throws errors)
+      await expect(
+        calculator.onIngredientCostChanged(inventoryCode, tenantId, newCostCents)
+      ).rejects.toThrow('DB error');
+
       // Assert
-      // Debe loggear el error de invalidación
+      // Debe loggear el error
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to invalidate COGS cache for ingredient',
+        'Failed to handle ingredient cost change',
         expect.any(Error),
         expect.objectContaining({
           inventoryCode,
           tenantId,
+          newCostCents,
         })
       );
-      
-      // Debe registrar métrica de error de invalidación
-      expect(metrics.increment).toHaveBeenCalledWith('cogs.cache.invalidation_error');
+
+      // Debe registrar métrica de error
+      expect(metrics.increment).toHaveBeenCalledWith('cogs.ingredient_cost_changed_error');
     });
   });
   
@@ -228,18 +239,18 @@ describe('COGSCalculator - Invalidación Inteligente', () => {
       );
     });
     
-    it('debe manejar error gracefully sin lanzar excepción', async () => {
+    it('debe manejar error de invalidación de caché gracefully', async () => {
       // Arrange
       const productId = 'prod_123';
       const tenantId = 'tenant_456';
-      
+
       vi.mocked(cache.delete).mockRejectedValue(new Error('Cache error'));
-      
-      // Act - No debe lanzar excepción (graceful degradation)
+
+      // Act - No debe lanzar excepción (invalidateCacheForProduct catches errors internally)
       await calculator.onRecipeChanged(productId, tenantId);
-      
+
       // Assert
-      // Debe loggear el error de invalidación
+      // Debe loggear el error de invalidación dentro de invalidateCacheForProduct
       expect(logger.error).toHaveBeenCalledWith(
         'Failed to invalidate COGS cache',
         expect.any(Error),
@@ -248,7 +259,7 @@ describe('COGSCalculator - Invalidación Inteligente', () => {
           tenantId,
         })
       );
-      
+
       // Debe registrar métrica de error de invalidación
       expect(metrics.increment).toHaveBeenCalledWith('cogs.cache.invalidation_error');
     });
