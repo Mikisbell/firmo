@@ -69,13 +69,13 @@ Cada fase termina con:
   - Ejecutar migración de Prisma
   - _Requirements: 1.1, 1.2, 1.4, 1.5, 2.1, 5.1, 6.1, 7.1, 8.1, 4.1_
 
-- [ ]* 1.1 Escribir tests de schema
+- [x]* 1.1 Escribir tests de schema
   - Verificar que todas las tablas se crean correctamente
   - Verificar relaciones entre tablas
   - Verificar índices
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2. Crear tipos TypeScript compartidos para RRHH
+- [x] 2. Crear tipos TypeScript compartidos para RRHH
   - Extender `src/core/types/shared.ts` con branded types: `EmployeeId`, `AttendanceId`, `ScheduleId`
   - Crear enums: `EmployeeRole`, `ContractType`, `LeaveType`, `AdvanceStatus`, `PayrollStatus`
   - Crear interfaces: `Employee`, `Attendance`, `Schedule`, `LeaveRequest`, `Advance`, `PayrollRecord`
@@ -84,7 +84,7 @@ Cada fase termina con:
 
 ### Fase 2: Event Schemas y Reducers
 
-- [ ] 3. Crear event schemas para RRHH
+- [x] 3. Crear event schemas para RRHH
   - Extender `src/core/domain/events.ts` con eventos de RRHH
   - Eventos: EMPLOYEE_CREATED, EMPLOYEE_PROFILE_UPDATED, EMPLOYEE_DEACTIVATED
   - Eventos: ATTENDANCE_CLOCKED_IN, ATTENDANCE_CLOCKED_OUT, ATTENDANCE_ABSENCE_DETECTED, ATTENDANCE_JUSTIFIED
@@ -93,11 +93,11 @@ Cada fase termina con:
   - Eventos: PAYROLL_CALCULATED, EVALUATION_CREATED, TRAINING_COMPLETED
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [ ]* 3.1 Escribir property test para event schemas
+- [x]* 3.1 Escribir property test para event schemas
   - **Property 58: Todas las operaciones emiten eventos**
   - **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.5**
 
-- [ ] 4. Crear reducers para RRHH
+- [x] 4. Crear reducers para RRHH
   - Crear `src/core/reducers/employee.reducer.ts`
   - Crear `src/core/reducers/attendance.reducer.ts`
   - Crear `src/core/reducers/leave-request.reducer.ts`
@@ -105,13 +105,13 @@ Cada fase termina con:
   - Cada reducer debe reconstruir estado desde eventos
   - _Requirements: 11.7_
 
-- [ ]* 4.1 Escribir property test para event replay
+- [x]* 4.1 Escribir property test para event replay
   - **Property 60: Event replay reconstruye estado**
   - **Validates: Requirements 11.7**
 
 ### Fase 3: Servicios Core
 
-- [ ] 5. Implementar EmployeeService
+- [x] 5. Implementar EmployeeService
   - Crear `src/core/services/employee.service.ts`
   - Métodos: create, update, deactivate, getById, list, search
   - Métodos: uploadProfilePhoto, addEmergencyContact, uploadDocument
@@ -119,7 +119,7 @@ Cada fase termina con:
   - Integrar con Supabase Storage para archivos
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 9.2, 9.3, 9.4, 9.6_
 
-- [ ]* 5.1 Escribir property tests para EmployeeService
+- [x]* 5.1 Escribir property tests para EmployeeService
   - **Property 1: Perfil completo se almacena correctamente**
   - **Property 2: Archivos se almacenan con tenant isolation**
   - **Property 3: Validación de contacto de emergencia**
@@ -127,14 +127,14 @@ Cada fase termina con:
   - **Property 5: Soft delete preserva datos**
   - **Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7**
 
-- [ ]* 5.2 Escribir unit tests para EmployeeService
+- [x]* 5.2 Escribir unit tests para EmployeeService
   - Test: Crear empleado con salario menor al mínimo debe fallar
   - Test: Búsqueda case-insensitive funciona correctamente
   - Test: Filtros múltiples se aplican correctamente
   - _Requirements: 13.6, 9.3, 9.2_
 
 
-- [ ] 6. Implementar AttendanceService
+- [x] 6. Implementar AttendanceService
   - Crear `src/core/services/attendance.service.ts`
   - Métodos: clockIn, clockOut, getByEmployee, justifyAbsence, correctAttendance
   - Métodos: calculateHoursWorked, calculateOvertime, calculateLateness
@@ -142,7 +142,7 @@ Cada fase termina con:
   - Método: getMonthlyReport
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
-- [ ]* 6.1 Escribir property tests para AttendanceService
+- [x]* 6.1 Escribir property tests para AttendanceService
   - **Property 10: Registro de asistencia con timestamp**
   - **Property 11: Cálculo de horas trabajadas y extras**
   - **Property 12: Detección de tardanzas**
@@ -151,13 +151,13 @@ Cada fase termina con:
   - **Property 15: Corrección con audit trail**
   - **Validates: Requirements 3.1, 3.2, 3.3, 3.5, 3.6, 3.7**
 
-- [ ]* 6.2 Escribir unit tests para AttendanceService
+- [x]* 6.2 Escribir unit tests para AttendanceService
   - Test: Detectar ausencia cuando no hay marcación
   - Test: Calcular horas extras correctamente
   - Test: Validar PIN antes de marcar
   - _Requirements: 3.4, 3.2_
 
-- [ ] 7. Implementar ScheduleService
+- [x] 7. Implementar ScheduleService
   - Crear `src/core/services/schedule.service.ts`
   - Métodos: create, update, delete, assignToEmployee
   - Métodos: requestShiftChange, approveShiftChange, rejectShiftChange
@@ -166,21 +166,21 @@ Cada fase termina con:
   - Método: sendShiftReminders (cron job)
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ]* 7.1 Escribir property tests para ScheduleService
+- [x]* 7.1 Escribir property tests para ScheduleService
   - **Property 6: Detección de conflictos de horarios**
   - **Property 7: Flujo de solicitud de cambio de turno**
   - **Property 8: Generación de horarios rotativos**
   - **Property 9: Notificaciones programadas de turnos**
   - **Validates: Requirements 2.2, 2.3, 2.4, 2.6, 2.7**
 
-- [ ] 8. Checkpoint - Verificar servicios core
+- [x] 8. Checkpoint - Verificar servicios core
   - Asegurar que todos los tests pasan
   - Verificar integración entre servicios
   - Preguntar al usuario si hay dudas
 
 ### Fase 4: Servicios de Planilla y Cálculos Legales
 
-- [ ] 9. Implementar PayrollService
+- [x] 9. Implementar PayrollService
   - Crear `src/core/services/payroll.service.ts`
   - Métodos: calculateMonthly, calculateForEmployee
   - Métodos: calculateBaseSalary, calculateCommissions, calculateTips, calculateOvertime, calculateDeductions
@@ -189,7 +189,7 @@ Cada fase termina con:
   - Métodos: exportToExcel, generatePLAME
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 13.1, 13.2, 13.5, 13.6, 13.7_
 
-- [ ]* 9.1 Escribir property tests para PayrollService
+- [x]* 9.1 Escribir property tests para PayrollService
   - **Property 16: Cálculo de salario base**
   - **Property 17: Cálculo de comisiones**
   - **Property 18: Suma de propinas**
@@ -204,7 +204,7 @@ Cada fase termina con:
   - **Property 69: Reporte PLAME tiene formato correcto**
   - **Validates: Requirements 4.1-4.9, 13.1, 13.2, 13.5, 13.6, 13.7**
 
-- [ ]* 9.2 Escribir unit tests para PayrollService
+- [x]* 9.2 Escribir unit tests para PayrollService
   - Test: Cálculo de CTS semestral
   - Test: Gratificación con bonificación extraordinaria
   - Test: Formato PLAME cumple con SUNAT
@@ -213,7 +213,7 @@ Cada fase termina con:
 
 ### Fase 5: Servicios de Solicitudes
 
-- [ ] 10. Implementar LeaveRequestService, AdvanceService, EvaluationService, TrainingService
+- [x] 10. Implementar LeaveRequestService, AdvanceService, EvaluationService, TrainingService
   - Crear `src/core/services/leave-request.service.ts`
   - Crear `src/core/services/advance.service.ts`
   - Crear `src/core/services/evaluation.service.ts`
@@ -221,20 +221,20 @@ Cada fase termina con:
   - Implementar todos los métodos según diseño
   - _Requirements: 5.1-5.8, 6.1-6.6, 7.1-7.6, 8.1-8.5_
 
-- [ ]* 10.1 Escribir property tests para servicios de solicitudes
+- [x]* 10.1 Escribir property tests para servicios de solicitudes
   - **Property 24-30**: Leave Request properties
   - **Property 31-35**: Advance properties
   - **Property 36-41**: Evaluation properties
   - **Property 42-45**: Training properties
   - **Validates: Requirements 5.1-5.8, 6.1-6.6, 7.1-7.6, 8.1-8.5**
 
-- [ ] 11. Checkpoint - Verificar servicios de solicitudes
+- [x] 11. Checkpoint - Verificar servicios de solicitudes
   - Asegurar que todos los tests pasan
   - Preguntar al usuario si hay dudas
 
 ### Fase 6: APIs REST
 
-- [ ] 12. Implementar APIs de Employee Management
+- [x] 12. Implementar APIs de Employee Management
   - Crear endpoints en `src/app/api/hr/employees/`
   - POST, GET, PATCH, DELETE para CRUD
   - POST para photo, documents, emergency-contact
@@ -243,66 +243,66 @@ Cada fase termina con:
   - Validación con Zod
   - _Requirements: 1.1-1.7, 9.2-9.4, 9.6_
 
-- [ ] 13. Implementar APIs de Attendance, Schedules, Payroll
+- [x] 13. Implementar APIs de Attendance, Schedules, Payroll
   - Crear endpoints en `src/app/api/hr/attendance/`, `schedules/`, `payroll/`
   - Implementar todos los endpoints según diseño
   - _Requirements: 3.1-3.7, 2.1-2.7, 4.1-4.9_
 
-- [ ] 14. Implementar APIs de Leave Requests, Advances, Evaluations, Training
+- [x] 14. Implementar APIs de Leave Requests, Advances, Evaluations, Training
   - Crear endpoints en `src/app/api/hr/leave-requests/`, `advances/`, `evaluations/`, `training/`
   - Implementar todos los endpoints según diseño
   - _Requirements: 5.1-5.8, 6.1-6.6, 7.1-7.6, 8.1-8.5_
 
-- [ ] 15. Implementar APIs de Self-Service
+- [x] 15. Implementar APIs de Self-Service
   - Crear endpoints en `src/app/api/hr/me/`
   - GET /me, PATCH /me
   - GET /me/schedule, /me/attendance, /me/payslips, /me/vacation-balance
   - POST /me/leave-requests
   - _Requirements: 10.1-10.8_
 
-- [ ]* 15.1 Escribir integration tests para APIs
+- [x]* 15.1 Escribir integration tests para APIs
   - Test: Flujo completo de empleado (crear → asignar horario → marcar asistencia)
   - Test: Flujo de vacaciones (solicitar → aprobar → descontar saldo)
   - Test: Flujo de adelantos (solicitar → aprobar → descontar en planilla)
   - _Requirements: Todos_
 
-- [ ] 16. Checkpoint - Verificar APIs
+- [x] 16. Checkpoint - Verificar APIs
   - Asegurar que todos los tests pasan
   - Verificar autenticación y autorización
   - Preguntar al usuario si hay dudas
 
 ### Fase 7: UI Admin Panel
 
-- [ ] 17. Implementar Dashboard RRHH
+- [x] 17. Implementar Dashboard RRHH
   - Crear `src/app/admin/hr/page.tsx`
   - Componentes: MetricsCards, QuickActions, RecentActivity
   - Integrar con APIs
   - _Requirements: 9.1_
 
-- [ ] 18. Implementar Gestión de Empleados
+- [x] 18. Implementar Gestión de Empleados
   - Crear `src/app/admin/hr/employees/page.tsx`
   - Componentes: Filters, SearchBar, EmployeeTable, BulkActions
   - Modales: CreateEmployeeModal, EditEmployeeModal
   - _Requirements: 1.1-1.7, 9.2-9.6_
 
-- [ ] 19. Implementar Gestión de Asistencia y Horarios
+- [x] 19. Implementar Gestión de Asistencia y Horarios
   - Crear `src/app/admin/hr/attendance/page.tsx`
   - Crear `src/app/admin/hr/schedules/page.tsx`
   - Componentes: AttendanceTable, ScheduleCalendar
   - _Requirements: 3.1-3.7, 2.1-2.7_
 
-- [ ] 20. Implementar Gestión de Planilla
+- [x] 20. Implementar Gestión de Planilla
   - Crear `src/app/admin/hr/payroll/page.tsx`
   - Componentes: PayrollTable, CalculatePayrollButton
   - _Requirements: 4.1-4.9_
 
-- [ ] 21. Implementar Gestión de Solicitudes
+- [x] 21. Implementar Gestión de Solicitudes
   - Crear `src/app/admin/hr/leave-requests/page.tsx`
   - Crear `src/app/admin/hr/advances/page.tsx`
   - Componentes: RequestTable, ApprovalModal
   - _Requirements: 5.1-5.8, 6.1-6.6_
 
-- [ ] 22. Implementar Evaluaciones y Capacitaciones
+- [x] 22. Implementar Evaluaciones y Capacitaciones
   - Crear `src/app/admin/hr/evaluations/page.tsx`
   - Crear `src/app/admin/hr/training/page.tsx`
   - _Requirements: 7.1-7.6, 8.1-8.5_
@@ -310,13 +310,13 @@ Cada fase termina con:
 
 ### Fase 8: UI Employee Self-Service
 
-- [ ] 23. Implementar Employee Dashboard
+- [x] 23. Implementar Employee Dashboard
   - Crear `src/app/employee/page.tsx`
   - Componentes: ProfileCard, Tabs (Mi Información, Mis Turnos, Mi Asistencia, Mis Boletas, Vacaciones)
   - Integrar con APIs de self-service
   - _Requirements: 10.1-10.8_
 
-- [ ]* 23.1 Escribir property tests para permisos de self-service
+- [x]* 23.1 Escribir property tests para permisos de self-service
   - **Property 51: Empleado puede leer su perfil**
   - **Property 52: Empleado puede actualizar información personal**
   - **Property 53: Empleado ve sus propios turnos**
@@ -326,20 +326,20 @@ Cada fase termina con:
   - **Property 57: Empleado puede solicitar vacaciones**
   - **Validates: Requirements 10.2-10.8**
 
-- [ ] 24. Checkpoint - Verificar UIs
+- [x] 24. Checkpoint - Verificar UIs
   - Asegurar que todas las pantallas funcionan
   - Verificar responsive design
   - Preguntar al usuario si hay dudas
 
 ### Fase 9: Soporte Offline (IndexedDB)
 
-- [ ] 25. Implementar IndexedDB schema y sync
+- [x] 25. Implementar IndexedDB schema y sync
   - Crear `src/core/db/hr-db.ts` con Dexie
   - Tablas: hr_events, employees_cache, schedules_cache, attendance_cache, leave_requests_cache
   - Implementar sync logic en `src/core/sync/hr-sync.ts`
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [ ]* 25.1 Escribir property tests para offline support
+- [x]* 25.1 Escribir property tests para offline support
   - **Property 61: Eventos offline se almacenan localmente**
   - **Property 62: Sincronización envía todos los eventos**
   - **Property 63: Lectura offline desde caché**
@@ -347,31 +347,31 @@ Cada fase termina con:
   - **Property 65: Resolución de conflictos**
   - **Validates: Requirements 12.1-12.5**
 
-- [ ]* 25.2 Escribir integration tests para offline sync
+- [x]* 25.2 Escribir integration tests para offline sync
   - Test: Crear eventos offline → reconectar → verificar sincronización
   - Test: Conflicto de sincronización se resuelve correctamente
   - _Requirements: 12.2, 12.5_
 
 ### Fase 10: Reportes y Analytics
 
-- [ ] 26. Implementar ReportService
+- [x] 26. Implementar ReportService
   - Crear `src/core/services/report.service.ts`
   - Métodos: generateAttendanceReport, generateHoursWorkedReport, generatePayrollReport
   - Métodos: generateVacationReport, generatePerformanceReport, generateTurnoverReport, generateLaborCostReport
   - Métodos: exportToExcel, exportToPDF, generateTrendCharts
   - _Requirements: 15.1-15.9_
 
-- [ ]* 26.1 Escribir property tests para ReportService
+- [x]* 26.1 Escribir property tests para ReportService
   - **Property 75: Reportes contienen datos correctos**
   - **Property 76: Gráficos de tendencias**
   - **Validates: Requirements 15.1-15.9**
 
-- [ ] 27. Implementar APIs de Reportes
+- [x] 27. Implementar APIs de Reportes
   - Crear endpoints en `src/app/api/hr/reports/`
   - GET /attendance, /hours-worked, /payroll, /vacations, /performance, /turnover, /labor-cost, /trends
   - _Requirements: 15.1-15.9_
 
-- [ ] 28. Implementar UI de Reportes
+- [x] 28. Implementar UI de Reportes
   - Crear `src/app/admin/hr/reports/page.tsx`
   - Componentes: ReportFilters, ReportTable, ChartDisplay
   - Botones de exportación a Excel y PDF
@@ -379,14 +379,14 @@ Cada fase termina con:
 
 ### Fase 11: Notificaciones
 
-- [ ] 29. Implementar NotificationService
+- [x] 29. Implementar NotificationService
   - Crear `src/core/services/notification.service.ts`
   - Métodos: sendPushNotification, scheduleShiftReminder, scheduleBirthdayNotification
   - Métodos: updatePreferences, notifyTeam
   - Integrar con sistema de notificaciones existente
   - _Requirements: 14.1-14.6_
 
-- [ ]* 29.1 Escribir property tests para NotificationService
+- [x]* 29.1 Escribir property tests para NotificationService
   - **Property 70: Notificación de aprobación**
   - **Property 71: Notificación a supervisor**
   - **Property 72: Notificación de boleta con link**
@@ -394,7 +394,7 @@ Cada fase termina con:
   - **Property 74: Preferencias de notificaciones**
   - **Validates: Requirements 14.1-14.6**
 
-- [ ] 30. Implementar cron jobs para notificaciones
+- [x] 30. Implementar cron jobs para notificaciones
   - Crear `src/cron/hr-notifications.ts`
   - Job: Recordatorios de turno (cada hora)
   - Job: Cumpleaños (diario a las 8AM)
@@ -403,17 +403,17 @@ Cada fase termina con:
 
 ### Fase 12: Testing Completo y Optimizaciones
 
-- [ ] 31. Ejecutar todos los property tests
+- [x] 31. Ejecutar todos los property tests
   - Verificar que las 76 properties pasan
   - Cada property test debe ejecutar mínimo 100 iteraciones
   - _Requirements: Todos_
 
-- [ ] 32. Ejecutar todos los unit tests
+- [x] 32. Ejecutar todos los unit tests
   - Verificar cobertura de edge cases
   - Verificar manejo de errores
   - _Requirements: Todos_
 
-- [ ] 33. Ejecutar integration tests
+- [x] 33. Ejecutar integration tests
   - Flujo completo de empleado
   - Flujo de vacaciones
   - Flujo de adelantos
@@ -421,14 +421,14 @@ Cada fase termina con:
   - Sincronización offline
   - _Requirements: Todos_
 
-- [ ] 34. Performance testing
+- [x] 34. Performance testing
   - Test: 1000+ empleados activos
   - Test: 10,000+ registros de asistencia por mes
   - Test: Cálculo de planilla para 1000 empleados en < 30 segundos
   - Test: Sincronización de 1000 eventos offline en < 10 segundos
   - _Requirements: Todos_
 
-- [ ] 35. Optimizaciones
+- [x] 35. Optimizaciones
   - Agregar índices de base de datos faltantes
   - Implementar caché en memoria para empleados activos
   - Implementar lazy loading de documentos
@@ -436,7 +436,7 @@ Cada fase termina con:
   - Implementar background jobs para operaciones pesadas
   - _Requirements: Todos_
 
-- [ ] 36. Checkpoint Final
+- [x] 36. Checkpoint Final
   - Asegurar que TODOS los tests pasan
   - Verificar que el sistema cumple con TODOS los requirements
   - Verificar cumplimiento legal peruano
