@@ -84,7 +84,7 @@ const standardMinutesArb = fc.integer({ min: 60, max: 720 });
 /**
  * Arbitrary for a non-empty justification string.
  */
-const justificationArb = fc.string({ minLength: 1, maxLength: 300 });
+const justificationArb = fc.string({ minLength: 1, maxLength: 300 }).filter(s => s.trim().length > 0);
 
 // ---------------------------------------------------------------------------
 // Property 10: Clock-in records have valid timestamps

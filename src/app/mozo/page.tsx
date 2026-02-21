@@ -116,6 +116,20 @@ export default function WaiterPage() {
     // Get tables filtered by zone (null = all zones)
     const tables = useTableStatus(selectedZoneId === "all" ? undefined : selectedZoneId || undefined);
 
+    // All hooks MUST be called before any early return (React rules of hooks)
+    const handleExit = useCallback(() => {
+        clearTerminalConfig();
+        router.push("/");
+    }, [router]);
+
+    const handleHome = useCallback(() => {
+        router.push("/");
+    }, [router]);
+
+    const toggleNotificationPanel = useCallback(() => {
+        setNotificationPanelOpen(prev => !prev);
+    }, []);
+
     // Mostrar loading mientras verifica autenticación
     if (isLoading || !isAuthenticated || zonesLoading) {
         return (
@@ -133,25 +147,11 @@ export default function WaiterPage() {
 
     const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
     const occupiedCount = tables.filter(t => t.status === "OCCUPIED" || t.status === "BILL_REQUESTED").length;
-    const _billRequestedCount = tables.filter(t => t.status === "BILL_REQUESTED").length;
-    const alertCount = tables.filter(t => 
+    const alertCount = tables.filter(t =>
         (t.status === "OCCUPIED" && (t.elapsedMinutes ?? 0) >= TIME_THRESHOLDS.ALERT) ||
         t.status === "BILL_REQUESTED"
     ).length;
     const readyItemsTotal = tables.reduce((sum, t) => sum + (t.readyItemsCount ?? 0), 0);
-
-    const handleExit = useCallback(() => {
-        clearTerminalConfig();
-        router.push("/");
-    }, [router]);
-
-    const handleHome = useCallback(() => {
-        router.push("/");
-    }, [router]);
-
-    const toggleNotificationPanel = useCallback(() => {
-        setNotificationPanelOpen(prev => !prev);
-    }, []);
 
     // Bottom navigation items for mobile
     const navItems: BottomNavItem[] = [
