@@ -7,6 +7,7 @@ import { getOrCreateDeviceId } from '@/src/core/auth/device-id';
 import { TerminalSetup } from '@/src/components/auth/TerminalSetup';
 import type { TerminalConfig } from '@/src/core/auth/types';
 import { ArrowRight, RefreshCw, Sparkles } from 'lucide-react';
+import { ParkLogo } from '@/src/components/icons';
 
 // Map terminal IDs to their routes
 function getRouteForTerminal(terminalId: string): string {
@@ -160,7 +161,7 @@ export default function HomePage() {
                             className="relative inline-block"
                         >
                             <div className="absolute inset-0 bg-emerald-500/30 blur-3xl rounded-full" />
-                            <img src="/logo.svg" alt="PARK POS" className="w-24 h-24 relative z-10 drop-shadow-2xl" />
+                            <ParkLogo size={96} className="relative z-10 drop-shadow-2xl" />
                         </motion.div>
                         
                         <h1 className="text-4xl font-black mt-6 tracking-tight">

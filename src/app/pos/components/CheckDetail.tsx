@@ -8,6 +8,7 @@ import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint, OrderLineInput } from "@/src/core/printing/utils";
 import { AnimatePresence } from "framer-motion";
 import { asCentavos } from "@/src/core/types/shared";
+import { ParkLogo } from "@/src/components/icons";
 
 interface CheckDetailProps {
     check: CheckProjection;
@@ -152,7 +153,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                 ) : (
                     <div className="bg-white shadow-sm border border-gray-200 rounded-sm p-4 min-h-full flex flex-col">
                         <div className="text-center border-b border-dashed border-gray-300 pb-4 mb-4">
-                            <img src="/logo.svg" alt="Logo" className="w-12 h-12 mx-auto mb-2" />
+                            <ParkLogo size={48} className="mx-auto mb-2" />
                             <h3 className="font-black text-xl uppercase tracking-widest text-gray-900">PARK POS</h3>
                             <p className="text-xs text-gray-500 font-mono mt-1">{new Date().toLocaleDateString()}</p>
                         </div>

@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { LogOut, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
+import { ParkLogo } from "@/src/components/icons";
 
 interface GlobalHeaderProps {
   title: string;
@@ -41,11 +42,7 @@ export function GlobalHeader({
       className={`h-20 px-6 bg-gradient-to-r ${bgGradient} backdrop-blur-sm border-b-4 ${borderColor} flex justify-between items-center z-10 sticky top-0 shadow-lg`}
     >
       <div className="flex items-center gap-3">
-        <img
-          src="/logo.svg"
-          alt="PARK POS"
-          className={`w-10 h-10 rounded-xl shadow-lg border-2 ${borderColor}/30`}
-        />
+        <ParkLogo size={40} className={`rounded-xl shadow-lg`} />
         {icon && (
           <div className={`p-2 rounded-xl ${titleColor}/20 border border-current/30`}>
             {icon}

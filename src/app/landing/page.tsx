@@ -18,6 +18,7 @@ import {
   Store, Star,
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import { ParkLogo, WhatsAppIcon, InstagramIcon, FacebookIcon } from '@/src/components/icons';
 
 // ============================================================================
 // Feature data
@@ -441,18 +442,44 @@ function DemoForm() {
   );
 }
 
+const SOCIAL_LINKS = [
+  { href: 'https://wa.me/51999999999', label: 'WhatsApp', Icon: WhatsAppIcon },
+  { href: 'https://instagram.com/parkpos', label: 'Instagram', Icon: InstagramIcon },
+  { href: 'https://facebook.com/parkpos', label: 'Facebook', Icon: FacebookIcon },
+] as const;
+
 function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-400 py-10 px-4">
-      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-emerald-400 font-black text-lg">PARK</span>
-          <span className="text-white font-bold text-lg">POS</span>
+    <footer className="bg-gray-900 text-gray-400 py-12 px-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <ParkLogo size={28} />
+            <span className="text-emerald-400 font-black text-lg">PARK</span>
+            <span className="text-white font-bold text-lg">POS</span>
+          </div>
+
+          {/* Social Links */}
+          <div className="flex items-center gap-4">
+            {SOCIAL_LINKS.map(({ href, label, Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+              >
+                <Icon size={18} />
+              </a>
+            ))}
+          </div>
+
+          <p className="text-xs">&copy; {new Date().getFullYear()} PARK POS</p>
         </div>
-        <p className="text-sm text-center">
+        <p className="text-sm text-center mt-4 text-gray-500">
           Hecho con dedicación en Perú. Sistema POS para pollerías y parrilleras.
         </p>
-        <p className="text-xs">&copy; {new Date().getFullYear()} PARK POS</p>
       </div>
     </footer>
   );
@@ -471,6 +498,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <ParkLogo size={32} />
             <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-black text-xl">PARK</span>
             <span className="text-gray-900 font-bold text-xl">POS</span>
           </div>

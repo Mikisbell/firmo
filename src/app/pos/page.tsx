@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, LogOut, User, Receipt, Truck, Plus } from "lucide-react";
+import { ParkLogo } from "@/src/components/icons";
 import { toast, Toaster } from "sonner";
 import { getDb } from "@/src/core/db/schema";
 import { useAuth } from "@/src/components/auth";
@@ -390,11 +391,7 @@ export default function POSPage() {
             <div className="flex-1 flex flex-col relative z-0">
                 <header className="h-20 px-6 bg-gradient-to-r from-emerald-950/90 to-zinc-950 backdrop-blur-sm border-b-4 border-emerald-500 flex justify-between items-center z-10 sticky top-0 shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
                     <div className="flex items-center gap-3">
-                        <img
-                            src="/logo.svg"
-                            alt="PARK POS"
-                            className="w-10 h-10 rounded-xl shadow-lg border-2 border-emerald-500/30"
-                        />
+                        <ParkLogo size={40} className="rounded-xl shadow-lg" />
                         <div>
                             <h1 className="text-2xl font-black tracking-tight">
                                 <span className="text-emerald-400">CAJA</span>

@@ -7,6 +7,7 @@ import { generateFingerprintV2, type FingerprintResult } from '@/src/core/auth/f
 import { getOrCreateDeviceId } from '@/src/core/auth/device-id';
 import type { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
 import { Monitor, ChefHat, Wine, Loader2, Flame, Package, ArrowRight, ArrowLeft, Settings, Users, Sparkles, Key } from 'lucide-react';
+import { ParkLogo } from '@/src/components/icons';
 
 interface TerminalSetupProps { 
   /** @deprecated Navigation now happens internally using window.location.href */
@@ -337,11 +338,7 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <div className="absolute inset-0 bg-emerald-500/30 blur-2xl rounded-full scale-150" />
-              <img 
-                src="/logo.svg" 
-                alt="PARK POS" 
-                className="w-12 h-12 relative z-10"
-              />
+              <ParkLogo size={48} className="relative z-10" />
             </motion.div>
             
             <div>

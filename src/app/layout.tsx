@@ -8,12 +8,12 @@ import { SWRProvider } from "@/src/components/providers/SWRProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
-    themeColor: "#4f46e5",
+    themeColor: "#10b981",
 };
 
 export const metadata: Metadata = {
     title: "PARK POS",
-    description: "Offline-First Point of Sale",
+    description: "Sistema POS offline-first para pollerías y parrilleras peruanas. Facturación SUNAT, multi-terminal, KDS cocina, gestión de personal.",
     manifest: "/manifest.json",
     appleWebApp: {
         capable: true,
@@ -22,11 +22,23 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
+            { url: "/icon.svg", type: "image/svg+xml" },
             { url: "/images/favicon.ico", sizes: "any" },
-            { url: "/images/favicon-16x16.png", sizes: "16x16", type: "image/png" },
             { url: "/images/favicon-32x32.png", sizes: "32x32", type: "image/png" },
         ],
         apple: "/images/apple-touch-icon.png",
+    },
+    openGraph: {
+        title: "PARK POS",
+        description: "Sistema POS offline-first para pollerías y parrilleras peruanas",
+        siteName: "PARK POS",
+        type: "website",
+        locale: "es_PE",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "PARK POS",
+        description: "Sistema POS offline-first para pollerías y parrilleras peruanas",
     },
 };
 
