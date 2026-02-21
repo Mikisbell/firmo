@@ -2,6 +2,7 @@
 
 import "@/src/app/globals.css";
 import { AuthProvider } from '@/src/components/auth';
+import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import { PushSubscriptionPrompt } from './components/PushSubscriptionPrompt';
 
 export default function MozoLayout({
@@ -11,9 +12,11 @@ export default function MozoLayout({
 }) {
     // Mesero requiere autenticación
     return (
-        <AuthProvider requireAuth={true}>
-            <PushSubscriptionPrompt />
-            {children}
-        </AuthProvider>
+        <ErrorBoundary>
+            <AuthProvider requireAuth={true}>
+                <PushSubscriptionPrompt />
+                {children}
+            </AuthProvider>
+        </ErrorBoundary>
     );
 }

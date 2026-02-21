@@ -4,6 +4,7 @@
 // Layout for POS routes - requires authentication
 
 import { AuthProvider } from '@/src/components/auth';
+import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 
 export default function POSLayout({
   children,
@@ -11,8 +12,10 @@ export default function POSLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider requireAuth={true}>
-      {children}
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider requireAuth={true}>
+        {children}
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

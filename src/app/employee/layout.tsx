@@ -13,6 +13,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { Toaster } from 'sonner';
 import { Home, Calendar, Clock, DollarSign, Palmtree, LogOut, Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 
 const fetcher = (url: string) => fetch(url).then(r => {
   if (!r.ok) throw new Error('Error al cargar');
@@ -85,7 +86,9 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
 
       {/* Main content */}
       <main className="flex-1 px-4 py-4 pb-24 max-w-lg mx-auto w-full overflow-auto">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </main>
 
       {/* Bottom navigation */}
