@@ -734,6 +734,7 @@ async function main() {
             await prisma.activation_codes.create({
                 data: {
                     terminal_id: pt.terminal_id,
+                    tenant_id: TENANT_ID,
                     code: code,
                     expires_at: expiresAt,
                     attempts: 0,

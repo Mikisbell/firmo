@@ -59,7 +59,7 @@ model attendance {
   created_at          DateTime  @default(now()) @db.Timestamptz(6)
   updated_at          DateTime  @default(now()) @db.Timestamptz(6)
 
-  @@index([tenant_id, employee_id, date])
+  @@unique([tenant_id, employee_id, date])
 }
 
 model catalog_meta {
@@ -104,6 +104,7 @@ model coupon_redemptions {
   coupons     coupons  @relation(fields: [coupon_id], references: [id])
 
   @@index([tenant_id, coupon_id, occurred_at(sort: Desc)])
+  @@index([order_id])
 }
 
 model coupons {
@@ -242,6 +243,7 @@ model delivery_orders {
 
   @@index([tenant_id, driver_id, status])
   @@index([tenant_id, status])
+  @@index([order_id])
 }
 
 model delivery_zones {
@@ -288,7 +290,7 @@ model employees {
   created_at                         DateTime                  @default(now()) @db.Timestamptz(6)
   
   // NUEVOS CAMPOS - Información Personal
-  dni                                String?                   @unique
+  dni                                String?
   email                              String?
   phone                              String?
   address                            String?
@@ -328,7 +330,7 @@ model employees {
   payroll_records                    payroll_records[]
 
   @@index([tenant_id, is_active])
-  @@index([tenant_id, dni])
+  @@unique([tenant_id, dni])
   @@index([tenant_id, location_id])
 }
 
@@ -366,10 +368,7 @@ model events {
   payload             Json
 
   @@index([tenant_id, entity_id])
-  @@index([tenant_id, entity_id, occurred_at])
   @@index([tenant_id, occurred_at(sort: Desc)])
-  @@index([tenant_id, type, occurred_at(sort: Desc)])
-  @@index([terminal_id, occurred_at(sort: Desc)])
   @@index([terminal_id, occurred_at(sort: Desc)], map: "idx_events_by_terminal")
   @@index([tenant_id, type, occurred_at(sort: Desc)], map: "idx_events_by_type")
   @@index([tenant_id, entity_id, occurred_at], map: "idx_events_replay")
@@ -407,6 +406,7 @@ model goods_receipts {
 
   @@unique([tenant_id, location_id, receipt_number])
   @@index([tenant_id, location_id, received_at(sort: Desc)])
+  @@index([tenant_id, purchase_order_id])
 }
 
 model inventory {
@@ -506,6 +506,7 @@ model invoice_cdr {
   id               String   @id @db.Uuid
   tenant_id        String   @db.Uuid
   invoice_id       String   @db.Uuid
+  invoices         invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   response_code    String
   response_message String
   hash             String?
@@ -519,6 +520,7 @@ model invoice_queue {
   id              String    @id @db.Uuid
   tenant_id       String    @db.Uuid
   invoice_id      String    @db.Uuid
+  invoices        invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   action          String
   priority        Int       @default(5)
   attempts        Int       @default(0)
@@ -530,6 +532,7 @@ model invoice_queue {
   status          String    @default("PENDING")
 
   @@index([tenant_id, status, scheduled_at])
+  @@unique([tenant_id, invoice_id, action])
 }
 
 model invoices {
@@ -550,6 +553,8 @@ model invoices {
   voided_at         DateTime?      @db.Timestamptz(6)
   created_at        DateTime       @default(now()) @db.Timestamptz(6)
   credit_notes      credit_notes[]
+  invoice_cdr       invoice_cdr[]
+  invoice_queue     invoice_queue[]
   orders            orders         @relation(fields: [order_id], references: [id])
 
   @@unique([tenant_id, order_id, check_id])
@@ -571,6 +576,7 @@ model payments {
   shift_id       String?  @db.Uuid
   terminal_id    String
   created_at     DateTime @default(now()) @db.Timestamptz(6)
+  orders         orders   @relation(fields: [order_id], references: [id])
 
   @@index([tenant_id, order_id])
   @@index([tenant_id, check_id])
@@ -657,6 +663,7 @@ model message_outbox {
   marketing_campaigns marketing_campaigns? @relation(fields: [campaign_id], references: [id])
 
   @@index([tenant_id, status, scheduled_at])
+  @@index([customer_id])
 }
 
 model message_templates {
@@ -706,11 +713,15 @@ model orders {
   waiter_id           String?           @db.Uuid
   delivery_orders     delivery_orders[]
   invoices            invoices[]
+  payments            payments[]
+  refunds             refunds[]
+  platform_orders     platform_orders[]
   customers           customers?        @relation(fields: [customer_id], references: [id])
   locations           locations?        @relation(fields: [location_id], references: [id])
   promotions          promotions?       @relation(fields: [promotion_id], references: [id])
   shifts              shifts?           @relation(fields: [shift_id], references: [id])
   tables              tables?           @relation(fields: [table_id], references: [id])
+  tenants             tenants           @relation(fields: [tenant_id], references: [id])
   employees           employees?        @relation(fields: [waiter_id], references: [id])
   tips                tips[]
 
@@ -723,6 +734,8 @@ model orders {
   @@index([tenant_id, shift_id])
   @@index([tenant_id, waiter_id])
   @@index([tenant_id, location_id])
+  @@index([tenant_id, customer_id])
+  @@index([tenant_id, table_id])
   @@index([items(ops: JsonbPathOps)], map: "idx_orders_items_gin", type: Gin)
 }
 
@@ -832,6 +845,8 @@ model products {
   created_by   String?  @db.Uuid
   updated_by   String?  @db.Uuid
 
+  recipes      recipes[]
+
   @@unique([tenant_id, sku])
   @@index([tenant_id, category])
   @@index([tenant_id, is_available])
@@ -916,6 +931,7 @@ model recipes {
   updated_by               String?   @db.Uuid
   created_at               DateTime  @default(now()) @db.Timestamptz(6)
   updated_at               DateTime  @default(now()) @db.Timestamptz(6)
+  products                 products  @relation(fields: [product_id], references: [id])
 
   @@unique([tenant_id, product_id])
   @@index([tenant_id, category])
@@ -989,8 +1005,10 @@ model refunds {
   authorized_at    DateTime?     @db.Timestamptz(6)
   issued_at        DateTime?     @db.Timestamptz(6)
   credit_notes     credit_notes? @relation(fields: [credit_note_id], references: [id])
+  orders           orders        @relation(fields: [order_id], references: [id])
 
   @@index([tenant_id, order_id])
+  @@index([tenant_id, invoice_id])
   @@index([tenant_id, status])
 }
 
@@ -1030,6 +1048,7 @@ model reservations {
   tables             tables?   @relation(fields: [table_id], references: [id])
 
   @@index([tenant_id, customer_phone])
+  @@index([tenant_id, customer_id])
   @@index([tenant_id, location_id, date, status])
 }
 
@@ -1058,6 +1077,7 @@ model sessions {
 
   @@index([expires_at])
   @@index([tenant_id, employee_id])
+  @@index([terminal_id])
 }
 
 model shifts {
@@ -1080,9 +1100,7 @@ model shifts {
 
   @@index([tenant_id, opened_at(sort: Desc)], map: "idx_shifts_history")
   @@index([tenant_id, terminal_id, status], map: "idx_shifts_terminal_status")
-  @@index([tenant_id, opened_at(sort: Desc)])
   @@index([tenant_id, status])
-  @@index([tenant_id, terminal_id, status])
 }
 
 model soft_locks {
@@ -1145,6 +1163,7 @@ model stock_transfers {
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([tenant_id, status])
+  @@index([tenant_id, from_location_id])
 }
 
 model sunat_daily_summary {
@@ -1321,6 +1340,7 @@ model terminals {
   @@unique([tenant_id, terminal_id])
 }
 
+/// @deprecated Use leave_requests instead. Will be removed in a future migration.
 model time_off_requests {
   id           String    @id @db.Uuid
   tenant_id    String    @db.Uuid
@@ -1363,7 +1383,7 @@ model tip_distributions {
   distributed_by    String   @db.Uuid
   distributed_at    DateTime @default(now()) @db.Timestamptz(6)
 
-  @@index([tenant_id, shift_id])
+  @@unique([tenant_id, shift_id])
 }
 
 model tips {
@@ -1384,6 +1404,7 @@ model tips {
   employees      employees @relation(fields: [waiter_id], references: [id])
 
   @@index([tenant_id, shift_id, waiter_id])
+  @@index([tenant_id, order_id])
 }
 
 model waitlist {
@@ -1515,6 +1536,7 @@ model terminal_devices {
 
 model activation_codes {
   id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id       String           @db.Uuid
   terminal_id     String
   code            String
   expires_at      DateTime         @db.Timestamptz(6)
@@ -1524,6 +1546,7 @@ model activation_codes {
   created_at      DateTime         @default(now()) @db.Timestamptz(6)
   terminal_device terminal_devices @relation(fields: [terminal_id], references: [terminal_id])
 
+  @@index([tenant_id])
   @@index([code])
   @@index([terminal_id])
   @@index([expires_at])
@@ -1597,6 +1620,7 @@ model tenants {
   is_active       Boolean          @default(true)
   created_at      DateTime         @default(now()) @db.Timestamptz(6)
   updated_at      DateTime         @default(now()) @db.Timestamptz(6)
+  orders          orders[]
   station_alerts  station_alerts[]
   tenant_settings tenant_settings?
 }
@@ -1612,8 +1636,8 @@ model station_alerts {
   metric_value    Decimal    @db.Decimal(10, 2)
   threshold_value Decimal    @db.Decimal(10, 2)
   is_dismissed    Boolean    @default(false)
-  created_at      DateTime   @default(now()) @db.Timestamp(6)
-  dismissed_at    DateTime?  @db.Timestamp(6)
+  created_at      DateTime   @default(now()) @db.Timestamptz(6)
+  dismissed_at    DateTime?  @db.Timestamptz(6)
   dismissed_by    String?    @db.Uuid
   tenant_id       String     @db.Uuid
   employees       employees? @relation(fields: [dismissed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -1631,6 +1655,7 @@ model station_alerts {
 
 model location_history {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id  String   @db.Uuid
   driver_id  String   @db.Uuid
   latitude   Float
   longitude  Float
@@ -1641,12 +1666,14 @@ model location_history {
   created_at DateTime @default(now()) @db.Timestamptz(6)
   drivers    drivers  @relation(fields: [driver_id], references: [id])
 
+  @@index([tenant_id])
   @@index([driver_id, timestamp])
   @@index([timestamp])
 }
 
 model whatsapp_messages {
   id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id       String          @db.Uuid
   order_id        String          @db.Uuid
   phone_number    String
   template_name   String
@@ -1659,6 +1686,7 @@ model whatsapp_messages {
   created_at      DateTime        @default(now()) @db.Timestamptz(6)
   delivery_orders delivery_orders @relation(fields: [order_id], references: [id])
 
+  @@index([tenant_id])
   @@index([order_id])
   @@index([phone_number, created_at(sort: Desc)])
 }
@@ -1676,6 +1704,7 @@ model assignment_weights {
 
 model assignment_logs {
   id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id          String          @db.Uuid
   order_id           String          @db.Uuid
   driver_id          String          @db.Uuid
   assignment_score   Float
@@ -1689,12 +1718,14 @@ model assignment_logs {
   delivery_orders    delivery_orders @relation(fields: [order_id], references: [id])
   drivers            drivers         @relation(fields: [driver_id], references: [id])
 
+  @@index([tenant_id])
   @@index([order_id])
   @@index([driver_id, created_at(sort: Desc)])
 }
 
 model eta_predictions {
   id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id           String          @db.Uuid
   order_id            String          @db.Uuid
   predicted_minutes   Int
   confidence_interval String
@@ -1707,6 +1738,7 @@ model eta_predictions {
   created_at          DateTime        @default(now()) @db.Timestamptz(6)
   delivery_orders     delivery_orders @relation(fields: [order_id], references: [id])
 
+  @@index([tenant_id])
   @@index([order_id, created_at(sort: Desc)])
 }
 
@@ -1760,7 +1792,7 @@ model active_sessions {
 model device_mac_addresses {
   mac_address String @db.VarChar(17)
   employee_id String @db.Uuid
-  terminal_id String @default("00000000-0000-0000-0000-000000000000") @db.Uuid // Special UUID = valid for any terminal
+  terminal_id String @default(dbgenerated("'00000000-0000-0000-0000-000000000000'::uuid")) @db.Uuid // Special UUID = valid for any terminal
 
   tenant_id   String  @db.Uuid
   location_id String? @db.Uuid
@@ -2191,7 +2223,7 @@ model schedules {
   created_at           DateTime @default(now()) @db.Timestamptz(6)
   updated_at           DateTime @default(now()) @db.Timestamptz(6)
 
-  @@index([tenant_id, employee_id, date])
+  @@unique([tenant_id, employee_id, date])
   @@index([tenant_id, location_id, date])
 }
 
@@ -2444,10 +2476,12 @@ model platform_orders {
   rejected_at            DateTime? @db.Timestamptz(6)
   rejection_reason       String?
   created_at             DateTime  @default(now()) @db.Timestamptz(6)
+  orders                 orders?   @relation(fields: [order_id], references: [id], onDelete: SetNull)
 
   @@unique([tenant_id, platform, platform_order_id])
   @@index([tenant_id, status])
   @@index([tenant_id, created_at(sort: Desc)])
+  @@index([order_id])
 }
 
 model payment_settlements {

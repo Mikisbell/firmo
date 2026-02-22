@@ -190,9 +190,16 @@ export class WhatsAppService {
     twilioSid?: string,
     errorMessage?: string
   ): Promise<WhatsAppMessage> {
+    // Look up tenant_id from the order
+    const order = await prisma.delivery_orders.findUnique({
+      where: { id: orderId },
+      select: { tenant_id: true },
+    });
+
     const message = await prisma.whatsapp_messages.create({
       data: {
         order_id: orderId,
+        tenant_id: order?.tenant_id ?? '',
         phone_number: phoneNumber,
         template_name: templateName,
         message_body: messageBody,

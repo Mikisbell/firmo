@@ -169,10 +169,21 @@ export async function generateActivationCode(terminalId: string, createdBy: stri
     },
   });
 
+  // Look up terminal to get tenant_id
+  const terminal = await prisma.terminal_devices.findUnique({
+    where: { terminal_id: terminalId },
+    select: { tenant_id: true },
+  });
+
+  if (!terminal) {
+    throw new Error(`Terminal not found: ${terminalId}`);
+  }
+
   // Create new code
   const activationCode = await prisma.activation_codes.create({
     data: {
       terminal_id: terminalId,
+      tenant_id: terminal.tenant_id,
       code,
       expires_at: expiresAt,
       created_by: createdBy,

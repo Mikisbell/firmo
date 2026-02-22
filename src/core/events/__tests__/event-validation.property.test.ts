@@ -167,7 +167,10 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
     // Setup: Create test orders once, not in each iteration
     const tenant1 = randomUUID();
     const tenant2 = randomUUID();
-    
+
+    // Create tenants first (FK constraint)
+    await prisma.tenants.createMany({ data: [{ id: tenant1, name: 'Test Tenant 1' }, { id: tenant2, name: 'Test Tenant 2' }] });
+
     const testOrder = await prisma.orders.create({
       data: {
         id: randomUUID(),
@@ -214,6 +217,7 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
     } finally {
       // Cleanup
       await prisma.orders.delete({ where: { id: testOrder.id } });
+      await prisma.tenants.deleteMany({ where: { id: { in: [tenant1, tenant2] } } });
     }
   });
 
@@ -226,6 +230,7 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
   it('accepts events with same-tenant entity references', async () => {
     // Setup: Create test order once
     const tenantId = randomUUID();
+    await prisma.tenants.create({ data: { id: tenantId, name: 'Test Tenant' } });
     const testOrder = await prisma.orders.create({
       data: {
         id: randomUUID(),
@@ -271,6 +276,7 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
     } finally {
       // Cleanup
       await prisma.orders.delete({ where: { id: testOrder.id } });
+      await prisma.tenants.delete({ where: { id: tenantId } });
     }
   });
 });
@@ -356,7 +362,10 @@ describe('Property 13: Projection Rebuild Is Tenant-Scoped', () => {
     // Setup: Create orders once
     const tenant1 = randomUUID();
     const tenant2 = randomUUID();
-    
+
+    // Create tenants first (FK constraint)
+    await prisma.tenants.createMany({ data: [{ id: tenant1, name: 'Test Tenant 1' }, { id: tenant2, name: 'Test Tenant 2' }] });
+
     const order1 = await prisma.orders.create({
       data: {
         id: randomUUID(),
@@ -411,6 +420,7 @@ describe('Property 13: Projection Rebuild Is Tenant-Scoped', () => {
       await prisma.orders.deleteMany({
         where: { id: { in: [order1.id, order2.id] } },
       });
+      await prisma.tenants.deleteMany({ where: { id: { in: [tenant1, tenant2] } } });
     }
   });
 });
@@ -430,7 +440,10 @@ describe('Property 15: Conflict Resolution Is Tenant-Scoped', () => {
     // Setup: Create orders once
     const tenant1 = randomUUID();
     const tenant2 = randomUUID();
-    
+
+    // Create tenants first (FK constraint)
+    await prisma.tenants.createMany({ data: [{ id: tenant1, name: 'Test Tenant 1' }, { id: tenant2, name: 'Test Tenant 2' }] });
+
     const order1 = await prisma.orders.create({
       data: {
         id: randomUUID(),
@@ -492,6 +505,7 @@ describe('Property 15: Conflict Resolution Is Tenant-Scoped', () => {
       await prisma.orders.deleteMany({
         where: { id: { in: [order1.id, order2.id] } },
       });
+      await prisma.tenants.deleteMany({ where: { id: { in: [tenant1, tenant2] } } });
     }
   });
 });

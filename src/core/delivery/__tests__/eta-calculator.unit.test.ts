@@ -107,7 +107,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Verify ETA is reasonable for 1km
@@ -161,7 +162,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Verify ETA is reasonable for 20km (should be ~48 minutes at 25 km/h)
@@ -201,7 +203,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // ETA should only account for pickup to delivery distance
@@ -240,7 +243,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        4.5 // High rating
+        4.5, // High rating
+        'test-tenant-id'
       );
 
       // Verify all factors are present
@@ -285,7 +289,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         initialDriverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Mock findFirst to return the initial prediction for recalculation
@@ -310,7 +315,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         updatedDriverLocation,
         deliveryLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // ETA should be lower (driver is closer)
@@ -353,7 +359,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         initialDriverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Mock findFirst to return the initial prediction for recalculation
@@ -377,7 +384,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         updatedDriverLocation,
         deliveryLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Should detect significant change
@@ -418,12 +426,13 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Recalculate twice
-      await recalculateETA(orderId, driverLocation, deliveryLocation, driverId, 3.0);
-      await recalculateETA(orderId, driverLocation, deliveryLocation, driverId, 3.0);
+      await recalculateETA(orderId, driverLocation, deliveryLocation, driverId, 3.0, 'test-tenant-id');
+      await recalculateETA(orderId, driverLocation, deliveryLocation, driverId, 3.0, 'test-tenant-id');
 
       // Verify 3 predictions were created (3 calls to create)
       expect(mockPrisma.eta_predictions.create).toHaveBeenCalledTimes(3);
@@ -463,7 +472,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Mock findFirst to return the created prediction for recordActualDeliveryTime
@@ -520,9 +530,10 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
-      await recalculateETA(orderId, driverLocation, deliveryLocation, driverId, 3.0);
+      await recalculateETA(orderId, driverLocation, deliveryLocation, driverId, 3.0, 'test-tenant-id');
 
       // Mock findFirst to return the first (initial) prediction
       mockPrisma.eta_predictions.findFirst.mockResolvedValue({
@@ -703,7 +714,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        3.0
+        3.0,
+        'test-tenant-id'
       );
 
       // Should still return minimum 1 minute
@@ -743,7 +755,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        0
+        0,
+        'test-tenant-id'
       );
 
       // High rating (5)
@@ -753,7 +766,8 @@ describe('ETA Calculator Service - Unit Tests', () => {
         deliveryLocation,
         driverLocation,
         driverId,
-        5
+        5,
+        'test-tenant-id'
       );
 
       // Both should return valid ETAs

@@ -121,7 +121,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               deliveryLocation,
               driverLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Verify ETA is calculated
@@ -209,7 +210,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               deliveryLocation,
               initialDriverLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Mock findFirst to return initial prediction for recalculation
@@ -226,7 +228,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               updatedDriverLocation,
               deliveryLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Verify ETA is recalculated
@@ -278,7 +281,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               deliveryLocation,
               driverLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Verify all factors are present
@@ -402,7 +406,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               deliveryLocation,
               initialDriverLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Mock findFirst to return initial prediction for recalculation
@@ -419,7 +424,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               updatedDriverLocation,
               deliveryLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Verify change detection logic
@@ -464,7 +470,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               deliveryLocation,
               driverLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Verify confidence interval exists
@@ -552,7 +559,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               deliveryLocation,
               driverLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Mock findFirst to return the created prediction for recordActualDeliveryTime
@@ -633,7 +641,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               deliveryLocation,
               initialDriverLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Mock findFirst to return initial prediction for recalculation and recordActualDeliveryTime
@@ -652,7 +661,8 @@ describe('Feature: delivery-2026-modernization - ETA Calculator Properties', () 
               updatedDriverLocation,
               deliveryLocation,
               driverId,
-              driverRating
+              driverRating,
+              'test-tenant-id'
             );
 
             // Record actual time (should update first prediction)

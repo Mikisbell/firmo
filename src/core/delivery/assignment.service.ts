@@ -223,13 +223,15 @@ export async function calculateAssignmentScore(
  */
 async function logAssignment(
   orderId: OrderId,
-  score: AssignmentScore
+  score: AssignmentScore,
+  tenantId: TenantId
 ): Promise<void> {
   try {
     await prisma.assignment_logs.create({
       data: {
         order_id: orderId,
         driver_id: score.driverId,
+        tenant_id: tenantId,
         assignment_score: score.totalScore,
         distance_score: score.distanceScore,
         workload_score: score.workloadScore,
@@ -570,7 +572,7 @@ export async function assignDriver(
     }
 
     // Log assignment decision
-    await logAssignment(orderId, bestScore);
+    await logAssignment(orderId, bestScore, deliveryOrder.tenantId);
 
     // Assign driver to order
     await assignDriverToOrder(orderId, bestScore.driverId);
@@ -870,7 +872,7 @@ export async function handleRejection(
     }
 
     // Log assignment decision
-    await logAssignment(orderId, bestScore);
+    await logAssignment(orderId, bestScore, deliveryOrder.tenantId);
 
     // Assign new driver to order
     await assignDriverToOrder(orderId, bestScore.driverId);

@@ -935,6 +935,7 @@ export class DeliveryServiceClass {
         await tx.location_history.create({
           data: {
             driver_id: delivery.driver_id,
+            tenant_id: delivery.tenant_id,
             latitude: location.lat,
             longitude: location.lng,
             accuracy: location.accuracy || 10,
@@ -1062,6 +1063,7 @@ export class DeliveryServiceClass {
       const location = await tx.location_history.create({
         data: {
           driver_id: delivery.driver_id,
+          tenant_id: delivery.tenant_id,
           latitude: lat,
           longitude: lng,
           accuracy: options?.accuracy || 10,

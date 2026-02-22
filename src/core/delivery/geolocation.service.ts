@@ -303,9 +303,18 @@ export async function flushLocationHistoryBatch(): Promise<void> {
   const batch = locationHistoryBatch.splice(0, locationHistoryBatch.length);
 
   try {
+    // Look up tenant_id for each unique driver in the batch
+    const uniqueDriverIds = [...new Set(batch.map((item) => item.driverId))];
+    const drivers = await prisma.drivers.findMany({
+      where: { id: { in: uniqueDriverIds } },
+      select: { id: true, tenant_id: true },
+    });
+    const driverTenantMap = new Map(drivers.map((d) => [d.id, d.tenant_id]));
+
     await prisma.location_history.createMany({
       data: batch.map((item) => ({
         driver_id: item.driverId,
+        tenant_id: driverTenantMap.get(item.driverId) ?? '',
         latitude: item.location.latitude,
         longitude: item.location.longitude,
         accuracy: item.location.accuracy,

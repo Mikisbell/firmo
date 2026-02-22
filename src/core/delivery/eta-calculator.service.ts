@@ -444,7 +444,8 @@ export async function calculateInitialETA(
   deliveryLocation: Location,
   driverLocation: Location,
   driverId: DriverId,
-  driverRating: number = 3.0
+  driverRating: number = 3.0,
+  tenantId: string = ''
 ): Promise<ETAEstimate> {
   try {
     // Try ML model first
@@ -460,6 +461,7 @@ export async function calculateInitialETA(
     await prisma.eta_predictions.create({
       data: {
         order_id: orderId,
+        tenant_id: tenantId,
         predicted_minutes: estimate.estimatedMinutes,
         confidence_interval: JSON.stringify(estimate.confidenceInterval),
         confidence: estimate.confidence,
@@ -503,7 +505,8 @@ export async function recalculateETA(
   currentDriverLocation: Location,
   deliveryLocation: Location,
   driverId: DriverId,
-  driverRating: number = 3.0
+  driverRating: number = 3.0,
+  tenantId: string = ''
 ): Promise<{ estimate: ETAEstimate; changed: boolean; changeMins: number }> {
   try {
     // Get previous ETA
@@ -571,6 +574,7 @@ export async function recalculateETA(
     await prisma.eta_predictions.create({
       data: {
         order_id: orderId,
+        tenant_id: tenantId,
         predicted_minutes: estimate.estimatedMinutes,
         confidence_interval: JSON.stringify(estimate.confidenceInterval),
         confidence: estimate.confidence,
