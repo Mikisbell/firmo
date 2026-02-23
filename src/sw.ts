@@ -161,4 +161,4 @@ async function notifyClientsToSync(): Promise<void> {
     });
 }
 
-console.log("[SW] Serwist Service Worker loaded");
+console.log("[SW] Serwist Service Worker v2 loaded");
