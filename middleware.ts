@@ -13,8 +13,9 @@ import type { NextRequest } from 'next/server';
 import { validateTokenMiddleware, extractToken } from '@/src/core/auth/middleware-auth';
 import { rateLimitMiddleware } from '@/src/middleware/rate-limit';
 
-// Routes that require authentication
-const PROTECTED_ROUTES = ['/admin'];
+// Routes that require server-side authentication
+// Note: /admin uses client-side auth via AuthContext + AdminLoginScreen
+const PROTECTED_ROUTES: string[] = [];
 
 // Routes that should skip authentication (public or have their own auth)
 const PUBLIC_ROUTES = ['/api/auth', '/pos', '/mozo', '/cocina', '/caja', '/bar', '/inventario', '/menu', '/api/menu'];

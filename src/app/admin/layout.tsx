@@ -17,7 +17,7 @@ import { SWRConfig } from 'swr';
 import { Toaster } from 'sonner';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
-import { PinModal } from '@/src/components/inventory/PinModal';
+import AdminLoginScreen from './components/AdminLoginScreen';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TenantBrandingProvider } from '@/src/core/tenant/branding-context';
@@ -36,18 +36,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, isLoading, employee, permissions, login, logout } = useAuth();
-  const [showPinModal, setShowPinModal] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
   // Check if current route is standalone
   const isStandaloneRoute = STANDALONE_ROUTES.some(route => pathname.startsWith(route));
-
-  // Show PIN modal if not authenticated and not loading
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated && !isStandaloneRoute) {
-      setShowPinModal(true);
-    }
-  }, [isLoading, isAuthenticated, isStandaloneRoute]);
 
   // Online/offline detection
   useEffect(() => {
@@ -68,20 +60,12 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleAuthSuccess = useCallback((emp: AuthEmployee) => {
-    console.log('[AdminLayout] handleAuthSuccess called with:', emp);
     login(emp);
-    console.log('[AdminLayout] login() called, setting showPinModal to false');
-    setShowPinModal(false);
-    console.log('[AdminLayout] showPinModal set to false');
-    
-    // Redirigir a dashboard después de login exitoso
-    console.log('[AdminLayout] Redirecting to /admin/dashboard...');
     router.push('/admin/dashboard');
   }, [login, router]);
 
   const handleLogout = useCallback(async () => {
     await logout();
-    setShowPinModal(true);
   }, [logout]);
 
   // For standalone routes, just render children
@@ -98,18 +82,13 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Not authenticated - show PIN modal
+  // Not authenticated - show professional login screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <PinModal
-          isOpen={showPinModal}
-          onClose={() => window.history.back()}
-          onSuccess={handleAuthSuccess}
-          allowedRoles={['OWNER', 'ADMIN', 'MANAGER']}
-          title="Acceso al Panel de Administración"
-        />
-      </div>
+      <AdminLoginScreen
+        onSuccess={handleAuthSuccess}
+        onBack={() => router.push('/')}
+      />
     );
   }
 
