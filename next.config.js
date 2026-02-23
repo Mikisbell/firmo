@@ -1,4 +1,3 @@
-import pkg from 'minimatch';
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
@@ -11,7 +10,6 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    output: 'standalone',
     
     // Optimizar fuentes de Google
     optimizeFonts: true,
@@ -72,13 +70,9 @@ const nextConfig = {
     async headers() {
         return [
             {
-                // Apply correct MIME types for static assets
+                // Cache static assets (Vercel handles MIME types automatically)
                 source: '/_next/static/:path*',
                 headers: [
-                    {
-                        key: 'Content-Type',
-                        value: 'text/css; charset=utf-8',
-                    },
                     {
                         key: 'Cache-Control',
                         value: 'public, max-age=31536000, immutable',
