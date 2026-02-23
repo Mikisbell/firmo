@@ -20,6 +20,7 @@ model admin_access_logs {
   terminal_id String?
   metadata    Json?
   created_at  DateTime @default(now()) @db.Timestamptz(6)
+  tenants     tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, action, created_at(sort: Desc)])
   @@index([tenant_id, employee_id, created_at(sort: Desc)])
@@ -35,6 +36,7 @@ model ai_suggestions {
   status     String   @default("DRAFT")
   created_at DateTime @default(now()) @db.Timestamptz(6)
   created_by String   @default("SYSTEM")
+  tenants    tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, status])
 }
@@ -58,6 +60,7 @@ model attendance {
   notes               String?
   created_at          DateTime  @default(now()) @db.Timestamptz(6)
   updated_at          DateTime  @default(now()) @db.Timestamptz(6)
+  tenants             tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, employee_id, date])
 }
@@ -66,6 +69,7 @@ model catalog_meta {
   tenant_id       String   @id @db.Uuid
   catalog_version Int      @default(1)
   updated_at      DateTime @default(now()) @db.Timestamptz(6)
+  tenants         tenants  @relation(fields: [tenant_id], references: [id])
 }
 
 model conflict_logs {
@@ -84,6 +88,7 @@ model conflict_logs {
   terminal_id       String
   resolved_by       String?  @db.Uuid
   resolved_at       DateTime @default(now()) @db.Timestamptz(6)
+  tenants           tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, aggregate_id, resolved_at(sort: Desc)])
   @@index([tenant_id, conflict_type])
@@ -102,6 +107,7 @@ model coupon_redemptions {
   occurred_at DateTime @default(now()) @db.Timestamptz(6)
   payload     Json?
   coupons     coupons  @relation(fields: [coupon_id], references: [id])
+  tenants     tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, coupon_id, occurred_at(sort: Desc)])
   @@index([order_id])
@@ -126,10 +132,12 @@ model coupons {
   coupon_redemptions      coupon_redemptions[]
   customers               customers?           @relation(fields: [customer_id], references: [id])
   promotions              promotions?          @relation(fields: [promotion_id], references: [id])
+  tenants                 tenants              @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, code])
   @@index([tenant_id, customer_id, status])
   @@index([tenant_id, status, expires_at])
+  @@index([tenant_id, promotion_id], map: "coupons_promotion_id_idx")
 }
 
 model customer_profile {
@@ -148,6 +156,7 @@ model customer_profile {
   is_birthday          Boolean   @default(false)
   updated_at           DateTime  @default(now()) @db.Timestamptz(6)
   customers            customers @relation(fields: [customer_id], references: [id])
+  tenants              tenants   @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, customer_id])
 }
@@ -169,6 +178,7 @@ model customers {
   total_spent        Int                  @default(0)
   coupons            coupons[]
   customer_profile   customer_profile?
+  tenants            tenants              @relation(fields: [tenant_id], references: [id])
   delivery_addresses delivery_addresses[]
   orders             orders[]
 
@@ -189,6 +199,7 @@ model daily_sales_summary {
   checks_count       Int      @default(0)
   payments_breakdown Json?
   created_at         DateTime @default(now()) @db.Timestamptz(6)
+  tenants            tenants  @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, business_date])
   @@index([tenant_id, business_date(sort: Desc)])
@@ -209,6 +220,7 @@ model delivery_addresses {
   is_default      Boolean           @default(false)
   created_at      DateTime          @default(now()) @db.Timestamptz(6)
   customers       customers         @relation(fields: [customer_id], references: [id])
+  tenants         tenants           @relation(fields: [tenant_id], references: [id])
   delivery_orders delivery_orders[]
 
   @@index([tenant_id, customer_id])
@@ -234,16 +246,18 @@ model delivery_orders {
   signature_url         String?
   status                String              @default("PENDING")
   created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  assignment_logs       assignment_logs[]
   delivery_addresses    delivery_addresses? @relation(fields: [address_id], references: [id])
   drivers               drivers?            @relation(fields: [driver_id], references: [id])
   orders                orders              @relation(fields: [order_id], references: [id])
-  whatsapp_messages     whatsapp_messages[]
-  assignment_logs       assignment_logs[]
+  tenants               tenants             @relation(fields: [tenant_id], references: [id])
   eta_predictions       eta_predictions[]
+  whatsapp_messages     whatsapp_messages[]
 
   @@index([tenant_id, driver_id, status])
   @@index([tenant_id, status])
   @@index([order_id])
+  @@index([address_id])
 }
 
 model delivery_zones {
@@ -263,6 +277,7 @@ model delivery_zones {
   priority       Int       @default(0)
   created_at     DateTime  @default(now()) @db.Timestamptz(6)
   locations      locations @relation(fields: [location_id], references: [id])
+  tenants        tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, is_active])
 }
@@ -273,9 +288,10 @@ model drivers {
   name             String
   phone            String?
   is_active        Boolean            @default(true)
-  delivery_orders  delivery_orders[]
-  location_history location_history[]
   assignment_logs  assignment_logs[]
+  delivery_orders  delivery_orders[]
+  tenants          tenants            @relation(fields: [tenant_id], references: [id])
+  location_history location_history[]
 
   @@index([tenant_id, is_active])
 }
@@ -288,49 +304,40 @@ model employees {
   pin_hash                           String?
   is_active                          Boolean                   @default(true)
   created_at                         DateTime                  @default(now()) @db.Timestamptz(6)
-  
-  // NUEVOS CAMPOS - Información Personal
   dni                                String?
   email                              String?
   phone                              String?
   address                            String?
   birth_date                         DateTime?                 @db.Date
   profile_photo_url                  String?
-  
-  // NUEVOS CAMPOS - Información Laboral
   hire_date                          DateTime?                 @db.Date
   position                           String?
   base_salary_cents                  Int?
   contract_type                      String?
   work_schedule_type                 String?
   location_id                        String?                   @db.Uuid
-  
-  // NUEVOS CAMPOS - Configuración
   commission_rate                    Decimal?                  @db.Decimal(5, 2)
   pension_system                     String?
   has_health_insurance               Boolean                   @default(false)
-  
-  // Relaciones existentes
+  advances                           advances[]
+  emergency_contacts                 emergency_contacts[]
+  employee_documents                 employee_documents[]
+  employee_schedules                 employee_schedules[]
+  tenants                            tenants                   @relation(fields: [tenant_id], references: [id])
+  evaluations                        evaluations[]
+  leave_requests                     leave_requests[]
   notification_preferences           notification_preferences?
   orders                             orders[]
+  payroll_records                    payroll_records[]
   push_subscriptions                 push_subscriptions[]
   shifts_shifts_closed_byToemployees shifts[]                  @relation("shifts_closed_byToemployees")
   shifts_shifts_opened_byToemployees shifts[]                  @relation("shifts_opened_byToemployees")
   station_alerts                     station_alerts[]
   tips                               tips[]
-  
-  // NUEVAS RELACIONES
-  emergency_contacts                 emergency_contacts[]
-  employee_documents                 employee_documents[]
-  employee_schedules                 employee_schedules[]
-  leave_requests                     leave_requests[]
-  advances                           advances[]
-  evaluations                        evaluations[]
   training_records                   training_records[]
-  payroll_records                    payroll_records[]
 
-  @@index([tenant_id, is_active])
   @@unique([tenant_id, dni])
+  @@index([tenant_id, is_active])
   @@index([tenant_id, location_id])
 }
 
@@ -348,6 +355,7 @@ model event_outbox {
   event_type   String?
   max_attempts Int       @default(5)
   next_retry   DateTime? @db.Timestamptz(6)
+  tenants      tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, published, created_at])
 }
@@ -366,6 +374,7 @@ model events {
   shift_id            String?  @db.Uuid
   payload_version     Int      @default(1)
   payload             Json
+  tenants             tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, entity_id])
   @@index([tenant_id, occurred_at(sort: Desc)])
@@ -403,6 +412,7 @@ model goods_receipts {
   created_at          DateTime              @default(now()) @db.Timestamptz(6)
   goods_receipt_items goods_receipt_items[]
   purchase_orders     purchase_orders?      @relation(fields: [purchase_order_id], references: [id])
+  tenants             tenants               @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id, receipt_number])
   @@index([tenant_id, location_id, received_at(sort: Desc)])
@@ -427,6 +437,7 @@ model inventory {
   lot_number        String?
   theoretical_stock Decimal         @default(0) @db.Decimal(10, 3)
   updated_by        String?         @db.Uuid
+  tenants           tenants         @relation(fields: [tenant_id], references: [id])
   inventory_log     inventory_log[]
 
   @@unique([tenant_id, code])
@@ -462,6 +473,7 @@ model inventory_counts {
   notes                 String?
   created_at            DateTime                @default(now()) @db.Timestamptz(6)
   inventory_count_items inventory_count_items[]
+  tenants               tenants                 @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, count_date(sort: Desc)])
 }
@@ -477,6 +489,7 @@ model inventory_log {
   actor_id      String?   @db.Uuid
   created_at    DateTime  @default(now()) @db.Timestamptz(6)
   inventory     inventory @relation(fields: [inventory_id], references: [id])
+  tenants       tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, inventory_id, created_at(sort: Desc)])
   @@index([inventory_id])
@@ -494,6 +507,7 @@ model locations {
   created_at     DateTime         @default(now()) @db.Timestamptz(6)
   updated_at     DateTime         @default(now()) @db.Timestamptz(6)
   delivery_zones delivery_zones[]
+  tenants        tenants          @relation(fields: [tenant_id], references: [id])
   orders         orders[]
   tables         tables[]
   zones          zones[]
@@ -506,12 +520,13 @@ model invoice_cdr {
   id               String   @id @db.Uuid
   tenant_id        String   @db.Uuid
   invoice_id       String   @db.Uuid
-  invoices         invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   response_code    String
   response_message String
   hash             String?
   cdr_xml          String?
   received_at      DateTime @default(now()) @db.Timestamptz(6)
+  invoices         invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  tenants          tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, invoice_id])
 }
@@ -520,7 +535,6 @@ model invoice_queue {
   id              String    @id @db.Uuid
   tenant_id       String    @db.Uuid
   invoice_id      String    @db.Uuid
-  invoices        invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   action          String
   priority        Int       @default(5)
   attempts        Int       @default(0)
@@ -530,15 +544,17 @@ model invoice_queue {
   scheduled_at    DateTime  @default(now()) @db.Timestamptz(6)
   processed_at    DateTime? @db.Timestamptz(6)
   status          String    @default("PENDING")
+  invoices        invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  tenants         tenants   @relation(fields: [tenant_id], references: [id])
 
-  @@index([tenant_id, status, scheduled_at])
   @@unique([tenant_id, invoice_id, action])
+  @@index([tenant_id, status, scheduled_at])
 }
 
 model invoices {
-  id                String         @id @db.Uuid
-  tenant_id         String         @db.Uuid
-  order_id          String         @db.Uuid
+  id                String          @id @db.Uuid
+  tenant_id         String          @db.Uuid
+  order_id          String          @db.Uuid
   check_id          String
   invoice_type      String
   series            String?
@@ -547,15 +563,16 @@ model invoices {
   customer_doc      String?
   total_cents       Int
   payment_summary   Json?
-  status            String         @default("ISSUED")
+  status            String          @default("ISSUED")
   void_reason       String?
-  voided_by         String?        @db.Uuid
-  voided_at         DateTime?      @db.Timestamptz(6)
-  created_at        DateTime       @default(now()) @db.Timestamptz(6)
+  voided_by         String?         @db.Uuid
+  voided_at         DateTime?       @db.Timestamptz(6)
+  created_at        DateTime        @default(now()) @db.Timestamptz(6)
   credit_notes      credit_notes[]
   invoice_cdr       invoice_cdr[]
   invoice_queue     invoice_queue[]
-  orders            orders         @relation(fields: [order_id], references: [id])
+  orders            orders          @relation(fields: [order_id], references: [id])
+  tenants           tenants         @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, order_id, check_id])
   @@unique([tenant_id, series, invoice_number])
@@ -577,6 +594,7 @@ model payments {
   terminal_id    String
   created_at     DateTime @default(now()) @db.Timestamptz(6)
   orders         orders   @relation(fields: [order_id], references: [id])
+  tenants        tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, order_id])
   @@index([tenant_id, check_id])
@@ -593,6 +611,7 @@ model login_attempts {
   user_agent   String?
   terminal_id  String?
   attempted_at DateTime @default(now()) @db.Timestamptz(6)
+  tenants      tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, employee_id, attempted_at(sort: Desc)])
   @@index([tenant_id, pin_hash, attempted_at(sort: Desc)])
@@ -606,6 +625,7 @@ model pin_history {
   changed_at  DateTime @default(now()) @db.Timestamptz(6)
   changed_by  String?  @db.Uuid
   reason      String?
+  tenants     tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([employee_id, changed_at(sort: Desc)])
   @@index([tenant_id, changed_at(sort: Desc)])
@@ -626,9 +646,12 @@ model marketing_campaigns {
   updated_at          DateTime            @default(now()) @db.Timestamptz(6)
   message_templates   message_templates?  @relation(fields: [message_template_id], references: [id])
   marketing_segments  marketing_segments? @relation(fields: [segment_id], references: [id])
+  tenants             tenants             @relation(fields: [tenant_id], references: [id])
   message_outbox      message_outbox[]
 
   @@index([tenant_id, status])
+  @@index([tenant_id, segment_id], map: "marketing_campaigns_segment_id_idx")
+  @@index([tenant_id, message_template_id], map: "marketing_campaigns_template_id_idx")
 }
 
 model marketing_segments {
@@ -639,6 +662,7 @@ model marketing_segments {
   is_active           Boolean               @default(true)
   updated_at          DateTime              @default(now()) @db.Timestamptz(6)
   marketing_campaigns marketing_campaigns[]
+  tenants             tenants               @relation(fields: [tenant_id], references: [id])
   segment_members     segment_members[]
 
   @@index([tenant_id, is_active])
@@ -661,9 +685,11 @@ model message_outbox {
   provider_message_id String?
   created_at          DateTime             @default(now()) @db.Timestamptz(6)
   marketing_campaigns marketing_campaigns? @relation(fields: [campaign_id], references: [id])
+  tenants             tenants              @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, status, scheduled_at])
   @@index([customer_id])
+  @@index([campaign_id])
 }
 
 model message_templates {
@@ -678,6 +704,7 @@ model message_templates {
   is_active           Boolean               @default(true)
   updated_at          DateTime              @default(now()) @db.Timestamptz(6)
   marketing_campaigns marketing_campaigns[]
+  tenants             tenants               @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, channel, is_active])
 }
@@ -713,9 +740,6 @@ model orders {
   waiter_id           String?           @db.Uuid
   delivery_orders     delivery_orders[]
   invoices            invoices[]
-  payments            payments[]
-  refunds             refunds[]
-  platform_orders     platform_orders[]
   customers           customers?        @relation(fields: [customer_id], references: [id])
   locations           locations?        @relation(fields: [location_id], references: [id])
   promotions          promotions?       @relation(fields: [promotion_id], references: [id])
@@ -723,6 +747,9 @@ model orders {
   tables              tables?           @relation(fields: [table_id], references: [id])
   tenants             tenants           @relation(fields: [tenant_id], references: [id])
   employees           employees?        @relation(fields: [waiter_id], references: [id])
+  payments            payments[]
+  platform_orders     platform_orders[]
+  refunds             refunds[]
   tips                tips[]
 
   @@index([tenant_id, fulfillment_status], map: "idx_orders_fulfillment")
@@ -737,6 +764,7 @@ model orders {
   @@index([tenant_id, customer_id])
   @@index([tenant_id, table_id])
   @@index([items(ops: JsonbPathOps)], map: "idx_orders_items_gin", type: Gin)
+  @@index([tenant_id, promotion_id], map: "orders_promotion_id_idx")
 }
 
 model petty_cash_balance {
@@ -750,6 +778,7 @@ model petty_cash_balance {
   last_reconciled_at DateTime @default(now()) @db.Timestamptz(6)
   last_reconciled_by String?  @db.Uuid
   updated_at         DateTime @default(now()) @db.Timestamptz(6)
+  tenants            tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id])
 }
@@ -771,6 +800,7 @@ model petty_cash_transactions {
   supplier_name     String?
   created_by        String    @db.Uuid
   created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  tenants           tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, shift_id])
 }
@@ -793,8 +823,10 @@ model print_jobs {
   printed_at  DateTime? @db.Timestamptz(6)
   failed_at   DateTime? @db.Timestamptz(6)
   printers    printers? @relation(fields: [printer_id], references: [id])
+  tenants     tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, status, created_at(sort: Desc)])
+  @@index([tenant_id, printer_id], map: "print_jobs_printer_id_idx")
 }
 
 model printers {
@@ -809,8 +841,10 @@ model printers {
   is_active       Boolean      @default(true)
   print_jobs      print_jobs[]
   stations        stations?    @relation(fields: [station_id], references: [id])
+  tenants         tenants      @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, station_code])
+  @@index([tenant_id, station_id], map: "printers_station_id_idx")
 }
 
 model processed_events {
@@ -820,31 +854,32 @@ model processed_events {
   aggregate_id String?  @db.Uuid
   event_type   String?
   processor    String?
+  tenants      tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, processed_at], map: "idx_processed_cleanup")
 }
 
 model products {
-  id          String   @id @db.Uuid
-  tenant_id   String   @db.Uuid
-  sku         String
-  name        String
-  short_name  String?
-  price_cents Int
-  category    String
-  station     String
-  type        String   @default("SIMPLE")
-  components  Json?
-  recipe      Json?
-  images      Json     @default("[]")
-  is_active    Boolean  @default(true)
-  is_available Boolean  @default(true) // Auto-86: producto disponible para ordenar AHORA
-  version      Int      @default(1)
-  updated_at   DateTime @default(now()) @db.Timestamptz(6)
-  created_at   DateTime @default(now()) @db.Timestamptz(6)
-  created_by   String?  @db.Uuid
-  updated_by   String?  @db.Uuid
-
+  id           String    @id @db.Uuid
+  tenant_id    String    @db.Uuid
+  sku          String
+  name         String
+  short_name   String?
+  price_cents  Int
+  category     String
+  station      String
+  type         String    @default("SIMPLE")
+  components   Json?
+  recipe       Json?
+  is_active    Boolean   @default(true)
+  version      Int       @default(1)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  created_by   String?   @db.Uuid
+  updated_by   String?   @db.Uuid
+  images       Json      @default("[]")
+  is_available Boolean   @default(true)
+  tenants      tenants   @relation(fields: [tenant_id], references: [id])
   recipes      recipes[]
 
   @@unique([tenant_id, sku])
@@ -871,6 +906,7 @@ model promotions {
   updated_by String?   @db.Uuid
   coupons    coupons[]
   orders     orders[]
+  tenants    tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, is_active])
 }
@@ -906,6 +942,7 @@ model purchase_orders {
   goods_receipts         goods_receipts[]
   purchase_order_items   purchase_order_items[]
   suppliers              suppliers              @relation(fields: [supplier_id], references: [id])
+  tenants                tenants                @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id, order_number])
   @@index([tenant_id, location_id, status])
@@ -916,22 +953,23 @@ model recipes {
   id                       String    @id @db.Uuid
   tenant_id                String    @db.Uuid
   product_id               String    @db.Uuid
-  name                     String?
-  ingredients              Json // Array de { inventory_code, quantity, unit, is_optional? }
+  ingredients              Json
   yield_qty                Decimal   @default(1) @db.Decimal(10, 3)
-  yield_unit               String    @default("UNIDADES") // PORCIONES, KG, LITROS, etc.
-  conversion_factor        Decimal   @default(1.0) @db.Decimal(5, 3) // ratio crudo→cocido (ej: 0.72 para pollo)
-  category                 String? // POLLO, ADEREZO, GUARNICION, SALSA, BEBIDA, POSTRE, OTRO
-  preparation_time_minutes Int?
-  notes                    String?
-  cost_cents               Int? // COGS cacheado en centavos
-  last_cost_at             DateTime? @db.Timestamptz(6)
   is_active                Boolean   @default(true)
-  created_by               String?   @db.Uuid
-  updated_by               String?   @db.Uuid
   created_at               DateTime  @default(now()) @db.Timestamptz(6)
   updated_at               DateTime  @default(now()) @db.Timestamptz(6)
+  category                 String?
+  conversion_factor        Decimal   @default(1.0) @db.Decimal(5, 3)
+  cost_cents               Int?
+  created_by               String?   @db.Uuid
+  last_cost_at             DateTime? @db.Timestamptz(6)
+  name                     String?
+  notes                    String?
+  preparation_time_minutes Int?
+  updated_by               String?   @db.Uuid
+  yield_unit               String    @default("UNIDADES")
   products                 products  @relation(fields: [product_id], references: [id])
+  tenants                  tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, product_id])
   @@index([tenant_id, category])
@@ -943,20 +981,21 @@ model pollo_production_logs {
   tenant_id        String    @db.Uuid
   location_id      String    @db.Uuid
   shift_id         String?   @db.Uuid
-  batch_number     Int // Número de lote del día
-  raw_units        Decimal   @db.Decimal(10, 3) // Pollos enteros crudos
-  raw_weight_kg    Decimal   @db.Decimal(10, 3) // Peso crudo en kg
-  cooked_units     Decimal?  @db.Decimal(10, 3) // Pollos después de cocinar
-  cooked_weight_kg Decimal?  @db.Decimal(10, 3) // Peso cocido en kg
-  yield_percent    Decimal?  @db.Decimal(5, 2) // Rendimiento %
-  waste_units      Decimal?  @db.Decimal(10, 3) // Merma en unidades
-  waste_reason     String? // Razón de merma
-  status           String    @default("CRUDO") // CRUDO, COCINANDO, COCIDO, SERVIDO
+  batch_number     Int
+  raw_units        Decimal   @db.Decimal(10, 3)
+  raw_weight_kg    Decimal   @db.Decimal(10, 3)
+  cooked_units     Decimal?  @db.Decimal(10, 3)
+  cooked_weight_kg Decimal?  @db.Decimal(10, 3)
+  yield_percent    Decimal?  @db.Decimal(5, 2)
+  waste_units      Decimal?  @db.Decimal(10, 3)
+  waste_reason     String?
+  status           String    @default("CRUDO")
   started_at       DateTime  @default(now()) @db.Timestamptz(6)
   completed_at     DateTime? @db.Timestamptz(6)
   recorded_by      String    @db.Uuid
   notes            String?
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  tenants          tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, created_at(sort: Desc)])
   @@index([tenant_id, shift_id])
@@ -968,16 +1007,17 @@ model pollo_daily_summary {
   tenant_id             String   @db.Uuid
   location_id           String   @db.Uuid
   business_date         DateTime @db.Date
-  total_raw_units       Decimal  @db.Decimal(10, 3) // Total pollos crudos ingresados
-  total_cooked_units    Decimal  @db.Decimal(10, 3) // Total pollos cocidos
-  total_sold_units      Decimal  @db.Decimal(10, 3) // Total vendidos (desde órdenes)
-  total_waste_units     Decimal  @db.Decimal(10, 3) // Total merma
-  unaccounted_units     Decimal  @db.Decimal(10, 3) // Sin contabilizar (faltante/fraude)
-  avg_yield_percent     Decimal  @db.Decimal(5, 2) // Rendimiento promedio
-  aderezo_liters_used   Decimal? @db.Decimal(10, 3) // Litros de aderezo usados
-  aderezo_chicken_ratio Decimal? @db.Decimal(10, 3) // Pollos por litro
+  total_raw_units       Decimal  @db.Decimal(10, 3)
+  total_cooked_units    Decimal  @db.Decimal(10, 3)
+  total_sold_units      Decimal  @db.Decimal(10, 3)
+  total_waste_units     Decimal  @db.Decimal(10, 3)
+  unaccounted_units     Decimal  @db.Decimal(10, 3)
+  avg_yield_percent     Decimal  @db.Decimal(5, 2)
+  aderezo_liters_used   Decimal? @db.Decimal(10, 3)
+  aderezo_chicken_ratio Decimal? @db.Decimal(10, 3)
   created_at            DateTime @default(now()) @db.Timestamptz(6)
   updated_at            DateTime @default(now()) @db.Timestamptz(6)
+  tenants               tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id, business_date])
   @@index([tenant_id, business_date(sort: Desc)])
@@ -1006,10 +1046,12 @@ model refunds {
   issued_at        DateTime?     @db.Timestamptz(6)
   credit_notes     credit_notes? @relation(fields: [credit_note_id], references: [id])
   orders           orders        @relation(fields: [order_id], references: [id])
+  tenants          tenants       @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, order_id])
   @@index([tenant_id, invoice_id])
   @@index([tenant_id, status])
+  @@index([tenant_id, credit_note_id], map: "refunds_credit_note_id_idx")
 }
 
 model reservations {
@@ -1046,6 +1088,7 @@ model reservations {
   created_at         DateTime  @default(now()) @db.Timestamptz(6)
   updated_at         DateTime  @default(now()) @db.Timestamptz(6)
   tables             tables?   @relation(fields: [table_id], references: [id])
+  tenants            tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, customer_phone])
   @@index([tenant_id, customer_id])
@@ -1058,6 +1101,7 @@ model segment_members {
   customer_id        String             @db.Uuid
   computed_at        DateTime           @default(now()) @db.Timestamptz(6)
   marketing_segments marketing_segments @relation(fields: [segment_id], references: [id])
+  tenants            tenants            @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, segment_id, customer_id])
 }
@@ -1074,6 +1118,7 @@ model sessions {
   expires_at  DateTime  @db.Timestamptz(6)
   last_active DateTime  @default(now()) @db.Timestamptz(6)
   revoked_at  DateTime? @db.Timestamptz(6)
+  tenants     tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([expires_at])
   @@index([tenant_id, employee_id])
@@ -1096,11 +1141,14 @@ model shifts {
   orders                                orders[]
   employees_shifts_closed_byToemployees employees? @relation("shifts_closed_byToemployees", fields: [closed_by], references: [id])
   employees_shifts_opened_byToemployees employees  @relation("shifts_opened_byToemployees", fields: [opened_by], references: [id])
+  tenants                               tenants    @relation(fields: [tenant_id], references: [id])
   tips                                  tips[]
 
   @@index([tenant_id, opened_at(sort: Desc)], map: "idx_shifts_history")
   @@index([tenant_id, terminal_id, status], map: "idx_shifts_terminal_status")
   @@index([tenant_id, status])
+  @@index([tenant_id, closed_by], map: "shifts_closed_by_idx")
+  @@index([tenant_id, opened_by], map: "shifts_opened_by_idx")
 }
 
 model soft_locks {
@@ -1111,6 +1159,7 @@ model soft_locks {
   terminal_id    String
   locked_at      DateTime @default(now()) @db.Timestamptz(6)
   expires_at     DateTime @db.Timestamptz(6)
+  tenants        tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, aggregate_type, aggregate_id])
   @@index([expires_at])
@@ -1125,6 +1174,7 @@ model stations {
   estimated_time Int              @default(10)
   printers       printers[]
   station_alerts station_alerts[]
+  tenants        tenants          @relation(fields: [tenant_id], references: [id])
   terminals      terminals[]
 
   @@unique([tenant_id, code])
@@ -1143,6 +1193,7 @@ model stock_alerts {
   acknowledged_by String?   @db.Uuid
   acknowledged_at DateTime? @db.Timestamptz(6)
   created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  tenants         tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, is_acknowledged])
 }
@@ -1161,6 +1212,7 @@ model stock_transfers {
   received_at      DateTime? @db.Timestamptz(6)
   notes            String?
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  tenants          tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, status])
   @@index([tenant_id, from_location_id])
@@ -1178,6 +1230,7 @@ model sunat_daily_summary {
   sunat_status   String    @default("PENDING")
   cdr_received   DateTime? @db.Timestamptz(6)
   created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  tenants        tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id, summary_date])
 }
@@ -1193,6 +1246,7 @@ model supplier_products {
   lead_time_days  Int       @default(1)
   is_active       Boolean   @default(true)
   suppliers       suppliers @relation(fields: [supplier_id], references: [id])
+  tenants         tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, supplier_id, inventory_code])
   @@index([tenant_id, supplier_id, is_active])
@@ -1216,6 +1270,7 @@ model suppliers {
   updated_at        DateTime            @default(now()) @db.Timestamptz(6)
   purchase_orders   purchase_orders[]
   supplier_products supplier_products[]
+  tenants           tenants             @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, is_active])
 }
@@ -1231,6 +1286,7 @@ model sync_conflicts {
   resolved_by String?   @db.Uuid
   resolved_at DateTime? @db.Timestamptz(6)
   resolution  Json?
+  tenants     tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, severity])
 }
@@ -1248,6 +1304,7 @@ model table_layouts {
   decorations          Json     @default("[]")
   created_at           DateTime @default(now()) @db.Timestamptz(6)
   updated_at           DateTime @default(now()) @db.Timestamptz(6)
+  tenants              tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, is_active])
 }
@@ -1278,10 +1335,12 @@ model tables {
   orders           orders[]
   reservations     reservations[]
   locations        locations      @relation(fields: [location_id], references: [id])
+  tenants          tenants        @relation(fields: [tenant_id], references: [id])
   zones            zones?         @relation(fields: [zone_id], references: [id])
 
   @@unique([tenant_id, location_id, number])
   @@index([tenant_id, location_id, status])
+  @@index([tenant_id, zone_id], map: "tables_zone_id_idx")
 }
 
 model tenant_settings {
@@ -1304,15 +1363,14 @@ model tenant_settings {
   allow_offline_coupon          Boolean            @default(false)
   max_offline_coupons_per_order Int                @default(1)
   require_manager_for_offline   Boolean            @default(true)
+  updated_at                    DateTime           @default(now()) @db.Timestamptz(6)
   onboarding_status             String             @default("IN_PROGRESS")
-  // Yape/Plin merchant config
   yape_merchant_phone           String?
   yape_merchant_name            String?
   plin_merchant_phone           String?
   plin_merchant_name            String?
-  updated_at                    DateTime           @default(now()) @db.Timestamptz(6)
-  tenants                       tenants            @relation(fields: [tenant_id], references: [id])
   onboarding_steps              onboarding_steps[]
+  tenants                       tenants            @relation(fields: [tenant_id], references: [id])
 }
 
 model terminal_number_ranges {
@@ -1323,6 +1381,7 @@ model terminal_number_ranges {
   current_number Int
   allocated_at   DateTime? @db.Timestamptz(6)
   exhausted_at   DateTime? @db.Timestamptz(6)
+  tenants        tenants   @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, terminal_id])
 }
@@ -1336,8 +1395,10 @@ model terminals {
   is_allowed         Boolean   @default(true)
   last_seen_at       DateTime? @db.Timestamptz(6)
   stations           stations? @relation(fields: [station_id], references: [id])
+  tenants            tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, terminal_id])
+  @@index([tenant_id, station_id], map: "terminals_station_id_idx")
 }
 
 /// @deprecated Use leave_requests instead. Will be removed in a future migration.
@@ -1354,6 +1415,7 @@ model time_off_requests {
   reviewed_at  DateTime? @db.Timestamptz(6)
   review_notes String?
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  tenants      tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, employee_id, status])
 }
@@ -1367,6 +1429,7 @@ model tip_config {
   kitchen_percentage      Int     @default(0)
   card_tip_fee_percentage Int     @default(0)
   min_tip_to_record       Int     @default(100)
+  tenants                 tenants @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id])
 }
@@ -1382,6 +1445,7 @@ model tip_distributions {
   distributions     Json
   distributed_by    String   @db.Uuid
   distributed_at    DateTime @default(now()) @db.Timestamptz(6)
+  tenants           tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, shift_id])
 }
@@ -1401,6 +1465,7 @@ model tips {
   created_at     DateTime  @default(now()) @db.Timestamptz(6)
   orders         orders    @relation(fields: [order_id], references: [id])
   shifts         shifts    @relation(fields: [shift_id], references: [id])
+  tenants        tenants   @relation(fields: [tenant_id], references: [id])
   employees      employees @relation(fields: [waiter_id], references: [id])
 
   @@index([tenant_id, shift_id, waiter_id])
@@ -1421,6 +1486,7 @@ model waitlist {
   expires_at     DateTime? @db.Timestamptz(6)
   status         String    @default("WAITING")
   created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  tenants        tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, date, status])
 }
@@ -1443,6 +1509,7 @@ model waste_logs {
   reference_type String?
   reference_id   String?   @db.Uuid
   created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  tenants        tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, location_id, created_at(sort: Desc)])
   @@index([tenant_id, reason_code])
@@ -1465,6 +1532,7 @@ model zones {
   created_at          DateTime  @default(now()) @db.Timestamptz(6)
   tables              tables[]
   locations           locations @relation(fields: [location_id], references: [id])
+  tenants             tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id, code])
 }
@@ -1480,6 +1548,7 @@ model push_subscriptions {
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
   last_used_at DateTime  @default(now()) @db.Timestamptz(6)
   employees    employees @relation(fields: [employee_id], references: [id])
+  tenants      tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, employee_id, endpoint])
   @@index([tenant_id, employee_id])
@@ -1493,6 +1562,7 @@ model notification_preferences {
   sound_enabled Boolean   @default(true)
   updated_at    DateTime  @default(now()) @db.Timestamptz(6)
   employees     employees @relation(fields: [employee_id], references: [id])
+  tenants       tenants   @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, employee_id])
 }
@@ -1503,6 +1573,7 @@ model analytics_cache {
   metrics     Json
   computed_at DateTime  @default(now()) @db.Timestamptz(6)
   expires_at  DateTime? @db.Timestamptz(6)
+  tenants     tenants   @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, cache_key])
   @@index([expires_at])
@@ -1512,7 +1583,6 @@ model terminal_devices {
   id                     String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   terminal_id            String             @unique
   tenant_id              String             @db.Uuid
-  device_id              String?            @unique
   role                   String
   fingerprint_hash       String?
   fingerprint_salt       String
@@ -1525,8 +1595,10 @@ model terminal_devices {
   device_name            String
   created_at             DateTime           @default(now()) @db.Timestamptz(6)
   updated_at             DateTime           @default(now()) @db.Timestamptz(6)
+  device_id              String?            @unique
   activation_codes       activation_codes[]
   auth_events            auth_events[]
+  tenants                tenants            @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([status])
@@ -1536,7 +1608,6 @@ model terminal_devices {
 
 model activation_codes {
   id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id       String           @db.Uuid
   terminal_id     String
   code            String
   expires_at      DateTime         @db.Timestamptz(6)
@@ -1544,6 +1615,8 @@ model activation_codes {
   used            Boolean          @default(false)
   created_by      String           @db.Uuid
   created_at      DateTime         @default(now()) @db.Timestamptz(6)
+  tenant_id       String           @db.Uuid
+  tenants         tenants          @relation(fields: [tenant_id], references: [id])
   terminal_device terminal_devices @relation(fields: [terminal_id], references: [terminal_id])
 
   @@index([tenant_id])
@@ -1564,6 +1637,7 @@ model auth_events {
   user_agent        String
   metadata          Json             @default("{}")
   created_at        DateTime         @default(now()) @db.Timestamptz(6)
+  tenants           tenants          @relation(fields: [tenant_id], references: [id])
   terminal_device   terminal_devices @relation(fields: [terminal_id], references: [terminal_id])
 
   @@index([tenant_id, created_at(sort: Desc)])
@@ -1583,6 +1657,7 @@ model security_alerts {
   acknowledged_by String?   @db.Uuid
   acknowledged_at DateTime? @db.Timestamptz(6)
   created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  tenants         tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, acknowledged])
   @@index([severity])
@@ -1606,6 +1681,7 @@ model credit_notes {
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
   created_by   String?   @db.Uuid
   invoices     invoices  @relation(fields: [invoice_id], references: [id])
+  tenants      tenants   @relation(fields: [tenant_id], references: [id])
   refunds      refunds[]
 
   @@unique([tenant_id, series, number])
@@ -1614,15 +1690,126 @@ model credit_notes {
 }
 
 model tenants {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String
-  slug            String?          @unique
-  is_active       Boolean          @default(true)
-  created_at      DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime         @default(now()) @db.Timestamptz(6)
-  orders          orders[]
-  station_alerts  station_alerts[]
-  tenant_settings tenant_settings?
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                     String
+  is_active                Boolean                    @default(true)
+  created_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  slug                     String?                    @unique
+  activation_codes         activation_codes[]
+  active_sessions          active_sessions[]
+  admin_access_logs        admin_access_logs[]
+  advances                 advances[]
+  ai_suggestions           ai_suggestions[]
+  alert_configurations     alert_configurations[]
+  alert_events             alert_events[]
+  analytics_cache          analytics_cache[]
+  assignment_logs          assignment_logs[]
+  assignment_weights       assignment_weights?
+  attendance               attendance[]
+  auth_events              auth_events[]
+  catalog_meta             catalog_meta?
+  conflict_logs            conflict_logs[]
+  coupon_redemptions       coupon_redemptions[]
+  coupons                  coupons[]
+  credit_notes             credit_notes[]
+  cross_tenant_audit_log   cross_tenant_audit_log[]
+  customer_profile         customer_profile[]
+  customers                customers[]
+  daily_sales_summary      daily_sales_summary[]
+  dead_letter_queue        dead_letter_queue[]
+  delivery_addresses       delivery_addresses[]
+  delivery_metrics         delivery_metrics[]
+  delivery_orders          delivery_orders[]
+  delivery_zones           delivery_zones[]
+  device_mac_addresses     device_mac_addresses[]
+  drivers                  drivers[]
+  emergency_contacts       emergency_contacts[]
+  employee_documents       employee_documents[]
+  employee_schedules       employee_schedules[]
+  employees                employees[]
+  eta_predictions          eta_predictions[]
+  evaluations              evaluations[]
+  event_outbox             event_outbox[]
+  events                   events[]
+  goods_receipts           goods_receipts[]
+  inventory                inventory[]
+  inventory_counts         inventory_counts[]
+  inventory_log            inventory_log[]
+  invoice_cdr              invoice_cdr[]
+  invoice_queue            invoice_queue[]
+  invoices                 invoices[]
+  leave_requests           leave_requests[]
+  location_history         location_history[]
+  locations                locations[]
+  login_attempts           login_attempts[]
+  maintenance_windows      maintenance_windows[]
+  marketing_campaigns      marketing_campaigns[]
+  marketing_segments       marketing_segments[]
+  message_outbox           message_outbox[]
+  message_templates        message_templates[]
+  notification_preferences notification_preferences[]
+  orders                   orders[]
+  payment_settlements      payment_settlements[]
+  payments                 payments[]
+  payroll_records          payroll_records[]
+  petty_cash_balance       petty_cash_balance[]
+  petty_cash_transactions  petty_cash_transactions[]
+  pin_history              pin_history[]
+  platform_configs         platform_configs[]
+  platform_orders          platform_orders[]
+  pollo_daily_summary      pollo_daily_summary[]
+  pollo_production_logs    pollo_production_logs[]
+  print_jobs               print_jobs[]
+  printers                 printers[]
+  processed_events         processed_events[]
+  products                 products[]
+  promotions               promotions[]
+  purchase_orders          purchase_orders[]
+  push_subscriptions       push_subscriptions[]
+  recipes                  recipes[]
+  recovery_action_log      recovery_action_log[]
+  refunds                  refunds[]
+  reservations             reservations[]
+  schedule_templates       schedule_templates[]
+  schedules                schedules[]
+  security_alerts          security_alerts[]
+  segment_members          segment_members[]
+  session_alerts           session_alerts[]
+  session_audit_log        session_audit_log[]
+  sessions                 sessions[]
+  shift_change_requests    shift_change_requests[]
+  shifts                   shifts[]
+  soft_locks               soft_locks[]
+  station_alerts           station_alerts[]
+  stations                 stations[]
+  stock_alerts             stock_alerts[]
+  stock_transfers          stock_transfers[]
+  sunat_daily_summary      sunat_daily_summary[]
+  supplier_products        supplier_products[]
+  suppliers                suppliers[]
+  sync_conflicts           sync_conflicts[]
+  table_layouts            table_layouts[]
+  tables                   tables[]
+  tenant_analytics         tenant_analytics[]
+  tenant_health_checks     tenant_health_checks[]
+  tenant_quotas            tenant_quotas?
+  tenant_settings          tenant_settings?
+  tenant_usage             tenant_usage?
+  terminal_devices         terminal_devices[]
+  terminal_mac_registry    terminal_mac_registry[]
+  terminal_number_ranges   terminal_number_ranges[]
+  terminals                terminals[]
+  time_off_requests        time_off_requests[]
+  tip_config               tip_config[]
+  tip_distributions        tip_distributions[]
+  tips                     tips[]
+  training_records         training_records[]
+  transaction_limits       transaction_limits[]
+  waitlist                 waitlist[]
+  waste_logs               waste_logs[]
+  whatsapp_messages        whatsapp_messages[]
+  zones                    zones[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -1647,15 +1834,11 @@ model station_alerts {
   @@index([created_at(sort: Desc)], map: "idx_station_alerts_created_at")
   @@index([station_id], map: "idx_station_alerts_station_id")
   @@index([tenant_id], map: "idx_station_alerts_tenant_id")
+  @@index([dismissed_by])
 }
-
-// ============================================
-// Delivery 2026 Modernization Tables
-// ============================================
 
 model location_history {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id  String   @db.Uuid
   driver_id  String   @db.Uuid
   latitude   Float
   longitude  Float
@@ -1664,7 +1847,9 @@ model location_history {
   heading    Float?
   timestamp  DateTime @db.Timestamptz(6)
   created_at DateTime @default(now()) @db.Timestamptz(6)
+  tenant_id  String   @db.Uuid
   drivers    drivers  @relation(fields: [driver_id], references: [id])
+  tenants    tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([driver_id, timestamp])
@@ -1673,7 +1858,6 @@ model location_history {
 
 model whatsapp_messages {
   id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id       String          @db.Uuid
   order_id        String          @db.Uuid
   phone_number    String
   template_name   String
@@ -1684,7 +1868,9 @@ model whatsapp_messages {
   sent_at         DateTime?       @db.Timestamptz(6)
   delivered_at    DateTime?       @db.Timestamptz(6)
   created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  tenant_id       String          @db.Uuid
   delivery_orders delivery_orders @relation(fields: [order_id], references: [id])
+  tenants         tenants         @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([order_id])
@@ -1698,13 +1884,13 @@ model assignment_weights {
   workload    Float    @default(0.3)
   performance Float    @default(0.3)
   updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  tenants     tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
 }
 
 model assignment_logs {
   id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id          String          @db.Uuid
   order_id           String          @db.Uuid
   driver_id          String          @db.Uuid
   assignment_score   Float
@@ -1715,8 +1901,10 @@ model assignment_logs {
   current_orders     Int
   performance_rating Float
   created_at         DateTime        @default(now()) @db.Timestamptz(6)
-  delivery_orders    delivery_orders @relation(fields: [order_id], references: [id])
+  tenant_id          String          @db.Uuid
   drivers            drivers         @relation(fields: [driver_id], references: [id])
+  delivery_orders    delivery_orders @relation(fields: [order_id], references: [id])
+  tenants            tenants         @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([order_id])
@@ -1725,7 +1913,6 @@ model assignment_logs {
 
 model eta_predictions {
   id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id           String          @db.Uuid
   order_id            String          @db.Uuid
   predicted_minutes   Int
   confidence_interval String
@@ -1736,7 +1923,9 @@ model eta_predictions {
   driver_adjustment   Float
   actual_minutes      Int?
   created_at          DateTime        @default(now()) @db.Timestamptz(6)
+  tenant_id           String          @db.Uuid
   delivery_orders     delivery_orders @relation(fields: [order_id], references: [id])
+  tenants             tenants         @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([order_id, created_at(sort: Desc)])
@@ -1754,14 +1943,11 @@ model delivery_metrics {
   avg_driver_utilization Float
   avg_customer_rating    Float?
   created_at             DateTime @default(now()) @db.Timestamptz(6)
+  tenants                tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, date, hour])
   @@index([tenant_id, date])
 }
-
-// ============================================
-// Security: Multi-Factor Authentication
-// ============================================
 
 model active_sessions {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -1770,7 +1956,6 @@ model active_sessions {
   terminal_id      String
   device_id        String    @db.Uuid
   session_token    String    @unique
-  mac_address      String
   ip_address       String
   user_agent       String?
   location_lat     Decimal?  @db.Decimal(10, 7)
@@ -1782,31 +1967,30 @@ model active_sessions {
   is_suspicious    Boolean   @default(false)
   blocked_reason   String?
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  mac_address      String
+  tenants          tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, employee_id, is_active])
   @@index([terminal_id, is_active])
   @@index([mac_address])
   @@index([ip_address])
+  @@index([mac_address], map: "idx_active_sessions_mac_address")
 }
 
 model device_mac_addresses {
-  mac_address String @db.VarChar(17)
-  employee_id String @db.Uuid
-  terminal_id String @default(dbgenerated("'00000000-0000-0000-0000-000000000000'::uuid")) @db.Uuid // Special UUID = valid for any terminal
-
-  tenant_id   String  @db.Uuid
-  location_id String? @db.Uuid
-
-  trust_level String @default("UNKNOWN") // TRUSTED, UNKNOWN, BLOCKED
-
+  mac_address  String   @db.VarChar(17)
+  employee_id  String   @db.Uuid
+  terminal_id  String   @default(dbgenerated("'00000000-0000-0000-0000-000000000000'::uuid")) @db.Uuid
+  tenant_id    String   @db.Uuid
+  location_id  String?  @db.Uuid
+  trust_level  String   @default("UNKNOWN")
   first_seen   DateTime @default(now()) @db.Timestamptz(6)
   last_seen    DateTime @default(now()) @db.Timestamptz(6)
   access_count Int      @default(1)
   is_active    Boolean  @default(true)
   created_at   DateTime @default(now()) @db.Timestamptz(6)
+  tenants      tenants  @relation(fields: [tenant_id], references: [id])
 
-  // Composite primary key: (mac_address, employee_id, terminal_id)
-  // terminal_id = 00000000-0000-0000-0000-000000000000 means valid for any terminal
   @@id([mac_address, employee_id, terminal_id])
   @@index([tenant_id, employee_id])
   @@index([terminal_id])
@@ -1816,22 +2000,23 @@ model device_mac_addresses {
 }
 
 model terminal_mac_registry {
-  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id   String @db.Uuid
-  terminal_id String @db.Uuid
-  mac_address String @db.VarChar(17)
-  employee_id String @db.Uuid
-
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id     String   @db.Uuid
+  terminal_id   String   @db.Uuid
+  mac_address   String   @db.VarChar(17)
+  employee_id   String   @db.Uuid
   first_seen    DateTime @default(now()) @db.Timestamptz(6)
   last_seen     DateTime @default(now()) @db.Timestamptz(6)
   access_count  Int      @default(1)
   is_authorized Boolean  @default(true)
   created_at    DateTime @default(now()) @db.Timestamptz(6)
+  tenants       tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([terminal_id, mac_address])
   @@index([employee_id, terminal_id])
   @@index([is_authorized])
   @@index([terminal_id, last_seen(sort: Desc)])
+  @@index([tenant_id])
 }
 
 model session_alerts {
@@ -1840,7 +2025,6 @@ model session_alerts {
   employee_id      String    @db.Uuid
   alert_type       String
   reason           String
-  mac_address      String?
   ip_address       String?
   location_lat     Decimal?  @db.Decimal(10, 7)
   location_lng     Decimal?  @db.Decimal(10, 7)
@@ -1849,11 +2033,14 @@ model session_alerts {
   resolved_at      DateTime? @db.Timestamptz(6)
   resolution_notes String?
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  mac_address      String?
+  tenants          tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, alert_type, is_resolved])
   @@index([employee_id, created_at(sort: Desc)])
   @@index([created_at(sort: Desc)])
   @@index([mac_address])
+  @@index([mac_address], map: "idx_session_alerts_mac_address")
 }
 
 model transaction_limits {
@@ -1867,6 +2054,7 @@ model transaction_limits {
   max_refunds_per_day        Int      @default(10)
   created_at                 DateTime @default(now()) @db.Timestamptz(6)
   updated_at                 DateTime @default(now()) @db.Timestamptz(6)
+  tenants                    tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, employee_id])
 }
@@ -1877,11 +2065,12 @@ model session_audit_log {
   employee_id String   @db.Uuid
   action      String
   resource    String?
-  mac_address String?
   ip_address  String?
   session_id  String?  @db.Uuid
   details     Json?
   created_at  DateTime @default(now()) @db.Timestamptz(6)
+  mac_address String?
+  tenants     tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, employee_id, created_at(sort: Desc)])
   @@index([action, created_at(sort: Desc)])
@@ -1889,13 +2078,9 @@ model session_audit_log {
   @@index([mac_address])
 }
 
-// ============================================
-// Cross-Tenant Administration
-// ============================================
-
 model cross_tenant_admins {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  employee_id String    @db.Uuid
+  employee_id String    @unique @db.Uuid
   granted_by  String    @db.Uuid
   granted_at  DateTime  @default(now()) @db.Timestamptz(6)
   expires_at  DateTime? @db.Timestamptz(6)
@@ -1904,7 +2089,6 @@ model cross_tenant_admins {
   created_at  DateTime  @default(now()) @db.Timestamptz(6)
   updated_at  DateTime  @default(now()) @db.Timestamptz(6)
 
-  @@unique([employee_id])
   @@index([is_active])
   @@index([expires_at])
   @@index([granted_at(sort: Desc)])
@@ -1921,15 +2105,12 @@ model cross_tenant_audit_log {
   ip_address    String?
   user_agent    String?
   created_at    DateTime @default(now()) @db.Timestamptz(6)
+  tenants       tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([admin_id, created_at(sort: Desc)])
   @@index([tenant_id, created_at(sort: Desc)])
   @@index([action, created_at(sort: Desc)])
 }
-
-// ============================================
-// Tenant Quotas and Usage
-// ============================================
 
 model tenant_quotas {
   tenant_id        String   @id @db.Uuid
@@ -1940,6 +2121,7 @@ model tenant_quotas {
   max_storage_mb   Int      @default(1000)
   created_at       DateTime @default(now()) @db.Timestamptz(6)
   updated_at       DateTime @default(now()) @db.Timestamptz(6)
+  tenants          tenants  @relation(fields: [tenant_id], references: [id])
 }
 
 model tenant_usage {
@@ -1951,11 +2133,8 @@ model tenant_usage {
   storage_mb        Int      @default(0)
   last_reset_date   DateTime @default(now()) @db.Date
   updated_at        DateTime @default(now()) @db.Timestamptz(6)
+  tenants           tenants  @relation(fields: [tenant_id], references: [id])
 }
-
-// ============================================
-// Tenant Analytics
-// ============================================
 
 model tenant_analytics {
   tenant_id             String   @db.Uuid
@@ -1969,6 +2148,7 @@ model tenant_analytics {
   sync_errors           Int      @default(0)
   api_errors            Int      @default(0)
   storage_mb            Int      @default(0)
+  tenants               tenants  @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, date])
   @@index([tenant_id, date(sort: Desc)])
@@ -1982,14 +2162,11 @@ model tenant_health_checks {
   message    String?
   details    Json?
   checked_at DateTime @default(now()) @db.Timestamptz(6)
+  tenants    tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, checked_at(sort: Desc)])
   @@index([tenant_id, check_type, checked_at(sort: Desc)])
 }
-
-// ============================================
-// Tenant Onboarding
-// ============================================
 
 model onboarding_steps {
   id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -2012,26 +2189,22 @@ model onboarding_steps {
   @@index([tenant_id, is_completed])
 }
 
-// ============================================
-// Sistema de Alertas y Monitoreo
-// ============================================
-
 model alert_configurations {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id             String   @db.Uuid
-  alert_type            String // 'ERROR_RATE', 'RESPONSE_TIME', 'UPTIME', 'CACHE_HIT_RATE', 'DB_POOL'
-  threshold_value       Decimal  @db.Decimal(10, 2)
-  threshold_unit        String // 'PERCENTAGE', 'MILLISECONDS', 'COUNT'
-  comparison_operator   String // 'GT', 'LT', 'GTE', 'LTE', 'EQ'
-  enabled               Boolean  @default(true)
-  notification_channels Json     @default("[]") // ['email', 'slack', 'webhook']
-  notification_config   Json? // Configuración específica por canal
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @db.Timestamptz(6)
-  created_by            String?  @db.Uuid
-  updated_by            String?  @db.Uuid
-
-  alert_events alert_events[]
+  id                    String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id             String         @db.Uuid
+  alert_type            String
+  threshold_value       Decimal        @db.Decimal(10, 2)
+  threshold_unit        String
+  comparison_operator   String
+  enabled               Boolean        @default(true)
+  notification_channels Json           @default("[]")
+  notification_config   Json?
+  created_at            DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime       @default(now()) @db.Timestamptz(6)
+  created_by            String?        @db.Uuid
+  updated_by            String?        @db.Uuid
+  tenants               tenants        @relation(fields: [tenant_id], references: [id])
+  alert_events          alert_events[]
 
   @@index([tenant_id])
   @@index([tenant_id, alert_type])
@@ -2039,28 +2212,28 @@ model alert_configurations {
 }
 
 model alert_events {
-  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id          String    @db.Uuid
-  configuration_id   String    @db.Uuid
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id          String               @db.Uuid
+  configuration_id   String               @db.Uuid
   alert_type         String
-  severity           String // 'INFO', 'WARNING', 'CRITICAL'
-  current_value      Decimal   @db.Decimal(10, 2)
-  threshold_value    Decimal   @db.Decimal(10, 2)
+  severity           String
+  current_value      Decimal              @db.Decimal(10, 2)
+  threshold_value    Decimal              @db.Decimal(10, 2)
   message            String
   metadata           Json?
-  status             String    @default("ACTIVE") // 'ACTIVE', 'ACKNOWLEDGED', 'RESOLVED', 'SNOOZED'
-  acknowledged_at    DateTime? @db.Timestamptz(6)
-  acknowledged_by    String?   @db.Uuid
-  resolved_at        DateTime? @db.Timestamptz(6)
-  resolved_by        String?   @db.Uuid
-  snoozed_until      DateTime? @db.Timestamptz(6)
-  escalated          Boolean   @default(false)
-  escalated_at       DateTime? @db.Timestamptz(6)
-  notifications_sent Json      @default("[]") // Array de notificaciones enviadas
-  created_at         DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime  @default(now()) @db.Timestamptz(6)
-
-  configuration alert_configurations @relation(fields: [configuration_id], references: [id], onDelete: Cascade)
+  status             String               @default("ACTIVE")
+  acknowledged_at    DateTime?            @db.Timestamptz(6)
+  acknowledged_by    String?              @db.Uuid
+  resolved_at        DateTime?            @db.Timestamptz(6)
+  resolved_by        String?              @db.Uuid
+  snoozed_until      DateTime?            @db.Timestamptz(6)
+  escalated          Boolean              @default(false)
+  escalated_at       DateTime?            @db.Timestamptz(6)
+  notifications_sent Json                 @default("[]")
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  configuration      alert_configurations @relation(fields: [configuration_id], references: [id], onDelete: Cascade)
+  tenants            tenants              @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([configuration_id])
@@ -2076,24 +2249,20 @@ model maintenance_windows {
   description String?
   start_time  DateTime @db.Timestamptz(6)
   end_time    DateTime @db.Timestamptz(6)
-  alert_types String[] // Tipos de alertas a silenciar
+  alert_types String[]
   created_at  DateTime @default(now()) @db.Timestamptz(6)
   created_by  String?  @db.Uuid
+  tenants     tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([tenant_id, start_time, end_time])
 }
 
-
-// ============================================
-// Observability: Log Configuration
-// ============================================
-
 /// Configuración de niveles de log por módulo
 /// Permite ajustar dinámicamente la verbosidad de logs sin redeployment
 model log_configuration {
-  module     String   @id // auth, sync, events, orders, global
-  level      String   // DEBUG, INFO, WARN, ERROR, FATAL
+  module     String   @id
+  level      String
   updated_at DateTime @default(now()) @db.Timestamptz(6)
   updated_by String?
 }
@@ -2101,13 +2270,13 @@ model log_configuration {
 /// Historial de cambios de configuración de logs (audit trail)
 /// Registra todos los cambios para troubleshooting y compliance
 model log_configuration_change {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  module         String   // auth, sync, events, orders, global
-  previous_level String   // DEBUG, INFO, WARN, ERROR, FATAL
-  new_level      String   // DEBUG, INFO, WARN, ERROR, FATAL
-  changed_by     String   // user_id o "system"
+  module         String
+  previous_level String
+  new_level      String
+  changed_by     String
   changed_at     DateTime @default(now()) @db.Timestamptz(6)
-  reason         String?  // Razón del cambio (opcional)
+  reason         String?
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   @@index([module])
   @@index([changed_at(sort: Desc)])
@@ -2116,19 +2285,20 @@ model log_configuration_change {
 /// Registro de auditoría de acciones de recuperación
 /// Registra todas las acciones de recuperación manual y automática para troubleshooting
 model recovery_action_log {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  action_type         String   // CLEAR_CACHE, RESET_SYNC, REBUILD_PROJECTIONS, RESTART_SERVICE, PURGE_QUEUE
-  tenant_id           String?  @db.Uuid
-  user_id             String?  @db.Uuid
-  reason              String
-  success             Boolean
-  message             String
-  duration_ms         Int
-  metadata            Json?
-  details             Json?
-  rollback_available  Boolean  @default(false)
-  timestamp           DateTime @db.Timestamptz(6)
-  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action_type        String
+  tenant_id          String   @db.Uuid
+  user_id            String?  @db.Uuid
+  reason             String
+  success            Boolean
+  message            String
+  duration_ms        Int
+  metadata           Json?
+  details            Json?
+  rollback_available Boolean  @default(false)
+  timestamp          DateTime @db.Timestamptz(6)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  tenants            tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, timestamp(sort: Desc)])
   @@index([action_type, timestamp(sort: Desc)])
@@ -2136,24 +2306,21 @@ model recovery_action_log {
   @@index([success, timestamp(sort: Desc)])
 }
 
-// ============================================
-// Out-of-Order Event Queue
-// ============================================
-
 /// Cola de eventos muertos (Dead Letter Queue)
 /// Almacena eventos que expiraron en la cola de out-of-order (timeout 60s)
 /// Usado para análisis y debugging de eventos problemáticos
 model dead_letter_queue {
-  id           String   @id @db.Uuid
-  tenant_id    String   @db.Uuid
-  event_id     String   @db.Uuid
   event_type   String
-  aggregate_id String   @db.Uuid
   payload      Json
-  reason       String // DEPENDENCY_MISSING, OUT_OF_ORDER, TIMEOUT
+  reason       String
   enqueued_at  DateTime @db.Timestamptz(6)
   expired_at   DateTime @default(now()) @db.Timestamptz(6)
   created_at   DateTime @default(now()) @db.Timestamptz(6)
+  id           String   @id @db.Uuid
+  tenant_id    String   @db.Uuid
+  event_id     String   @db.Uuid
+  aggregate_id String   @db.Uuid
+  tenants      tenants  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([event_id])
@@ -2162,10 +2329,6 @@ model dead_letter_queue {
   @@index([tenant_id, expired_at(sort: Desc)])
 }
 
-// ============================================
-// Sistema de Gestión de Recursos Humanos (RRHH)
-// ============================================
-
 /// Contactos de emergencia de empleados
 /// Almacena información de contacto para emergencias
 model emergency_contacts {
@@ -2173,14 +2336,14 @@ model emergency_contacts {
   tenant_id    String    @db.Uuid
   employee_id  String    @db.Uuid
   name         String
-  relationship String // SPOUSE, PARENT, SIBLING, FRIEND, etc.
+  relationship String
   phone        String
   address      String?
   is_primary   Boolean   @default(false)
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
-  
   employee     employees @relation(fields: [employee_id], references: [id])
-  
+  tenants      tenants   @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, employee_id])
 }
 
@@ -2190,15 +2353,15 @@ model employee_documents {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id     String    @db.Uuid
   employee_id   String    @db.Uuid
-  document_type String // CONTRACT, CERTIFICATE, BACKGROUND_CHECK, ID_COPY, etc.
-  document_url  String // URL en Supabase Storage
+  document_type String
+  document_url  String
   expiry_date   DateTime? @db.Date
   notes         String?
   uploaded_by   String?   @db.Uuid
   uploaded_at   DateTime  @default(now()) @db.Timestamptz(6)
-  
   employee      employees @relation(fields: [employee_id], references: [id])
-  
+  tenants       tenants   @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, employee_id])
   @@index([tenant_id, expiry_date])
 }
@@ -2222,6 +2385,7 @@ model schedules {
   created_by           String   @db.Uuid
   created_at           DateTime @default(now()) @db.Timestamptz(6)
   updated_at           DateTime @default(now()) @db.Timestamptz(6)
+  tenants              tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, employee_id, date])
   @@index([tenant_id, location_id, date])
@@ -2233,18 +2397,18 @@ model schedule_templates {
   id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id          String               @db.Uuid
   location_id        String               @db.Uuid
-  name               String // "Turno Mañana", "Turno Tarde", etc.
-  schedule_type      String // FIXED, ROTATING
-  days_of_week       Int[] // [1,2,3,4,5] = Lunes a Viernes
-  start_time         String // "08:00"
-  end_time           String // "17:00"
+  name               String
+  schedule_type      String
+  days_of_week       Int[]
+  start_time         String
+  end_time           String
   break_minutes      Int                  @default(60)
   is_active          Boolean              @default(true)
   created_at         DateTime             @default(now()) @db.Timestamptz(6)
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)
-  
   employee_schedules employee_schedules[]
-  
+  tenants            tenants              @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, location_id, is_active])
 }
 
@@ -2259,10 +2423,10 @@ model employee_schedules {
   end_date    DateTime?          @db.Date
   is_active   Boolean            @default(true)
   created_at  DateTime           @default(now()) @db.Timestamptz(6)
-  
   employee    employees          @relation(fields: [employee_id], references: [id])
   template    schedule_templates @relation(fields: [template_id], references: [id])
-  
+  tenants     tenants            @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, employee_id, is_active])
   @@index([tenant_id, template_id])
 }
@@ -2273,16 +2437,17 @@ model shift_change_requests {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id          String    @db.Uuid
   requester_id       String    @db.Uuid
-  target_employee_id String?   @db.Uuid // Empleado con quien quiere cambiar
+  target_employee_id String?   @db.Uuid
   original_date      DateTime  @db.Date
   new_date           DateTime? @db.Date
   reason             String
-  status             String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  status             String    @default("PENDING")
   approved_by        String?   @db.Uuid
   approved_at        DateTime? @db.Timestamptz(6)
   rejection_reason   String?
   created_at         DateTime  @default(now()) @db.Timestamptz(6)
-  
+  tenants            tenants   @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, requester_id, status])
   @@index([tenant_id, status, created_at(sort: Desc)])
 }
@@ -2293,22 +2458,22 @@ model leave_requests {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id        String    @db.Uuid
   employee_id      String    @db.Uuid
-  leave_type       String // VACATION, SICK_LEAVE, PERSONAL_LEAVE, MATERNITY, PATERNITY
+  leave_type       String
   start_date       DateTime  @db.Date
   end_date         DateTime  @db.Date
   days_requested   Int
   reason           String?
   with_pay         Boolean   @default(true)
-  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  status           String    @default("PENDING")
   approved_by      String?   @db.Uuid
   approved_at      DateTime? @db.Timestamptz(6)
   rejection_reason String?
-  certificate_url  String? // URL del certificado médico (si aplica)
+  certificate_url  String?
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
   updated_at       DateTime  @default(now()) @db.Timestamptz(6)
-  
   employee         employees @relation(fields: [employee_id], references: [id])
-  
+  tenants          tenants   @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, employee_id, status])
   @@index([tenant_id, status, start_date])
 }
@@ -2319,18 +2484,18 @@ model advances {
   id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id             String    @db.Uuid
   employee_id           String    @db.Uuid
-  amount_cents          Int // Monto solicitado en centavos
+  amount_cents          Int
   reason                String
-  status                String    @default("PENDING") // PENDING, APPROVED, REJECTED, PAID
+  status                String    @default("PENDING")
   approved_by           String?   @db.Uuid
   approved_at           DateTime? @db.Timestamptz(6)
   paid_at               DateTime? @db.Timestamptz(6)
-  deducted_from_payroll String?   @db.Uuid // ID del payroll_record donde se descontó
+  deducted_from_payroll String?   @db.Uuid
   rejection_reason      String?
   created_at            DateTime  @default(now()) @db.Timestamptz(6)
-  
   employee              employees @relation(fields: [employee_id], references: [id])
-  
+  tenants               tenants   @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, employee_id, status])
   @@index([tenant_id, status, created_at(sort: Desc)])
 }
@@ -2344,17 +2509,17 @@ model evaluations {
   evaluator_id      String    @db.Uuid
   period_start      DateTime  @db.Date
   period_end        DateTime  @db.Date
-  scores            Json // {punctuality: 4, quality: 5, attitude: 4, sales: 5}
-  automatic_metrics Json // {total_sales: 50000, avg_tips: 1500, attendance_rate: 0.95}
+  scores            Json
+  automatic_metrics Json
   comments          String?
   employee_comments String?
-  goals             Json? // [{goal: "Aumentar ventas 10%", progress: 0.8}]
-  status            String    @default("DRAFT") // DRAFT, COMPLETED, REVIEWED
+  goals             Json?
+  status            String    @default("DRAFT")
   completed_at      DateTime? @db.Timestamptz(6)
   created_at        DateTime  @default(now()) @db.Timestamptz(6)
-  
   employee          employees @relation(fields: [employee_id], references: [id])
-  
+  tenants           tenants   @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, employee_id, period_end(sort: Desc)])
   @@index([tenant_id, status])
 }
@@ -2366,18 +2531,18 @@ model training_records {
   tenant_id       String    @db.Uuid
   employee_id     String    @db.Uuid
   training_name   String
-  training_type   String // MANDATORY, OPTIONAL, CERTIFICATION
+  training_type   String
   provider        String?
   duration_hours  Int?
   completion_date DateTime  @db.Date
   certificate_url String?
-  score           Int? // Calificación (0-100)
+  score           Int?
   notes           String?
   assigned_by     String?   @db.Uuid
   created_at      DateTime  @default(now()) @db.Timestamptz(6)
-  
   employee        employees @relation(fields: [employee_id], references: [id])
-  
+  tenants         tenants   @relation(fields: [tenant_id], references: [id])
+
   @@index([tenant_id, employee_id, completion_date(sort: Desc)])
   @@index([tenant_id, training_type])
 }
@@ -2388,59 +2553,41 @@ model payroll_records {
   id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id              String    @db.Uuid
   employee_id            String    @db.Uuid
-  period_month           String // "2026-01"
+  period_month           String
   business_date_start    DateTime  @db.Date
   business_date_end      DateTime  @db.Date
-  
-  // Componentes del salario
   base_salary_cents      Int
   commission_cents       Int       @default(0)
   tips_cents             Int       @default(0)
   overtime_cents         Int       @default(0)
   bonuses_cents          Int       @default(0)
-  
-  // Deducciones
   advances_cents         Int       @default(0)
   absences_cents         Int       @default(0)
   other_deductions_cents Int       @default(0)
-  
-  // Aportes legales
-  essalud_cents          Int // 9% del bruto
-  pension_cents          Int // ONP 13% o AFP ~13%
-  
-  // Totales
-  gross_salary_cents     Int // Bruto antes de descuentos
-  net_salary_cents       Int // Neto a pagar
-  
-  // Metadata
+  essalud_cents          Int
+  pension_cents          Int
+  gross_salary_cents     Int
+  net_salary_cents       Int
   days_worked            Int
   hours_worked           Int
   overtime_hours         Int
   absences_count         Int
-  
-  // Archivos
-  payslip_url            String? // URL del PDF de boleta
-  
-  // Auditoría
+  payslip_url            String?
   calculated_by          String    @db.Uuid
   calculated_at          DateTime  @default(now()) @db.Timestamptz(6)
   paid_at                DateTime? @db.Timestamptz(6)
-  
   employee               employees @relation(fields: [employee_id], references: [id])
-  
+  tenants                tenants   @relation(fields: [tenant_id], references: [id])
+
   @@unique([tenant_id, employee_id, period_month])
   @@index([tenant_id, period_month])
   @@index([tenant_id, employee_id, period_month(sort: Desc)])
 }
 
-// ============================================================================
-// Fase C: Plataformas Externas + Conciliación
-// ============================================================================
-
 model platform_configs {
   id              String   @id @db.Uuid
   tenant_id       String   @db.Uuid
-  platform        String   // PEDIDOSYA, LLAMAFOOD, RAPPI
+  platform        String
   is_active       Boolean  @default(true)
   api_key         String?
   store_id        String?
@@ -2450,6 +2597,7 @@ model platform_configs {
   auto_accept     Boolean  @default(false)
   created_at      DateTime @default(now()) @db.Timestamptz(6)
   updated_at      DateTime @default(now()) @db.Timestamptz(6)
+  tenants         tenants  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, platform])
   @@index([tenant_id, is_active])
@@ -2476,7 +2624,8 @@ model platform_orders {
   rejected_at            DateTime? @db.Timestamptz(6)
   rejection_reason       String?
   created_at             DateTime  @default(now()) @db.Timestamptz(6)
-  orders                 orders?   @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  orders                 orders?   @relation(fields: [order_id], references: [id])
+  tenants                tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, platform, platform_order_id])
   @@index([tenant_id, status])
@@ -2498,6 +2647,7 @@ model payment_settlements {
   reconciled_by    String?   @db.Uuid
   reconciled_at    DateTime? @db.Timestamptz(6)
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  tenants          tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, period_start, period_end, payment_method])
   @@index([tenant_id, status])

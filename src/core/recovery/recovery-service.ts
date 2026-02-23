@@ -533,7 +533,7 @@ export class RecoveryService {
       await prisma.recovery_action_log.create({
         data: {
           action_type: context.actionType,
-          tenant_id: context.tenantId,
+          tenant_id: context.tenantId || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           user_id: context.userId,
           reason: context.reason,
           success: result.success,

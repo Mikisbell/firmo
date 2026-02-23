@@ -373,30 +373,44 @@ describe('Feature: delivery-2026-modernization - Assignment Algorithm Properties
             weights: arbitraryAssignmentWeights(),
           }),
           async ({ tenantId, weights }) => {
-            // Update weights
-            await updateWeights(tenantId, weights);
+            // Ensure tenant exists for FK constraint (assignment_weights -> tenants)
+            await prisma.tenants.upsert({
+              where: { id: tenantId },
+              update: {},
+              create: { id: tenantId, name: 'Test Tenant' },
+            });
 
-            // Property: Retrieved weights should match stored weights
-            // Use toBeCloseTo with 2 decimal places because DB stores as float
-            const retrievedWeights = await getWeights(tenantId);
-            expect(retrievedWeights.distance).toBeCloseTo(weights.distance, 2);
-            expect(retrievedWeights.workload).toBeCloseTo(weights.workload, 2);
-            expect(retrievedWeights.performance).toBeCloseTo(weights.performance, 2);
-
-            // Property: Weights should sum to 1.0
-            const sum =
-              retrievedWeights.distance +
-              retrievedWeights.workload +
-              retrievedWeights.performance;
-            expect(sum).toBeCloseTo(1.0, 1);
-
-            // Clean up
             try {
-              await prisma.assignment_weights.delete({
-                where: { tenant_id: tenantId },
-              });
-            } catch {
-              // Ignore cleanup errors
+              // Update weights
+              await updateWeights(tenantId, weights);
+
+              // Property: Retrieved weights should match stored weights
+              // Use toBeCloseTo with 2 decimal places because DB stores as float
+              const retrievedWeights = await getWeights(tenantId);
+              expect(retrievedWeights.distance).toBeCloseTo(weights.distance, 2);
+              expect(retrievedWeights.workload).toBeCloseTo(weights.workload, 2);
+              expect(retrievedWeights.performance).toBeCloseTo(weights.performance, 2);
+
+              // Property: Weights should sum to 1.0
+              const sum =
+                retrievedWeights.distance +
+                retrievedWeights.workload +
+                retrievedWeights.performance;
+              expect(sum).toBeCloseTo(1.0, 1);
+            } finally {
+              // Clean up weights then tenant
+              try {
+                await prisma.assignment_weights.delete({
+                  where: { tenant_id: tenantId },
+                });
+              } catch {
+                // Ignore cleanup errors
+              }
+              try {
+                await prisma.tenants.delete({ where: { id: tenantId } });
+              } catch {
+                // Ignore cleanup errors
+              }
             }
           }
         ),
@@ -416,22 +430,43 @@ describe('Feature: delivery-2026-modernization - Assignment Algorithm Properties
             }),
           }),
           async ({ tenantId, weights }) => {
-            const sum = weights.distance + weights.workload + weights.performance;
+            // Ensure tenant exists for FK constraint (assignment_weights -> tenants)
+            await prisma.tenants.upsert({
+              where: { id: tenantId },
+              update: {},
+              create: { id: tenantId, name: 'Test Tenant' },
+            });
 
-            // Property: Should reject if sum is not ~1.0
-            if (Math.abs(sum - 1.0) > 0.01) {
-              await expect(updateWeights(tenantId, weights)).rejects.toThrow();
-            } else {
-              // Should succeed if sum is ~1.0
-              await updateWeights(tenantId, weights);
-              const retrieved = await getWeights(tenantId);
-              expect(retrieved).toBeDefined();
+            try {
+              const sum = weights.distance + weights.workload + weights.performance;
 
-              // Clean up
+              // Property: Should reject if sum is not ~1.0
+              if (Math.abs(sum - 1.0) > 0.01) {
+                await expect(updateWeights(tenantId, weights)).rejects.toThrow();
+              } else {
+                // Should succeed if sum is ~1.0
+                await updateWeights(tenantId, weights);
+                const retrieved = await getWeights(tenantId);
+                expect(retrieved).toBeDefined();
+
+                // Clean up weights
+                try {
+                  await prisma.assignment_weights.delete({
+                    where: { tenant_id: tenantId },
+                  });
+                } catch {
+                  // Ignore cleanup errors
+                }
+              }
+            } finally {
+              // Clean up tenant
               try {
-                await prisma.assignment_weights.delete({
-                  where: { tenant_id: tenantId },
-                });
+                await prisma.assignment_weights.deleteMany({ where: { tenant_id: tenantId } });
+              } catch {
+                // Ignore
+              }
+              try {
+                await prisma.tenants.delete({ where: { id: tenantId } });
               } catch {
                 // Ignore cleanup errors
               }

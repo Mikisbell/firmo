@@ -288,15 +288,22 @@ describe('Property 14: Cross-Tenant Event References Are Rejected', () => {
 describe('Property 12: Event Streams Are Tenant-Filtered', () => {
   /**
    * **Validates: Requirements 11.2**
-   * 
+   *
    * For any tenant, when events are streamed, only events belonging to
    * that tenant should be included.
    */
   it('event stream filtering respects tenant boundaries', async () => {
-    // Setup: Create events once
+    // Setup: Create tenants first (FK constraint: events -> tenants)
     const tenant1 = randomUUID();
     const tenant2 = randomUUID();
-    
+
+    await prisma.tenants.createMany({
+      data: [
+        { id: tenant1, name: 'Test Tenant 1' },
+        { id: tenant2, name: 'Test Tenant 2' },
+      ],
+    });
+
     const event1 = await prisma.events.create({
       data: {
         id: randomUUID(),
@@ -339,9 +346,12 @@ describe('Property 12: Event Streams Are Tenant-Filtered', () => {
       expect(tenant1Events.some((e) => e.id === event1.id)).toBe(true);
       expect(tenant1Events.some((e) => e.id === event2.id)).toBe(false);
     } finally {
-      // Cleanup
+      // Cleanup: events first (FK), then tenants
       await prisma.events.deleteMany({
         where: { id: { in: [event1.id, event2.id] } },
+      });
+      await prisma.tenants.deleteMany({
+        where: { id: { in: [tenant1, tenant2] } },
       });
     }
   });

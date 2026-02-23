@@ -65,9 +65,18 @@ describe('Assignment Algorithm - Unit Tests', () => {
     await deliveryRedisService.del('pending_assignments');
     await prisma.assignment_logs.deleteMany({});
     await prisma.assignment_weights.deleteMany({ where: { tenant_id: testTenantId } });
+    // Ensure tenant exists for FK constraints (assignment_weights, employees)
+    await prisma.tenants.upsert({
+      where: { id: testTenantId },
+      update: {},
+      create: { id: testTenantId, name: 'Test Tenant' },
+    });
   });
 
   afterAll(async () => {
+    // Clean up test tenant
+    await prisma.assignment_weights.deleteMany({ where: { tenant_id: testTenantId } });
+    await prisma.tenants.deleteMany({ where: { id: testTenantId } });
     await prisma.$disconnect();
   });
 
