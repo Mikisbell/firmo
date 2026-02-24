@@ -202,7 +202,6 @@ model daily_sales_summary {
   tenants            tenants  @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, business_date])
-  @@index([tenant_id, business_date(sort: Desc)])
 }
 
 model delivery_addresses {
@@ -376,7 +375,6 @@ model events {
   payload             Json
   tenants             tenants  @relation(fields: [tenant_id], references: [id])
 
-  @@index([tenant_id, entity_id])
   @@index([tenant_id, occurred_at(sort: Desc)])
   @@index([terminal_id, occurred_at(sort: Desc)], map: "idx_events_by_terminal")
   @@index([tenant_id, type, occurred_at(sort: Desc)], map: "idx_events_by_type")
@@ -1093,6 +1091,7 @@ model reservations {
   @@index([tenant_id, customer_phone])
   @@index([tenant_id, customer_id])
   @@index([tenant_id, location_id, date, status])
+  @@index([tenant_id, table_id])
 }
 
 model segment_members {
@@ -1599,7 +1598,6 @@ model terminal_devices {
   auth_events            auth_events[]
   tenants                tenants            @relation(fields: [tenant_id], references: [id])
 
-  @@index([tenant_id])
   @@index([status])
   @@index([tenant_id, status])
   @@index([device_id])
@@ -1641,7 +1639,6 @@ model auth_events {
 
   @@index([tenant_id, created_at(sort: Desc)])
   @@index([terminal_id])
-  @@index([event_type])
   @@index([tenant_id, event_type, created_at(sort: Desc)])
 }
 
@@ -1886,7 +1883,6 @@ model assignment_weights {
   updated_at  DateTime @default(now()) @db.Timestamptz(6)
   tenants     tenants  @relation(fields: [tenant_id], references: [id])
 
-  @@index([tenant_id])
 }
 
 model assignment_logs {
@@ -1974,7 +1970,6 @@ model active_sessions {
   @@index([terminal_id, is_active])
   @@index([mac_address])
   @@index([ip_address])
-  @@index([mac_address], map: "idx_active_sessions_mac_address")
 }
 
 model device_mac_addresses {
@@ -2039,7 +2034,6 @@ model session_alerts {
   @@index([tenant_id, alert_type, is_resolved])
   @@index([employee_id, created_at(sort: Desc)])
   @@index([created_at(sort: Desc)])
-  @@index([mac_address])
   @@index([mac_address], map: "idx_session_alerts_mac_address")
 }
 
@@ -2151,7 +2145,6 @@ model tenant_analytics {
   tenants               tenants  @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, date])
-  @@index([tenant_id, date(sort: Desc)])
 }
 
 model tenant_health_checks {
@@ -2206,7 +2199,6 @@ model alert_configurations {
   tenants               tenants        @relation(fields: [tenant_id], references: [id])
   alert_events          alert_events[]
 
-  @@index([tenant_id])
   @@index([tenant_id, alert_type])
   @@index([tenant_id, enabled])
 }
@@ -2235,7 +2227,6 @@ model alert_events {
   configuration      alert_configurations @relation(fields: [configuration_id], references: [id], onDelete: Cascade)
   tenants            tenants              @relation(fields: [tenant_id], references: [id])
 
-  @@index([tenant_id])
   @@index([configuration_id])
   @@index([tenant_id, status])
   @@index([tenant_id, created_at(sort: Desc)])
@@ -2322,7 +2313,6 @@ model dead_letter_queue {
   aggregate_id String   @db.Uuid
   tenants      tenants  @relation(fields: [tenant_id], references: [id])
 
-  @@index([tenant_id])
   @@index([event_id])
   @@index([aggregate_id])
   @@index([expired_at(sort: Desc)])

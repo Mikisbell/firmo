@@ -45,6 +45,7 @@ type OrderCheck = {
 
 type OrderData = {
     id: string;
+    tenant_id: string;
     items: unknown[];
     checks: OrderCheck[];
     total_cents: number;
@@ -316,6 +317,7 @@ async function validateInvoiceIssued(
     // No debe existir factura previa
     const existingInvoice = await tx.invoices.findFirst({
         where: {
+            tenant_id: order.tenant_id,
             order_id: payload.order_id,
             check_id: payload.check_id,
             status: { not: "VOIDED" },

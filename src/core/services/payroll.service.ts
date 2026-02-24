@@ -308,6 +308,7 @@ export class PayrollService {
     // Query attendance for this period
     const attendanceRecords = await this.prisma.attendance.findMany({
       where: {
+        tenant_id: tenantId,
         employee_id: employeeId,
         date: {
           gte: dateStart,
@@ -335,6 +336,7 @@ export class PayrollService {
     // Query approved advances for this period
     const advances = await this.prisma.advances.findMany({
       where: {
+        tenant_id: tenantId,
         employee_id: employeeId,
         status: 'APPROVED',
       },
