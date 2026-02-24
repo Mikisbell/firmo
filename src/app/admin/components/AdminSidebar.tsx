@@ -1,12 +1,14 @@
 'use client';
 
 /**
- * Admin Sidebar Component
- * Navigation lateral para el panel de administración
- * Responsive: colapsa a hamburger en móvil
+ * Admin Sidebar Component — Vercel/Stripe/Linear inspired
  *
- * Sistema de color por grupo:
- * Cada sección tiene su propio acento visual para orientación inmediata.
+ * Features:
+ * - Collapsible icon-only mode (w-[260px] ↔ w-16)
+ * - Color system per group for instant orientation
+ * - Animated collapse/expand with framer-motion
+ * - Tooltips in collapsed mode
+ * - State persisted in localStorage
  *
  * Requirements: 2.1, 10.1, 10.3, 6.1
  */
@@ -48,6 +50,8 @@ import {
   Globe,
   LayoutGrid,
   ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -65,24 +69,19 @@ export interface NavItem {
 
 /* ─── Color system per group ─── */
 interface GroupTheme {
-  /** Header icon + text when group is active */
   activeHeader: string;
-  /** Header icon color (inactive) */
   inactiveIcon: string;
-  /** Active link: bg + text + left border */
   activeBg: string;
   activeText: string;
   activeBorder: string;
-  /** Active icon glow */
   activeIconShadow: string;
-  /** Hover state for links */
   hoverBg: string;
 }
 
 const GROUP_THEMES: Record<string, GroupTheme> = {
   operaciones: {
     activeHeader: 'text-orange-400',
-    inactiveIcon: 'text-orange-500/50',
+    inactiveIcon: 'text-orange-500/40',
     activeBg: 'bg-orange-500/15',
     activeText: 'text-orange-300',
     activeBorder: 'border-l-orange-500',
@@ -91,7 +90,7 @@ const GROUP_THEMES: Record<string, GroupTheme> = {
   },
   catalogo: {
     activeHeader: 'text-blue-400',
-    inactiveIcon: 'text-blue-500/50',
+    inactiveIcon: 'text-blue-500/40',
     activeBg: 'bg-blue-500/15',
     activeText: 'text-blue-300',
     activeBorder: 'border-l-blue-500',
@@ -100,7 +99,7 @@ const GROUP_THEMES: Record<string, GroupTheme> = {
   },
   equipo: {
     activeHeader: 'text-violet-400',
-    inactiveIcon: 'text-violet-500/50',
+    inactiveIcon: 'text-violet-500/40',
     activeBg: 'bg-violet-500/15',
     activeText: 'text-violet-300',
     activeBorder: 'border-l-violet-500',
@@ -109,7 +108,7 @@ const GROUP_THEMES: Record<string, GroupTheme> = {
   },
   finanzas: {
     activeHeader: 'text-emerald-400',
-    inactiveIcon: 'text-emerald-500/50',
+    inactiveIcon: 'text-emerald-500/40',
     activeBg: 'bg-emerald-500/15',
     activeText: 'text-emerald-300',
     activeBorder: 'border-l-emerald-500',
@@ -118,7 +117,7 @@ const GROUP_THEMES: Record<string, GroupTheme> = {
   },
   reportes: {
     activeHeader: 'text-cyan-400',
-    inactiveIcon: 'text-cyan-500/50',
+    inactiveIcon: 'text-cyan-500/40',
     activeBg: 'bg-cyan-500/15',
     activeText: 'text-cyan-300',
     activeBorder: 'border-l-cyan-500',
@@ -127,7 +126,7 @@ const GROUP_THEMES: Record<string, GroupTheme> = {
   },
   seguridad: {
     activeHeader: 'text-amber-400',
-    inactiveIcon: 'text-amber-500/50',
+    inactiveIcon: 'text-amber-500/40',
     activeBg: 'bg-amber-500/15',
     activeText: 'text-amber-300',
     activeBorder: 'border-l-amber-500',
@@ -136,7 +135,7 @@ const GROUP_THEMES: Record<string, GroupTheme> = {
   },
   configuracion: {
     activeHeader: 'text-zinc-300',
-    inactiveIcon: 'text-zinc-500/70',
+    inactiveIcon: 'text-zinc-500/60',
     activeBg: 'bg-zinc-700/30',
     activeText: 'text-zinc-200',
     activeBorder: 'border-l-zinc-400',
@@ -165,7 +164,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/mesas', label: 'Mesas', icon: Grid3X3, permission: 'manage_config' },
       { href: '/admin/mesas/qr', label: 'QR Mesas', icon: QrCode, permission: 'manage_config' },
-      { href: '/admin/mesas/operaciones', label: 'Operaciones Mesa', icon: LayoutGrid, permission: 'manage_config' },
+      { href: '/admin/mesas/operaciones', label: 'Op. Mesa', icon: LayoutGrid, permission: 'manage_config' },
       { href: '/admin/estaciones', label: 'Estaciones KDS', icon: ChefHat, permission: 'manage_stations' },
       { href: '/admin/delivery', label: 'Delivery', icon: Truck, permission: 'manage_config', badgeKey: 'delivery' },
       { href: '/admin/drivers', label: 'Motorizados', icon: Bike, permission: 'manage_employees' },
@@ -205,7 +204,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/compras', label: 'Compras', icon: ShoppingCart, permission: 'manage_products' },
       { href: '/admin/facturacion', label: 'Facturación', icon: FileText, permission: 'manage_config' },
       { href: '/admin/conciliacion', label: 'Conciliación', icon: Scale, permission: 'view_reports' },
-      { href: '/admin/estado-resultados', label: 'Estado Resultados', icon: PieChart, permission: 'view_reports' },
+      { href: '/admin/estado-resultados', label: 'P&amp;L', icon: PieChart, permission: 'view_reports' },
     ],
   },
   {
@@ -239,6 +238,7 @@ const NAV_GROUPS: NavGroup[] = [
 ];
 
 const STORAGE_KEY = 'admin_sidebar_groups';
+const COLLAPSED_KEY = 'admin_sidebar_collapsed';
 
 interface AdminSidebarProps {
   permissions?: Record<string, boolean>;
@@ -246,7 +246,8 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ permissions }: AdminSidebarProps) {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const badges = useSidebarBadges();
   const { branding } = useTenantBranding();
@@ -254,8 +255,10 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setCollapsedGroups(JSON.parse(saved));
+      const savedGroups = localStorage.getItem(STORAGE_KEY);
+      if (savedGroups) setCollapsedGroups(JSON.parse(savedGroups));
+      const savedCollapsed = localStorage.getItem(COLLAPSED_KEY);
+      if (savedCollapsed) setCollapsed(JSON.parse(savedCollapsed));
     } catch { /* ignore */ }
   }, []);
 
@@ -272,6 +275,14 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
     setCollapsedGroups(prev => {
       const next = { ...prev, [groupId]: !prev[groupId] };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
   }, []);
@@ -309,54 +320,76 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
   const showDashboard = hasPermission(DASHBOARD_ITEM);
   const dashboardActive = isActive(DASHBOARD_ITEM.href);
 
+  /* ── Expanded mode: full nav link ── */
   const renderNavLink = (item: NavItem, theme: GroupTheme) => {
     const active = isActive(item.href);
     const badgeCount = getBadgeCount(item);
     const ItemIcon = item.icon;
 
     return (
-      <Tooltip key={item.href} content={item.label} disabled={isOpen}>
+      <Tooltip key={item.href} content={item.label} disabled={!collapsed}>
         <Link
           href={item.href}
-          onClick={() => setIsOpen(false)}
+          onClick={() => setMobileOpen(false)}
           onMouseEnter={() => {
-            const preloadKey = getPreloadKey(item.href);
-            if (preloadKey) preloadOnHover(preloadKey);
+            const k = getPreloadKey(item.href);
+            if (k) preloadOnHover(k);
           }}
           className={`
-            flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
-            min-h-[38px] relative border-l-2
+            flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150
+            min-h-[36px] relative border-l-2
             ${active
               ? `${theme.activeBg} ${theme.activeText} ${theme.activeBorder} font-medium`
               : `border-l-transparent text-zinc-500 ${theme.hoverBg} hover:text-zinc-200`
             }
           `}
         >
-          <ItemIcon
-            className={`w-4 h-4 flex-shrink-0 transition-all duration-200 ${
-              active ? theme.activeIconShadow : ''
-            }`}
-          />
-          <span className="text-[13px] flex-1 truncate">{item.label}</span>
-
-          {badgeCount > 0 && (
-            <span
-              className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full animate-pulse"
-              aria-label={`${badgeCount} notificaciones`}
-            >
+          <ItemIcon className={`w-4 h-4 flex-shrink-0 ${active ? theme.activeIconShadow : ''}`} />
+          {!collapsed && <span className="text-[13px] flex-1 truncate">{item.label}</span>}
+          {!collapsed && badgeCount > 0 && (
+            <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
               {badgeCount > 99 ? '99+' : badgeCount}
             </span>
+          )}
+          {collapsed && badgeCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full" />
           )}
         </Link>
       </Tooltip>
     );
   };
 
+  /* ── Collapsed mode: icon-only group ── */
+  const renderCollapsedGroup = (group: NavGroup & { items: NavItem[] }) => {
+    const groupActive = isGroupActive(group);
+    const theme = GROUP_THEMES[group.id] || GROUP_THEMES.configuracion;
+    const GroupIcon = group.icon;
+    const groupBadgeCount = group.items.reduce((sum, item) => sum + getBadgeCount(item), 0);
+
+    return (
+      <div key={group.id} className="space-y-0.5">
+        {/* Group icon as section indicator */}
+        <Tooltip content={group.label}>
+          <div className={`
+            flex items-center justify-center w-10 h-6 mx-auto rounded transition-colors
+            ${groupActive ? theme.activeHeader : 'text-zinc-700'}
+          `}>
+            <GroupIcon className="w-3 h-3" />
+          </div>
+        </Tooltip>
+        {/* Items as icons */}
+        {group.items.map(item => renderNavLink(item, theme))}
+      </div>
+    );
+  };
+
+  const sidebarWidth = collapsed ? 'w-16' : 'w-[260px]';
+
   return (
     <>
       {/* Mobile hamburger */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-zinc-900/90 backdrop-blur-sm rounded-xl border border-zinc-700/50 min-w-[44px] min-h-[44px] flex items-center justify-center shadow-lg shadow-black/20"
         aria-label="Abrir menu"
       >
@@ -365,12 +398,12 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
 
       {/* Mobile overlay */}
       <AnimatePresence>
-        {isOpen && (
+        {mobileOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
+            onClick={() => setMobileOpen(false)}
             className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
           />
         )}
@@ -380,140 +413,172 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-[260px] bg-zinc-950 border-r border-zinc-800/60
-          transform transition-transform duration-200 ease-in-out
+          ${sidebarWidth} bg-zinc-950 border-r border-zinc-800/60
+          transition-all duration-200 ease-in-out
           flex flex-col
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        {/* Header — glass effect */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800/60 flex-shrink-0 bg-zinc-900/50 backdrop-blur-sm">
-          <Link href="/admin" className="flex items-center gap-2.5 flex-1 min-w-0 group">
-            <TenantLogo
-              logoUrl={branding?.logo_url}
-              legalName={branding?.legal_name || 'PARK POS'}
-              size="sm"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold truncate text-zinc-100 group-hover:text-emerald-400 transition-colors">
-                PARK POS
-              </div>
-              <div className="text-[11px] text-zinc-600 truncate">
-                Panel de Administraci&oacute;n
-              </div>
-            </div>
-          </Link>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 hover:bg-zinc-800 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 text-zinc-400 hover:text-white transition-colors"
-            aria-label="Cerrar menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        {/* Header */}
+        <div className={`
+          flex items-center h-14 border-b border-zinc-800/60 flex-shrink-0
+          ${collapsed ? 'justify-center px-2' : 'justify-between px-3'}
+        `}>
+          {collapsed ? (
+            <Link href="/admin" className="flex items-center justify-center">
+              <TenantLogo
+                logoUrl={branding?.logo_url}
+                legalName={branding?.legal_name || 'PARK POS'}
+                size="sm"
+              />
+            </Link>
+          ) : (
+            <>
+              <Link href="/admin" className="flex items-center gap-2 flex-1 min-w-0 group">
+                <TenantLogo
+                  logoUrl={branding?.logo_url}
+                  legalName={branding?.legal_name || 'PARK POS'}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold truncate text-zinc-100 group-hover:text-emerald-400 transition-colors">
+                    PARK POS
+                  </div>
+                  <div className="text-[11px] text-zinc-600 truncate">
+                    Panel de Administraci&oacute;n
+                  </div>
+                </div>
+              </Link>
+              {/* Close button — mobile only */}
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="lg:hidden p-2 hover:bg-zinc-800 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 text-zinc-500 hover:text-white"
+                aria-label="Cerrar menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Navigation — scrollable */}
-        <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-0.5 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
-          {/* Dashboard — prominent top item */}
+        {/* Navigation */}
+        <nav className={`
+          flex-1 overflow-y-auto py-2 space-y-0.5
+          ${collapsed ? 'px-1.5' : 'px-2'}
+        `}>
+          {/* Dashboard */}
           {showDashboard && (
-            <Link
-              href="/admin"
-              onClick={() => setIsOpen(false)}
-              onMouseEnter={() => preloadOnHover('dashboard')}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-                min-h-[42px] mb-2
-                ${dashboardActive
-                  ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-400 border border-emerald-500/20 shadow-lg shadow-emerald-500/5'
-                  : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100 border border-transparent'
-                }
-              `}
-            >
-              <div className={`
-                w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200
-                ${dashboardActive
-                  ? 'bg-emerald-500/20 shadow-inner'
-                  : 'bg-zinc-800/50'
-                }
-              `}>
-                <LayoutDashboard className={`w-4 h-4 ${dashboardActive ? 'drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]' : ''}`} />
-              </div>
-              <span className="text-sm font-medium">Dashboard</span>
-            </Link>
+            <Tooltip content="Dashboard" disabled={!collapsed}>
+              <Link
+                href="/admin"
+                onClick={() => setMobileOpen(false)}
+                onMouseEnter={() => preloadOnHover('dashboard')}
+                className={`
+                  flex items-center gap-3 rounded-lg transition-all duration-150
+                  ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
+                  ${dashboardActive
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-400 border border-emerald-500/20'
+                    : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100 border border-transparent'
+                  }
+                `}
+              >
+                <LayoutDashboard className={`w-[18px] h-[18px] flex-shrink-0 ${dashboardActive ? 'drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]' : ''}`} />
+                {!collapsed && <span className="text-sm font-medium">Dashboard</span>}
+              </Link>
+            </Tooltip>
           )}
 
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent mx-2 my-1" />
+          <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent mx-1 my-1.5" />
 
-          {/* Grouped navigation */}
-          {filteredGroups.map(group => {
-            const groupActive = isGroupActive(group);
-            const isCollapsed = collapsedGroups[group.id] && !groupActive;
-            const GroupIcon = group.icon;
-            const theme = GROUP_THEMES[group.id] || GROUP_THEMES.configuracion;
-            const groupBadgeCount = group.items.reduce((sum, item) => sum + getBadgeCount(item), 0);
+          {/* Groups */}
+          {collapsed ? (
+            /* ── COLLAPSED: icon-only with group indicators ── */
+            <div className="space-y-2">
+              {filteredGroups.map(group => renderCollapsedGroup(group))}
+            </div>
+          ) : (
+            /* ── EXPANDED: full groups with labels ── */
+            filteredGroups.map(group => {
+              const groupActive = isGroupActive(group);
+              const isGroupCollapsed = collapsedGroups[group.id] && !groupActive;
+              const GroupIcon = group.icon;
+              const theme = GROUP_THEMES[group.id] || GROUP_THEMES.configuracion;
+              const groupBadgeCount = group.items.reduce((sum, item) => sum + getBadgeCount(item), 0);
 
-            return (
-              <div key={group.id} className="pt-2.5 first:pt-1">
-                {/* Group header */}
-                <button
-                  onClick={() => toggleGroup(group.id)}
-                  className={`
-                    w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200
-                    text-[11px] font-bold uppercase tracking-[0.08em]
-                    ${groupActive
-                      ? `${theme.activeHeader} bg-white/[0.03]`
-                      : `text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.02]`
-                    }
-                  `}
-                >
-                  <GroupIcon
-                    className={`w-3.5 h-3.5 flex-shrink-0 transition-all duration-200 ${
-                      groupActive ? theme.activeHeader : theme.inactiveIcon
-                    }`}
-                  />
-                  <span className="flex-1 text-left">{group.label}</span>
-                  {groupBadgeCount > 0 && (
-                    <span className="flex items-center justify-center min-w-[18px] h-4 px-1 text-[10px] font-bold bg-red-500 text-white rounded-full mr-0.5 animate-pulse">
-                      {groupBadgeCount > 99 ? '99+' : groupBadgeCount}
-                    </span>
-                  )}
-                  <ChevronDown
-                    className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
-                  />
-                </button>
+              return (
+                <div key={group.id} className="pt-2 first:pt-0.5">
+                  <button
+                    onClick={() => toggleGroup(group.id)}
+                    className={`
+                      w-full flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-150
+                      text-[11px] font-bold uppercase tracking-[0.08em]
+                      ${groupActive
+                        ? `${theme.activeHeader} bg-white/[0.03]`
+                        : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.02]'
+                      }
+                    `}
+                  >
+                    <GroupIcon className={`w-3.5 h-3.5 flex-shrink-0 ${groupActive ? theme.activeHeader : theme.inactiveIcon}`} />
+                    <span className="flex-1 text-left">{group.label}</span>
+                    {groupBadgeCount > 0 && (
+                      <span className="flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold bg-red-500 text-white rounded-full mr-0.5">
+                        {groupBadgeCount > 99 ? '99+' : groupBadgeCount}
+                      </span>
+                    )}
+                    <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${isGroupCollapsed ? '-rotate-90' : ''}`} />
+                  </button>
 
-                {/* Group items */}
-                <AnimatePresence initial={false}>
-                  {!isCollapsed && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: 'easeInOut' }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pl-1.5 space-y-0.5 pt-1">
-                        {group.items.map(item => renderNavLink(item, theme))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
+                  <AnimatePresence initial={false}>
+                    {!isGroupCollapsed && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-1 space-y-0.5 pt-0.5">
+                          {group.items.map(item => renderNavLink(item, theme))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })
+          )}
         </nav>
 
-        {/* Footer */}
-        <div className="flex-shrink-0 px-3 py-2.5 border-t border-zinc-800/40">
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-600">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-            <span className="font-medium">PARK POS</span>
-            <span className="text-zinc-800">&middot;</span>
-            <span>v2.1.1</span>
-            <span className="text-zinc-800">&middot;</span>
-            <span>Sistema de Punto de Venta</span>
-          </div>
+        {/* Footer with collapse toggle */}
+        <div className="flex-shrink-0 border-t border-zinc-800/40">
+          {/* Collapse toggle — desktop only */}
+          <button
+            onClick={toggleCollapsed}
+            className="hidden lg:flex w-full items-center justify-center gap-2 px-3 py-2.5 text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900/50 transition-colors"
+            aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="w-4 h-4" />
+            ) : (
+              <>
+                <PanelLeftClose className="w-4 h-4" />
+                <span className="text-[11px]">Colapsar</span>
+              </>
+            )}
+          </button>
+
+          {/* Version info — only when expanded */}
+          {!collapsed && (
+            <div className="px-3 pb-2.5 pt-0.5">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-700">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                <span>PARK POS</span>
+                <span>&middot;</span>
+                <span>v2.1.1</span>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
     </>
