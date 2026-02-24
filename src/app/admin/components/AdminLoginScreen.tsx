@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import PinPad from '@/src/components/auth/PinPad';
 import { ParkLogo } from '@/src/components/icons';
-import { Shield, ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react';
+import { Shield, ArrowLeft, AlertTriangle, Sparkles, WifiOff } from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
 
 interface AdminLoginScreenProps {
@@ -66,6 +66,7 @@ function GridBackground() {
 
 export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreenProps) {
   const [error, setError] = useState('');
+  const [errorType, setErrorType] = useState<'pin' | 'server' | 'network'>('pin');
   const [loading, setLoading] = useState(false);
   const [lockoutUntil, setLockoutUntil] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState(0);
@@ -93,6 +94,7 @@ export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreen
       if (lockoutUntil && lockoutUntil > new Date()) return;
 
       setError('');
+      setErrorType('pin');
       setLoading(true);
 
       try {
@@ -114,6 +116,11 @@ export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreen
         if (!response.ok) {
           if (data.errorCode === 'ACCOUNT_LOCKED' && data.lockoutUntil) {
             setLockoutUntil(new Date(data.lockoutUntil));
+            setErrorType('pin');
+          } else if (data.errorCode === 'SERVER_ERROR' || response.status === 500) {
+            setErrorType('server');
+          } else {
+            setErrorType('pin');
           }
           setError(data.error || 'PIN inv\u00e1lido');
           return;
@@ -121,7 +128,8 @@ export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreen
 
         onSuccess(data.employee);
       } catch {
-        setError('Error de conexi\u00f3n');
+        setErrorType('network');
+        setError('Sin conexi\u00f3n al servidor. Verifica tu internet e intenta de nuevo.');
       } finally {
         setLoading(false);
       }
@@ -247,6 +255,23 @@ export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreen
                 </motion.div>
               )}
 
+              {/* Server/network error banner (separate from PIN error) */}
+              {error && (errorType === 'server' || errorType === 'network') && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3"
+                >
+                  <WifiOff className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-400">
+                      {errorType === 'network' ? 'Sin conexión' : 'Error del servidor'}
+                    </p>
+                    <p className="text-xs text-amber-400/70">{error}</p>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Roles info */}
               <div className="mb-6 text-center">
                 <p className="text-xs text-zinc-600">
@@ -258,7 +283,7 @@ export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreen
               <PinPad
                 onSubmit={handlePinSubmit}
                 disabled={loading || !!isLockedOut}
-                error={error}
+                error={errorType === 'pin' ? error : ''}
               />
 
               {/* Loading indicator */}

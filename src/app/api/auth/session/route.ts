@@ -165,8 +165,21 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('PIN validation error:', error);
+
+    // Provide actionable error messages instead of generic "Error al validar PIN"
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isDbError = errorMessage.includes('prisma') ||
+                      errorMessage.includes('connect') ||
+                      errorMessage.includes('timeout') ||
+                      errorMessage.includes('ECONNREFUSED');
+
     return NextResponse.json(
-      { error: 'Error al validar PIN' },
+      {
+        error: isDbError
+          ? 'Error de conexión al servidor. Intenta de nuevo en unos segundos.'
+          : 'Error interno del servidor. Si persiste, contacta al administrador.',
+        errorCode: 'SERVER_ERROR',
+      },
       { status: 500 }
     );
   }
