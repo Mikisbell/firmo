@@ -504,13 +504,15 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
           })}
         </nav>
 
-        {/* Footer — minimal */}
+        {/* Footer */}
         <div className="flex-shrink-0 px-3 py-2.5 border-t border-zinc-800/40">
-          <div className="flex items-center justify-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] text-zinc-600 font-medium tracking-wide uppercase">
-              PARK POS
-            </span>
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-600">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            <span className="font-medium">PARK POS</span>
+            <span className="text-zinc-800">&middot;</span>
+            <span>v2.1.1</span>
+            <span className="text-zinc-800">&middot;</span>
+            <span>Sistema de Punto de Venta</span>
           </div>
         </div>
       </aside>
