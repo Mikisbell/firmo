@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ArrowLeft, Shield, Trash2, CheckCircle2 } from 'lucide-react';
+import { useSWRConfig } from 'swr';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
 
 const ROLE_OPTIONS = [
@@ -34,8 +35,9 @@ interface Employee {
 
 export default function EditEmployeePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { mutate: globalMutate } = useSWRConfig();
   const [employeeId, setEmployeeId] = useState<string | null>(null);
-  
+
   // Migrado a SWR - deduplicación automática, revalidación inteligente
   const { data: employee, error: fetchError, isLoading: loading, mutate } = useEmployee(employeeId);
   
@@ -82,8 +84,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         throw new Error(data.error || 'Error al actualizar empleado');
       }
 
-      // Revalidar datos después de actualizar
+      // Revalidar datos: el empleado individual Y la lista
       await mutate();
+      await globalMutate('/api/admin/employees');
 
       // Mostrar feedback visual de éxito en la misma página
       setSaved(true);
@@ -119,6 +122,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         const data = await res.json();
         throw new Error(data.error || 'Error al desactivar empleado');
       }
+
+      // Invalidar caché de la lista antes de redirigir
+      await globalMutate('/api/admin/employees');
 
       toast.success('Empleado desactivado', {
         description: 'El empleado ya no podrá iniciar sesión',
