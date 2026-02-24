@@ -505,24 +505,20 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="flex-shrink-0 px-4 py-3 border-t border-zinc-800/40 space-y-1">
-          <div className="flex items-center justify-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <p className="text-[10px] text-zinc-600 font-medium tracking-wide uppercase">
-              PARK POS &middot; Admin
-            </p>
-          </div>
-          <p className="text-[10px] text-zinc-700 text-center">
-            Desarrollado por{' '}
+        <div className="flex-shrink-0 px-3 py-3 border-t border-zinc-800/40">
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-600">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            <span>PARK POS</span>
+            <span className="text-zinc-800">&middot;</span>
             <a
               href="https://www.freecloud.pe/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-emerald-600 hover:text-emerald-400 transition-colors"
+              className="text-emerald-600/80 hover:text-emerald-400 transition-colors"
             >
-              Miguel Rivera — FreeCloud
+              FreeCloud
             </a>
-          </p>
+          </div>
         </div>
       </aside>
     </>
