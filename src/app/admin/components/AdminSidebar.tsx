@@ -396,10 +396,10 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
             />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold truncate text-zinc-100 group-hover:text-emerald-400 transition-colors">
-                {branding?.legal_name || 'PARK POS'}
+                PARK POS
               </div>
               <div className="text-[11px] text-zinc-600 truncate">
-                {branding?.ruc ? `RUC: ${branding.ruc}` : 'Sistema POS'}
+                Panel de Administraci&oacute;n
               </div>
             </div>
           </Link>
