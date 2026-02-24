@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Shield, Trash2 } from 'lucide-react';
+import { ArrowLeft, Shield, Trash2, CheckCircle2 } from 'lucide-react';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
 
 const ROLE_OPTIONS = [
@@ -45,6 +45,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
     if (!employeeId) return;
     
     setSaving(true);
+    setSaved(false);
     setError(null);
 
     try {
@@ -80,14 +82,19 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         throw new Error(data.error || 'Error al actualizar empleado');
       }
 
+      // Revalidar datos después de actualizar
+      await mutate();
+
+      // Mostrar feedback visual de éxito en la misma página
+      setSaved(true);
       toast.success('Empleado actualizado exitosamente', {
         description: `Los cambios de ${form.name} han sido guardados`,
       });
-      
-      // Revalidar datos después de actualizar
-      mutate();
-      
-      router.push('/admin/empleados');
+
+      // Redirigir después de que el usuario vea el feedback
+      setTimeout(() => {
+        router.push('/admin/empleados');
+      }, 1500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al guardar';
       setError(errorMessage);
@@ -180,6 +187,13 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       {/* Form */}
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {saved && (
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-sm flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              Cambios guardados correctamente. Redirigiendo...
+            </div>
+          )}
+
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
               {error}
@@ -258,10 +272,14 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
             </button>
             <button
               type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={saving || saved}
+              className={`flex-1 px-4 py-2.5 font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
+                saved
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-amber-500 hover:bg-amber-600 text-black disabled:opacity-50'
+              }`}
             >
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
+              {saving ? 'Guardando...' : saved ? 'Guardado' : 'Guardar Cambios'}
             </button>
           </div>
         </form>
