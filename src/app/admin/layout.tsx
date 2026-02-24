@@ -132,6 +132,21 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           <main className="flex-1 p-4 lg:p-6 overflow-auto">
             {children}
           </main>
+
+          {/* Page footer — credit */}
+          <footer className="py-3 text-center">
+            <p className="text-[11px] text-zinc-700">
+              Desarrollado por{' '}
+              <a
+                href="https://www.freecloud.pe/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-600/70 hover:text-emerald-400 transition-colors"
+              >
+                Miguel Rivera — FreeCloud
+              </a>
+            </p>
+          </footer>
         </div>
       </div>
     </ErrorBoundary>
