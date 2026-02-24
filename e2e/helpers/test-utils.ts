@@ -49,16 +49,16 @@ export async function setupTerminal(page: Page, terminalId: string, role: string
  * Login with PIN
  */
 export async function loginWithPin(page: Page, pin: string) {
-  // Wait for PIN pad to appear
-  await page.waitForSelector('[data-testid="pin-pad"]', { timeout: 10000 }).catch(() => {
+  // Wait for PIN pad to appear (30s for cold starts where isLoading blocks render)
+  await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 30000 }).catch(() => {
     // PIN pad might not be required if already logged in
   });
-  
-  // Enter PIN digits
+
+  // Enter PIN digits — scope to pin-pad to avoid ambiguity
   for (const digit of pin) {
-    await page.click(`button:has-text("${digit}")`);
+    await page.locator(`[data-testid="pin-pad"] button:has-text("${digit}")`).click();
   }
-  
+
   // Wait for login to complete
   await page.waitForTimeout(1000);
 }
@@ -329,29 +329,30 @@ export async function setupCashierTerminal(page: Page) {
 export async function authenticateAsAdmin(page: Page, pin: string = TEST_PINS.ADMIN, tenantId?: string): Promise<void> {
     // Navigate to admin panel with faster wait strategy
     await page.goto('http://localhost:3000/admin', { waitUntil: 'domcontentloaded' });
-    
+
     // Set tenant_id in localStorage if provided (for multi-tenant E2E tests)
-    // This will be read by PinModal and sent to the auth API
     if (tenantId) {
         await page.evaluate((tid) => {
             localStorage.setItem('tenant_id', tid);
         }, tenantId);
         console.log(`[authenticateAsAdmin] Set tenant_id in localStorage: ${tenantId}`);
     }
-    
-    // Wait for PinPad to appear
-    await page.waitForSelector('[data-testid="pin-pad"]', { timeout: 10000 });
-    
-    // Enter PIN using PinPad buttons
+
+    // Wait for PinPad to appear — AuthContext's isLoading state blocks rendering
+    // of AdminLoginScreen while it checks session via GET /api/auth/session.
+    // On cold starts this can take >10s, so we use 30s timeout.
+    await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 30000 });
+
+    // Enter PIN using PinPad buttons — scope to pin-pad to avoid ambiguity
     for (const digit of pin) {
-        await page.click(`button:has-text("${digit}")`);
+        await page.locator(`[data-testid="pin-pad"] button:has-text("${digit}")`).click();
         await page.waitForTimeout(100); // Small delay between clicks
     }
-    
+
     // Wait for authentication to complete and redirect
-    await page.waitForURL('**/admin/**', { timeout: 10000 });
-    
-    // Wait for admin panel to load with faster strategy
+    await page.waitForURL('**/admin/**', { timeout: 15000 });
+
+    // Wait for admin panel to load
     await page.waitForLoadState('domcontentloaded');
 }
 
@@ -384,7 +385,7 @@ export async function logoutFromAdmin(page: Page): Promise<void> {
     });
     
     // ✅ Wait for PIN pad to appear (admin panel uses PIN pad, not password input)
-    await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 10000 }).catch(() => {
+    await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 30000 }).catch(() => {
         // If PIN pad doesn't appear, try navigating to admin page
         page.goto('http://localhost:3000/admin', { waitUntil: 'domcontentloaded' });
     });

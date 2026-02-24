@@ -36,36 +36,36 @@ const TENANT_2 = {
  */
 setup('authenticate as Tenant 1 admin', async ({ page }) => {
   console.log('[Setup] Authenticating as Tenant 1 admin...');
-  
+
   // Navigate to admin panel
   await page.goto('http://localhost:3000/admin');
-  
+
   // Set tenant_id in localStorage
   await page.evaluate((tenantId) => {
     localStorage.setItem('tenant_id', tenantId);
   }, TENANT_1.id);
-  
-  // Wait for PIN pad
-  await page.waitForSelector('[data-testid="pin-pad"]', { timeout: 10000 });
-  
-  // Enter PIN
+
+  // Wait for PIN pad (30s for cold starts — AuthContext isLoading blocks render)
+  await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 30000 });
+
+  // Enter PIN — scope to pin-pad to avoid ambiguity
   for (const digit of TENANT_1.adminPin) {
-    await page.click(`button:has-text("${digit}")`);
+    await page.locator(`[data-testid="pin-pad"] button:has-text("${digit}")`).click();
     await page.waitForTimeout(100);
   }
-  
+
   // Wait for authentication to complete
-  await page.waitForURL('**/admin/**', { timeout: 10000 });
+  await page.waitForURL('**/admin/**', { timeout: 15000 });
   await page.waitForLoadState('domcontentloaded');
-  
+
   // Verify we're authenticated
   const url = page.url();
   expect(url).toContain('/admin');
-  
+
   // Save storage state
   await page.context().storageState({ path: TENANT_1.storageStatePath });
-  
-  console.log(`[Setup] ✅ Tenant 1 authenticated - Storage state saved to ${TENANT_1.storageStatePath}`);
+
+  console.log(`[Setup] Tenant 1 authenticated - Storage state saved to ${TENANT_1.storageStatePath}`);
 });
 
 /**
@@ -73,34 +73,34 @@ setup('authenticate as Tenant 1 admin', async ({ page }) => {
  */
 setup('authenticate as Tenant 2 admin', async ({ page }) => {
   console.log('[Setup] Authenticating as Tenant 2 admin...');
-  
+
   // Navigate to admin panel
   await page.goto('http://localhost:3000/admin');
-  
+
   // Set tenant_id in localStorage
   await page.evaluate((tenantId) => {
     localStorage.setItem('tenant_id', tenantId);
   }, TENANT_2.id);
-  
-  // Wait for PIN pad
-  await page.waitForSelector('[data-testid="pin-pad"]', { timeout: 10000 });
-  
-  // Enter PIN
+
+  // Wait for PIN pad (30s for cold starts — AuthContext isLoading blocks render)
+  await page.waitForSelector('[data-testid="pin-pad"]', { state: 'visible', timeout: 30000 });
+
+  // Enter PIN — scope to pin-pad to avoid ambiguity
   for (const digit of TENANT_2.adminPin) {
-    await page.click(`button:has-text("${digit}")`);
+    await page.locator(`[data-testid="pin-pad"] button:has-text("${digit}")`).click();
     await page.waitForTimeout(100);
   }
-  
+
   // Wait for authentication to complete
-  await page.waitForURL('**/admin/**', { timeout: 10000 });
+  await page.waitForURL('**/admin/**', { timeout: 15000 });
   await page.waitForLoadState('domcontentloaded');
-  
+
   // Verify we're authenticated
   const url = page.url();
   expect(url).toContain('/admin');
-  
+
   // Save storage state
   await page.context().storageState({ path: TENANT_2.storageStatePath });
-  
-  console.log(`[Setup] ✅ Tenant 2 authenticated - Storage state saved to ${TENANT_2.storageStatePath}`);
+
+  console.log(`[Setup] Tenant 2 authenticated - Storage state saved to ${TENANT_2.storageStatePath}`);
 });

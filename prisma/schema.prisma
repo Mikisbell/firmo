@@ -1399,24 +1399,6 @@ model terminals {
   @@index([tenant_id, station_id], map: "terminals_station_id_idx")
 }
 
-/// @deprecated Use leave_requests instead. Will be removed in a future migration.
-model time_off_requests {
-  id           String    @id @db.Uuid
-  tenant_id    String    @db.Uuid
-  employee_id  String    @db.Uuid
-  type         String
-  start_date   DateTime  @db.Date
-  end_date     DateTime  @db.Date
-  reason       String
-  status       String    @default("PENDING")
-  reviewed_by  String?   @db.Uuid
-  reviewed_at  DateTime? @db.Timestamptz(6)
-  review_notes String?
-  created_at   DateTime  @default(now()) @db.Timestamptz(6)
-  tenants      tenants   @relation(fields: [tenant_id], references: [id])
-
-  @@index([tenant_id, employee_id, status])
-}
 
 model tip_config {
   id                      String  @id @db.Uuid
@@ -1797,7 +1779,6 @@ model tenants {
   terminal_mac_registry    terminal_mac_registry[]
   terminal_number_ranges   terminal_number_ranges[]
   terminals                terminals[]
-  time_off_requests        time_off_requests[]
   tip_config               tip_config[]
   tip_distributions        tip_distributions[]
   tips                     tips[]
@@ -1824,9 +1805,9 @@ model station_alerts {
   dismissed_at    DateTime?  @db.Timestamptz(6)
   dismissed_by    String?    @db.Uuid
   tenant_id       String     @db.Uuid
-  employees       employees? @relation(fields: [dismissed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  stations        stations   @relation(fields: [station_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  tenants         tenants    @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  employees       employees? @relation(fields: [dismissed_by], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  stations        stations   @relation(fields: [station_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tenants         tenants    @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([created_at(sort: Desc)], map: "idx_station_alerts_created_at")
   @@index([station_id], map: "idx_station_alerts_station_id")
