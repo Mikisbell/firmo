@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { Toaster } from 'sonner';
-import { Home, Calendar, Clock, DollarSign, Palmtree, LogOut, Loader2 } from 'lucide-react';
+import { Home, Calendar, Clock, DollarSign, Palmtree, ArrowLeft, Loader2 } from 'lucide-react';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 
 const fetcher = (url: string) => fetch(url).then(r => {
@@ -75,11 +75,20 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
             </div>
           </div>
           <button
-            onClick={() => window.history.back()}
+            onClick={() => {
+              // Si hay historial de navegación, volver al workspace.
+              // Sino, ir al inicio (el empleado accedió directo a /employee).
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.replace('/');
+              }
+            }}
             className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
-            title="Salir"
+            aria-label="Volver al área de trabajo"
+            title="Volver"
           >
-            <LogOut className="w-5 h-5 text-zinc-400" />
+            <ArrowLeft className="w-5 h-5 text-zinc-400" />
           </button>
         </div>
       </header>

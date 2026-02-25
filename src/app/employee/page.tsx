@@ -39,17 +39,7 @@ function formatCurrency(cents: number): string {
   return `S/ ${(cents / 100).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  OWNER: 'Propietario',
-  ADMIN: 'Administrador',
-  MANAGER: 'Gerente',
-  CASHIER: 'Cajero(a)',
-  WAITER: 'Mesero(a)',
-  KITCHEN: 'Cocina',
-  COOK: 'Cocinero(a)',
-  SUPERVISOR: 'Supervisor(a)',
-  DRIVER: 'Repartidor(a)',
-};
+import { ROLE_LABELS } from '@/src/core/constants/roles';
 
 const CONTRACT_LABELS: Record<string, string> = {
   INDEFINIDO: 'Indefinido',

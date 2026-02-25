@@ -36,8 +36,9 @@
  */
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, LogOut, Shield, Clock, Smartphone, ExternalLink } from 'lucide-react';
+import { X, LogOut, Shield, Clock, Smartphone } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { ROLE_LABELS } from '@/src/core/constants/roles';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -87,17 +88,6 @@ export interface EmployeeProfileDrawerProps {
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
-
-const ROLE_LABELS: Record<string, string> = {
-  OWNER:   'Propietario',
-  ADMIN:   'Administrador',
-  MANAGER: 'Gerente',
-  CASHIER: 'Cajero(a)',
-  WAITER:  'Mesero(a)',
-  KITCHEN: 'Cocina',
-  BAR:     'Barman',
-  DRIVER:  'Repartidor(a)',
-};
 
 const TERMINAL_ROLE_LABELS: Record<string, string> = {
   CASHIER:   'Caja',
@@ -291,17 +281,6 @@ export function EmployeeProfileDrawer({
               </div>
               <h3 className="text-xl font-bold text-white">{employeeName}</h3>
               <span className={cn('text-sm font-medium mt-1', colors.text)}>{roleLabel}</span>
-              <a
-                href="/employee"
-                className={cn(
-                  'mt-3 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors',
-                  colors.statBg, colors.statBorder, colors.text,
-                  'hover:opacity-80'
-                )}
-              >
-                <ExternalLink className="w-3 h-3" />
-                Ver mi portada
-              </a>
             </div>
 
             {/* Stat del turno (opcional, por rol) */}
