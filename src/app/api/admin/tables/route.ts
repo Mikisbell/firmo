@@ -77,7 +77,12 @@ async function handleGET(request: NextRequest) {
     };
     
     if (validatedQuery.zone_id) where.zone_id = validatedQuery.zone_id;
-    if (validatedQuery.active !== undefined) where.is_active = validatedQuery.active;
+    // Default: only active tables. Pass active=false to see inactive
+    if (validatedQuery.active !== undefined) {
+      where.is_active = validatedQuery.active;
+    } else {
+      where.is_active = true;
+    }
 
     // Get total count
     const dbStart = Date.now();

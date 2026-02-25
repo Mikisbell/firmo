@@ -67,9 +67,12 @@ async function handleGET(request: NextRequest) {
     }
 
     // Build where clause with tenant_id from JWT
+    // Default: only active products. Pass is_active=false to see inactive
     const where: any = { tenant_id: tenantId };
     if (validatedQuery.is_active !== undefined) {
       where.is_active = validatedQuery.is_active;
+    } else {
+      where.is_active = true;
     }
     if (validatedQuery.category) {
       where.category = validatedQuery.category;

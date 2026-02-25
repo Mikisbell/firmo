@@ -70,8 +70,11 @@ async function handleGET(request: NextRequest) {
       tenant_id: tenantId,
       location_id: LOCATION_ID,
     };
+    // Default: only active zones. Pass is_active=false to see inactive
     if (validatedQuery.is_active !== undefined) {
       where.is_active = validatedQuery.is_active;
+    } else {
+      where.is_active = true;
     }
     if (validatedQuery.is_outdoor !== undefined) {
       where.is_outdoor = validatedQuery.is_outdoor;

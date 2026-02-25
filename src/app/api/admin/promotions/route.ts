@@ -84,15 +84,9 @@ async function handleGET(request: NextRequest) {
       // Only inactive promotions
       where.is_active = false;
     } else {
-      // All promotions (both active and inactive)
-      // But filter out expired active ones from results
-      where.OR = [
-        { is_active: false },
-        { 
-          is_active: true,
-          ends_at: { gte: now },
-        },
-      ];
+      // Default: only active promotions that haven't expired
+      where.is_active = true;
+      where.ends_at = { gte: now };
     }
     
     // Handle type filter

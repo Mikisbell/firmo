@@ -74,10 +74,13 @@ async function handleGET(request: NextRequest) {
       tenant_id: tenantId,
     };
     
+    // Default: only active stations. Pass is_active=false to see inactive
     if (validatedQuery.is_active !== undefined) {
       where.is_active = validatedQuery.is_active;
+    } else {
+      where.is_active = true;
     }
-    
+
     if (validatedQuery.search) {
       where.OR = [
         { code: { contains: validatedQuery.search, mode: 'insensitive' } },

@@ -530,8 +530,11 @@ export class EmployeeService {
       where.role = options.role;
     }
 
+    // Default: only active employees. Pass is_active=false to see inactive
     if (options?.is_active !== undefined) {
       where.is_active = options.is_active;
+    } else {
+      where.is_active = true;
     }
 
     if (options?.search) {
