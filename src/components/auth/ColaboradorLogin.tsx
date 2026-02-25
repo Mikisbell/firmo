@@ -1,16 +1,21 @@
 'use client';
 
 /**
- * ColaboradorLogin - PIN login for all non-cashier employees
- * On success: creates synthetic TerminalConfig + SecureSession, then routes by role
- * WAITER → /mozo | KITCHEN → /cocina | BAR → /bar | CASHIER → /pos | DRIVER → /delivery
+ * ColaboradorLogin - DNI + PIN login for all non-cashier employees
+ *
+ * Two-step flow:
+ *  Phase 'dni' → 8-digit numpad (DNI number)
+ *  Phase 'pin' → 4-6 digit numpad (PIN)
+ *
+ * On success: creates synthetic TerminalConfig + SecureSession, then routes by role:
+ *   WAITER → /mozo | KITCHEN → /cocina | BAR → /bar | CASHIER → /pos | DRIVER → /delivery
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import PinPad from './PinPad';
 import { ParkLogo } from '@/src/components/icons';
-import { Users, ArrowLeft, AlertTriangle, WifiOff } from 'lucide-react';
+import { Users, ArrowLeft, AlertTriangle, WifiOff, ChevronLeft } from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
 import { setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,6 +24,8 @@ import type { TerminalRole } from '@/src/core/auth/types';
 const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
 const COLLAB_ROLES = ['WAITER', 'KITCHEN', 'BAR', 'CASHIER', 'DRIVER'];
+
+type Phase = 'dni' | 'pin';
 
 function getRouteForRole(role: string): string {
   switch (role) {
@@ -51,11 +58,19 @@ function mapToTerminalConfigRole(employeeRole: string): TerminalRole {
   }
 }
 
+/** Mask DNI for display: show first 2 and last digit, hide the rest */
+function maskDni(dni: string): string {
+  if (dni.length <= 3) return '•'.repeat(dni.length);
+  return `${dni.slice(0, 2)}${'•'.repeat(dni.length - 3)}${dni.slice(-1)}`;
+}
+
 interface ColaboradorLoginProps {
   onBack: () => void;
 }
 
 export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
+  const [phase, setPhase] = useState<Phase>('dni');
+  const [dni, setDni] = useState('');
   const [error, setError] = useState('');
   const [errorType, setErrorType] = useState<'pin' | 'network'>('pin');
   const [loading, setLoading] = useState(false);
@@ -77,6 +92,14 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
     return () => clearInterval(interval);
   }, [lockoutUntil]);
 
+  // Phase 1: DNI entered (auto-submitted at 8 digits by PinPad)
+  const handleDniSubmit = useCallback((enteredDni: string) => {
+    setDni(enteredDni);
+    setError('');
+    setPhase('pin');
+  }, []);
+
+  // Phase 2: PIN entered → authenticate
   const handlePinSubmit = useCallback(async (pin: string) => {
     if (lockoutUntil && lockoutUntil > new Date()) return;
     setError('');
@@ -92,7 +115,7 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
       const response = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin, allowedRoles: COLLAB_ROLES, tenant_id: tenantId }),
+        body: JSON.stringify({ dni, pin, allowedRoles: COLLAB_ROLES, tenant_id: tenantId }),
         credentials: 'include',
       });
 
@@ -107,7 +130,7 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
         } else {
           setErrorType('pin');
         }
-        setError(data.error || 'PIN inválido');
+        setError(data.error || 'DNI o PIN inválido');
         return;
       }
 
@@ -154,7 +177,13 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
     } finally {
       setLoading(false);
     }
-  }, [lockoutUntil]);
+  }, [dni, lockoutUntil]);
+
+  const handleBackToDni = useCallback(() => {
+    setPhase('dni');
+    setDni('');
+    setError('');
+  }, []);
 
   const isLockedOut = lockoutUntil && lockoutUntil > new Date();
 
@@ -211,92 +240,139 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
 
       {/* Main */}
       <main className="flex-1 flex items-center justify-center p-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-          className="w-full max-w-sm"
-        >
-          {/* Icon + Title */}
-          <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', duration: 0.8 }}
-              className="inline-block mb-4"
-            >
-              <div className="relative">
-                <div className="absolute -inset-3 bg-violet-500/20 blur-2xl rounded-full" />
-                <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </motion.div>
-            <h2 className="text-2xl font-bold text-white mb-1">Acceso Colaborador</h2>
-            <p className="text-sm text-zinc-500">Ingresa tu PIN para continuar</p>
-          </div>
-
-          {/* Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="relative group"
-          >
-            <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 rounded-3xl blur-lg opacity-20" />
-            <div className="relative bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/50 rounded-2xl p-8">
-
-              {/* Lockout warning */}
-              {isLockedOut && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3"
-                >
-                  <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-red-400">Cuenta bloqueada</p>
-                    <p className="text-xs text-red-400/70">
-                      Intenta en {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Network error banner */}
-              {error && errorType === 'network' && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3"
-                >
-                  <WifiOff className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                  <p className="text-sm text-amber-400">{error}</p>
-                </motion.div>
-              )}
-
-              <PinPad
-                onSubmit={handlePinSubmit}
-                disabled={loading || !!isLockedOut}
-                error={errorType === 'pin' ? error : ''}
-              />
-
-              {loading && (
-                <div className="mt-6 flex justify-center">
+        <div className="w-full max-w-sm">
+          <AnimatePresence mode="wait">
+            {phase === 'dni' ? (
+              /* ── Phase 1: DNI ─────────────────────────────────────────────── */
+              <motion.div
+                key="dni-phase"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              >
+                {/* Icon + Title */}
+                <div className="text-center mb-8">
                   <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    className="w-8 h-8 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full"
-                  />
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', duration: 0.8 }}
+                    className="inline-block mb-4"
+                  >
+                    <div className="relative">
+                      <div className="absolute -inset-3 bg-violet-500/20 blur-2xl rounded-full" />
+                      <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                        <Users className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                  </motion.div>
+                  <h2 className="text-2xl font-bold text-white mb-1">Ingresa tu DNI</h2>
+                  <p className="text-sm text-zinc-500">Número de DNI · 8 dígitos</p>
                 </div>
-              )}
-            </div>
-          </motion.div>
+
+                {/* Card */}
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 rounded-3xl blur-lg opacity-20" />
+                  <div className="relative bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/50 rounded-2xl p-8">
+                    <PinPad
+                      onSubmit={handleDniSubmit}
+                      disabled={false}
+                      maxLength={8}
+                      minLength={8}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              /* ── Phase 2: PIN ──────────────────────────────────────────────── */
+              <motion.div
+                key="pin-phase"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              >
+                {/* DNI chip + back link */}
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <button
+                    onClick={handleBackToDni}
+                    className="flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Cambiar DNI
+                  </button>
+                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
+                    <span className="text-xs text-violet-400 font-mono tracking-wider">
+                      DNI {maskDni(dni)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Icon + Title */}
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-white mb-1">Ingresa tu PIN</h2>
+                  <p className="text-sm text-zinc-500">4 a 6 dígitos</p>
+                </div>
+
+                {/* Card */}
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 rounded-3xl blur-lg opacity-20" />
+                  <div className="relative bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/50 rounded-2xl p-8">
+
+                    {/* Lockout warning */}
+                    {isLockedOut && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3"
+                      >
+                        <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-red-400">Cuenta bloqueada</p>
+                          <p className="text-xs text-red-400/70">
+                            Intenta en {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Network error banner */}
+                    {error && errorType === 'network' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3"
+                      >
+                        <WifiOff className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                        <p className="text-sm text-amber-400">{error}</p>
+                      </motion.div>
+                    )}
+
+                    <PinPad
+                      onSubmit={handlePinSubmit}
+                      disabled={loading || !!isLockedOut}
+                      error={errorType === 'pin' ? error : ''}
+                    />
+
+                    {loading && (
+                      <div className="mt-6 flex justify-center">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                          className="w-8 h-8 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <p className="text-center text-xs text-zinc-600 mt-6">
             Mesero · Cocina · Bar · Caja · Delivery
           </p>
-        </motion.div>
+        </div>
       </main>
 
       <motion.footer

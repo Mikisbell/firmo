@@ -65,7 +65,7 @@ export interface TokenValidationResult {
 }
 
 /**
- * Check if an employee is locked out due to failed attempts
+ * Check if an employee is locked out due to failed attempts (by PIN hash)
  */
 export async function isLockedOut(
     prisma: PrismaClientType,
@@ -73,7 +73,7 @@ export async function isLockedOut(
     pinHash: string
 ): Promise<{ locked: boolean; until?: Date; attempts: number }> {
     const since = new Date(Date.now() - LOCKOUT_DURATION_MS);
-    
+
     const recentAttempts = await prisma.login_attempts.findMany({
         where: {
             tenant_id: tenantId,
@@ -85,11 +85,45 @@ export async function isLockedOut(
     });
 
     const failedAttempts = recentAttempts.filter((a: { success: boolean }) => !a.success);
-    
+
     if (failedAttempts.length >= MAX_FAILED_ATTEMPTS) {
         const oldestFailed = failedAttempts[failedAttempts.length - 1];
         const lockoutUntil = new Date(oldestFailed.attempted_at.getTime() + LOCKOUT_DURATION_MS);
-        
+
+        if (lockoutUntil > new Date()) {
+            return { locked: true, until: lockoutUntil, attempts: failedAttempts.length };
+        }
+    }
+
+    return { locked: false, attempts: failedAttempts.length };
+}
+
+/**
+ * Check lockout by employee_id (used for DNI+PIN flow to avoid cross-employee lockout)
+ */
+export async function isLockedOutByEmployeeId(
+    prisma: PrismaClientType,
+    tenantId: string,
+    employeeId: string
+): Promise<{ locked: boolean; until?: Date; attempts: number }> {
+    const since = new Date(Date.now() - LOCKOUT_DURATION_MS);
+
+    const recentAttempts = await prisma.login_attempts.findMany({
+        where: {
+            tenant_id: tenantId,
+            employee_id: employeeId,
+            attempted_at: { gte: since },
+        },
+        orderBy: { attempted_at: 'desc' },
+        take: MAX_FAILED_ATTEMPTS + 1,
+    });
+
+    const failedAttempts = recentAttempts.filter((a: { success: boolean }) => !a.success);
+
+    if (failedAttempts.length >= MAX_FAILED_ATTEMPTS) {
+        const oldestFailed = failedAttempts[failedAttempts.length - 1];
+        const lockoutUntil = new Date(oldestFailed.attempted_at.getTime() + LOCKOUT_DURATION_MS);
+
         if (lockoutUntil > new Date()) {
             return { locked: true, until: lockoutUntil, attempts: failedAttempts.length };
         }
@@ -307,80 +341,108 @@ export async function revokeAllSessions(
 }
 
 /**
- * Full authentication flow with lockout and JWT
+ * Full authentication flow with lockout and JWT.
+ *
+ * Supports two modes:
+ * - DNI + PIN (recommended): pass `dni` to identify employee by national ID, then verify PIN.
+ *   Fixes the PIN collision bug (two employees with the same PIN) and locks out per employee
+ *   rather than per PIN hash.
+ * - PIN only (backward compat): used by admin panel PinModal which doesn't collect DNI.
  */
 export async function authenticate(
     prisma: PrismaClientType,
     tenantId: string,
     pin: string,
     allowedRoles: string[],
-    metadata?: { ip?: string; userAgent?: string; terminalId?: string }
+    metadata?: { ip?: string; userAgent?: string; terminalId?: string },
+    dni?: string
 ): Promise<AuthResult> {
     const { hashPin, generateTokenHash } = await import('./crypto-utils');
-    
-    console.log('[authenticate] Starting authentication');
-    console.log('  PIN received:', pin);
-    console.log('  PIN type:', typeof pin);
-    console.log('  PIN length:', pin?.length);
-    console.log('  Tenant ID:', tenantId);
-    console.log('  Allowed roles:', allowedRoles);
-    
     const pinHash = await hashPin(pin);
-    console.log('  PIN hash calculated:', pinHash);
 
-    // 1. Check lockout
-    const lockout = await isLockedOut(prisma, tenantId, pinHash);
-    console.log('  Lockout check:', { locked: lockout.locked, attempts: lockout.attempts });
-    
-    if (lockout.locked) {
-        console.log('[authenticate] Account is locked');
-        await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
-        return {
-            success: false,
-            error: `Cuenta bloqueada. Intenta de nuevo en ${Math.ceil((lockout.until!.getTime() - Date.now()) / 60000)} minutos.`,
-            errorCode: 'ACCOUNT_LOCKED',
-            lockoutUntil: lockout.until,
-        };
+    let employee: { id: string; name: string; role: string; is_active: boolean } | null = null;
+    let lockoutAttempts = 0;
+
+    if (dni) {
+        // ── DNI + PIN flow ────────────────────────────────────────────────────────
+        // Step 1: Find employee by DNI
+        const empByDni = await prisma.employees.findFirst({
+            where: { tenant_id: tenantId, dni },
+            select: { id: true, name: true, role: true, is_active: true, pin_hash: true },
+        });
+
+        // Use generic message to avoid revealing whether the DNI exists
+        if (!empByDni) {
+            await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
+            return {
+                success: false,
+                error: 'DNI o PIN inválido. Verifica tus datos.',
+                errorCode: 'INVALID_PIN',
+            };
+        }
+
+        // Step 2: Lockout by employee_id — prevents cross-employee lockout when PINs collide
+        const lockout = await isLockedOutByEmployeeId(prisma, tenantId, empByDni.id);
+        if (lockout.locked) {
+            await recordLoginAttempt(prisma, tenantId, pinHash, false, empByDni.id, metadata);
+            return {
+                success: false,
+                error: `Cuenta bloqueada. Intenta de nuevo en ${Math.ceil((lockout.until!.getTime() - Date.now()) / 60000)} minutos.`,
+                errorCode: 'ACCOUNT_LOCKED',
+                lockoutUntil: lockout.until,
+            };
+        }
+        lockoutAttempts = lockout.attempts;
+
+        // Step 3: Verify PIN hash
+        if (empByDni.pin_hash !== pinHash) {
+            await recordLoginAttempt(prisma, tenantId, pinHash, false, empByDni.id, metadata);
+            const remaining = MAX_FAILED_ATTEMPTS - lockoutAttempts - 1;
+            return {
+                success: false,
+                error: remaining > 0
+                    ? `DNI o PIN inválido. ${remaining} intento(s) restante(s).`
+                    : 'DNI o PIN inválido. Cuenta bloqueada por 5 minutos.',
+                errorCode: 'INVALID_PIN',
+            };
+        }
+
+        employee = { id: empByDni.id, name: empByDni.name, role: empByDni.role, is_active: empByDni.is_active };
+    } else {
+        // ── PIN-only flow (backward compat for admin PIN modal) ───────────────────
+        const lockout = await isLockedOut(prisma, tenantId, pinHash);
+        if (lockout.locked) {
+            await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
+            return {
+                success: false,
+                error: `Cuenta bloqueada. Intenta de nuevo en ${Math.ceil((lockout.until!.getTime() - Date.now()) / 60000)} minutos.`,
+                errorCode: 'ACCOUNT_LOCKED',
+                lockoutUntil: lockout.until,
+            };
+        }
+        lockoutAttempts = lockout.attempts;
+
+        employee = await prisma.employees.findFirst({
+            where: { tenant_id: tenantId, pin_hash: pinHash },
+            select: { id: true, name: true, role: true, is_active: true },
+        });
+
+        if (!employee) {
+            await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
+            const remaining = MAX_FAILED_ATTEMPTS - lockoutAttempts - 1;
+            return {
+                success: false,
+                error: remaining > 0
+                    ? `PIN inválido. ${remaining} intento(s) restante(s).`
+                    : 'PIN inválido. Cuenta bloqueada por 5 minutos.',
+                errorCode: 'INVALID_PIN',
+            };
+        }
     }
 
-    // 2. Find employee
-    console.log('[authenticate] Searching for employee with PIN hash...');
-    const employee = await prisma.employees.findFirst({
-        where: {
-            tenant_id: tenantId,
-            pin_hash: pinHash,
-        },
-        select: {
-            id: true,
-            name: true,
-            role: true,
-            is_active: true,
-        },
-    });
+    // ── Common path: active check, role authorization, session creation ───────────
 
-    console.log('  Employee found:', employee?.name || 'NOT FOUND');
-    if (employee) {
-        console.log('  Employee ID:', employee.id);
-        console.log('  Employee role:', employee.role);
-        console.log('  Employee active:', employee.is_active);
-    }
-
-    if (!employee) {
-        console.log('[authenticate] Employee not found - invalid PIN');
-        await recordLoginAttempt(prisma, tenantId, pinHash, false, undefined, metadata);
-        const remaining = MAX_FAILED_ATTEMPTS - lockout.attempts - 1;
-        return {
-            success: false,
-            error: remaining > 0 
-                ? `PIN inválido. ${remaining} intento(s) restante(s).`
-                : 'PIN inválido. Cuenta bloqueada por 5 minutos.',
-            errorCode: 'INVALID_PIN',
-        };
-    }
-
-    // 3. Check if active
     if (!employee.is_active) {
-        console.log('[authenticate] Employee is inactive');
         await recordLoginAttempt(prisma, tenantId, pinHash, false, employee.id, metadata);
         return {
             success: false,
@@ -389,14 +451,7 @@ export async function authenticate(
         };
     }
 
-    // 4. Check role
-    console.log('[authenticate] Checking role authorization...');
-    console.log('  Employee role:', employee.role);
-    console.log('  Allowed roles:', allowedRoles);
-    console.log('  Role allowed:', allowedRoles.includes(employee.role));
-    
     if (!allowedRoles.includes(employee.role)) {
-        console.log('[authenticate] Role not allowed');
         await recordLoginAttempt(prisma, tenantId, pinHash, false, employee.id, metadata);
         await logAdminAccess(prisma, tenantId, employee.id, 'ACCESS_DENIED', {
             ...metadata,
@@ -409,26 +464,17 @@ export async function authenticate(
         };
     }
 
-    // 5. Success - create session and token
-    console.log('[authenticate] Authentication successful - creating session and token');
+    // Success
     await recordLoginAttempt(prisma, tenantId, pinHash, true, employee.id, metadata);
-
     const tokenHash = await generateTokenHash();
     const sessionId = await createSession(prisma, tenantId, employee.id, tokenHash, metadata);
     const { token, expiresAt } = await generateToken(employee, tenantId, sessionId);
-
-    console.log('[authenticate] Session created:', { sessionId, expiresAt });
-
     await logAdminAccess(prisma, tenantId, employee.id, 'LOGIN', metadata);
 
     return {
         success: true,
         token,
-        employee: {
-            id: employee.id,
-            name: employee.name,
-            role: employee.role,
-        },
+        employee: { id: employee.id, name: employee.name, role: employee.role },
         expiresAt,
     };
 }

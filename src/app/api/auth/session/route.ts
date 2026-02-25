@@ -82,17 +82,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { pin, allowedRoles, tenant_id } = body;
-
-    console.log('[Session API] POST request received');
-    console.log('  PIN:', pin);
-    console.log('  PIN type:', typeof pin);
-    console.log('  PIN length:', pin?.length);
-    console.log('  Allowed roles:', allowedRoles);
-    console.log('  Tenant ID from request:', tenant_id);
+    const { pin, allowedRoles, tenant_id, dni } = body;
 
     if (!pin || !allowedRoles || !Array.isArray(allowedRoles)) {
-      console.log('[Session API] Validation failed - missing PIN or roles');
       return NextResponse.json(
         { error: 'PIN y roles requeridos' },
         { status: 400 }
@@ -101,23 +93,18 @@ export async function POST(request: NextRequest) {
 
     // Get tenant ID from request body (for multi-tenant E2E tests) or fallback to centralized config
     const tenantId = tenant_id || getTenantId();
-    console.log('[Session API] Tenant ID (final):', tenantId);
 
     // Get IP and user agent
     const metadata = {
-      ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-          request.headers.get('x-real-ip') || 
+      ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+          request.headers.get('x-real-ip') ||
           'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown',
       terminalId: 'admin-panel',
     };
 
-    console.log('[Session API] Metadata:', metadata);
-
-    // Authenticate with PIN
-    console.log('[Session API] Calling authenticate()...');
-    const authResult = await authenticate(prisma, tenantId, pin, allowedRoles, metadata);
-    console.log('[Session API] Auth result:', { success: authResult.success, error: authResult.error });
+    // Authenticate: DNI+PIN when dni provided, PIN-only for admin panel
+    const authResult = await authenticate(prisma, tenantId, pin, allowedRoles, metadata, dni || undefined);
 
     if (!authResult.success) {
       return NextResponse.json(
@@ -136,11 +123,6 @@ export async function POST(request: NextRequest) {
       employee: authResult.employee,
     });
 
-    console.log('[Session API] Setting cookie:');
-    console.log('  Token exists:', !!authResult.token);
-    console.log('  Token length:', authResult.token?.length);
-
-    // Set secure httpOnly cookie
     if (authResult.token) {
       response.cookies.set('auth_token', authResult.token, {
         httpOnly: true,
@@ -149,17 +131,6 @@ export async function POST(request: NextRequest) {
         maxAge: 60 * 60 * 8, // 8 hours
         path: '/',
       });
-      console.log('[Session API] Cookie set successfully');
-      console.log('[Session API] Cookie config:', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 8,
-        path: '/',
-        NODE_ENV: process.env.NODE_ENV,
-      });
-    } else {
-      console.log('[Session API] ⚠️  Token is undefined!');
     }
 
     return response;
