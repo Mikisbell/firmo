@@ -17,6 +17,7 @@ import { asCentavos } from '@/src/core/types/shared';
 import { getTenantId } from '@/src/core/config/tenant';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 import prisma from '@/src/core/db/prisma';
+import { cache } from '@/src/core/cache/redis.service';
 
 const TENANT_ID = getTenantId();
 
@@ -54,6 +55,9 @@ export async function POST(request: NextRequest) {
         : undefined,
       addressId: parsed.data.addressId,
     });
+
+    // Invalidar caché Redis de delivery metrics/history
+    await cache.invalidatePattern('delivery:*');
 
     return NextResponse.json(delivery, { status: 201 });
   } catch (error) {

@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
+import { cache } from '@/src/core/cache/redis.service';
 
 export async function PATCH(
   request: NextRequest,
@@ -12,6 +13,10 @@ export async function PATCH(
   try {
     const { id } = await params;
     const delivery = await DeliveryService.markDispatched(id);
+
+    // Invalidar caché Redis de delivery metrics/history
+    await cache.invalidatePattern('delivery:*');
+
     return NextResponse.json(delivery);
   } catch (error) {
     if (error instanceof DeliveryServiceError) {

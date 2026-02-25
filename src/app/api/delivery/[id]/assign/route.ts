@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
+import { cache } from '@/src/core/cache/redis.service';
 
 const AssignDriverSchema = z.object({
   driverId: z.string().uuid('ID de repartidor inválido'),
@@ -27,6 +28,10 @@ export async function PATCH(
     }
 
     const delivery = await DeliveryService.assignDriver(id, parsed.data.driverId);
+
+    // Invalidar caché Redis de delivery metrics/history
+    await cache.invalidatePattern('delivery:*');
+
     return NextResponse.json(delivery);
   } catch (error) {
     if (error instanceof DeliveryServiceError) {

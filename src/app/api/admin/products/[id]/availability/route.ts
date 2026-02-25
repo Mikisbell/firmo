@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { productAvailabilityService } from '@/src/core/services/product-availability.service';
+import { cache } from '@/src/core/cache/redis.service';
 import { z, ZodError } from 'zod';
 
 interface RouteParams {
@@ -36,6 +37,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       const status = result.error.code === 'NOT_FOUND' ? 404 : 500;
       return NextResponse.json({ error: result.error.message }, { status });
     }
+
+    // Invalidar caché Redis de productos
+    await cache.invalidatePattern(`products:${tenantId}:*`);
 
     return NextResponse.json(result.data);
   } catch (error) {

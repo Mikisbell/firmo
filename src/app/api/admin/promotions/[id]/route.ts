@@ -8,9 +8,7 @@ import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
+import { cache } from '@/src/core/cache/redis.service';
 
 const promotionSchema = z.object({
   name: z.string().min(1).max(100),
@@ -140,6 +138,9 @@ export async function PUT(
       return updated;
     });
 
+    // Invalidar caché Redis de la lista de promociones
+    await cache.invalidatePattern(`promotions:${tenantId}:*`);
+
     return NextResponse.json(promotion);
   } catch (error) {
     console.error('Promotion PUT error:', error);
@@ -198,6 +199,9 @@ export async function DELETE(
         },
       });
     });
+
+    // Invalidar caché Redis de la lista de promociones
+    await cache.invalidatePattern(`promotions:${tenantId}:*`);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
