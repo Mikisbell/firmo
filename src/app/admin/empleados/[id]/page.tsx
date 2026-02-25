@@ -16,14 +16,17 @@ import { useSWRConfig } from 'swr';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
 
 const ROLE_OPTIONS = [
-  { value: 'OWNER', label: 'Dueño' },
-  { value: 'ADMIN', label: 'Administrador' },
-  { value: 'MANAGER', label: 'Gerente' },
-  { value: 'CASHIER', label: 'Cajero' },
-  { value: 'WAITER', label: 'Mesero' },
-  { value: 'KITCHEN', label: 'Cocina' },
-  { value: 'BAR', label: 'Bar' },
-  { value: 'DRIVER', label: 'Repartidor' },
+  { value: 'OWNER',      label: 'Propietario' },
+  { value: 'ADMIN',      label: 'Administrador' },
+  { value: 'MANAGER',    label: 'Gerente' },
+  { value: 'SUPERVISOR', label: 'Supervisor(a)' },
+  { value: 'CASHIER',    label: 'Cajero(a)' },
+  { value: 'WAITER',     label: 'Mesero(a)' },
+  { value: 'KITCHEN',    label: 'Cocina' },
+  { value: 'COOK',       label: 'Cocinero(a)' },
+  { value: 'PACKER',     label: 'Empaquetador(a)' },
+  { value: 'BAR',        label: 'Barman' },
+  { value: 'DRIVER',     label: 'Motorizado(a)' },
 ];
 
 interface Employee {

@@ -135,7 +135,7 @@ export async function PUT(
 
     // Validate role if provided
     if (role) {
-      const validRoles = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'DRIVER', 'BAR'];
+      const validRoles = ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER'];
       if (!validRoles.includes(role)) {
         return NextResponse.json(
           { error: `Rol inválido. Debe ser uno de: ${validRoles.join(', ')}` },

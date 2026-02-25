@@ -21,13 +21,17 @@ interface Employee {
 }
 
 const ROLE_OPTIONS = [
-  { value: 'OWNER', label: 'Dueño' },
-  { value: 'ADMIN', label: 'Administrador' },
-  { value: 'MANAGER', label: 'Gerente' },
-  { value: 'CASHIER', label: 'Cajero' },
-  { value: 'WAITER', label: 'Mesero' },
-  { value: 'KITCHEN', label: 'Cocina' },
-  { value: 'DRIVER', label: 'Repartidor' },
+  { value: 'OWNER',      label: 'Propietario' },
+  { value: 'ADMIN',      label: 'Administrador' },
+  { value: 'MANAGER',    label: 'Gerente' },
+  { value: 'SUPERVISOR', label: 'Supervisor(a)' },
+  { value: 'CASHIER',    label: 'Cajero(a)' },
+  { value: 'WAITER',     label: 'Mesero(a)' },
+  { value: 'KITCHEN',    label: 'Cocina' },
+  { value: 'COOK',       label: 'Cocinero(a)' },
+  { value: 'PACKER',     label: 'Empaquetador(a)' },
+  { value: 'BAR',        label: 'Barman' },
+  { value: 'DRIVER',     label: 'Motorizado(a)' },
 ];
 
 const filters: FilterConfig[] = [
@@ -35,13 +39,17 @@ const filters: FilterConfig[] = [
 ];
 
 const ROLE_COLORS: Record<string, string> = {
-  OWNER: 'bg-amber-500/20 text-amber-400',
-  ADMIN: 'bg-purple-500/20 text-purple-400',
-  MANAGER: 'bg-blue-500/20 text-blue-400',
-  CASHIER: 'bg-green-500/20 text-green-400',
-  WAITER: 'bg-cyan-500/20 text-cyan-400',
-  KITCHEN: 'bg-orange-500/20 text-orange-400',
-  DRIVER: 'bg-pink-500/20 text-pink-400',
+  OWNER:      'bg-amber-500/20 text-amber-400',
+  ADMIN:      'bg-purple-500/20 text-purple-400',
+  MANAGER:    'bg-blue-500/20 text-blue-400',
+  SUPERVISOR: 'bg-indigo-500/20 text-indigo-400',
+  CASHIER:    'bg-green-500/20 text-green-400',
+  WAITER:     'bg-cyan-500/20 text-cyan-400',
+  KITCHEN:    'bg-orange-500/20 text-orange-400',
+  COOK:       'bg-orange-400/20 text-orange-300',
+  PACKER:     'bg-yellow-500/20 text-yellow-400',
+  BAR:        'bg-teal-500/20 text-teal-400',
+  DRIVER:     'bg-pink-500/20 text-pink-400',
 };
 
 export default function EmployeesPage() {

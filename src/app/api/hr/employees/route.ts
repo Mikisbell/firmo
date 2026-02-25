@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
 const CreateEmployeeBody = z.object({
   name: z.string().min(1),
-  role: z.enum(['CASHIER', 'WAITER', 'COOK', 'SUPERVISOR', 'ADMIN']),
+  role: z.enum(['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER']),
   pin_hash: z.string().nullish(),
   dni: z.string().nullish(),
   email: z.string().email().nullish(),
