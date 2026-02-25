@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAdminAuth, type AuthenticatedRequest } from './admin-auth';
 
-const POS_ROLES = ['ADMIN', 'MANAGER', 'OWNER', 'CASHIER', 'WAITER', 'KITCHEN', 'BAR', 'DELIVERY'];
+const POS_ROLES = ['ADMIN', 'MANAGER', 'OWNER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'BAR', 'DELIVERY', 'DRIVER'];
 
 /**
  * Middleware helper to protect POS endpoints.

@@ -7,12 +7,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { PrintJobService } from '@/src/core/services/print-job.service';
 import prisma from '@/src/core/db/prisma';
 
 export async function POST(request: NextRequest) {
-  const authResult = await requireAdminAuth(request);
+  const authResult = await requirePosAuth(request);
   if (!authResult.authorized) return authResult.response;
 
   let body: {

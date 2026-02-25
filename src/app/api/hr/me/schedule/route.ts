@@ -7,14 +7,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { validateAdminAuth } from '@/src/core/middleware/admin-auth';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { ScheduleService } from '@/src/core/services/schedule.service';
 
 const scheduleService = new ScheduleService(prisma);
 
 export async function GET(request: NextRequest) {
-  const authResult = await validateAdminAuth(request);
-  if (!authResult.valid) return authResult.response;
+  const authResult = await requirePosAuth(request);
+  if (!authResult.authorized) return authResult.response;
 
   const { tenantId, id: employeeId } = authResult.user;
 
@@ -33,13 +33,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([]);
     }
 
-    // Calculate current week start (Monday)
+    // Calculate current week start (Monday at local midnight)
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ...
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ... (local time)
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() + mondayOffset);
-    weekStart.setUTCHours(0, 0, 0, 0);
+    weekStart.setDate(now.getDate() + mondayOffset); // local date arithmetic
+    weekStart.setHours(0, 0, 0, 0); // local midnight (consistent with setDate)
 
     const result = await scheduleService.getWeeklyCalendar(
       tenantId,

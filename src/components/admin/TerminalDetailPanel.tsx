@@ -13,6 +13,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { TERMINAL_ROLE_LABELS } from '@/src/core/constants/roles';
 import {
   X,
   RefreshCw,
@@ -72,14 +73,6 @@ interface TerminalDetailPanelProps {
 }
 
 // ============ CONSTANTS ============
-
-const ROLE_LABELS: Record<string, string> = {
-  CAJA: 'Caja',
-  MOZO: 'Mesero',
-  KDS_COCINA: 'Cocina',
-  KDS_HORNO: 'Horno',
-  KDS_BAR: 'Bar',
-};
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -307,7 +300,7 @@ export default function TerminalDetailPanel({ terminalId, onClose, onUpdate }: T
 
               <div className="p-3 bg-zinc-800/50 rounded-lg">
                 <p className="text-xs text-zinc-500 mb-1">Rol</p>
-                <p className="font-medium">{ROLE_LABELS[terminal.role] || terminal.role}</p>
+                <p className="font-medium">{TERMINAL_ROLE_LABELS[terminal.role] || terminal.role}</p>
               </div>
 
               <div className="p-3 bg-zinc-800/50 rounded-lg">

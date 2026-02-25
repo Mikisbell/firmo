@@ -32,6 +32,10 @@ vi.mock('@/src/core/middleware/admin-auth', () => ({
   requireAdminAuth: (...args: any[]) => mockAuth(...args),
 }));
 
+vi.mock('@/src/core/middleware/pos-auth', () => ({
+  requirePosAuth: (...args: any[]) => mockAuth(...args),
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

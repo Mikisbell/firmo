@@ -11,6 +11,7 @@ import { useState, useCallback } from 'react';
 import { RefreshCw, Check, Wifi, WifiOff, Copy, Smartphone, Monitor, ChefHat, Wine, Plus, X, Eye } from 'lucide-react';
 import TerminalDetailPanel from '@/src/components/admin/TerminalDetailPanel';
 import { useTerminals } from '@/src/hooks/useSWRHooks';
+import { TERMINAL_ROLE_LABELS } from '@/src/core/constants/roles';
 
 interface ActivationCode {
   code: string;
@@ -38,17 +39,11 @@ interface Summary {
 }
 
 const ROLE_ICONS: Record<string, React.ReactNode> = {
-  CASHIER: <Monitor className="w-4 h-4" />,
-  WAITER: <Smartphone className="w-4 h-4" />,
-  KDS: <ChefHat className="w-4 h-4" />,
-  BAR: <Wine className="w-4 h-4" />,
-};
-
-const ROLE_LABELS: Record<string, string> = {
-  CASHIER: 'Caja',
-  WAITER: 'Mesero',
-  KDS: 'Cocina',
-  BAR: 'Bar',
+  CAJA:      <Monitor className="w-4 h-4" />,
+  MOZO:      <Smartphone className="w-4 h-4" />,
+  KDS_COCINA: <ChefHat className="w-4 h-4" />,
+  KDS_HORNO:  <ChefHat className="w-4 h-4" />,
+  KDS_BAR:    <Wine className="w-4 h-4" />,
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -234,7 +229,7 @@ export default function TerminalsPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-400">Rol</span>
-                  <span>{ROLE_LABELS[device.role] || device.role}</span>
+                  <span>{TERMINAL_ROLE_LABELS[device.role] || device.role}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-400">Conexión</span>

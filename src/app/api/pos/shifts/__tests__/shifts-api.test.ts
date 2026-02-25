@@ -26,8 +26,8 @@ vi.mock('@/src/core/services/shift.service', () => ({
 vi.mock('@/src/core/db/prisma', () => ({ default: {} }));
 
 const mockAuth = vi.fn();
-vi.mock('@/src/core/middleware/admin-auth', () => ({
-  requireAdminAuth: (...args: any[]) => mockAuth(...args),
+vi.mock('@/src/core/middleware/pos-auth', () => ({
+  requirePosAuth: (...args: any[]) => mockAuth(...args),
 }));
 
 // ---------------------------------------------------------------------------

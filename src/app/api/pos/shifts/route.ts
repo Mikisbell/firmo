@@ -8,12 +8,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { ShiftService } from '@/src/core/services/shift.service';
 import prisma from '@/src/core/db/prisma';
 
 export async function GET(request: NextRequest) {
-  const authResult = await requireAdminAuth(request);
+  const authResult = await requirePosAuth(request);
   if (!authResult.authorized) return authResult.response;
 
   const action = request.nextUrl.searchParams.get('action') || 'active';

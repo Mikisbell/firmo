@@ -163,7 +163,7 @@ export default function WaiterPage() {
     const navItems: BottomNavItem[] = [
         { id: 'mesas', icon: <Utensils className="w-6 h-6" />, label: 'Mesas', href: '/mozo', badge: alertCount > 0 ? alertCount : undefined },
         { id: 'listos', icon: <Bell className="w-6 h-6" />, label: 'Listos', href: '/mozo/listos', badge: readyItemsTotal > 0 ? readyItemsTotal : undefined },
-        { id: 'config', icon: <Settings className="w-6 h-6" />, label: 'Config', href: '/mozo/config' },
+        { id: 'config', icon: <Settings className="w-6 h-6" />, label: 'Config', href: '/mozo/configuracion' },
     ];
 
     return (

@@ -82,7 +82,7 @@ export default function CocinaKDSPage() {
         return tickets.find(t => t.order_id === selectedOrderId) || null;
     }, [selectedOrderId, tickets]);
 
-    useMemo(() => {
+    useEffect(() => {
         if (!selectedTicket) {
             setCourseReport(null);
             return;

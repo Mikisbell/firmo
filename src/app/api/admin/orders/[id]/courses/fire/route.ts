@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { CourseFireService } from '@/src/core/services/course-fire.service';
 import prisma from '@/src/core/db/prisma';
 
@@ -15,7 +15,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const authResult = await requireAdminAuth(request);
+  const authResult = await requirePosAuth(request);
   if (!authResult.authorized) return authResult.response;
 
   const { id } = await params;

@@ -7,6 +7,16 @@
  * ⚠ Keep in sync with the database enum values.
  */
 
+/** Terminal (hardware) role labels — matches TerminalRole enum */
+export const TERMINAL_ROLE_LABELS: Record<string, string> = {
+  CAJA:      'Caja',
+  MOZO:      'Mesero',
+  KDS_COCINA: 'Cocina',
+  KDS_HORNO:  'Horno',
+  KDS_BAR:    'Bar',
+};
+
+/** Employee role labels — matches EmployeeRole enum */
 export const ROLE_LABELS: Record<string, string> = {
   OWNER:      'Propietario',
   ADMIN:      'Administrador',

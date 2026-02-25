@@ -8,12 +8,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { PaymentService } from '@/src/core/services/payment.service';
 import prisma from '@/src/core/db/prisma';
 
 export async function POST(request: NextRequest) {
-  const authResult = await requireAdminAuth(request);
+  const authResult = await requirePosAuth(request);
   if (!authResult.authorized) return authResult.response;
 
   let body: any;
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const authResult = await requireAdminAuth(request);
+  const authResult = await requirePosAuth(request);
   if (!authResult.authorized) return authResult.response;
 
   const shiftId = request.nextUrl.searchParams.get('shiftId');
