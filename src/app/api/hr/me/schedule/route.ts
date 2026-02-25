@@ -30,10 +30,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!assignment) {
-      return NextResponse.json(
-        { error: 'No active schedule assignment found' },
-        { status: 404 },
-      );
+      return NextResponse.json([]);
     }
 
     // Calculate current week start (Monday)
