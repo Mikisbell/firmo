@@ -1,22 +1,14 @@
 'use client';
 
 /**
- * UnifiedLogin - Single login for ALL roles
+ * UnifiedLogin — Professional POS login screen
  * DNI (8 digits) → PIN (4-6 digits) → auto-route by role
- *
- * ADMIN / OWNER / MANAGER → /admin
- * CASHIER → /pos
- * WAITER  → /mozo
- * KITCHEN → /cocina
- * BAR     → /bar
- * DRIVER  → /delivery
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PinPad from './PinPad';
 import { ParkLogo } from '@/src/components/icons';
-import { ChevronLeft, AlertTriangle, WifiOff, Settings } from 'lucide-react';
+import { Delete, Settings, ChevronLeft } from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
 import { setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,9 +22,7 @@ type Phase = 'dni' | 'pin';
 
 function getRouteForRole(role: string): string {
   switch (role) {
-    case 'OWNER':
-    case 'ADMIN':
-    case 'MANAGER': return '/admin';
+    case 'OWNER': case 'ADMIN': case 'MANAGER': return '/admin';
     case 'CASHIER': return '/pos';
     case 'WAITER':  return '/mozo';
     case 'KITCHEN': return '/cocina';
@@ -62,30 +52,184 @@ function mapToTerminalRoleStr(role: string): string {
 }
 
 function maskDni(dni: string): string {
-  if (dni.length <= 3) return '•'.repeat(dni.length);
-  return `${dni.slice(0, 2)}${'•'.repeat(dni.length - 3)}${dni.slice(-1)}`;
+  if (dni.length <= 4) return '•'.repeat(dni.length);
+  return `${dni.slice(0, 2)}${'•'.repeat(dni.length - 4)}${dni.slice(-2)}`;
 }
 
+// ── Custom Numpad ────────────────────────────────────────────────────────────
+interface NumpadProps {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: () => void;
+  maxLength: number;
+  minLength: number;
+  disabled?: boolean;
+  error?: string;
+  label: string;
+  sublabel?: string;
+}
+
+function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, error, label, sublabel }: NumpadProps) {
+  const handleDigit = useCallback((d: string) => {
+    if (disabled || value.length >= maxLength) return;
+    const next = value + d;
+    onChange(next);
+    if (next.length === maxLength) {
+      setTimeout(() => onSubmit(), 0);
+    }
+  }, [value, maxLength, onChange, onSubmit, disabled]);
+
+  const handleBack = useCallback(() => {
+    if (disabled) return;
+    onChange(value.slice(0, -1));
+  }, [value, onChange, disabled]);
+
+  const handleClear = useCallback(() => {
+    if (disabled) return;
+    onChange('');
+  }, [onChange, disabled]);
+
+  // Keyboard support
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (disabled) return;
+      if (e.key >= '0' && e.key <= '9') handleDigit(e.key);
+      else if (e.key === 'Backspace') handleBack();
+      else if (e.key === 'Enter' && value.length >= minLength) onSubmit();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleDigit, handleBack, value, minLength, onSubmit, disabled]);
+
+  const dots = Array.from({ length: maxLength });
+  const canSubmit = value.length >= minLength;
+
+  return (
+    <div className="flex flex-col items-center w-full">
+      {/* Label */}
+      <p className="text-zinc-400 text-sm font-medium mb-1">{label}</p>
+      {sublabel && <p className="text-zinc-600 text-xs mb-5">{sublabel}</p>}
+
+      {/* Dots display */}
+      <div className="flex items-center justify-center gap-3 mb-6 h-8">
+        {dots.map((_, i) => {
+          const filled = i < value.length;
+          const required = i < minLength;
+          return (
+            <motion.div
+              key={i}
+              animate={filled ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+              transition={{ duration: 0.15 }}
+              className={[
+                'rounded-full transition-all duration-200',
+                filled
+                  ? 'w-4 h-4 bg-white'
+                  : required
+                    ? 'w-3 h-3 bg-zinc-700'
+                    : 'w-2.5 h-2.5 bg-zinc-800',
+              ].join(' ')}
+            />
+          );
+        })}
+      </div>
+
+      {/* Error */}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="text-red-400 text-sm mb-4 text-center"
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+
+      {/* Numpad grid */}
+      <div className="grid grid-cols-3 gap-3 w-full">
+        {['1','2','3','4','5','6','7','8','9'].map(d => (
+          <button
+            key={d}
+            onPointerDown={e => { e.preventDefault(); handleDigit(d); }}
+            disabled={disabled}
+            className="h-16 rounded-2xl bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 active:scale-95 text-white text-2xl font-semibold transition-all select-none touch-manipulation disabled:opacity-40"
+          >
+            {d}
+          </button>
+        ))}
+
+        {/* Clear */}
+        <button
+          onPointerDown={e => { e.preventDefault(); handleClear(); }}
+          disabled={disabled || value.length === 0}
+          className="h-16 rounded-2xl bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 active:scale-95 text-zinc-500 text-xs font-medium transition-all select-none touch-manipulation disabled:opacity-30"
+        >
+          Limpiar
+        </button>
+
+        {/* 0 */}
+        <button
+          onPointerDown={e => { e.preventDefault(); handleDigit('0'); }}
+          disabled={disabled}
+          className="h-16 rounded-2xl bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 active:scale-95 text-white text-2xl font-semibold transition-all select-none touch-manipulation disabled:opacity-40"
+        >
+          0
+        </button>
+
+        {/* Backspace */}
+        <button
+          onPointerDown={e => { e.preventDefault(); handleBack(); }}
+          disabled={disabled || value.length === 0}
+          className="h-16 rounded-2xl bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 active:scale-95 text-zinc-400 transition-all flex items-center justify-center select-none touch-manipulation disabled:opacity-30"
+        >
+          <Delete className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Confirm button — only when minLength ≤ value < maxLength */}
+      <AnimatePresence>
+        {canSubmit && value.length < maxLength && (
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            onPointerDown={e => { e.preventDefault(); onSubmit(); }}
+            disabled={disabled}
+            className="mt-4 w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 active:scale-[0.98] text-white font-semibold text-base transition-all select-none touch-manipulation disabled:opacity-40"
+          >
+            Confirmar
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
 interface UnifiedLoginProps {
   onCajaSetup: () => void;
 }
 
 export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
   const [phase, setPhase] = useState<Phase>('dni');
-  const [dni, setDni] = useState('');
+  const [dniValue, setDniValue] = useState('');
+  const [pinValue, setPinValue] = useState('');
   const [error, setError] = useState('');
-  const [errorType, setErrorType] = useState<'auth' | 'network'>('auth');
   const [loading, setLoading] = useState(false);
-  const [lockoutUntil, setLockoutUntil] = useState<Date | null>(null);
+  const [lockout, setLockout] = useState<Date | null>(null);
 
-  const handleDniSubmit = useCallback((enteredDni: string) => {
-    setDni(enteredDni);
+  const submitDni = useCallback(() => {
+    if (dniValue.length !== 8) return;
     setError('');
+    setPinValue('');
     setPhase('pin');
-  }, []);
+  }, [dniValue]);
 
-  const handlePinSubmit = useCallback(async (pin: string) => {
-    if (lockoutUntil && lockoutUntil > new Date()) return;
+  const submitPin = useCallback(async () => {
+    if (lockout && lockout > new Date()) return;
+    if (pinValue.length < 4) return;
     setError('');
     setLoading(true);
 
@@ -95,55 +239,53 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
           ? safeStorage.getItem('tenant_id') || FALLBACK_TENANT_ID
           : FALLBACK_TENANT_ID;
 
-      const response = await fetch('/api/auth/session', {
+      const res = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dni, pin, allowedRoles: ALL_ROLES, tenant_id: tenantId }),
+        body: JSON.stringify({ dni: dniValue, pin: pinValue, allowedRoles: ALL_ROLES, tenant_id: tenantId }),
         credentials: 'include',
       });
 
-      const data = await response.json();
+      const data = await res.json();
+      setPinValue('');
 
-      if (!response.ok) {
+      if (!res.ok) {
         if (data.errorCode === 'ACCOUNT_LOCKED' && data.lockoutUntil) {
-          setLockoutUntil(new Date(data.lockoutUntil));
+          setLockout(new Date(data.lockoutUntil));
         }
-        setErrorType(response.status >= 500 ? 'network' : 'auth');
         setError(data.error || 'DNI o PIN incorrecto');
         return;
       }
 
-      const employee = data.employee as { id: string; name: string; role: string };
-      const route = getRouteForRole(employee.role);
+      const emp = data.employee as { id: string; name: string; role: string };
+      const route = getRouteForRole(emp.role);
 
-      // For admin roles the cookie is enough — just navigate
-      if (['ADMIN', 'OWNER', 'MANAGER'].includes(employee.role)) {
+      if (['ADMIN', 'OWNER', 'MANAGER'].includes(emp.role)) {
         window.location.href = route;
         return;
       }
 
-      // For operational roles: store TerminalConfig + SecureSession
-      const terminalId = `COLAB_${employee.id.slice(0, 8)}`;
+      const terminalId = `COLAB_${emp.id.slice(0, 8)}`;
       setStoredTerminalConfig({
         terminal_id: terminalId,
         tenant_id: tenantId,
-        actor_id: employee.id,
+        actor_id: emp.id,
         device_fingerprint: '',
-        device_name: employee.name,
-        role: mapToTerminalRole(employee.role),
+        device_name: emp.name,
+        role: mapToTerminalRole(emp.role),
         location_id: 'LOC01',
         is_allowed: true,
         registered_at: new Date().toISOString(),
       });
 
       const now = new Date();
-      const session = {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
         id: uuidv4(),
         terminal_id: terminalId,
-        employee_id: employee.id,
-        employee_name: employee.name,
-        employee_role: employee.role,
-        terminal_role: mapToTerminalRoleStr(employee.role),
+        employee_id: emp.id,
+        employee_name: emp.name,
+        employee_role: emp.role,
+        terminal_role: mapToTerminalRoleStr(emp.role),
         fingerprint_at_login: '',
         fingerprint_signals_at_login: '{}',
         risk_score_at_login: 0,
@@ -151,181 +293,132 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
         last_activity_at: now.toISOString(),
         last_fingerprint_check: now.toISOString(),
         expires_at: new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString(),
-      };
-      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+      }));
 
       window.location.href = route;
     } catch {
-      setErrorType('network');
       setError('Sin conexión al servidor');
+      setPinValue('');
     } finally {
       setLoading(false);
     }
-  }, [dni, lockoutUntil]);
+  }, [dniValue, pinValue, lockout]);
 
-  const handleBackToDni = useCallback(() => {
+  const backToDni = useCallback(() => {
     setPhase('dni');
-    setDni('');
+    setDniValue('');
+    setPinValue('');
     setError('');
-    setLockoutUntil(null);
+    setLockout(null);
   }, []);
 
-  const isLockedOut = lockoutUntil && lockoutUntil > new Date();
-
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/30 via-zinc-950 to-zinc-950" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-900">
+        <div className="flex items-center gap-3">
+          <ParkLogo size={32} />
+          <div>
+            <span className="text-white font-bold tracking-tight text-lg">
+              PARK <span className="text-emerald-500">POS</span>
+            </span>
+            <p className="text-zinc-600 text-xs leading-none mt-0.5">Sistema de Punto de Venta</p>
+          </div>
+        </div>
 
-      {/* Logo */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8 text-center relative z-10"
-      >
-        <motion.div
-          className="inline-block relative mb-4"
-          animate={{
-            filter: [
-              'drop-shadow(0 0 12px rgba(16,185,129,0.25))',
-              'drop-shadow(0 0 24px rgba(16,185,129,0.45))',
-              'drop-shadow(0 0 12px rgba(16,185,129,0.25))',
-            ],
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full scale-150" />
-          <ParkLogo size={64} className="relative z-10" />
-        </motion.div>
-        <h1 className="text-3xl font-black tracking-tight">
-          <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-            PARK
-          </span>
-          <span className="text-white ml-2">POS</span>
-        </h1>
-        <p className="text-zinc-500 text-sm mt-1">Sistema de Punto de Venta</p>
-      </motion.div>
-
-      {/* Card */}
-      <div className="w-full max-w-sm relative z-10">
-        <AnimatePresence mode="wait">
-          {phase === 'dni' ? (
-            <motion.div
-              key="dni"
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            >
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-white">Bienvenido</h2>
-                <p className="text-zinc-500 text-sm mt-1">Ingresa tu DNI para continuar</p>
-              </div>
-
-              <div className="relative">
-                <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-600/40 to-teal-600/40 rounded-2xl" />
-                <div className="relative bg-zinc-900 rounded-2xl p-6">
-                  <PinPad
-                    onSubmit={handleDniSubmit}
-                    disabled={false}
-                    maxLength={8}
-                    minLength={8}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="pin"
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 24 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            >
-              {/* DNI chip + back */}
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <button
-                  onClick={handleBackToDni}
-                  className="flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Cambiar
-                </button>
-                <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  <span className="text-xs text-emerald-400 font-mono tracking-widest">
-                    DNI {maskDni(dni)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-white">Ingresa tu PIN</h2>
-                <p className="text-zinc-500 text-sm mt-1">4 a 6 dígitos</p>
-              </div>
-
-              <div className="relative">
-                <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-600/40 to-teal-600/40 rounded-2xl" />
-                <div className="relative bg-zinc-900 rounded-2xl p-6">
-                  {/* Lockout */}
-                  {isLockedOut && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3"
-                    >
-                      <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                      <p className="text-xs text-red-400">Cuenta bloqueada temporalmente</p>
-                    </motion.div>
-                  )}
-
-                  {/* Network error */}
-                  {error && errorType === 'network' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3"
-                    >
-                      <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
-                      <p className="text-xs text-amber-400">{error}</p>
-                    </motion.div>
-                  )}
-
-                  <PinPad
-                    onSubmit={handlePinSubmit}
-                    disabled={loading || !!isLockedOut}
-                    error={errorType === 'auth' ? error : ''}
-                  />
-
-                  {loading && (
-                    <div className="mt-5 flex justify-center">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {phase === 'pin' && (
+          <button
+            onClick={backToDni}
+            className="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="font-mono text-xs bg-zinc-900 px-2 py-1 rounded-lg">
+              DNI {maskDni(dniValue)}
+            </span>
+          </button>
+        )}
       </div>
 
-      {/* Terminal fijo link */}
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        onClick={onCajaSetup}
-        className="mt-10 flex items-center gap-2 text-xs text-zinc-600 hover:text-zinc-400 transition-colors relative z-10"
-      >
-        <Settings className="w-3.5 h-3.5" />
-        Configurar terminal fijo
-      </motion.button>
+      {/* Main */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
+        <div className="w-full max-w-xs">
+          <AnimatePresence mode="wait">
+            {phase === 'dni' ? (
+              <motion.div
+                key="dni"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="text-center mb-8">
+                  <h2 className="text-white text-2xl font-bold">Bienvenido</h2>
+                  <p className="text-zinc-500 text-sm mt-1">Ingresa tu número de DNI</p>
+                </div>
+                <Numpad
+                  value={dniValue}
+                  onChange={setDniValue}
+                  onSubmit={submitDni}
+                  maxLength={8}
+                  minLength={8}
+                  label="DNI"
+                  sublabel="8 dígitos"
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="pin"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="text-center mb-8">
+                  <h2 className="text-white text-2xl font-bold">Ingresa tu PIN</h2>
+                  <p className="text-zinc-500 text-sm mt-1">
+                    {lockout && lockout > new Date()
+                      ? '🔒 Cuenta bloqueada temporalmente'
+                      : '4 a 6 dígitos'}
+                  </p>
+                </div>
 
-      <p className="mt-4 text-xs text-zinc-700 relative z-10">PARK POS v2.1.1</p>
+                {loading ? (
+                  <div className="flex justify-center py-20">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                      className="w-10 h-10 border-2 border-zinc-700 border-t-emerald-500 rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <Numpad
+                    value={pinValue}
+                    onChange={setPinValue}
+                    onSubmit={submitPin}
+                    maxLength={6}
+                    minLength={4}
+                    disabled={loading || (!!lockout && lockout > new Date())}
+                    error={error}
+                    label="PIN"
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 flex items-center justify-between border-t border-zinc-900">
+        <button
+          onClick={onCajaSetup}
+          className="flex items-center gap-2 text-zinc-700 hover:text-zinc-500 text-xs transition-colors"
+        >
+          <Settings className="w-3.5 h-3.5" />
+          Terminal fija
+        </button>
+        <span className="text-zinc-800 text-xs">v2.1.1</span>
+      </div>
     </div>
   );
 }
