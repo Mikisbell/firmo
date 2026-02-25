@@ -19,7 +19,7 @@ interface EmployeeProfileDrawerProps {
   employeeRole: string;
   terminalId: string;
   terminalRole?: string;
-  sessionCreatedAt?: Date;
+  sessionCreatedAt?: Date | string;
   accentColor: AccentColor;
   onLogout: () => void;
 }
@@ -101,16 +101,17 @@ function getInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-function formatSessionTime(date: Date): string {
+function formatSessionTime(date: Date | string): string {
+  const d = date instanceof Date ? date : new Date(date);
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  const diffMs = now.getTime() - d.getTime();
   const diffMin = Math.floor(diffMs / 60000);
 
   if (diffMin < 1) return 'Ahora mismo';
   if (diffMin < 60) return `hace ${diffMin} min`;
   const diffHrs = Math.floor(diffMin / 60);
   if (diffHrs < 24) return `hace ${diffHrs}h ${diffMin % 60}m`;
-  return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+  return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
 }
 
 function InfoRow({ icon: Icon, label, value }: { icon: typeof Monitor; label: string; value: string }) {
