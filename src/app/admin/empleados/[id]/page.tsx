@@ -2,7 +2,7 @@
 
 /**
  * Edit Employee Page
- * Form to edit employee (name, role, active status - NO PIN field)
+ * Form to edit employee (name, role, active status, optional PIN change)
  * 
  * Requirements: 1.3, 1.4, 1.7, 6.1, 6.2, 6.3, 6.4, 6.5
  * UX Improvements: Toast notifications (P0)
@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Shield, Trash2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Shield, Trash2, CheckCircle2, KeyRound } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
 
@@ -46,6 +46,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
     role: '',
     is_active: true,
   });
+  const [newPin, setNewPin] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,10 +74,15 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
     setError(null);
 
     try {
+      const payload: Record<string, unknown> = { ...form };
+      if (newPin) {
+        payload.pin = newPin;
+      }
+
       const res = await fetch(`/api/admin/employees/${employeeId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -90,8 +96,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
 
       // Mostrar feedback visual de éxito en la misma página
       setSaved(true);
+      setNewPin('');
       toast.success('Empleado actualizado exitosamente', {
-        description: `Los cambios de ${form.name} han sido guardados`,
+        description: `Los cambios de ${form.name} han sido guardados${newPin ? ' (PIN actualizado)' : ''}`,
       });
 
       // Redirigir después de que el usuario vea el feedback
@@ -245,11 +252,29 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
             </p>
           </div>
 
-          {/* PIN notice */}
-          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-            <p className="text-sm text-amber-400">
-              <strong>Nota:</strong> El PIN no se puede cambiar desde esta pantalla por seguridad.
-              Para cambiar el PIN, contacta al administrador del sistema.
+          {/* PIN change */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <KeyRound className="w-4 h-4 inline mr-1" />
+              Cambiar PIN
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              value={newPin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setNewPin(val);
+              }}
+              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+              placeholder="Dejar vacío para no cambiar"
+              minLength={4}
+              maxLength={6}
+              pattern="\d{4,6}"
+              autoComplete="off"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              4-6 dígitos numéricos. Solo se actualiza si ingresas un nuevo PIN.
             </p>
           </div>
 

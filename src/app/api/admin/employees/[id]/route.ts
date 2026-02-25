@@ -5,9 +5,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { cache } from '@/src/core/cache/redis.service';
+
+const SALT = 'PARK_POS_2026_'; // Must match seed.ts and route.ts
+
+function hashPin(pin: string): string {
+  return createHash('sha256').update(SALT + pin).digest('hex');
+}
 
 // Validate UUID format
 function isValidUUID(id: string): boolean {
@@ -90,7 +96,17 @@ export async function PUT(
     }
     
     const body = await request.json();
-    const { name, role, is_active } = body;
+    const { name, role, is_active, pin } = body;
+
+    // Validate PIN format if provided
+    if (pin !== undefined) {
+      if (typeof pin !== 'string' || !/^\d{4,6}$/.test(pin)) {
+        return NextResponse.json(
+          { error: 'PIN debe ser de 4-6 dígitos numéricos' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Check employee exists and belongs to tenant
     const existing = await prisma.employees.findFirst({
@@ -118,6 +134,27 @@ export async function PUT(
       }
     }
 
+    // If PIN is being changed, check uniqueness within tenant
+    let pin_hash: string | undefined;
+    if (pin) {
+      pin_hash = hashPin(pin);
+      const existingPin = await prisma.employees.findFirst({
+        where: {
+          tenant_id: tenantId,
+          pin_hash,
+          is_active: true,
+          id: { not: id }, // Exclude self
+        },
+      });
+
+      if (existingPin) {
+        return NextResponse.json(
+          { error: 'Este PIN ya está en uso por otro empleado' },
+          { status: 409 }
+        );
+      }
+    }
+
     // Update employee in transaction with audit trail
     const updated = await prisma.$transaction(async (tx: any) => {
       const updatedEmployee = await tx.employees.update({
@@ -126,10 +163,11 @@ export async function PUT(
           ...(name && { name }),
           ...(role && { role }),
           ...(typeof is_active === 'boolean' && { is_active }),
+          ...(pin_hash && { pin_hash }),
         },
       });
 
-      // Log audit trail
+      // Log audit trail (never log the PIN itself)
       await tx.admin_access_logs.create({
         data: {
           id: randomUUID(),
@@ -137,9 +175,9 @@ export async function PUT(
           employee_id: authResult.user.id,
           action: 'UPDATE',
           resource: 'employees',
-          metadata: { 
+          metadata: {
             record_id: id,
-            changes: { name, role, is_active },
+            changes: { name, role, is_active, pin_changed: !!pin },
           },
           created_at: new Date(),
         },
