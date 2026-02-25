@@ -52,6 +52,7 @@ interface Employee {
   role: string;
   is_active: boolean;
   pin_hash?: string;
+  dni?: string | null;
 }
 
 interface Station {

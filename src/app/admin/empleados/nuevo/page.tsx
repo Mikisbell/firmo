@@ -11,7 +11,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Shield, Lock } from 'lucide-react';
+import { ArrowLeft, Shield, Lock, CreditCard } from 'lucide-react';
 
 const ROLE_OPTIONS = [
   { value: 'OWNER', label: 'Dueño' },
@@ -31,6 +31,7 @@ export default function NewEmployeePage() {
     role: 'WAITER',
     pin: '',
     is_active: true,
+    dni: '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +107,31 @@ export default function NewEmployeePage() {
               required
               maxLength={100}
             />
+          </div>
+
+          {/* DNI */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <CreditCard className="w-4 h-4 inline mr-1" />
+              DNI
+              <span className="text-zinc-500 font-normal ml-1">(para login)</span>
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={form.dni}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+                setForm({ ...form, dni: val });
+              }}
+              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono tracking-widest"
+              placeholder="12345678"
+              maxLength={8}
+              pattern="\d{8}"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              8 dígitos. El empleado lo usará junto a su PIN para ingresar.
+            </p>
           </div>
 
           {/* Role */}

@@ -96,7 +96,17 @@ export async function PUT(
     }
     
     const body = await request.json();
-    const { name, role, is_active, pin } = body;
+    const { name, role, is_active, pin, dni } = body;
+
+    // Validate DNI format if provided
+    if (dni !== undefined && dni !== null && dni !== '') {
+      if (typeof dni !== 'string' || !/^\d{8}$/.test(dni)) {
+        return NextResponse.json(
+          { error: 'DNI debe tener exactamente 8 dígitos numéricos' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Validate PIN format if provided
     if (pin !== undefined) {
@@ -164,6 +174,7 @@ export async function PUT(
           ...(role && { role }),
           ...(typeof is_active === 'boolean' && { is_active }),
           ...(pin_hash && { pin_hash }),
+          ...(dni !== undefined && { dni: dni || null }),
         },
       });
 

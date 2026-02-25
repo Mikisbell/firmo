@@ -199,7 +199,7 @@ async function handlePOST(request: NextRequest) {
     
     // ✅ PASO 4: Validate with Zod
     const validatedData = CreateEmployeeSchema.parse(body);
-    const { name, role, pin, is_active = true } = validatedData;
+    const { name, role, pin, dni, is_active = true } = validatedData;
 
     // Hash PIN
     const pin_hash = hashPin(pin);
@@ -238,6 +238,7 @@ async function handlePOST(request: NextRequest) {
           role,
           pin_hash,
           is_active,
+          ...(dni ? { dni } : {}),
         },
       });
 
