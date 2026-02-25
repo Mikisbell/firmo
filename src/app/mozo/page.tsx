@@ -7,9 +7,12 @@ import { useWaiterNotifications } from "./hooks/useWaiterNotifications";
 import { NotificationPanel } from "./components/NotificationPanel";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCents } from "@/src/core/domain/money";
-import { Users, Utensils, Clock, ClipboardList, Wifi, WifiOff, LogOut, Home, Bell, AlertTriangle, Receipt, Settings } from "lucide-react";
+import { Users, Utensils, Clock, ClipboardList, Wifi, WifiOff, Home, Bell, AlertTriangle, Receipt, Settings } from "lucide-react";
 import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
 import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
+import { useAuth } from "@/src/components/auth";
+import { EmployeeProfileButton } from "@/src/components/shared/EmployeeProfileButton";
+import { EmployeeProfileDrawer } from "@/src/components/shared/EmployeeProfileDrawer";
 import { useResponsive } from "@/src/hooks/useResponsive";
 import { MobileHeader, HeaderSpacer } from "@/src/components/ui/MobileHeader";
 import { BottomNavigation, BottomNavItem } from "@/src/components/ui/BottomNavigation";
@@ -102,10 +105,12 @@ function getTableColors(status: TableStatus, elapsedMinutes?: number) {
 export default function WaiterPage() {
     const router = useRouter();
     const { isLoading, isAuthenticated } = useRequireTerminal();
+    const { session, terminal, logout: authLogout } = useAuth();
     const { zones: apiZones, loading: zonesLoading } = useZones();
     const [selectedZoneId, setSelectedZoneId] = useState<string | null>("all"); // "all" = todas las zonas
     const { isMobile, isTablet } = useResponsive();
     const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
     
     // Hook de notificaciones
     const { unreadCount, readyItemsCount } = useWaiterNotifications();
@@ -119,8 +124,9 @@ export default function WaiterPage() {
     // All hooks MUST be called before any early return (React rules of hooks)
     const handleExit = useCallback(() => {
         clearTerminalConfig();
+        authLogout();
         router.push("/");
-    }, [router]);
+    }, [router, authLogout]);
 
     const handleHome = useCallback(() => {
         router.push("/");
@@ -176,6 +182,15 @@ export default function WaiterPage() {
                             </div>
                         }
                         rightActions={[
+                            session && (
+                                <EmployeeProfileButton
+                                    key="profile"
+                                    employeeName={session.employee_name}
+                                    accentColor="violet"
+                                    onClick={() => setProfileOpen(true)}
+                                    compact
+                                />
+                            ),
                             <button
                                 key="notifications"
                                 onClick={toggleNotificationPanel}
@@ -267,6 +282,15 @@ export default function WaiterPage() {
                             <span className="text-xs font-bold uppercase tracking-wider">{isOnline ? 'LIVE' : 'OFFLINE'}</span>
                         </div>
 
+                        {/* Employee Profile Button */}
+                        {session && (
+                            <EmployeeProfileButton
+                                employeeName={session.employee_name}
+                                accentColor="violet"
+                                onClick={() => setProfileOpen(true)}
+                            />
+                        )}
+
                         {/* Home Button */}
                         <button
                             onClick={handleHome}
@@ -274,16 +298,6 @@ export default function WaiterPage() {
                             title="Ir al inicio"
                         >
                             <Home size={18} />
-                        </button>
-
-                        {/* Exit Button */}
-                        <button
-                            onClick={handleExit}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors border border-red-500/30"
-                            title="Cerrar sesión"
-                        >
-                            <LogOut size={18} />
-                            <span className="text-sm font-medium">Cerrar sesión</span>
                         </button>
                     </div>
                 </header>
@@ -470,9 +484,22 @@ export default function WaiterPage() {
             <BottomNavigation items={navItems} activeId="mesas" />
 
             {/* Notification Panel */}
-            <NotificationPanel 
-                isOpen={notificationPanelOpen} 
-                onClose={() => setNotificationPanelOpen(false)} 
+            <NotificationPanel
+                isOpen={notificationPanelOpen}
+                onClose={() => setNotificationPanelOpen(false)}
+            />
+
+            {/* Employee Profile Drawer */}
+            <EmployeeProfileDrawer
+                isOpen={profileOpen}
+                onClose={() => setProfileOpen(false)}
+                employeeName={session?.employee_name ?? ''}
+                employeeRole={session?.employee_role ?? ''}
+                terminalId={terminal?.terminal_id ?? ''}
+                terminalRole={session?.terminal_role}
+                sessionCreatedAt={session?.created_at}
+                accentColor="violet"
+                onLogout={handleExit}
             />
         </div>
     );

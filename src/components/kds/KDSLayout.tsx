@@ -44,6 +44,7 @@ export interface KDSLayoutProps {
     // Optional
     showHomeButton?: boolean;
     showExitButton?: boolean;
+    employeeSlot?: ReactNode;
 }
 
 // Color schemes for different KDS stations
@@ -163,6 +164,7 @@ export function KDSLayout({
     hasTickets,
     showHomeButton = true,
     showExitButton = true,
+    employeeSlot,
 }: KDSLayoutProps) {
     const router = useRouter();
     const colors = colorSchemes[accentColor];
@@ -233,6 +235,9 @@ export function KDSLayout({
                         <Clock size={14} className="md:w-4 md:h-4" />
                         <span className="text-base md:text-lg">{currentTime}</span>
                     </div>
+
+                    {/* Employee Profile Slot */}
+                    {employeeSlot}
 
                     {/* Home Button */}
                     {showHomeButton && (

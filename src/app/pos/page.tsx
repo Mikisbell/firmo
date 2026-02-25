@@ -11,7 +11,9 @@ import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
-import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, LogOut, User, Receipt, Truck, Plus } from "lucide-react";
+import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, Receipt, Truck, Plus } from "lucide-react";
+import { EmployeeProfileButton } from "@/src/components/shared/EmployeeProfileButton";
+import { EmployeeProfileDrawer } from "@/src/components/shared/EmployeeProfileDrawer";
 import { ParkLogo } from "@/src/components/icons";
 import { toast, Toaster } from "sonner";
 import { getDb } from "@/src/core/db/schema";
@@ -38,6 +40,7 @@ export default function POSPage() {
     const activeSale = projections?.activeSale ?? null;
     const shift = projections?.shift ?? null;
 
+    const [profileOpen, setProfileOpen] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [currentOrder, setCurrentOrder] = useState<{ order_id: string; check_id: string } | null>(null);
     const [selectedCheckId, setSelectedCheckId] = useState<string>("c1");
@@ -402,19 +405,13 @@ export default function POSPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {/* Employee Info & Logout */}
+                        {/* Employee Profile Button */}
                         {session && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700">
-                                <User size={14} className="text-zinc-400" />
-                                <span className="text-sm text-zinc-300">{session.employee_name}</span>
-                                <button
-                                    onClick={logout}
-                                    className="ml-2 p-1 rounded hover:bg-zinc-700 text-zinc-400 hover:text-red-400 transition-colors"
-                                    title="Cerrar sesión"
-                                >
-                                    <LogOut size={14} />
-                                </button>
-                            </div>
+                            <EmployeeProfileButton
+                                employeeName={session.employee_name}
+                                accentColor="emerald"
+                                onClick={() => setProfileOpen(true)}
+                            />
                         )}
 
                         {/* Shift Status */}
@@ -634,6 +631,19 @@ export default function POSPage() {
                     </div>
                 )}
             </div>
+
+            {/* Employee Profile Drawer */}
+            <EmployeeProfileDrawer
+                isOpen={profileOpen}
+                onClose={() => setProfileOpen(false)}
+                employeeName={session?.employee_name ?? ''}
+                employeeRole={session?.employee_role ?? ''}
+                terminalId={terminal?.terminal_id ?? ''}
+                terminalRole={session?.terminal_role}
+                sessionCreatedAt={session?.created_at}
+                accentColor="emerald"
+                onLogout={logout}
+            />
         </div>
     );
 }
