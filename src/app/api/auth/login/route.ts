@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       prisma,
       data.tenant_id,
       data.pin,
-      ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'DRIVER', 'BAR'], // All roles allowed
+      ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'BAR', 'DELIVERY', 'DRIVER'], // All POS roles allowed
       {
         ip,
         userAgent,
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
         console.log('[Login API] Terminal not found:', data.terminal_id);
         return NextResponse.json(
           { error: 'Terminal no registrado' },
-          { status: 401 }
+          { status: 403 }
         );
       }
 
