@@ -60,7 +60,7 @@ function maskDni(dni: string): string {
 interface NumpadProps {
   value: string;
   onChange: (v: string) => void;
-  onSubmit: () => void;
+  onSubmit: (currentValue: string) => void;
   maxLength: number;
   minLength: number;
   disabled?: boolean;
@@ -74,8 +74,9 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
     if (disabled || value.length >= maxLength) return;
     const next = value + d;
     onChange(next);
+    // Auto-submit passing the fresh value directly — avoids stale closure
     if (next.length === maxLength) {
-      setTimeout(() => onSubmit(), 0);
+      onSubmit(next);
     }
   }, [value, maxLength, onChange, onSubmit, disabled]);
 
@@ -95,7 +96,7 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
       if (disabled) return;
       if (e.key >= '0' && e.key <= '9') handleDigit(e.key);
       else if (e.key === 'Backspace') handleBack();
-      else if (e.key === 'Enter' && value.length >= minLength) onSubmit();
+      else if (e.key === 'Enter' && value.length >= minLength) onSubmit(value);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -195,7 +196,7 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            onPointerDown={e => { e.preventDefault(); onSubmit(); }}
+            onPointerDown={e => { e.preventDefault(); onSubmit(value); }}
             disabled={disabled}
             className="mt-4 w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 active:scale-[0.98] text-white font-semibold text-base transition-all select-none touch-manipulation disabled:opacity-40"
           >
@@ -221,8 +222,8 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
   const [loading, setLoading] = useState(false);
   const [lockout, setLockout] = useState<Date | null>(null);
 
-  const submitDni = useCallback(async () => {
-    if (dniValue.length !== 8) return;
+  const submitDni = useCallback(async (currentValue: string) => {
+    if (currentValue.length !== 8) return;
     setError('');
     setPhase('checking_dni');
 
@@ -235,7 +236,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       const res = await fetch('/api/auth/check-dni', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dni: dniValue, tenant_id: tenantId }),
+        body: JSON.stringify({ dni: currentValue, tenant_id: tenantId }),
       });
       const data = await res.json();
 
@@ -253,11 +254,11 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       setPinValue('');
       setPhase('pin');
     }
-  }, [dniValue]);
+  }, []);
 
-  const submitPin = useCallback(async () => {
+  const submitPin = useCallback(async (currentValue: string) => {
     if (lockout && lockout > new Date()) return;
-    if (pinValue.length < 4) return;
+    if (currentValue.length < 4) return;
     setError('');
     setLoading(true);
 
@@ -270,7 +271,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       const res = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dni: dniValue, pin: pinValue, allowedRoles: ALL_ROLES, tenant_id: tenantId }),
+        body: JSON.stringify({ dni: dniValue, pin: currentValue, allowedRoles: ALL_ROLES, tenant_id: tenantId }),
         credentials: 'include',
       });
 
@@ -330,7 +331,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
     } finally {
       setLoading(false);
     }
-  }, [dniValue, pinValue, lockout]);
+  }, [dniValue, lockout]);
 
   const backToDni = useCallback(() => {
     setPhase('dni');
