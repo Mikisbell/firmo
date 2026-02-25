@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 export type EmployeeRole =
   | 'OWNER' | 'ADMIN' | 'MANAGER' | 'SUPERVISOR'
   | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'COOK' | 'PACKER' | 'BAR'
-  | 'DRIVER' | 'DELIVERY';
+  | 'DRIVER';
 export type TerminalRole = 'CAJA' | 'MOZO' | 'KDS_COCINA' | 'KDS_HORNO' | 'KDS_BAR';
 
 export interface Employee {

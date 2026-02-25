@@ -20,7 +20,6 @@ export const EmployeeRoleSchema = z.enum([
   "PACKER",
   "BAR",
   "DRIVER",
-  "DELIVERY",
 ]);
 
 export type EmployeeRole = z.infer<typeof EmployeeRoleSchema>;

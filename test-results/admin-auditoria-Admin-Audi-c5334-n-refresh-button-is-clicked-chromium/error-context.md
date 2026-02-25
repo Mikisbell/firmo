@@ -2,38 +2,41 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - generic [ref=e4]:
-    - generic [ref=e5]:
-      - generic [ref=e6]:
-        - img [ref=e8]
-        - heading "Acceso al Panel de Administración" [level=2] [ref=e11]
-      - button [ref=e12]:
-        - img [ref=e13]
-    - paragraph [ref=e17]: "Roles permitidos: OWNER, ADMIN, MANAGER"
-    - generic [ref=e24]:
-      - button "1" [ref=e25]
-      - button "2" [ref=e26]
-      - button "3" [ref=e27]
-      - button "4" [ref=e28]
-      - button "5" [ref=e29]
-      - button "6" [ref=e30]
-      - button "7" [ref=e31]
-      - button "8" [ref=e32]
-      - button "9" [ref=e33]
-      - button "Borrar" [ref=e34]
-      - button "0" [ref=e35]
-      - button "⌫" [ref=e36]
+  - generic [ref=e2]:
+    - banner [ref=e6]:
+      - generic [ref=e9]:
+        - button [ref=e10]:
+          - img [ref=e11]
+        - img "PARK POS" [ref=e15]
+        - generic [ref=e21]:
+          - heading "PARKPOS" [level=1] [ref=e22]
+          - paragraph [ref=e23]: Panel de Administración
+    - main [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - img [ref=e31]
+          - heading "Acceso Administrativo" [level=2] [ref=e33]
+          - generic [ref=e34]:
+            - img [ref=e35]
+            - paragraph [ref=e38]: Ingresa tu PIN de 4 dígitos
+            - img [ref=e39]
+        - generic [ref=e44]:
+          - paragraph [ref=e46]: Owner • Admin • Manager
+          - generic [ref=e53]:
+            - button "1" [ref=e54]
+            - button "2" [ref=e55]
+            - button "3" [ref=e56]
+            - button "4" [ref=e57]
+            - button "5" [ref=e58]
+            - button "6" [ref=e59]
+            - button "7" [ref=e60]
+            - button "8" [ref=e61]
+            - button "9" [ref=e62]
+            - button "Borrar" [ref=e63]
+            - button "0" [ref=e64]
+            - button "⌫" [ref=e65]
+    - contentinfo [ref=e66]:
+      - paragraph [ref=e67]: PARK POS•v2.1.1•Sistema de Punto de Venta
   - region "Notifications alt+T"
-  - generic [ref=e41] [cursor=pointer]:
-    - button "Open Next.js Dev Tools" [ref=e42]:
-      - img [ref=e43]
-    - generic [ref=e46]:
-      - button "Open issues overlay" [ref=e47]:
-        - generic [ref=e48]:
-          - generic [ref=e49]: "0"
-          - generic [ref=e50]: "1"
-        - generic [ref=e51]: Issue
-      - button "Collapse issues badge" [ref=e52]:
-        - img [ref=e53]
-  - alert [ref=e55]
+  - alert [ref=e68]
 ```

@@ -27,7 +27,5 @@
         - button "⌫" [ref=e30]
     - generic [ref=e32]: Online
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e39] [cursor=pointer]:
-    - img [ref=e40]
-  - alert [ref=e43]
+  - alert [ref=e34]
 ```

@@ -1,0 +1,212 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T"
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "PARK POS" [ref=e6]
+          - generic [ref=e12]: PARK
+          - generic [ref=e13]: POS
+        - generic [ref=e14]:
+          - link "Funcionalidades" [ref=e15] [cursor=pointer]:
+            - /url: "#features"
+          - link "Precios" [ref=e16] [cursor=pointer]:
+            - /url: "#pricing"
+          - link "Demo Gratis" [ref=e17] [cursor=pointer]:
+            - /url: "#demo"
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - img [ref=e23]
+          - text: Sistema POS para Pollerías y Parrilleras
+        - heading "Tu pollería merece un POS de verdad" [level=1] [ref=e25]
+        - paragraph [ref=e26]: PARK POS es el sistema todo-en-uno diseñado para pollerías peruanas. Vende offline, emite boletas SUNAT, controla tu cocina y gestiona tu personal.
+        - generic [ref=e27]:
+          - link "Solicitar Demo Gratis" [ref=e28] [cursor=pointer]:
+            - /url: "#demo"
+            - text: Solicitar Demo Gratis
+            - img [ref=e29]
+          - link "Ver Funcionalidades" [ref=e31] [cursor=pointer]:
+            - /url: "#features"
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - img [ref=e34]
+          - text: Offline-first
+        - generic [ref=e37]:
+          - img [ref=e38]
+          - text: Facturación SUNAT
+        - generic [ref=e41]:
+          - img [ref=e42]
+          - text: Multi-terminal
+        - generic [ref=e45]:
+          - img [ref=e46]
+          - text: Hecho en Perú
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - heading "Todo lo que tu negocio necesita" [level=2] [ref=e52]
+        - paragraph [ref=e53]: Diseñado específicamente para pollerías y parrilleras peruanas
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - img [ref=e57]
+          - heading "Funciona Sin Internet" [level=3] [ref=e64]
+          - paragraph [ref=e65]: "Offline-first: sigue vendiendo cuando la conexión falla. Se sincroniza automáticamente al reconectarse."
+        - generic [ref=e66]:
+          - img [ref=e68]
+          - heading "Multi-Terminal" [level=3] [ref=e70]
+          - paragraph [ref=e71]: Caja, meseros, cocina, barra — cada estación en su dispositivo con su vista especializada.
+        - generic [ref=e72]:
+          - img [ref=e74]
+          - heading "Facturación SUNAT" [level=3] [ref=e77]
+          - paragraph [ref=e78]: Boletas y facturas electrónicas integradas. Cumple con la normativa de SUNAT al 100%.
+        - generic [ref=e79]:
+          - img [ref=e81]
+          - heading "Inventario FEFO" [level=3] [ref=e85]
+          - paragraph [ref=e86]: Control de stock con expiración. Auto-86 cuando un insumo se agota. Alertas automáticas.
+        - generic [ref=e87]:
+          - img [ref=e89]
+          - heading "Gestión de Personal" [level=3] [ref=e94]
+          - paragraph [ref=e95]: Horarios, asistencia, nómina, permisos, adelantos, evaluaciones — todo en un solo lugar.
+        - generic [ref=e96]:
+          - img [ref=e98]
+          - heading "KDS Cocina" [level=3] [ref=e100]
+          - paragraph [ref=e101]: Pantalla de cocina en tiempo real. Control de cursos, tiempos por plato y fire control.
+        - generic [ref=e102]:
+          - img [ref=e104]
+          - heading "Reportes en Vivo" [level=3] [ref=e107]
+          - paragraph [ref=e108]: "Dashboard con KPIs del día: ventas, ticket promedio, top productos, distribución por hora."
+        - generic [ref=e109]:
+          - img [ref=e111]
+          - heading "Seguridad Avanzada" [level=3] [ref=e113]
+          - paragraph [ref=e114]: Fingerprint de dispositivo, validación MAC, rate limiting. Tu negocio protegido.
+    - generic [ref=e116]:
+      - generic [ref=e117]:
+        - heading "Planes simples, sin sorpresas" [level=2] [ref=e118]
+        - paragraph [ref=e119]: Todos los precios en soles peruanos. Sin contratos de permanencia.
+      - generic [ref=e120]:
+        - generic [ref=e121]:
+          - heading "Básico" [level=3] [ref=e122]
+          - paragraph [ref=e123]: Para pollerías con 1-2 cajas
+          - generic [ref=e124]:
+            - generic [ref=e125]: S/ 149
+            - text: /mes
+          - list [ref=e126]:
+            - listitem [ref=e127]:
+              - img [ref=e128]
+              - generic [ref=e131]: 1 terminal POS
+            - listitem [ref=e132]:
+              - img [ref=e133]
+              - generic [ref=e136]: Facturación SUNAT
+            - listitem [ref=e137]:
+              - img [ref=e138]
+              - generic [ref=e141]: Inventario básico
+            - listitem [ref=e142]:
+              - img [ref=e143]
+              - generic [ref=e146]: Soporte por email
+          - link "Empezar Gratis" [ref=e147] [cursor=pointer]:
+            - /url: "#demo"
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - img [ref=e150]
+            - text: Más Popular
+          - heading "Pro" [level=3] [ref=e152]
+          - paragraph [ref=e153]: Para restaurantes en crecimiento
+          - generic [ref=e154]:
+            - generic [ref=e155]: S/ 299
+            - text: /mes
+          - list [ref=e156]:
+            - listitem [ref=e157]:
+              - img [ref=e158]
+              - generic [ref=e161]: 5 terminales
+            - listitem [ref=e162]:
+              - img [ref=e163]
+              - generic [ref=e166]: Facturación + Delivery
+            - listitem [ref=e167]:
+              - img [ref=e168]
+              - generic [ref=e171]: RRHH completo
+            - listitem [ref=e172]:
+              - img [ref=e173]
+              - generic [ref=e176]: KDS Cocina
+            - listitem [ref=e177]:
+              - img [ref=e178]
+              - generic [ref=e181]: Reportes avanzados
+            - listitem [ref=e182]:
+              - img [ref=e183]
+              - generic [ref=e186]: Soporte prioritario
+          - link "Solicitar Demo" [ref=e187] [cursor=pointer]:
+            - /url: "#demo"
+        - generic [ref=e188]:
+          - heading "Enterprise" [level=3] [ref=e189]
+          - paragraph [ref=e190]: Para cadenas y franquicias
+          - generic [ref=e191]: Contactar
+          - list [ref=e192]:
+            - listitem [ref=e193]:
+              - img [ref=e194]
+              - generic [ref=e197]: Terminales ilimitados
+            - listitem [ref=e198]:
+              - img [ref=e199]
+              - generic [ref=e202]: Multi-local
+            - listitem [ref=e203]:
+              - img [ref=e204]
+              - generic [ref=e207]: API personalizada
+            - listitem [ref=e208]:
+              - img [ref=e209]
+              - generic [ref=e212]: Integraciones a medida
+            - listitem [ref=e213]:
+              - img [ref=e214]
+              - generic [ref=e217]: SLA garantizado
+            - listitem [ref=e218]:
+              - img [ref=e219]
+              - generic [ref=e222]: Gerente de cuenta
+          - link "Contactar Ventas" [ref=e223] [cursor=pointer]:
+            - /url: "#demo"
+    - generic [ref=e225]:
+      - generic [ref=e226]:
+        - heading "Solicitar Demo Gratis" [level=2] [ref=e227]
+        - paragraph [ref=e228]: Te mostramos PARK POS funcionando con los datos de tu negocio
+      - generic [ref=e229]:
+        - generic [ref=e230]:
+          - generic [ref=e231]: Nombre completo *
+          - textbox "Juan Pérez" [ref=e232]
+        - generic [ref=e233]:
+          - generic [ref=e234]: Email *
+          - generic [ref=e235]:
+            - img [ref=e236]
+            - textbox "juan@mirestaurante.com" [ref=e239]
+        - generic [ref=e240]:
+          - generic [ref=e241]: Nombre del restaurante *
+          - generic [ref=e242]:
+            - img [ref=e243]
+            - textbox "Pollería El Sabrosón" [ref=e247]
+        - generic [ref=e248]:
+          - generic [ref=e249]: Teléfono (opcional)
+          - generic [ref=e250]:
+            - img [ref=e251]
+            - textbox "987 654 321" [ref=e253]
+        - button "Solicitar Demo" [disabled] [ref=e254]:
+          - img [ref=e255]
+          - text: Solicitar Demo
+    - contentinfo [ref=e258]:
+      - generic [ref=e259]:
+        - generic [ref=e260]:
+          - generic [ref=e261]:
+            - img "PARK POS" [ref=e262]
+            - generic [ref=e268]: PARK
+            - generic [ref=e269]: POS
+          - generic [ref=e270]:
+            - link "WhatsApp" [ref=e271] [cursor=pointer]:
+              - /url: https://wa.me/51999999999
+              - img "WhatsApp" [ref=e272]
+            - link "Instagram" [ref=e274] [cursor=pointer]:
+              - /url: https://instagram.com/parkpos
+              - img "Instagram" [ref=e275]
+            - link "Facebook" [ref=e277] [cursor=pointer]:
+              - /url: https://facebook.com/parkpos
+              - img "Facebook" [ref=e278]
+          - paragraph [ref=e280]: © 2026 PARK POS
+        - paragraph [ref=e281]: Hecho con dedicación en Perú. Sistema POS para pollerías y parrilleras.
+  - region "Notifications alt+T"
+  - alert [ref=e282]
+```

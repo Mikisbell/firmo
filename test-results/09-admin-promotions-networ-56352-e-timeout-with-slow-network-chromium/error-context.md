@@ -4,4 +4,5 @@
 - generic [active] [ref=e1]:
   - generic [ref=e3]: Cargando...
   - region "Notifications alt+T"
+  - alert [ref=e4]
 ```

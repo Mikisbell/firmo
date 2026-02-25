@@ -25,7 +25,7 @@ const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
 const COLLAB_ROLES = [
   'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'CASHIER',
-  'DRIVER', 'DELIVERY',
+  'DRIVER',
 ];
 
 type Phase = 'dni' | 'pin';
@@ -36,7 +36,7 @@ function getRouteForRole(role: string): string {
     case 'KITCHEN': case 'COOK': case 'PACKER': return '/cocina';
     case 'BAR':      return '/bar';
     case 'CASHIER':  return '/pos';
-    case 'DRIVER': case 'DELIVERY': return '/delivery';
+    case 'DRIVER':  return '/delivery';
     default:         return '/';
   }
 }
@@ -47,7 +47,7 @@ function mapToTerminalRole(employeeRole: string): string {
     case 'KITCHEN': case 'COOK': case 'PACKER': return 'KDS_COCINA';
     case 'BAR':      return 'KDS_BAR';
     case 'CASHIER':  return 'CAJA';
-    case 'DRIVER': case 'DELIVERY': return 'MOZO';
+    case 'DRIVER':  return 'MOZO';
     default:         return 'MOZO';
   }
 }

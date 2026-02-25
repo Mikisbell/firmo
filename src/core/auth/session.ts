@@ -96,7 +96,6 @@ const ROLE_HIERARCHY: Record<AuthSession['employee_role'], number> = {
   PACKER:      35,
   BAR:         40,
   DRIVER:      20,
-  DELIVERY:    20,
 };
 
 export function hasMinimumRole(

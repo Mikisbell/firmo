@@ -26,7 +26,7 @@ const SESSION_STORAGE_KEY = 'park_session_v2';
 const ALL_ROLES = [
   'OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR',
   'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR',
-  'DRIVER', 'DELIVERY',
+  'DRIVER',
 ];
 
 type Phase = 'dni' | 'checking_dni' | 'pin';
@@ -38,7 +38,7 @@ function getRouteForRole(role: string): string {
     case 'WAITER':   return '/mozo';
     case 'KITCHEN': case 'COOK': case 'PACKER': return '/cocina';
     case 'BAR':      return '/bar';
-    case 'DRIVER': case 'DELIVERY': return '/delivery';
+    case 'DRIVER':   return '/delivery';
     default:         return '/';
   }
 }
@@ -58,7 +58,7 @@ function mapToTerminalRoleStr(role: string): string {
     case 'KITCHEN': case 'COOK': case 'PACKER': return 'KDS_COCINA';
     case 'BAR':      return 'KDS_BAR';
     case 'CASHIER':  return 'CAJA';
-    case 'DRIVER': case 'DELIVERY': return 'MOZO'; // no hay terminal específico de delivery
+    case 'DRIVER':   return 'MOZO'; // no hay terminal KDS específico de motorizado
     default:         return 'MOZO';
   }
 }

@@ -20,113 +20,177 @@
           - /url: /admin/productos
           - img [ref=e25]
           - generic [ref=e29]: Productos
-        - link "Mesas" [ref=e31] [cursor=pointer]:
-          - /url: /admin/mesas
+        - link "Recetas" [ref=e31] [cursor=pointer]:
+          - /url: /admin/recetas
           - img [ref=e32]
-          - generic [ref=e34]: Mesas
-        - link "Empleados" [ref=e36] [cursor=pointer]:
-          - /url: /admin/empleados
+          - generic [ref=e34]: Recetas
+        - link "Control Pollo" [ref=e36] [cursor=pointer]:
+          - /url: /admin/pollo-control
           - img [ref=e37]
-          - generic [ref=e42]: Empleados
-        - link "Terminales" [ref=e44] [cursor=pointer]:
+          - generic [ref=e39]: Control Pollo
+        - link "Mesas" [ref=e41] [cursor=pointer]:
+          - /url: /admin/mesas
+          - img [ref=e42]
+          - generic [ref=e44]: Mesas
+        - link "QR Mesas" [ref=e46] [cursor=pointer]:
+          - /url: /admin/mesas/qr
+          - img [ref=e47]
+          - generic [ref=e53]: QR Mesas
+        - link "Operaciones Mesa" [ref=e55] [cursor=pointer]:
+          - /url: /admin/mesas/operaciones
+          - img [ref=e56]
+          - generic [ref=e61]: Operaciones Mesa
+        - link "Empleados" [ref=e63] [cursor=pointer]:
+          - /url: /admin/empleados
+          - img [ref=e64]
+          - generic [ref=e69]: Empleados
+        - link "Recursos Humanos" [ref=e71] [cursor=pointer]:
+          - /url: /admin/hr
+          - img [ref=e72]
+          - generic [ref=e75]: Recursos Humanos
+        - link "Terminales" [ref=e77] [cursor=pointer]:
           - /url: /admin/terminales
-          - img [ref=e45]
-          - generic [ref=e47]: Terminales
-        - link "Auditoría" [ref=e49] [cursor=pointer]:
+          - img [ref=e78]
+          - generic [ref=e80]: Terminales
+        - link "Auditoría" [ref=e82] [cursor=pointer]:
           - /url: /admin/auditoria
-          - img [ref=e50]
-          - generic [ref=e52]: Auditoría
-        - link "Promociones" [ref=e54] [cursor=pointer]:
-          - /url: /admin/promociones
-          - img [ref=e55]
-          - generic [ref=e59]: Promociones
-        - link "Estaciones KDS" [ref=e61] [cursor=pointer]:
-          - /url: /admin/estaciones
-          - img [ref=e62]
-          - generic [ref=e64]: Estaciones KDS
-        - link "Delivery" [ref=e66] [cursor=pointer]:
-          - /url: /admin/delivery
-          - img [ref=e67]
-          - generic [ref=e72]: Delivery
-        - link "Motorizados" [ref=e74] [cursor=pointer]:
-          - /url: /admin/drivers
-          - img [ref=e75]
-          - generic [ref=e80]: Motorizados
-        - link "Inventario" [ref=e82] [cursor=pointer]:
-          - /url: /inventario
           - img [ref=e83]
-          - generic [ref=e86]: Inventario
-        - link "Monitoreo" [ref=e88] [cursor=pointer]:
-          - /url: /admin/monitoring
-          - img [ref=e89]
-          - generic [ref=e91]: Monitoreo
-        - link "Configuración" [ref=e93] [cursor=pointer]:
-          - /url: /admin/configuracion
-          - img [ref=e94]
-          - generic [ref=e97]: Configuración
-        - link "Reportes" [ref=e99] [cursor=pointer]:
-          - /url: /admin/reportes
+          - generic [ref=e85]: Auditoría
+        - link "Promociones" [ref=e87] [cursor=pointer]:
+          - /url: /admin/promociones
+          - img [ref=e88]
+          - generic [ref=e92]: Promociones
+        - link "Estaciones KDS" [ref=e94] [cursor=pointer]:
+          - /url: /admin/estaciones
+          - img [ref=e95]
+          - generic [ref=e97]: Estaciones KDS
+        - link "Delivery" [ref=e99] [cursor=pointer]:
+          - /url: /admin/delivery
           - img [ref=e100]
-          - generic [ref=e102]: Reportes
-      - paragraph [ref=e104]: Panel de Administración
-    - generic [ref=e105]:
-      - banner [ref=e106]:
-        - generic [ref=e107]:
-          - img [ref=e109]
-          - generic [ref=e113]:
-            - heading "Pollería El Sabrosón S.A.C." [level=1] [ref=e114]
-            - paragraph [ref=e115]: "RUC: 20123456789"
-        - generic [ref=e116]:
-          - generic [ref=e117]:
-            - img [ref=e118]
-            - generic [ref=e122]: Conectado
-          - button "Notificaciones (próximamente)" [disabled] [ref=e123]:
-            - img [ref=e124]
-          - button "Admin Principal ADMIN" [ref=e128]:
-            - img [ref=e130]
-            - generic [ref=e133]:
-              - paragraph [ref=e134]: Admin Principal
-              - paragraph [ref=e135]: ADMIN
-            - img [ref=e136]
-      - main [ref=e138]:
-        - generic [ref=e139]:
-          - generic [ref=e140]:
-            - heading "Provision New Tenant" [level=1] [ref=e141]
-            - paragraph [ref=e142]: Create a new tenant with all required configuration
-          - generic [ref=e143]:
-            - generic [ref=e144]:
-              - heading "Business Information" [level=2] [ref=e145]:
-                - img [ref=e146]
+          - generic [ref=e105]: Delivery
+        - link "Motorizados" [ref=e107] [cursor=pointer]:
+          - /url: /admin/drivers
+          - img [ref=e108]
+          - generic [ref=e113]: Motorizados
+        - link "Inventario" [ref=e115] [cursor=pointer]:
+          - /url: /inventario
+          - img [ref=e116]
+          - generic [ref=e119]: Inventario
+        - link "Monitoreo" [ref=e121] [cursor=pointer]:
+          - /url: /admin/monitoring
+          - img [ref=e122]
+          - generic [ref=e124]: Monitoreo
+        - link "Configuración" [ref=e126] [cursor=pointer]:
+          - /url: /admin/configuracion
+          - img [ref=e127]
+          - generic [ref=e130]: Configuración
+        - link "Yape / Plin" [ref=e132] [cursor=pointer]:
+          - /url: /admin/configuracion/yape-plin
+          - img [ref=e133]
+          - generic [ref=e135]: Yape / Plin
+        - link "Facturación" [ref=e137] [cursor=pointer]:
+          - /url: /admin/facturacion
+          - img [ref=e138]
+          - generic [ref=e141]: Facturación
+        - link "Ranking Meseros" [ref=e143] [cursor=pointer]:
+          - /url: /admin/ranking-meseros
+          - img [ref=e144]
+          - generic [ref=e147]: Ranking Meseros
+        - link "Caja Chica" [ref=e149] [cursor=pointer]:
+          - /url: /admin/caja-chica
+          - img [ref=e150]
+          - generic [ref=e153]: Caja Chica
+        - link "Compras" [ref=e155] [cursor=pointer]:
+          - /url: /admin/compras
+          - img [ref=e156]
+          - generic [ref=e160]: Compras
+        - link "Estado Resultados" [ref=e162] [cursor=pointer]:
+          - /url: /admin/estado-resultados
+          - img [ref=e163]
+          - generic [ref=e166]: Estado Resultados
+        - link "Conciliación" [ref=e168] [cursor=pointer]:
+          - /url: /admin/conciliacion
+          - img [ref=e169]
+          - generic [ref=e173]: Conciliación
+        - link "Plataformas" [ref=e175] [cursor=pointer]:
+          - /url: /admin/plataformas
+          - img [ref=e176]
+          - generic [ref=e179]: Plataformas
+        - link "Pedidos App" [ref=e181] [cursor=pointer]:
+          - /url: /admin/plataformas/pedidos
+          - img [ref=e182]
+          - generic [ref=e184]: Pedidos App
+        - link "Reportes" [ref=e186] [cursor=pointer]:
+          - /url: /admin/reportes
+          - img [ref=e187]
+          - generic [ref=e189]: Reportes
+        - link "Rentabilidad" [ref=e191] [cursor=pointer]:
+          - /url: /admin/reports/profitability
+          - img [ref=e192]
+          - generic [ref=e195]: Rentabilidad
+        - link "Portal Empleado" [ref=e197] [cursor=pointer]:
+          - /url: /employee
+          - img [ref=e198]
+          - generic [ref=e202]: Portal Empleado
+      - paragraph [ref=e204]: Panel de Administración
+    - generic [ref=e205]:
+      - banner [ref=e206]:
+        - generic [ref=e207]:
+          - img [ref=e209]
+          - generic [ref=e213]:
+            - heading "Pollería El Sabrosón S.A.C." [level=1] [ref=e214]
+            - paragraph [ref=e215]: "RUC: 20123456789"
+        - generic [ref=e216]:
+          - generic [ref=e217]:
+            - img [ref=e218]
+            - generic [ref=e222]: Conectado
+          - button "Notificaciones (próximamente)" [disabled] [ref=e223]:
+            - img [ref=e224]
+          - button "Admin Principal ADMIN" [ref=e228]:
+            - img [ref=e230]
+            - generic [ref=e233]:
+              - paragraph [ref=e234]: Admin Principal
+              - paragraph [ref=e235]: ADMIN
+            - img [ref=e236]
+      - main [ref=e238]:
+        - generic [ref=e239]:
+          - generic [ref=e240]:
+            - heading "Provision New Tenant" [level=1] [ref=e241]
+            - paragraph [ref=e242]: Create a new tenant with all required configuration
+          - generic [ref=e243]:
+            - generic [ref=e244]:
+              - heading "Business Information" [level=2] [ref=e245]:
+                - img [ref=e246]
                 - text: Business Information
-              - generic [ref=e150]:
-                - generic [ref=e151]:
-                  - generic [ref=e152]: Legal Name *
-                  - textbox "Pollería El Buen Sabor" [ref=e153]
-                - generic [ref=e154]:
-                  - generic [ref=e155]: RUC
-                  - textbox "20123456789" [ref=e156]
-                - generic [ref=e157]:
-                  - generic [ref=e158]: Address
-                  - textbox "Av. Principal 123, Lima" [ref=e159]
-            - generic [ref=e160]:
-              - heading "Admin Information" [level=2] [ref=e161]:
-                - img [ref=e162]
+              - generic [ref=e250]:
+                - generic [ref=e251]:
+                  - generic [ref=e252]: Legal Name *
+                  - textbox "Pollería El Buen Sabor" [ref=e253]
+                - generic [ref=e254]:
+                  - generic [ref=e255]: RUC
+                  - textbox "20123456789" [ref=e256]
+                - generic [ref=e257]:
+                  - generic [ref=e258]: Address
+                  - textbox "Av. Principal 123, Lima" [ref=e259]
+            - generic [ref=e260]:
+              - heading "Admin Information" [level=2] [ref=e261]:
+                - img [ref=e262]
                 - text: Admin Information
-              - generic [ref=e165]:
-                - generic [ref=e166]:
-                  - generic [ref=e167]: Admin Name *
-                  - textbox "Juan Pérez" [ref=e168]
-                - generic [ref=e169]:
-                  - generic [ref=e170]: Admin PIN (4 digits) *
-                  - textbox "1234" [ref=e171]
-            - generic [ref=e172]:
-              - heading "Regional Settings" [level=2] [ref=e173]:
-                - img [ref=e174]
+              - generic [ref=e265]:
+                - generic [ref=e266]:
+                  - generic [ref=e267]: Admin Name *
+                  - textbox "Juan Pérez" [ref=e268]
+                - generic [ref=e269]:
+                  - generic [ref=e270]: Admin PIN (4 digits) *
+                  - textbox "1234" [ref=e271]
+            - generic [ref=e272]:
+              - heading "Regional Settings" [level=2] [ref=e273]:
+                - img [ref=e274]
                 - text: Regional Settings
-              - generic [ref=e177]:
-                - generic [ref=e178]:
-                  - generic [ref=e179]: Timezone
-                  - combobox [ref=e180]:
+              - generic [ref=e277]:
+                - generic [ref=e278]:
+                  - generic [ref=e279]: Timezone
+                  - combobox [ref=e280]:
                     - option "America/Lima" [selected]
                     - option "America/New_York"
                     - option "America/Los_Angeles"
@@ -137,9 +201,9 @@
                     - option "America/Bogota"
                     - option "America/Santiago"
                     - option "America/Buenos_Aires"
-                - generic [ref=e181]:
-                  - generic [ref=e182]: Currency
-                  - combobox [ref=e183]:
+                - generic [ref=e281]:
+                  - generic [ref=e282]: Currency
+                  - combobox [ref=e283]:
                     - option "PEN" [selected]
                     - option "USD"
                     - option "EUR"
@@ -147,39 +211,37 @@
                     - option "CLP"
                     - option "COP"
                     - option "ARS"
-            - generic [ref=e184]:
-              - heading "Optional Settings" [level=2] [ref=e185]:
-                - img [ref=e186]
+            - generic [ref=e284]:
+              - heading "Optional Settings" [level=2] [ref=e285]:
+                - img [ref=e286]
                 - text: Optional Settings
-              - generic [ref=e188]:
-                - generic [ref=e189]:
-                  - generic [ref=e190]: Receipt Footer Text
-                  - textbox "Thank you for your purchase!" [ref=e191]
-                - generic [ref=e192]:
-                  - generic [ref=e193]:
-                    - generic [ref=e194]: Default Delivery Fee (cents)
-                    - spinbutton [ref=e195]: "0"
-                  - generic [ref=e196]:
-                    - generic [ref=e197]: Max Offline Coupons per Order
-                    - spinbutton [ref=e198]: "5"
-                - generic [ref=e199]:
-                  - generic [ref=e200] [cursor=pointer]:
-                    - checkbox "Enable Tips" [checked] [ref=e201]
-                    - generic [ref=e202]: Enable Tips
-                  - generic [ref=e203] [cursor=pointer]:
-                    - checkbox "Show Tips on Invoice" [ref=e204]
-                    - generic [ref=e205]: Show Tips on Invoice
-                  - generic [ref=e206] [cursor=pointer]:
-                    - checkbox "Allow Offline Coupons" [checked] [ref=e207]
-                    - generic [ref=e208]: Allow Offline Coupons
-                  - generic [ref=e209] [cursor=pointer]:
-                    - checkbox "Require Manager for Offline" [ref=e210]
-                    - generic [ref=e211]: Require Manager for Offline
-            - button "Provision Tenant" [ref=e213]:
-              - img [ref=e214]
+              - generic [ref=e288]:
+                - generic [ref=e289]:
+                  - generic [ref=e290]: Receipt Footer Text
+                  - textbox "Thank you for your purchase!" [ref=e291]
+                - generic [ref=e292]:
+                  - generic [ref=e293]:
+                    - generic [ref=e294]: Default Delivery Fee (cents)
+                    - spinbutton [ref=e295]: "0"
+                  - generic [ref=e296]:
+                    - generic [ref=e297]: Max Offline Coupons per Order
+                    - spinbutton [ref=e298]: "5"
+                - generic [ref=e299]:
+                  - generic [ref=e300] [cursor=pointer]:
+                    - checkbox "Enable Tips" [checked] [ref=e301]
+                    - generic [ref=e302]: Enable Tips
+                  - generic [ref=e303] [cursor=pointer]:
+                    - checkbox "Show Tips on Invoice" [ref=e304]
+                    - generic [ref=e305]: Show Tips on Invoice
+                  - generic [ref=e306] [cursor=pointer]:
+                    - checkbox "Allow Offline Coupons" [checked] [ref=e307]
+                    - generic [ref=e308]: Allow Offline Coupons
+                  - generic [ref=e309] [cursor=pointer]:
+                    - checkbox "Require Manager for Offline" [ref=e310]
+                    - generic [ref=e311]: Require Manager for Offline
+            - button "Provision Tenant" [ref=e313]:
+              - img [ref=e314]
               - text: Provision Tenant
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e222] [cursor=pointer]:
-    - img [ref=e223]
-  - alert [ref=e226]
+  - alert [ref=e317]
 ```

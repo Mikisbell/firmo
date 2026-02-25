@@ -25,104 +25,168 @@
           - /url: /admin/productos
           - img [ref=e31]
           - generic [ref=e35]: Productos
-        - link "Mesas" [ref=e37] [cursor=pointer]:
-          - /url: /admin/mesas
+        - link "Recetas" [ref=e37] [cursor=pointer]:
+          - /url: /admin/recetas
           - img [ref=e38]
-          - generic [ref=e40]: Mesas
-        - link "Empleados" [ref=e42] [cursor=pointer]:
-          - /url: /admin/empleados
+          - generic [ref=e40]: Recetas
+        - link "Control Pollo" [ref=e42] [cursor=pointer]:
+          - /url: /admin/pollo-control
           - img [ref=e43]
-          - generic [ref=e48]: Empleados
-        - link "Terminales" [ref=e50] [cursor=pointer]:
-          - /url: /admin/terminales
-          - img [ref=e51]
-          - generic [ref=e53]: Terminales
-        - link "Auditoría 59 notificaciones" [ref=e55] [cursor=pointer]:
-          - /url: /admin/auditoria
-          - img [ref=e56]
-          - generic [ref=e58]: Auditoría
-          - generic "59 notificaciones" [ref=e59]: "59"
-        - link "Promociones" [ref=e61] [cursor=pointer]:
-          - /url: /admin/promociones
+          - generic [ref=e45]: Control Pollo
+        - link "Mesas" [ref=e47] [cursor=pointer]:
+          - /url: /admin/mesas
+          - img [ref=e48]
+          - generic [ref=e50]: Mesas
+        - link "QR Mesas" [ref=e52] [cursor=pointer]:
+          - /url: /admin/mesas/qr
+          - img [ref=e53]
+          - generic [ref=e59]: QR Mesas
+        - link "Operaciones Mesa" [ref=e61] [cursor=pointer]:
+          - /url: /admin/mesas/operaciones
           - img [ref=e62]
-          - generic [ref=e66]: Promociones
-        - link "Estaciones KDS" [ref=e68] [cursor=pointer]:
+          - generic [ref=e67]: Operaciones Mesa
+        - link "Empleados" [ref=e69] [cursor=pointer]:
+          - /url: /admin/empleados
+          - img [ref=e70]
+          - generic [ref=e75]: Empleados
+        - link "Recursos Humanos" [ref=e77] [cursor=pointer]:
+          - /url: /admin/hr
+          - img [ref=e78]
+          - generic [ref=e81]: Recursos Humanos
+        - link "Terminales" [ref=e83] [cursor=pointer]:
+          - /url: /admin/terminales
+          - img [ref=e84]
+          - generic [ref=e86]: Terminales
+        - link "Auditoría 9 notificaciones" [ref=e88] [cursor=pointer]:
+          - /url: /admin/auditoria
+          - img [ref=e89]
+          - generic [ref=e91]: Auditoría
+          - generic "9 notificaciones" [ref=e92]: "9"
+        - link "Promociones" [ref=e94] [cursor=pointer]:
+          - /url: /admin/promociones
+          - img [ref=e95]
+          - generic [ref=e99]: Promociones
+        - link "Estaciones KDS" [ref=e101] [cursor=pointer]:
           - /url: /admin/estaciones
-          - img [ref=e69]
-          - generic [ref=e71]: Estaciones KDS
-        - link "Delivery" [ref=e73] [cursor=pointer]:
+          - img [ref=e102]
+          - generic [ref=e104]: Estaciones KDS
+        - link "Delivery" [ref=e106] [cursor=pointer]:
           - /url: /admin/delivery
-          - img [ref=e74]
-          - generic [ref=e79]: Delivery
-        - link "Motorizados" [ref=e81] [cursor=pointer]:
-          - /url: /admin/drivers
-          - img [ref=e82]
-          - generic [ref=e87]: Motorizados
-        - link "Inventario" [ref=e89] [cursor=pointer]:
-          - /url: /inventario
-          - img [ref=e90]
-          - generic [ref=e93]: Inventario
-        - link "Monitoreo" [ref=e95] [cursor=pointer]:
-          - /url: /admin/monitoring
-          - img [ref=e96]
-          - generic [ref=e98]: Monitoreo
-        - link "Configuración" [ref=e100] [cursor=pointer]:
-          - /url: /admin/configuracion
-          - img [ref=e101]
-          - generic [ref=e104]: Configuración
-        - link "Reportes" [ref=e106] [cursor=pointer]:
-          - /url: /admin/reportes
           - img [ref=e107]
-          - generic [ref=e109]: Reportes
-      - paragraph [ref=e111]: Panel de Administración
-    - generic [ref=e112]:
-      - banner [ref=e113]:
-        - generic [ref=e114]:
-          - img [ref=e116]
-          - button "Notificaciones (próximamente)" [disabled] [ref=e120]:
-            - img [ref=e121]
-          - button [ref=e125]:
-            - img [ref=e127]
-            - img [ref=e130]
-      - main [ref=e132]:
-        - generic [ref=e133]:
-          - generic [ref=e134]:
-            - heading "Provision New Tenant" [level=1] [ref=e135]
-            - paragraph [ref=e136]: Create a new tenant with all required configuration
-          - generic [ref=e137]:
-            - generic [ref=e138]:
-              - heading "Business Information" [level=2] [ref=e139]:
-                - img [ref=e140]
+          - generic [ref=e112]: Delivery
+        - link "Motorizados" [ref=e114] [cursor=pointer]:
+          - /url: /admin/drivers
+          - img [ref=e115]
+          - generic [ref=e120]: Motorizados
+        - link "Inventario" [ref=e122] [cursor=pointer]:
+          - /url: /inventario
+          - img [ref=e123]
+          - generic [ref=e126]: Inventario
+        - link "Monitoreo" [ref=e128] [cursor=pointer]:
+          - /url: /admin/monitoring
+          - img [ref=e129]
+          - generic [ref=e131]: Monitoreo
+        - link "Configuración" [ref=e133] [cursor=pointer]:
+          - /url: /admin/configuracion
+          - img [ref=e134]
+          - generic [ref=e137]: Configuración
+        - link "Yape / Plin" [ref=e139] [cursor=pointer]:
+          - /url: /admin/configuracion/yape-plin
+          - img [ref=e140]
+          - generic [ref=e142]: Yape / Plin
+        - link "Facturación" [ref=e144] [cursor=pointer]:
+          - /url: /admin/facturacion
+          - img [ref=e145]
+          - generic [ref=e148]: Facturación
+        - link "Ranking Meseros" [ref=e150] [cursor=pointer]:
+          - /url: /admin/ranking-meseros
+          - img [ref=e151]
+          - generic [ref=e154]: Ranking Meseros
+        - link "Caja Chica" [ref=e156] [cursor=pointer]:
+          - /url: /admin/caja-chica
+          - img [ref=e157]
+          - generic [ref=e160]: Caja Chica
+        - link "Compras" [ref=e162] [cursor=pointer]:
+          - /url: /admin/compras
+          - img [ref=e163]
+          - generic [ref=e167]: Compras
+        - link "Estado Resultados" [ref=e169] [cursor=pointer]:
+          - /url: /admin/estado-resultados
+          - img [ref=e170]
+          - generic [ref=e173]: Estado Resultados
+        - link "Conciliación" [ref=e175] [cursor=pointer]:
+          - /url: /admin/conciliacion
+          - img [ref=e176]
+          - generic [ref=e180]: Conciliación
+        - link "Plataformas" [ref=e182] [cursor=pointer]:
+          - /url: /admin/plataformas
+          - img [ref=e183]
+          - generic [ref=e186]: Plataformas
+        - link "Pedidos App" [ref=e188] [cursor=pointer]:
+          - /url: /admin/plataformas/pedidos
+          - img [ref=e189]
+          - generic [ref=e191]: Pedidos App
+        - link "Reportes" [ref=e193] [cursor=pointer]:
+          - /url: /admin/reportes
+          - img [ref=e194]
+          - generic [ref=e196]: Reportes
+        - link "Rentabilidad" [ref=e198] [cursor=pointer]:
+          - /url: /admin/reports/profitability
+          - img [ref=e199]
+          - generic [ref=e202]: Rentabilidad
+        - link "Portal Empleado" [ref=e204] [cursor=pointer]:
+          - /url: /employee
+          - img [ref=e205]
+          - generic [ref=e209]: Portal Empleado
+      - paragraph [ref=e211]: Panel de Administración
+    - generic [ref=e212]:
+      - banner [ref=e213]:
+        - generic [ref=e214]:
+          - img [ref=e216]
+          - button "Notificaciones (próximamente)" [disabled] [ref=e220]:
+            - img [ref=e221]
+          - button [ref=e225]:
+            - img [ref=e227]
+            - img [ref=e230]
+      - main [ref=e232]:
+        - generic [ref=e233]:
+          - generic [ref=e234]:
+            - heading "Provision New Tenant" [level=1] [ref=e235]
+            - paragraph [ref=e236]: Create a new tenant with all required configuration
+          - generic [ref=e237]:
+            - generic [ref=e238]:
+              - heading "Business Information" [level=2] [ref=e239]:
+                - img [ref=e240]
                 - text: Business Information
-              - generic [ref=e144]:
-                - generic [ref=e145]:
-                  - generic [ref=e146]: Legal Name *
-                  - textbox "Pollería El Buen Sabor" [ref=e147]
-                - generic [ref=e148]:
-                  - generic [ref=e149]: RUC
-                  - textbox "20123456789" [ref=e150]
-                - generic [ref=e151]:
-                  - generic [ref=e152]: Address
-                  - textbox "Av. Principal 123, Lima" [ref=e153]
-            - generic [ref=e154]:
-              - heading "Admin Information" [level=2] [ref=e155]:
-                - img [ref=e156]
+              - generic [ref=e244]:
+                - generic [ref=e245]:
+                  - generic [ref=e246]: Legal Name *
+                  - textbox "Pollería El Buen Sabor" [ref=e247]
+                - generic [ref=e248]:
+                  - generic [ref=e249]: RUC
+                  - textbox "20123456789" [ref=e250]
+                - generic [ref=e251]:
+                  - generic [ref=e252]: Address
+                  - textbox "Av. Principal 123, Lima" [ref=e253]
+            - generic [ref=e254]:
+              - heading "Admin Information" [level=2] [ref=e255]:
+                - img [ref=e256]
                 - text: Admin Information
-              - generic [ref=e159]:
-                - generic [ref=e160]:
-                  - generic [ref=e161]: Admin Name *
-                  - textbox "Juan Pérez" [ref=e162]
-                - generic [ref=e163]:
-                  - generic [ref=e164]: Admin PIN (4 digits) *
-                  - textbox "1234" [ref=e165]
-            - generic [ref=e166]:
-              - heading "Regional Settings" [level=2] [ref=e167]:
-                - img [ref=e168]
+              - generic [ref=e259]:
+                - generic [ref=e260]:
+                  - generic [ref=e261]: Admin Name *
+                  - textbox "Juan Pérez" [ref=e262]
+                - generic [ref=e263]:
+                  - generic [ref=e264]: Admin PIN (4 digits) *
+                  - textbox "1234" [ref=e265]
+            - generic [ref=e266]:
+              - heading "Regional Settings" [level=2] [ref=e267]:
+                - img [ref=e268]
                 - text: Regional Settings
-              - generic [ref=e171]:
-                - generic [ref=e172]:
-                  - generic [ref=e173]: Timezone
-                  - combobox [ref=e174]:
+              - generic [ref=e271]:
+                - generic [ref=e272]:
+                  - generic [ref=e273]: Timezone
+                  - combobox [ref=e274]:
                     - option "America/Lima" [selected]
                     - option "America/New_York"
                     - option "America/Los_Angeles"
@@ -133,9 +197,9 @@
                     - option "America/Bogota"
                     - option "America/Santiago"
                     - option "America/Buenos_Aires"
-                - generic [ref=e175]:
-                  - generic [ref=e176]: Currency
-                  - combobox [ref=e177]:
+                - generic [ref=e275]:
+                  - generic [ref=e276]: Currency
+                  - combobox [ref=e277]:
                     - option "PEN" [selected]
                     - option "USD"
                     - option "EUR"
@@ -143,39 +207,37 @@
                     - option "CLP"
                     - option "COP"
                     - option "ARS"
-            - generic [ref=e178]:
-              - heading "Optional Settings" [level=2] [ref=e179]:
-                - img [ref=e180]
+            - generic [ref=e278]:
+              - heading "Optional Settings" [level=2] [ref=e279]:
+                - img [ref=e280]
                 - text: Optional Settings
-              - generic [ref=e182]:
-                - generic [ref=e183]:
-                  - generic [ref=e184]: Receipt Footer Text
-                  - textbox "Thank you for your purchase!" [ref=e185]
-                - generic [ref=e186]:
-                  - generic [ref=e187]:
-                    - generic [ref=e188]: Default Delivery Fee (cents)
-                    - spinbutton [ref=e189]: "0"
-                  - generic [ref=e190]:
-                    - generic [ref=e191]: Max Offline Coupons per Order
-                    - spinbutton [ref=e192]: "5"
-                - generic [ref=e193]:
-                  - generic [ref=e194] [cursor=pointer]:
-                    - checkbox "Enable Tips" [checked] [ref=e195]
-                    - generic [ref=e196]: Enable Tips
-                  - generic [ref=e197] [cursor=pointer]:
-                    - checkbox "Show Tips on Invoice" [ref=e198]
-                    - generic [ref=e199]: Show Tips on Invoice
-                  - generic [ref=e200] [cursor=pointer]:
-                    - checkbox "Allow Offline Coupons" [checked] [ref=e201]
-                    - generic [ref=e202]: Allow Offline Coupons
-                  - generic [ref=e203] [cursor=pointer]:
-                    - checkbox "Require Manager for Offline" [ref=e204]
-                    - generic [ref=e205]: Require Manager for Offline
-            - button "Provision Tenant" [ref=e207]:
-              - img [ref=e208]
+              - generic [ref=e282]:
+                - generic [ref=e283]:
+                  - generic [ref=e284]: Receipt Footer Text
+                  - textbox "Thank you for your purchase!" [ref=e285]
+                - generic [ref=e286]:
+                  - generic [ref=e287]:
+                    - generic [ref=e288]: Default Delivery Fee (cents)
+                    - spinbutton [ref=e289]: "0"
+                  - generic [ref=e290]:
+                    - generic [ref=e291]: Max Offline Coupons per Order
+                    - spinbutton [ref=e292]: "5"
+                - generic [ref=e293]:
+                  - generic [ref=e294] [cursor=pointer]:
+                    - checkbox "Enable Tips" [checked] [ref=e295]
+                    - generic [ref=e296]: Enable Tips
+                  - generic [ref=e297] [cursor=pointer]:
+                    - checkbox "Show Tips on Invoice" [ref=e298]
+                    - generic [ref=e299]: Show Tips on Invoice
+                  - generic [ref=e300] [cursor=pointer]:
+                    - checkbox "Allow Offline Coupons" [checked] [ref=e301]
+                    - generic [ref=e302]: Allow Offline Coupons
+                  - generic [ref=e303] [cursor=pointer]:
+                    - checkbox "Require Manager for Offline" [ref=e304]
+                    - generic [ref=e305]: Require Manager for Offline
+            - button "Provision Tenant" [ref=e307]:
+              - img [ref=e308]
               - text: Provision Tenant
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e216] [cursor=pointer]:
-    - img [ref=e217]
-  - alert [ref=e220]
+  - alert [ref=e311]
 ```

@@ -40,7 +40,7 @@ export const DEFAULT_EMPLOYEES = [
     { id: DEFAULT_EMPLOYEE_IDS.MANAGER_ROSA, name: "Rosa Flores", role: "MANAGER", pin: "0000" },
     { id: DEFAULT_EMPLOYEE_IDS.BAR_JORGE, name: "Jorge Díaz", role: "BAR", pin: "6666" },
     { id: DEFAULT_EMPLOYEE_IDS.WAITER_CARMEN, name: "Carmen Vega", role: "WAITER", pin: "7777" },
-    { id: DEFAULT_EMPLOYEE_IDS.DELIVERY_MIGUEL, name: "Miguel Soto", role: "DELIVERY", pin: "8888" },
+    { id: DEFAULT_EMPLOYEE_IDS.DELIVERY_MIGUEL, name: "Miguel Soto", role: "DRIVER", pin: "8888" },
 ] as const;
 
 /**
@@ -69,7 +69,7 @@ export function getAdminEmployeeId(): string {
 /**
  * Type for employee roles
  */
-export type EmployeeRole = 'ADMIN' | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'BAR' | 'MANAGER' | 'DELIVERY';
+export type EmployeeRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'SUPERVISOR' | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'COOK' | 'PACKER' | 'BAR' | 'DRIVER';
 
 /**
  * Type for employee data

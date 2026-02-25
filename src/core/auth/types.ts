@@ -5,7 +5,7 @@ export type TerminalRole = 'CASHIER' | 'WAITER' | 'KDS' | 'ADMIN' | 'BAR';
 export type EmployeeRole =
   | 'OWNER' | 'ADMIN' | 'MANAGER' | 'SUPERVISOR'
   | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'COOK' | 'PACKER' | 'BAR'
-  | 'DRIVER' | 'DELIVERY';
+  | 'DRIVER';
 
 export interface TerminalConfig {
   terminal_id: string;

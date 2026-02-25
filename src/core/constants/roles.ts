@@ -29,5 +29,4 @@ export const ROLE_LABELS: Record<string, string> = {
   PACKER:     'Empaquetador(a)',
   BAR:        'Barman',
   DRIVER:     'Motorizado(a)',
-  DELIVERY:   'Motorizado(a)',
 };
