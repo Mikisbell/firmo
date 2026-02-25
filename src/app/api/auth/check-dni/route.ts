@@ -21,10 +21,16 @@ export async function POST(request: NextRequest) {
 
     const employee = await prisma.employees.findFirst({
       where: { tenant_id: tenantId, dni, is_active: true },
-      select: { id: true },
+      select: { id: true, name: true },
     });
 
-    return NextResponse.json({ exists: !!employee });
+    if (!employee) return NextResponse.json({ exists: false });
+
+    // Return first name + first last name only
+    const parts = employee.name.trim().split(/\s+/);
+    const displayName = parts.slice(0, 2).join(' ');
+
+    return NextResponse.json({ exists: true, name: displayName });
   } catch {
     // On error, let the PIN step handle auth — don't block login
     return NextResponse.json({ exists: true });

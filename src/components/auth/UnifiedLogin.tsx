@@ -216,6 +216,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
   const [phase, setPhase] = useState<Phase>('dni');
   const [dniValue, setDniValue] = useState('');
   const [pinValue, setPinValue] = useState('');
+  const [employeeName, setEmployeeName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [lockout, setLockout] = useState<Date | null>(null);
@@ -244,6 +245,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
         return;
       }
 
+      setEmployeeName(data.name || '');
       setPinValue('');
       setPhase('pin');
     } catch {
@@ -416,12 +418,26 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
                 transition={{ duration: 0.2 }}
               >
                 <div className="text-center mb-8">
-                  <h2 className="text-white text-2xl font-bold">Ingresa tu PIN</h2>
-                  <p className="text-zinc-500 text-sm mt-1">
-                    {lockout && lockout > new Date()
-                      ? '🔒 Cuenta bloqueada temporalmente'
-                      : '4 a 6 dígitos'}
-                  </p>
+                  {employeeName ? (
+                    <>
+                      <p className="text-zinc-500 text-sm mb-1">Hola,</p>
+                      <h2 className="text-white text-2xl font-bold">{employeeName}</h2>
+                      <p className="text-zinc-500 text-sm mt-2">
+                        {lockout && lockout > new Date()
+                          ? '🔒 Cuenta bloqueada temporalmente'
+                          : 'Ingresa tu contraseña'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="text-white text-2xl font-bold">Ingresa tu contraseña</h2>
+                      <p className="text-zinc-500 text-sm mt-1">
+                        {lockout && lockout > new Date()
+                          ? '🔒 Cuenta bloqueada temporalmente'
+                          : '4 a 6 dígitos'}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {loading ? (
