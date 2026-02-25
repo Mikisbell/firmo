@@ -3,12 +3,10 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getStoredTerminalConfig, clearTerminalConfig } from '@/src/core/auth/fingerprint';
-import { TerminalSetup } from '@/src/components/auth/TerminalSetup';
-import { UnifiedLogin } from '@/src/components/auth/UnifiedLogin';
 import { ArrowRight, RefreshCw, Sparkles } from 'lucide-react';
 import { ParkLogo } from '@/src/components/icons';
 
-type PageView = 'checking' | 'has_config' | 'login' | 'caja_setup';
+type PageView = 'checking' | 'has_config' | 'redirect_login';
 
 const SESSION_STORAGE_KEY = 'park_session_v2';
 
@@ -46,7 +44,7 @@ export default function HomePage() {
       const stored = getStoredTerminalConfig();
 
       if (!stored?.terminal_id) {
-        setView('login');
+        window.location.replace('/login');
         return;
       }
 
@@ -66,7 +64,7 @@ export default function HomePage() {
         }
         clearTerminalConfig();
         sessionStorage.removeItem(SESSION_STORAGE_KEY);
-        setView('login');
+        window.location.replace('/login');
         return;
       }
 
@@ -85,7 +83,7 @@ export default function HomePage() {
           setView('has_config');
         } else {
           clearTerminalConfig();
-          setView('login');
+          window.location.replace('/login');
         }
       } catch {
         setConfigName(stored.device_name || stored.terminal_id);
@@ -108,16 +106,6 @@ export default function HomePage() {
         />
       </div>
     );
-  }
-
-  // ── Terminal setup ─────────────────────────────────────────────────────────
-  if (view === 'caja_setup') {
-    return <TerminalSetup />;
-  }
-
-  // ── Unified login ──────────────────────────────────────────────────────────
-  if (view === 'login') {
-    return <UnifiedLogin onCajaSetup={() => setView('caja_setup')} />;
   }
 
   // ── Existing session ───────────────────────────────────────────────────────
@@ -187,8 +175,7 @@ export default function HomePage() {
           onClick={() => {
             clearTerminalConfig();
             sessionStorage.removeItem(SESSION_STORAGE_KEY);
-            setView('login');
-            setNavigating(false);
+            window.location.replace('/login');
           }}
           disabled={navigating}
           className="w-full py-3 px-6 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white font-medium rounded-xl transition-all border border-zinc-800 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
