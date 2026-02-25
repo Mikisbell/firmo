@@ -16,7 +16,7 @@ import { createAlert } from '@/src/core/security/alert-service';
 const LoginSchema = z.object({
   tenant_id: z.string().uuid(),
   terminal_id: z.string().optional(), // Optional for admin panel
-  pin: z.string().length(4),
+  pin: z.string().min(4).max(6),
   // Support both old and new fingerprint formats
   fingerprint: z.object({
     hash: z.string(),

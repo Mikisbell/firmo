@@ -223,7 +223,7 @@ export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreen
             <h2 className="text-2xl font-bold text-white mb-1">Acceso Administrativo</h2>
             <div className="flex items-center justify-center gap-2">
               <Sparkles className="w-3 h-3 text-emerald-500" />
-              <p className="text-sm text-zinc-500">Ingresa tu PIN de 4 d&iacute;gitos</p>
+              <p className="text-sm text-zinc-500">Ingresa tu PIN de 4-6 d&iacute;gitos</p>
               <Sparkles className="w-3 h-3 text-emerald-500" />
             </div>
           </div>
