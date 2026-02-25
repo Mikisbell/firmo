@@ -7,9 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
-
-const TENANT_ID = getTenantId();
+import { cache } from '@/src/core/cache/redis.service';
 
 // Validate UUID format
 function isValidUUID(id: string): boolean {
@@ -150,6 +148,9 @@ export async function PUT(
       return updatedEmployee;
     });
 
+    // Invalidar caché Redis de la lista de empleados para este tenant
+    await cache.invalidatePattern(`employees:${tenantId}:*`);
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Employee PUT error:', error);
@@ -220,6 +221,9 @@ export async function DELETE(
         },
       });
     });
+
+    // Invalidar caché Redis de la lista de empleados para este tenant
+    await cache.invalidatePattern(`employees:${tenantId}:*`);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
