@@ -8,11 +8,18 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ParkLogo } from '@/src/components/icons';
+import { TenantLogo } from '@/src/components/branding/TenantLogo';
 import { Delete, Settings, ChevronLeft } from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
 import { setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import { v4 as uuidv4 } from 'uuid';
 import type { TerminalRole } from '@/src/core/auth/types';
+
+interface TenantBranding {
+  legal_name: string;
+  logo_url: string | null;
+  address_text: string | null;
+}
 
 const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
@@ -221,6 +228,14 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [lockout, setLockout] = useState<Date | null>(null);
+  const [tenant, setTenant] = useState<TenantBranding | null>(null);
+
+  useEffect(() => {
+    fetch('/api/tenant/public')
+      .then(r => r.json())
+      .then(setTenant)
+      .catch(() => {});
+  }, []);
 
   const submitDni = useCallback(async (currentValue: string) => {
     if (currentValue.length !== 8) return;
@@ -344,15 +359,27 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-900">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-900">
         <div className="flex items-center gap-3">
-          <ParkLogo size={32} />
-          <div>
-            <span className="text-white font-bold tracking-tight text-lg">
-              PARK <span className="text-emerald-500">POS</span>
-            </span>
-            <p className="text-zinc-600 text-xs leading-none mt-0.5">Sistema de Punto de Venta</p>
-          </div>
+          {tenant ? (
+            <>
+              <TenantLogo
+                logoUrl={tenant.logo_url ?? undefined}
+                legalName={tenant.legal_name}
+                size="sm"
+              />
+              <span className="text-white font-bold tracking-tight text-base leading-tight">
+                {tenant.legal_name}
+              </span>
+            </>
+          ) : (
+            <>
+              <ParkLogo size={28} />
+              <span className="text-white font-bold tracking-tight text-lg">
+                PARK <span className="text-emerald-500">POS</span>
+              </span>
+            </>
+          )}
         </div>
 
         {(phase === 'pin' || phase === 'checking_dni') && (
@@ -395,9 +422,28 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-center mb-8">
-                  <h2 className="text-white text-2xl font-bold">Bienvenido</h2>
-                  <p className="text-zinc-500 text-sm mt-1">Ingresa tu número de DNI</p>
+                {/* Restaurant branding block */}
+                {tenant && (
+                  <div className="text-center mb-8">
+                    <div className="flex justify-center mb-4">
+                      <TenantLogo
+                        logoUrl={tenant.logo_url ?? undefined}
+                        legalName={tenant.legal_name}
+                        size="lg"
+                      />
+                    </div>
+                    <h1 className="text-white text-2xl font-black tracking-tight">
+                      {tenant.legal_name}
+                    </h1>
+                    {tenant.address_text && (
+                      <p className="text-zinc-600 text-xs mt-1">{tenant.address_text}</p>
+                    )}
+                    <div className="mt-4 h-px bg-zinc-900" />
+                  </div>
+                )}
+
+                <div className="text-center mb-6">
+                  <p className="text-zinc-400 text-sm">Ingresa tu DNI para acceder</p>
                 </div>
                 <Numpad
                   value={dniValue}
