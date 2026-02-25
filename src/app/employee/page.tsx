@@ -21,6 +21,7 @@ import {
   Loader2,
   AlertTriangle,
 } from 'lucide-react';
+import { ROLE_LABELS } from '@/src/core/constants/roles';
 
 const fetcher = (url: string) => fetch(url).then(r => {
   if (!r.ok) throw new Error('Error al cargar');
@@ -38,8 +39,6 @@ function formatDate(date: string): string {
 function formatCurrency(cents: number): string {
   return `S/ ${(cents / 100).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
 }
-
-import { ROLE_LABELS } from '@/src/core/constants/roles';
 
 const CONTRACT_LABELS: Record<string, string> = {
   INDEFINIDO: 'Indefinido',
