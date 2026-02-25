@@ -184,6 +184,7 @@ export default function CocinaKDSPage() {
                             terminalRole={session.terminal_role}
                             sessionCreatedAt={session.created_at}
                             accentColor="amber"
+                            stat={{ label: 'Tickets pendientes', value: tickets.length }}
                             onLogout={handleLogout}
                         />
                     </>

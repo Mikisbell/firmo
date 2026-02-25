@@ -642,6 +642,7 @@ export default function POSPage() {
                 terminalRole={session?.terminal_role}
                 sessionCreatedAt={session?.created_at}
                 accentColor="emerald"
+                stat={{ label: 'Órdenes en espera', value: liveOrders.length }}
                 onLogout={logout}
             />
         </div>

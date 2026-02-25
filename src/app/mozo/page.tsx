@@ -499,6 +499,7 @@ export default function WaiterPage() {
                 terminalRole={session?.terminal_role}
                 sessionCreatedAt={session?.created_at}
                 accentColor="violet"
+                stat={{ label: 'Mesas activas', value: occupiedCount }}
                 onLogout={handleExit}
             />
         </div>
