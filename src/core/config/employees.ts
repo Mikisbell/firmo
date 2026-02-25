@@ -31,7 +31,7 @@ export const DEFAULT_EMPLOYEE_IDS = {
  * Employee metadata for seeding and reference
  */
 export const DEFAULT_EMPLOYEES = [
-    { id: DEFAULT_EMPLOYEE_IDS.ADMIN, name: "Admin Principal", role: "ADMIN", pin: "1234" },
+    { id: DEFAULT_EMPLOYEE_IDS.ADMIN, name: "Admin Principal", role: "ADMIN", pin: "160902", dni: "43708661" },
     { id: DEFAULT_EMPLOYEE_IDS.CASHIER_MARIA, name: "María García", role: "CASHIER", pin: "1111" },
     { id: DEFAULT_EMPLOYEE_IDS.WAITER_CARLOS, name: "Carlos López", role: "WAITER", pin: "2222" },
     { id: DEFAULT_EMPLOYEE_IDS.WAITER_ANA, name: "Ana Torres", role: "WAITER", pin: "3333" },
@@ -79,4 +79,5 @@ export type EmployeeData = {
     name: string;
     role: string;
     pin: string;
+    dni?: string;
 };

@@ -47,10 +47,13 @@ async function main() {
         });
         
         if (existing) {
-            // Update pin_hash to ensure it matches current SALT
+            // Update pin_hash and dni to ensure they match current config
             await prisma.employees.update({
                 where: { id: existing.id },
-                data: { pin_hash: hashPin(emp.pin) }
+                data: {
+                    pin_hash: hashPin(emp.pin),
+                    ...('dni' in emp && emp.dni ? { dni: emp.dni } : {}),
+                }
             });
         } else {
             await prisma.employees.create({
@@ -61,6 +64,7 @@ async function main() {
                     role: emp.role,
                     pin_hash: hashPin(emp.pin),
                     is_active: true,
+                    ...('dni' in emp && emp.dni ? { dni: emp.dni } : {}),
                 },
             });
         }
