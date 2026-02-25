@@ -35,7 +35,7 @@ async function fetchTablesFromAPI(): Promise<Array<{
     is_active: boolean;
 }>> {
     try {
-        const res = await fetch('/api/admin/tables?active=true');
+        const res = await fetch('/api/pos/tables?active=true');
         if (!res.ok) return [];
         return await res.json();
     } catch {
@@ -206,7 +206,7 @@ export function useZones() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/admin/zones')
+        fetch('/api/pos/zones')
             .then(res => res.ok ? res.json() : [])
             .then(data => {
                 setZones(data);
