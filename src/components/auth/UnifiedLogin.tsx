@@ -18,7 +18,7 @@ const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
 const ALL_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'BAR', 'DRIVER'];
 
-type Phase = 'dni' | 'pin';
+type Phase = 'dni' | 'checking_dni' | 'pin';
 
 function getRouteForRole(role: string): string {
   switch (role) {
@@ -220,11 +220,37 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
   const [loading, setLoading] = useState(false);
   const [lockout, setLockout] = useState<Date | null>(null);
 
-  const submitDni = useCallback(() => {
+  const submitDni = useCallback(async () => {
     if (dniValue.length !== 8) return;
     setError('');
-    setPinValue('');
-    setPhase('pin');
+    setPhase('checking_dni');
+
+    try {
+      const tenantId =
+        typeof window !== 'undefined'
+          ? safeStorage.getItem('tenant_id') || FALLBACK_TENANT_ID
+          : FALLBACK_TENANT_ID;
+
+      const res = await fetch('/api/auth/check-dni', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni: dniValue, tenant_id: tenantId }),
+      });
+      const data = await res.json();
+
+      if (!data.exists) {
+        setError('DNI no registrado en el sistema');
+        setPhase('dni');
+        return;
+      }
+
+      setPinValue('');
+      setPhase('pin');
+    } catch {
+      // On network error, still proceed to PIN (auth will fail properly)
+      setPinValue('');
+      setPhase('pin');
+    }
   }, [dniValue]);
 
   const submitPin = useCallback(async () => {
@@ -326,7 +352,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
           </div>
         </div>
 
-        {phase === 'pin' && (
+        {(phase === 'pin' || phase === 'checking_dni') && (
           <button
             onClick={backToDni}
             className="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
@@ -343,7 +369,22 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
         <div className="w-full max-w-xs">
           <AnimatePresence mode="wait">
-            {phase === 'dni' ? (
+            {phase === 'checking_dni' ? (
+              <motion.div
+                key="checking"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-24 gap-4"
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                  className="w-10 h-10 border-2 border-zinc-700 border-t-emerald-500 rounded-full"
+                />
+                <p className="text-zinc-500 text-sm">Verificando DNI...</p>
+              </motion.div>
+            ) : phase === 'dni' ? (
               <motion.div
                 key="dni"
                 initial={{ opacity: 0, x: -20 }}
@@ -361,6 +402,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
                   onSubmit={submitDni}
                   maxLength={8}
                   minLength={8}
+                  error={error}
                   label="DNI"
                   sublabel="8 dígitos"
                 />
