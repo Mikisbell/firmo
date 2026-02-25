@@ -53,7 +53,7 @@ const SCHEDULE_TYPE_LABELS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 export default function SchedulesPage() {
-  const { data: templates, loading, error, refetch } = useAdminData<ScheduleTemplate>('/api/hr/schedules');
+  const { data: templates, loading, error, refetch } = useAdminData<ScheduleTemplate>('/api/hr/schedules?pageSize=100');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplate | null>(null);

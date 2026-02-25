@@ -651,7 +651,7 @@ interface PromotionsResponse {
  */
 export function usePromotions(config?: SWRConfiguration) {
   return useSWR<PromotionsResponse>(
-    '/api/admin/promotions',
+    '/api/admin/promotions?pageSize=100',
     fetcher,
     {
       // Promociones no cambian frecuentemente
@@ -700,7 +700,7 @@ export function usePromotion(id: string | null, config?: SWRConfiguration) {
  */
 export function useTables(config?: SWRConfiguration) {
   return useSWR<TablesResponse>(
-    '/api/admin/tables',
+    '/api/admin/tables?pageSize=100',
     fetcher,
     {
       // Mesas no cambian frecuentemente
@@ -724,7 +724,7 @@ export function useTables(config?: SWRConfiguration) {
  */
 export function useStations(config?: SWRConfiguration) {
   return useSWR<StationsResponse>(
-    '/api/admin/stations',
+    '/api/admin/stations?pageSize=100',
     fetcher,
     {
       // Estaciones no cambian frecuentemente

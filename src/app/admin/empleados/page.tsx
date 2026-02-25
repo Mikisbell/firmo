@@ -47,7 +47,7 @@ const ROLE_COLORS: Record<string, string> = {
 export default function EmployeesPage() {
   const router = useRouter();
   const [showInactive, setShowInactive] = useState(false);
-  const endpoint = showInactive ? '/api/admin/employees?is_active=false' : '/api/admin/employees';
+  const endpoint = showInactive ? '/api/admin/employees?is_active=false&pageSize=100' : '/api/admin/employees?pageSize=100';
   const { data: employees, loading, error } = useAdminData<Employee>(endpoint);
 
   const columns: Column<Employee>[] = [

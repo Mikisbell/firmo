@@ -80,7 +80,7 @@ const filters: FilterConfig[] = [
 
 export default function HREmployeesPage() {
   const router = useRouter();
-  const { data: employees, loading, error, refetch } = useAdminData<HREmployee>('/api/hr/employees');
+  const { data: employees, loading, error, refetch } = useAdminData<HREmployee>('/api/hr/employees?pageSize=100');
   const [deactivating, setDeactivating] = useState<string | null>(null);
 
   const handleDeactivate = async (employee: HREmployee) => {

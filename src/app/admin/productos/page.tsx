@@ -61,7 +61,7 @@ const filters: FilterConfig[] = [
 
 export default function ProductsPage() {
   const router = useRouter();
-  const { data: products, loading, error, refetch } = useAdminData<Product>('/api/admin/products');
+  const { data: products, loading, error, refetch } = useAdminData<Product>('/api/admin/products?pageSize=100');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Clear selection when products change

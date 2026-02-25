@@ -25,7 +25,7 @@ export default function DriversPage() {
 
   const fetchDrivers = async () => {
     try {
-      const res = await fetch('/api/drivers');
+      const res = await fetch('/api/drivers?pageSize=100');
       if (res.ok) {
         const data = await res.json();
         setDrivers(data.drivers || []);
