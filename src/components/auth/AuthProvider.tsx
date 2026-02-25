@@ -70,6 +70,32 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
 
       setTerminal(storedConfig);
 
+      // Special handling for COLAB_* sessions (collaborator login — bypass LoginScreen)
+      if (storedConfig.terminal_id.startsWith('COLAB_')) {
+        const storedSessionData = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (storedSessionData) {
+          try {
+            const storedSession = JSON.parse(storedSessionData);
+            const expiresAt = new Date(storedSession.expires_at);
+            if (expiresAt > new Date()) {
+              // Valid collaborator session — use it directly, no PIN needed
+              setSession(storedSession);
+              setNeedsLogin(false);
+              setIsLoading(false);
+              return;
+            }
+          } catch {
+            // Invalid JSON — fall through to clear and redirect
+          }
+        }
+        // Expired or missing session — clear config and redirect to home
+        clearTerminalConfig();
+        sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        if (typeof window !== 'undefined') window.location.href = '/';
+        setIsLoading(false);
+        return;
+      }
+
       // Check if we're in E2E test mode - bypass authentication
       const isE2E = typeof window !== 'undefined' && safeStorage.getItem('e2e_mode') === 'true';
       if (isE2E) {

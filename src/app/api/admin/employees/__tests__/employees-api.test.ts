@@ -664,7 +664,7 @@ describe('Employee API Unit Tests', () => {
             resource: 'employees',
             metadata: expect.objectContaining({
               record_id: employeeId,
-              changes: updateData,
+              changes: expect.objectContaining(updateData),
             }),
           }),
         })

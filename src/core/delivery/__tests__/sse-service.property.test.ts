@@ -19,6 +19,18 @@ import { SSEBroadcaster, sseBroadcaster } from '../sse-broadcaster';
 import { arbitraryDeliveryEvent } from '../arbitraries';
 import { DeliveryEvent } from '../types-2026';
 
+// Mock Redis to avoid real network calls and timeout in property tests
+vi.mock('../redis-connection', () => ({
+  deliveryRedisService: {
+    publish: vi.fn().mockResolvedValue(undefined),
+    subscribe: vi.fn().mockResolvedValue(undefined),
+    unsubscribe: vi.fn().mockResolvedValue(undefined),
+    sadd: vi.fn().mockResolvedValue(1),
+    srem: vi.fn().mockResolvedValue(1),
+    expire: vi.fn().mockResolvedValue(1),
+  }
+}));
+
 describe('Feature: delivery-2026-modernization, SSE Service Properties', () => {
   // Track all intervals and timeouts for cleanup
   const activeIntervals: NodeJS.Timeout[] = [];

@@ -6,17 +6,15 @@ import { generateDeviceFingerprint, setStoredTerminalConfig } from '@/src/core/a
 import { generateFingerprintV2, type FingerprintResult } from '@/src/core/auth/fingerprint-v2';
 import { getOrCreateDeviceId } from '@/src/core/auth/device-id';
 import type { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
-import { Monitor, ChefHat, Wine, Loader2, Flame, Package, ArrowRight, ArrowLeft, Settings, Users, Sparkles, Key } from 'lucide-react';
+import { Monitor, Loader2, ArrowRight, ArrowLeft, Settings, Sparkles, Key } from 'lucide-react';
 import { ParkLogo } from '@/src/components/icons';
 
 interface TerminalSetupProps { 
   /** @deprecated Navigation now happens internally using window.location.href */
   onComplete?: (config: TerminalConfig) => void; 
 }
-interface TerminalOption { terminal_id: string; role: TerminalRole; label: string; accentColor: string; }
-type ViewMode = 'roles' | 'meseros' | 'activation';
+type ViewMode = 'roles' | 'activation';
 const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const MESERO_COLORS = ['#8b5cf6','#6366f1','#3b82f6','#06b6d4','#14b8a6','#22c55e','#84cc16','#a855f7','#ec4899','#f43f5e','#f97316','#eab308','#78716c','#64748b','#0ea5e9'];
 
 /**
  * Get the correct route for a terminal based on its ID and role
@@ -75,22 +73,8 @@ function generateActorId(terminalId: string): string {
   return hex.slice(0, 8) + '-' + th.slice(0, 4) + '-4' + th.slice(4, 7) + '-a' + th.slice(7, 10) + '-' + th.slice(10, 22);
 }
 
-function generateMeseros(): TerminalOption[] {
-  const result: TerminalOption[] = [];
-  for (let i = 0; i < 15; i++) {
-    result.push({ terminal_id: 'MOZO_' + String(i + 1).padStart(2, '0'), role: 'WAITER' as TerminalRole, label: 'Mesero ' + (i + 1), accentColor: MESERO_COLORS[i] });
-  }
-  return result;
-}
-
-const MESEROS = generateMeseros();
 const ROLE_CARDS = [
-  { id: 'CAJA_01', role: 'CASHIER' as TerminalRole, title: 'Caja', subtitle: 'Cobros y cierre', icon: Monitor, color: '#10b981', gradient: 'from-emerald-500 to-teal-600', shadowColor: 'shadow-emerald-500/20', isGroup: false },
-  { id: 'meseros', role: 'WAITER' as TerminalRole, title: 'Meseros', subtitle: '15 terminales', icon: Users, color: '#8b5cf6', gradient: 'from-violet-500 to-purple-600', shadowColor: 'shadow-violet-500/20', isGroup: true },
-  { id: 'SPC_HORNO', role: 'KDS' as TerminalRole, title: 'Horno', subtitle: 'Parrilla', icon: Flame, color: '#f97316', gradient: 'from-orange-500 to-red-600', shadowColor: 'shadow-orange-500/20', isGroup: false },
-  { id: 'SPC_COCINA', role: 'KDS' as TerminalRole, title: 'Cocina', subtitle: 'Guarniciones', icon: ChefHat, color: '#eab308', gradient: 'from-yellow-500 to-amber-600', shadowColor: 'shadow-yellow-500/20', isGroup: false },
-  { id: 'SPC_BAR', role: 'BAR' as TerminalRole, title: 'Bar', subtitle: 'Bebidas', icon: Wine, color: '#0ea5e9', gradient: 'from-sky-500 to-blue-600', shadowColor: 'shadow-sky-500/20', isGroup: false },
-  { id: 'SPC_EMPAQUE', role: 'KDS' as TerminalRole, title: 'Empaque', subtitle: 'Delivery', icon: Package, color: '#10b981', gradient: 'from-emerald-500 to-green-600', shadowColor: 'shadow-emerald-500/20', isGroup: false },
+  { id: 'CAJA_01', role: 'CASHIER' as TerminalRole, title: 'Caja', subtitle: 'Terminal de cobros', icon: Monitor, gradient: 'from-emerald-500 to-teal-600', shadowColor: 'shadow-emerald-500/20' },
 ];
 
 // Floating particles for background effect
@@ -267,9 +251,8 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
     }
   };
 
-  const handleRole = (c: typeof ROLE_CARDS[0]) => { 
-    if (c.isGroup) setView('meseros'); 
-    else handleSelect(c.id, c.role, c.title); 
+  const handleRole = (c: typeof ROLE_CARDS[0]) => {
+    handleSelect(c.id, c.role, c.title);
   };
 
   if (loading) {
@@ -310,18 +293,16 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between relative">
           <div className="flex items-center gap-3">
             <AnimatePresence mode="wait">
-              {(view === 'meseros' || view === 'activation') && (
-                <motion.button 
+              {view === 'activation' && (
+                <motion.button
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   onClick={() => {
-                    if (view === 'activation') {
-                      setPendingTerminal(null);
-                      setError('');
-                    }
+                    setPendingTerminal(null);
+                    setError('');
                     setView('roles');
-                  }} 
+                  }}
                   className="p-2 -ml-2 rounded-xl hover:bg-zinc-800/50 transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5 text-zinc-400" />
@@ -347,7 +328,7 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
                 <span className="text-white ml-1">POS</span>
               </h1>
               <p className="text-xs text-zinc-500">
-                {view === 'roles' ? 'Selecciona tu estación' : view === 'meseros' ? 'Selecciona tu número' : 'Código de activación'}
+                {view === 'roles' ? 'Activar terminal de caja' : 'Código de activación'}
               </p>
             </div>
           </div>
@@ -369,12 +350,10 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
           <AnimatePresence mode="wait">
             {view === 'roles' ? (
               <RolesView key="roles" selecting={selecting} onSelect={handleRole} />
-            ) : view === 'meseros' ? (
-              <MeserosView key="meseros" selecting={selecting} onSelect={m => handleSelect(m.terminal_id, m.role, m.label)} />
             ) : (
-              <ActivationView 
-                key="activation" 
-                selecting={selecting === 'activating'} 
+              <ActivationView
+                key="activation"
+                selecting={selecting === 'activating'}
                 onSubmit={handleActivation}
                 terminalName={pendingTerminal?.label || ''}
               />
@@ -391,31 +370,6 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
             </motion.div>
           )}
           
-          {view === 'roles' && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="mt-8 flex justify-center"
-            >
-              <motion.a 
-                href="/inventario" 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="group flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/30 text-zinc-400 hover:text-emerald-400 text-sm transition-all relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Package className="w-4 h-4 relative z-10" />
-                <span className="relative z-10">Inventario</span>
-                <motion.div
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                >
-                  <ArrowRight className="w-3 h-3 relative z-10" />
-                </motion.div>
-              </motion.a>
-            </motion.div>
-          )}
         </div>
       </main>
 
@@ -456,7 +410,7 @@ function RolesView({ selecting, onSelect }: { selecting: string | null; onSelect
           <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 2, repeat: Infinity }}>
             <Sparkles className="w-4 h-4 text-emerald-500" />
           </motion.div>
-          <span className="text-sm text-zinc-400">¿Qué rol desempeñas hoy?</span>
+          <span className="text-sm text-zinc-400">Selecciona el terminal de caja</span>
           <motion.div animate={{ rotate: [0, -15, 15, 0] }} transition={{ duration: 2, repeat: Infinity }}>
             <Sparkles className="w-4 h-4 text-emerald-500" />
           </motion.div>
@@ -530,94 +484,6 @@ function RolesView({ selecting, onSelect }: { selecting: string | null; onSelect
   );
 }
 
-function MeserosView({ selecting, onSelect }: { selecting: string | null; onSelect: (m: TerminalOption) => void }) {
-  return (
-    <motion.div 
-      initial={{ opacity: 0, x: 20 }} 
-      animate={{ opacity: 1, x: 0 }} 
-      exit={{ opacity: 0, x: 20 }}
-    >
-      {/* Title */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
-      >
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-            <Users className="w-4 h-4 text-violet-500" />
-          </motion.div>
-          <span className="text-sm text-zinc-400">Selecciona tu número de mesero</span>
-          <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}>
-            <Users className="w-4 h-4 text-violet-500" />
-          </motion.div>
-        </div>
-      </motion.div>
-
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-        {MESEROS.map((m, i) => {
-          const n = parseInt(m.terminal_id.replace('MOZO_', ''));
-          const isSelecting = selecting === m.terminal_id;
-          
-          return (
-            <motion.button 
-              key={m.terminal_id} 
-              initial={{ opacity: 0, scale: 0.5, rotate: -10 }} 
-              animate={{ opacity: 1, scale: 1, rotate: 0 }} 
-              transition={{ delay: i * 0.04, type: "spring", stiffness: 300 }} 
-              onClick={() => onSelect(m)} 
-              disabled={selecting !== null}
-              whileHover={{ scale: 1.08, y: -4, rotate: 2 }}
-              whileTap={{ scale: 0.92 }}
-              className="group aspect-square relative"
-            >
-              {/* Animated glow effect */}
-              <motion.div 
-                className="absolute -inset-1 rounded-2xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity"
-                style={{ backgroundColor: m.accentColor }}
-                animate={isSelecting ? { opacity: [0.3, 0.6, 0.3] } : {}}
-                transition={{ duration: 0.8, repeat: Infinity }}
-              />
-              
-              {/* Border gradient on hover */}
-              <div 
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity p-[1px]"
-                style={{ background: `linear-gradient(135deg, ${m.accentColor}, transparent)` }}
-              >
-                <div className="w-full h-full rounded-2xl bg-zinc-900" />
-              </div>
-              
-              <div className="relative h-full rounded-2xl bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 group-hover:border-transparent flex flex-col items-center justify-center gap-1 transition-all overflow-hidden">
-                {/* Shine effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-                </div>
-                
-                <motion.div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center transition-all relative z-10" 
-                  style={{ backgroundColor: m.accentColor + '20', color: m.accentColor }}
-                  whileHover={{ scale: 1.1 }}
-                >
-                  {isSelecting ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Loader2 className="w-5 h-5" />
-                    </motion.div>
-                  ) : (
-                    <span className="text-2xl font-bold">{n}</span>
-                  )}
-                </motion.div>
-                <span className="text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors relative z-10">Mesero</span>
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-}
 
 function ActivationView({ selecting, onSubmit, terminalName }: { selecting: boolean; onSubmit: (code: string) => void; terminalName: string }) {
   const [code, setCode] = useState('');

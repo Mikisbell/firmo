@@ -160,10 +160,12 @@ export class SSEBroadcaster {
     // Event type
     lines.push(`event: ${event.type}`);
     
-    // Event data (JSON)
+    // Event data (JSON) — guard against invalid Date (e.g. new Date(NaN))
+    const tsMs = event.timestamp instanceof Date ? event.timestamp.getTime() : NaN;
+    const timestampStr = isNaN(tsMs) ? new Date().toISOString() : event.timestamp.toISOString();
     const data = JSON.stringify({
       ...event.data,
-      timestamp: event.timestamp.toISOString(),
+      timestamp: timestampStr,
       restaurantId: event.restaurantId,
       driverId: event.driverId
     });
