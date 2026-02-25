@@ -79,9 +79,12 @@ async function handleGET(request: NextRequest) {
     }
 
     // Build where clause with tenant_id from JWT
+    // Default: only active employees. Pass is_active=false to see inactive, omit for active-only
     const where: any = { tenant_id: tenantId };
     if (validatedQuery.is_active !== undefined) {
       where.is_active = validatedQuery.is_active;
+    } else {
+      where.is_active = true; // Default: only show active employees
     }
 
     // Get total count

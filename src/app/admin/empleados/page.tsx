@@ -7,8 +7,9 @@
  * Requirements: 4.1, 4.2
  */
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Check, X, Shield } from 'lucide-react';
+import { Plus, Edit2, Check, X, Shield, Eye, EyeOff } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 
@@ -29,14 +30,8 @@ const ROLE_OPTIONS = [
   { value: 'DRIVER', label: 'Repartidor' },
 ];
 
-const STATUS_OPTIONS = [
-  { value: 'true', label: 'Activo' },
-  { value: 'false', label: 'Inactivo' },
-];
-
 const filters: FilterConfig[] = [
   { key: 'role', label: 'Rol', options: ROLE_OPTIONS },
-  { key: 'is_active', label: 'Estado', options: STATUS_OPTIONS },
 ];
 
 const ROLE_COLORS: Record<string, string> = {
@@ -51,7 +46,9 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function EmployeesPage() {
   const router = useRouter();
-  const { data: employees, loading, error } = useAdminData<Employee>('/api/admin/employees');
+  const [showInactive, setShowInactive] = useState(false);
+  const endpoint = showInactive ? '/api/admin/employees?is_active=false' : '/api/admin/employees';
+  const { data: employees, loading, error } = useAdminData<Employee>(endpoint);
 
   const columns: Column<Employee>[] = [
     { 
@@ -120,13 +117,27 @@ export default function EmployeesPage() {
           <h1 className="text-2xl font-bold">Empleados</h1>
           <p className="text-zinc-400 mt-1">Gestionar personal y accesos</p>
         </div>
-        <button
-          onClick={() => router.push('/admin/empleados/nuevo')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Empleado
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowInactive(!showInactive)}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors min-h-[44px] text-sm ${
+              showInactive
+                ? 'bg-zinc-700/50 border-zinc-600 text-zinc-300'
+                : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300'
+            }`}
+            title={showInactive ? 'Ver activos' : 'Ver inactivos'}
+          >
+            {showInactive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showInactive ? 'Inactivos' : 'Activos'}
+          </button>
+          <button
+            onClick={() => router.push('/admin/empleados/nuevo')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo Empleado
+          </button>
+        </div>
       </div>
 
       {error && (
