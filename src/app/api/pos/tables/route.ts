@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     where.is_active = true;
   }
 
-  const tables = await prisma.tables.findMany({
+  const rows = await prisma.tables.findMany({
     where,
     orderBy: { number: 'asc' },
     select: {
@@ -38,12 +38,19 @@ export async function GET(request: NextRequest) {
       zones: {
         select: {
           id: true,
+          code: true,
           name: true,
           color: true,
         },
       },
     },
   });
+
+  // Rename Prisma relation 'zones' → 'zone' to match what the mozo hook expects
+  const tables = rows.map(({ zones, ...rest }) => ({
+    ...rest,
+    zone: zones ?? null,
+  }));
 
   return NextResponse.json(tables);
 }
