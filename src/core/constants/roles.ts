@@ -26,7 +26,8 @@ export const ROLE_LABELS: Record<string, string> = {
   WAITER:     'Mesero(a)',
   KITCHEN:    'Cocina',
   COOK:       'Cocinero(a)',
+  PACKER:     'Empaquetador(a)',
   BAR:        'Barman',
-  DRIVER:     'Repartidor(a)',
-  DELIVERY:   'Repartidor(a)',
+  DRIVER:     'Motorizado(a)',
+  DELIVERY:   'Motorizado(a)',
 };

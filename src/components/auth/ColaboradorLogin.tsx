@@ -23,38 +23,42 @@ import type { TerminalRole } from '@/src/core/auth/types';
 
 const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
-const COLLAB_ROLES = ['WAITER', 'KITCHEN', 'BAR', 'CASHIER', 'DRIVER'];
+const COLLAB_ROLES = [
+  'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'CASHIER',
+  'DRIVER', 'DELIVERY',
+];
 
 type Phase = 'dni' | 'pin';
 
 function getRouteForRole(role: string): string {
   switch (role) {
-    case 'WAITER':  return '/mozo';
-    case 'KITCHEN': return '/cocina';
-    case 'BAR':     return '/bar';
-    case 'CASHIER': return '/pos';
-    case 'DRIVER':  return '/delivery';
-    default:        return '/';
+    case 'WAITER':   return '/mozo';
+    case 'KITCHEN': case 'COOK': case 'PACKER': return '/cocina';
+    case 'BAR':      return '/bar';
+    case 'CASHIER':  return '/pos';
+    case 'DRIVER': case 'DELIVERY': return '/delivery';
+    default:         return '/';
   }
 }
 
 function mapToTerminalRole(employeeRole: string): string {
   switch (employeeRole) {
-    case 'WAITER':  return 'MOZO';
-    case 'KITCHEN': return 'KDS_COCINA';
-    case 'BAR':     return 'KDS_BAR';
-    case 'CASHIER': return 'CAJA';
-    default:        return 'MOZO';
+    case 'WAITER':   return 'MOZO';
+    case 'KITCHEN': case 'COOK': case 'PACKER': return 'KDS_COCINA';
+    case 'BAR':      return 'KDS_BAR';
+    case 'CASHIER':  return 'CAJA';
+    case 'DRIVER': case 'DELIVERY': return 'MOZO';
+    default:         return 'MOZO';
   }
 }
 
 function mapToTerminalConfigRole(employeeRole: string): TerminalRole {
   switch (employeeRole) {
-    case 'WAITER':  return 'WAITER';
-    case 'KITCHEN': return 'KDS';
-    case 'BAR':     return 'BAR';
-    case 'CASHIER': return 'CASHIER';
-    default:        return 'WAITER';
+    case 'WAITER':   return 'WAITER';
+    case 'KITCHEN': case 'COOK': case 'PACKER': return 'KDS';
+    case 'BAR':      return 'BAR';
+    case 'CASHIER':  return 'CASHIER';
+    default:         return 'WAITER';
   }
 }
 
@@ -370,7 +374,7 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
           </AnimatePresence>
 
           <p className="text-center text-xs text-zinc-600 mt-6">
-            Mesero · Cocina · Bar · Caja · Delivery
+            Mesero · Cocina · Cocinero · Empaquetador · Bar · Caja · Motorizado
           </p>
         </div>
       </main>

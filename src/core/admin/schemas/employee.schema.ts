@@ -12,11 +12,15 @@ export const EmployeeRoleSchema = z.enum([
   "OWNER",
   "ADMIN",
   "MANAGER",
+  "SUPERVISOR",
   "CASHIER",
   "WAITER",
   "KITCHEN",
-  "DRIVER",
+  "COOK",
+  "PACKER",
   "BAR",
+  "DRIVER",
+  "DELIVERY",
 ]);
 
 export type EmployeeRole = z.infer<typeof EmployeeRoleSchema>;

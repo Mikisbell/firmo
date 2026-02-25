@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       prisma,
       data.tenant_id,
       data.pin,
-      ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'BAR', 'DELIVERY', 'DRIVER'], // All POS roles allowed
+      ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER', 'DELIVERY'], // All POS roles allowed
       {
         ip,
         userAgent,

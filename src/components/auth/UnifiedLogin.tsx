@@ -23,38 +23,43 @@ interface TenantBranding {
 
 const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
-const ALL_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'KITCHEN', 'BAR', 'DRIVER'];
+const ALL_ROLES = [
+  'OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR',
+  'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR',
+  'DRIVER', 'DELIVERY',
+];
 
 type Phase = 'dni' | 'checking_dni' | 'pin';
 
 function getRouteForRole(role: string): string {
   switch (role) {
-    case 'OWNER': case 'ADMIN': case 'MANAGER': return '/admin';
-    case 'CASHIER': return '/pos';
-    case 'WAITER':  return '/mozo';
-    case 'KITCHEN': return '/cocina';
-    case 'BAR':     return '/bar';
-    case 'DRIVER':  return '/delivery';
-    default:        return '/';
+    case 'OWNER': case 'ADMIN': case 'MANAGER': case 'SUPERVISOR': return '/admin';
+    case 'CASHIER':  return '/pos';
+    case 'WAITER':   return '/mozo';
+    case 'KITCHEN': case 'COOK': case 'PACKER': return '/cocina';
+    case 'BAR':      return '/bar';
+    case 'DRIVER': case 'DELIVERY': return '/delivery';
+    default:         return '/';
   }
 }
 
 function mapToTerminalRole(role: string): TerminalRole {
   switch (role) {
-    case 'CASHIER': return 'CASHIER';
-    case 'KITCHEN': return 'KDS';
-    case 'BAR':     return 'BAR';
-    default:        return 'WAITER';
+    case 'CASHIER':  return 'CASHIER';
+    case 'KITCHEN': case 'COOK': case 'PACKER': return 'KDS';
+    case 'BAR':      return 'BAR';
+    default:         return 'WAITER';
   }
 }
 
 function mapToTerminalRoleStr(role: string): string {
   switch (role) {
-    case 'WAITER':  return 'MOZO';
-    case 'KITCHEN': return 'KDS_COCINA';
-    case 'BAR':     return 'KDS_BAR';
-    case 'CASHIER': return 'CAJA';
-    default:        return 'MOZO';
+    case 'WAITER':   return 'MOZO';
+    case 'KITCHEN': case 'COOK': case 'PACKER': return 'KDS_COCINA';
+    case 'BAR':      return 'KDS_BAR';
+    case 'CASHIER':  return 'CAJA';
+    case 'DRIVER': case 'DELIVERY': return 'MOZO'; // no hay terminal específico de delivery
+    default:         return 'MOZO';
   }
 }
 
@@ -304,7 +309,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       const emp = data.employee as { id: string; name: string; role: string };
       const route = getRouteForRole(emp.role);
 
-      if (['ADMIN', 'OWNER', 'MANAGER'].includes(emp.role)) {
+      if (['ADMIN', 'OWNER', 'MANAGER', 'SUPERVISOR'].includes(emp.role)) {
         window.location.href = route;
         return;
       }

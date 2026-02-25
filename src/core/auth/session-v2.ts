@@ -15,7 +15,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 // ============ TYPES ============
 
-export type EmployeeRole = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'BAR';
+export type EmployeeRole =
+  | 'OWNER' | 'ADMIN' | 'MANAGER' | 'SUPERVISOR'
+  | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'COOK' | 'PACKER' | 'BAR'
+  | 'DRIVER' | 'DELIVERY';
 export type TerminalRole = 'CAJA' | 'MOZO' | 'KDS_COCINA' | 'KDS_HORNO' | 'KDS_BAR';
 
 export interface Employee {

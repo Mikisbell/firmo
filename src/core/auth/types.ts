@@ -2,7 +2,10 @@
 // Types for terminal registration and authentication
 
 export type TerminalRole = 'CASHIER' | 'WAITER' | 'KDS' | 'ADMIN' | 'BAR';
-export type EmployeeRole = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'BAR' | 'DELIVERY';
+export type EmployeeRole =
+  | 'OWNER' | 'ADMIN' | 'MANAGER' | 'SUPERVISOR'
+  | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'COOK' | 'PACKER' | 'BAR'
+  | 'DRIVER' | 'DELIVERY';
 
 export interface TerminalConfig {
   terminal_id: string;

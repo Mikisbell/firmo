@@ -85,13 +85,18 @@ export function canPerformAction(
 
 // Role hierarchy for permission checks
 const ROLE_HIERARCHY: Record<AuthSession['employee_role'], number> = {
-  ADMIN: 100,
-  MANAGER: 80,
-  CASHIER: 60,
-  WAITER: 40,
-  KITCHEN: 40,
-  BAR: 40,
-  DELIVERY: 20,
+  OWNER:      120,
+  ADMIN:      100,
+  MANAGER:     80,
+  SUPERVISOR:  70,
+  CASHIER:     60,
+  WAITER:      40,
+  KITCHEN:     40,
+  COOK:        40,
+  PACKER:      35,
+  BAR:         40,
+  DRIVER:      20,
+  DELIVERY:    20,
 };
 
 export function hasMinimumRole(
