@@ -507,11 +507,24 @@ export default function LandingPage() {
             <a href="#pricing" className="hover:text-gray-900 transition-colors">Precios</a>
             <a
               href="#demo"
-              className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-lg transition-colors"
+              className="hover:text-gray-900 transition-colors"
             >
               Demo Gratis
             </a>
+            <a
+              href="/login"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors font-semibold"
+            >
+              Ingresar al Sistema
+            </a>
           </div>
+          {/* Mobile login button */}
+          <a
+            href="/login"
+            className="sm:hidden bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+          >
+            Ingresar
+          </a>
         </div>
       </nav>
 
