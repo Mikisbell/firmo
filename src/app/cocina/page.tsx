@@ -171,8 +171,10 @@ export default function CocinaKDSPage() {
                     <>
                         <EmployeeProfileButton
                             employeeName={session.employee_name}
+                            employeeRole={session.employee_role}
                             accentColor="amber"
-                            onClick={() => setProfileOpen(true)}
+                            onOpenDrawer={() => setProfileOpen(true)}
+                            onLogout={handleLogout}
                             compact
                         />
                         <EmployeeProfileDrawer

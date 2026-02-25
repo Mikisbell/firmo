@@ -186,8 +186,10 @@ export default function WaiterPage() {
                                 <EmployeeProfileButton
                                     key="profile"
                                     employeeName={session.employee_name}
+                                    employeeRole={session.employee_role}
                                     accentColor="violet"
-                                    onClick={() => setProfileOpen(true)}
+                                    onOpenDrawer={() => setProfileOpen(true)}
+                                    onLogout={handleExit}
                                     compact
                                 />
                             ),
@@ -286,8 +288,10 @@ export default function WaiterPage() {
                         {session && (
                             <EmployeeProfileButton
                                 employeeName={session.employee_name}
+                                employeeRole={session.employee_role}
                                 accentColor="violet"
-                                onClick={() => setProfileOpen(true)}
+                                onOpenDrawer={() => setProfileOpen(true)}
+                                onLogout={handleExit}
                             />
                         )}
 

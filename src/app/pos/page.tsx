@@ -409,8 +409,10 @@ export default function POSPage() {
                         {session && (
                             <EmployeeProfileButton
                                 employeeName={session.employee_name}
+                                employeeRole={session.employee_role}
                                 accentColor="emerald"
-                                onClick={() => setProfileOpen(true)}
+                                onOpenDrawer={() => setProfileOpen(true)}
+                                onLogout={logout}
                             />
                         )}
 
