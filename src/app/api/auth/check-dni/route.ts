@@ -8,16 +8,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
 
+// Tenant is always resolved from server-side env — never from client input
+const TENANT_ID = getTenantId();
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { dni, tenant_id } = body;
+    const { dni } = body;
 
     if (!dni || typeof dni !== 'string' || !/^\d{8}$/.test(dni)) {
       return NextResponse.json({ exists: false }, { status: 200 });
     }
 
-    const tenantId = tenant_id || getTenantId();
+    const tenantId = TENANT_ID;
 
     const employee = await prisma.employees.findFirst({
       where: { tenant_id: tenantId, dni, is_active: true },

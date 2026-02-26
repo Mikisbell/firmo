@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import crypto from "crypto";
+import { getTenantId } from "@/src/core/config/tenant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const prisma = new PrismaClient();
+// Tenant always resolved from server env — never from client query params
+const TENANT_ID = getTenantId();
 
-export async function GET(req: Request) {
-    const { searchParams } = new URL(req.url);
-    // Default to the seeded tenant if not specified
-    const tenantId = searchParams.get("tenant_id") || "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+export async function GET() {
+    const tenantId = TENANT_ID;
 
     try {
         // Get products from database
@@ -23,6 +24,7 @@ export async function GET(req: Request) {
                 { category: "asc" },
                 { name: "asc" },
             ],
+            take: 500,
         });
 
         // Get catalog meta

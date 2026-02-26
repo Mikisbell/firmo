@@ -14,6 +14,9 @@ import { logger } from '@/src/core/observability/logger';
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
   try {
     const body = await request.json();
     

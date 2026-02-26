@@ -40,8 +40,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log('[Login API] POST request received');
-    console.log('  Body:', JSON.stringify(body));
-    
     const data = LoginSchema.parse(body);
     console.log('[Login API] Schema validation passed');
 
@@ -55,7 +53,7 @@ export async function POST(request: NextRequest) {
                'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
-    console.log('[Login API] Metadata:', { ip, userAgent, terminal_id: data.terminal_id, mac_address: data.mac_address });
+    console.log('[Login API] Metadata:', { ip: ip.slice(0, 15), terminal_id: data.terminal_id });
 
     // Step 1: Authenticate user with PIN
     console.log('[Login API] Step 1: Authenticating user with PIN');
@@ -275,7 +273,7 @@ export async function POST(request: NextRequest) {
 
     // Step 5: Get active shift (if terminal_id provided)
     console.log('[Login API] Step 5: Looking for active shift');
-    let activeShift = null as any;
+    let activeShift: { id: string; opened_at: Date; opened_by: string } | null = null;
     if (data.terminal_id) {
       activeShift = await prisma.shifts.findFirst({
         where: {

@@ -18,6 +18,7 @@ export async function GET() {
         terminal_id: true,
         station_id: true,
       },
+      take: 200,
     });
 
     return NextResponse.json({
