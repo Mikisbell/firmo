@@ -4,6 +4,7 @@
 // Layout for POS routes - requires authentication
 
 import { AuthProvider } from '@/src/components/auth';
+import { RoleGuard } from '@/src/components/auth/RoleGuard';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 
 export default function POSLayout({
@@ -14,7 +15,9 @@ export default function POSLayout({
   return (
     <ErrorBoundary>
       <AuthProvider requireAuth={true}>
-        {children}
+        <RoleGuard allowedRoles={['CASHIER']}>
+          {children}
+        </RoleGuard>
       </AuthProvider>
     </ErrorBoundary>
   );

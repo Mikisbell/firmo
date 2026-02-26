@@ -99,14 +99,32 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       // Check if we're in E2E test mode - bypass authentication
       const isE2E = typeof window !== 'undefined' && safeStorage.getItem('e2e_mode') === 'true';
       if (isE2E) {
+        // Use the role set by E2E helpers (setupKDSTerminal, setupWaiterTerminal, etc.)
+        // stored in localStorage 'park_session', fallback to storedConfig.role or WAITER
+        let e2eRole: string = 'WAITER';
+        let e2eTerminalRole: string = 'MOZO';
+        try {
+          const parkSession = JSON.parse(localStorage.getItem('park_session') || '{}');
+          if (parkSession.role) {
+            e2eRole = parkSession.role;
+            const roleToTerminal: Record<string, string> = {
+              CASHIER: 'CAJA', WAITER: 'MOZO', DRIVER: 'MOZO',
+              KITCHEN: 'KDS_COCINA', COOK: 'KDS_COCINA', PACKER: 'KDS_COCINA',
+              BAR: 'KDS_BAR', ADMIN: 'MOZO', MANAGER: 'MOZO',
+              OWNER: 'MOZO', SUPERVISOR: 'MOZO',
+            };
+            e2eTerminalRole = roleToTerminal[e2eRole] ?? 'MOZO';
+          }
+        } catch { /* keep defaults */ }
+
         // Create a mock session for E2E tests
         const mockSession: SecureSession = {
           id: `e2e-test-session-${Date.now()}`,
           terminal_id: storedConfig.terminal_id,
           employee_id: storedConfig.actor_id,
           employee_name: 'E2E Test User',
-          employee_role: 'WAITER',
-          terminal_role: 'MOZO', // Map WAITER to MOZO for session-v2
+          employee_role: e2eRole as SecureSession['employee_role'],
+          terminal_role: e2eTerminalRole as SecureSession['terminal_role'],
           fingerprint_at_login: storedConfig.device_fingerprint,
           fingerprint_signals_at_login: JSON.stringify({}),
           risk_score_at_login: 0,

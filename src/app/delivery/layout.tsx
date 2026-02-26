@@ -4,18 +4,12 @@ import "@/src/app/globals.css";
 import { AuthProvider } from '@/src/components/auth';
 import { RoleGuard } from '@/src/components/auth/RoleGuard';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
-import { PushSubscriptionPrompt } from './components/PushSubscriptionPrompt';
 
-export default function MozoLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export default function DeliveryLayout({ children }: { children: React.ReactNode }) {
     return (
         <ErrorBoundary>
             <AuthProvider requireAuth={true}>
-                <RoleGuard allowedRoles={['WAITER']}>
-                    <PushSubscriptionPrompt />
+                <RoleGuard allowedRoles={['DRIVER']}>
                     {children}
                 </RoleGuard>
             </AuthProvider>
