@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
 const UpdateEmployeeBody = z.object({
   name: z.string().min(1).optional(),
-  role: z.enum(['CASHIER', 'WAITER', 'COOK', 'SUPERVISOR', 'ADMIN']).optional(),
+  role: z.enum(['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER']).optional(),
   dni: z.string().nullish(),
   email: z.string().email().nullish(),
   phone: z.string().nullish(),

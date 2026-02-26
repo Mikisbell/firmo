@@ -47,7 +47,7 @@ vi.mock('@/src/core/db/transaction', () => ({
 // Arbitraries
 // ============================================================================
 
-const roleArb = fc.constantFrom('CASHIER', 'WAITER', 'COOK', 'SUPERVISOR', 'ADMIN');
+const roleArb = fc.constantFrom('OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER');
 const contractTypeArb = fc.constantFrom('INDEFINIDO', 'PLAZO_FIJO', 'PART_TIME');
 const workScheduleArb = fc.constantFrom('FULL_TIME', 'PART_TIME', 'ROTATING');
 const relationshipArb = fc.constantFrom('SPOUSE', 'PARENT', 'SIBLING', 'CHILD', 'FRIEND', 'OTHER');

@@ -579,7 +579,7 @@ const EmployeeCreatedPayload = z.object({
     employee_id: uuidSchema,
     name: z.string().min(1),
     dni: z.string().optional(),
-    role: z.enum(["CASHIER", "WAITER", "COOK", "SUPERVISOR", "ADMIN"]),
+    role: z.enum(["OWNER", "ADMIN", "MANAGER", "SUPERVISOR", "CASHIER", "WAITER", "KITCHEN", "COOK", "PACKER", "BAR", "DRIVER"]),
     hire_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     base_salary_cents: positiveCentsSchema,
     contract_type: z.string().min(1),

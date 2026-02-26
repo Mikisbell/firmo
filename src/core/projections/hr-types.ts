@@ -8,7 +8,7 @@ export type EmployeeProjection = {
     employee_id: EmployeeId;
     name: string;
     dni?: string;
-    role: "CASHIER" | "WAITER" | "COOK" | "SUPERVISOR" | "ADMIN";
+    role: "OWNER" | "ADMIN" | "MANAGER" | "SUPERVISOR" | "CASHIER" | "WAITER" | "KITCHEN" | "COOK" | "PACKER" | "BAR" | "DRIVER";
     hire_date: string; // YYYY-MM-DD
     base_salary_cents: Centavos;
     contract_type: string;

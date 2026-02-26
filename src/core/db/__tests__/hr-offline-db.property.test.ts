@@ -262,7 +262,7 @@ const cachedEmployeeArb = fc.record({
   id: fc.uuid(),
   tenantId: fc.uuid(),
   name: fc.string({ minLength: 2, maxLength: 50 }),
-  role: fc.constantFrom('CASHIER', 'WAITER', 'COOK', 'ADMIN'),
+  role: fc.constantFrom('OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER'),
   isActive: fc.boolean(),
   updatedAt: fc.date({ min: new Date('2024-01-01'), max: new Date('2026-12-31') })
     .filter(d => !isNaN(d.getTime()))

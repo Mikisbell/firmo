@@ -16,7 +16,7 @@ const TENANT_ID = getTenantId();
 
 const RequestSchema = z.object({
   pin: z.string().min(4).max(6),
-  allowedRoles: z.array(z.enum(['ADMIN', 'MANAGER', 'KITCHEN', 'CASHIER', 'WAITER'])),
+  allowedRoles: z.array(z.enum(['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER'])),
 });
 
 export async function POST(request: NextRequest) {
