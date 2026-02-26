@@ -151,6 +151,42 @@ export function createEventWithRole(eventData: any, role: string = 'CASHIER'): a
 }
 
 /**
+ * Setup any role terminal with E2E mode enabled.
+ * Configures park_terminal_config + park_session + e2e_mode in localStorage.
+ */
+export async function setupRoleTerminal(
+    page: Page,
+    role: string,
+    terminalId?: string,
+) {
+    await page.goto("/");
+    const tid = terminalId ?? `${role.toLowerCase()}_test_1`;
+
+    await page.evaluate(({ role, tid, tenantId }) => {
+        localStorage.setItem('park_terminal_config', JSON.stringify({
+            terminal_id: tid,
+            tenant_id: tenantId,
+            device_fingerprint: 'test-fp-' + tid + '-' + Date.now(),
+            device_name: `Test ${role} Terminal`,
+            role,
+            location_id: 'LOC01',
+            is_allowed: true,
+            registered_at: new Date().toISOString(),
+        }));
+        localStorage.setItem('park_session', JSON.stringify({
+            employee_id: '00000000-0000-0000-0000-000000000099',
+            role,
+            terminal_id: tid,
+            logged_in_at: new Date().toISOString(),
+            pin_verified: true,
+        }));
+        localStorage.setItem('e2e_mode', 'true');
+    }, { role, tid, tenantId: TENANT_ID });
+
+    await page.waitForLoadState('networkidle');
+}
+
+/**
  * Setup Waiter Terminal with Session
  * Configures localStorage with waiter terminal and session data
  */

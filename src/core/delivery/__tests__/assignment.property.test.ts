@@ -341,25 +341,16 @@ describe('Feature: delivery-2026-modernization - Assignment Algorithm Properties
             reason: fc.option(fc.string({ minLength: 5, maxLength: 100 })),
           }),
           async ({ orderId, rejectedDriverId, reason }) => {
-            // Property: Rejection should be handled without throwing
-            // Note: This will fail if order doesn't exist, which is expected
-            // In a real scenario, we'd need to create the order first
-            try {
-              await handleRejection(orderId, rejectedDriverId, reason ?? undefined);
-              // If successful, order should be reassigned or queued
-              return true;
-            } catch (error) {
-              // Expected to fail if order doesn't exist
-              // Property: Should throw meaningful error
-              expect(error).toBeDefined();
-              if (error instanceof Error) {
-                expect(error.message).toContain('not found');
-              }
-              return true;
-            }
+            // Property: Rejection of non-existent order should throw a meaningful error.
+            // handleRejection queries DB, so we expect "not found" for random orderId.
+            await expect(
+              handleRejection(orderId, rejectedDriverId, reason ?? undefined)
+            ).rejects.toThrow('not found');
           }
         ),
-        { numRuns: 50 } // Fewer runs since this involves DB operations
+        // Low numRuns: each iteration hits DB + logs an error, causing contention
+        // under parallel Vitest workers. 5 runs is enough to validate the property.
+        { numRuns: 5 }
       );
     });
   });
