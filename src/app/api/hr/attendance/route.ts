@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al listar asistencias:', error);
+    console.error('Error al listar asistencias:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al listar asistencias' },
       { status: 500 },
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al registrar entrada:', error);
+    console.error('Error al registrar entrada:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al registrar entrada' },
       { status: 500 },

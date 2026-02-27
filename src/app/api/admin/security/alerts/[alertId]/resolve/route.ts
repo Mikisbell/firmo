@@ -5,8 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
-import { validateToken } from '@/src/core/auth/auth.service';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { resolveAlert } from '@/src/core/security/alert-service';
 import { logAction } from '@/src/core/security/rate-limiter';
 
@@ -17,39 +16,11 @@ export async function POST(
   const { alertId } = await params;
   try {
     // Validate admin session
-    const cookieToken = request.cookies.get('auth_token')?.value;
-    const authHeader = request.headers.get('authorization');
-    const headerToken = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : null;
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) return authResult.response;
 
-    const token = cookieToken || headerToken;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      );
-    }
-
-    const tokenResult = await validateToken(token);
-    if (!tokenResult.valid || !tokenResult.payload) {
-      return NextResponse.json(
-        { error: 'Token inválido' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is admin
-    if (tokenResult.payload.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 403 }
-      );
-    }
-
-    const tenantId = DEFAULT_TENANT_ID;
-    const adminId = tokenResult.payload.sub;
+    const tenantId = authResult.user.tenantId;
+    const adminId = authResult.user.id;
     const body = await request.json();
     const { notes } = body;
 
@@ -98,7 +69,7 @@ export async function POST(
       message: 'Alerta resuelta exitosamente',
     });
   } catch (error) {
-    console.error('Resolve alert error:', error);
+    console.error('Resolve alert error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al resolver alerta' },
       { status: 500 }

@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al calcular planilla:', error);
+    console.error('Error al calcular planilla:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al calcular planilla' },
       { status: 500 },

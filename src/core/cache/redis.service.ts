@@ -156,7 +156,7 @@ export class CacheService {
           pinoLogger.info({ pattern, count: keys.length }, 'Cache invalidated');
         }
       } else if (inMemoryCache) {
-        const regex = new RegExp(pattern.replace('*', '.*'));
+        const regex = new RegExp('^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
         const keysToDelete: string[] = [];
         
         for (const key of inMemoryCache.keys()) {

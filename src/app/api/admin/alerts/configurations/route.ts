@@ -13,6 +13,7 @@ import { AlertConfigService } from '@/src/core/alerts/alert-config';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { logger } from '@/src/core/observability/structured-logger';
 import prisma from '@/src/core/db/prisma';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 const alertConfigService = new AlertConfigService();
 
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || !(ADMIN_ROLES as readonly string[]).includes(session.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || !(ADMIN_ROLES as readonly string[]).includes(session.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof Error && error.message.includes('Ya existe')) {
       return NextResponse.json(
-        { error: error.message },
+        { error: 'Ya existe una configuración de alerta con estos parámetros' },
         { status: 409 }
       );
     }

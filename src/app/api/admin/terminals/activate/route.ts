@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       expires_at: expiresAt.toISOString(),
     });
   } catch (error) {
-    console.error('Activation code error:', error);
+    console.error('Activation code error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to generate activation code' },
       { status: 500 }

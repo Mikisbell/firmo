@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/src/core/db/prisma";
 import crypto from "crypto";
 import { getTenantId } from "@/src/core/config/tenant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const prisma = new PrismaClient();
 // Tenant always resolved from server env — never from client query params
 const TENANT_ID = getTenantId();
 
@@ -63,7 +61,7 @@ export async function GET() {
             items,
         });
     } catch (error) {
-        console.error("[catalog/latest] Error:", error);
+        console.error("[catalog/latest] Error:", error instanceof Error ? error.message : String(error));
         // Fallback to demo catalog on error
         return NextResponse.json(getDemoCatalog());
     }

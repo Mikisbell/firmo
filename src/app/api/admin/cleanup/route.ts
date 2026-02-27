@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('api.cleanup.error', 'Cleanup API failed', error instanceof Error ? error : undefined);
     return NextResponse.json(
-      { error: 'Cleanup failed', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -8,6 +8,7 @@ import prisma from '@/src/core/db/prisma';
 import { createHash, randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { cache } from '@/src/core/cache/redis.service';
+import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
 
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts and route.ts
 
@@ -62,7 +63,7 @@ export async function GET(
 
     return NextResponse.json(employee);
   } catch (error) {
-    console.error('Employee GET error:', error);
+    console.error('Employee GET error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener empleado' },
       { status: 500 }
@@ -135,7 +136,7 @@ export async function PUT(
 
     // Validate role if provided
     if (role) {
-      const validRoles = ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER'];
+      const validRoles = [...EMPLOYEE_ROLES];
       if (!validRoles.includes(role)) {
         return NextResponse.json(
           { error: `Rol inválido. Debe ser uno de: ${validRoles.join(', ')}` },
@@ -202,7 +203,7 @@ export async function PUT(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Employee PUT error:', error);
+    console.error('Employee PUT error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al actualizar empleado' },
       { status: 500 }
@@ -276,7 +277,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Employee DELETE error:', error);
+    console.error('Employee DELETE error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al eliminar empleado' },
       { status: 500 }

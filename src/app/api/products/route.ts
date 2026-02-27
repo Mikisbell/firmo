@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching products:', error instanceof Error ? error.message : String(error));
     metrics.increment('api.error', { endpoint: 'products', operation: 'GET' });
     return NextResponse.json(
       { error: 'Error al obtener productos' },

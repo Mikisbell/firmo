@@ -8,38 +8,42 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { PaymentService } from '@/src/core/services/payment.service';
 import prisma from '@/src/core/db/prisma';
+
+const PaymentSchema = z.object({
+  orderId: z.string().min(1).max(255),
+  checkId: z.string().min(1).max(255),
+  amountCents: z.number().int().positive().max(99999999),
+  method: z.enum(['CASH', 'CARD', 'YAPE', 'PLIN', 'TRANSFER']),
+  reference: z.string().max(255).optional(),
+  shiftId: z.string().optional(),
+  terminalId: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   const authResult = await requirePosAuth(request);
   if (!authResult.authorized) return authResult.response;
 
-  let body: any;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  const { orderId, checkId, amountCents, method, reference, shiftId, terminalId } = body;
-
-  if (!orderId || !checkId) {
-    return NextResponse.json({ error: 'orderId y checkId son requeridos' }, { status: 400 });
-  }
-
-  if (!amountCents || amountCents <= 0) {
-    return NextResponse.json({ error: 'amountCents debe ser mayor a 0' }, { status: 400 });
-  }
-
-  const validMethods = ['CASH', 'CARD', 'YAPE', 'PLIN', 'TRANSFER'];
-  if (!method || !validMethods.includes(method)) {
+  const parsed = PaymentSchema.safeParse(body);
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
     return NextResponse.json(
-      { error: `method inválido (${validMethods.join(', ')})` },
+      { error: fieldErrors, details: parsed.error.errors },
       { status: 400 },
     );
   }
+
+  const { orderId, checkId, amountCents, method, reference, shiftId, terminalId } = parsed.data;
 
   const service = new PaymentService(prisma);
   const result = await service.processPayment({

@@ -6,10 +6,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/src/core/db/prisma";
 import { allocateRange, extendRange, needsNewRange } from "@/src/core/order-numbers";
-
-const prisma = new PrismaClient();
 
 // GET /api/terminals/range?terminal_id=xxx&tenant_id=xxx
 export async function GET(req: Request) {
@@ -52,7 +50,7 @@ export async function GET(req: Request) {
             needs_extension: needsExtension,
         });
     } catch (error) {
-        console.error("[Range API] GET error:", error);
+        console.error("[Range API] GET error:", error instanceof Error ? error.message : String(error));
         return NextResponse.json(
             { error: "Error al obtener rango" },
             { status: 500 }
@@ -88,7 +86,7 @@ export async function POST(req: Request) {
             remaining: range.range_end - range.current_number,
         });
     } catch (error) {
-        console.error("[Range API] POST error:", error);
+        console.error("[Range API] POST error:", error instanceof Error ? error.message : String(error));
         return NextResponse.json(
             { error: "Error al asignar rango" },
             { status: 500 }

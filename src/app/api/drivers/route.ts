@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       drivers: response.items,
     });
   } catch (error) {
-    console.error('Error fetching drivers:', error);
+    console.error('Error fetching drivers:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         { status: error.statusCode }
       );
     }
-    console.error('Error creating driver:', error);
+    console.error('Error creating driver:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

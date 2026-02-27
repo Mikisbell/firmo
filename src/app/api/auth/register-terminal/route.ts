@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       registered_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Terminal registration error:', error);
+    console.error('Terminal registration error:', error instanceof Error ? error.message : String(error));
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },

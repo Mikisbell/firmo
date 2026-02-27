@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
 import { metrics } from '@/src/core/observability/metrics';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 /**
  * GET /api/metrics
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       select: { role: true },
     });
 
-    if (!employee || employee.role !== 'ADMIN') {
+    if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }
@@ -135,11 +136,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error retrieving metrics:', error);
+    console.error('Error retrieving metrics:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

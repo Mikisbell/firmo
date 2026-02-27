@@ -273,7 +273,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
       warning,
     });
   } catch (error) {
-    console.error('Error recording waste:', error);
+    console.error('Error recording waste:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

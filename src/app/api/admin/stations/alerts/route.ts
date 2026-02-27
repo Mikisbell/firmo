@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching station alerts:', error);
+    console.error('Error fetching station alerts:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to fetch alerts' },
       { status: 500 }

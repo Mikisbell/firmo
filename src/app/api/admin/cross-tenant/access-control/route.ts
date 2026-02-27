@@ -52,10 +52,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(admins);
   } catch (error: any) {
-    console.error('Error listing admins:', error);
+    console.error('Error listing admins:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }
@@ -133,10 +133,10 @@ export async function POST(request: NextRequest) {
       employee_id,
     });
   } catch (error: any) {
-    console.error('Error granting admin access:', error);
+    console.error('Error granting admin access:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }
@@ -211,10 +211,10 @@ export async function DELETE(request: NextRequest) {
       employee_id,
     });
   } catch (error: any) {
-    console.error('Error revoking admin access:', error);
+    console.error('Error revoking admin access:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al buscar empleados:', error);
+    console.error('Error al buscar empleados:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al buscar empleados' },
       { status: 500 },

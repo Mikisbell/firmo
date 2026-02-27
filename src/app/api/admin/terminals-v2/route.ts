@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Terminal Devices GET error:', error);
+    console.error('Terminal Devices GET error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to fetch terminal devices' },
       { status: 500 }

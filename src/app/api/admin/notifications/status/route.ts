@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       employees: employeeStatuses,
     });
   } catch (error) {
-    console.error('Error getting notification status:', error);
+    console.error('Error getting notification status:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener estado de notificaciones' },
       { status: 500 }

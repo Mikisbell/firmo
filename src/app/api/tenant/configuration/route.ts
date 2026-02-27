@@ -32,18 +32,18 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(configuration);
   } catch (error: any) {
-    console.error('Error getting tenant configuration:', error);
-    
+    console.error('Error getting tenant configuration:', error instanceof Error ? error.message : String(error));
+
     // ✅ Retornar 404 si el tenant no existe, no 500
-    if (error.code === 'P2025' || error.message?.includes('not found')) {
+    if ((error as any).code === 'P2025' || (error instanceof Error && error.message?.includes('not found'))) {
       return NextResponse.json(
         { error: 'Tenant configuration not found' },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -116,26 +116,26 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated);
   } catch (error: any) {
-    console.error('Error updating tenant configuration:', error);
-    
+    console.error('Error updating tenant configuration:', error instanceof Error ? error.message : String(error));
+
     // ✅ Retornar 404 si el tenant no existe, no 500
-    if (error.code === 'P2025' || error.message?.includes('not found')) {
+    if ((error as any).code === 'P2025' || (error instanceof Error && error.message?.includes('not found'))) {
       return NextResponse.json(
         { error: 'Tenant configuration not found' },
         { status: 404 }
       );
     }
-    
+
     // ✅ Manejar error P2002 (unique constraint) - retornar 400
-    if (error.code === 'P2002') {
+    if ((error as any).code === 'P2002') {
       return NextResponse.json(
         { error: 'Configuration update failed - unique constraint violation' },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

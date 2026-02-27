@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(preferences);
   } catch (error) {
-    console.error('[API] Get preferences error:', error);
+    console.error('[API] Get preferences error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener preferencias' },
       { status: 500 }
@@ -68,7 +68,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(preferences);
   } catch (error) {
-    console.error('[API] Update preferences error:', error);
+    console.error('[API] Update preferences error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al actualizar preferencias' },
       { status: 500 }

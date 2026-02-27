@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       message: 'Push notification sent successfully',
     });
   } catch (error) {
-    console.error('Error sending push notification:', error);
+    console.error('Error sending push notification:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to send push notification' },
       { status: 500 }

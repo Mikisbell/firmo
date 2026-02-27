@@ -11,16 +11,29 @@ import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { authenticate } from '@/src/core/auth/auth.service';
 import { getTenantId } from '@/src/core/config/tenant';
+import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
+import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
 
 const TENANT_ID = getTenantId();
 
 const RequestSchema = z.object({
   pin: z.string().min(4).max(6),
-  allowedRoles: z.array(z.enum(['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER'])),
+  allowedRoles: z.array(z.enum([...EMPLOYEE_ROLES])),
 });
+
+// Strict rate limit for PIN verification: 10 attempts per minute per IP
+const PIN_RATE_LIMIT = { maxRequests: 10, windowMs: 60000 };
 
 export async function POST(request: NextRequest) {
   try {
+    const rl = await rateLimit(request, PIN_RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Demasiados intentos. Intenta de nuevo más tarde.' },
+        { status: 429, headers: { 'Retry-After': String(getRetryAfterSeconds(rl.resetAt)) } }
+      );
+    }
+
     const body = await request.json();
     const { pin, allowedRoles } = RequestSchema.parse(body);
 
@@ -66,7 +79,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('PIN verification error:', error);
+    console.error('PIN verification error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

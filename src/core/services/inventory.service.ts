@@ -15,6 +15,7 @@
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err, DomainError, ValidationError, NotFoundError } from '@/src/core/result';
@@ -526,5 +527,5 @@ export class InventoryService {
 // ============================================================================
 
 export const inventoryService = new InventoryService(
-  new PrismaClient()
+  prisma
 );

@@ -25,7 +25,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Failed to generate Postman collection:', error);
+    console.error('Failed to generate Postman collection:', error instanceof Error ? error.message : String(error));
 
     return NextResponse.json(
       {

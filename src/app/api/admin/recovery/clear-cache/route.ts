@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { RecoveryService } from '@/src/core/recovery/recovery-service';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 /**
  * Schema de validación para la solicitud de limpieza de caché
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (session.role !== 'ADMIN') {
+    if (!(ADMIN_ROLES as readonly string[]).includes(session.role)) {
       return NextResponse.json(
         {
           error: {
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Error en endpoint clear-cache:', error);
+    console.error('Error en endpoint clear-cache:', error instanceof Error ? error.message : String(error));
     
     return NextResponse.json(
       {

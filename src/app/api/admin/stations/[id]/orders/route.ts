@@ -4,12 +4,10 @@
 // Updated: 01 Febrero 2026 - Added admin authentication middleware
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
-
-const prisma = new PrismaClient();
 
 interface OrderItem {
   itemId: string;

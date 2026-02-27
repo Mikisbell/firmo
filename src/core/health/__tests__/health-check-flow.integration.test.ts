@@ -101,32 +101,24 @@ describe('Health Check Flow - Integration Tests', () => {
    */
   describe('Database Down', () => {
     it('should return unhealthy status when database is down', async () => {
-      // Simular database down usando URL inválida
-      const invalidHealthCheck = new HealthCheckService();
-      
-      // Mock Prisma para simular fallo
-      const originalEnv = process.env.DATABASE_URL;
-      process.env.DATABASE_URL = 'postgresql://invalid:invalid@invalid:5432/invalid';
+      // Inject a mock PrismaClient that always rejects $queryRaw
+      const brokenPrisma = {
+        $queryRaw: () => Promise.reject(new Error('Connection refused')),
+        $disconnect: () => Promise.resolve(),
+      } as any;
+      const invalidHealthCheck = new HealthCheckService(brokenPrisma);
 
-      try {
-        const result = await invalidHealthCheck.check();
+      const result = await invalidHealthCheck.check();
 
-        // Status debería ser unhealthy o degraded
-        expect(['unhealthy', 'degraded']).toContain(result.status);
+      // Status debería ser unhealthy o degraded
+      expect(['unhealthy', 'degraded']).toContain(result.status);
 
-        // Database component debería reportar problema
-        // (puede ser 'down' o 'degraded' dependiendo del tipo de error)
-        expect(['down', 'degraded']).toContain(result.components.database.status);
+      // Database component debería reportar problema
+      expect(['down', 'degraded']).toContain(result.components.database.status);
 
-        // Debería incluir mensaje de error
-        if (result.components.database.status === 'down') {
-          expect(result.components.database.message).toBeDefined();
-        }
-      } finally {
-        // Restaurar DATABASE_URL
-        if (originalEnv) {
-          process.env.DATABASE_URL = originalEnv;
-        }
+      // Debería incluir mensaje de error
+      if (result.components.database.status === 'down') {
+        expect(result.components.database.message).toBeDefined();
       }
     });
 

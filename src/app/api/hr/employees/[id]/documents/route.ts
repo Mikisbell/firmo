@@ -63,7 +63,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al subir documento de empleado:', error);
+    console.error('Error al subir documento de empleado:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al subir documento' },
       { status: 500 },

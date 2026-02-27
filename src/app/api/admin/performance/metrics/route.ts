@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       p99ResponseTime: metrics.p99ResponseTime,
     });
   } catch (error) {
-    console.error('Error al obtener métricas:', error);
+    console.error('Error al obtener métricas:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener métricas' },
       { status: 500 }
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       message: 'Métricas reseteadas exitosamente',
     });
   } catch (error) {
-    console.error('Error al resetear métricas:', error);
+    console.error('Error al resetear métricas:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al resetear métricas' },
       { status: 500 }

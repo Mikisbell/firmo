@@ -10,6 +10,11 @@ import { PrismaClient } from '@prisma/client';
 import { OrderService } from '../order.service';
 import { CacheService } from '@/src/core/cache/redis.service';
 
+// Mock Prisma singleton
+vi.mock('@/src/core/db/prisma', () => ({
+  default: {},
+}));
+
 // Mock Prisma
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn(),

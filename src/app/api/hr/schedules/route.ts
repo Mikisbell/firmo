@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(templates);
   } catch (error) {
-    console.error('Error al listar plantillas de horario:', error);
+    console.error('Error al listar plantillas de horario:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al listar plantillas de horario' },
       { status: 500 },
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al crear plantilla de horario:', error);
+    console.error('Error al crear plantilla de horario:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al crear plantilla de horario' },
       { status: 500 },

@@ -58,7 +58,7 @@ export async function PATCH(
       terminal,
     });
   } catch (error) {
-    console.error('Terminal status update error:', error);
+    console.error('Terminal status update error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to update terminal status' },
       { status: 500 }

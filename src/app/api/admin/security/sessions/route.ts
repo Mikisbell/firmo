@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       where: { id: session.employeeId },
     });
 
-    if (!employee || employee.role !== 'ADMIN') {
+    if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
       console.log('[Admin Sessions API] Forbidden - not admin');
       return NextResponse.json(
         { error: 'Forbidden - admin access required' },
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         started_at: 'desc',
       },
+      take: 500,
     });
 
     // Fetch employee details separately
@@ -77,7 +79,7 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    console.error('Admin sessions error:', error);
+    console.error('Admin sessions error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error fetching sessions' },
       { status: 500 }

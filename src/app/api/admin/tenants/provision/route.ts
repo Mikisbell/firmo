@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       onboarding_checklist: result.onboarding_checklist,
     });
   } catch (error: any) {
-    console.error('Error provisioning tenant:', error);
+    console.error('Error provisioning tenant:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }

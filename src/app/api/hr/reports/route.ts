@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(report);
   } catch (error) {
-    console.error('Report generation error:', error);
+    console.error('Report generation error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al generar reporte' },
       { status: 500 }

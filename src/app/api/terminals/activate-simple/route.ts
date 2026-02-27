@@ -21,15 +21,10 @@ import { getTenantId } from '@/src/core/config/tenant';
 import crypto from 'crypto';
 
 /**
- * Generate a valid UUID v4 using Math.random
- * This is more compatible with Next.js runtime than crypto.randomUUID
+ * Generate a cryptographically secure UUID v4
  */
 function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+  return crypto.randomUUID();
 }
 
 export async function POST(request: NextRequest) {
@@ -157,20 +152,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    const errorDetails = {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      error: String(error),
-    };
-    
-    console.error('[ACTIVATE-SIMPLE] Error:', errorDetails);
+    console.error('[ACTIVATE-SIMPLE] Error:', error instanceof Error ? error.message : String(error));
     logger.error('SIMPLE_ACTIVATION_ERROR', 'Error in simple activation', error instanceof Error ? error : undefined);
-    
+
     return NextResponse.json(
-      { 
-        error: 'Error interno del servidor',
-        details: errorDetails.message,
-      },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

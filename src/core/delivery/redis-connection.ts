@@ -149,7 +149,7 @@ export const deliveryRedisService = {
         return await deliveryRedis.keys(pattern);
       } else if (inMemoryStore) {
         const allKeys = Array.from(inMemoryStore.keys());
-        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        const regex = new RegExp('^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
         return allKeys.filter(key => regex.test(key));
       }
       return [];

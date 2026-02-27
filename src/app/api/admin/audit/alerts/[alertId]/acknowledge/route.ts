@@ -8,7 +8,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { acknowledgeAlert } from '@/src/core/auth/audit-logger';
+
+const AcknowledgeAlertSchema = z.object({
+  acknowledged_by: z.string().min(1).max(255),
+});
 
 /**
  * POST /api/admin/audit/alerts/[alertId]/acknowledge
@@ -36,15 +41,22 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
-    const { acknowledged_by } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
+    }
 
-    if (!acknowledged_by) {
+    const parsed = AcknowledgeAlertSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'acknowledged_by is required' },
+        { error: 'Datos inválidos', details: parsed.error.errors },
         { status: 400 }
       );
     }
+
+    const { acknowledged_by } = parsed.data;
 
     // Acknowledge the alert
     const alert = await acknowledgeAlert(alertId, acknowledged_by);
@@ -54,7 +66,7 @@ export async function POST(
       alert,
     });
   } catch (error) {
-    console.error('Alert acknowledge error:', error);
+    console.error('Alert acknowledge error:', error instanceof Error ? error.message : String(error));
     
     // Check if it's a "not found" error
     if (error instanceof Error && error.message.includes('Record to update not found')) {

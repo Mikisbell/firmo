@@ -16,13 +16,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
-
-const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { user } = authResult;
-    const tenantId = getTenantId();
+    const tenantId = user.tenantId;
     
     // Parse pagination parameters (supports page/pageSize)
     const params = parsePaginationParams(request.nextUrl.searchParams);

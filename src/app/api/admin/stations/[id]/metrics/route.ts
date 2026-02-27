@@ -54,8 +54,7 @@ export async function GET(
     }
 
     // Get station by ID to find the code
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
+    const { default: prisma } = await import('@/src/core/db/prisma');
 
     const station = await prisma.stations.findUnique({
       where: { id },
@@ -89,7 +88,6 @@ export async function GET(
     return NextResponse.json(
       {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

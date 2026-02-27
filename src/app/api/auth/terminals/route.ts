@@ -29,7 +29,7 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error('Error listing terminals:', error);
+    console.error('Error listing terminals:', error instanceof Error ? error.message : String(error));
     return NextResponse.json({ terminals: [] });
   }
 }

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Logout API] Closing session:', session_token);
+    console.log('[Logout API] Closing session:', session_token.substring(0, 8) + '...');
 
     // Close the session
     await closeSession(session_token, 'User logout');
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('Logout error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error during logout' },
       { status: 500 }

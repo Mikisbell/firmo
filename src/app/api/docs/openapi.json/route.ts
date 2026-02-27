@@ -18,7 +18,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Failed to generate OpenAPI spec:', error);
+    console.error('Failed to generate OpenAPI spec:', error instanceof Error ? error.message : String(error));
     
     return NextResponse.json(
       {

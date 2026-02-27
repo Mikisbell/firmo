@@ -435,7 +435,7 @@ class EnhancedPushService {
     
     for (const [key, value] of Object.entries(variables)) {
       const placeholder = `{{${key}}}`;
-      result = result.replace(new RegExp(placeholder, 'g'), String(value));
+      result = result.split(placeholder).join(String(value));
     }
     
     return result;

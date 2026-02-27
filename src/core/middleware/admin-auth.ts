@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { validateToken } from '@/src/core/auth/auth.service';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -80,10 +81,11 @@ export async function validateAdminAuth(request: NextRequest): Promise<
 }
 
 /**
- * Validates that the authenticated user has admin permissions (ADMIN or MANAGER role)
+ * Validates that the authenticated user has admin permissions
+ * Uses ADMIN_ROLES: OWNER, ADMIN, MANAGER, SUPERVISOR
  */
 export function validateAdminRole(role: string): boolean {
-  return role === 'ADMIN' || role === 'MANAGER' || role === 'OWNER';
+  return (ADMIN_ROLES as readonly string[]).includes(role);
 }
 
 /**

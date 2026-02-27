@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error('Export failed:', error);
+    console.error('Export failed:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof Error) {
       if (error.message.includes('Tenant not found')) {
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
       if (error.message.includes('required')) {
         return NextResponse.json(
-          { error: error.message },
+          { error: 'Missing required fields' },
           { status: 400 }
         );
       }

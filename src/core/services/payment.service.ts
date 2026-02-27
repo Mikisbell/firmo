@@ -17,6 +17,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err, DomainError, ValidationError } from '@/src/core/result';
 import { CacheService } from '@/src/core/cache/redis.service';
@@ -317,5 +318,5 @@ export interface PaymentSummary {
 // ============================================================================
 
 export const paymentService = new PaymentService(
-  new PrismaClient()
+  prisma
 );

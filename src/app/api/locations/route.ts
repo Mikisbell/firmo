@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message.includes('Invalid coordinates')) {
       return NextResponse.json(
         {
-          error: error.message,
+          error: 'Invalid coordinates provided',
         },
         { status: 400 }
       );

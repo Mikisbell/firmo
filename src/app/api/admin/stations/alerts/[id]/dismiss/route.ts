@@ -98,7 +98,7 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Error dismissing alert:', error);
+    console.error('Error dismissing alert:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to dismiss alert' },
       { status: 500 }

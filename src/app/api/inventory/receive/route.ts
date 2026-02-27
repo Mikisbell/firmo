@@ -250,7 +250,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
       ...result,
     });
   } catch (error) {
-    console.error('Error receiving goods:', error);
+    console.error('Error receiving goods:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

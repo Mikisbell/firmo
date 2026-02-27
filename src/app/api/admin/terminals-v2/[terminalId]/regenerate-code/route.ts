@@ -33,7 +33,7 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error('Regenerate code error:', error);
+    console.error('Regenerate code error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to regenerate activation code' },
       { status: 500 }

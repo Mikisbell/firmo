@@ -7,11 +7,9 @@
  * Ejecutar: npx ts-node src/core/workers/outbox-publisher.ts
  */
 
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/src/core/db/prisma";
 import type { ParkEvent } from "@/src/core/domain/events";
 import { logger } from "@/src/core/observability/logger";
-
-const prisma = new PrismaClient();
 
 const POLL_INTERVAL_MS = 100; // Cada 100ms
 const BATCH_SIZE = 100;

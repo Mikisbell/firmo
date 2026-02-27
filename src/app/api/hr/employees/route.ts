@@ -10,6 +10,7 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { EmployeeService } from '@/src/core/services/employee.service';
 import { z } from 'zod';
+import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
 
 const service = new EmployeeService(prisma);
 
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al listar empleados HR:', error);
+    console.error('Error al listar empleados HR:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al listar empleados' },
       { status: 500 },
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
 
 const CreateEmployeeBody = z.object({
   name: z.string().min(1),
-  role: z.enum(['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER']),
+  role: z.enum([...EMPLOYEE_ROLES]),
   pin_hash: z.string().nullish(),
   dni: z.string().nullish(),
   email: z.string().email().nullish(),
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al crear empleado HR:', error);
+    console.error('Error al crear empleado HR:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al crear empleado' },
       { status: 500 },

@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Session check error:', error);
+    console.error('Session check error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { valid: false, error: 'Error al verificar sesión' },
       { status: 500 }
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('PIN validation error:', error);
+    console.error('PIN validation error:', error instanceof Error ? error.message : String(error));
 
     // Provide actionable error messages instead of generic "Error al validar PIN"
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -203,7 +203,7 @@ export async function DELETE(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('Logout error:', error instanceof Error ? error.message : String(error));
     
     // Even if there's an error, clear the cookie
     const response = NextResponse.json(

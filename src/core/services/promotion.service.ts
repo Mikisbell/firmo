@@ -6,6 +6,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err, DomainError, ValidationError, ConflictError } from '@/src/core/result';
 import { CacheService } from '@/src/core/cache/redis.service';
@@ -463,5 +464,5 @@ export class PromotionService {
 
 // Export singleton
 export const promotionService = new PromotionService(
-  new PrismaClient()
+  prisma
 );

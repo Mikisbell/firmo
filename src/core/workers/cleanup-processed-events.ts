@@ -8,10 +8,8 @@
  * npx ts-node src/core/workers/cleanup-processed-events.ts
  */
 
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/src/core/db/prisma";
 import { logger } from "@/src/core/observability/logger";
-
-const prisma = new PrismaClient();
 
 const RETENTION_DAYS = 30; // Mantener 30 días de historial
 

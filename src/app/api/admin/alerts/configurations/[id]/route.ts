@@ -10,10 +10,21 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { AlertConfigService } from '@/src/core/alerts/alert-config';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { logger } from '@/src/core/observability/structured-logger';
 import prisma from '@/src/core/db/prisma';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
+
+const UpdateAlertConfigSchema = z.object({
+  alertType: z.enum(['ERROR_RATE', 'RESPONSE_TIME', 'UPTIME', 'CACHE_HIT_RATE', 'DB_POOL']).optional(),
+  thresholdValue: z.number().optional(),
+  thresholdUnit: z.enum(['PERCENTAGE', 'MILLISECONDS', 'COUNT']).optional(),
+  comparisonOperator: z.enum(['GT', 'LT', 'GTE', 'LTE', 'EQ']).optional(),
+  enabled: z.boolean().optional(),
+  notificationChannels: z.array(z.enum(['email', 'slack', 'webhook'])).optional(),
+});
 
 const alertConfigService = new AlertConfigService();
 
@@ -27,7 +38,7 @@ export async function GET(
   try {
     const session = await getSessionFromRequest(request, prisma);
     
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || !(ADMIN_ROLES as readonly string[]).includes(session.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -67,21 +78,35 @@ export async function PATCH(
   try {
     const session = await getSessionFromRequest(request, prisma);
     
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || !(ADMIN_ROLES as readonly string[]).includes(session.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
 
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
+    }
+
+    const parsed = UpdateAlertConfigSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: parsed.error.errors },
+        { status: 400 }
+      );
+    }
+
     const { id } = await params;
-    
+
     const configuration = await alertConfigService.updateAlertConfig(
       id,
       session.tenantId,
       {
-        ...body,
+        ...parsed.data,
         updatedBy: session.employeeId,
       }
     );
@@ -106,7 +131,7 @@ export async function DELETE(
   try {
     const session = await getSessionFromRequest(request, prisma);
     
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || !(ADMIN_ROLES as readonly string[]).includes(session.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }

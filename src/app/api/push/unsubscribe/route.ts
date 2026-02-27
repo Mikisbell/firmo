@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       message: 'Push subscription removed successfully',
     });
   } catch (error) {
-    console.error('Error removing push subscription:', error);
+    console.error('Error removing push subscription:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to remove push subscription' },
       { status: 500 }

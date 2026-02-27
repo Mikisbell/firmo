@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       message: 'Push subscription stored successfully',
     });
   } catch (error) {
-    console.error('Error storing push subscription:', error);
+    console.error('Error storing push subscription:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to store push subscription' },
       { status: 500 }

@@ -12,6 +12,7 @@ import { AlertNotifier } from '@/src/core/alerts/alert-notifier';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { logger } from '@/src/core/observability/structured-logger';
 import prisma from '@/src/core/db/prisma';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 const alertNotifier = new AlertNotifier();
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSessionFromRequest(request, prisma);
     
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || !(ADMIN_ROLES as readonly string[]).includes(session.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }

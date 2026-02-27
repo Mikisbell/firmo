@@ -61,7 +61,7 @@ export function BackupSection() {
             return;
         }
 
-        console.log(`File selected: ${file.name}, Size: ${file.size}, Password: ${password}`);
+        console.log(`File selected: ${file.name}, Size: ${file.size}`);
 
         if (!password) {
             alert("¡Falta la contraseña!");

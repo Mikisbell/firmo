@@ -25,7 +25,7 @@ export async function PATCH(
         { status: error.statusCode }
       );
     }
-    console.error('Error dispatching delivery:', error);
+    console.error('Error dispatching delivery:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

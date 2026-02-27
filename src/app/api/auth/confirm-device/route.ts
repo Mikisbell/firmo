@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Device confirmation error:', error);
+    console.error('Device confirmation error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al confirmar dispositivo' },
       { status: 500 }

@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       message: 'Solicitud recibida. Te contactaremos pronto.',
     });
   } catch (error) {
-    console.error('Demo request error:', error);
+    console.error('Demo request error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al procesar solicitud' },
       { status: 500 },

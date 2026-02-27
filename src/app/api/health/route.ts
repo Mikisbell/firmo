@@ -80,7 +80,7 @@ export async function GET() {
           },
         },
         responseTime: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Health check failed',
       },
       {
         status: 503,

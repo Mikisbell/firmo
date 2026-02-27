@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[API] Subscribe error:', error);
+    console.error('[API] Subscribe error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al suscribirse' },
       { status: 500 }
@@ -87,7 +87,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[API] Unsubscribe error:', error);
+    console.error('[API] Unsubscribe error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al desuscribirse' },
       { status: 500 }

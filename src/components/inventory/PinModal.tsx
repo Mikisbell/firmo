@@ -58,12 +58,8 @@ export function PinModal({
       return; // Still locked out
     }
 
-    // DEBUG: Log what we're sending
-    console.log('[PinModal] Submitting PIN:');
-    console.log('  PIN value:', pin);
-    console.log('  PIN type:', typeof pin);
-    console.log('  PIN length:', pin.length);
-    console.log('  Allowed roles:', allowedRoles);
+    // Log submission (never log PIN value)
+    console.log('[PinModal] Submitting PIN (length:', pin.length, ')');
 
     setError('');
     setLoading(true);
@@ -71,14 +67,11 @@ export function PinModal({
     try {
       // Get tenant_id from localStorage (for multi-tenant E2E tests)
       const tenantId = typeof window !== 'undefined' ? safeStorage.getItem('tenant_id') : null;
-      console.log('[PinModal] Tenant ID from localStorage:', tenantId);
-
-      const requestBody = { 
-        pin, 
+      const requestBody = {
+        pin,
         allowedRoles,
-        ...(tenantId && { tenant_id: tenantId }) // Include tenant_id if available
+        ...(tenantId && { tenant_id: tenantId })
       };
-      console.log('[PinModal] Request body:', JSON.stringify(requestBody));
 
       const response = await fetch('/api/auth/session', {
         method: 'POST',

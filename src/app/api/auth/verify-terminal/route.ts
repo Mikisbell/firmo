@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Verify terminal error:', error);
+    console.error('Verify terminal error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json({
       valid: false,
       reason: 'ERROR',

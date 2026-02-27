@@ -54,7 +54,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al justificar inasistencia:', error);
+    console.error('Error al justificar inasistencia:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al justificar inasistencia' },
       { status: 500 },

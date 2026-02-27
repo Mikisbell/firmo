@@ -444,7 +444,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
   describe('Validación de autenticación común', () => {
     it('todos los endpoints deben rechazar usuarios sin rol ADMIN', async () => {
       // Arrange
-      const nonAdminRoles = ['WAITER', 'CASHIER', 'KDS', 'MANAGER'];
+      const nonAdminRoles = ['WAITER', 'CASHIER', 'KITCHEN', 'DRIVER'];
       const endpoints = [clearCachePOST, resetSyncPOST, rebuildProjectionsPOST];
 
       for (const role of nonAdminRoles) {

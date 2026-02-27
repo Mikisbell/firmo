@@ -200,7 +200,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching kardex:', error);
+    console.error('Error fetching kardex:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

@@ -1,19 +1,33 @@
 /**
  * Role-Based Event Validation
- * 
+ *
  * Define qué roles pueden emitir qué tipos de eventos.
  * Esto previene que un mesero emita pagos o que cocina cree órdenes.
- * 
- * Roles: ADMIN | MANAGER | CASHIER | WAITER | KITCHEN | DRIVER
+ *
+ * All 11 canonical roles from @/src/core/constants/roles
  */
 
 import type { EventType } from "@/src/core/domain/events";
+import { ADMIN_ROLES } from "@/src/core/constants/roles";
+import type { EmployeeRole } from "@/src/core/constants/roles";
 
-// Roles del sistema
-export type EmployeeRole = "ADMIN" | "MANAGER" | "CASHIER" | "WAITER" | "KITCHEN" | "DRIVER";
+// Re-export for backward compatibility
+export type { EmployeeRole };
 
-// Permisos por rol
+// Permisos por rol — all 11 canonical roles
 const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
+    // OWNER: Acceso completo (igual que ADMIN)
+    OWNER: new Set([
+        "SHIFT_OPENED", "SHIFT_CLOSED", "CASH_ADJUSTED",
+        "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_QTY_CHANGED",
+        "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
+        "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
+        "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "CATALOG_VERSION_BUMPED",
+        "REQUEST_CHECK", "ORDER_SUBMITTED",
+    ]),
+
     // ADMIN: Acceso completo a todos los eventos
     ADMIN: new Set([
         "SHIFT_OPENED", "SHIFT_CLOSED", "CASH_ADJUSTED",
@@ -28,6 +42,17 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
 
     // MANAGER: Casi todo excepto catálogo
     MANAGER: new Set([
+        "SHIFT_OPENED", "SHIFT_CLOSED", "CASH_ADJUSTED",
+        "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_QTY_CHANGED",
+        "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
+        "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
+        "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "REQUEST_CHECK", "ORDER_SUBMITTED",
+    ]),
+
+    // SUPERVISOR: Igual que MANAGER (sub-gerente)
+    SUPERVISOR: new Set([
         "SHIFT_OPENED", "SHIFT_CLOSED", "CASH_ADJUSTED",
         "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_QTY_CHANGED",
         "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
@@ -57,8 +82,23 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
 
-    // KITCHEN: Solo cambiar estado de items (PENDING → COOKING → READY)
+    // KITCHEN: Solo cambiar estado de items
     KITCHEN: new Set([
+        "ORDER_ITEM_STATUS_CHANGED",
+    ]),
+
+    // COOK: Igual que KITCHEN
+    COOK: new Set([
+        "ORDER_ITEM_STATUS_CHANGED",
+    ]),
+
+    // PACKER: Igual que KITCHEN (empaquetado)
+    PACKER: new Set([
+        "ORDER_ITEM_STATUS_CHANGED",
+    ]),
+
+    // BAR: Igual que KITCHEN (preparación bebidas)
+    BAR: new Set([
         "ORDER_ITEM_STATUS_CHANGED",
     ]),
 
@@ -167,8 +207,7 @@ export function getAllowedEventsForRole(role: string): EventType[] {
  */
 export function canApproveManagerActions(role: string | null | undefined): boolean {
     if (!role) return false;
-    const normalizedRole = role.toUpperCase();
-    return normalizedRole === "ADMIN" || normalizedRole === "MANAGER";
+    return (ADMIN_ROLES as readonly string[]).includes(role.toUpperCase());
 }
 
 // Export para testing

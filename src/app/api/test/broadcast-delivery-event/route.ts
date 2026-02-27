@@ -66,9 +66,8 @@ export async function POST(request: NextRequest) {
     logger.error('TEST_DELIVERY_EVENT_ERROR', 'Error broadcasting test delivery event', error instanceof Error ? error : undefined);
     
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to broadcast event',
-        message: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

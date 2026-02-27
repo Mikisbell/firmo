@@ -22,6 +22,12 @@ import { validateLocation, logLocationAccess } from '@/src/core/security/locatio
 import { createAlert } from '@/src/core/security/alert-service';
 import { logAction } from '@/src/core/security/rate-limiter';
 import { getClientIP } from '@/src/core/security/ip-validator';
+import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
+
+// Strict rate limit for secure login: 10 attempts per minute per IP
+const AUTH_RATE_LIMIT = { maxRequests: 10, windowMs: 60000 };
+
 import {
   validateMAC,
   checkTerminalAuthorization,
@@ -30,6 +36,15 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 attempts per minute per IP
+    const rl = await rateLimit(request, AUTH_RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Demasiados intentos. Intenta de nuevo más tarde.' },
+        { status: 429, headers: { 'Retry-After': String(getRetryAfterSeconds(rl.resetAt)) } }
+      );
+    }
+
     const body = await request.json();
     const {
       pin,
@@ -37,8 +52,10 @@ export async function POST(request: NextRequest) {
       terminalId = 'TERMINAL_01',
       ipAddress: clientIP,
       location,
-      allowedRoles = ['ADMIN', 'MANAGER'],
     } = body;
+
+    // Server enforces allowed roles — never trust client input
+    const allowedRoles: string[] = [...EMPLOYEE_ROLES];
 
     if (!pin || !deviceId) {
       return NextResponse.json(
@@ -301,7 +318,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Secure login error:', error);
+    console.error('Secure login error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al procesar login' },
       { status: 500 }

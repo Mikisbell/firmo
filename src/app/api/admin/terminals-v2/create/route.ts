@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Terminal creation error:', error);
+    console.error('Terminal creation error:', error instanceof Error ? error.message : String(error));
     
     // Check for unique constraint violation
     if (error instanceof Error && error.message.includes('Unique constraint')) {

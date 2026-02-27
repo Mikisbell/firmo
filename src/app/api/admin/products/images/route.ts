@@ -245,11 +245,10 @@ async function handlePOST(request: NextRequest) {
     if (error instanceof Error && error.message.includes('formato')) {
       log.warn({
         operation: 'upload_product_image_invalid_format',
-        error: error.message,
       }, 'Invalid image format');
-      
+
       return NextResponse.json(
-        { error: error.message },
+        { error: 'Formato de imagen no válido' },
         { status: 400 }
       );
     }
@@ -257,11 +256,10 @@ async function handlePOST(request: NextRequest) {
     if (error instanceof Error && error.message.includes('tamaño')) {
       log.warn({
         operation: 'upload_product_image_too_large',
-        error: error.message,
       }, 'Image too large');
-      
+
       return NextResponse.json(
-        { error: error.message },
+        { error: 'Imagen excede el tamaño máximo permitido' },
         { status: 400 }
       );
     }

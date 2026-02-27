@@ -13,6 +13,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import prismaSingleton from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/structured-logger';
 import { metrics } from '@/src/core/observability/metrics';
 import { cache } from '@/src/core/cache/cache-service';
@@ -62,7 +63,7 @@ export class HealthCheckService {
   private readonly timeout = 2000; // 2 seconds max response time
 
   constructor(prisma?: PrismaClient) {
-    this.prisma = prisma || new PrismaClient();
+    this.prisma = prisma || prismaSingleton;
   }
 
   /**

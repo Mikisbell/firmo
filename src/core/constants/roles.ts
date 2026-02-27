@@ -16,6 +16,17 @@ export const TERMINAL_ROLE_LABELS: Record<string, string> = {
   KDS_BAR:    'Bar',
 };
 
+/** Canonical list of all employee roles */
+export const EMPLOYEE_ROLES = ['OWNER','ADMIN','MANAGER','SUPERVISOR','CASHIER','WAITER','KITCHEN','COOK','PACKER','BAR','DRIVER'] as const;
+export type EmployeeRole = (typeof EMPLOYEE_ROLES)[number];
+
+/** Roles with admin panel access */
+export const ADMIN_ROLES = ['OWNER','ADMIN','MANAGER','SUPERVISOR'] as const;
+export type AdminAccessRole = (typeof ADMIN_ROLES)[number];
+
+/** Kitchen-related roles */
+export const KITCHEN_ROLES = ['KITCHEN','COOK','PACKER'] as const;
+
 /** Employee role labels — matches EmployeeRole enum */
 export const ROLE_LABELS: Record<string, string> = {
   OWNER:      'Propietario',

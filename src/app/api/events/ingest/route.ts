@@ -646,7 +646,10 @@ export async function POST(req: Request) {
                                 await tx.orders.update({
                                     where: { id: queuedEvent.aggregate_id },
                                     data: { revision: { increment: 1 } }
-                                }).catch(() => {});
+                                }).catch((err: any) => {
+                                    // P2025 = record not found (ORDER_CREATED case)
+                                    if (err?.code !== 'P2025') throw err;
+                                });
                             }
                             
                             // Agregar a outbox
@@ -698,7 +701,9 @@ export async function POST(req: Request) {
                 prisma.event_outbox.updateMany({
                     where: { event_id: ev.event_id },
                     data: { published: true, published_at: new Date() },
-                }).catch(() => { /* Worker will handle */ });
+                }).catch((err: unknown) => {
+                    console.error(`[ingest] Failed to mark event ${ev.event_id} as published:`, err instanceof Error ? err.message : String(err));
+                });
             } catch (e) {
                 console.warn("[Bus] Fallo al publicar, outbox worker reintentará", e);
                 // NO fallar la transacción - el evento está guardado en outbox

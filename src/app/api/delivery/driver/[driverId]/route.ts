@@ -14,7 +14,7 @@ export async function GET(
     const deliveries = await DeliveryService.getDriverDeliveries(driverId);
     return NextResponse.json({ deliveries });
   } catch (error) {
-    console.error('Error fetching driver deliveries:', error);
+    console.error('Error fetching driver deliveries:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

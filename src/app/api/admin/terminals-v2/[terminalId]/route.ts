@@ -61,7 +61,7 @@ export async function GET(
       current_code: currentCode || null,
     });
   } catch (error) {
-    console.error('Terminal details GET error:', error);
+    console.error('Terminal details GET error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to fetch terminal details' },
       { status: 500 }

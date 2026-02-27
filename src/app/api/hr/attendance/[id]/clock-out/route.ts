@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al registrar salida:', error);
+    console.error('Error al registrar salida:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al registrar salida' },
       { status: 500 },

@@ -10,11 +10,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import EnhancedPushService from '@/src/services/push-enhanced.service';
 import EnhancedETACalculator from '@/src/services/eta-enhanced.service';
-
-const prisma = new PrismaClient();
 
 const pushService = new EnhancedPushService(prisma);
 const etaCalculator = new EnhancedETACalculator(prisma);
@@ -42,7 +40,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Checkpoint 2 error:', error);
+    console.error('Checkpoint 2 error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -123,7 +121,7 @@ async function verifyPushNotifications(data: any) {
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
     });
   }
 }
@@ -203,7 +201,7 @@ async function verifyETACalculation(data: any) {
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
     });
   }
 }
@@ -303,7 +301,7 @@ async function verifyDriverAssignment(data: any) {
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
     });
   }
 }
@@ -390,7 +388,7 @@ async function verifyRealTimeTracking(data: any) {
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
     });
   }
 }
@@ -460,7 +458,7 @@ async function getPerformanceMetrics(data: any) {
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
     });
   }
 }

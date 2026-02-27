@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       expires_in_days: validated.expiresInDays || null,
     });
   } catch (error: any) {
-    console.error('Error granting cross-tenant admin access:', error);
+    console.error('Error granting cross-tenant admin access:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }

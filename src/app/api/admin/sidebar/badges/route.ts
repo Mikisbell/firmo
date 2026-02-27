@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       delivery: deliveryCount,
     });
   } catch (error) {
-    console.error('Sidebar badges error:', error);
+    console.error('Sidebar badges error:', error instanceof Error ? error.message : String(error));
     // Return zeros on error - non-critical
     return NextResponse.json({
       auditoria: 0,

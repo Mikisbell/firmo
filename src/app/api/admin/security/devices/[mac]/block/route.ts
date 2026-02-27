@@ -6,6 +6,7 @@ import prisma from '@/src/core/db/prisma';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { blockMAC } from '@/src/core/security/mac-validator-hybrid';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -35,7 +36,7 @@ export async function POST(
       where: { id: session.employeeId },
     });
 
-    if (!employee || employee.role !== 'ADMIN') {
+    if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
       console.log('[Block Device API] Forbidden - not admin');
       return NextResponse.json(
         { error: 'Forbidden - admin access required' },
@@ -81,7 +82,7 @@ export async function POST(
       mac_address: mac,
     });
   } catch (error) {
-    console.error('Block device error:', error);
+    console.error('Block device error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error blocking device' },
       { status: 500 }

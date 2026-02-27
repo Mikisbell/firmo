@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
       stats 
     });
   } catch (error) {
-    console.error('Error in audit-log API:', error);
+    console.error('Error in audit-log API:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al cargar eventos de auditoría' },
       { status: 500 }

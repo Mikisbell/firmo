@@ -36,7 +36,7 @@ export async function GET(
     // Return redirect to download URL
     return NextResponse.redirect(mockExportUrl);
   } catch (error) {
-    console.error('Download export failed:', error);
+    console.error('Download export failed:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof Error) {
       if (error.message.includes('not found')) {

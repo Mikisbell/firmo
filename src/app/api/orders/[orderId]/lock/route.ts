@@ -3,15 +3,13 @@
 // Check, acquire, release, and renew soft locks
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/src/core/db/prisma";
 import {
   checkSoftLock,
   acquireSoftLock,
   releaseSoftLock,
   renewSoftLock,
 } from "@/src/core/conflict/soft-lock.service";
-
-const prisma = new PrismaClient();
 
 // GET /api/orders/{orderId}/lock - Check lock status
 export async function GET(

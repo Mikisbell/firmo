@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     // Return standardized paginated response
     return NextResponse.json(createPaginatedResponse(orders, total, params));
   } catch (error) {
-    console.error('Error fetching orders:', error);
+    console.error('Error fetching orders:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener órdenes' },
       { status: 500 }

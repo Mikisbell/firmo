@@ -14,6 +14,7 @@ import { safeStorage } from '@/src/lib/storage';
 import { setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import { v4 as uuidv4 } from 'uuid';
 import type { TerminalRole } from '@/src/core/auth/types';
+import { EMPLOYEE_ROLES, ADMIN_ROLES } from '@/src/core/constants/roles';
 
 interface TenantBranding {
   legal_name: string;
@@ -23,11 +24,7 @@ interface TenantBranding {
 
 const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
-const ALL_ROLES = [
-  'OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR',
-  'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR',
-  'DRIVER',
-];
+const ALL_ROLES = [...EMPLOYEE_ROLES];
 
 type Phase = 'dni' | 'checking_dni' | 'pin';
 
@@ -309,7 +306,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       const emp = data.employee as { id: string; name: string; role: string };
       const route = getRouteForRole(emp.role);
 
-      if (['ADMIN', 'OWNER', 'MANAGER', 'SUPERVISOR'].includes(emp.role)) {
+      if ((ADMIN_ROLES as readonly string[]).includes(emp.role)) {
         window.location.href = route;
         return;
       }

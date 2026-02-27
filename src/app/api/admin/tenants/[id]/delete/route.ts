@@ -81,7 +81,7 @@ export async function POST(
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error deleting tenant:', error);
+    console.error('Error deleting tenant:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof Error) {
       if (error.message.includes('authorization')) {
@@ -165,7 +165,7 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error generating deletion token:', error);
+    console.error('Error generating deletion token:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof Error && error.message.includes('authorization')) {
       return NextResponse.json(

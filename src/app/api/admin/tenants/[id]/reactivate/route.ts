@@ -60,7 +60,7 @@ export async function POST(
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error reactivating tenant:', error);
+    console.error('Error reactivating tenant:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof Error && error.message.includes('authorization')) {
       return NextResponse.json(

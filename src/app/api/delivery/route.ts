@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         { status: error.statusCode }
       );
     }
-    console.error('Error creating delivery:', error);
+    console.error('Error creating delivery:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
       deliveries: response.items,
     });
   } catch (error) {
-    console.error('Error fetching deliveries:', error);
+    console.error('Error fetching deliveries:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

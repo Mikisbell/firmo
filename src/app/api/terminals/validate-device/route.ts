@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[VALIDATE-DEVICE] Error:', error);
+    console.error('[VALIDATE-DEVICE] Error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al validar dispositivo' },
       { status: 500 }

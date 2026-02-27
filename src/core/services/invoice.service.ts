@@ -14,6 +14,7 @@
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err, DomainError, ValidationError, NotFoundError, ConflictError, ForbiddenError } from '@/src/core/result';
 import { CacheService } from '@/src/core/cache/redis.service';
@@ -1201,5 +1202,5 @@ export class InvoiceService {
 // ============================================================================
 
 export const invoiceService = new InvoiceService(
-  new PrismaClient()
+  prisma
 );

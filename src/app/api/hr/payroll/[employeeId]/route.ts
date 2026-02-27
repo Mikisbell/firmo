@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al obtener historial de planilla:', error);
+    console.error('Error al obtener historial de planilla:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener historial de planilla' },
       { status: 500 },

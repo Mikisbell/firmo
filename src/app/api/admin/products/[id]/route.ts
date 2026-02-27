@@ -68,7 +68,7 @@ export async function GET(
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Product GET error:', error);
+    console.error('Product GET error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener producto' },
       { status: 500 }
@@ -258,7 +258,7 @@ export async function PUT(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Product PUT error:', error);
+    console.error('Product PUT error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al actualizar producto' },
       { status: 500 }
@@ -334,7 +334,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Product DELETE error:', error);
+    console.error('Product DELETE error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al eliminar producto' },
       { status: 500 }

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(exports);
   } catch (error) {
-    console.error('List exports failed:', error);
+    console.error('List exports failed:', error instanceof Error ? error.message : String(error));
 
     return NextResponse.json(
       { error: 'Failed to list exports' },

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al listar planillas del período:', error);
+    console.error('Error al listar planillas del período:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al listar planillas del período' },
       { status: 500 },

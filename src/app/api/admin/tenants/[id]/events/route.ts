@@ -69,10 +69,10 @@ export async function GET(
       offset,
     });
   } catch (error: any) {
-    console.error('Error getting tenant events:', error);
+    console.error('Error getting tenant events:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }

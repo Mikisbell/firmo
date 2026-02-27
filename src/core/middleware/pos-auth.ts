@@ -9,8 +9,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAdminAuth, type AuthenticatedRequest } from './admin-auth';
+import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
 
-const POS_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER'];
+const POS_ROLES = [...EMPLOYEE_ROLES];
 
 /**
  * Middleware helper to protect POS endpoints.
@@ -28,7 +29,7 @@ export async function requirePosAuth(
     return { authorized: false, response: authResult.response };
   }
 
-  if (!POS_ROLES.includes(authResult.user.role)) {
+  if (!(POS_ROLES as readonly string[]).includes(authResult.user.role)) {
     return {
       authorized: false,
       response: NextResponse.json(

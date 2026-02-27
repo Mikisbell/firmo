@@ -13,7 +13,7 @@ export async function GET() {
     const drivers = await DriverService.getAvailable(TENANT_ID);
     return NextResponse.json({ drivers });
   } catch (error) {
-    console.error('Error fetching available drivers:', error);
+    console.error('Error fetching available drivers:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

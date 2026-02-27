@@ -22,7 +22,7 @@ export async function GET(
 
     return NextResponse.json(delivery);
   } catch (error) {
-    console.error('Error fetching delivery:', error);
+    console.error('Error fetching delivery:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

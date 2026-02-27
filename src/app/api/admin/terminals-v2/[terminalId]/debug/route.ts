@@ -11,6 +11,10 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ terminalId: string }> }
 ) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   try {
     const { terminalId } = await params;
     const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
@@ -46,7 +50,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Debug terminal error:', error);
+    console.error('Debug terminal error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

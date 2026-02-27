@@ -40,7 +40,7 @@ export async function PATCH(
         { status: error.statusCode }
       );
     }
-    console.error('Error assigning driver:', error);
+    console.error('Error assigning driver:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

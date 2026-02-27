@@ -42,7 +42,7 @@ export async function PATCH(
         { status: error.statusCode }
       );
     }
-    console.error('Error delivering:', error);
+    console.error('Error delivering:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

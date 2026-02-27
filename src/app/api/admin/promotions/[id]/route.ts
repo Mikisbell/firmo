@@ -55,7 +55,7 @@ export async function GET(
 
     return NextResponse.json(promotion);
   } catch (error) {
-    console.error('Promotion GET error:', error);
+    console.error('Promotion GET error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener promoción' },
       { status: 500 }
@@ -143,7 +143,7 @@ export async function PUT(
 
     return NextResponse.json(promotion);
   } catch (error) {
-    console.error('Promotion PUT error:', error);
+    console.error('Promotion PUT error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al actualizar promoción' },
       { status: 500 }
@@ -205,7 +205,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Promotion DELETE error:', error);
+    console.error('Promotion DELETE error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al eliminar promoción' },
       { status: 500 }

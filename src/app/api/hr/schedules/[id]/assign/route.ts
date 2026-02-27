@@ -61,7 +61,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       { status: 201 },
     );
   } catch (error) {
-    console.error('Error al asignar horario:', error);
+    console.error('Error al asignar horario:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al asignar horario' },
       { status: 500 },

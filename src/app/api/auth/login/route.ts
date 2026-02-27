@@ -12,6 +12,11 @@ import { authenticate } from '@/src/core/auth/auth.service';
 import { validateMAC, checkTerminalAuthorization, registerMAC } from '@/src/core/security/mac-validator-hybrid';
 import { detectSimultaneousLogin, createActiveSession, closeAllSessionsExcept } from '@/src/core/security/session-validator';
 import { createAlert } from '@/src/core/security/alert-service';
+import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
+import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+
+// Strict rate limit for login: 10 attempts per 60 seconds per IP
+const AUTH_RATE_LIMIT = { maxRequests: 10, windowMs: 60000 };
 
 const LoginSchema = z.object({
   tenant_id: z.string().uuid(),
@@ -38,6 +43,15 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 attempts per minute per IP
+    const rl = await rateLimit(request, AUTH_RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Demasiados intentos. Intenta de nuevo más tarde.' },
+        { status: 429, headers: { 'Retry-After': String(getRetryAfterSeconds(rl.resetAt)) } }
+      );
+    }
+
     const body = await request.json();
     console.log('[Login API] POST request received');
     const data = LoginSchema.parse(body);
@@ -61,7 +75,7 @@ export async function POST(request: NextRequest) {
       prisma,
       data.tenant_id,
       data.pin,
-      ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER'], // All POS roles allowed
+      [...EMPLOYEE_ROLES], // All POS roles allowed
       {
         ip,
         userAgent,
@@ -358,35 +372,29 @@ export async function POST(request: NextRequest) {
     console.log('[Login API] Login successful - cookies set');
     return response;
   } catch (error) {
-    console.error('Login error:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    
+    console.error('Login error:', error instanceof Error ? error.message : 'Unknown error');
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },
         { status: 400 }
       );
     }
-    
+
     // Check for database errors
     if (error instanceof Error && error.message.includes('relation')) {
       return NextResponse.json(
-        { 
+        {
           error: 'Database error - tables may not exist',
           message: 'Please run: npx prisma migrate deploy',
-          details: error.message 
         },
         { status: 500 }
       );
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Error de autenticación',
-        message: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

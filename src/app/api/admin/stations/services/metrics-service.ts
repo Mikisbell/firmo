@@ -2,9 +2,7 @@
 // Metrics calculation service for KDS stations
 // Created: 22 Enero 2026
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/src/core/db/prisma';
 
 export interface StationMetrics {
   stationId: string;

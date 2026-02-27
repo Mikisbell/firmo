@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Validate Session API] Validating session:', session_token);
+    console.log('[Validate Session API] Validating session:', session_token.substring(0, 8) + '...');
 
     // Validate the session
     const result = await validateSession(session_token);
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Validate session error:', error);
+    console.error('Validate session error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error validating session' },
       { status: 500 }

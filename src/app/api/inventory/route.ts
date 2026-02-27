@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(createPaginatedResponse(convertedItems, total, params));
   } catch (error) {
-    console.error('Error fetching inventory:', error);
+    console.error('Error fetching inventory:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener inventario' },
       { status: 500 }

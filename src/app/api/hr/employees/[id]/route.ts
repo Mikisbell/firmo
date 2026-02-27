@@ -10,6 +10,7 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { EmployeeService } from '@/src/core/services/employee.service';
 import { z } from 'zod';
+import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
 
 const service = new EmployeeService(prisma);
 
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al obtener empleado HR:', error);
+    console.error('Error al obtener empleado HR:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al obtener empleado' },
       { status: 500 },
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
 const UpdateEmployeeBody = z.object({
   name: z.string().min(1).optional(),
-  role: z.enum(['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR', 'CASHIER', 'WAITER', 'KITCHEN', 'COOK', 'PACKER', 'BAR', 'DRIVER']).optional(),
+  role: z.enum([...EMPLOYEE_ROLES]).optional(),
   dni: z.string().nullish(),
   email: z.string().email().nullish(),
   phone: z.string().nullish(),
@@ -102,7 +103,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al actualizar empleado HR:', error);
+    console.error('Error al actualizar empleado HR:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al actualizar empleado' },
       { status: 500 },
@@ -136,7 +137,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Error al desactivar empleado HR:', error);
+    console.error('Error al desactivar empleado HR:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al desactivar empleado' },
       { status: 500 },

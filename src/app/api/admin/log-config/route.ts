@@ -12,9 +12,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { logConfig, LogLevel, LogModule } from '@/src/core/observability/log-config';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
+
+const LogConfigSchema = z.object({
+  module: z.enum(['auth', 'sync', 'events', 'orders', 'global']),
+  level: z.enum(['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']),
+  reason: z.string().max(500).optional(),
+});
 
 /**
  * GET /api/admin/log-config
@@ -42,7 +49,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[API] Error al obtener configuración de logs:', error);
+    console.error('[API] Error al obtener configuración de logs:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -76,16 +83,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Parsear body
-    const body = await request.json();
-    const { module, level, reason } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
+    }
 
-    // Validar parámetros requeridos
-    if (!module || !level) {
+    const parsed = LogConfigSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Parámetros requeridos: module, level' },
+        { error: 'Datos inválidos', details: parsed.error.errors },
         { status: 400 }
       );
     }
+
+    const { module, level, reason } = parsed.data;
 
     // Actualizar configuración
     await logConfig.setLevel(
@@ -105,12 +118,12 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[API] Error al actualizar configuración de logs:', error);
-    
+    console.error('[API] Error al actualizar configuración de logs:', error instanceof Error ? error.message : String(error));
+
     // Si es error de validación, retornar 400
     if (error instanceof Error && error.message.includes('inválido')) {
       return NextResponse.json(
-        { error: error.message },
+        { error: 'Valor de configuración inválido' },
         { status: 400 }
       );
     }

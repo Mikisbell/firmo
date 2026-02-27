@@ -35,7 +35,7 @@ export async function GET(
         { status: error.statusCode }
       );
     }
-    console.error('Error fetching driver:', error);
+    console.error('Error fetching driver:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -93,7 +93,7 @@ export async function PATCH(
         { status: error.statusCode }
       );
     }
-    console.error('Error updating driver:', error);
+    console.error('Error updating driver:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

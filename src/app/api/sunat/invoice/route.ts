@@ -8,14 +8,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { v4 as uuidv4 } from 'uuid';
-
-const prisma = new PrismaClient();
 
 const IssueInvoiceSchema = z.object({
   order_id: z.string().uuid(),

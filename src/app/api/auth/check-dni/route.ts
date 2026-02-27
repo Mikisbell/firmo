@@ -7,12 +7,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
+import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
 
 // Tenant is always resolved from server-side env — never from client input
 const TENANT_ID = getTenantId();
 
+// Strict rate limit: 15 DNI checks per minute per IP (prevents enumeration)
+const DNI_RATE_LIMIT = { maxRequests: 15, windowMs: 60000 };
+
 export async function POST(request: NextRequest) {
   try {
+    const rl = await rateLimit(request, DNI_RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { exists: false },
+        { status: 429, headers: { 'Retry-After': String(getRetryAfterSeconds(rl.resetAt)) } }
+      );
+    }
+
     const body = await request.json();
     const { dni } = body;
 

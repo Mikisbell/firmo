@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       employee_id: validated.employee_id,
     });
   } catch (error: any) {
-    console.error('Error revoking cross-tenant admin access:', error);
+    console.error('Error revoking cross-tenant admin access:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }

@@ -147,7 +147,7 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Unbind terminal error:', error);
+    console.error('Unbind terminal error:', error instanceof Error ? error.message : String(error));
     const err = error instanceof Error ? error : new Error(String(error));
     logger.error('TERMINAL_UNBIND_FAILED', 'Failed to unbind terminal', err);
     return NextResponse.json(

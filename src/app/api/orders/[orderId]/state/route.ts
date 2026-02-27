@@ -3,9 +3,7 @@
 // Returns current order state with revision for client refresh
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "@/src/core/db/prisma";
 
 export async function GET(
   req: Request,

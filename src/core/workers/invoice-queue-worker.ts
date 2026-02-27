@@ -7,12 +7,10 @@
  * @module workers/invoice-queue
  */
 
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 import { sunatClient, InvoiceData } from '@/src/core/integrations/sunat/client';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { v4 as uuidv4 } from 'uuid';
-
-const prisma = new PrismaClient();
 
 interface ProcessOptions {
   batchSize?: number;

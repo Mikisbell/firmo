@@ -55,7 +55,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al agregar contacto de emergencia:', error);
+    console.error('Error al agregar contacto de emergencia:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Error al agregar contacto de emergencia' },
       { status: 500 },

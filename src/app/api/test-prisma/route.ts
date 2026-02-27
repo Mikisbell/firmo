@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/src/core/db/prisma';
 
 export async function GET() {
   if (process.env.NODE_ENV === 'production') {
@@ -16,8 +14,7 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json({
-      error: 'Prisma error',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }
