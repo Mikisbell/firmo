@@ -536,6 +536,10 @@ describe('Onboarding Service', () => {
         yape_merchant_name: null,
         plin_merchant_phone: null,
         plin_merchant_name: null,
+        max_cash_opening_cents: 50000,
+        cash_variance_alert_cents: 2000,
+        require_denomination_count: false,
+        tip_max_untaxed_percent: 10,
         onboarding_status: 'COMPLETED',
         updated_at: new Date(),
       });
@@ -605,6 +609,10 @@ describe('Onboarding Service', () => {
         yape_merchant_name: null,
         plin_merchant_phone: null,
         plin_merchant_name: null,
+        max_cash_opening_cents: 50000,
+        cash_variance_alert_cents: 2000,
+        require_denomination_count: false,
+        tip_max_untaxed_percent: 10,
         onboarding_status: 'IN_PROGRESS',
         updated_at: new Date(),
       });
@@ -665,6 +673,10 @@ describe('Onboarding Service', () => {
         yape_merchant_name: null,
         plin_merchant_phone: null,
         plin_merchant_name: null,
+        max_cash_opening_cents: 50000,
+        cash_variance_alert_cents: 2000,
+        require_denomination_count: false,
+        tip_max_untaxed_percent: 10,
         onboarding_status: 'IN_PROGRESS',
         updated_at: new Date(),
       });

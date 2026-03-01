@@ -9,6 +9,7 @@ on:
 env:
   NODE_VERSION: '22'
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/park_test
+  DIRECT_URL: postgresql://postgres:postgres@localhost:5432/park_test
   REDIS_URL: redis://localhost:6379
   JWT_SECRET: test-jwt-secret-ci-only
   NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
