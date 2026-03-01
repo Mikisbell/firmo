@@ -4,6 +4,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 interface StatsResponse {
   lowStockCount: number;
@@ -14,26 +16,22 @@ interface StatsResponse {
 
 /**
  * GET /api/inventory/stats
- * 
+ *
  * Query params:
- * - tenant_id: string (requerido)
  * - location_id: string (opcional)
+ *
+ * tenant_id: extraído del JWT (nunca del cliente)
  */
 export async function GET(
   request: NextRequest
-): Promise<NextResponse<StatsResponse | { error: string }>> {
+) {
   try {
-    const { searchParams } = new URL(request.url);
-    
-    const tenantId = searchParams.get('tenant_id');
-    const locationId = searchParams.get('location_id');
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
 
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Se requiere tenant_id' },
-        { status: 400 }
-      );
-    }
+    const tenantId = authResult.user.tenantId;
+    const { searchParams } = new URL(request.url);
+    const locationId = searchParams.get('location_id');
 
     // Count items with low stock (stock < min_stock)
     // Need to fetch and filter since Prisma doesn't support field comparison in where
@@ -95,7 +93,7 @@ export async function GET(
       todayWaste,
     });
   } catch (error) {
-    console.error('Error fetching inventory stats:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener estadísticas de inventario', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

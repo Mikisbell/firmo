@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { perfMonitor } from '@/src/lib/performance-monitor';
 import { requestCache } from '@/src/lib/fetch-cache';
+import { logger } from '@/src/core/observability/structured-logger';
 
 /**
  * GET /api/admin/performance/metrics
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
       p99ResponseTime: metrics.p99ResponseTime,
     });
   } catch (error) {
-    console.error('Error al obtener métricas:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener metricas de rendimiento', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener métricas' },
       { status: 500 }
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
       message: 'Métricas reseteadas exitosamente',
     });
   } catch (error) {
-    console.error('Error al resetear métricas:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al resetear metricas de rendimiento', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al resetear métricas' },
       { status: 500 }

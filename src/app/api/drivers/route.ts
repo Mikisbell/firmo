@@ -16,6 +16,7 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const TENANT_ID = getTenantId();
 
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
       drivers: response.items,
     });
   } catch (error) {
-    console.error('Error fetching drivers:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener repartidores', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
         { status: error.statusCode }
       );
     }
-    console.error('Error creating driver:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al crear repartidor', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

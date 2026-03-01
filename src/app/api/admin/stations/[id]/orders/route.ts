@@ -78,7 +78,7 @@ export async function GET(
     if (!station) {
       pinoLogger.warn({ stationId: id }, 'Station not found');
       return NextResponse.json(
-        { error: 'Station not found' },
+        { error: 'Estación no encontrada' },
         { status: 404 }
       );
     }
@@ -91,7 +91,7 @@ export async function GET(
         userTenantId: user.tenantId 
       }, 'Tenant isolation violation attempt');
       return NextResponse.json(
-        { error: 'Access denied - Station belongs to different tenant' },
+        { error: 'Acceso denegado - La estación pertenece a otro local' },
         { status: 403 }
       );
     }
@@ -162,7 +162,7 @@ export async function GET(
   } catch (error) {
     pinoLogger.error({ error, stationId: (await params).id }, 'Error fetching station orders');
     return NextResponse.json(
-      { error: 'Failed to fetch station orders' },
+      { error: 'Error al obtener órdenes de la estación' },
       { status: 500 }
     );
   }

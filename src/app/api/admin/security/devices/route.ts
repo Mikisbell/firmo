@@ -6,6 +6,7 @@ import prisma from '@/src/core/db/prisma';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -14,14 +15,14 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[Admin Devices API] GET request received');
+    logger.info('Solicitud GET recibida para dispositivos');
 
     // Validate session
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      console.log('[Admin Devices API] Unauthorized - no session');
+      logger.warn('No autorizado - sin sesión activa');
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -32,14 +33,14 @@ export async function GET(request: NextRequest) {
     });
 
     if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
-      console.log('[Admin Devices API] Forbidden - not admin');
+      logger.warn('Prohibido - no es administrador');
       return NextResponse.json(
-        { error: 'Forbidden - admin access required' },
+        { error: 'Prohibido - se requiere acceso de administrador' },
         { status: 403 }
       );
     }
 
-    console.log('[Admin Devices API] Fetching all devices');
+    logger.debug('Obteniendo todos los dispositivos');
 
     // Get all devices
     const devices = await prisma.device_mac_addresses.findMany({
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     const employeeMap = new Map(employees.map(e => [e.id, e]));
 
-    console.log('[Admin Devices API] Found', devices.length, 'devices');
+    logger.info('Dispositivos encontrados', { count: devices.length });
 
     return NextResponse.json({
       success: true,
@@ -76,9 +77,9 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    console.error('Admin devices error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener dispositivos', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Error fetching devices' },
+      { error: 'Error al obtener dispositivos' },
       { status: 500 }
     );
   }

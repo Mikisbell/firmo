@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validationResult.error.errors },
+        { error: 'Solicitud inválida', details: validationResult.error.errors },
         { status: 400 }
       );
     }
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     if (!order) {
       return NextResponse.json(
-        { error: 'Order not found or cancelled' },
+        { error: 'Orden no encontrada o cancelada' },
         { status: 404 }
       );
     }
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     if (!promotion) {
       return NextResponse.json(
-        { error: 'Promotion not found, inactive, or expired' },
+        { error: 'Promoción no encontrada, inactiva o expirada' },
         { status: 404 }
       );
     }
@@ -235,13 +235,13 @@ export async function POST(request: NextRequest) {
         discount_cents: discountCents,
         total_cents: newTotal,
       },
-      message: 'Promotion validated and applied successfully',
+      message: 'Promoción validada y aplicada exitosamente',
     });
 
   } catch (error) {
     pinoLogger.error({ error }, 'Error validating promotion');
     return NextResponse.json(
-      { error: 'Failed to validate promotion' },
+      { error: 'Error al validar promoción' },
       { status: 500 }
     );
   }

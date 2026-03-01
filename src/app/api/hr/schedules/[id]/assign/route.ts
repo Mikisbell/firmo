@@ -10,6 +10,7 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { ScheduleService } from '@/src/core/services/schedule.service';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new ScheduleService(prisma);
 
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       { status: 201 },
     );
   } catch (error) {
-    console.error('Error al asignar horario:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al asignar horario', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al asignar horario' },
       { status: 500 },

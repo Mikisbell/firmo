@@ -7,6 +7,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -60,9 +61,9 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Terminal Devices GET error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al listar terminales', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to fetch terminal devices' },
+      { error: 'Error al obtener dispositivos del terminal' },
       { status: 500 }
     );
   }

@@ -57,17 +57,20 @@ import prisma from '@/src/core/db/prisma';
 import { Result, ok, err, DomainError, NotFoundError, ValidationError, ConflictError } from '@/src/core/result';
 import { eventBus } from '@/src/core/infra/event-bus';
 import { whatsappService } from '@/src/core/delivery/whatsapp.service';
-import { 
-  OrderId, 
-  DriverId, 
-  TenantId, 
+import {
+  OrderId,
+  DriverId,
+  TenantId,
   Location,
   DeliveryOrderStatus,
   toOrderId,
   toDriverId,
-  toTenantId 
+  toTenantId
 } from '@/src/core/delivery/types-2026';
 import type { PrismaClient } from '@prisma/client';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('delivery-service');
 
 // ============================================
 // Types & Interfaces
@@ -826,7 +829,7 @@ export class DeliveryServiceClass {
 
       // Send WhatsApp notification (async, don't block)
       whatsappService.sendOrderAssigned(toOrderId(deliveryId)).catch((error) => {
-        console.warn('Failed to send WhatsApp notification:', error);
+        log.warn('Error al enviar notificación WhatsApp', { error: error instanceof Error ? error.message : String(error) });
       });
 
       return ok(this.mapToDeliveryResult(updated));
@@ -959,7 +962,7 @@ export class DeliveryServiceClass {
 
       // Send appropriate WhatsApp notification
       this.sendStatusNotification(deliveryId, status).catch((error) => {
-        console.warn('Failed to send status notification:', error);
+        log.warn('Error al enviar notificación de estado', { error: error instanceof Error ? error.message : String(error) });
       });
 
       return ok(this.mapToDeliveryResult(updated));

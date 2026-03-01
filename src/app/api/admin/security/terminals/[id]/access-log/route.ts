@@ -6,6 +6,7 @@ import prisma from '@/src/core/db/prisma';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -18,14 +19,14 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    console.log('[Terminal Access Log API] GET request received for terminal:', id);
+    logger.info('Solicitud GET recibida para log de acceso de terminal', { terminalId: id });
 
     // Validate session
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      console.log('[Terminal Access Log API] Unauthorized - no session');
+      logger.warn('No autorizado - sin sesión activa');
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -36,9 +37,9 @@ export async function GET(
     });
 
     if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
-      console.log('[Terminal Access Log API] Forbidden - not admin');
+      logger.warn('Prohibido - no es administrador');
       return NextResponse.json(
-        { error: 'Forbidden - admin access required' },
+        { error: 'Prohibido - se requiere acceso de administrador' },
         { status: 403 }
       );
     }
@@ -48,7 +49,7 @@ export async function GET(
     const limit = parseInt(url.searchParams.get('limit') || '100');
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
-    console.log('[Terminal Access Log API] Fetching access log for terminal:', id);
+    logger.debug('Obteniendo log de acceso para terminal', { terminalId: id });
 
     // Get access log for terminal
     const accessLog = await prisma.terminal_mac_registry.findMany({
@@ -80,7 +81,7 @@ export async function GET(
       },
     });
 
-    console.log('[Terminal Access Log API] Found', accessLog.length, 'access records');
+    logger.info('Registros de acceso encontrados', { count: accessLog.length, terminalId: id });
 
     return NextResponse.json({
       success: true,
@@ -98,9 +99,9 @@ export async function GET(
       })),
     });
   } catch (error) {
-    console.error('Terminal access log error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener log de acceso de terminal', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Error fetching access log' },
+      { error: 'Error al obtener log de acceso' },
       { status: 500 }
     );
   }

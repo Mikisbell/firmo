@@ -124,6 +124,7 @@ export const POSActions = {
             unit_price_cents: number;
             station: string;
             qty?: number;
+            tax_category?: "GRAVADO" | "EXONERADO" | "INAFECTO";
         }
     ) {
         const line_id = newUUID();
@@ -147,6 +148,7 @@ export const POSActions = {
                     unit_price_cents: item.unit_price_cents,
                     station: item.station,
                     status: "PENDING",
+                    tax_category: item.tax_category ?? "GRAVADO",
                     mods: [],
                 },
             },
@@ -157,6 +159,7 @@ export const POSActions = {
 
     /**
      * Add payment to a check
+     * Returns Result to propagate errors to UI
      */
     async addPayment(
         tenant_id: string,
@@ -169,25 +172,43 @@ export const POSActions = {
             amount_cents: number;
             ref?: string;
         }
-    ) {
-        await appendEvent(tenant_id, terminal_id, {
-            event_id: newUUID(),
-            event_type: "CHECK_PAYMENT_ADDED",
-            aggregate_type: "ORDER",
-            aggregate_id: order_id,
-            correlation_id: order_id,
-            causation_id: null,
-            actor_id,
-            payload: {
-                order_id,
-                check_id,
-                payment: {
-                    method: payment.method,
-                    amount_cents: payment.amount_cents,
-                    ref: payment.ref,
+    ): Promise<{ success: true } | { success: false; error: string }> {
+        try {
+            // Deterministic idempotency key: same inputs → same key
+            const input = `${order_id}|${check_id}|${payment.method}|${payment.amount_cents}|${Date.now()}`;
+            let hash = 0;
+            for (let i = 0; i < input.length; i++) {
+                hash = ((hash << 5) - hash) + input.charCodeAt(i);
+                hash |= 0;
+            }
+            const idempotency_key = `pay_${Math.abs(hash).toString(36)}_${Date.now()}`;
+
+            await appendEvent(tenant_id, terminal_id, {
+                event_id: newUUID(),
+                event_type: "CHECK_PAYMENT_ADDED",
+                aggregate_type: "ORDER",
+                aggregate_id: order_id,
+                correlation_id: order_id,
+                causation_id: null,
+                actor_id,
+                payload: {
+                    order_id,
+                    check_id,
+                    idempotency_key,
+                    payment: {
+                        method: payment.method,
+                        amount_cents: payment.amount_cents,
+                        ref: payment.ref,
+                    },
                 },
-            },
-        });
+            });
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Error al registrar pago',
+            };
+        }
     },
 
     /**
@@ -612,6 +633,158 @@ export const POSActions = {
                 items_by_station: itemsByStation,
             },
         });
+    },
+
+    /**
+     * Issue a refund for an order check
+     */
+    async issueRefund(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        params: {
+            order_id: string;
+            check_id: string;
+            invoice_id?: string;
+            type: "FULL" | "PARTIAL" | "ITEM";
+            reason_code: "CUSTOMER_REQUEST" | "ORDER_ERROR" | "QUALITY_ISSUE" | "LATE_DELIVERY" | "WRONG_ITEM" | "OTHER";
+            reason_detail?: string;
+            original_amount: number;
+            refund_amount: number;
+            refund_method: PaymentMethod;
+            items?: Array<{
+                line_id: string;
+                product_id: string;
+                name: string;
+                qty: number;
+                unit_price_cents: number;
+                refund_cents: number;
+            }>;
+        }
+    ): Promise<{ success: true; refund_id: string } | { success: false; error: string }> {
+        try {
+            const refund_id = newUUID();
+
+            await appendEvent(tenant_id, terminal_id, {
+                event_id: newUUID(),
+                event_type: "REFUND_ISSUED",
+                aggregate_type: "INVOICE",
+                aggregate_id: refund_id,
+                correlation_id: params.order_id,
+                causation_id: null,
+                actor_id,
+                payload: {
+                    refund_id,
+                    order_id: params.order_id,
+                    check_id: params.check_id,
+                    invoice_id: params.invoice_id ?? null,
+                    type: params.type,
+                    reason_code: params.reason_code,
+                    reason_detail: params.reason_detail ?? null,
+                    original_amount: params.original_amount,
+                    refund_amount: params.refund_amount,
+                    refund_method: params.refund_method,
+                    items: params.items ?? null,
+                    issued_by: actor_id,
+                    issued_at: new Date().toISOString(),
+                },
+            });
+            return { success: true, refund_id };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Error al emitir reembolso',
+            };
+        }
+    },
+
+    /**
+     * Set tip for a check
+     */
+    async setTip(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        check_id: string,
+        tip_cents: number
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "CHECK_TIP_SET",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                check_id,
+                tip_cents,
+            },
+        });
+    },
+
+    /**
+     * Get next order number from server-side range allocator
+     * Auto-allocates range if needed via API
+     */
+    async getNextOrderNumber(
+        tenant_id: string,
+        terminal_id: string
+    ): Promise<{ success: true; orderNumber: number } | { success: false; error: string }> {
+        try {
+            // Try to get current range
+            const res = await fetch(`/api/terminals/range?terminal_id=${encodeURIComponent(terminal_id)}&tenant_id=${encodeURIComponent(tenant_id)}`);
+            const data = await res.json();
+
+            // If no range allocated, auto-allocate
+            if (!res.ok && data.needs_allocation) {
+                const allocRes = await fetch('/api/terminals/range', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ terminal_id, tenant_id, action: 'allocate' }),
+                });
+                if (!allocRes.ok) {
+                    return { success: false, error: 'Error al asignar rango de orden' };
+                }
+                const allocData = await allocRes.json();
+                return { success: true, orderNumber: allocData.current_number };
+            }
+
+            if (!res.ok) {
+                return { success: false, error: data.error || 'Error al obtener número de orden' };
+            }
+
+            // If range is almost exhausted, extend
+            if (data.remaining < 100) {
+                fetch('/api/terminals/range', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ terminal_id, tenant_id, action: 'extend' }),
+                }).catch(() => {}); // Fire-and-forget extend
+            }
+
+            // Increment current_number via POST
+            const incRes = await fetch('/api/terminals/range', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ terminal_id, tenant_id, action: 'next' }),
+            });
+
+            if (!incRes.ok) {
+                // Fallback: use current_number + 1 from GET data
+                return { success: true, orderNumber: (data.current_number || 0) + 1 };
+            }
+
+            const incData = await incRes.json();
+            return { success: true, orderNumber: incData.current_number };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Error de red al obtener número de orden',
+            };
+        }
     },
 };
 

@@ -381,6 +381,32 @@ model events {
   @@index([tenant_id, entity_id, occurred_at], map: "idx_events_replay")
 }
 
+/// Eventos archivados (cold storage)
+/// Eventos movidos desde la tabla `events` por la política de retención.
+/// Estructura idéntica a `events` + metadata de archival.
+/// Se pueden restaurar si es necesario (replay/auditoría).
+model archived_events {
+  id                  String   @id @db.Uuid
+  tenant_id           String   @db.Uuid
+  occurred_at         DateTime @db.Timestamptz(6)
+  received_at         DateTime @db.Timestamptz(6)
+  type                String
+  entity_type         String
+  entity_id           String?  @db.Uuid
+  actor_id            String?  @db.Uuid
+  actor_role_snapshot String?
+  terminal_id         String
+  shift_id            String?  @db.Uuid
+  payload_version     Int      @default(1)
+  payload             Json
+  archived_at         DateTime @default(now()) @db.Timestamptz(6)
+  archive_reason      String   @default("retention_policy")
+  tenants             tenants  @relation(fields: [tenant_id], references: [id])
+
+  @@index([tenant_id, occurred_at(sort: Desc)])
+  @@index([tenant_id, type])
+}
+
 model goods_receipt_items {
   id                String         @id @db.Uuid
   goods_receipt_id  String         @db.Uuid
@@ -1075,6 +1101,7 @@ model reservations {
   deposit_amount     Int?
   deposit_paid_at    DateTime? @db.Timestamptz(6)
   deposit_payment_id String?
+  confirmation_code  String?   @db.VarChar(10)
   special_requests   String?
   internal_notes     String?
   arrived_at         DateTime? @db.Timestamptz(6)
@@ -1088,6 +1115,7 @@ model reservations {
   tables             tables?   @relation(fields: [table_id], references: [id])
   tenants            tenants   @relation(fields: [tenant_id], references: [id])
 
+  @@unique([tenant_id, date, confirmation_code])
   @@index([tenant_id, customer_phone])
   @@index([tenant_id, customer_id])
   @@index([tenant_id, location_id, date, status])
@@ -1677,6 +1705,7 @@ model tenants {
   activation_codes         activation_codes[]
   active_sessions          active_sessions[]
   admin_access_logs        admin_access_logs[]
+  archived_events          archived_events[]
   advances                 advances[]
   ai_suggestions           ai_suggestions[]
   alert_configurations     alert_configurations[]
@@ -1696,6 +1725,7 @@ model tenants {
   customers                customers[]
   daily_sales_summary      daily_sales_summary[]
   dead_letter_queue        dead_letter_queue[]
+  pending_events           pending_events[]
   delivery_addresses       delivery_addresses[]
   delivery_metrics         delivery_metrics[]
   delivery_orders          delivery_orders[]
@@ -2298,6 +2328,26 @@ model dead_letter_queue {
   @@index([aggregate_id])
   @@index([expired_at(sort: Desc)])
   @@index([tenant_id, expired_at(sort: Desc)])
+}
+
+/// Cola de eventos pendientes persistida (Out-of-Order Queue)
+/// Persiste eventos que llegaron fuera de orden para sobrevivir reinicios del proceso.
+/// Cuando el evento dependencia llega, se eliminan de aquí y se procesan.
+/// Si expiran (>60s), se mueven a dead_letter_queue.
+model pending_events {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id    String   @db.Uuid
+  event_id     String   @db.Uuid
+  aggregate_id String   @db.Uuid
+  event_type   String
+  payload      Json
+  reason       String
+  enqueued_at  DateTime @default(now()) @db.Timestamptz(6)
+  tenants      tenants  @relation(fields: [tenant_id], references: [id])
+
+  @@index([aggregate_id])
+  @@index([tenant_id, aggregate_id])
+  @@index([enqueued_at])
 }
 
 /// Contactos de emergencia de empleados

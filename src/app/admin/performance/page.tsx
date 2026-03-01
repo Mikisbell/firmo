@@ -109,7 +109,7 @@ export default function PerformancePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Performance Dashboard</h1>
+          <h1 className="text-2xl font-bold">Panel de rendimiento</h1>
           <p className="text-zinc-400 mt-1">
             Métricas de caché y performance del sistema
           </p>
@@ -126,7 +126,7 @@ export default function PerformancePage() {
             onClick={resetMetrics}
             className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors min-h-[44px]"
           >
-            Reset
+            Reiniciar
           </button>
         </div>
       </div>
@@ -140,15 +140,15 @@ export default function PerformancePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           icon={TrendingUp}
-          label="Cache Hit Rate"
+          label="Tasa de aciertos de caché"
           value={`${metrics.cacheHitRate.toFixed(1)}%`}
           color={metrics.cacheHitRate >= 70 ? 'text-green-400' : 'text-red-400'}
-          subtitle={`${metrics.cacheHits} hits / ${metrics.totalRequests} requests`}
+          subtitle={`${metrics.cacheHits} aciertos / ${metrics.totalRequests} solicitudes`}
         />
         
         <MetricCard
           icon={Clock}
-          label="Avg Response Time"
+          label="Tiempo promedio de respuesta"
           value={`${metrics.avgResponseTime.toFixed(0)}ms`}
           color={metrics.avgResponseTime <= 200 ? 'text-green-400' : 'text-amber-400'}
           subtitle={`P95: ${metrics.p95ResponseTime.toFixed(0)}ms, P99: ${metrics.p99ResponseTime.toFixed(0)}ms`}
@@ -156,18 +156,18 @@ export default function PerformancePage() {
         
         <MetricCard
           icon={Database}
-          label="Cache Size"
+          label="Tamaño de caché"
           value={metrics.cacheSize.toString()}
           color={metrics.cacheSize <= 1000 ? 'text-green-400' : 'text-amber-400'}
-          subtitle="entries"
+          subtitle="entradas"
         />
         
         <MetricCard
           icon={HardDrive}
-          label="Memory Usage"
+          label="Uso de memoria"
           value={`${(metrics.memoryUsage / 1024 / 1024).toFixed(1)} MB`}
           color={metrics.memoryUsage <= 100 * 1024 * 1024 ? 'text-green-400' : 'text-red-400'}
-          subtitle="estimated"
+          subtitle="estimado"
         />
       </div>
 
@@ -177,13 +177,13 @@ export default function PerformancePage() {
         <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
           <h2 className="font-medium mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-amber-400" />
-            Cache Performance
+            Rendimiento de caché
           </h2>
           <div className="space-y-3">
-            <StatRow label="Total Requests" value={metrics.totalRequests.toString()} />
-            <StatRow label="Cache Hits" value={metrics.cacheHits.toString()} color="text-green-400" />
-            <StatRow label="Cache Misses" value={metrics.cacheMisses.toString()} color="text-red-400" />
-            <StatRow label="Hit Rate" value={`${metrics.cacheHitRate.toFixed(2)}%`} />
+            <StatRow label="Total de solicitudes" value={metrics.totalRequests.toString()} />
+            <StatRow label="Aciertos de caché" value={metrics.cacheHits.toString()} color="text-green-400" />
+            <StatRow label="Fallos de caché" value={metrics.cacheMisses.toString()} color="text-red-400" />
+            <StatRow label="Tasa de aciertos" value={`${metrics.cacheHitRate.toFixed(2)}%`} />
           </div>
         </div>
 
@@ -191,29 +191,29 @@ export default function PerformancePage() {
         <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
           <h2 className="font-medium mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5 text-blue-400" />
-            Response Times
+            Tiempos de respuesta
           </h2>
           <div className="space-y-3">
-            <StatRow label="Average" value={`${metrics.avgResponseTime.toFixed(2)}ms`} />
-            <StatRow label="P95 (95th percentile)" value={`${metrics.p95ResponseTime.toFixed(2)}ms`} />
-            <StatRow label="P99 (99th percentile)" value={`${metrics.p99ResponseTime.toFixed(2)}ms`} />
+            <StatRow label="Promedio" value={`${metrics.avgResponseTime.toFixed(2)}ms`} />
+            <StatRow label="P95 (percentil 95)" value={`${metrics.p95ResponseTime.toFixed(2)}ms`} />
+            <StatRow label="P99 (percentil 99)" value={`${metrics.p99ResponseTime.toFixed(2)}ms`} />
           </div>
         </div>
       </div>
 
       {/* Health Indicators */}
       <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
-        <h2 className="font-medium mb-4">Health Indicators</h2>
+        <h2 className="font-medium mb-4">Indicadores de salud</h2>
         <div className="space-y-3">
           <HealthIndicator
-            label="Cache Hit Rate"
+            label="Tasa de aciertos de caché"
             value={metrics.cacheHitRate}
             threshold={70}
             unit="%"
             description="Debe ser >= 70%"
           />
           <HealthIndicator
-            label="Avg Response Time"
+            label="Tiempo promedio de respuesta"
             value={metrics.avgResponseTime}
             threshold={200}
             unit="ms"
@@ -221,15 +221,15 @@ export default function PerformancePage() {
             inverse
           />
           <HealthIndicator
-            label="Cache Size"
+            label="Tamaño de caché"
             value={metrics.cacheSize}
             threshold={1000}
-            unit="entries"
-            description="Debe ser <= 1000 entries"
+            unit="entradas"
+            description="Debe ser <= 1000 entradas"
             inverse
           />
           <HealthIndicator
-            label="Memory Usage"
+            label="Uso de memoria"
             value={metrics.memoryUsage / 1024 / 1024}
             threshold={100}
             unit="MB"

@@ -9,6 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
 
 // Types
 interface NumberRange {
@@ -18,11 +19,13 @@ interface NumberRange {
 }
 
 // Helper functions
+const { randomInt: _randInt } = seededMathRandom(42);
+
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
   for (let i = 0; i < 12; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+    code += chars[_randInt(0, chars.length - 1)];
   }
   return code;
 }
@@ -73,7 +76,7 @@ const nonOverlappingRangesArb = fc.integer({ min: 1, max: 10 }).chain((count) =>
     let currentStart = 1;
     
     for (let i = 0; i < ids.length; i++) {
-      const rangeSize = Math.floor(Math.random() * 10000) + 1000;
+      const rangeSize = _randInt(1000, 10999);
       ranges.push({
         terminalId: ids[i],
         start: currentStart,

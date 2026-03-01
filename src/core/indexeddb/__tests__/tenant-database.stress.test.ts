@@ -12,6 +12,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
+
+const { random } = seededMathRandom(42);
 
 // Mock Dexie BEFORE importing the module
 vi.mock('dexie', () => {
@@ -68,7 +71,7 @@ import {
 // Helper to generate valid UUIDs
 function generateUUID(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = (Math.random() * 16) | 0;
+        const r = (random() * 16) | 0;
         const v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });

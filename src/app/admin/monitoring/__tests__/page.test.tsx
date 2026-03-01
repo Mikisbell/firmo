@@ -367,7 +367,7 @@ describe('Dashboard de Monitoreo - Procesamiento de Datos', () => {
       ];
       
       const data = vitals.map(({ metric, key, threshold }) => {
-        const stats = mockMetricsData.histograms[key];
+        const stats = (mockMetricsData.histograms as Record<string, { count: number; min: number; max: number; avg: number; p50: number; p95: number; p99: number }>)[key];
         return {
           metric,
           value: stats ? Math.round(stats.avg * 100) / 100 : 0,

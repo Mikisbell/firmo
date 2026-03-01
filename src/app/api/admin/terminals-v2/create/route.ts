@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createTerminal, type CreateTerminalInput } from '@/src/core/auth/terminal-registry';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     // Validate required fields
     if (!terminal_id || !role || !location_id || !device_name) {
       return NextResponse.json(
-        { error: 'Missing required fields: terminal_id, role, location_id, device_name' },
+        { error: 'Faltan campos requeridos: terminal_id, role, location_id, device_name' },
         { status: 400 }
       );
     }
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     const validRoles = ['CAJA', 'MOZO', 'KDS_COCINA', 'KDS_HORNO', 'KDS_BAR'];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
-        { error: `Invalid role. Must be one of: ${validRoles.join(', ')}` },
+        { error: `Rol inválido. Debe ser uno de: ${validRoles.join(', ')}` },
         { status: 400 }
       );
     }
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Terminal creation error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al crear terminal', error instanceof Error ? error : new Error(String(error)));
     
     // Check for unique constraint violation
     if (error instanceof Error && error.message.includes('Unique constraint')) {
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to create terminal' },
+      { error: 'Error al crear terminal' },
       { status: 500 }
     );
   }

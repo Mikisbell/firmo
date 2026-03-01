@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validationResult.error.errors },
+        { error: 'Solicitud inválida', details: validationResult.error.errors },
         { status: 400 }
       );
     }
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     if (!order) {
       return NextResponse.json(
-        { error: 'Order not found or cancelled' },
+        { error: 'Orden no encontrada o cancelada' },
         { status: 404 }
       );
     }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     if (!promotion) {
       return NextResponse.json(
-        { error: 'Promotion not found, inactive, or expired' },
+        { error: 'Promoción no encontrada, inactiva o expirada' },
         { status: 404 }
       );
     }
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       
       if (existingPromotion && !existingPromotion.stackable) {
         return NextResponse.json(
-          { error: 'Order already has a non-stackable promotion applied' },
+          { error: 'La orden ya tiene una promoción no acumulable aplicada' },
           { status: 409 }
         );
       }
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     pinoLogger.error({ error }, 'Error applying promotion');
     return NextResponse.json(
-      { error: 'Failed to apply promotion' },
+      { error: 'Error al aplicar promoción' },
       { status: 500 }
     );
   }

@@ -4,12 +4,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DeliveryService } from '@/src/core/delivery';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const { id } = await params;
     const delivery = await DeliveryService.getById(id);
 
@@ -22,7 +27,7 @@ export async function GET(
 
     return NextResponse.json(delivery);
   } catch (error) {
-    console.error('Error fetching delivery:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener delivery', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

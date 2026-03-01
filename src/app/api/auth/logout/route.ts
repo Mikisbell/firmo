@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { closeSession } from '@/src/core/security/session-validator';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -22,17 +23,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Logout API] Closing session:', session_token.substring(0, 8) + '...');
+    logger.info('Cerrando sesión', { sessionToken: session_token.substring(0, 8) + '...' });
 
     // Close the session
     await closeSession(session_token, 'User logout');
 
-    console.log('[Logout API] Session closed successfully');
+    logger.info('Sesión cerrada exitosamente');
 
     // Clear cookies
     const response = NextResponse.json({
       success: true,
-      message: 'Logged out successfully',
+      message: 'Sesión cerrada exitosamente',
     });
 
     response.cookies.delete('auth_token');
@@ -40,9 +41,9 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Logout error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al cerrar sesión', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Error during logout' },
+      { error: 'Error al cerrar sesión' },
       { status: 500 }
     );
   }

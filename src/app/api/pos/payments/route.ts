@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requirePosAuth } from '@/src/core/middleware/pos-auth';
+import { requireOpenShift } from '@/src/core/middleware/shift-guard';
 import { PaymentService } from '@/src/core/services/payment.service';
 import prisma from '@/src/core/db/prisma';
 
@@ -24,7 +25,8 @@ const PaymentSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const authResult = await requirePosAuth(request);
+  // Require OPEN shift for payment operations (C2)
+  const authResult = await requireOpenShift(request);
   if (!authResult.authorized) return authResult.response;
 
   let body: unknown;
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { orderId, checkId, amountCents, method, reference, shiftId, terminalId } = parsed.data;
+  const { orderId, checkId, amountCents, method, reference, terminalId } = parsed.data;
 
   const service = new PaymentService(prisma);
   const result = await service.processPayment({
@@ -54,8 +56,8 @@ export async function POST(request: NextRequest) {
     reference,
     tenantId: authResult.user.tenantId,
     actorId: authResult.user.id,
-    terminalId: terminalId || (authResult.user as any).terminalId || '',
-    shiftId,
+    terminalId: terminalId || authResult.user.terminalId,
+    shiftId: authResult.user.shiftId, // Always use the verified open shift
   });
 
   if (!result.success) {

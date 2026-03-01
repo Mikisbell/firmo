@@ -4,6 +4,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const TENANT_ID = getTenantId();
 
@@ -29,7 +30,7 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error('Error listing terminals:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al listar terminales', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ terminals: [] });
   }
 }

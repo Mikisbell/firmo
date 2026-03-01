@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient, Prisma } from "@prisma/client";
 import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/src/core/observability/logger';
+import { ProductAvailabilityService } from '@/src/core/services/product-availability.service';
+import { eventBus } from '@/src/core/infra/event-bus';
 
 export interface DeductionIngredient {
   inventory_code: string;
@@ -34,12 +36,15 @@ export interface RecipeIngredient {
 
 /**
  * Deducts inventory for a sold product based on its recipe
- * 
+ *
  * 1. Looks up the product's recipe
  * 2. For each ingredient, calculates quantity to deduct (recipe.qty * order_qty)
- * 3. Creates InventoryLog with movement_type='OUT'
- * 4. Updates Inventory.stock and theoretical_stock
- * 5. Generates alerts if stock < min_stock or stock < 0
+ * 3. Pre-checks available stock (C3: prevent negative stock)
+ * 4. Creates InventoryLog with movement_type='OUT'
+ * 5. Updates Inventory.stock and theoretical_stock
+ * 6. Generates alerts if stock < min_stock or stock < 0
+ *
+ * @param allowNegative - If true, skip the pre-check (admin override). Default: false.
  */
 export async function deductInventoryForOrder(
   prisma: PrismaClient,
@@ -48,7 +53,8 @@ export async function deductInventoryForOrder(
   orderId: string,
   lineId: string,
   productId: string,
-  quantity: number
+  quantity: number,
+  allowNegative: boolean = false
 ): Promise<DeductionResult> {
   const deductions: DeductionIngredient[] = [];
   const alerts: DeductionAlert[] = [];
@@ -97,7 +103,41 @@ export async function deductInventoryForOrder(
           continue;
         }
 
-        // 4. Update stock (allow negative)
+        // C3: Pre-check available stock before deducting
+        const currentStock = Number(inventory.stock);
+        if (!allowNegative && currentStock < deductQty) {
+          const errorMsg = `INSUFFICIENT_STOCK: ${ingredient.inventory_code} tiene ${currentStock}, necesita ${deductQty}`;
+          logger.warn('INSUFFICIENT_STOCK', errorMsg, {
+            inventory_code: ingredient.inventory_code,
+            current_stock: currentStock,
+            required: deductQty,
+            order_id: orderId,
+            line_id: lineId,
+          });
+
+          // Create DEDUCTION_FAILED log for reconciliation (H5 prep)
+          await tx.inventory_log.create({
+            data: {
+              id: uuidv4(),
+              tenant_id: tenantId,
+              inventory_id: inventory.id,
+              movement_type: "DEDUCTION_FAILED",
+              quantity: new Decimal(-deductQty),
+              reference_id: orderId,
+              reason: errorMsg,
+            },
+          });
+
+          alerts.push({
+            type: "NEGATIVE_STOCK",
+            inventory_code: ingredient.inventory_code,
+            current_stock: currentStock,
+          });
+
+          throw new Error(errorMsg);
+        }
+
+        // 4. Update stock
         const updatedInventory = await tx.inventory.update({
           where: { id: inventory.id },
           data: {
@@ -173,6 +213,22 @@ export async function deductInventoryForOrder(
         }
       }
     });
+
+    // H4: Auto-86 — check product availability after deduction
+    // If any ingredient stock hit zero, disable the product
+    const hasStockOut = deductions.some((d) => d.new_stock <= 0);
+    if (hasStockOut) {
+      try {
+        const availService = new ProductAvailabilityService(prisma, eventBus);
+        await availService.autoCheckAvailability(tenantId, productId);
+      } catch (e) {
+        // Non-fatal: log but don't fail the deduction
+        logger.warn("AUTO_86_CHECK_FAILED", "Auto-86 check failed post-deduction", {
+          product_id: productId,
+          error: e instanceof Error ? e.message : "Unknown",
+        });
+      }
+    }
 
     return { success: true, deductions, alerts };
   } catch (error) {

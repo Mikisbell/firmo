@@ -6,6 +6,9 @@
 import prisma from '@/src/core/db/prisma';
 import { getCurrentBusinessDate, getBusinessDate } from '@/src/core/utils/business-date';
 import { unsafeCentavos, type Centavos } from '@/src/core/types/shared';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('analytics');
 import type {
   RealtimeMetrics,
   StationMetrics,
@@ -76,7 +79,7 @@ async function setDbCache(tenantId: string, cacheKey: string, data: RealtimeMetr
     });
   } catch (e) {
     // Non-critical - log and continue
-    console.warn('[Analytics] Failed to cache metrics:', e);
+    log.warn('Error al cachear métricas', { error: String(e) });
   }
 }
 
@@ -480,7 +483,7 @@ export async function invalidateCache(tenantId: string): Promise<void> {
       },
     });
   } catch (e) {
-    console.warn('[Analytics] Failed to invalidate cache:', e);
+    log.warn('Error al invalidar caché', { error: String(e) });
   }
 }
 

@@ -14,6 +14,7 @@ import { detectSimultaneousLogin, createActiveSession, closeAllSessionsExcept } 
 import { createAlert } from '@/src/core/security/alert-service';
 import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+import { logger, createRequestLogger } from '@/src/core/observability/structured-logger';
 
 // Strict rate limit for login: 10 attempts per 60 seconds per IP
 const AUTH_RATE_LIMIT = { maxRequests: 10, windowMs: 60000 };
@@ -53,24 +54,25 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log('[Login API] POST request received');
+    const log = createRequestLogger(crypto.randomUUID(), { terminalId: body.terminal_id });
+    log.debug('Solicitud POST recibida');
     const data = LoginSchema.parse(body);
-    console.log('[Login API] Schema validation passed');
+    log.debug('Validación de schema completada');
 
     // Extract device fingerprint from either format
     const deviceFingerprint = data.fingerprint?.hash || data.device_fingerprint;
-    console.log('[Login API] Device fingerprint:', deviceFingerprint ? 'present' : 'not provided');
+    log.debug('Device fingerprint', { hasFingerprint: !!deviceFingerprint });
 
     // Get metadata for audit
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-               request.headers.get('x-real-ip') || 
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+               request.headers.get('x-real-ip') ||
                'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
-    
-    console.log('[Login API] Metadata:', { ip: ip.slice(0, 15), terminal_id: data.terminal_id });
+
+    log.debug('Metadata extraído', { ip: ip.slice(0, 15), terminalId: data.terminal_id });
 
     // Step 1: Authenticate user with PIN
-    console.log('[Login API] Step 1: Authenticating user with PIN');
+    log.debug('Paso 1: Autenticando usuario con PIN');
     const authResult = await authenticate(
       prisma,
       data.tenant_id,
@@ -84,23 +86,21 @@ export async function POST(request: NextRequest) {
     );
 
     if (!authResult.success) {
-      console.log('[Login API] Authentication failed:', authResult.error);
+      log.warn('Autenticación fallida', { error: authResult.error });
       return NextResponse.json(
         { error: authResult.error },
         { status: 401 }
       );
     }
 
-    console.log('[Login API] Authentication successful');
-    console.log('  Employee:', authResult.employee?.name);
-    console.log('  Role:', authResult.employee?.role);
+    log.info('Autenticación exitosa', { employeeName: authResult.employee?.name, role: authResult.employee?.role });
 
     // Step 2: HYBRID MAC Validation (NEW)
-    console.log('[Login API] Step 2: HYBRID MAC Validation');
+    log.debug('Paso 2: Validación MAC híbrida');
     let macValidationWarning: string | undefined;
-    
+
     if (data.mac_address && data.terminal_id) {
-      console.log('[Login API] Validating MAC address:', data.mac_address);
+      log.debug('Validando dirección MAC');
       
       const macValidation = await validateMAC(
         data.tenant_id,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       if (!macValidation.isValid) {
         if (macValidation.requiresConfirmation) {
           // Unknown device - requires confirmation
-          console.log('[Login API] Unknown MAC - requires confirmation');
+          log.info('MAC desconocido - requiere confirmación');
           return NextResponse.json(
             {
               success: false,
@@ -124,13 +124,13 @@ export async function POST(request: NextRequest) {
           );
         } else {
           // Device mismatch or blocked
-          console.log('[Login API] MAC validation failed:', macValidation.reason);
+          log.warn('Validación MAC fallida', { reason: macValidation.reason });
           
           // Create alert
           await createAlert(data.tenant_id, {
             employeeId: authResult.employee!.id,
             alertType: macValidation.reason === 'DEVICE_MISMATCH' ? 'DEVICE_MISMATCH' : 'BLOCKED_DEVICE',
-            reason: macValidation.reason || 'Unknown MAC validation error',
+            reason: macValidation.reason || 'Error desconocido de validación MAC',
             ipAddress: ip,
           });
 
@@ -147,11 +147,11 @@ export async function POST(request: NextRequest) {
 
       if (macValidation.warning) {
         macValidationWarning = macValidation.warning;
-        console.log('[Login API] MAC validation warning:', macValidationWarning);
+        log.warn('Advertencia de validación MAC', { warning: macValidationWarning });
       }
 
       // Check terminal authorization (audit trail)
-      console.log('[Login API] Checking terminal authorization');
+      log.debug('Verificando autorización de terminal');
       const terminalAuth = await checkTerminalAuthorization(
         data.tenant_id,
         data.terminal_id,
@@ -160,13 +160,13 @@ export async function POST(request: NextRequest) {
       );
 
       if (!terminalAuth.isAuthorized) {
-        console.log('[Login API] Terminal authorization failed:', terminalAuth.reason);
+        log.warn('Autorización de terminal fallida', { reason: terminalAuth.reason });
         
         // Create alert
         await createAlert(data.tenant_id, {
           employeeId: authResult.employee!.id,
           alertType: 'UNAUTHORIZED_TERMINAL_ACCESS',
-          reason: terminalAuth.reason || 'Unauthorized terminal access',
+          reason: terminalAuth.reason || 'Acceso a terminal no autorizado',
           ipAddress: ip,
         });
 
@@ -184,13 +184,11 @@ export async function POST(request: NextRequest) {
     // Step 3: Validate terminal (if provided)
     // ADMIN users bypass terminal validation - they can access any terminal
     const isAdmin = authResult.employee?.role === 'ADMIN';
-    console.log('[Login API] Step 3: Terminal validation');
-    console.log('  Is Admin:', isAdmin);
-    console.log('  Terminal ID:', data.terminal_id);
+    log.debug('Paso 3: Validación de terminal', { isAdmin, terminalId: data.terminal_id });
 
     if (data.terminal_id && !isAdmin) {
       // Non-admin users must have a registered terminal
-      console.log('[Login API] Validating terminal for non-admin user');
+      log.debug('Validando terminal para usuario no-admin');
       const terminal = await prisma.terminals.findUnique({
         where: {
           tenant_id_terminal_id: {
@@ -201,7 +199,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (!terminal) {
-        console.log('[Login API] Terminal not found:', data.terminal_id);
+        log.warn('Terminal no encontrado', { terminalId: data.terminal_id });
         return NextResponse.json(
           { error: 'Terminal no registrado' },
           { status: 403 }
@@ -209,7 +207,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (!terminal.is_allowed) {
-        console.log('[Login API] Terminal is disabled');
+        log.warn('Terminal desactivado', { terminalId: data.terminal_id });
         return NextResponse.json(
           { error: 'Terminal desactivado. Contacte al administrador.' },
           { status: 403 }
@@ -217,9 +215,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Verify device fingerprint if provided
-      if (deviceFingerprint && terminal.device_secret_hash && 
+      if (deviceFingerprint && terminal.device_secret_hash &&
           terminal.device_secret_hash !== deviceFingerprint) {
-        console.log('[Login API] Device fingerprint mismatch');
+        log.warn('Discrepancia de huella digital del dispositivo');
         return NextResponse.json(
           { error: 'Dispositivo no reconocido' },
           { status: 403 }
@@ -232,10 +230,10 @@ export async function POST(request: NextRequest) {
         data: { last_seen_at: new Date() },
       });
 
-      console.log('[Login API] Terminal validated successfully');
+      log.debug('Terminal validado exitosamente');
     } else if (data.terminal_id && isAdmin) {
       // Admin users can access any terminal, but we try to update last_seen if it exists
-      console.log('[Login API] ADMIN bypass - skipping terminal validation');
+      log.debug('ADMIN bypass - omitiendo validación de terminal');
       try {
         await prisma.terminals.update({
           where: {
@@ -246,15 +244,15 @@ export async function POST(request: NextRequest) {
           },
           data: { last_seen_at: new Date() },
         });
-        console.log('[Login API] Terminal last_seen updated');
+        log.debug('Terminal last_seen actualizado');
       } catch (e) {
         // Terminal doesn't exist, but that's OK for admin
-        console.log('[Login API] Terminal not found for update (OK for admin)');
+        log.debug('Terminal no encontrado para actualizar (OK para admin)');
       }
     }
 
     // Step 4: Detect simultaneous login (NEW)
-    console.log('[Login API] Step 4: Detecting simultaneous login');
+    log.debug('Paso 4: Detectando login simultáneo');
     const { v4: uuidv4 } = await import('uuid');
     const deviceId = data.device_id || uuidv4();
     const terminalId = data.terminal_id || 'admin-panel';
@@ -267,13 +265,13 @@ export async function POST(request: NextRequest) {
     );
 
     if (simultaneousCheck.hasActiveSession) {
-      console.log('[Login API] Simultaneous login detected');
+      log.warn('Login simultáneo detectado', { employeeId: authResult.employee!.id });
       
       // Create alert
       await createAlert(data.tenant_id, {
         employeeId: authResult.employee!.id,
         alertType: 'SIMULTANEOUS_LOGIN',
-        reason: `Simultaneous login detected on device ${deviceId}`,
+        reason: `Login simultáneo detectado en dispositivo ${deviceId}`,
         ipAddress: ip,
       });
 
@@ -286,7 +284,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 5: Get active shift (if terminal_id provided)
-    console.log('[Login API] Step 5: Looking for active shift');
+    log.debug('Paso 5: Buscando turno activo');
     let activeShift: { id: string; opened_at: Date; opened_by: string } | null = null;
     if (data.terminal_id) {
       activeShift = await prisma.shifts.findFirst({
@@ -296,11 +294,11 @@ export async function POST(request: NextRequest) {
           status: 'OPEN',
         },
       });
-      console.log('[Login API] Active shift found:', !!activeShift);
+      log.debug('Turno activo encontrado', { hasShift: !!activeShift });
     }
 
     // Step 6: Create active session (NEW)
-    console.log('[Login API] Step 6: Creating active session');
+    log.debug('Paso 6: Creando sesión activa');
     const sessionContext = {
       employeeId: authResult.employee!.id,
       terminalId: terminalId,
@@ -315,11 +313,11 @@ export async function POST(request: NextRequest) {
       sessionContext
     );
 
-    console.log('[Login API] Active session created:', sessionId);
+    log.debug('Sesión activa creada', { sessionId });
 
     // Step 7: Register MAC if it's new (NEW)
     if (data.mac_address && data.terminal_id) {
-      console.log('[Login API] Registering MAC address');
+      log.debug('Registrando dirección MAC');
       try {
         await registerMAC(
           data.tenant_id,
@@ -327,15 +325,15 @@ export async function POST(request: NextRequest) {
           data.mac_address,
           data.terminal_id
         );
-        console.log('[Login API] MAC registered successfully');
+        log.debug('MAC registrado exitosamente');
       } catch (error) {
-        console.log('[Login API] MAC registration error (non-fatal):', error);
+        log.warn('Error de registro MAC (no fatal)', { error: error instanceof Error ? error.message : String(error) });
         // Non-fatal error - continue with login
       }
     }
 
     // Step 8: Create response with httpOnly cookie
-    console.log('[Login API] Step 8: Creating response with JWT cookie');
+    log.debug('Paso 8: Creando respuesta con cookie JWT');
     const response = NextResponse.json({
       success: true,
       employee: authResult.employee,
@@ -369,10 +367,10 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    console.log('[Login API] Login successful - cookies set');
+    log.info('Login exitoso - cookies configuradas', { employeeId: authResult.employee!.id });
     return response;
   } catch (error) {
-    console.error('Login error:', error instanceof Error ? error.message : 'Unknown error');
+    logger.error('Error en login', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -385,8 +383,8 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message.includes('relation')) {
       return NextResponse.json(
         {
-          error: 'Database error - tables may not exist',
-          message: 'Please run: npx prisma migrate deploy',
+          error: 'Error de base de datos - las tablas pueden no existir',
+          message: 'Ejecute: npx prisma migrate deploy',
         },
         { status: 500 }
       );

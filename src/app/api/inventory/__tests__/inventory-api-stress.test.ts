@@ -11,6 +11,9 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
+
+const { random, randomInt } = seededMathRandom(42);
 
 // ============ VALIDATION FUNCTIONS ============
 
@@ -356,8 +359,8 @@ describe('API Stress Tests', () => {
         tenant_id: `tenant-${i}`,
         location_id: `location-${i}`,
         inventory_code: `CODE-${i}`,
-        quantity: Math.random() * 100,
-        unit_cost_cents: Math.floor(Math.random() * 10000),
+        quantity: random() * 100,
+        unit_cost_cents: randomInt(0, 9999),
         actor_id: `actor-${i}`,
         terminal_id: `terminal-${i}`,
       }));
@@ -397,7 +400,7 @@ describe('API Stress Tests', () => {
           new Promise<ValidationResult>(resolve => {
             setTimeout(() => {
               resolve(validateReceiveInput(sameInput));
-            }, Math.random() * 10);
+            }, random() * 10);
           })
         )
       );

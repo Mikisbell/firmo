@@ -199,7 +199,7 @@ export default function CrossTenantAdminDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Cross-Tenant Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold">Panel de administración multi-local</h1>
           <p className="text-zinc-400 mt-1">
             Gestión de múltiples tenants, salud del sistema y controles de acceso
           </p>
@@ -299,10 +299,10 @@ export default function CrossTenantAdminDashboardPage() {
                           )}`}
                         >
                           {tenant.health_status === 'healthy'
-                            ? '✓ Healthy'
+                            ? '✓ Saludable'
                             : tenant.health_status === 'warning'
-                            ? '⚠ Warning'
-                            : '✕ Critical'}
+                            ? '⚠ Advertencia'
+                            : '✕ Crítico'}
                         </span>
                       </div>
 
@@ -359,7 +359,7 @@ export default function CrossTenantAdminDashboardPage() {
           ) : (
             <div className="text-center py-12 text-zinc-500">
               <Building2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No tenants found</p>
+              <p className="text-sm">No se encontraron locales</p>
             </div>
           )}
         </div>
@@ -396,7 +396,7 @@ export default function CrossTenantAdminDashboardPage() {
                       <tr key={admin.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
                         <td className="px-6 py-4">
                           <div>
-                            <p className="font-medium">{admin.employee?.name || 'Unknown'}</p>
+                            <p className="font-medium">{admin.employee?.name || 'Desconocido'}</p>
                             <p className="text-xs text-zinc-500">{admin.employee?.email}</p>
                           </div>
                         </td>
@@ -451,7 +451,7 @@ export default function CrossTenantAdminDashboardPage() {
           ) : (
             <div className="text-center py-12 text-zinc-500">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No cross-tenant admins found</p>
+              <p className="text-sm">No se encontraron administradores cross-tenant</p>
             </div>
           )}
         </div>
@@ -498,7 +498,7 @@ export default function CrossTenantAdminDashboardPage() {
           ) : (
             <div className="text-center py-12 text-zinc-500">
               <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No audit logs found</p>
+              <p className="text-sm">No se encontraron registros de auditoría</p>
             </div>
           )}
         </div>

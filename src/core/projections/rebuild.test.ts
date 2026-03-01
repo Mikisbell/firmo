@@ -60,6 +60,7 @@ describe("rebuildFromEvents", () => {
                         qty: 1,
                         station: "COCINA",
                         status: "PENDING",
+                        tax_category: "GRAVADO",
                         mods: [],
                         notes: ""
                     }
@@ -77,6 +78,7 @@ describe("rebuildFromEvents", () => {
                 payload: {
                     order_id: "order1", // ADDED
                     check_id: "check1",
+                    idempotency_key: "test_idem_rebuild_1",
                     payment: {
                         method: "CASH",
                         amount_cents: 6500,

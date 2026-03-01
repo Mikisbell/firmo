@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     pinoLogger.error({ error }, 'Error listing promotions');
     return NextResponse.json(
-      { error: 'Failed to list promotions' },
+      { error: 'Error al listar promociones' },
       { status: 500 }
     );
   }

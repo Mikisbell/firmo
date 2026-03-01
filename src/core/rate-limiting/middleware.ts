@@ -76,8 +76,8 @@ export async function rateLimitMiddleware(
           error: {
             error_code: 'INVALID_REQUEST',
             severity: 'ERROR',
-            message: 'tenant_id is required',
-            user_action: 'Include tenant_id in request body',
+            message: 'Se requiere tenant_id',
+            user_action: 'Incluya tenant_id en el cuerpo de la solicitud',
             retryable: false,
           },
         },
@@ -102,9 +102,9 @@ export async function rateLimitMiddleware(
           severity: 'WARN',
           message:
             result.limitType === 'burst'
-              ? 'Burst limit exceeded'
-              : 'Rate limit exceeded',
-          user_action: `Wait ${result.retryAfter} second(s) before retrying`,
+              ? 'Límite de ráfaga excedido'
+              : 'Límite de solicitudes excedido',
+          user_action: `Espere ${result.retryAfter} segundo(s) antes de reintentar`,
           retryable: true,
           context: {
             current_count: result.currentCount,
@@ -175,8 +175,8 @@ export async function withRateLimit(
           error: {
             error_code: 'INVALID_REQUEST',
             severity: 'ERROR',
-            message: 'tenant_id is required',
-            user_action: 'Include tenant_id in request body',
+            message: 'Se requiere tenant_id',
+            user_action: 'Incluya tenant_id en el cuerpo de la solicitud',
             retryable: false,
           },
         },
@@ -201,9 +201,9 @@ export async function withRateLimit(
           severity: 'WARN',
           message:
             result.limitType === 'burst'
-              ? 'Burst limit exceeded'
-              : 'Rate limit exceeded',
-          user_action: `Wait ${result.retryAfter} second(s) before retrying`,
+              ? 'Límite de ráfaga excedido'
+              : 'Límite de solicitudes excedido',
+          user_action: `Espere ${result.retryAfter} segundo(s) antes de reintentar`,
           retryable: true,
           context: {
             current_count: result.currentCount,
@@ -232,8 +232,8 @@ export async function withRateLimit(
         error: {
           error_code: 'INTERNAL_ERROR',
           severity: 'ERROR',
-          message: 'Internal server error',
-          user_action: 'Retry the request',
+          message: 'Error interno del servidor',
+          user_action: 'Reintente la solicitud',
           retryable: true,
         },
       },

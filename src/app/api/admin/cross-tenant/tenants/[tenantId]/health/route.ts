@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import {
   withCrossTenantAdmin,
@@ -22,7 +23,7 @@ export async function GET(
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.employeeId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -45,7 +46,7 @@ export async function GET(
 
     if (!tenant) {
       return NextResponse.json(
-        { error: 'Tenant not found' },
+        { error: 'Local no encontrado' },
         { status: 404 }
       );
     }
@@ -113,9 +114,9 @@ export async function GET(
       last_checked: new Date(),
     });
   } catch (error: any) {
-    console.error('Error getting tenant health:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener salud del tenant cross-tenant', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

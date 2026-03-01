@@ -152,6 +152,7 @@ describe("Split Bill Logic", () => {
             payload: {
                 order_id: orderId,
                 check_id: "CHECK_2",
+                idempotency_key: "test_idem_split_1",
                 payment: { method: "CASH", amount_cents: 500 }
             }
         };

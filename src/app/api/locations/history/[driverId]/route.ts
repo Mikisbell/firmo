@@ -1,16 +1,17 @@
 /**
- * Location History API Endpoint
- * 
+ * Endpoint API de historial de ubicaciones
+ *
  * GET /api/locations/history/:driverId?startDate=...&endDate=...
- * Get location history for a driver within a date range
- * 
- * Requirements: 2.2
+ * Obtener historial de ubicaciones de un repartidor en un rango de fechas
+ *
+ * Requisitos: 2.2
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getLocationHistory } from '@/src/core/delivery/geolocation.service';
 import { toDriverId } from '@/src/core/delivery/types-2026';
 import { logger } from '@/src/core/observability/logger';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 
 interface RouteParams {
   params: Promise<{
@@ -20,29 +21,19 @@ interface RouteParams {
 
 /**
  * GET /api/locations/history/:driverId
- * Get location history for a driver
- * 
- * Query params:
- * - startDate: ISO 8601 date string
- * - endDate: ISO 8601 date string
- * 
- * Response:
- * {
- *   driverId: string,
- *   locations: Array<{
- *     latitude: number,
- *     longitude: number,
- *     accuracy: number,
- *     speed?: number,
- *     heading?: number,
- *     timestamp: string
- *   }>
- * }
- * 
- * Validates: Requirements 2.2
+ * Obtener historial de ubicaciones de un repartidor
+ *
+ * Parámetros de consulta:
+ * - startDate: fecha ISO 8601
+ * - endDate: fecha ISO 8601
+ *
+ * Requiere autenticación POS
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const { driverId } = await params;
     const { searchParams } = new URL(request.url);
 
@@ -52,7 +43,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!startDateStr || !endDateStr) {
       return NextResponse.json(
         {
-          error: 'Missing required query parameters: startDate, endDate',
+          error: 'Faltan parámetros requeridos: startDate, endDate',
         },
         { status: 400 }
       );
@@ -64,7 +55,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return NextResponse.json(
         {
-          error: 'Invalid date format. Use ISO 8601 format.',
+          error: 'Formato de fecha inválido. Usar formato ISO 8601.',
         },
         { status: 400 }
       );
@@ -73,7 +64,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (startDate > endDate) {
       return NextResponse.json(
         {
-          error: 'startDate must be before endDate',
+          error: 'startDate debe ser anterior a endDate',
         },
         { status: 400 }
       );
@@ -98,11 +89,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       count: locations.length,
     });
   } catch (error) {
-    logger.error('LOCATION_HISTORY_ERROR', 'Failed to get location history', error instanceof Error ? error : undefined);
+    logger.error('LOCATION_HISTORY_ERROR', 'Error al obtener historial de ubicaciones', error instanceof Error ? error : undefined);
 
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        error: 'Error interno del servidor',
       },
       { status: 500 }
     );

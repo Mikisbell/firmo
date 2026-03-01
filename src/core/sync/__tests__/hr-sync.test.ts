@@ -7,6 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
 import {
   calculateBackoff,
   batchEvents,
@@ -289,10 +290,12 @@ describe('parseSyncResponse', () => {
 
 // ============ HELPERS ============
 
+const { random, randomInt } = seededMathRandom(42);
+
 function makeEvent(type: HREventType, createdAt: string): PendingHREvent {
   return {
-    id: Math.floor(Math.random() * 10000),
-    eventId: `evt-${type}-${createdAt}-${Math.random()}`,
+    id: randomInt(0, 9999),
+    eventId: `evt-${type}-${createdAt}-${random()}`,
     type,
     tenantId: 'tenant-1',
     employeeId: 'emp-1',

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validationResult.error.errors },
+        { error: 'Solicitud inválida', details: validationResult.error.errors },
         { status: 400 }
       );
     }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     if (!order) {
       return NextResponse.json(
-        { error: 'Order not found or cancelled' },
+        { error: 'Orden no encontrada o cancelada' },
         { status: 404 }
       );
     }
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     // Verify order has the promotion
     if (order.promotion_id !== promotion_id) {
       return NextResponse.json(
-        { error: 'Promotion not applied to this order' },
+        { error: 'Promoción no aplicada a esta orden' },
         { status: 400 }
       );
     }
@@ -159,13 +159,13 @@ export async function POST(request: NextRequest) {
         discount_cents: 0,
         total_cents: newTotal,
       },
-      message: 'Promotion removed successfully',
+      message: 'Promoción eliminada exitosamente',
     });
 
   } catch (error) {
     pinoLogger.error({ error }, 'Error removing promotion');
     return NextResponse.json(
-      { error: 'Failed to remove promotion' },
+      { error: 'Error al eliminar promoción' },
       { status: 500 }
     );
   }

@@ -13,6 +13,7 @@
  */
 
 import { describe, it, expect, afterEach } from 'vitest';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
 import {
     encryptTenantData,
     decryptTenantData,
@@ -23,6 +24,8 @@ import {
     clearAllEncryptionKeys,
     type EncryptedData,
 } from '../tenant-encryption';
+
+const { random } = seededMathRandom(42);
 
 // Mock window and crypto for tests
 Object.defineProperty(global, 'window', {
@@ -296,7 +299,7 @@ describe('Tenant Data Encryption', () => {
                 items: Array.from({ length: 1000 }, (_, i) => ({
                     id: i,
                     name: `Item ${i}`,
-                    value: Math.random() * 1000,
+                    value: random() * 1000,
                 })),
             };
 

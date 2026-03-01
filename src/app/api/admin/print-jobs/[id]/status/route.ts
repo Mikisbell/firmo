@@ -5,9 +5,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { PrintJobService } from '@/src/core/services/print-job.service';
 import prisma from '@/src/core/db/prisma';
+
+const updatePrintJobStatusSchema = z.object({
+  status: z.enum(['SENT', 'PRINTED', 'FAILED'], { message: 'status inválido (SENT, PRINTED, FAILED)' }),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -18,22 +23,22 @@ export async function PATCH(
 
   const { id } = await params;
 
-  let body: { status?: string };
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  const validStatuses = ['SENT', 'PRINTED', 'FAILED'];
-  if (!body.status || !validStatuses.includes(body.status)) {
-    return NextResponse.json({ error: 'status inválido (SENT, PRINTED, FAILED)' }, { status: 400 });
+  const parsed = updatePrintJobStatusSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
 
   const service = new PrintJobService(prisma);
   let result;
 
-  switch (body.status) {
+  switch (parsed.data.status) {
     case 'SENT':
       result = await service.markJobSent(authResult.user.tenantId, id);
       break;

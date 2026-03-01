@@ -11,6 +11,7 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { EmployeeService } from '@/src/core/services/employee.service';
 import { z } from 'zod';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new EmployeeService(prisma);
 
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al listar empleados HR:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al listar empleados HR', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al listar empleados' },
       { status: 500 },
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al crear empleado HR:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al crear empleado HR', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al crear empleado' },
       { status: 500 },

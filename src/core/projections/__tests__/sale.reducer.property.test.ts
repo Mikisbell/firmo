@@ -97,6 +97,7 @@ function makeItemAddedEvent(
                 unit_price_cents: item.unit_price_cents || 1000,
                 station: item.station || "COCINA",
                 status: "PENDING",
+                tax_category: "GRAVADO",
                 mods: [],
             },
         },

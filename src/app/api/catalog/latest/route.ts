@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/src/core/db/prisma";
 import crypto from "crypto";
 import { getTenantId } from "@/src/core/config/tenant";
+import { logger } from '@/src/core/observability/structured-logger';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,7 +62,7 @@ export async function GET() {
             items,
         });
     } catch (error) {
-        console.error("[catalog/latest] Error:", error instanceof Error ? error.message : String(error));
+        logger.error('Error al obtener catálogo', error instanceof Error ? error : new Error(String(error)));
         // Fallback to demo catalog on error
         return NextResponse.json(getDemoCatalog());
     }

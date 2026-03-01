@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/src/core/observability/structured-logger';
 import { deactivateTenant } from '@/src/core/tenant/deactivation';
 import { withCrossTenantAdmin } from '@/src/core/tenant/cross-tenant-admin';
 import { validateToken } from '@/src/core/auth/auth.service';
@@ -23,7 +24,7 @@ export async function POST(
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -32,7 +33,7 @@ export async function POST(
     const tokenResult = await validateToken(token);
     if (!tokenResult.valid || !tokenResult.payload?.sub) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -54,23 +55,23 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        message: `Tenant ${tenant_id} has been deactivated`,
+        message: `Local ${tenant_id} ha sido desactivado`,
         tenant_id,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error deactivating tenant:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al desactivar tenant', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message.includes('authorization')) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 403 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Failed to deactivate tenant' },
+      { error: 'Error al desactivar local' },
       { status: 500 }
     );
   }

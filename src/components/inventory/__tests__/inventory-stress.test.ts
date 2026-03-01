@@ -11,6 +11,9 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
+
+const { random, randomInt } = seededMathRandom(42);
 
 // ============ HELPER FUNCTIONS ============
 
@@ -89,8 +92,8 @@ describe('Frontend Stress Tests', () => {
       // Generate 1000 items
       const items: InventoryItem[] = [];
       for (let i = 0; i < 1000; i++) {
-        const stock = Math.random() * 1000;
-        const minStock = Math.random() * 100;
+        const stock = random() * 1000;
+        const minStock = random() * 100;
         items.push({
           id: `item-${i}`,
           code: `CODE-${i.toString().padStart(4, '0')}`,
@@ -98,7 +101,7 @@ describe('Frontend Stress Tests', () => {
           stock,
           minStock,
           unit: 'kg',
-          costCents: Math.floor(Math.random() * 10000),
+          costCents: randomInt(0, 9999),
           status: calculateStatus(stock, minStock),
         });
       }
@@ -129,8 +132,8 @@ describe('Frontend Stress Tests', () => {
     it('should sort 1000 items by multiple criteria efficiently', () => {
       const items: InventoryItem[] = [];
       for (let i = 0; i < 1000; i++) {
-        const stock = Math.random() * 1000;
-        const minStock = Math.random() * 100;
+        const stock = random() * 1000;
+        const minStock = random() * 100;
         items.push({
           id: `item-${i}`,
           code: `CODE-${i.toString().padStart(4, '0')}`,
@@ -138,7 +141,7 @@ describe('Frontend Stress Tests', () => {
           stock,
           minStock,
           unit: 'kg',
-          costCents: Math.floor(Math.random() * 10000),
+          costCents: randomInt(0, 9999),
           status: calculateStatus(stock, minStock),
         });
       }
@@ -219,10 +222,10 @@ describe('Frontend Stress Tests', () => {
       const entries: KardexEntry[] = [];
       let balance = 0;
       const types: Array<'IN' | 'OUT' | 'WASTE' | 'ADJUST'> = ['IN', 'OUT', 'WASTE', 'ADJUST'];
-      
+
       for (let i = 0; i < 10000; i++) {
-        const type = types[Math.floor(Math.random() * types.length)];
-        const quantity = type === 'IN' || type === 'ADJUST' ? Math.random() * 100 : -Math.random() * 50;
+        const type = types[randomInt(0, types.length - 1)];
+        const quantity = type === 'IN' || type === 'ADJUST' ? random() * 100 : -random() * 50;
         balance += quantity;
         
         entries.push({
@@ -260,10 +263,10 @@ describe('Frontend Stress Tests', () => {
       const entries: KardexEntry[] = [];
       let balance = 0;
       const types: Array<'IN' | 'OUT' | 'WASTE' | 'ADJUST'> = ['IN', 'OUT', 'WASTE', 'ADJUST'];
-      
+
       for (let i = 0; i < 10000; i++) {
-        const type = types[Math.floor(Math.random() * types.length)];
-        const quantity = type === 'IN' || type === 'ADJUST' ? Math.random() * 100 : -Math.random() * 50;
+        const type = types[randomInt(0, types.length - 1)];
+        const quantity = type === 'IN' || type === 'ADJUST' ? random() * 100 : -random() * 50;
         balance += quantity;
         
         entries.push({
@@ -414,8 +417,8 @@ describe('Frontend Stress Tests', () => {
     it('should calculate summary for 1000 items efficiently', () => {
       const items: InventoryItem[] = [];
       for (let i = 0; i < 1000; i++) {
-        const stock = Math.random() * 1000;
-        const minStock = Math.random() * 100;
+        const stock = random() * 1000;
+        const minStock = random() * 100;
         items.push({
           id: `item-${i}`,
           code: `CODE-${i}`,
@@ -423,7 +426,7 @@ describe('Frontend Stress Tests', () => {
           stock,
           minStock,
           unit: 'kg',
-          costCents: Math.floor(Math.random() * 10000),
+          costCents: randomInt(0, 9999),
           status: calculateStatus(stock, minStock),
         });
       }

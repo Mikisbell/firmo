@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { exportTenantData, ExportRequest } from '@/src/core/tenant/export';
 import { getTenantContext } from '@/src/core/tenant/tenant-context';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 
 /**
  * POST /api/tenant/export
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error('Export failed:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al exportar datos del tenant', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error) {
       if (error.message.includes('Tenant not found')) {
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
 
       if (error.message.includes('required')) {
         return NextResponse.json(
-          { error: 'Missing required fields' },
+          { error: 'Faltan campos requeridos' },
           { status: 400 }
         );
       }

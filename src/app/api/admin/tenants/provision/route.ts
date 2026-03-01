@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 import { provisionTenant } from '@/src/core/tenant/provisioning';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.employeeId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -86,17 +87,17 @@ export async function POST(request: NextRequest) {
       onboarding_checklist: result.onboarding_checklist,
     });
   } catch (error: any) {
-    console.error('Error provisioning tenant:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al provisionar tenant', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'Error de validación', details: error.errors },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

@@ -9,6 +9,7 @@ import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { cache } from '@/src/core/cache/redis.service';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const promotionSchema = z.object({
   name: z.string().min(1).max(100),
@@ -55,7 +56,7 @@ export async function GET(
 
     return NextResponse.json(promotion);
   } catch (error) {
-    console.error('Promotion GET error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener promocion', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener promoción' },
       { status: 500 }
@@ -143,7 +144,7 @@ export async function PUT(
 
     return NextResponse.json(promotion);
   } catch (error) {
-    console.error('Promotion PUT error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar promocion', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al actualizar promoción' },
       { status: 500 }
@@ -205,7 +206,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Promotion DELETE error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al eliminar promocion', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al eliminar promoción' },
       { status: 500 }

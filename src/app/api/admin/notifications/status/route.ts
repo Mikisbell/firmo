@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import type { EmployeeSubscriptionStatus } from '@/src/core/notifications/types';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
       employees: employeeStatuses,
     });
   } catch (error) {
-    console.error('Error getting notification status:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener estado de notificaciones', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener estado de notificaciones' },
       { status: 500 }

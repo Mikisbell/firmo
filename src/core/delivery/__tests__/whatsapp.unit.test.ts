@@ -173,7 +173,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         customer_phone: mockPhoneNumber,
         drivers: { name: 'Carlos Ruiz' },
         orders: { customers: { name: 'Juan Pérez' } },
-      } as any);
+      } as never);
 
       await service.sendOrderAssigned(mockOrderId);
 
@@ -201,7 +201,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         drivers: null,
-      } as any);
+      } as never);
 
       await expect(service.sendOrderAssigned(mockOrderId)).rejects.toThrow('no assigned driver');
     });
@@ -213,7 +213,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         drivers: { name: 'Carlos Ruiz' },
-      } as any);
+      } as never);
 
       await service.sendOrderDispatched(mockOrderId);
 
@@ -233,7 +233,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: etaOrderId,
         customer_phone: mockPhoneNumber,
-      } as any);
+      } as never);
 
       await service.sendETAUpdate(etaOrderId, 25);
 
@@ -249,7 +249,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: debounceOrderId,
         customer_phone: mockPhoneNumber,
-      } as any);
+      } as never);
 
       // Send first update
       await service.sendETAUpdate(debounceOrderId, 30);
@@ -270,7 +270,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-      } as any);
+      } as never);
 
       await service.sendOrderDelivered(mockOrderId);
 
@@ -288,7 +288,7 @@ describe('WhatsApp Service - Unit Tests', () => {
       vi.mocked(prisma.delivery_orders.findUnique).mockResolvedValue({
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
-      } as any);
+      } as never);
 
       await service.sendOrderFailed(mockOrderId, 'Dirección incorrecta');
 
@@ -308,7 +308,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         drivers: { name: 'Carlos Ruiz' },
-      } as any);
+      } as never);
 
       await service.sendOrderAssigned(mockOrderId);
 
@@ -326,7 +326,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         drivers: { name: 'Carlos Ruiz' },
-      } as any);
+      } as never);
 
       await service.sendOrderAssigned(mockOrderId);
 
@@ -352,7 +352,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         drivers: { name: 'Carlos Ruiz' },
-      } as any);
+      } as never);
 
       await service.sendOrderAssigned(mockOrderId);
 
@@ -369,7 +369,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         drivers: { name: 'Carlos Ruiz' },
-      } as any);
+      } as never);
 
       await service.sendOrderAssigned(mockOrderId);
 
@@ -386,7 +386,7 @@ describe('WhatsApp Service - Unit Tests', () => {
         id: mockOrderId,
         customer_phone: mockPhoneNumber,
         drivers: { name: 'Carlos Ruiz' },
-      } as any);
+      } as never);
 
       await service.sendOrderAssigned(mockOrderId);
 

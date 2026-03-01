@@ -111,6 +111,20 @@ export type SunatStatus = typeof SunatStatus[keyof typeof SunatStatus];
 export const SUNAT_STATUS_VALUES = Object.values(SunatStatus);
 
 // ============================================
+// Tax Category (SUNAT)
+// ============================================
+
+export const TaxCategory = {
+  GRAVADO: 'GRAVADO',     // IGV 18%
+  EXONERADO: 'EXONERADO', // 0% but in taxable base
+  INAFECTO: 'INAFECTO',   // 0% not in taxable base
+} as const;
+
+export type TaxCategory = typeof TaxCategory[keyof typeof TaxCategory];
+
+export const TAX_CATEGORY_VALUES = Object.values(TaxCategory);
+
+// ============================================
 // Refund Status
 // ============================================
 

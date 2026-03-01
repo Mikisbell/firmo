@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(
   request: NextRequest,
@@ -61,9 +62,9 @@ export async function GET(
       current_code: currentCode || null,
     });
   } catch (error) {
-    console.error('Terminal details GET error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener detalle de terminal', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to fetch terminal details' },
+      { error: 'Error al obtener detalles del terminal' },
       { status: 500 }
     );
   }

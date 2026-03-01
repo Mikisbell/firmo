@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     const tenantId = request.nextUrl.searchParams.get('tenant_id');
     if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant_id' }, { status: 400 });
+      return NextResponse.json({ error: 'Falta tenant_id' }, { status: 400 });
     }
 
     const signature = request.headers.get('x-pedidosya-signature') || '';
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     try {
       payload = JSON.parse(rawBody);
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+      return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
     }
 
     const service = new PlatformOrderService(prisma);
@@ -38,6 +38,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true, orderId: result.data.id }, { status: 200 });
   } catch {
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }

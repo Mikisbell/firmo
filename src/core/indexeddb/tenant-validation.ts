@@ -574,14 +574,8 @@ export async function addTenantEventsBatch(
         'add_events_batch',
         events,
         async (db) => {
-            const ids = await db.events.bulkAdd(events as EventEntity[]);
-            if (!ids) {
-                return events.map(event => ({ ...event, id: undefined } as EventEntity));
-            }
-            return events.map((event, index) => ({
-                ...event,
-                id: ids[index],
-            } as EventEntity));
+            await db.events.bulkAdd(events as EventEntity[]);
+            return events.map(event => ({ ...event } as EventEntity));
         }
     );
 }

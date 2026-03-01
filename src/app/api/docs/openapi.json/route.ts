@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { generateOpenAPISpec } from '@/src/lib/openapi/generator';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET() {
   try {
@@ -18,13 +19,13 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Failed to generate OpenAPI spec:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al generar especificación OpenAPI', error instanceof Error ? error : new Error(String(error)));
     
     return NextResponse.json(
       {
         error: {
           code: 'OPENAPI_GENERATION_ERROR',
-          message: 'Failed to generate OpenAPI specification',
+          message: 'Error al generar especificación OpenAPI',
           timestamp: new Date().toISOString(),
         },
       },

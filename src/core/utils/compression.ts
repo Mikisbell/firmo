@@ -1,11 +1,15 @@
 /**
  * Compression utilities for cache values
- * 
+ *
  * Uses browser-compatible compression for values > 1KB
  * Falls back to no compression if compression fails
- * 
+ *
  * @module core/utils/compression
  */
+
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('compression');
 
 /**
  * Compress a string using base64 encoding
@@ -25,7 +29,7 @@ export async function compress(value: string): Promise<string> {
     }
   } catch (error) {
     // Graceful degradation - return original value if compression fails
-    console.error('Compression failed:', error);
+    log.error('Compresión falló', error instanceof Error ? error : new Error(String(error)));
     return value;
   }
 }
@@ -44,7 +48,7 @@ export async function decompress(value: string): Promise<string> {
     }
   } catch (error) {
     // Graceful degradation - return original value if decompression fails
-    console.error('Decompression failed:', error);
+    log.error('Descompresión falló', error instanceof Error ? error : new Error(String(error)));
     return value;
   }
 }

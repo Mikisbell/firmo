@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { KardexMovementType } from '@/src/app/api/inventory/kardex/[code]/route';
+import { logger } from '@/src/core/observability/structured-logger';
 
 interface RecentMovement {
   id: string;
@@ -90,7 +91,7 @@ export async function GET(
 
     return NextResponse.json({ movements });
   } catch (error) {
-    console.error('Error fetching recent movements:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener movimientos recientes', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

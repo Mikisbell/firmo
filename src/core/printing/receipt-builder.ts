@@ -17,6 +17,7 @@ export interface ReceiptLine {
   name: string;
   qty: number;
   totalCents: number;
+  taxCategory?: 'GRAVADO' | 'EXONERADO' | 'INAFECTO';
 }
 
 export interface ReceiptPayment {
@@ -139,10 +140,34 @@ export function buildThermalReceipt(data: ReceiptData): Uint8Array {
 
   b.separator('-', RECEIPT_WIDTH);
 
-  // Totals
+  // Totals with IGV breakdown per SUNAT
+  const gravadoCents = data.lines
+    .filter(l => !l.taxCategory || l.taxCategory === 'GRAVADO')
+    .reduce((s, l) => s + l.totalCents, 0);
+  const exoneradoCents = data.lines
+    .filter(l => l.taxCategory === 'EXONERADO')
+    .reduce((s, l) => s + l.totalCents, 0);
+  const inafectoCents = data.lines
+    .filter(l => l.taxCategory === 'INAFECTO')
+    .reduce((s, l) => s + l.totalCents, 0);
+
   b.textColumns('Subtotal', formatCents(data.subtotalCents), RECEIPT_WIDTH);
   if (data.discountCents && data.discountCents > 0) {
     b.textColumns('Descuento', `-${formatCents(data.discountCents)}`, RECEIPT_WIDTH);
+  }
+
+  // IGV breakdown (only show relevant categories)
+  if (gravadoCents > 0) {
+    const baseCents = Math.round(gravadoCents / 1.18);
+    const igvCents = gravadoCents - baseCents;
+    b.textColumns('Op. Gravada', formatCents(baseCents), RECEIPT_WIDTH);
+    b.textColumns('IGV 18%', formatCents(igvCents), RECEIPT_WIDTH);
+  }
+  if (exoneradoCents > 0) {
+    b.textColumns('Op. Exonerada', formatCents(exoneradoCents), RECEIPT_WIDTH);
+  }
+  if (inafectoCents > 0) {
+    b.textColumns('Op. Inafecta', formatCents(inafectoCents), RECEIPT_WIDTH);
   }
 
   b.bold(true).fontSize(1, 2);

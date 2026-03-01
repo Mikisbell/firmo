@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const RegisterSchema = z.object({
   activation_code: z.string().min(8),
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       registered_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Terminal registration error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al registrar terminal', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },

@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { ScheduleService } from '@/src/core/services/schedule.service';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new ScheduleService(prisma);
 
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al obtener calendario semanal:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener calendario semanal', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener calendario semanal' },
       { status: 500 },

@@ -75,7 +75,7 @@ export async function switchTenant(
     reason?: string
 ): Promise<TenantSwitchResult> {
     if (typeof window === 'undefined') {
-        throw new Error('Tenant switching can only be performed on the client side');
+        throw new Error('El cambio de local solo se puede realizar en el lado del cliente');
     }
 
     const switchedAt = Date.now();
@@ -99,7 +99,7 @@ export async function switchTenant(
                     success: false,
                     previous_tenant_id,
                     new_tenant_id,
-                    message: 'Cannot switch to the same tenant',
+                    message: 'No se puede cambiar al mismo local',
                     context: {
                         previous_tenant_id,
                         new_tenant_id,
@@ -230,7 +230,7 @@ export async function switchTenant(
             success: true,
             previous_tenant_id,
             new_tenant_id,
-            message: `Successfully switched to tenant ${new_tenant_id}`,
+            message: `Cambio exitoso al local ${new_tenant_id}`,
             context: {
                 previous_tenant_id,
                 new_tenant_id,

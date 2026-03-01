@@ -13,6 +13,7 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { PayrollService } from '@/src/core/services/payroll.service';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new PayrollService(prisma);
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al calcular planilla:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al calcular planilla', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al calcular planilla' },
       { status: 500 },

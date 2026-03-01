@@ -1,0 +1,32 @@
+project: park-pos
+stack:
+  language: typescript
+  framework: nextjs-16
+  testing: vitest
+  e2e: playwright
+  orm: prisma
+  db: postgresql
+  cache: redis
+  offline: dexie
+
+rules:
+  proposal:
+    require_rollback_plan: true
+    require_risk_assessment: true
+  specs:
+    format: gherkin
+    rfc2119: true
+    require_scenarios: true
+  design:
+    require_data_flow: true
+    require_file_changes: true
+  apply:
+    tdd: true
+    require_tests_per_scenario: true
+  verify:
+    run_tests: true
+    run_build: true
+    run_typecheck: true
+    coverage_threshold: 80
+  archive:
+    require_passing_verify: true

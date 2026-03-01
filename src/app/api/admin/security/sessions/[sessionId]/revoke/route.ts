@@ -9,6 +9,7 @@ import { validateToken } from '@/src/core/auth/auth.service';
 import { closeSession } from '@/src/core/security/session-validator';
 import { logAction } from '@/src/core/security/rate-limiter';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function POST(
   request: NextRequest,
@@ -80,7 +81,7 @@ export async function POST(
       message: 'Sesión revocada exitosamente',
     });
   } catch (error) {
-    console.error('Revoke session error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al revocar sesión', error instanceof Error ? error : new Error(String(error)), { sessionId });
     return NextResponse.json(
       { error: 'Error al revocar sesión' },
       { status: 500 }

@@ -8,6 +8,7 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { resolveAlert } from '@/src/core/security/alert-service';
 import { logAction } from '@/src/core/security/rate-limiter';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function POST(
   request: NextRequest,
@@ -69,7 +70,7 @@ export async function POST(
       message: 'Alerta resuelta exitosamente',
     });
   } catch (error) {
-    console.error('Resolve alert error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al resolver alerta', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al resolver alerta' },
       { status: 500 }

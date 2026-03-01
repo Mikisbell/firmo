@@ -21,8 +21,8 @@ import { useAuth } from "@/src/components/auth";
 import { useLiveOrders } from "./hooks/useLiveOrders";
 import { MobileWarning } from "@/src/components/ui";
 
-// Order number counter (MVP - in production this comes from server)
-let orderNumberCounter = 1;
+// Fallback counter for offline mode
+let offlineOrderCounter = Date.now();
 
 // View modes for cashier
 type CashierView = "PENDING" | "DELIVERY";
@@ -115,10 +115,16 @@ export default function POSPage() {
         }
         if (!activeSale || !activeCheck) return;
 
-        await POSActions.addPayment(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, activeCheck.check_id, {
+        // H1: Handle payment result — show error to user if payment fails
+        const paymentResult = await POSActions.addPayment(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, activeCheck.check_id, {
             method,
             amount_cents: amountCents,
         });
+
+        if (!paymentResult.success) {
+            toast.error(paymentResult.error);
+            return; // Do NOT mark check as paid
+        }
 
         // Check if this payment completes the check
         const newPaidTotal = activeCheck.payment.payments.reduce((sum, p) => sum + p.amount_cents, 0) + amountCents;
@@ -246,6 +252,14 @@ export default function POSPage() {
         }
     };
 
+    // Get next order number from server (persistent) or fallback offline
+    const getOrderNumber = async (): Promise<number> => {
+        const numResult = await POSActions.getNextOrderNumber(TENANT_ID, TERM_ID);
+        if (numResult.success) return numResult.orderNumber;
+        // Offline fallback: use timestamp-based unique number
+        return offlineOrderCounter++;
+    };
+
     // Create new delivery/takeout order
     const handleCreateNewOrder = async (data: NewOrderData) => {
         if (!shiftIsOpen) {
@@ -259,9 +273,10 @@ export default function POSPage() {
         setPendingNewOrder(data);
         
         // Create the order with delivery/takeout info
+        const orderNum = await getOrderNumber();
         const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
             order_type: data.order_type,
-            order_number: orderNumberCounter++,
+            order_number: orderNum,
             fulfillment: {
                 pickup_name: data.customer_name,
                 pickup_phone: data.customer_phone,
@@ -310,9 +325,10 @@ export default function POSPage() {
             }
             
             // Create DINE_IN order by default (from pending view)
+            const dineInNum = await getOrderNumber();
             const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
                 order_type: "DINE_IN",
-                order_number: orderNumberCounter++,
+                order_number: dineInNum,
             });
             orderId = result.order_id;
             setCurrentOrder(result);

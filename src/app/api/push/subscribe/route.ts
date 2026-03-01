@@ -1,51 +1,61 @@
 /**
- * Push Notification Subscribe API Endpoint
- * 
+ * Endpoint API para suscripción a notificaciones push
+ *
  * POST /api/push/subscribe
- * 
- * Stores a Web Push API subscription for a driver
+ *
+ * Almacena una suscripción Web Push API para un repartidor
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { subscribe } from '@/src/core/delivery/push.service';
 import { toDriverId, toTenantId } from '@/src/core/delivery/types-2026';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const pushSubscribeSchema = z.object({
+  driverId: z.string().min(1, 'driverId es requerido'),
+  subscription: z.object({
+    endpoint: z.string().min(1, 'endpoint es requerido'),
+    keys: z.object({
+      p256dh: z.string().min(1, 'p256dh es requerido'),
+      auth: z.string().min(1, 'auth es requerido'),
+    }),
+  }, { required_error: 'subscription es requerido' }),
+});
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const body = await request.json();
 
-    // Validate required fields
-    if (!body.tenantId || !body.driverId || !body.subscription) {
+    const parsed = pushSubscribeSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: tenantId, driverId, subscription' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    // Validate subscription format
-    const { subscription } = body;
-    if (!subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
-      return NextResponse.json(
-        { error: 'Invalid subscription format. Must include endpoint and keys (p256dh, auth)' },
-        { status: 400 }
-      );
-    }
+    const { driverId, subscription } = parsed.data;
 
-    // Store subscription
+    // Guardar suscripción — tenant_id del JWT
     await subscribe(
-      toTenantId(body.tenantId),
-      toDriverId(body.driverId),
+      toTenantId(authResult.user.tenantId),
+      toDriverId(driverId),
       subscription
     );
 
     return NextResponse.json({
       success: true,
-      message: 'Push subscription stored successfully',
+      message: 'Suscripción push almacenada exitosamente',
     });
   } catch (error) {
-    console.error('Error storing push subscription:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al almacenar suscripción push', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to store push subscription' },
+      { error: 'Error al almacenar suscripción push' },
       { status: 500 }
     );
   }

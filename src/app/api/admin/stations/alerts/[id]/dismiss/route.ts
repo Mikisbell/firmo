@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 import { verifyAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function POST(
@@ -34,7 +35,7 @@ export async function POST(
 
     if (!alert) {
       return NextResponse.json(
-        { error: 'Alert not found' },
+        { error: 'Alerta no encontrada' },
         { status: 404 }
       );
     }
@@ -42,7 +43,7 @@ export async function POST(
     // Check if already dismissed
     if (alert.is_dismissed) {
       return NextResponse.json(
-        { error: 'Alert already dismissed' },
+        { error: 'Alerta ya descartada' },
         { status: 400 }
       );
     }
@@ -94,13 +95,13 @@ export async function POST(
 
     return NextResponse.json({
       alert: formattedAlert,
-      message: 'Alert dismissed successfully',
+      message: 'Alerta descartada exitosamente',
     });
 
   } catch (error) {
-    console.error('Error dismissing alert:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al descartar alerta de estación', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to dismiss alert' },
+      { error: 'Error al descartar alerta' },
       { status: 500 }
     );
   }

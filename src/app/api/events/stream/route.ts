@@ -1,43 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eventBus } from "@/src/core/infra/event-bus";
 import type { ParkEvent } from "@/src/core/domain/events";
+import { requirePosAuth } from "@/src/core/middleware/pos-auth";
+import { logger } from '@/src/core/observability/structured-logger';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Rastreo de conexiones SSE por tenant (process-local — correcto porque SSE está ligado al proceso)
+const tenantConnections = new Map<string, number>();
+const MAX_CONNECTIONS_PER_TENANT = 10;
+
 /**
- * SSE Endpoint for Event Streaming with Tenant Isolation
- * 
- * **Requirement 11.2:** WHEN events are streamed via SSE, THE System SHALL 
- * filter events by tenant_id
- * 
- * Validates:
- * - tenant_id is provided in query parameters
- * - Only events for the specified tenant are streamed
- * - Cross-tenant events are filtered out
+ * Endpoint SSE para streaming de eventos con aislamiento por tenant
+ *
+ * **Requisito 11.2:** CUANDO se transmiten eventos via SSE, EL Sistema DEBE
+ * filtrar eventos por tenant_id
+ *
+ * Seguridad: JWT obligatorio, tenant_id del JWT, máx 10 conexiones por tenant
  */
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const tenantId = searchParams.get("tenant_id");
+    // Validar autenticación
+    const authResult = await requirePosAuth(req);
+    if (!authResult.authorized) return authResult.response;
 
-    // Validate tenant_id is provided
-    if (!tenantId) {
+    const tenantId = authResult.user.tenantId;
+
+    // Limitar conexiones por tenant
+    const currentCount = tenantConnections.get(tenantId) || 0;
+    if (currentCount >= MAX_CONNECTIONS_PER_TENANT) {
         return NextResponse.json(
-            { error: "Missing tenant_id parameter" },
-            { status: 400 }
+            { error: "Demasiadas conexiones SSE para este tenant", limit: MAX_CONNECTIONS_PER_TENANT },
+            { status: 429 }
         );
     }
+    tenantConnections.set(tenantId, currentCount + 1);
 
-    // Validate tenant_id format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(tenantId)) {
-        return NextResponse.json(
-            { error: "Invalid tenant_id format" },
-            { status: 400 }
-        );
-    }
-
-    // Use standard ReadableStream with direct controller access
+    // ReadableStream estándar con acceso directo al controller
     let closed = false;
 
     const stream = new ReadableStream({
@@ -65,16 +64,19 @@ export async function GET(req: NextRequest) {
                 // **Requirement 11.2:** Filter events by tenant_id
                 // Only stream events that belong to the authenticated tenant
                 if (event.tenant_id !== tenantId) {
-                    console.warn(
-                        `[SSE] Filtering cross-tenant event: event.tenant_id=${event.tenant_id}, stream.tenant_id=${tenantId}`
-                    );
+                    logger.warn('Evento cross-tenant filtrado en SSE', {
+                        eventTenantId: event.tenant_id,
+                        streamTenantId: tenantId,
+                    });
                     return; // Skip cross-tenant events
                 }
 
                 try {
                     send(JSON.stringify(event));
                 } catch (err) {
-                    console.error("SSE Error", err);
+                    logger.error('Error en transmisión SSE', err instanceof Error ? err : new Error(String(err)), {
+                        tenantId,
+                    });
                     closed = true;
                 }
             };
@@ -111,11 +113,17 @@ export async function GET(req: NextRequest) {
                         await (unsubResult as Promise<void>);
                     }
                 }
-                console.log("[SSE] Cliente desconectado, recursos liberados");
             };
         },
         async cancel(controller) {
             closed = true;
+            // Decrementar contador de conexiones
+            const count = tenantConnections.get(tenantId) || 1;
+            if (count <= 1) {
+                tenantConnections.delete(tenantId);
+            } else {
+                tenantConnections.set(tenantId, count - 1);
+            }
             if ((controller as any)?._cleanup) {
                 await (controller as any)._cleanup();
             }

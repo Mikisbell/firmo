@@ -30,6 +30,12 @@ vi.mock('@/src/core/middleware/pos-auth', () => ({
   requirePosAuth: (...args: any[]) => mockAuth(...args),
 }));
 
+// Mock shift guard — POST uses requireOpenShift which extends requirePosAuth
+const mockShiftAuth = vi.fn();
+vi.mock('@/src/core/middleware/shift-guard', () => ({
+  requireOpenShift: (...args: any[]) => mockShiftAuth(...args),
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -39,10 +45,19 @@ function authed() {
     authorized: true,
     user: { id: 'user-1', tenantId: 'tenant-1', role: 'CASHIER', terminalId: 'term-1' },
   });
+  // POST uses requireOpenShift — include shiftId
+  mockShiftAuth.mockResolvedValue({
+    authorized: true,
+    user: { id: 'user-1', tenantId: 'tenant-1', role: 'CASHIER', terminalId: 'term-1', shiftId: 'shift-1' },
+  });
 }
 
 function unauthorized() {
   mockAuth.mockResolvedValue({
+    authorized: false,
+    response: new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 }),
+  });
+  mockShiftAuth.mockResolvedValue({
     authorized: false,
     response: new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 }),
   });

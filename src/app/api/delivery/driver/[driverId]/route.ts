@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DeliveryService } from '@/src/core/delivery';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(
   request: NextRequest,
@@ -14,7 +15,7 @@ export async function GET(
     const deliveries = await DeliveryService.getDriverDeliveries(driverId);
     return NextResponse.json({ deliveries });
   } catch (error) {
-    console.error('Error fetching driver deliveries:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener deliveries del repartidor', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

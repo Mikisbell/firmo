@@ -1,8 +1,8 @@
 // src/app/api/orders/[orderId]/lock/route.ts
-// Soft Lock Endpoint for Order Editing
-// Check, acquire, release, and renew soft locks
+// Endpoint de bloqueo suave para edición de órdenes
+// Verificar, adquirir, liberar y renovar bloqueos suaves
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/src/core/db/prisma";
 import {
   checkSoftLock,
@@ -10,20 +10,23 @@ import {
   releaseSoftLock,
   renewSoftLock,
 } from "@/src/core/conflict/soft-lock.service";
+import { requirePosAuth } from "@/src/core/middleware/pos-auth";
 
-// GET /api/orders/{orderId}/lock - Check lock status
+// GET /api/orders/{orderId}/lock - Verificar estado del bloqueo
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
-  const { orderId } = await params;
-  const url = new URL(req.url);
-  const tenantId = url.searchParams.get("tenant_id");
-  const terminalId = url.searchParams.get("terminal_id");
+  const authResult = await requirePosAuth(req);
+  if (!authResult.authorized) return authResult.response;
 
-  if (!tenantId || !terminalId) {
+  const { orderId } = await params;
+  const tenantId = authResult.user.tenantId;
+  const terminalId = req.nextUrl.searchParams.get("terminal_id");
+
+  if (!terminalId) {
     return NextResponse.json(
-      { error: "Faltan tenant_id o terminal_id" },
+      { error: "Falta terminal_id" },
       { status: 400 }
     );
   }
@@ -33,52 +36,58 @@ export async function GET(
   return NextResponse.json(lockInfo);
 }
 
-// POST /api/orders/{orderId}/lock - Acquire or renew lock
+// POST /api/orders/{orderId}/lock - Adquirir o renovar bloqueo
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
-  const { orderId } = await params;
+  const authResult = await requirePosAuth(req);
+  if (!authResult.authorized) return authResult.response;
 
-  let body: { tenant_id?: string; terminal_id?: string; action?: string };
+  const { orderId } = await params;
+  const tenantId = authResult.user.tenantId;
+
+  let body: { terminal_id?: string; action?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const { tenant_id, terminal_id, action = "acquire" } = body;
+  const { terminal_id, action = "acquire" } = body;
 
-  if (!tenant_id || !terminal_id) {
+  if (!terminal_id) {
     return NextResponse.json(
-      { error: "Faltan tenant_id o terminal_id" },
+      { error: "Falta terminal_id" },
       { status: 400 }
     );
   }
 
   if (action === "renew") {
-    const renewed = await renewSoftLock(prisma, tenant_id, "ORDER", orderId, terminal_id);
+    const renewed = await renewSoftLock(prisma, tenantId, "ORDER", orderId, terminal_id);
     return NextResponse.json({ renewed });
   }
 
-  // Default: acquire
-  const result = await acquireSoftLock(prisma, tenant_id, "ORDER", orderId, terminal_id);
+  // Por defecto: adquirir
+  const result = await acquireSoftLock(prisma, tenantId, "ORDER", orderId, terminal_id);
   return NextResponse.json(result);
 }
 
-// DELETE /api/orders/{orderId}/lock - Release lock
+// DELETE /api/orders/{orderId}/lock - Liberar bloqueo
 export async function DELETE(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
-  const { orderId } = await params;
-  const url = new URL(req.url);
-  const tenantId = url.searchParams.get("tenant_id");
-  const terminalId = url.searchParams.get("terminal_id");
+  const authResult = await requirePosAuth(req);
+  if (!authResult.authorized) return authResult.response;
 
-  if (!tenantId || !terminalId) {
+  const { orderId } = await params;
+  const tenantId = authResult.user.tenantId;
+  const terminalId = req.nextUrl.searchParams.get("terminal_id");
+
+  if (!terminalId) {
     return NextResponse.json(
-      { error: "Faltan tenant_id o terminal_id" },
+      { error: "Falta terminal_id" },
       { status: 400 }
     );
   }

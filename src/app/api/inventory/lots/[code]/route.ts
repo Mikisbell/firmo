@@ -3,7 +3,14 @@
 // Task 11.2 - Inventory UI Spec
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const lotsQuerySchema = z.object({
+  tenant_id: z.string().min(1, 'tenant_id es requerido'),
+  location_id: z.string().optional(),
+});
 
 export interface InventoryLot {
   id: string;
@@ -32,15 +39,18 @@ export async function GET(
   try {
     const { code } = await params;
     const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenant_id');
-    const locationId = searchParams.get('location_id');
 
-    if (!tenantId) {
+    const parsed = lotsQuerySchema.safeParse({
+      tenant_id: searchParams.get('tenant_id') ?? undefined,
+      location_id: searchParams.get('location_id') ?? undefined,
+    });
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Se requiere tenant_id' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+    const { tenant_id: tenantId, location_id: locationId } = parsed.data;
 
     // Buscar el inventario principal
     const inventory = await prisma.inventory.findFirst({
@@ -132,7 +142,7 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching inventory lots:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener lotes de inventario', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

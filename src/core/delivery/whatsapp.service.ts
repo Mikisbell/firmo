@@ -22,6 +22,9 @@ import type {
 } from './types-2026';
 import { WHATSAPP_RATE_LIMIT_PER_DAY, ETA_CHANGE_NOTIFICATION_THRESHOLD_MINUTES } from './types-2026';
 import prisma from '@/src/core/db/prisma';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('whatsapp-service');
 
 // ============================================
 // Message Templates
@@ -144,7 +147,7 @@ export class WhatsAppService {
     const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER;
 
     if (!accountSid || !authToken || !whatsappNumber) {
-      console.warn('Twilio credentials not configured, skipping WhatsApp send');
+      log.warn('Credenciales de Twilio no configuradas, omitiendo envío de WhatsApp');
       return { error: 'Twilio credentials not configured' };
     }
 
@@ -369,7 +372,7 @@ export class WhatsAppService {
     if (lastUpdate) {
       const timeSinceLastUpdate = now.getTime() - lastUpdate.getTime();
       if (timeSinceLastUpdate < ETA_UPDATE_DEBOUNCE_MS) {
-        console.log(`ETA update for ${orderId} debounced (last update ${timeSinceLastUpdate}ms ago)`);
+        log.debug('Actualización de ETA debounced', { orderId, timeSinceLastUpdateMs: timeSinceLastUpdate });
         return;
       }
     }

@@ -1,4 +1,7 @@
 import prisma from '@/src/core/db/prisma';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('tenant-deactivation');
 
 /**
  * Deactivate a tenant
@@ -127,7 +130,7 @@ async function verifyDeletionConfirmation(
 async function createFinalBackup(tenant_id: string): Promise<void> {
   // TODO: Implement backup creation
   // This should call the backup service to create a final backup
-  console.log(`Creating final backup for tenant ${tenant_id}`);
+  log.info('Creando respaldo final del tenant', { tenantId: tenant_id });
 }
 
 /**
@@ -199,7 +202,7 @@ async function purgeTenantData(tx: any, tenant_id: string): Promise<void> {
  * Log tenant deactivation
  */
 async function logTenantDeactivation(tenant_id: string): Promise<void> {
-  console.log(`Tenant ${tenant_id} deactivated at ${new Date().toISOString()}`);
+  log.info('Tenant desactivado', { tenantId: tenant_id, timestamp: new Date().toISOString() });
   // TODO: Implement audit logging
 }
 
@@ -207,7 +210,7 @@ async function logTenantDeactivation(tenant_id: string): Promise<void> {
  * Log tenant reactivation
  */
 async function logTenantReactivation(tenant_id: string): Promise<void> {
-  console.log(`Tenant ${tenant_id} reactivated at ${new Date().toISOString()}`);
+  log.info('Tenant reactivado', { tenantId: tenant_id, timestamp: new Date().toISOString() });
   // TODO: Implement audit logging
 }
 
@@ -215,7 +218,7 @@ async function logTenantReactivation(tenant_id: string): Promise<void> {
  * Log tenant deletion
  */
 async function logTenantDeletion(tenant_id: string): Promise<void> {
-  console.log(`Tenant ${tenant_id} deleted at ${new Date().toISOString()}`);
+  log.info('Tenant eliminado', { tenantId: tenant_id, timestamp: new Date().toISOString() });
   // TODO: Implement audit logging
 }
 

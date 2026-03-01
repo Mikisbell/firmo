@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listTenantExports } from '@/src/core/tenant/export';
 import { getTenantContext } from '@/src/core/tenant/tenant-context';
+import { logger } from '@/src/core/observability/structured-logger';
 
 /**
  * GET /api/tenant/exports
@@ -21,10 +22,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(exports);
   } catch (error) {
-    console.error('List exports failed:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al listar exportaciones del tenant', error instanceof Error ? error : new Error(String(error)));
 
     return NextResponse.json(
-      { error: 'Failed to list exports' },
+      { error: 'Error al listar exportaciones' },
       { status: 500 }
     );
   }

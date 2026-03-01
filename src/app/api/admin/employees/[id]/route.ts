@@ -4,11 +4,25 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/src/core/db/prisma';
 import { createHash, randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { cache } from '@/src/core/cache/redis.service';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const updateEmployeeSchema = z.object({
+  name: z.string().min(1, 'Nombre es requerido').optional(),
+  role: z.enum(EMPLOYEE_ROLES, { message: `Rol inválido. Debe ser uno de: ${EMPLOYEE_ROLES.join(', ')}` }).optional(),
+  is_active: z.boolean().optional(),
+  pin: z.string().regex(/^\d{4,6}$/, 'PIN debe ser de 4-6 dígitos numéricos').optional(),
+  dni: z.union([
+    z.string().regex(/^\d{8}$/, 'DNI debe tener exactamente 8 dígitos numéricos'),
+    z.literal(''),
+    z.null(),
+  ]).optional(),
+});
 
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts and route.ts
 
@@ -63,7 +77,7 @@ export async function GET(
 
     return NextResponse.json(employee);
   } catch (error) {
-    console.error('Employee GET error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener empleado', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener empleado' },
       { status: 500 }
@@ -97,27 +111,15 @@ export async function PUT(
     }
     
     const body = await request.json();
-    const { name, role, is_active, pin, dni } = body;
-
-    // Validate DNI format if provided
-    if (dni !== undefined && dni !== null && dni !== '') {
-      if (typeof dni !== 'string' || !/^\d{8}$/.test(dni)) {
-        return NextResponse.json(
-          { error: 'DNI debe tener exactamente 8 dígitos numéricos' },
-          { status: 400 }
-        );
-      }
+    const parsed = updateEmployeeSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
-    // Validate PIN format if provided
-    if (pin !== undefined) {
-      if (typeof pin !== 'string' || !/^\d{4,6}$/.test(pin)) {
-        return NextResponse.json(
-          { error: 'PIN debe ser de 4-6 dígitos numéricos' },
-          { status: 400 }
-        );
-      }
-    }
+    const { name, role, is_active, pin, dni } = parsed.data;
 
     // Check employee exists and belongs to tenant
     const existing = await prisma.employees.findFirst({
@@ -132,17 +134,6 @@ export async function PUT(
         { error: 'Empleado no encontrado o no autorizado' },
         { status: 403 }
       );
-    }
-
-    // Validate role if provided
-    if (role) {
-      const validRoles = [...EMPLOYEE_ROLES];
-      if (!validRoles.includes(role)) {
-        return NextResponse.json(
-          { error: `Rol inválido. Debe ser uno de: ${validRoles.join(', ')}` },
-          { status: 400 }
-        );
-      }
     }
 
     // If PIN is being changed, check uniqueness within tenant
@@ -203,7 +194,7 @@ export async function PUT(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Employee PUT error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar empleado', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al actualizar empleado' },
       { status: 500 }
@@ -277,7 +268,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Employee DELETE error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al eliminar empleado', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al eliminar empleado' },
       { status: 500 }

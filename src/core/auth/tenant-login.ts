@@ -13,6 +13,9 @@ import { randomUUID } from 'crypto';
 import prisma from '@/src/core/db/prisma';
 import { generateToken, recordLoginAttempt, createSession, logAdminAccess } from './auth.service';
 import type { AuthResult } from './auth.service';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('tenant-login');
 
 export interface TenantLoginRequest {
   tenant_id: string;
@@ -214,7 +217,7 @@ export async function tenantScopedLogin(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Login failed';
-    console.error('Tenant-scoped login error:', message);
+    log.error('Error en login con alcance de tenant', error instanceof Error ? error : new Error(message));
 
     return {
       success: false,

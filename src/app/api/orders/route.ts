@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
     // Return standardized paginated response
     return NextResponse.json(createPaginatedResponse(orders, total, params));
   } catch (error) {
-    console.error('Error fetching orders:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener órdenes', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener órdenes' },
       { status: 500 }

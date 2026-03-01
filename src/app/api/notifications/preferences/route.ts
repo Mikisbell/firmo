@@ -6,9 +6,20 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
 import * as notificationService from '@/src/core/notifications/notification.service';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const updatePreferencesSchema = z.object({
+  items_ready: z.boolean().optional(),
+  request_check: z.boolean().optional(),
+  sound_enabled: z.boolean().optional(),
+}).refine(
+  (data) => data.items_ready !== undefined || data.request_check !== undefined || data.sound_enabled !== undefined,
+  { message: 'No hay preferencias válidas para actualizar' }
+);
 
 // GET - Get notification preferences
 export async function GET(request: NextRequest) {
@@ -25,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(preferences);
   } catch (error) {
-    console.error('[API] Get preferences error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener preferencias de notificaciones', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener preferencias' },
       { status: 500 }
@@ -42,23 +53,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    
-    // Validate that at least one preference is being updated
-    const validKeys = ['items_ready', 'request_check', 'sound_enabled'];
-    const updates: Record<string, boolean> = {};
-    
-    for (const key of validKeys) {
-      if (typeof body[key] === 'boolean') {
-        updates[key] = body[key];
-      }
-    }
 
-    if (Object.keys(updates).length === 0) {
+    const parsed = updatePreferencesSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'No hay preferencias válidas para actualizar' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    // Build updates object with only defined boolean fields
+    const updates: Record<string, boolean> = {};
+    const { items_ready, request_check, sound_enabled } = parsed.data;
+    if (items_ready !== undefined) updates.items_ready = items_ready;
+    if (request_check !== undefined) updates.request_check = request_check;
+    if (sound_enabled !== undefined) updates.sound_enabled = sound_enabled;
 
     const preferences = await notificationService.updatePreferences(
       session.tenantId,
@@ -68,7 +77,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(preferences);
   } catch (error) {
-    console.error('[API] Update preferences error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar preferencias de notificaciones', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al actualizar preferencias' },
       { status: 500 }

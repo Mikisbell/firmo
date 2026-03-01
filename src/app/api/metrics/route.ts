@@ -16,10 +16,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
 import { metrics } from '@/src/core/observability/metrics';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const metricsQuerySchema = z.object({
+  tenantId: z.string().optional(),
+  terminalId: z.string().optional(),
+  period: z.enum(['1h', '24h', '7d', '30d']).default('1h'),
+  metricType: z.enum(['counter', 'gauge', 'histogram', 'timing']).optional(),
+});
 
 /**
  * GET /api/metrics
@@ -34,7 +43,7 @@ export async function GET(request: NextRequest) {
     
     if (!session) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -47,17 +56,26 @@ export async function GET(request: NextRequest) {
 
     if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
+        { error: 'Prohibido - Se requiere acceso de administrador' },
         { status: 403 }
       );
     }
 
-    // Parse query parameters
+    // Parse and validate query parameters
     const searchParams = request.nextUrl.searchParams;
-    const tenantId = searchParams.get('tenantId');
-    const terminalId = searchParams.get('terminalId');
-    const period = searchParams.get('period') || '1h';
-    const metricType = searchParams.get('metricType');
+    const parsed = metricsQuerySchema.safeParse({
+      tenantId: searchParams.get('tenantId') ?? undefined,
+      terminalId: searchParams.get('terminalId') ?? undefined,
+      period: searchParams.get('period') ?? undefined,
+      metricType: searchParams.get('metricType') ?? undefined,
+    });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { tenantId, terminalId, period, metricType } = parsed.data;
 
     // Get all metrics from collector
     const allMetrics = metrics.getMetrics();
@@ -136,10 +154,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error retrieving metrics:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener métricas', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        error: 'Error interno del servidor',
       },
       { status: 500 }
     );

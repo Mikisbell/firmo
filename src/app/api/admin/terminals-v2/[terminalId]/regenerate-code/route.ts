@@ -10,6 +10,7 @@
 import { NextResponse } from 'next/server';
 import { generateActivationCode, formatActivationCode } from '@/src/core/auth/terminal-registry';
 import { getAdminEmployeeId } from '@/src/core/config/employees';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function POST(
   _request: Request,
@@ -33,9 +34,9 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error('Regenerate code error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al regenerar codigo de activacion', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to regenerate activation code' },
+      { error: 'Error al regenerar código de activación' },
       { status: 500 }
     );
   }

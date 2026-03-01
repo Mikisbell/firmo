@@ -13,6 +13,7 @@ import { authenticate } from '@/src/core/auth/auth.service';
 import { getTenantId } from '@/src/core/config/tenant';
 import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const TENANT_ID = getTenantId();
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('PIN verification error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al verificar PIN', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

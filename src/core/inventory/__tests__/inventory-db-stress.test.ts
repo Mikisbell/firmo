@@ -11,6 +11,9 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
+
+const { random, randomInt } = seededMathRandom(42);
 
 // ============ MOCK DATA STRUCTURES ============
 
@@ -45,7 +48,7 @@ interface InventoryLogRecord {
 
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.random() * 16 | 0;
+    const r = random() * 16 | 0;
     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
   });
 }
@@ -417,7 +420,7 @@ describe('Database Stress Tests', () => {
         if (lock.locked) return false;
         
         lock.locked = true;
-        await new Promise(r => setTimeout(r, Math.random() * 10));
+        await new Promise(r => setTimeout(r, random() * 10));
         
         if (stock + delta >= 0) {
           stock += delta;
@@ -430,8 +433,8 @@ describe('Database Stress Tests', () => {
       }
       
       // Simulate concurrent updates
-      const updates = Array(20).fill(null).map(() => 
-        Math.random() > 0.5 ? 10 : -5
+      const updates = Array(20).fill(null).map(() =>
+        random() > 0.5 ? 10 : -5
       );
       
       const results = await Promise.all(
@@ -558,7 +561,7 @@ describe('Database Stress Tests', () => {
     it('should benefit from tenant_id index', () => {
       const records: InventoryRecord[] = [];
       const tenants = ['tenant-1', 'tenant-2', 'tenant-3', 'tenant-4', 'tenant-5'];
-      
+
       // Generate 10000 records
       for (let i = 0; i < 10000; i++) {
         records.push({
@@ -567,9 +570,9 @@ describe('Database Stress Tests', () => {
           code: `CODE-${i}`,
           name: `Product ${i}`,
           unit: 'kg',
-          stock: Math.random() * 1000,
-          min_stock: Math.random() * 100,
-          cost_cents: Math.floor(Math.random() * 10000),
+          stock: random() * 1000,
+          min_stock: random() * 100,
+          cost_cents: randomInt(0, 9999),
           location_id: null,
           created_at: new Date(),
           updated_at: new Date(),
@@ -619,7 +622,7 @@ describe('Database Stress Tests', () => {
           tenant_id: 'test-tenant',
           inventory_id: `inv-${i % 100}`,
           movement_type: 'IN',
-          quantity: Math.random() * 100,
+          quantity: random() * 100,
           reference_id: null,
           reason: null,
           created_at: new Date(baseDate + i * 3600000), // 1 hour apart

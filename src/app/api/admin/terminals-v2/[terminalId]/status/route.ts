@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { updateTerminalStatus, type TerminalStatus } from '@/src/core/auth/terminal-registry';
-import { logger } from '@/src/core/observability/logger';
+import { logger } from '@/src/core/observability/structured-logger';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function PATCH(
@@ -33,7 +33,7 @@ export async function PATCH(
     // Validate status
     if (!['active', 'disabled', 'pending'].includes(status)) {
       return NextResponse.json(
-        { error: 'Invalid status. Must be: active, disabled, or pending' },
+        { error: 'Estado inválido. Debe ser: active, disabled o pending' },
         { status: 400 }
       );
     }
@@ -48,9 +48,9 @@ export async function PATCH(
       );
     }
 
-    logger.info('TERMINAL_STATUS_UPDATED', 'Terminal status updated', {
-      terminal_id: terminalId,
-      new_status: status,
+    logger.info('Estado de terminal actualizado', {
+      terminalId,
+      newStatus: status,
     });
 
     return NextResponse.json({
@@ -58,9 +58,9 @@ export async function PATCH(
       terminal,
     });
   } catch (error) {
-    console.error('Terminal status update error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar estado de terminal', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to update terminal status' },
+      { error: 'Error al actualizar estado del terminal' },
       { status: 500 }
     );
   }

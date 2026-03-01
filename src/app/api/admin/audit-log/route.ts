@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 /**
  * API Endpoint para Auditoría de Autenticación
- * 
+ *
  * Retorna eventos de auditoría y estadísticas de seguridad
  * Soporta filtros por fecha, terminal, empleado y tipo de evento
+ * Requiere: autenticación admin + permiso view_audit
  */
 export async function GET(request: NextRequest) {
   try {
+    // Validar autenticación admin
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
@@ -104,7 +113,7 @@ export async function GET(request: NextRequest) {
       stats 
     });
   } catch (error) {
-    console.error('Error in audit-log API:', error instanceof Error ? error.message : String(error));
+    logger.error('Error en API de audit-log', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al cargar eventos de auditoría' },
       { status: 500 }

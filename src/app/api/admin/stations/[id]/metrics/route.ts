@@ -64,7 +64,7 @@ export async function GET(
     if (!station) {
       pinoLogger.warn({ stationId: id }, 'Station not found');
       return NextResponse.json(
-        { error: 'Station not found' },
+        { error: 'Estación no encontrada' },
         { status: 404 }
       );
     }
@@ -87,7 +87,7 @@ export async function GET(
 
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        error: 'Error interno del servidor',
       },
       { status: 500 }
     );

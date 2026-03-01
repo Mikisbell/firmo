@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import {
   withCrossTenantAdmin,
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.employeeId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -52,9 +53,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(admins);
   } catch (error: any) {
-    console.error('Error listing admins:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al listar administradores cross-tenant', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.employeeId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     if (!employee_id || !permissions) {
       return NextResponse.json(
-        { error: 'Missing required fields: employee_id, permissions' },
+        { error: 'Faltan campos requeridos: employee_id, permissions' },
         { status: 400 }
       );
     }
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     if (!employee) {
       return NextResponse.json(
-        { error: 'Employee not found' },
+        { error: 'Empleado no encontrado' },
         { status: 404 }
       );
     }
@@ -129,13 +130,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Cross-tenant admin access granted',
+      message: 'Acceso de administrador cross-tenant otorgado',
       employee_id,
     });
   } catch (error: any) {
-    console.error('Error granting admin access:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al otorgar acceso de administrador cross-tenant', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -154,7 +155,7 @@ export async function DELETE(request: NextRequest) {
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.employeeId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -176,7 +177,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!employee_id) {
       return NextResponse.json(
-        { error: 'Missing required parameter: employee_id' },
+        { error: 'Falta parámetro requerido: employee_id' },
         { status: 400 }
       );
     }
@@ -188,7 +189,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!employee) {
       return NextResponse.json(
-        { error: 'Employee not found' },
+        { error: 'Empleado no encontrado' },
         { status: 404 }
       );
     }
@@ -207,13 +208,13 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Cross-tenant admin access revoked',
+      message: 'Acceso de administrador cross-tenant revocado',
       employee_id,
     });
   } catch (error: any) {
-    console.error('Error revoking admin access:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al revocar acceso de administrador cross-tenant', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

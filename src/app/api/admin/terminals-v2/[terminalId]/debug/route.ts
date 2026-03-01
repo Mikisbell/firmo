@@ -6,13 +6,14 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ terminalId: string }> }
 ) {
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   }
 
   try {
@@ -27,7 +28,7 @@ export async function GET(
     });
 
     if (!terminal) {
-      return NextResponse.json({ error: 'Terminal not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Terminal no encontrado' }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -50,7 +51,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Debug terminal error:', error instanceof Error ? error.message : String(error));
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    logger.error('Error al depurar terminal', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

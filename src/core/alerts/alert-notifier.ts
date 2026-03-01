@@ -17,6 +17,7 @@
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/structured-logger';
 import { metrics } from '@/src/core/observability/metrics';
+import { sendEmail, buildAlertEmailHtml } from '@/src/core/notifications/email.service';
 import type { AlertConfiguration, AlertType, NotificationChannel } from './alert-config';
 
 /**
@@ -359,15 +360,40 @@ export class AlertNotifier {
     config: AlertConfiguration,
     alertEvent: AlertEvent
   ): Promise<boolean> {
-    // TODO: Implementar envío de email real
-    // Por ahora, solo registramos en logs
-    logger.info('Enviando notificación por email', {
+    const recipients = config.notificationConfig?.email?.recipients;
+
+    if (!recipients || recipients.length === 0) {
+      logger.warn('No hay destinatarios de email configurados', {
+        tenantId: alertEvent.tenantId,
+        alertId: alertEvent.id,
+      });
+      return false;
+    }
+
+    const subject = config.notificationConfig?.email?.subject
+      ?? `[${alertEvent.severity}] ${alertEvent.alertType} — PARK POS`;
+
+    const html = buildAlertEmailHtml({
+      alertType: alertEvent.alertType,
+      severity: alertEvent.severity,
+      message: alertEvent.message,
+      currentValue: alertEvent.currentValue,
+      thresholdValue: alertEvent.thresholdValue,
       tenantId: alertEvent.tenantId,
-      alertId: alertEvent.id,
-      recipients: config.notificationConfig?.email?.recipients,
+      timestamp: alertEvent.createdAt,
     });
 
-    return true;
+    const result = await sendEmail({ to: recipients, subject, html });
+
+    if (!result.sent) {
+      logger.warn('Email no enviado', {
+        tenantId: alertEvent.tenantId,
+        alertId: alertEvent.id,
+        error: result.error,
+      });
+    }
+
+    return result.sent;
   }
 
   /**

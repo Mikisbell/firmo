@@ -216,6 +216,7 @@ describe("Conflict Resolution Properties", () => {
               order_id: baseEvent.aggregate_id,
               expected_revision: expectedRev,
               check_id: "check-1",
+              idempotency_key: `test_idem_conflict_${expectedRev}`,
               payment: { method: "CASH", amount_cents: 5000 },
             },
           };

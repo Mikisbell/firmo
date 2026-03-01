@@ -28,9 +28,22 @@ next-env.d.ts
 # IDE
 .idea/
 .vscode/
-.claude/
 *.swp
 *.swo
+
+# AI tool configs (solo .claude/ trackeado via openspec/)
+.trae/
+.windsurf/
+.continue/
+.cline/
+.agent/
+.kiro/
+
+# Engram local DB (chunks y manifest SI se trackean)
+.engram/engram.db
+.engram/engram.db-wal
+.engram/engram.db-shm
+engram-export.json
 
 # OS
 .DS_Store
@@ -143,16 +156,11 @@ AUDITORIA_*.md
 
 # Excepciones (documentación esencial)
 !docs/**/*.md
-!.kiro/specs/**/requirements.md
-!.kiro/specs/**/design.md
-!.kiro/specs/**/tasks.md
-!.kiro/steering/*.md
-!.kiro/testing/*.md
 !README.md
 !SETUP.md
 !API.md
 !CONTRIBUTING.md
-!AGENTS.md
+!CLAUDE.md
 !CHANGELOG.md
 
 # Backups de documentación
@@ -165,3 +173,4 @@ public/swe-worker-*.js
 public/workbox-*.js
 
 .vercel
+NUL

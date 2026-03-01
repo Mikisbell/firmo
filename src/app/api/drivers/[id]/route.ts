@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DriverService, DriverServiceError } from '@/src/core/delivery';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const UpdateDriverSchema = z.object({
   name: z.string().min(1).optional(),
@@ -35,7 +36,7 @@ export async function GET(
         { status: error.statusCode }
       );
     }
-    console.error('Error fetching driver:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener repartidor', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -93,7 +94,7 @@ export async function PATCH(
         { status: error.statusCode }
       );
     }
-    console.error('Error updating driver:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar repartidor', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

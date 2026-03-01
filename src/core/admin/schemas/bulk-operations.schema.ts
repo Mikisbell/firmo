@@ -15,7 +15,7 @@ export const ProductUpdateSchema = z.object({
   station: ProductStationSchema.optional(),
 }).refine(
   (data) => Object.keys(data).length > 0,
-  { message: 'At least one field must be updated' }
+  { message: 'Se debe actualizar al menos un campo' }
 );
 
 /**
@@ -23,8 +23,8 @@ export const ProductUpdateSchema = z.object({
  */
 export const BulkUpdateSchema = z.object({
   product_ids: z.array(z.string().uuid())
-    .min(1, 'At least one product must be selected')
-    .max(100, 'Cannot update more than 100 products at once'),
+    .min(1, 'Se debe seleccionar al menos un producto')
+    .max(100, 'No se pueden actualizar más de 100 productos a la vez'),
   updates: ProductUpdateSchema,
 });
 
@@ -33,6 +33,6 @@ export const BulkUpdateSchema = z.object({
  */
 export const BulkDeleteSchema = z.object({
   product_ids: z.array(z.string().uuid())
-    .min(1, 'At least one product must be selected')
-    .max(100, 'Cannot delete more than 100 products at once'),
+    .min(1, 'Se debe seleccionar al menos un producto')
+    .max(100, 'No se pueden eliminar más de 100 productos a la vez'),
 });

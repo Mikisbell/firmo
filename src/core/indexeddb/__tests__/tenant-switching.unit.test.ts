@@ -113,7 +113,7 @@ describe('Tenant Switching', () => {
             expect(result.success).toBe(true);
             expect(result.previous_tenant_id).toBe(tenant1);
             expect(result.new_tenant_id).toBe(tenant2);
-            expect(result.message).toContain('Successfully switched');
+            expect(result.message).toContain('Cambio exitoso');
             expect(isTenantActive(tenant2)).toBe(true);
         });
 
@@ -146,7 +146,7 @@ describe('Tenant Switching', () => {
             const result = await switchTenant(tenant1, tenant1);
 
             expect(result.success).toBe(false);
-            expect(result.message).toContain('Cannot switch to the same tenant');
+            expect(result.message).toContain('No se puede cambiar al mismo local');
         });
 
         it('should reject invalid tenant IDs', async () => {

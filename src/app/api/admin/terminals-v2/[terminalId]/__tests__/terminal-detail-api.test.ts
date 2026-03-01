@@ -164,7 +164,7 @@ describe('Terminal Detail API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to fetch terminal details');
+      expect(data.error).toBe('Error al obtener detalles del terminal');
     });
   });
 
@@ -208,7 +208,7 @@ describe('Terminal Detail API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to regenerate activation code');
+      expect(data.error).toBe('Error al regenerar código de activación');
     });
   });
 
@@ -257,7 +257,7 @@ describe('Terminal Detail API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toContain('Invalid status');
+      expect(data.error).toContain('Estado inválido');
     });
 
     it('should return 404 if terminal not found', async () => {
@@ -285,7 +285,7 @@ describe('Terminal Detail API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to update terminal status');
+      expect(data.error).toBe('Error al actualizar estado del terminal');
     });
   });
 });

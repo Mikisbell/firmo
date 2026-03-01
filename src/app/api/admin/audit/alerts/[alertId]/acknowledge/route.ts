@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 import { acknowledgeAlert } from '@/src/core/auth/audit-logger';
 
 const AcknowledgeAlertSchema = z.object({
@@ -36,7 +37,7 @@ export async function POST(
     
     if (!alertId) {
       return NextResponse.json(
-        { error: 'Alert ID is required' },
+        { error: 'Se requiere el ID de la alerta' },
         { status: 400 }
       );
     }
@@ -66,18 +67,18 @@ export async function POST(
       alert,
     });
   } catch (error) {
-    console.error('Alert acknowledge error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al confirmar alerta de seguridad', error instanceof Error ? error : new Error(String(error)));
     
     // Check if it's a "not found" error
     if (error instanceof Error && error.message.includes('Record to update not found')) {
       return NextResponse.json(
-        { error: 'Alert not found' },
+        { error: 'Alerta no encontrada' },
         { status: 404 }
       );
     }
     
     return NextResponse.json(
-      { error: 'Failed to acknowledge alert' },
+      { error: 'Error al reconocer alerta' },
       { status: 500 }
     );
   }

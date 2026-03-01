@@ -1,6 +1,9 @@
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { createHash } from 'crypto';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('tenant-export');
 
 // Custom error classes
 class ValidationError extends Error {
@@ -235,7 +238,7 @@ async function validateExportCompleteness(
     );
 
     if (orphanEvents.length > 0) {
-      console.warn(`Found ${orphanEvents.length} orphan events in export`);
+      log.warn('Eventos huérfanos encontrados en la exportación', { orphanCount: orphanEvents.length });
     }
   }
 
@@ -339,7 +342,7 @@ async function logExportOperation(
   request: ExportRequest
 ): Promise<void> {
   // Log to audit trail
-  console.log(`Export created: ${export_id} for tenant ${request.tenant_id}`);
+  log.info('Exportación creada', { exportId: export_id, tenantId: request.tenant_id });
 }
 
 /**
@@ -395,7 +398,7 @@ export async function exportTenantData(request: ExportRequest): Promise<ExportRe
       checksum,
     };
   } catch (error) {
-    console.error(`Export failed: ${export_id}`, error);
+    log.error('Exportación falló', error instanceof Error ? error : new Error(String(error)), { exportId: export_id });
     throw error;
   }
 }
@@ -426,5 +429,5 @@ export async function listTenantExports(
  */
 export async function deleteExport(export_id: string): Promise<void> {
   // In production, delete from storage
-  console.log(`Export deleted: ${export_id}`);
+  log.info('Exportación eliminada', { exportId: export_id });
 }

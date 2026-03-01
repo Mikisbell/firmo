@@ -9,6 +9,9 @@ import { registerNotificationHandlers } from "@/src/core/notifications/event-lis
 import { v4 as uuidv4 } from 'uuid';
 import { outOfOrderQueue, startCleanupJob } from "@/src/core/events/out-of-order-queue";
 import { rateLimiter } from "@/src/core/rate-limiting/rate-limiter";
+import { logger } from '@/src/core/observability/structured-logger';
+import { eventMigrator } from "@/src/core/domain/event-migrator";
+import "@/src/core/domain/migrations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -132,6 +135,38 @@ async function checkDependencies(
         }
     }
     
+    // REFUND_ISSUED requiere que ORDER_CREATED exista
+    if (event_type === 'REFUND_ISSUED') {
+        const payload = event.payload as { order_id: string };
+        const order = await tx.orders.findUnique({
+            where: { id: payload.order_id },
+            select: { id: true }
+        });
+
+        if (!order) {
+            return {
+                hasDependency: true,
+                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
+            };
+        }
+    }
+
+    // CHECK_TIP_SET requiere que ORDER_CREATED exista
+    if (event_type === 'CHECK_TIP_SET') {
+        const payload = event.payload as { order_id: string };
+        const order = await tx.orders.findUnique({
+            where: { id: payload.order_id },
+            select: { id: true }
+        });
+
+        if (!order) {
+            return {
+                hasDependency: true,
+                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
+            };
+        }
+    }
+
     return { hasDependency: false };
 }
 
@@ -163,18 +198,13 @@ async function markAsProcessed(
         // P2002 = Unique constraint violation (evento duplicado)
         if (e && typeof e === 'object' && 'code' in e && e.code === 'P2002') {
             // Logging estructurado para eventos deduplicados
-            console.log(JSON.stringify({
-                level: 'INFO',
-                event: 'deduplication.duplicate_detected',
-                message: `Event ${event.event_id} already processed`,
-                context: {
-                    event_id: event.event_id,
-                    tenant_id: event.tenant_id,
-                    event_type: event.event_type,
-                    aggregate_id: event.aggregate_id,
-                    processor: 'ingest-api'
-                }
-            }));
+            logger.info('Evento duplicado detectado, ya fue procesado', {
+                eventId: event.event_id,
+                tenantId: event.tenant_id,
+                eventType: event.event_type,
+                aggregateId: event.aggregate_id,
+                processor: 'ingest-api',
+            });
             return { isDuplicate: true };
         }
         // Otro error - propagar
@@ -301,8 +331,74 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                 break;
             }
 
+            case "INVOICE_VOIDED": {
+                const p = payload as any;
+                await tx.invoices.update({
+                    where: { id: p.invoice_id },
+                    data: {
+                        status: "VOIDED",
+                        void_reason: p.reason,
+                        voided_by: p.approved_by,
+                        voided_at: new Date(occurred_at),
+                    },
+                }).catch(() => {
+                    // Invoice might not exist yet if events arrive out of order
+                });
+                break;
+            }
+
+            case "CREDIT_NOTE_ISSUED": {
+                const p = payload as any;
+                await tx.credit_notes.upsert({
+                    where: { id: p.credit_note_id },
+                    create: {
+                        id: p.credit_note_id,
+                        tenant_id,
+                        invoice_id: p.invoice_id,
+                        series: p.series,
+                        number: p.number,
+                        total_cents: p.total_cents,
+                        reason: p.reason,
+                        status: "ISSUED",
+                        sunat_status: "PENDING",
+                        created_by: actor_id!,
+                    },
+                    update: {},
+                });
+                break;
+            }
+
+            case "CREDIT_NOTE_VOIDED": {
+                const p = payload as any;
+                await tx.credit_notes.update({
+                    where: { id: p.credit_note_id },
+                    data: {
+                        status: "VOIDED",
+                    },
+                }).catch(() => {
+                    // Credit note might not exist yet
+                });
+                break;
+            }
+
             case "SHIFT_OPENED": {
                 const p = payload as any;
+
+                // H3: Auto-close any existing OPEN shifts on this terminal
+                // Prevents overlapping shifts on the same terminal
+                await tx.shifts.updateMany({
+                    where: {
+                        tenant_id,
+                        terminal_id,
+                        status: "OPEN",
+                    },
+                    data: {
+                        status: "CLOSED",
+                        closed_at: new Date(occurred_at),
+                        closed_by: actor_id,
+                    },
+                });
+
                 await tx.shifts.upsert({
                     where: { id: p.shift_id },
                     create: {
@@ -331,6 +427,62 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         cash_counted_cents: p.cash_counted_cents,
                         diff_cents: p.diff_cents,
                     },
+                });
+                break;
+            }
+
+            case "REFUND_ISSUED": {
+                const p = payload as any;
+                await tx.refunds.upsert({
+                    where: { id: p.refund_id },
+                    create: {
+                        id: p.refund_id,
+                        tenant_id,
+                        order_id: p.order_id,
+                        check_id: p.check_id,
+                        invoice_id: p.invoice_id ?? null,
+                        type: p.type,
+                        status: "ISSUED",
+                        reason_code: p.reason_code,
+                        reason_detail: p.reason_detail ?? null,
+                        requested_by: actor_id!,
+                        authorized_by: actor_id!,
+                        original_amount: p.original_amount,
+                        refund_amount: p.refund_amount,
+                        refund_method: p.refund_method,
+                        items: p.items ?? null,
+                        issued_at: new Date(occurred_at),
+                        authorized_at: new Date(occurred_at),
+                    },
+                    update: {},
+                });
+                break;
+            }
+
+            case "CHECK_TIP_SET": {
+                const p = payload as any;
+                const tipId = `${p.order_id}-${p.check_id}-tip`;
+                const activeShift = await tx.shifts.findFirst({
+                    where: { tenant_id, terminal_id, status: "OPEN" },
+                    select: { id: true },
+                });
+                const tipOrder = await tx.orders.findUnique({
+                    where: { id: p.order_id },
+                    select: { location_id: true, waiter_id: true },
+                });
+                await tx.tips.upsert({
+                    where: { id: tipId },
+                    create: {
+                        id: tipId,
+                        tenant_id,
+                        location_id: (tipOrder as any)?.location_id ?? tenant_id,
+                        order_id: p.order_id,
+                        shift_id: activeShift?.id ?? '',
+                        amount: p.tip_cents,
+                        payment_method: 'CASH',
+                        waiter_id: (tipOrder as any)?.waiter_id ?? actor_id!,
+                    },
+                    update: { amount: p.tip_cents },
                 });
                 break;
             }
@@ -374,8 +526,8 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                             // Get location from order or use default
                             const locationId = (order as any).location_id || tenant_id;
                             
-                            // Deduct inventory (fire and forget - don't block order flow)
-                            deductInventoryForOrder(
+                            // H5: Await deduction — log failures for reconciliation
+                            const deductionResult = await deductInventoryForOrder(
                                 prisma,
                                 tenant_id,
                                 locationId,
@@ -383,9 +535,21 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                                 p.line_id,
                                 item.product_id,
                                 item.qty || 1
-                            ).catch((err) => {
-                                console.warn(`[Inventory] Deduction failed for order ${event.aggregate_id}:`, err);
-                            });
+                            ).catch((err) => ({
+                                success: false as const,
+                                deductions: [],
+                                alerts: [],
+                                error: err instanceof Error ? err.message : String(err),
+                            }));
+
+                            if (!deductionResult.success) {
+                                // Log structured failure for reconciliation
+                                logger.warn('Deducción de inventario falló', {
+                                    orderId: event.aggregate_id,
+                                    lineId: p.line_id,
+                                    deductionError: deductionResult.error,
+                                });
+                            }
                         }
                     }
                 }
@@ -393,7 +557,10 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
             }
         }
     } catch (e) {
-        console.error(`[Projections] Error projecting ${event_type} ${event.event_id}:`, e);
+        logger.error('Error al proyectar evento', e instanceof Error ? e : new Error(String(e)), {
+            eventType: event_type,
+            eventId: event.event_id,
+        });
     }
 
     return true; // Successfully processed
@@ -508,7 +675,7 @@ export async function POST(req: Request) {
                 
                 if (depCheck.hasDependency) {
                     // Encolar evento hasta que llegue la dependencia
-                    outOfOrderQueue.enqueue(ev, depCheck.reason!);
+                    await outOfOrderQueue.enqueue(ev, depCheck.reason!);
                     
                     // NO agregar a rejected - el evento está encolado
                     // NO continuar - el evento se procesará cuando llegue la dependencia
@@ -554,26 +721,28 @@ export async function POST(req: Request) {
                     }
                 }
 
-                // 4. Insert into events table
-                // Ya no necesitamos try-catch para P2002 porque processed_events es el lock
+                // 4. Migrate event to current schema version (write-time migration)
+                const migrated = eventMigrator.migrate(ev);
+
+                // 5. Insert into events table (with migrated payload)
                 await tx.events.create({
                     data: {
-                        id: ev.event_id,
-                        tenant_id: ev.tenant_id,
-                        occurred_at: new Date(ev.occurred_at),
-                        type: ev.event_type,
-                        entity_type: ev.aggregate_type,
-                        entity_id: ev.aggregate_id,
-                        actor_id: ev.actor_id ?? null,
-                        actor_role_snapshot: ev.actor_role_snapshot ?? null,
-                        terminal_id: ev.terminal_id,
-                        payload_version: ev.schema_version,
-                        payload: ev.payload as any,
+                        id: migrated.event_id,
+                        tenant_id: migrated.tenant_id,
+                        occurred_at: new Date(migrated.occurred_at),
+                        type: migrated.event_type,
+                        entity_type: migrated.aggregate_type,
+                        entity_id: migrated.aggregate_id,
+                        actor_id: migrated.actor_id ?? null,
+                        actor_role_snapshot: migrated.actor_role_snapshot ?? null,
+                        terminal_id: migrated.terminal_id,
+                        payload_version: migrated.payload_version,
+                        payload: migrated.payload as any,
                     },
                 });
 
-                // 5. Project the event (apply to projections)
-                await projectEvent(tx, ev);
+                // 6. Project the event (apply to projections)
+                await projectEvent(tx, migrated);
 
                 // 6. INCREMENT REVISION for ORDER events after projection
                 if (ev.aggregate_type === "ORDER") {
@@ -591,15 +760,10 @@ export async function POST(req: Request) {
                     const queuedEvents = await outOfOrderQueue.processQueuedEvents(ev.aggregate_id);
                     
                     if (queuedEvents.length > 0) {
-                        console.log(JSON.stringify({
-                            level: 'INFO',
-                            event: 'out_of_order.processing_queued',
-                            message: `Processing ${queuedEvents.length} queued events for order ${ev.aggregate_id}`,
-                            context: {
-                                aggregate_id: ev.aggregate_id,
-                                queued_count: queuedEvents.length,
-                            }
-                        }));
+                        logger.info('Procesando eventos encolados fuera de orden', {
+                            aggregateId: ev.aggregate_id,
+                            queuedCount: queuedEvents.length,
+                        });
                         
                         // Procesar eventos encolados en orden
                         for (const queuedEvent of queuedEvents) {
@@ -621,25 +785,28 @@ export async function POST(req: Request) {
                                 continue;
                             }
                             
-                            // Insertar en events table
+                            // Migrate queued event to current schema version
+                            const migratedQueued = eventMigrator.migrate(queuedEvent);
+
+                            // Insertar en events table (with migrated payload)
                             await tx.events.create({
                                 data: {
-                                    id: queuedEvent.event_id,
-                                    tenant_id: queuedEvent.tenant_id,
-                                    occurred_at: new Date(queuedEvent.occurred_at),
-                                    type: queuedEvent.event_type,
-                                    entity_type: queuedEvent.aggregate_type,
-                                    entity_id: queuedEvent.aggregate_id,
-                                    actor_id: queuedEvent.actor_id ?? null,
-                                    actor_role_snapshot: queuedEvent.actor_role_snapshot ?? null,
-                                    terminal_id: queuedEvent.terminal_id,
-                                    payload_version: queuedEvent.schema_version,
-                                    payload: queuedEvent.payload as any,
+                                    id: migratedQueued.event_id,
+                                    tenant_id: migratedQueued.tenant_id,
+                                    occurred_at: new Date(migratedQueued.occurred_at),
+                                    type: migratedQueued.event_type,
+                                    entity_type: migratedQueued.aggregate_type,
+                                    entity_id: migratedQueued.aggregate_id,
+                                    actor_id: migratedQueued.actor_id ?? null,
+                                    actor_role_snapshot: migratedQueued.actor_role_snapshot ?? null,
+                                    terminal_id: migratedQueued.terminal_id,
+                                    payload_version: migratedQueued.payload_version,
+                                    payload: migratedQueued.payload as any,
                                 },
                             });
-                            
-                            // Proyectar
-                            await projectEvent(tx, queuedEvent);
+
+                            // Proyectar con evento migrado
+                            await projectEvent(tx, migratedQueued);
                             
                             // Incrementar revision
                             if (queuedEvent.aggregate_type === "ORDER") {
@@ -652,17 +819,17 @@ export async function POST(req: Request) {
                                 });
                             }
                             
-                            // Agregar a outbox
+                            // Agregar a outbox (con evento migrado)
                             await tx.event_outbox.create({
                                 data: {
                                     id: uuidv4(),
-                                    tenant_id: queuedEvent.tenant_id,
-                                    event_id: queuedEvent.event_id,
-                                    payload: queuedEvent as any,
+                                    tenant_id: migratedQueued.tenant_id,
+                                    event_id: migratedQueued.event_id,
+                                    payload: migratedQueued as any,
                                 },
                             });
-                            
-                            acceptedEvents.push(queuedEvent);
+
+                            acceptedEvents.push(migratedQueued);
                         }
                     }
                 }
@@ -671,13 +838,13 @@ export async function POST(req: Request) {
                 await tx.event_outbox.create({
                     data: {
                         id: uuidv4(),
-                        tenant_id: ev.tenant_id,
-                        event_id: ev.event_id,
-                        payload: ev as any,
+                        tenant_id: migrated.tenant_id,
+                        event_id: migrated.event_id,
+                        payload: migrated as any,
                     },
                 });
 
-                acceptedEvents.push(ev);
+                acceptedEvents.push(migrated);
             }
         }, {
             timeout: 30000, // 30 seconds
@@ -702,30 +869,30 @@ export async function POST(req: Request) {
                     where: { event_id: ev.event_id },
                     data: { published: true, published_at: new Date() },
                 }).catch((err: unknown) => {
-                    console.error(`[ingest] Failed to mark event ${ev.event_id} as published:`, err instanceof Error ? err.message : String(err));
+                    logger.error('Error al marcar evento como publicado', err instanceof Error ? err : new Error(String(err)), {
+                        eventId: ev.event_id,
+                    });
                 });
             } catch (e) {
-                console.warn("[Bus] Fallo al publicar, outbox worker reintentará", e);
+                logger.warn('Fallo al publicar en bus, outbox worker reintentará', {
+                    eventId: ev.event_id,
+                    publishError: e instanceof Error ? e.message : String(e),
+                });
                 // NO fallar la transacción - el evento está guardado en outbox
             }
         }
 
         // Logging estructurado de resumen de procesamiento
-        console.log(JSON.stringify({
-            level: 'INFO',
-            event: 'ingest.batch_processed',
-            message: `Batch processed: ${acceptedEvents.length} accepted, ${deduped_event_ids.length} deduped, ${rejected.length} rejected`,
-            context: {
-                tenant_id,
-                terminal_id,
-                total_events: events.length,
-                accepted: acceptedEvents.length,
-                deduped: deduped_event_ids.length,
-                rejected: rejected.length,
-                merged: merged.length,
-                acked_through: to_terminal_sequence
-            }
-        }));
+        logger.info('Lote de eventos procesado', {
+            tenantId: tenant_id,
+            terminalId: terminal_id,
+            totalEvents: events.length,
+            accepted: acceptedEvents.length,
+            deduped: deduped_event_ids.length,
+            rejected: rejected.length,
+            merged: merged.length,
+            ackedThrough: to_terminal_sequence,
+        });
 
         return NextResponse.json(
             {
@@ -741,7 +908,10 @@ export async function POST(req: Request) {
         );
     } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
-        console.error("[ingest] DB_ERROR:", msg, e);
+        logger.error('Error crítico de base de datos al guardar eventos', e instanceof Error ? e : new Error(msg), {
+            tenantId: tenant_id,
+            terminalId: terminal_id,
+        });
 
         return serverError(
             err(

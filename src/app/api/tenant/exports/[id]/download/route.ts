@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantContext } from '@/src/core/tenant/tenant-context';
+import { logger } from '@/src/core/observability/structured-logger';
 
 /**
  * GET /api/tenant/exports/:id/download
@@ -36,7 +37,7 @@ export async function GET(
     // Return redirect to download URL
     return NextResponse.redirect(mockExportUrl);
   } catch (error) {
-    console.error('Download export failed:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al descargar exportación', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error) {
       if (error.message.includes('not found')) {
@@ -48,7 +49,7 @@ export async function GET(
 
       if (error.message.includes('Unauthorized')) {
         return NextResponse.json(
-          { error: 'Unauthorized' },
+          { error: 'No autorizado' },
           { status: 403 }
         );
       }

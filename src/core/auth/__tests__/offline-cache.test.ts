@@ -11,6 +11,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as fc from 'fast-check';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
 import {
   cacheCredentials,
   validateOffline,
@@ -53,25 +54,27 @@ Object.defineProperty(global, 'localStorage', {
 });
 
 // Mock crypto.subtle for HMAC
+const { random, randomInt } = seededMathRandom(42);
+
 const mockCrypto = {
   subtle: {
     importKey: vi.fn().mockResolvedValue('mock-key'),
     sign: vi.fn().mockImplementation(() => {
       const mockSignature = new Uint8Array(32);
       for (let i = 0; i < 32; i++) {
-        mockSignature[i] = Math.floor(Math.random() * 256);
+        mockSignature[i] = randomInt(0, 255);
       }
       return Promise.resolve(mockSignature.buffer);
     }),
     digest: vi.fn().mockImplementation(() => {
       const mockHash = new Uint8Array(32);
       for (let i = 0; i < 32; i++) {
-        mockHash[i] = Math.floor(Math.random() * 256);
+        mockHash[i] = randomInt(0, 255);
       }
       return Promise.resolve(mockHash.buffer);
     }),
   },
-  randomUUID: vi.fn(() => `${Date.now()}-${Math.random()}`),
+  randomUUID: vi.fn(() => `${Date.now()}-${random()}`),
 };
 
 Object.defineProperty(global, 'crypto', {

@@ -10,6 +10,7 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { AttendanceService } from '@/src/core/services/attendance.service';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new AttendanceService(prisma);
 
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al listar asistencias:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al listar asistencias', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al listar asistencias' },
       { status: 500 },
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
-    console.error('Error al registrar entrada:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al registrar entrada', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al registrar entrada' },
       { status: 500 },

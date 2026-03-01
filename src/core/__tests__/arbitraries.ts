@@ -268,14 +268,27 @@ export const imageSize = imageSizeBytes;
 // ============================================================================
 
 /**
- * Generate a CSV string from an array of rows
+ * Generate a CSV string from an array of rows (RFC 4180 compliant).
+ *
+ * Fields containing comma, double-quote, or newline are wrapped in
+ * double-quotes with internal quotes escaped as "".
  */
 export function generateCSV(rows: any[]): string {
   if (rows.length === 0) return '';
-  
-  const headers = Object.keys(rows[0]).join(',');
-  const data = rows.map((row) => Object.values(row).join(',')).join('\n');
-  
+
+  const escapeField = (value: unknown): string => {
+    const str = String(value ?? '');
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const headers = Object.keys(rows[0]).map(escapeField).join(',');
+  const data = rows
+    .map((row) => Object.values(row).map(escapeField).join(','))
+    .join('\n');
+
   return `${headers}\n${data}`;
 }
 

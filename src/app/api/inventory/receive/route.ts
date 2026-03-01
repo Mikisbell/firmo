@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { validateInventoryAuth, createAuthErrorResponse } from '@/src/core/middleware/inventory-auth';
 import { logGoodsReceipt, logInventoryFailure } from '@/src/core/inventory/audit.service';
 import { asCentavos } from '@/src/core/types/shared';
+import { logger } from '@/src/core/observability/structured-logger';
 
 // Zod schema for validation
 const receiveSchema = z.object({
@@ -250,7 +251,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReceiveRe
       ...result,
     });
   } catch (error) {
-    console.error('Error receiving goods:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al recibir mercadería', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

@@ -11,6 +11,9 @@
 import { EventEmitter } from "events";
 import { ParkEvent } from "@/src/core/domain/events";
 import { SupabaseEventBus } from "./supabase-event-bus";
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('event-bus');
 
 /**
  * Interfaz común para EventBus
@@ -77,18 +80,18 @@ function createEventBus(): EventBus {
     const databaseUrl = process.env.DATABASE_URL || process.env.DIRECT_URL;
     
     if (databaseUrl) {
-        console.log('[EventBus] Usando SupabaseEventBus (PostgreSQL LISTEN/NOTIFY)');
+        log.info('Usando SupabaseEventBus (PostgreSQL LISTEN/NOTIFY)');
         const bus = new SupabaseEventBus(databaseUrl);
         
         // Iniciar conexión asíncrona (no bloquear)
         bus.connect().catch(err => {
-            console.error('[EventBus] Error inicial de conexión:', err);
+            log.error('Error inicial de conexión', err instanceof Error ? err : new Error(String(err)));
         });
         
         return bus;
     } else {
-        console.warn('[EventBus] DATABASE_URL no configurado, usando InMemoryEventBus (fallback)');
-        console.warn('[EventBus] ADVERTENCIA: Eventos NO se compartirán entre instancias');
+        log.warn('DATABASE_URL no configurado, usando InMemoryEventBus (fallback)');
+        log.warn('Eventos NO se compartirán entre instancias');
         return new InMemoryEventBus();
     }
 }

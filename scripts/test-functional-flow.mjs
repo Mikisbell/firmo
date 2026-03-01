@@ -271,6 +271,7 @@ async function runTests() {
       JSON.stringify({
         order_id: orderId,
         check_id: 'check-001',
+        idempotency_key: `test_idem_func_${eventId4}`,
         payment: { method: 'CASH', amount_cents: newTotal }
       })
     ]);

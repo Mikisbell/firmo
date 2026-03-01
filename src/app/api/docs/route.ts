@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import DocumentationGenerator from '@/src/lib/api-docs.generator';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const docGenerator = new DocumentationGenerator(prisma);
 
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
     // Invalid format
     return NextResponse.json(
       {
-        error: 'Invalid format parameter. Use: html, json, or schemas',
+        error: 'Parámetro de formato inválido. Use: html, json o schemas',
         availableFormats: ['html', 'json', 'schemas'],
       },
       {
@@ -69,9 +70,9 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Documentation generation error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al generar documentación', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to generate documentation' },
+      { error: 'Error al generar documentación' },
       {
         status: 500,
         headers: CORS_HEADERS,

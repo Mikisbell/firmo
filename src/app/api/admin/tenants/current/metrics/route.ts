@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 
 /**
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.tenantId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -49,9 +50,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(metrics);
   } catch (error: any) {
-    console.error('Error getting tenant metrics:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener métricas del tenant', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

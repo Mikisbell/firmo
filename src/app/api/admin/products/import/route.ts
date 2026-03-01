@@ -19,7 +19,7 @@ import { metrics } from '@/src/core/observability/metrics';
  * CSV Import Request Schema
  */
 const CSVImportSchema = z.object({
-  csv_content: z.string().min(1, 'CSV content is required'),
+  csv_content: z.string().min(1, 'Se requiere contenido CSV'),
 });
 
 /**

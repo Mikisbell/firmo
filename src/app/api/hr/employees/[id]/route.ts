@@ -11,6 +11,7 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { EmployeeService } from '@/src/core/services/employee.service';
 import { z } from 'zod';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new EmployeeService(prisma);
 
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al obtener empleado HR:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener empleado HR', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener empleado' },
       { status: 500 },
@@ -103,7 +104,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al actualizar empleado HR:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar empleado HR', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al actualizar empleado' },
       { status: 500 },
@@ -137,7 +138,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Error al desactivar empleado HR:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al desactivar empleado HR', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al desactivar empleado' },
       { status: 500 },

@@ -6,14 +6,17 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CourseFireService } from '../course-fire.service';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+const { random } = seededMathRandom(42);
+
 function makeItem(overrides: Record<string, any> = {}) {
   const base: Record<string, any> = {
-    line_id: overrides.line_id || `line-${Math.random().toString(36).slice(2, 8)}`,
+    line_id: overrides.line_id || `line-${random().toString(36).slice(2, 8)}`,
     product_id: 'prod-1',
     sku: 'SKU-001',
     name: overrides.name || 'Pollo a la brasa',

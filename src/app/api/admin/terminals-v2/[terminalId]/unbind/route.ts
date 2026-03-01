@@ -10,7 +10,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import prisma from '@/src/core/db/prisma';
-import { logger } from '@/src/core/observability/logger';
+import { logger } from '@/src/core/observability/structured-logger';
 
 /**
  * Generate a valid UUID v4 using Math.random
@@ -51,7 +51,7 @@ export async function POST(
 
     if (!terminal) {
       return NextResponse.json(
-        { error: 'Terminal not found' },
+        { error: 'Terminal no encontrado' },
         { status: 404 }
       );
     }
@@ -65,18 +65,18 @@ export async function POST(
                                  (terminal.fingerprint_hash && terminal.status === 'pending');
     
     if (isActuallyUnbound) {
-      console.log('[UNBIND] Terminal already unbound:', {
-        terminal_id: terminalId,
-        has_fingerprint: !!terminal.fingerprint_hash,
+      logger.warn('Terminal ya esta desvinculado', {
+        terminalId,
+        hasFingerprint: !!terminal.fingerprint_hash,
         status: terminal.status,
       });
       return NextResponse.json(
         { 
-          error: 'Terminal is not bound to any device',
+          error: 'El terminal no está vinculado a ningún dispositivo',
           details: {
             hasFingerprint: !!terminal.fingerprint_hash,
             status: terminal.status,
-            message: 'Terminal is already in pending status with no device bound'
+            message: 'El terminal ya está en estado pendiente sin dispositivo vinculado'
           }
         },
         { status: 400 }
@@ -85,15 +85,9 @@ export async function POST(
     
     // Log warning if terminal is in inconsistent state
     if (isInconsistentState) {
-      console.log('[UNBIND] Terminal in inconsistent state - proceeding with reset:', {
-        terminal_id: terminalId,
-        has_fingerprint: !!terminal.fingerprint_hash,
-        status: terminal.status,
-        fingerprint_hash_preview: terminal.fingerprint_hash ? terminal.fingerprint_hash.slice(0, 20) + '...' : null
-      });
-      logger.warn('TERMINAL_INCONSISTENT_STATE', 'Terminal has inconsistent state, proceeding with unbind', {
-        terminal_id: terminalId,
-        has_fingerprint: !!terminal.fingerprint_hash,
+      logger.warn('Terminal en estado inconsistente, procediendo con desvinculacion', {
+        terminalId,
+        hasFingerprint: !!terminal.fingerprint_hash,
         status: terminal.status,
       });
     }
@@ -130,9 +124,9 @@ export async function POST(
       },
     });
 
-    logger.info('TERMINAL_UNBOUND', 'Terminal unbound successfully', {
-      terminal_id: terminalId,
-      unbound_by: user.id,
+    logger.info('Terminal desvinculado exitosamente', {
+      terminalId,
+      unboundBy: user.id,
     });
 
     return NextResponse.json({
@@ -147,11 +141,9 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Unbind terminal error:', error instanceof Error ? error.message : String(error));
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('TERMINAL_UNBIND_FAILED', 'Failed to unbind terminal', err);
+    logger.error('Error al desvincular terminal', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to unbind terminal' },
+      { error: 'Error al desvincular terminal' },
       { status: 500 }
     );
   }

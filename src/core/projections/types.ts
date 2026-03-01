@@ -1,4 +1,4 @@
-import type { ParkEvent, PaymentMethod, OrderType, ItemStatus } from "@/src/core/domain/events";
+import type { ParkEvent, PaymentMethod, OrderType, ItemStatus, TaxCategory } from "@/src/core/domain/events";
 import type { Centavos, OrderId, ShiftId } from "@/src/core/types/shared";
 
 export type SaleStatus = "OPEN" | "CONFIRMED" | "CANCELLED";
@@ -11,6 +11,7 @@ export type SaleLine = {
     unit_price_cents: Centavos;
     line_total_cents: Centavos;
     status: ItemStatus;
+    tax_category: TaxCategory; // SUNAT: GRAVADO(18%), EXONERADO(0%), INAFECTO(0%)
     station: string; // Estación de cocina (PARRILLA, COCINA, BAR, etc.)
     // Timestamps for item lifecycle tracking
     created_at?: string;
@@ -24,6 +25,7 @@ export type SalePayment = {
     method: PaymentMethod;
     amount_cents: Centavos;
     change_given_cents: Centavos;
+    idempotency_key?: string;
 };
 
 export type CheckProjection = {
@@ -37,7 +39,7 @@ export type CheckProjection = {
     total_cents: Centavos;
     payment: {
         status: "UNPAID" | "PARTIAL" | "PAID";
-        payments: { method: PaymentMethod; amount_cents: Centavos; ref?: string }[];
+        payments: { method: PaymentMethod; amount_cents: Centavos; ref?: string; idempotency_key?: string }[];
     };
 };
 

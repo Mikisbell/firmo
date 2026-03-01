@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createActivationCode } from '../activation-codes';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,9 +28,9 @@ export async function POST(request: NextRequest) {
       expires_at: expiresAt.toISOString(),
     });
   } catch (error) {
-    console.error('Activation code error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al generar codigo de activacion', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to generate activation code' },
+      { error: 'Error al generar código de activación' },
       { status: 500 }
     );
   }

@@ -10,6 +10,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/src/core/db/prisma';
 import { hashPin } from '@/src/core/auth/crypto-utils';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('provisioning');
 
 export interface TenantProvisioningRequest {
   legal_name: string;
@@ -253,7 +256,7 @@ export async function provisionTenant(
 
     return result;
   } catch (error) {
-    console.error('Tenant provisioning failed:', error);
+    log.error('Falló el aprovisionamiento del tenant', error instanceof Error ? error : new Error(String(error)));
     throw new Error(`Failed to provision tenant: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -324,7 +327,7 @@ export async function getTenantProvisioningStatus(
 
     return status;
   } catch (error) {
-    console.error('Failed to get provisioning status:', error);
+    log.error('Error al obtener estado de aprovisionamiento', error instanceof Error ? error : new Error(String(error)));
     throw new Error(`Failed to get provisioning status: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

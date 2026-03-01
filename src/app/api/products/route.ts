@@ -23,6 +23,7 @@ import { getTenantId } from '@/src/core/config/tenant';
 import { cache, generateCacheKey, DEFAULT_TTLS } from '@/src/core/cache/cache-service';
 import { metrics } from '@/src/core/observability/metrics';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -112,7 +113,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error fetching products:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener productos', error instanceof Error ? error : new Error(String(error)));
     metrics.increment('api.error', { endpoint: 'products', operation: 'GET' });
     return NextResponse.json(
       { error: 'Error al obtener productos' },

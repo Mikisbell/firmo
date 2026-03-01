@@ -6,10 +6,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
 import * as notificationService from '@/src/core/notifications/notification.service';
 import type { PushSubscriptionData } from '@/src/core/notifications/types';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const notificationSubscribeSchema = z.object({
+  subscription: z.object({
+    endpoint: z.string().min(1, 'endpoint es requerido'),
+    keys: z.object({
+      p256dh: z.string().min(1, 'p256dh es requerido'),
+      auth: z.string().min(1, 'auth es requerido'),
+    }, { required_error: 'keys es requerido' }),
+    expirationTime: z.number().nullish(),
+  }, { required_error: 'Datos de suscripción inválidos' }),
+});
+
+const notificationUnsubscribeSchema = z.object({
+  endpoint: z.string().min(1, 'Falta endpoint'),
+});
 
 // POST - Subscribe to push notifications
 export async function POST(request: NextRequest) {
@@ -20,31 +37,23 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
-    // Validate subscription data
-    if (!body.subscription || !body.subscription.endpoint || !body.subscription.keys) {
+
+    const parsed = notificationSubscribeSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Datos de suscripción inválidos' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
     const subscription: PushSubscriptionData = {
-      endpoint: body.subscription.endpoint,
+      endpoint: parsed.data.subscription.endpoint,
       keys: {
-        p256dh: body.subscription.keys.p256dh,
-        auth: body.subscription.keys.auth,
+        p256dh: parsed.data.subscription.keys.p256dh,
+        auth: parsed.data.subscription.keys.auth,
       },
-      expirationTime: body.subscription.expirationTime,
+      expirationTime: parsed.data.subscription.expirationTime ?? undefined,
     };
-
-    // Validate keys are present
-    if (!subscription.keys.p256dh || !subscription.keys.auth) {
-      return NextResponse.json(
-        { error: 'Faltan claves de suscripción (p256dh, auth)' },
-        { status: 400 }
-      );
-    }
 
     await notificationService.subscribe(
       session.tenantId,
@@ -54,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[API] Subscribe error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al suscribirse a notificaciones', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al suscribirse' },
       { status: 500 }
@@ -71,10 +80,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     const body = await request.json();
-    
-    if (!body.endpoint) {
+
+    const parsed = notificationUnsubscribeSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Falta endpoint' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
@@ -82,12 +92,12 @@ export async function DELETE(request: NextRequest) {
     await notificationService.unsubscribe(
       session.tenantId,
       session.employeeId,
-      body.endpoint
+      parsed.data.endpoint
     );
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[API] Unsubscribe error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al desuscribirse de notificaciones', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al desuscribirse' },
       { status: 500 }

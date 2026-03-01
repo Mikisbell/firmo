@@ -124,7 +124,7 @@ describe('Health Check Service - Unit Tests', () => {
 
       expect(result.status).toBe('degraded');
       expect(result.components.eventSourcing.status).toBe('degraded');
-      expect(result.components.eventSourcing.message).toContain('idle');
+      expect(result.components.eventSourcing.message).toContain('inactivo');
     });
   });
 

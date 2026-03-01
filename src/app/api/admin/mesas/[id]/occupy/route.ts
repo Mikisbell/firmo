@@ -5,9 +5,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { MesaService } from '@/src/core/services/mesa.service';
 import prisma from '@/src/core/db/prisma';
+
+const occupyTableSchema = z.object({
+  guestCount: z.number({ required_error: 'guestCount es requerido' }).int().min(1, 'guestCount debe ser al menos 1'),
+  orderId: z.string().optional(),
+});
 
 export async function POST(
   request: NextRequest,
@@ -18,23 +24,26 @@ export async function POST(
 
   const { id } = await params;
 
-  let body: { guestCount?: number; orderId?: string };
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  if (!body.guestCount || typeof body.guestCount !== 'number') {
-    return NextResponse.json({ error: 'guestCount es requerido' }, { status: 400 });
+  const parsed = occupyTableSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
+
+  const { guestCount, orderId } = parsed.data;
 
   const service = new MesaService(prisma);
   const result = await service.occupyTable(
     authResult.user.tenantId,
     id,
-    body.guestCount,
-    body.orderId,
+    guestCount,
+    orderId,
   );
 
   if (!result.success) {

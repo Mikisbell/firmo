@@ -35,7 +35,11 @@ export const EVENT_VERSIONS: Record<string, number> = {
   // Invoice events
   INVOICE_ISSUED: 1,
   INVOICE_VOIDED: 1,
-  
+
+  // Credit note events
+  CREDIT_NOTE_ISSUED: 1,
+  CREDIT_NOTE_VOIDED: 1,
+
   // Catalog events
   CATALOG_VERSION_BUMPED: 1,
 };

@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 import { verifyAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function GET(request: NextRequest) {
@@ -93,9 +94,9 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching station alerts:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener alertas de estaciones', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to fetch alerts' },
+      { error: 'Error al obtener alertas' },
       { status: 500 }
     );
   }

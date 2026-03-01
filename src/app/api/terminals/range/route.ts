@@ -7,7 +7,8 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/src/core/db/prisma";
-import { allocateRange, extendRange, needsNewRange } from "@/src/core/order-numbers";
+import { allocateRange, extendRange, needsNewRange, getNextOrderNumber } from "@/src/core/order-numbers";
+import { logger } from '@/src/core/observability/structured-logger';
 
 // GET /api/terminals/range?terminal_id=xxx&tenant_id=xxx
 export async function GET(req: Request) {
@@ -50,7 +51,7 @@ export async function GET(req: Request) {
             needs_extension: needsExtension,
         });
     } catch (error) {
-        console.error("[Range API] GET error:", error instanceof Error ? error.message : String(error));
+        logger.error('Error al obtener rango de terminal', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: "Error al obtener rango" },
             { status: 500 }
@@ -74,7 +75,10 @@ export async function POST(req: Request) {
 
         let range;
 
-        if (action === "extend") {
+        if (action === "next") {
+            const nextNum = await getNextOrderNumber(prisma, tenant_id, terminal_id);
+            return NextResponse.json({ success: true, current_number: nextNum });
+        } else if (action === "extend") {
             range = await extendRange(prisma, tenant_id, terminal_id);
         } else {
             range = await allocateRange(prisma, tenant_id, terminal_id);
@@ -86,7 +90,7 @@ export async function POST(req: Request) {
             remaining: range.range_end - range.current_number,
         });
     } catch (error) {
-        console.error("[Range API] POST error:", error instanceof Error ? error.message : String(error));
+        logger.error('Error al asignar rango de terminal', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: "Error al asignar rango" },
             { status: 500 }

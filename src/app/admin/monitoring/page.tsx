@@ -230,10 +230,10 @@ export default function MonitoringDashboard() {
         const match = key.match(/status:(\d+)/);
         if (match) {
           const status = match[1];
-          const category = status.startsWith('2') ? '2xx Success' :
-                          status.startsWith('3') ? '3xx Redirect' :
-                          status.startsWith('4') ? '4xx Client Error' :
-                          status.startsWith('5') ? '5xx Server Error' : 'Other';
+          const category = status.startsWith('2') ? '2xx Éxito' :
+                          status.startsWith('3') ? '3xx Redirección' :
+                          status.startsWith('4') ? '4xx Error cliente' :
+                          status.startsWith('5') ? '5xx Error servidor' : 'Otro';
           
           const count = typeof value === 'number' ? value : 0;
           statusCounts[category] = (statusCounts[category] || 0) + count;
@@ -284,13 +284,13 @@ export default function MonitoringDashboard() {
     // Sección 1: Métricas Principales
     csv += '## MÉTRICAS PRINCIPALES\n';
     csv += 'Métrica,Valor,Unidad,Detalles\n';
-    csv += `Error Rate,${errorRate.toFixed(2)},"%","${metricsData.counters['api_errors_total'] || 0} errores de ${metricsData.counters['http_requests_total'] || 0} requests"\n`;
-    csv += `Cache Hit Rate,${cacheHitRate.toFixed(1)},"%","${metricsData.counters['cache_hits_total'] || 0} hits / ${metricsData.counters['cache_misses_total'] || 0} misses"\n`;
-    csv += `Total Requests,${metricsData.counters['http_requests_total'] || 0},requests,"En el período seleccionado"\n`;
-    
+    csv += `Tasa de errores,${errorRate.toFixed(2)},"%","${metricsData.counters['api_errors_total'] || 0} errores de ${metricsData.counters['http_requests_total'] || 0} solicitudes"\n`;
+    csv += `Tasa de aciertos de caché,${cacheHitRate.toFixed(1)},"%","${metricsData.counters['cache_hits_total'] || 0} aciertos / ${metricsData.counters['cache_misses_total'] || 0} fallos"\n`;
+    csv += `Total de solicitudes,${metricsData.counters['http_requests_total'] || 0},solicitudes,"En el período seleccionado"\n`;
+
     const avgResponseTime = metricsData.histograms['http_request_duration_ms']?.avg || 0;
     const p95ResponseTime = metricsData.histograms['http_request_duration_ms']?.p95 || 0;
-    csv += `Avg Response Time,${Math.round(avgResponseTime)},ms,"P95: ${Math.round(p95ResponseTime)}ms"\n`;
+    csv += `Tiempo promedio de respuesta,${Math.round(avgResponseTime)},ms,"P95: ${Math.round(p95ResponseTime)}ms"\n`;
     csv += '\n';
 
     // Sección 2: Tiempos de Respuesta por Endpoint
@@ -312,8 +312,8 @@ export default function MonitoringDashboard() {
     csv += '\n';
 
     // Sección 4: Web Vitals
-    csv += '## WEB VITALS PERFORMANCE\n';
-    csv += 'Métrica,Valor Actual,Threshold,Estado\n';
+    csv += '## RENDIMIENTO WEB VITALS\n';
+    csv += 'Métrica,Valor Actual,Umbral,Estado\n';
     webVitalsData.forEach(item => {
       const status = item.value <= item.threshold ? 'PASS' : 'FAIL';
       csv += `${item.metric},${item.value},${item.threshold},${status}\n`;
@@ -322,7 +322,7 @@ export default function MonitoringDashboard() {
 
     // Sección 5: Queries Lentas de Base de Datos
     csv += '## QUERIES LENTAS DE BASE DE DATOS\n';
-    csv += 'Query,Cantidad,Tiempo Promedio (ms),Estado\n';
+    csv += 'Consulta,Cantidad,Tiempo Promedio (ms),Estado\n';
     databaseQueryData.forEach(item => {
       const status = item.avgTime > 1000 ? 'SLOW' : 'OK';
       csv += `"${item.query}",${item.count},${item.avgTime},${status}\n`;
@@ -330,8 +330,8 @@ export default function MonitoringDashboard() {
     csv += '\n';
 
     // Sección 6: Todas las Métricas (raw data)
-    csv += '## TODAS LAS MÉTRICAS (RAW DATA)\n';
-    csv += 'Nombre,Tipo,Count,Sum,Min,Max,Avg,Latest\n';
+    csv += '## TODAS LAS MÉTRICAS (DATOS CRUDOS)\n';
+    csv += 'Nombre,Tipo,Cantidad,Suma,Mín,Máx,Promedio,Último\n';
     metricsData.metrics.forEach(metric => {
       csv += `"${metric.name}",${metric.type},${metric.count},${metric.sum},${metric.min},${metric.max},${metric.avg.toFixed(2)},${metric.latest}\n`;
     });
@@ -483,7 +483,7 @@ export default function MonitoringDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-red-500" />
-              <h3 className="text-sm font-medium text-zinc-400">Error Rate</h3>
+              <h3 className="text-sm font-medium text-zinc-400">Tasa de errores</h3>
             </div>
             {errorRate < 1 ? (
               <CheckCircle className="w-5 h-5 text-green-500" />
@@ -496,7 +496,7 @@ export default function MonitoringDashboard() {
           </div>
           <div className="text-xs text-zinc-500">
             {metricsData?.counters['api_errors_total'] || 0} errores de{' '}
-            {metricsData?.counters['http_requests_total'] || 0} requests
+            {metricsData?.counters['http_requests_total'] || 0} solicitudes
           </div>
         </div>
 
@@ -505,7 +505,7 @@ export default function MonitoringDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-amber-500" />
-              <h3 className="text-sm font-medium text-zinc-400">Cache Hit Rate</h3>
+              <h3 className="text-sm font-medium text-zinc-400">Tasa de aciertos de caché</h3>
             </div>
             {cacheHitRate > 80 ? (
               <CheckCircle className="w-5 h-5 text-green-500" />
@@ -517,8 +517,8 @@ export default function MonitoringDashboard() {
             {cacheHitRate.toFixed(1)}%
           </div>
           <div className="text-xs text-zinc-500">
-            {metricsData?.counters['cache_hits_total'] || 0} hits /{' '}
-            {metricsData?.counters['cache_misses_total'] || 0} misses
+            {metricsData?.counters['cache_hits_total'] || 0} aciertos /{' '}
+            {metricsData?.counters['cache_misses_total'] || 0} fallos
           </div>
         </div>
 
@@ -526,7 +526,7 @@ export default function MonitoringDashboard() {
         <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-5 h-5 text-blue-500" />
-            <h3 className="text-sm font-medium text-zinc-400">Total Requests</h3>
+            <h3 className="text-sm font-medium text-zinc-400">Total de solicitudes</h3>
           </div>
           <div className="text-3xl font-bold text-white mb-1">
             {(metricsData?.counters['http_requests_total'] || 0).toLocaleString()}
@@ -540,7 +540,7 @@ export default function MonitoringDashboard() {
         <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-5 h-5 text-purple-500" />
-            <h3 className="text-sm font-medium text-zinc-400">Avg Response Time</h3>
+            <h3 className="text-sm font-medium text-zinc-400">Tiempo promedio de respuesta</h3>
           </div>
           <div className="text-3xl font-bold text-white mb-1">
             {metricsData?.histograms['http_request_duration_ms']?.avg
@@ -641,7 +641,7 @@ export default function MonitoringDashboard() {
       <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800 mb-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Zap className="w-5 h-5 text-amber-500" />
-          Web Vitals Performance
+          Rendimiento Web Vitals
         </h3>
         {webVitalsData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
@@ -658,7 +658,7 @@ export default function MonitoringDashboard() {
               />
               <Legend />
               <Bar dataKey="value" fill={COLORS.primary} name="Valor actual" />
-              <Bar dataKey="threshold" fill={COLORS.success} name="Threshold" />
+              <Bar dataKey="threshold" fill={COLORS.success} name="Umbral" />
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -679,9 +679,9 @@ export default function MonitoringDashboard() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-zinc-800">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Query</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-zinc-400">Count</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-zinc-400">Avg Time (ms)</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Consulta</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-zinc-400">Cantidad</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-zinc-400">Tiempo prom. (ms)</th>
                 </tr>
               </thead>
               <tbody>

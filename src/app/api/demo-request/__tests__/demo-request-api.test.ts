@@ -71,7 +71,8 @@ describe('POST /api/demo-request', () => {
 
     expect(res.status).toBe(400);
     const data = await res.json();
-    expect(data.error).toContain('Nombre');
+    expect(data.error).toBe('Datos inválidos');
+    expect(data.details.name).toBeDefined();
   });
 
   it('debe rechazar sin email válido', async () => {
@@ -83,7 +84,8 @@ describe('POST /api/demo-request', () => {
 
     expect(res.status).toBe(400);
     const data = await res.json();
-    expect(data.error).toContain('Email');
+    expect(data.error).toBe('Datos inválidos');
+    expect(data.details.email).toBeDefined();
   });
 
   it('debe rechazar sin restaurante', async () => {
@@ -94,7 +96,8 @@ describe('POST /api/demo-request', () => {
 
     expect(res.status).toBe(400);
     const data = await res.json();
-    expect(data.error).toContain('restaurante');
+    expect(data.error).toBe('Datos inválidos');
+    expect(data.details.restaurant).toBeDefined();
   });
 
   it('debe aceptar sin teléfono (opcional)', async () => {

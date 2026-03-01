@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export type KardexMovementType = 'IN' | 'OUT' | 'WASTE' | 'ADJUST';
 
@@ -200,7 +201,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching kardex:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener kardex', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

@@ -20,20 +20,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const validateDeviceSchema = z.object({
+  device_id: z.string().min(1, 'device_id es requerido'),
+  terminal_id: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { device_id, terminal_id } = body;
-
-    if (!device_id) {
+    const parsed = validateDeviceSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'device_id es requerido' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+    const { device_id, terminal_id } = parsed.data;
 
     const tenantId = getTenantId();
 
@@ -72,7 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[VALIDATE-DEVICE] Error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al validar dispositivo', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al validar dispositivo' },
       { status: 500 }

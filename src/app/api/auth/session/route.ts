@@ -10,6 +10,7 @@ import prisma from '@/src/core/db/prisma';
 import { validateToken, validateSession, revokeSession, logAdminAccess, authenticate } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { getTenantId } from '@/src/core/config/tenant';
+import { logger } from '@/src/core/observability/structured-logger';
 
 // Handle CORS preflight request
 export async function OPTIONS(request: NextRequest) {
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Session check error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al verificar sesión', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { valid: false, error: 'Error al verificar sesión' },
       { status: 500 }
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('PIN validation error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al validar PIN', error instanceof Error ? error : new Error(String(error)));
 
     // Provide actionable error messages instead of generic "Error al validar PIN"
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -203,7 +204,7 @@ export async function DELETE(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Logout error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al cerrar sesión', error instanceof Error ? error : new Error(String(error)));
     
     // Even if there's an error, clear the cookie
     const response = NextResponse.json(

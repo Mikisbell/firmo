@@ -15,10 +15,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/src/core/db/prisma';
-import { logger } from '@/src/core/observability/logger';
+import { logger } from '@/src/core/observability/structured-logger';
 import { getTenantId } from '@/src/core/config/tenant';
 import crypto from 'crypto';
+
+const activateSimpleSchema = z.object({
+  terminal_id: z.string().min(1, 'terminal_id es requerido'),
+  code: z.string().min(1, 'code es requerido'),
+  device_id: z.string().min(1, 'device_id es requerido'),
+});
 
 /**
  * Generate a cryptographically secure UUID v4
@@ -30,21 +37,20 @@ function generateUUID(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { terminal_id, code, device_id } = body;
-    
-    console.log('[ACTIVATE-SIMPLE] Request received:', { 
-      terminal_id, 
-      code_provided: !!code,
-      device_id_provided: !!device_id,
-    });
-
-    // Validate required fields
-    if (!terminal_id || !code || !device_id) {
+    const parsed = activateSimpleSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Faltan campos requeridos: terminal_id, code, device_id' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+    const { terminal_id, code, device_id } = parsed.data;
+
+    logger.debug('Solicitud de activación simple recibida', {
+      terminalId: terminal_id,
+      codeProvided: !!code,
+      deviceIdProvided: !!device_id,
+    });
 
     const tenantId = getTenantId();
 
@@ -130,14 +136,14 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (eventError) {
-      console.warn('[ACTIVATE-SIMPLE] Warning: Failed to create event:', eventError);
+      logger.warn('No se pudo crear evento de activación', { terminalId: terminal_id, error: String(eventError) });
       // Don't fail the activation if event creation fails
     }
 
-    logger.info('TERMINAL_ACTIVATED_SIMPLE', 'Terminal activated via simple method', {
-      terminal_id,
-      device_id,
-      tenant_id: tenantId,
+    logger.info('Terminal activado via método simple', {
+      terminalId: terminal_id,
+      deviceId: device_id,
+      tenantId,
     });
 
     return NextResponse.json({
@@ -152,8 +158,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[ACTIVATE-SIMPLE] Error:', error instanceof Error ? error.message : String(error));
-    logger.error('SIMPLE_ACTIVATION_ERROR', 'Error in simple activation', error instanceof Error ? error : undefined);
+    logger.error('Error en activación simple de terminal', error instanceof Error ? error : new Error(String(error)));
 
     return NextResponse.json(
       { error: 'Error interno del servidor' },

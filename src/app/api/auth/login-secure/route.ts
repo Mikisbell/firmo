@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { validateToken, authenticate } from '@/src/core/auth/auth.service';
+import { logger } from '@/src/core/observability/structured-logger';
 import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
 import {
   detectSimultaneousLogin,
@@ -318,7 +319,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Secure login error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error en login seguro', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al procesar login' },
       { status: 500 }

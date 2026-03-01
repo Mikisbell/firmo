@@ -193,6 +193,7 @@ describe("POS Complete Flow E2E", () => {
             saleState = applySale(saleState, makeEvent("CHECK_PAYMENT_ADDED", {
                 order_id: "order_1",
                 check_id: "c1",
+                idempotency_key: "test_idem_cash_1",
                 payment: { method: "CASH", amount_cents: 6500 },
             }, seq++));
 
@@ -204,6 +205,7 @@ describe("POS Complete Flow E2E", () => {
         it("should process YAPE payment", () => {
             saleState = applySale(saleState, makeEvent("CHECK_PAYMENT_ADDED", {
                 order_id: "order_1", check_id: "c1",
+                idempotency_key: "test_idem_yape_1",
                 payment: { method: "YAPE", amount_cents: 6500 },
             }, seq++));
 
@@ -213,6 +215,7 @@ describe("POS Complete Flow E2E", () => {
         it("should mark check as PAID when fully paid", () => {
             saleState = applySale(saleState, makeEvent("CHECK_PAYMENT_ADDED", {
                 order_id: "order_1", check_id: "c1",
+                idempotency_key: "test_idem_paid_1",
                 payment: { method: "CASH", amount_cents: 6500 },
             }, seq++));
 
@@ -249,6 +252,7 @@ describe("POS Complete Flow E2E", () => {
             // 4. Process Payment
             saleState = applySale(saleState, makeEvent("CHECK_PAYMENT_ADDED", {
                 order_id: "order_1", check_id: "c1",
+                idempotency_key: "test_idem_flow_1",
                 payment: { method: "YAPE", amount_cents: 6500 },
             }, seq++));
             saleState = applySale(saleState, makeEvent("CHECK_MARKED_PAID", {

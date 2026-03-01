@@ -13,6 +13,7 @@
  */
 
 import pino from 'pino';
+import { trace, context as otelContext } from '@opentelemetry/api';
 
 /**
  * Log context interface
@@ -167,6 +168,20 @@ function createPinoLogger(serviceName: string) {
 
     // Timestamp format
     timestamp: pino.stdTimeFunctions.isoTime,
+
+    // Inject OpenTelemetry trace context into every log entry
+    mixin() {
+      const span = trace.getSpan(otelContext.active());
+      if (span) {
+        const spanContext = span.spanContext();
+        return {
+          trace_id: spanContext.traceId,
+          span_id: spanContext.spanId,
+          trace_flags: spanContext.traceFlags,
+        };
+      }
+      return {};
+    },
 
     // Formatters
     formatters: {

@@ -97,7 +97,7 @@ export default function DiagnosticsClient() {
             await refresh();
         } catch (e) {
             console.error("Error seeding event:", e);
-            alert("Error seeding event. Check console.");
+            alert("Error al crear evento de prueba. Revisar consola.");
         }
     }
 
@@ -105,7 +105,7 @@ export default function DiagnosticsClient() {
         try {
             await db.events.where("synced").equals(0).delete();
             await refresh();
-            alert("Cola de sincronización limpiada (Backlog cleared).");
+            alert("Cola de sincronización limpiada.");
         } catch (e) {
             console.error("Error clearing backlog:", e);
             alert("Error al limpiar backlog");
@@ -137,54 +137,54 @@ export default function DiagnosticsClient() {
     return (
         <div style={{ display: "grid", gap: 12, maxWidth: 820 }}>
             <section style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-                <h2>Status</h2>
-                <div>Internet: <b>{online ? "ONLINE" : "OFFLINE"}</b></div>
-                <div>Backlog (synced=0): <b>{backlog}</b></div>
-                <div>Last ACK sequence: <b>{lastAck}</b></div>
-                <div>Last sync attempt: <b>{lastAttempt ?? "-"}</b></div>
-                <div>Last sync OK: <b>{lastOk ?? "-"}</b></div>
+                <h2>Estado</h2>
+                <div>Internet: <b>{online ? "EN LÍNEA" : "SIN CONEXIÓN"}</b></div>
+                <div>Pendientes (synced=0): <b>{backlog}</b></div>
+                <div>Última secuencia ACK: <b>{lastAck}</b></div>
+                <div>Último intento de sincronización: <b>{lastAttempt ?? "-"}</b></div>
+                <div>Última sincronización exitosa: <b>{lastOk ?? "-"}</b></div>
                 <div>
-                    Persistent Storage:{" "}
+                    Almacenamiento persistente:{" "}
                     <b>
-                        {persistSupported ? (persistGranted === true ? "GRANTED" : persistGranted === false ? "DENIED" : "UNKNOWN") : "NOT SUPPORTED"}
+                        {persistSupported ? (persistGranted === true ? "CONCEDIDO" : persistGranted === false ? "DENEGADO" : "DESCONOCIDO") : "NO SOPORTADO"}
                     </b>
                 </div>
             </section>
 
             <section style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-                <h2>Actions</h2>
+                <h2>Acciones</h2>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <button onClick={refresh}>Refresh</button>
+                    <button onClick={refresh}>Actualizar</button>
                     <button onClick={runSyncOnce} disabled={syncing}>
-                        {syncing ? "Syncing..." : "Sync Once"}
+                        {syncing ? "Sincronizando..." : "Sincronizar"}
                     </button>
-                    <button onClick={() => { syncClient.start(); alert("Auto sync started properly"); }}>Start Auto Sync</button>
-                    <button onClick={() => { syncClient.stop(); alert("Auto sync stopped"); }}>Stop Auto Sync</button>
-                    <button onClick={seedFakeEvent}>Seed Fake Event</button>
-                    <button onClick={clearBacklog} className="bg-red-100 text-red-800 hover:bg-red-200">Clear Backlog (Fix 400)</button>
+                    <button onClick={() => { syncClient.start(); alert("Sincronización automática iniciada correctamente"); }}>Iniciar sincronización automática</button>
+                    <button onClick={() => { syncClient.stop(); alert("Sincronización automática detenida"); }}>Detener sincronización automática</button>
+                    <button onClick={seedFakeEvent}>Crear evento de prueba</button>
+                    <button onClick={clearBacklog} className="bg-red-100 text-red-800 hover:bg-red-200">Limpiar cola de pendientes</button>
                 </div>
             </section>
 
             <section style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-                <h2>Last Sync Result</h2>
+                <h2>Último resultado de sincronización</h2>
                 <pre style={{ whiteSpace: "pre-wrap", margin: 0, background: "#f5f5f5", padding: 8, borderRadius: 4, fontSize: "0.85rem" }}>
                     {JSON.stringify(lastSyncResult, null, 2)}
                 </pre>
             </section>
 
             <section style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-                <h2>Live Projections (Cache + Delta)</h2>
+                <h2>Proyecciones en vivo (Caché + Delta)</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div>
-                        <h3>Active Sale</h3>
+                        <h3>Venta activa</h3>
                         <pre style={{ whiteSpace: "pre-wrap", margin: 0, background: "#f0f8ff", padding: 8, borderRadius: 4, fontSize: "0.75rem" }}>
-                            {projections?.activeSale ? JSON.stringify(projections.activeSale, null, 2) : "None"}
+                            {projections?.activeSale ? JSON.stringify(projections.activeSale, null, 2) : "Ninguno"}
                         </pre>
                     </div>
                     <div>
-                        <h3>Shift</h3>
+                        <h3>Turno</h3>
                         <pre style={{ whiteSpace: "pre-wrap", margin: 0, background: "#fff0f5", padding: 8, borderRadius: 4, fontSize: "0.75rem" }}>
-                            {projections?.shift ? JSON.stringify(projections.shift, null, 2) : "None"}
+                            {projections?.shift ? JSON.stringify(projections.shift, null, 2) : "Ninguno"}
                         </pre>
                     </div>
                 </div>

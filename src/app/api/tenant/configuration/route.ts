@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
+import { logger } from '@/src/core/observability/structured-logger';
 
 /**
  * GET /api/tenant/configuration
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.tenantId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(configuration);
   } catch (error: any) {
-    console.error('Error getting tenant configuration:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener configuración del tenant', error instanceof Error ? error : new Error(String(error)));
 
     // ✅ Retornar 404 si el tenant no existe, no 500
     if ((error as any).code === 'P2025' || (error instanceof Error && error.message?.includes('not found'))) {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -60,7 +61,7 @@ export async function PUT(request: NextRequest) {
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.tenantId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -116,7 +117,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated);
   } catch (error: any) {
-    console.error('Error updating tenant configuration:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar configuración del tenant', error instanceof Error ? error : new Error(String(error)));
 
     // ✅ Retornar 404 si el tenant no existe, no 500
     if ((error as any).code === 'P2025' || (error instanceof Error && error.message?.includes('not found'))) {
@@ -135,7 +136,7 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

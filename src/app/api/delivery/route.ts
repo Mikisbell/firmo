@@ -18,6 +18,7 @@ import { getTenantId } from '@/src/core/config/tenant';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 import prisma from '@/src/core/db/prisma';
 import { cache } from '@/src/core/cache/redis.service';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const TENANT_ID = getTenantId();
 
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
         { status: error.statusCode }
       );
     }
-    console.error('Error creating delivery:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al crear delivery', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -123,7 +124,7 @@ export async function GET(request: NextRequest) {
       deliveries: response.items,
     });
   } catch (error) {
-    console.error('Error fetching deliveries:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener deliveries', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

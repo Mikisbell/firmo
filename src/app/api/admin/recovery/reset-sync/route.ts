@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 import { RecoveryService } from '@/src/core/recovery/recovery-service';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Error en endpoint reset-sync:', error instanceof Error ? error.message : String(error));
+    logger.error('Error en endpoint reset-sync', error instanceof Error ? error : new Error(String(error)));
     
     return NextResponse.json(
       {

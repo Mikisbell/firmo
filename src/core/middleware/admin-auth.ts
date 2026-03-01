@@ -10,6 +10,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateToken } from '@/src/core/auth/auth.service';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('admin-auth');
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -69,7 +72,7 @@ export async function validateAdminAuth(request: NextRequest): Promise<
 
     return { valid: true, user };
   } catch (error) {
-    console.error('Admin auth validation error:', error);
+    log.error('Error al validar autenticación admin', error instanceof Error ? error : new Error(String(error)));
     return {
       valid: false,
       response: NextResponse.json(

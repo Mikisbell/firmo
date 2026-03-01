@@ -134,7 +134,7 @@ describe('handleIncomingOrder', () => {
     const result = await service.handleIncomingOrder(TENANT, 'PEDIDOSYA', validPYPayload);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.message).toContain('not configured');
+      expect(result.error.message).toContain('no configurada o inactiva');
     }
   });
 
@@ -243,7 +243,7 @@ describe('acceptOrder', () => {
     const result = await service.acceptOrder(TENANT, 'nonexistent');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.message).toContain('not found');
+      expect(result.error.message).toContain('no encontrada');
     }
   });
 
@@ -255,7 +255,7 @@ describe('acceptOrder', () => {
     const result = await service.acceptOrder(TENANT, 'order-1');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.message).toContain('Cannot accept');
+      expect(result.error.message).toContain('No se puede aceptar');
     }
   });
 
@@ -312,7 +312,7 @@ describe('rejectOrder', () => {
     const result = await service.rejectOrder(TENANT, 'order-1', '');
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.message).toContain('reason is required');
+      expect(result.error.message).toContain('razón de rechazo');
     }
   });
 

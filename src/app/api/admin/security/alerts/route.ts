@@ -6,6 +6,7 @@ import prisma from '@/src/core/db/prisma';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -14,14 +15,14 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[Admin Alerts API] GET request received');
+    logger.info('Solicitud GET recibida para alertas de seguridad');
 
     // Validate session
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      console.log('[Admin Alerts API] Unauthorized - no session');
+      logger.warn('No autorizado - sin sesión');
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -32,9 +33,9 @@ export async function GET(request: NextRequest) {
     });
 
     if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
-      console.log('[Admin Alerts API] Forbidden - not admin');
+      logger.warn('Prohibido - no es admin');
       return NextResponse.json(
-        { error: 'Forbidden - admin access required' },
+        { error: 'Prohibido - se requiere acceso de administrador' },
         { status: 403 }
       );
     }
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     const alertType = url.searchParams.get('alert_type');
     const isResolved = url.searchParams.get('is_resolved');
 
-    console.log('[Admin Alerts API] Fetching alerts');
+    logger.info('Obteniendo alertas de seguridad');
 
     // Build where clause
     const where: any = {
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
     // Get total count
     const total = await prisma.session_alerts.count({ where });
 
-    console.log('[Admin Alerts API] Found', alerts.length, 'alerts');
+    logger.info('Alertas encontradas', { count: alerts.length });
 
     return NextResponse.json({
       success: true,
@@ -95,9 +96,9 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    console.error('Admin alerts error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener alertas de seguridad', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Error fetching alerts' },
+      { error: 'Error al obtener alertas' },
       { status: 500 }
     );
   }

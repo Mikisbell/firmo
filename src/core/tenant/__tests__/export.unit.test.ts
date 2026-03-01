@@ -68,7 +68,7 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       // Mock catalog meta
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
@@ -76,7 +76,7 @@ describe('Tenant Export Service', () => {
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       // Mock empty collections
       vi.mocked(prisma.events.findMany).mockResolvedValueOnce([]);
@@ -128,14 +128,14 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.events.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.orders.findMany).mockResolvedValueOnce([]);
@@ -178,14 +178,14 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.events.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.orders.findMany).mockResolvedValueOnce([]);
@@ -238,18 +238,18 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.events.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.orders.findMany).mockResolvedValueOnce([]);
-      vi.mocked(prisma.products.findMany).mockResolvedValueOnce([mockProduct] as any);
+      vi.mocked(prisma.products.findMany).mockResolvedValueOnce([mockProduct] as never);
       vi.mocked(prisma.employees.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.customers.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.stations.findMany).mockResolvedValueOnce([]);
@@ -289,14 +289,14 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.events.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.orders.findMany).mockResolvedValueOnce([]);
@@ -352,14 +352,14 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.events.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.orders.findMany).mockResolvedValueOnce([]);
@@ -402,14 +402,14 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.events.findMany).mockResolvedValue([]);
       vi.mocked(prisma.orders.findMany).mockResolvedValue([]);
@@ -462,18 +462,18 @@ describe('Tenant Export Service', () => {
         require_manager_for_offline: false,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.catalog_meta.findUnique).mockResolvedValue({
         tenant_id: mockTenantId,
         catalog_version: 1,
         created_at: new Date(),
         updated_at: new Date(),
-      } as any);
+      } as never);
 
       vi.mocked(prisma.events.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.orders.findMany).mockResolvedValueOnce([]);
-      vi.mocked(prisma.products.findMany).mockResolvedValueOnce([mockProduct] as any);
+      vi.mocked(prisma.products.findMany).mockResolvedValueOnce([mockProduct] as never);
       vi.mocked(prisma.employees.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.customers.findMany).mockResolvedValueOnce([]);
       vi.mocked(prisma.stations.findMany).mockResolvedValueOnce([]);

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Mateo/.claude/projects/e--FREECLOUD-FREECLOUD-IA-PROYECTOS-park/f104b869-aadf-4f46-b417-b0941d5766d9/subagents/**)",
+      "Bash(node -e \"const d=require\\(''fs''\\).readFileSync\\(''/dev/stdin'',''utf8''\\); try{const j=JSON.parse\\(d\\); j.testResults.filter\\(r=>r.status===''failed''\\).forEach\\(r=>console.log\\(r.name.replace\\(/.*park\\\\//, ''''\\)\\)\\)}catch\\(e\\){console.error\\(''parse error''\\)}\")",
+      "Bash(npx tsc:*)",
+      "mcp__plugin_engram_engram__mem_search",
+      "mcp__plugin_engram_engram__mem_save",
+      "WebFetch(domain:technology.toasttab.com)",
+      "WebFetch(domain:debugg.ai)",
+      "WebFetch(domain:www.ifbta.org)",
+      "WebFetch(domain:blog.justenougharchitecture.com)",
+      "WebFetch(domain:softwaremill.com)",
+      "WebFetch(domain:itnext.io)",
+      "WebFetch(domain:objectbox.io)",
+      "WebFetch(domain:domaincentric.net)",
+      "WebFetch(domain:www.baytechconsulting.com)",
+      "WebFetch(domain:www.thenile.dev)",
+      "mcp__plugin_engram_engram__mem_session_summary",
+      "Read(//e/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/**)",
+      "mcp__plugin_engram_engram__mem_context"
+    ]
+  }
+}

@@ -89,7 +89,7 @@ export class PlatformOrderService {
       });
 
       if (!config) {
-        return { success: false, error: { message: `Platform ${platform} not configured or inactive` } };
+        return { success: false, error: { message: `Plataforma ${platform} no configurada o inactiva` } };
       }
 
       // Validate webhook signature if provided
@@ -97,7 +97,7 @@ export class PlatformOrderService {
         const rawBody = typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload);
         const validation = adapter.validateWebhook(rawBody, webhookSignature, config.webhook_secret);
         if (!validation.valid) {
-          return { success: false, error: { message: 'Invalid webhook signature' } };
+          return { success: false, error: { message: 'Firma de webhook inválida' } };
         }
       }
 
@@ -153,7 +153,7 @@ export class PlatformOrderService {
 
       return { success: true, data: result };
     } catch (error: any) {
-      return { success: false, error: { message: error.message || 'Error processing platform order' } };
+      return { success: false, error: { message: error.message || 'Error procesando orden de plataforma' } };
     }
   }
 
@@ -166,11 +166,11 @@ export class PlatformOrderService {
     });
 
     if (!record) {
-      return { success: false, error: { message: 'Platform order not found' } };
+      return { success: false, error: { message: 'Orden de plataforma no encontrada' } };
     }
 
     if (record.status !== 'RECEIVED') {
-      return { success: false, error: { message: `Cannot accept order with status ${record.status}` } };
+      return { success: false, error: { message: `No se puede aceptar una orden con estado ${record.status}` } };
     }
 
     const now = new Date();
@@ -213,7 +213,7 @@ export class PlatformOrderService {
     reason: string,
   ): Promise<Result<PlatformOrderRecord>> {
     if (!reason || reason.trim().length === 0) {
-      return { success: false, error: { message: 'Rejection reason is required' } };
+      return { success: false, error: { message: 'Se requiere una razón de rechazo' } };
     }
 
     const record = await this.prisma.platform_orders.findFirst({
@@ -221,11 +221,11 @@ export class PlatformOrderService {
     });
 
     if (!record) {
-      return { success: false, error: { message: 'Platform order not found' } };
+      return { success: false, error: { message: 'Orden de plataforma no encontrada' } };
     }
 
     if (record.status !== 'RECEIVED') {
-      return { success: false, error: { message: `Cannot reject order with status ${record.status}` } };
+      return { success: false, error: { message: `No se puede rechazar una orden con estado ${record.status}` } };
     }
 
     const now = new Date();
@@ -288,7 +288,7 @@ export class PlatformOrderService {
     });
 
     if (!record) {
-      return { success: false, error: { message: 'Platform order not found' } };
+      return { success: false, error: { message: 'Orden de plataforma no encontrada' } };
     }
 
     return { success: true, data: mapRecord(record) };

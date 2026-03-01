@@ -600,7 +600,8 @@ describe('Employee API Unit Tests', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toContain('Rol inválido');
+      expect(data.error).toBe('Datos inválidos');
+      expect(data.details.role).toBeDefined();
     });
 
     it('should return 403 for non-existent employee', async () => {

@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateSession } from '@/src/core/security/session-validator';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -22,23 +23,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Validate Session API] Validating session:', session_token.substring(0, 8) + '...');
+    logger.info('Validando sesión', { sessionToken: session_token.substring(0, 8) + '...' });
 
     // Validate the session
     const result = await validateSession(session_token);
 
     if (!result.valid) {
-      console.log('[Validate Session API] Session is invalid');
+      logger.info('Sesión inválida');
       return NextResponse.json(
         {
           valid: false,
-          message: 'Session is invalid or expired',
+          message: 'Sesión inválida o expirada',
         },
         { status: 401 }
       );
     }
 
-    console.log('[Validate Session API] Session is valid');
+    logger.info('Sesión válida');
 
     return NextResponse.json({
       valid: true,
@@ -55,9 +56,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Validate session error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al validar sesión', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Error validating session' },
+      { error: 'Error al validar sesión' },
       { status: 500 }
     );
   }

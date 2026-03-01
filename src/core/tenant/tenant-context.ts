@@ -10,6 +10,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateToken } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('tenant-context');
 
 export interface TenantContext {
   tenant_id: string;
@@ -53,7 +56,7 @@ export async function extractTenantContext(
 
     return context;
   } catch (error) {
-    console.error('Tenant context extraction error:', error);
+    log.error('Error al extraer contexto de tenant', error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 }
@@ -91,7 +94,7 @@ export async function setRLSSessionVariables(context: TenantContext): Promise<vo
       `;
     }
   } catch (error) {
-    console.error('Failed to set RLS session variables:', error);
+    log.error('Error al configurar variables de sesión RLS', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -129,12 +132,12 @@ export async function withTenantContext<T>(
     await setRLSSessionVariables(context);
 
     // Log tenant access
-    console.log(`Tenant access: ${context.tenant_id} by ${context.employee_id}`);
+    log.info('Acceso de tenant', { tenantId: context.tenant_id, employeeId: context.employee_id });
 
     // Execute handler with context
     return await handler(context);
   } catch (error) {
-    console.error('Tenant context middleware error:', error);
+    log.error('Error en middleware de contexto de tenant', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error) {
       if (error.message.includes('Unauthorized')) {
@@ -198,7 +201,7 @@ export async function getTenantContext(
 
     return { valid: true, context };
   } catch (error) {
-    console.error('Get tenant context error:', error);
+    log.error('Error al obtener contexto de tenant', error instanceof Error ? error : new Error(String(error)));
 
     return {
       valid: false,

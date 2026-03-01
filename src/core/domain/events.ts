@@ -24,11 +24,13 @@ export const ItemStatusSchema = z.enum(["PENDING", "COOKING", "READY", "DONE", "
 export const PaymentMethodSchema = z.enum(["CASH", "YAPE", "PLIN", "CARD", "TRANSFER"]);
 export const PaymentStatusSchema = z.enum(["UNPAID", "PARTIAL", "PAID"]);
 export const InvoiceTypeSchema = z.enum(["BOLETA", "FACTURA"]);
+export const TaxCategorySchema = z.enum(["GRAVADO", "EXONERADO", "INAFECTO"]);
 export const SplitModeSchema = z.enum(["ITEMS", "PERCENT"]);
 
 export type OrderType = z.infer<typeof OrderTypeSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type ItemStatus = z.infer<typeof ItemStatusSchema>;
+export type TaxCategory = z.infer<typeof TaxCategorySchema>;
 
 // Export inferred types for UI
 export type OrderLine = z.infer<typeof OrderLineSchema>;
@@ -48,7 +50,7 @@ export type Order = z.infer<typeof OrderCreatedPayload>;
 // Aggregate Types
 // ============================================================================
 
-export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON", "SAGA", "INVENTORY", "HR"]);
+export const AggregateTypeSchema = z.enum(["ORDER", "SHIFT", "INVOICE", "CATALOG", "COUPON", "SAGA", "INVENTORY", "HR", "RESERVATION"]);
 
 // ============================================================================
 // Base Envelope (all events have this structure)
@@ -123,6 +125,7 @@ export const OrderLineSchema = z.object({
     unit_price_cents: positiveCentsSchema,
     station: z.string().min(1),
     status: ItemStatusSchema.default("PENDING"),
+    tax_category: TaxCategorySchema.default("GRAVADO"), // SUNAT: GRAVADO(18%), EXONERADO(0%), INAFECTO(0%)
     mods: z.array(z.string()).default([]),
     notes: z.string().optional(),
     // Course fire control
@@ -264,6 +267,7 @@ const CheckCreatedPayload = z.object({
 const CheckPaymentAddedPayload = z.object({
     order_id: uuidSchema,
     check_id: z.string().min(1),
+    idempotency_key: z.string().min(1),
     payment: z.object({
         method: PaymentMethodSchema,
         amount_cents: positiveCentsSchema,
@@ -352,6 +356,22 @@ const InvoiceVoidedPayload = z.object({
     invoice_id: uuidSchema,
     reason: z.string().min(1),
     approved_by: uuidSchema,
+});
+
+const CreditNoteIssuedPayload = z.object({
+    credit_note_id: uuidSchema,
+    invoice_id: uuidSchema,
+    series: z.string().min(1),
+    number: z.string().min(1),
+    total_cents: positiveCentsSchema,
+    reason: z.string().min(1),
+});
+
+const CreditNoteVoidedPayload = z.object({
+    credit_note_id: uuidSchema,
+    invoice_id: uuidSchema,
+    reason: z.string().min(1),
+    voided_by: uuidSchema,
 });
 
 // ============================================================================
@@ -742,6 +762,50 @@ const PlatformOrderRejectedPayload = z.object({
 });
 
 // ============================================================================
+// RESERVATION Events (Audit Trail)
+// ============================================================================
+
+const ReservationCreatedPayload = z.object({
+    reservation_id: uuidSchema,
+    customer_name: z.string().min(1),
+    customer_phone: z.string().min(1),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    time: z.string().regex(/^\d{2}:\d{2}$/),
+    party_size: z.number().int().positive(),
+    confirmation_code: z.string().min(1),
+    zone_preference: z.string().nullish(),
+    special_requests: z.string().nullish(),
+});
+
+const ReservationConfirmedPayload = z.object({
+    reservation_id: uuidSchema,
+    confirmed_by: uuidSchema,
+    table_id: uuidSchema.nullish(),
+});
+
+const ReservationCancelledPayload = z.object({
+    reservation_id: uuidSchema,
+    cancelled_by: z.string().min(1), // "CUSTOMER" or admin user UUID
+    reason: z.string().nullish(),
+});
+
+const ReservationArrivedPayload = z.object({
+    reservation_id: uuidSchema,
+    arrived_at: isoDateSchema,
+});
+
+const ReservationSeatedPayload = z.object({
+    reservation_id: uuidSchema,
+    table_id: uuidSchema,
+    seated_at: isoDateSchema,
+});
+
+const ReservationNoShowPayload = z.object({
+    reservation_id: uuidSchema,
+    marked_by: uuidSchema,
+});
+
+// ============================================================================
 // Discriminated Union of All Events
 // ============================================================================
 
@@ -877,6 +941,18 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("INVOICE_VOIDED"),
         aggregate_type: z.literal("INVOICE"),
         payload: InvoiceVoidedPayload,
+    }),
+
+    // CREDIT NOTE events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("CREDIT_NOTE_ISSUED"),
+        aggregate_type: z.literal("CREDIT_NOTE"),
+        payload: CreditNoteIssuedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("CREDIT_NOTE_VOIDED"),
+        aggregate_type: z.literal("CREDIT_NOTE"),
+        payload: CreditNoteVoidedPayload,
     }),
 
     // REFUND events
@@ -1123,6 +1199,38 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("HR"),
         payload: TrainingCompletedPayload,
     }),
+
+    // RESERVATION events (audit trail)
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("RESERVATION_CREATED"),
+        aggregate_type: z.literal("RESERVATION"),
+        payload: ReservationCreatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("RESERVATION_CONFIRMED"),
+        aggregate_type: z.literal("RESERVATION"),
+        payload: ReservationConfirmedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("RESERVATION_CANCELLED"),
+        aggregate_type: z.literal("RESERVATION"),
+        payload: ReservationCancelledPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("RESERVATION_ARRIVED"),
+        aggregate_type: z.literal("RESERVATION"),
+        payload: ReservationArrivedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("RESERVATION_SEATED"),
+        aggregate_type: z.literal("RESERVATION"),
+        payload: ReservationSeatedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("RESERVATION_NO_SHOW"),
+        aggregate_type: z.literal("RESERVATION"),
+        payload: ReservationNoShowPayload,
+    }),
 ]);
 
 // ============================================================================
@@ -1143,6 +1251,8 @@ export type CheckPaymentAddedEvent = Extract<ParkEvent, { event_type: "CHECK_PAY
 export type CheckMarkedPaidEvent = Extract<ParkEvent, { event_type: "CHECK_MARKED_PAID" }>;
 export type InvoiceIssuedEvent = Extract<ParkEvent, { event_type: "INVOICE_ISSUED" }>;
 export type InvoiceVoidedEvent = Extract<ParkEvent, { event_type: "INVOICE_VOIDED" }>;
+export type CreditNoteIssuedEvent = Extract<ParkEvent, { event_type: "CREDIT_NOTE_ISSUED" }>;
+export type CreditNoteVoidedEvent = Extract<ParkEvent, { event_type: "CREDIT_NOTE_VOIDED" }>;
 export type RefundIssuedEvent = Extract<ParkEvent, { event_type: "REFUND_ISSUED" }>;
 
 // Saga event types
@@ -1205,6 +1315,14 @@ export type AdvanceApprovedEvent = Extract<ParkEvent, { event_type: "ADVANCE_APP
 export type PayrollCalculatedEvent = Extract<ParkEvent, { event_type: "PAYROLL_CALCULATED" }>;
 export type EvaluationCreatedEvent = Extract<ParkEvent, { event_type: "EVALUATION_CREATED" }>;
 export type TrainingCompletedEvent = Extract<ParkEvent, { event_type: "TRAINING_COMPLETED" }>;
+
+// Reservation event types
+export type ReservationCreatedEvent = Extract<ParkEvent, { event_type: "RESERVATION_CREATED" }>;
+export type ReservationConfirmedEvent = Extract<ParkEvent, { event_type: "RESERVATION_CONFIRMED" }>;
+export type ReservationCancelledEvent = Extract<ParkEvent, { event_type: "RESERVATION_CANCELLED" }>;
+export type ReservationArrivedEvent = Extract<ParkEvent, { event_type: "RESERVATION_ARRIVED" }>;
+export type ReservationSeatedEvent = Extract<ParkEvent, { event_type: "RESERVATION_SEATED" }>;
+export type ReservationNoShowEvent = Extract<ParkEvent, { event_type: "RESERVATION_NO_SHOW" }>;
 
 // ============================================================================
 // Ingest Request Schema

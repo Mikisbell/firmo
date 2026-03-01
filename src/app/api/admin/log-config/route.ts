@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { logConfig, LogLevel, LogModule } from '@/src/core/observability/log-config';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const LogConfigSchema = z.object({
   module: z.enum(['auth', 'sync', 'events', 'orders', 'global']),
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[API] Error al obtener configuración de logs:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener configuracion de logs', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[API] Error al actualizar configuración de logs:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar configuracion de logs', error instanceof Error ? error : new Error(String(error)));
 
     // Si es error de validación, retornar 400
     if (error instanceof Error && error.message.includes('inválido')) {

@@ -23,7 +23,8 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
         "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
         "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
-        "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED", "REFUND_ISSUED",
+        "CREDIT_NOTE_ISSUED", "CREDIT_NOTE_VOIDED",
         "CATALOG_VERSION_BUMPED",
         "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
@@ -35,7 +36,8 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
         "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
         "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
-        "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED", "REFUND_ISSUED",
+        "CREDIT_NOTE_ISSUED", "CREDIT_NOTE_VOIDED",
         "CATALOG_VERSION_BUMPED",
         "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
@@ -47,7 +49,8 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
         "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
         "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
-        "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED", "REFUND_ISSUED",
+        "CREDIT_NOTE_ISSUED", "CREDIT_NOTE_VOIDED",
         "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
 
@@ -58,7 +61,8 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
         "ORDER_ITEM_STATUS_CHANGED", "ORDER_ITEM_VOIDED", "ORDER_CANCELLED",
         "CHECK_CREATED", "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID",
         "CHECK_TIP_SET", "CHECK_ITEMS_UPDATED", "CHECK_ITEMS_MOVED",
-        "INVOICE_ISSUED", "INVOICE_VOIDED",
+        "INVOICE_ISSUED", "INVOICE_VOIDED", "REFUND_ISSUED",
+        "CREDIT_NOTE_ISSUED", "CREDIT_NOTE_VOIDED",
         "REQUEST_CHECK", "ORDER_SUBMITTED",
     ]),
 
@@ -108,17 +112,51 @@ const ROLE_PERMISSIONS: Record<EmployeeRole, Set<EventType>> = {
     ]),
 };
 
+// Reservation events — ADMIN_ROLES can emit admin actions,
+// RESERVATION_CREATED and RESERVATION_CANCELLED can also come from public API (system events)
+const RESERVATION_ADMIN_EVENTS: EventType[] = [
+    "RESERVATION_CONFIRMED",
+    "RESERVATION_ARRIVED",
+    "RESERVATION_SEATED",
+    "RESERVATION_NO_SHOW",
+];
+
+const RESERVATION_PUBLIC_EVENTS: EventType[] = [
+    "RESERVATION_CREATED",
+    "RESERVATION_CANCELLED",
+];
+
+// Add reservation events to all roles that need them
+// ADMIN_ROLES get all reservation events
+for (const role of ["OWNER", "ADMIN", "MANAGER", "SUPERVISOR"] as const) {
+    for (const evt of [...RESERVATION_ADMIN_EVENTS, ...RESERVATION_PUBLIC_EVENTS]) {
+        ROLE_PERMISSIONS[role].add(evt);
+    }
+}
+
+// Non-admin roles get only public reservation events (CREATED, CANCELLED)
+// so they can appear as actors when the system emits on behalf of a customer
+for (const role of ["CASHIER", "WAITER", "KITCHEN", "COOK", "PACKER", "BAR", "DRIVER"] as const) {
+    for (const evt of RESERVATION_PUBLIC_EVENTS) {
+        ROLE_PERMISSIONS[role].add(evt);
+    }
+}
+
 // Eventos que requieren autorización de MANAGER/ADMIN
 const REQUIRES_MANAGER_APPROVAL: Set<EventType> = new Set([
     "ORDER_ITEM_VOIDED",
     "ORDER_CANCELLED",
     "INVOICE_VOIDED",
     "CASH_ADJUSTED",
+    "REFUND_ISSUED",
+    "CREDIT_NOTE_VOIDED",
 ]);
 
-// Eventos que pueden emitirse sin actor (sistema)
+// Eventos que pueden emitirse sin actor (sistema o API publica)
 const SYSTEM_EVENTS: Set<EventType> = new Set([
     "CATALOG_VERSION_BUMPED",
+    "RESERVATION_CREATED",   // Public API — no auth required
+    "RESERVATION_CANCELLED", // Public API — customer can cancel without auth
 ]);
 
 export interface RoleValidationResult {

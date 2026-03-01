@@ -10,6 +10,7 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { AttendanceService } from '@/src/core/services/attendance.service';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new AttendanceService(prisma);
 
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al justificar inasistencia:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al justificar inasistencia', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al justificar inasistencia' },
       { status: 500 },

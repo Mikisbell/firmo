@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const VerifySchema = z.object({
   tenant_id: z.string().uuid(),
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Verify terminal error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al verificar terminal', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({
       valid: false,
       reason: 'ERROR',

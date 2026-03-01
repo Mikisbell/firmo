@@ -127,17 +127,17 @@ export class HealthCheckService {
           database: {
             status: 'down',
             responseTime: 0,
-            message: 'Health check failed',
+            message: 'Verificación de salud fallida',
           },
           redis: {
             status: 'down',
             responseTime: 0,
-            message: 'Health check failed',
+            message: 'Verificación de salud fallida',
           },
           eventSourcing: {
             status: 'down',
             responseTime: 0,
-            message: 'Health check failed',
+            message: 'Verificación de salud fallida',
           },
         },
         responseTime,
@@ -152,7 +152,7 @@ export class HealthCheckService {
     return this.withTimeout(
       this.checkDatabase(),
       this.timeout,
-      'Database check timed out'
+      'Verificación de base de datos agotó el tiempo'
     );
   }
 
@@ -163,7 +163,7 @@ export class HealthCheckService {
     return this.withTimeout(
       this.checkRedis(),
       this.timeout,
-      'Redis check timed out'
+      'Verificación de Redis agotó el tiempo'
     );
   }
 
@@ -174,7 +174,7 @@ export class HealthCheckService {
     return this.withTimeout(
       this.checkEventSourcing(),
       this.timeout,
-      'Event sourcing check timed out'
+      'Verificación de event sourcing agotó el tiempo'
     );
   }
 
@@ -194,7 +194,7 @@ export class HealthCheckService {
       return {
         status: 'up',
         responseTime,
-        message: 'Database connection successful',
+        message: 'Conexión a base de datos exitosa',
       };
     } catch (error) {
       const responseTime = Date.now() - startTime;
@@ -204,7 +204,7 @@ export class HealthCheckService {
       return {
         status: 'down',
         responseTime,
-        message: error instanceof Error ? error.message : 'Database connection failed',
+        message: error instanceof Error ? error.message : 'Conexión a base de datos fallida',
         details: {
           error: error instanceof Error ? error.name : 'Unknown error',
         },
@@ -225,7 +225,7 @@ export class HealthCheckService {
         return {
           status: 'degraded',
           responseTime: Date.now() - startTime,
-          message: 'Redis not configured, using in-memory cache',
+          message: 'Redis no configurado, usando caché en memoria',
           details: {
             cacheType: cache.getType(),
           },
@@ -245,7 +245,7 @@ export class HealthCheckService {
         return {
           status: 'up',
           responseTime,
-          message: 'Redis connection successful',
+          message: 'Conexión a Redis exitosa',
           details: {
             cacheType: cache.getType(),
           },
@@ -254,7 +254,7 @@ export class HealthCheckService {
         return {
           status: 'degraded',
           responseTime,
-          message: 'Redis read/write mismatch',
+          message: 'Discrepancia de lectura/escritura en Redis',
           details: {
             cacheType: cache.getType(),
             expected: testValue,
@@ -270,7 +270,7 @@ export class HealthCheckService {
       return {
         status: 'degraded',
         responseTime,
-        message: 'Redis connection failed, using fallback',
+        message: 'Conexión a Redis fallida, usando respaldo',
         details: {
           error: error instanceof Error ? error.name : 'Unknown error',
           cacheType: cache.getType(),
@@ -303,7 +303,7 @@ export class HealthCheckService {
         return {
           status: 'up',
           responseTime,
-          message: 'Event sourcing operational',
+          message: 'Event sourcing operacional',
           details: {
             recentEvents,
           },
@@ -313,7 +313,7 @@ export class HealthCheckService {
         return {
           status: 'degraded',
           responseTime,
-          message: 'No recent events (system may be idle)',
+          message: 'Sin eventos recientes (el sistema puede estar inactivo)',
           details: {
             recentEvents: 0,
           },
@@ -327,7 +327,7 @@ export class HealthCheckService {
       return {
         status: 'down',
         responseTime,
-        message: error instanceof Error ? error.message : 'Event sourcing check failed',
+        message: error instanceof Error ? error.message : 'Verificación de event sourcing fallida',
         details: {
           error: error instanceof Error ? error.name : 'Unknown error',
         },

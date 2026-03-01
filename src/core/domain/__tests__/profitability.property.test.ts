@@ -153,8 +153,10 @@ describe('Property 2: Fórmula Fundamental de Margen', () => {
             return true;
           }
           
-          // Comparar con tolerancia mayor por redondeo (0.5% del precio)
-          const tolerance = Math.max(1, price * 0.005);
+          // Comparar con tolerancia mayor por redondeo a 2 decimales
+          // calculateMargin redondea con Math.round(x*100)/100, error máx = 0.005
+          // Error en lhs = 0.005 * price, necesitamos tolerancia > ese valor
+          const tolerance = Math.max(1, price * 0.01);
           return Math.abs(lhs - rhs) < tolerance;
         }
       ),

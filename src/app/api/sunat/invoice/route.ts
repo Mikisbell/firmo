@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validationResult.error.errors },
+        { error: 'Solicitud inválida', details: validationResult.error.errors },
         { status: 400 }
       );
     }
@@ -242,13 +242,13 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         action: 'EMIT',
       },
-      message: 'Invoice issued successfully and queued for SUNAT processing',
+      message: 'Factura emitida exitosamente y en cola para procesamiento SUNAT',
     });
 
   } catch (error) {
     pinoLogger.error({ error }, 'Error issuing invoice');
     return NextResponse.json(
-      { error: 'Failed to issue invoice' },
+      { error: 'Error al emitir factura' },
       { status: 500 }
     );
   }

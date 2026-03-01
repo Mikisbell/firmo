@@ -154,6 +154,7 @@ describe('Reducers convert to Branded Types', () => {
               qty: 2,
               unit_price_cents: 2500,
               status: 'PENDING',
+              tax_category: 'GRAVADO',
               station: 'PARRILLA',
               mods: [],
             }
@@ -243,9 +244,9 @@ describe('Centavos arithmetic in reducers', () => {
         order_type: 'DINE_IN',
         checks: [],
         items: [
-          { line_id: 'l1', product_id: 'p1', sku: 'SKU-1', name: 'Item 1', qty: 2, unit_price_cents: 1000, status: 'PENDING', station: 'COCINA', mods: [] },
-          { line_id: 'l2', product_id: 'p2', sku: 'SKU-2', name: 'Item 2', qty: 3, unit_price_cents: 1500, status: 'PENDING', station: 'COCINA', mods: [] },
-          { line_id: 'l3', product_id: 'p3', sku: 'SKU-3', name: 'Item 3', qty: 1, unit_price_cents: 2500, status: 'PENDING', station: 'BAR', mods: [] },
+          { line_id: 'l1', product_id: 'p1', sku: 'SKU-1', name: 'Item 1', qty: 2, unit_price_cents: 1000, status: 'PENDING', tax_category: 'GRAVADO', station: 'COCINA', mods: [] },
+          { line_id: 'l2', product_id: 'p2', sku: 'SKU-2', name: 'Item 2', qty: 3, unit_price_cents: 1500, status: 'PENDING', tax_category: 'GRAVADO', station: 'COCINA', mods: [] },
+          { line_id: 'l3', product_id: 'p3', sku: 'SKU-3', name: 'Item 3', qty: 1, unit_price_cents: 2500, status: 'PENDING', tax_category: 'GRAVADO', station: 'BAR', mods: [] },
         ],
       },
     };

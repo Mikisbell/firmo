@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
 import { cache } from '@/src/core/cache/redis.service';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const AssignDriverSchema = z.object({
   driverId: z.string().uuid('ID de repartidor inválido'),
@@ -40,7 +41,7 @@ export async function PATCH(
         { status: error.statusCode }
       );
     }
-    console.error('Error assigning driver:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al asignar repartidor', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/src/core/db/prisma";
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(
   req: Request,
@@ -49,7 +50,7 @@ export async function GET(
       last_updated_at: order.updated_at,
     });
   } catch (e) {
-    console.error("[OrderState] Error fetching order:", e);
+    logger.error('Error al obtener estado de orden', e instanceof Error ? e : new Error(String(e)));
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

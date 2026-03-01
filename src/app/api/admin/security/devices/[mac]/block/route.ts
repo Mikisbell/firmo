@@ -7,6 +7,7 @@ import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { blockMAC } from '@/src/core/security/mac-validator-hybrid';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -19,14 +20,14 @@ export async function POST(
 ) {
   try {
     const { mac } = await params;
-    console.log('[Block Device API] POST request received for MAC:', mac);
+    logger.info('Solicitud POST recibida para bloquear dispositivo');
 
     // Validate session
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      console.log('[Block Device API] Unauthorized - no session');
+      logger.warn('No autorizado - sin sesión activa');
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -37,9 +38,9 @@ export async function POST(
     });
 
     if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
-      console.log('[Block Device API] Forbidden - not admin');
+      logger.warn('Prohibido - no es administrador');
       return NextResponse.json(
-        { error: 'Forbidden - admin access required' },
+        { error: 'Prohibido - se requiere acceso de administrador' },
         { status: 403 }
       );
     }
@@ -47,7 +48,7 @@ export async function POST(
     const body = await request.json();
     const { reason } = body;
 
-    console.log('[Block Device API] Blocking MAC:', mac, 'Reason:', reason);
+    logger.info('Bloqueando dispositivo', { reason });
 
     // Block the MAC
     await blockMAC(session.tenantId, mac, reason || 'Blocked by admin');
@@ -74,17 +75,17 @@ export async function POST(
       });
     }
 
-    console.log('[Block Device API] Device blocked successfully');
+    logger.info('Dispositivo bloqueado exitosamente');
 
     return NextResponse.json({
       success: true,
-      message: 'Device blocked successfully',
+      message: 'Dispositivo bloqueado exitosamente',
       mac_address: mac,
     });
   } catch (error) {
-    console.error('Block device error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al bloquear dispositivo', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Error blocking device' },
+      { error: 'Error al bloquear dispositivo' },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/src/core/observability/structured-logger';
 import { deleteTenant, generateDeletionConfirmationToken } from '@/src/core/tenant/deactivation';
 import { withCrossTenantAdmin } from '@/src/core/tenant/cross-tenant-admin';
 import { validateToken } from '@/src/core/auth/auth.service';
@@ -31,7 +32,7 @@ export async function POST(
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -40,7 +41,7 @@ export async function POST(
     const tokenResult = await validateToken(token);
     if (!tokenResult.valid || !tokenResult.payload?.sub) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -62,7 +63,7 @@ export async function POST(
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.errors },
+        { error: 'Solicitud inválida', details: validation.error.errors },
         { status: 400 }
       );
     }
@@ -75,32 +76,32 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        message: `Tenant ${tenant_id} has been permanently deleted`,
+        message: `Local ${tenant_id} ha sido eliminado permanentemente`,
         tenant_id,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error deleting tenant:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al eliminar tenant', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error) {
       if (error.message.includes('authorization')) {
         return NextResponse.json(
-          { error: 'Unauthorized' },
+          { error: 'No autorizado' },
           { status: 403 }
         );
       }
 
       if (error.message.includes('confirmation')) {
         return NextResponse.json(
-          { error: 'Invalid or expired confirmation token' },
+          { error: 'Token de confirmación inválido o expirado' },
           { status: 400 }
         );
       }
     }
 
     return NextResponse.json(
-      { error: 'Failed to delete tenant' },
+      { error: 'Error al eliminar local' },
       { status: 500 }
     );
   }
@@ -126,7 +127,7 @@ export async function GET(
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -135,7 +136,7 @@ export async function GET(
     const tokenResult = await validateToken(token);
     if (!tokenResult.valid || !tokenResult.payload?.sub) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -157,25 +158,25 @@ export async function GET(
     return NextResponse.json(
       {
         success: true,
-        message: 'Deletion confirmation token generated',
+        message: 'Token de confirmación de eliminación generado',
         confirmation_token,
         expires_in_seconds: 3600, // 1 hour
-        warning: 'This token is required to permanently delete the tenant. Keep it safe.',
+        warning: 'Este token es necesario para eliminar permanentemente el local. Guárdelo de forma segura.',
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error generating deletion token:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al generar token de eliminación', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message.includes('authorization')) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 403 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Failed to generate deletion token' },
+      { error: 'Error al generar token de eliminación' },
       { status: 500 }
     );
   }

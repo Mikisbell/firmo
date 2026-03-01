@@ -27,6 +27,7 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
             unit_price_cents: unsafeCentavos(item.unit_price_cents),
             line_total_cents: unsafeCentavos(item.qty * item.unit_price_cents),
             status: item.status ?? "PENDING",
+            tax_category: item.tax_category ?? "GRAVADO",
             station: item.station || "COCINA", // Preservar estación
             // Timestamps
             created_at: item.created_at ?? e.occurred_at,
@@ -95,8 +96,8 @@ export function applySaleEvent(
         return { state: sale, warnings };
     }
 
-    // If order already confirmed, don't apply mutations
-    if (sale.status === "CONFIRMED") {
+    // If order already confirmed, don't apply mutations (except voids/credit notes)
+    if (sale.status === "CONFIRMED" && e.event_type !== "INVOICE_VOIDED") {
         warnings.push(`Evento ${e.event_type} recibido después de CONFIRMED; ignorado.`);
         return { state: sale, warnings };
     }
@@ -118,6 +119,7 @@ export function applySaleEvent(
                 unit_price_cents: unsafeCentavos(unit_price_cents),
                 line_total_cents,
                 status: status ?? prev?.status ?? "PENDING",
+                tax_category: line.tax_category ?? prev?.tax_category ?? "GRAVADO",
                 station: station || prev?.station || "COCINA", // Preservar estación
                 // Set created_at timestamp from event or line
                 created_at: prev?.created_at ?? line.created_at ?? e.occurred_at,
@@ -326,14 +328,24 @@ export function applySaleEvent(
         }
 
         case "CHECK_PAYMENT_ADDED": {
-            const { check_id, payment } = e.payload;
+            const { check_id, payment, idempotency_key } = e.payload;
             const { method, amount_cents } = payment;
+
+            // Idempotency check: skip if this payment was already processed
+            if (idempotency_key && sale.payments.some(
+                existing => existing.idempotency_key === idempotency_key
+            )) {
+                warnings.push(`CHECK_PAYMENT_ADDED: idempotency_key ${idempotency_key} already processed; skipped.`);
+                sale.last_event_sequence = e.terminal_sequence;
+                return { state: sale, warnings };
+            }
 
             // Global Update
             const p: SalePayment = {
                 method,
                 amount_cents: unsafeCentavos(amount_cents),
                 change_given_cents: unsafeCentavos(0),
+                idempotency_key,
             };
             sale.payments.push(p);
             sale.paid_cents = unsafeCentavos(sale.paid_cents + amount_cents);
@@ -342,7 +354,7 @@ export function applySaleEvent(
             const checkIndex = sale.checks.findIndex(c => c.check_id === check_id);
             if (checkIndex >= 0) {
                 const check = sale.checks[checkIndex];
-                check.payment.payments.push({ method, amount_cents: unsafeCentavos(amount_cents), ref: payment.ref });
+                check.payment.payments.push({ method, amount_cents: unsafeCentavos(amount_cents), ref: payment.ref, idempotency_key });
 
                 // Recalculate Check Status
                 const totalPaid = check.payment.payments.reduce((acc, curr) => acc + curr.amount_cents, 0);
@@ -407,6 +419,16 @@ export function applySaleEvent(
 
             sale.total_cents = unsafeCentavos(total_cents);
             sale.status = "CONFIRMED";
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "INVOICE_VOIDED": {
+            // Revert order back to OPEN so it can be re-invoiced or cancelled
+            if (sale.status === "CONFIRMED") {
+                sale.status = "OPEN";
+                warnings.push("INVOICE_VOIDED: Orden regresada a OPEN.");
+            }
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }

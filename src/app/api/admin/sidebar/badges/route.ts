@@ -11,13 +11,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     // Get audit events count (last 24 hours, high severity)
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
         },
       });
     } catch (error) {
-      console.debug('Failed to fetch audit count:', error);
+      logger.debug('Error al obtener conteo de auditorias', { error: String(error) });
     }
 
     // Get delivery orders count (pending assignment)
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
         },
       });
     } catch (error) {
-      console.debug('Failed to fetch delivery count:', error);
+      logger.debug('Error al obtener conteo de delivery', { error: String(error) });
     }
 
     return NextResponse.json({
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       delivery: deliveryCount,
     });
   } catch (error) {
-    console.error('Sidebar badges error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener badges del sidebar', error instanceof Error ? error : new Error(String(error)));
     // Return zeros on error - non-critical
     return NextResponse.json({
       auditoria: 0,

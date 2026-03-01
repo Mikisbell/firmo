@@ -1,42 +1,55 @@
 /**
- * Push Notification Unsubscribe API Endpoint
- * 
+ * Endpoint API para desuscripción de notificaciones push
+ *
  * POST /api/push/unsubscribe
- * 
- * Removes a Web Push API subscription for a driver
+ *
+ * Elimina una suscripción Web Push API de un repartidor
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { unsubscribe } from '@/src/core/delivery/push.service';
 import { toDriverId, toTenantId } from '@/src/core/delivery/types-2026';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const pushUnsubscribeSchema = z.object({
+  driverId: z.string().min(1, 'driverId es requerido'),
+  endpoint: z.string().min(1, 'endpoint es requerido'),
+});
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const body = await request.json();
 
-    // Validate required fields
-    if (!body.tenantId || !body.driverId || !body.endpoint) {
+    const parsed = pushUnsubscribeSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: tenantId, driverId, endpoint' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    // Remove subscription
+    const { driverId, endpoint } = parsed.data;
+
+    // Eliminar suscripción — tenant_id del JWT
     await unsubscribe(
-      toTenantId(body.tenantId),
-      toDriverId(body.driverId),
-      body.endpoint
+      toTenantId(authResult.user.tenantId),
+      toDriverId(driverId),
+      endpoint
     );
 
     return NextResponse.json({
       success: true,
-      message: 'Push subscription removed successfully',
+      message: 'Suscripción push eliminada exitosamente',
     });
   } catch (error) {
-    console.error('Error removing push subscription:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al eliminar suscripción push', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Failed to remove push subscription' },
+      { error: 'Error al eliminar suscripción push' },
       { status: 500 }
     );
   }

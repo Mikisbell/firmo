@@ -11,10 +11,11 @@ import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
 import * as notificationService from '@/src/core/notifications/notification.service';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   }
 
   try {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return NextResponse.json({ error: 'Cuerpo JSON inválido' }, { status: 400 });
     }
 
     // Determine target employee
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
       failed: result.failed,
     });
   } catch (error) {
-    console.error('[API] Test notification error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al enviar notificación de prueba', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al enviar notificación de prueba' },
       { status: 500 }

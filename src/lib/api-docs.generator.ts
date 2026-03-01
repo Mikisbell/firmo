@@ -135,8 +135,8 @@ All errors follow this standard format:
       paths,
       components: {
         schemas,
-        securitySchemes: security.reduce((acc, scheme) => {
-          const name = (scheme as any).name || scheme.scheme;
+        securitySchemes: security.reduce((acc: Record<string, unknown>, scheme) => {
+          const name = scheme.name || scheme.scheme || 'default';
           acc[name] = scheme;
           return acc;
         }, {}),

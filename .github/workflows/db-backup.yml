@@ -1,0 +1,55 @@
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: PostgreSQL Backup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "date=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+
+      - name: Run pg_dump
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          pg_dump \
+            -h ${{ secrets.DB_HOST }} \
+            -p ${{ secrets.DB_PORT }} \
+            -U ${{ secrets.DB_USER }} \
+            -d ${{ secrets.DB_NAME }} \
+            --no-owner \
+            --no-privileges \
+            --format=plain \
+            > backup-${{ steps.timestamp.outputs.date }}.sql
+
+      - name: Verify dump is not empty
+        run: |
+          FILESIZE=$(stat --format=%s backup-${{ steps.timestamp.outputs.date }}.sql)
+          echo "Backup size: ${FILESIZE} bytes"
+          if [ "$FILESIZE" -le 0 ]; then
+            echo "ERROR: Backup file is empty"
+            exit 1
+          fi
+          echo "Backup verified OK (${FILESIZE} bytes)"
+
+      - name: Compress backup
+        run: gzip backup-${{ steps.timestamp.outputs.date }}.sql
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ steps.timestamp.outputs.date }}
+          path: backup-${{ steps.timestamp.outputs.date }}.sql.gz
+          retention-days: 30

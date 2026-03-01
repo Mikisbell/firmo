@@ -83,14 +83,20 @@ vi.mock('ioredis', () => {
 });
 
 // Mock logger to avoid console noise
-vi.mock('@/src/core/observability/structured-logger', () => ({
-  logger: {
+vi.mock('@/src/core/observability/structured-logger', () => {
+  const mockLogger = {
     info: vi.fn(),
     debug: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
-  },
-}));
+    child: vi.fn().mockReturnThis(),
+  };
+  return {
+    logger: mockLogger,
+    createLogger: vi.fn(() => mockLogger),
+    createRequestLogger: vi.fn(() => mockLogger),
+  };
+});
 
 // Mock metrics to track calls
 vi.mock('@/src/core/observability/metrics', () => ({
@@ -362,7 +368,7 @@ describe('Cache Service - Property Tests', () => {
             id: fc.uuid(),
             name: fc.string(),
             metadata: fc.record({
-              createdAt: fc.date().map((d) => d.toISOString()),
+              createdAt: fc.date({ min: new Date('2000-01-01'), max: new Date('2030-12-31') }).filter((d) => !isNaN(d.getTime())).map((d) => d.toISOString()),
               tags: fc.array(fc.string(), { maxLength: 5 }),
               nested: fc.record({
                 value: fc.integer(),

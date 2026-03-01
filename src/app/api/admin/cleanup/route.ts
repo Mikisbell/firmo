@@ -4,24 +4,20 @@
  * Ejecuta limpieza de processed_events antiguos.
  * Solo accesible por ADMIN/MANAGER.
  * 
- * Requirements: 6.3
+ * Requisitos: 6.3
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cleanupProcessedEvents } from '@/src/core/workers/cleanup-processed-events';
 import { logger } from '@/src/core/observability/logger';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autorización básica (en producción usar JWT)
-    const authHeader = request.headers.get('authorization');
-    const adminKey = process.env.ADMIN_API_KEY;
-    
-    if (adminKey && authHeader !== `Bearer ${adminKey}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Validar autenticación admin (JWT obligatorio)
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) {
+      return authResult.response;
     }
 
     // Obtener días de retención del body (opcional)
@@ -51,7 +47,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('api.cleanup.error', 'Cleanup API failed', error instanceof Error ? error : undefined);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

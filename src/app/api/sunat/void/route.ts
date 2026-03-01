@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validationResult.error.errors },
+        { error: 'Solicitud inválida', details: validationResult.error.errors },
         { status: 400 }
       );
     }
@@ -141,13 +141,13 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         action: 'VOID',
       },
-      message: 'Invoice voided successfully and credit note queued for SUNAT processing',
+      message: 'Factura anulada exitosamente y nota de crédito en cola para procesamiento SUNAT',
     });
 
   } catch (error) {
     pinoLogger.error({ error }, 'Error voiding invoice');
     return NextResponse.json(
-      { error: 'Failed to void invoice' },
+      { error: 'Error al anular factura' },
       { status: 500 }
     );
   }

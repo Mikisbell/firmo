@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
 import { registerMAC } from '@/src/core/security/mac-validator-hybrid';
+import { logger } from '@/src/core/observability/structured-logger';
 import {
   createActiveSession,
   closeAllSessionsExcept,
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Device confirmation error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al confirmar dispositivo', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al confirmar dispositivo' },
       { status: 500 }

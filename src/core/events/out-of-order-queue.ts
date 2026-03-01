@@ -1,22 +1,27 @@
 /**
- * Out-of-Order Event Queue
- * 
- * Maneja eventos que llegan fuera de orden, encolándolos temporalmente
- * hasta que lleguen los eventos faltantes.
- * 
- * Casos de uso:
- * 1. ORDER_ITEM_ADDED llega antes que ORDER_CREATED
- * 2. Eventos con terminal_sequence no consecutivo
- * 3. Eventos con dependencias faltantes
- * 
- * Timeout: 60 segundos
- * Dead Letter Queue: Eventos expirados se mueven a tabla dead_letter_queue
- * Alerta: Cuando >10 eventos encolados para el mismo aggregate
+ * Out-of-Order Event Queue — Persistent
+ *
+ * Handles events that arrive before their dependencies (e.g., ORDER_ITEM_ADDED
+ * before ORDER_CREATED). Events are persisted immediately to `pending_events`
+ * table so they survive process restarts (Vercel cold starts, deploys, crashes).
+ *
+ * Flow:
+ *  1. enqueue() → INSERT pending_events (persistent) + in-memory Map (fast lookup)
+ *  2. processQueuedEvents() → DELETE pending_events + clear Map entry
+ *  3. cleanupExpired() → expired events move to dead_letter_queue
+ *  4. recover() → on startup, reload pending_events from DB into Map
+ *
+ * Timeout: 60 seconds
+ * Dead Letter Queue: Expired events move to `dead_letter_queue` table
+ * Alert: Logs warning when >10 events queued for same aggregate
  */
 
 import { type ParkEvent } from '@/src/core/domain/events';
 import prisma from '@/src/core/db/prisma';
 import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('out-of-order-queue');
 
 interface QueuedEvent {
   event: ParkEvent;
@@ -25,81 +30,88 @@ interface QueuedEvent {
 }
 
 /**
- * Cola en memoria para eventos fuera de orden
- * Key: aggregate_id
- * Value: Array de eventos encolados
+ * Persistent out-of-order queue.
+ * In-memory Map is used as a fast cache; pending_events table is the source of truth.
  */
 class OutOfOrderQueue {
   private queue: Map<string, QueuedEvent[]> = new Map();
-  private readonly TIMEOUT_MS = 60_000; // 60 segundos
-  private readonly ALERT_THRESHOLD = 10; // Alerta si >10 eventos encolados
+  private readonly TIMEOUT_MS = 60_000; // 60 seconds
+  private readonly ALERT_THRESHOLD = 10;
+  private recovered = false;
 
   /**
-   * Encolar un evento que llegó fuera de orden
+   * Enqueue an out-of-order event.
+   * Persists to `pending_events` table immediately.
    */
-  enqueue(event: ParkEvent, reason: string): void {
+  async enqueue(event: ParkEvent, reason: string): Promise<void> {
     const aggregateId = event.aggregate_id;
-    
+    const enqueuedAt = new Date();
+
+    // 1. Persist to DB first (source of truth)
+    try {
+      await prisma.pending_events.create({
+        data: {
+          id: uuidv4(),
+          tenant_id: event.tenant_id,
+          event_id: event.event_id,
+          aggregate_id: aggregateId,
+          event_type: event.event_type,
+          payload: event as any,
+          reason,
+          enqueued_at: enqueuedAt,
+        },
+      });
+    } catch (e) {
+      log.error('Error al persistir evento pendiente', e instanceof Error ? e : new Error(String(e)));
+      // Fall through — still add to in-memory for this process lifetime
+    }
+
+    // 2. Add to in-memory cache for fast lookup
     if (!this.queue.has(aggregateId)) {
       this.queue.set(aggregateId, []);
     }
-    
+
     const queuedEvents = this.queue.get(aggregateId)!;
-    queuedEvents.push({
-      event,
-      enqueuedAt: new Date(),
+    queuedEvents.push({ event, enqueuedAt, reason });
+
+    log.warn('Evento encolado por estar fuera de orden', {
+      event_id: event.event_id,
+      event_type: event.event_type,
+      aggregate_id: aggregateId,
+      tenant_id: event.tenant_id,
       reason,
+      queue_size: queuedEvents.length,
     });
-    
-    // Logging estructurado
-    console.log(JSON.stringify({
-      level: 'WARN',
-      event: 'out_of_order.enqueued',
-      message: `Event ${event.event_id} enqueued for aggregate ${aggregateId}`,
-      context: {
-        event_id: event.event_id,
-        event_type: event.event_type,
+
+    if (queuedEvents.length > this.ALERT_THRESHOLD) {
+      log.warn('Umbral de alerta excedido', {
         aggregate_id: aggregateId,
         tenant_id: event.tenant_id,
-        reason,
         queue_size: queuedEvents.length,
-      }
-    }));
-    
-    // Alerta si >10 eventos encolados
-    if (queuedEvents.length > this.ALERT_THRESHOLD) {
-      console.log(JSON.stringify({
-        level: 'ERROR',
-        event: 'out_of_order.alert_threshold_exceeded',
-        message: `More than ${this.ALERT_THRESHOLD} events queued for aggregate ${aggregateId}`,
-        context: {
-          aggregate_id: aggregateId,
-          tenant_id: event.tenant_id,
-          queue_size: queuedEvents.length,
-          threshold: this.ALERT_THRESHOLD,
-        }
-      }));
+        threshold: this.ALERT_THRESHOLD,
+      });
     }
   }
 
   /**
-   * Obtener eventos encolados para un aggregate
+   * Get queued events for an aggregate (read-only).
    */
   getQueuedEvents(aggregateId: string): QueuedEvent[] {
     return this.queue.get(aggregateId) || [];
   }
 
   /**
-   * Procesar eventos encolados para un aggregate
-   * Retorna los eventos que están listos para procesar
+   * Process queued events when dependency arrives.
+   * Deletes from DB and in-memory, returns events sorted by terminal_sequence.
    */
   async processQueuedEvents(aggregateId: string): Promise<ParkEvent[]> {
     const queuedEvents = this.queue.get(aggregateId);
     if (!queuedEvents || queuedEvents.length === 0) {
-      return [];
+      // Check DB in case this process didn't have them in memory (cold start)
+      return this.processFromDB(aggregateId);
     }
-    
-    // Ordenar por terminal_sequence si está disponible
+
+    // Sort by terminal_sequence
     const sortedEvents = queuedEvents
       .map(qe => qe.event)
       .sort((a, b) => {
@@ -107,100 +119,172 @@ class OutOfOrderQueue {
         const seqB = (b as any).terminal_sequence || 0;
         return seqA - seqB;
       });
-    
-    // Limpiar la cola para este aggregate
+
+    // Clear in-memory
     this.queue.delete(aggregateId);
-    
-    console.log(JSON.stringify({
-      level: 'INFO',
-      event: 'out_of_order.processed',
-      message: `Processing ${sortedEvents.length} queued events for aggregate ${aggregateId}`,
-      context: {
-        aggregate_id: aggregateId,
-        event_count: sortedEvents.length,
-      }
-    }));
-    
+
+    // Delete from DB
+    try {
+      await prisma.pending_events.deleteMany({
+        where: { aggregate_id: aggregateId },
+      });
+    } catch (e) {
+      log.error('Error al eliminar eventos pendientes de DB', e instanceof Error ? e : new Error(String(e)));
+    }
+
+    log.info('Eventos encolados procesados', {
+      aggregate_id: aggregateId,
+      event_count: sortedEvents.length,
+    });
+
     return sortedEvents;
   }
 
   /**
-   * Limpiar eventos expirados (>60 segundos)
-   * Mover a dead_letter_queue
+   * Fallback: process directly from DB when in-memory is empty
+   * (happens after cold start if recover() hasn't run yet).
+   */
+  private async processFromDB(aggregateId: string): Promise<ParkEvent[]> {
+    try {
+      const rows = await prisma.pending_events.findMany({
+        where: { aggregate_id: aggregateId },
+        orderBy: { enqueued_at: 'asc' },
+      });
+
+      if (rows.length === 0) return [];
+
+      const events = rows
+        .map(r => r.payload as unknown as ParkEvent)
+        .sort((a, b) => {
+          const seqA = (a as any).terminal_sequence || 0;
+          const seqB = (b as any).terminal_sequence || 0;
+          return seqA - seqB;
+        });
+
+      await prisma.pending_events.deleteMany({
+        where: { aggregate_id: aggregateId },
+      });
+
+      log.info('Eventos pendientes recuperados de DB y procesados', {
+        aggregate_id: aggregateId,
+        event_count: events.length,
+      });
+
+      return events;
+    } catch (e) {
+      log.error('Error al recuperar eventos de DB', e instanceof Error ? e : new Error(String(e)));
+      return [];
+    }
+  }
+
+  /**
+   * Cleanup expired events (>60s).
+   * Moves them from pending_events to dead_letter_queue.
    */
   async cleanupExpired(): Promise<void> {
     const now = new Date();
-    const expiredEvents: Array<{ event: ParkEvent; reason: string; enqueuedAt: Date }> = [];
-    
-    // Buscar eventos expirados
-    for (const [aggregateId, queuedEvents] of this.queue.entries()) {
-      const stillValid: QueuedEvent[] = [];
-      
-      for (const qe of queuedEvents) {
-        const ageMs = now.getTime() - qe.enqueuedAt.getTime();
-        
-        if (ageMs > this.TIMEOUT_MS) {
-          // Expirado - mover a DLQ
-          expiredEvents.push({
-            event: qe.event,
-            reason: qe.reason,
-            enqueuedAt: qe.enqueuedAt,
-          });
-        } else {
-          // Todavía válido
-          stillValid.push(qe);
-        }
+    const cutoff = new Date(now.getTime() - this.TIMEOUT_MS);
+
+    // 1. Clean from DB (source of truth)
+    try {
+      const expired = await prisma.pending_events.findMany({
+        where: { enqueued_at: { lt: cutoff } },
+      });
+
+      if (expired.length > 0) {
+        // Move to DLQ
+        await prisma.dead_letter_queue.createMany({
+          data: expired.map(row => ({
+            id: uuidv4(),
+            tenant_id: row.tenant_id,
+            event_id: row.event_id,
+            event_type: row.event_type,
+            aggregate_id: row.aggregate_id,
+            payload: row.payload as any,
+            reason: row.reason,
+            enqueued_at: row.enqueued_at,
+            expired_at: now,
+          })),
+        });
+
+        // Delete from pending
+        await prisma.pending_events.deleteMany({
+          where: { enqueued_at: { lt: cutoff } },
+        });
+
+        log.warn('Eventos expirados movidos a DLQ', {
+          expired_count: expired.length,
+          timeout_ms: this.TIMEOUT_MS,
+        });
       }
-      
-      // Actualizar cola
+    } catch (e) {
+      log.error('Error en limpieza de DB', e instanceof Error ? e : new Error(String(e)));
+    }
+
+    // 2. Sync in-memory to match
+    for (const [aggregateId, queuedEvents] of this.queue.entries()) {
+      const stillValid = queuedEvents.filter(
+        qe => now.getTime() - qe.enqueuedAt.getTime() <= this.TIMEOUT_MS
+      );
+
       if (stillValid.length === 0) {
         this.queue.delete(aggregateId);
       } else {
         this.queue.set(aggregateId, stillValid);
       }
     }
-    
-    // Mover eventos expirados a dead_letter_queue
-    if (expiredEvents.length > 0) {
-      try {
-        await prisma.dead_letter_queue.createMany({
-          data: expiredEvents.map(({ event, reason, enqueuedAt }) => ({
-            id: uuidv4(),
-            tenant_id: event.tenant_id,
-            event_id: event.event_id,
-            event_type: event.event_type,
-            aggregate_id: event.aggregate_id,
-            payload: event as any,
-            reason,
-            enqueued_at: enqueuedAt,
-            expired_at: now,
-          })),
+  }
+
+  /**
+   * Recover pending events from DB on startup.
+   * Populates the in-memory Map from the persistent table.
+   */
+  async recover(): Promise<number> {
+    if (this.recovered) return 0;
+
+    try {
+      const rows = await prisma.pending_events.findMany({
+        orderBy: { enqueued_at: 'asc' },
+      });
+
+      for (const row of rows) {
+        const aggregateId = row.aggregate_id;
+        if (!this.queue.has(aggregateId)) {
+          this.queue.set(aggregateId, []);
+        }
+        this.queue.get(aggregateId)!.push({
+          event: row.payload as unknown as ParkEvent,
+          enqueuedAt: row.enqueued_at,
+          reason: row.reason,
         });
-        
-        console.log(JSON.stringify({
-          level: 'WARN',
-          event: 'out_of_order.expired',
-          message: `Moved ${expiredEvents.length} expired events to dead_letter_queue`,
-          context: {
-            expired_count: expiredEvents.length,
-            timeout_ms: this.TIMEOUT_MS,
-          }
-        }));
-      } catch (e) {
-        console.error('[OutOfOrderQueue] Error moving to DLQ:', e);
       }
+
+      this.recovered = true;
+
+      if (rows.length > 0) {
+        log.info('Eventos pendientes recuperados de DB en startup', {
+          recovered_count: rows.length,
+          aggregates: this.queue.size,
+        });
+      }
+
+      return rows.length;
+    } catch (e) {
+      log.error('Error al recuperar eventos pendientes', e instanceof Error ? e : new Error(String(e)));
+      this.recovered = true;
+      return 0;
     }
   }
 
   /**
-   * Obtener estadísticas de la cola
+   * Get queue statistics.
    */
   getStats(): { totalQueued: number; aggregatesWithQueue: number } {
     let totalQueued = 0;
     for (const queuedEvents of this.queue.values()) {
       totalQueued += queuedEvents.length;
     }
-    
+
     return {
       totalQueued,
       aggregatesWithQueue: this.queue.size,
@@ -212,30 +296,35 @@ class OutOfOrderQueue {
 export const outOfOrderQueue = new OutOfOrderQueue();
 
 /**
- * Cleanup job - ejecutar cada 30 segundos
+ * Cleanup job — runs every 30 seconds
  */
 let cleanupInterval: NodeJS.Timeout | null = null;
 
 export function startCleanupJob(): void {
   if (cleanupInterval) {
-    return; // Ya está corriendo
+    return;
   }
-  
+
+  // Recover pending events on first startup
+  outOfOrderQueue.recover().catch(e => {
+    log.error('Error en recovery de startup', e instanceof Error ? e : new Error(String(e)));
+  });
+
   cleanupInterval = setInterval(async () => {
     try {
       await outOfOrderQueue.cleanupExpired();
     } catch (e) {
-      console.error('[OutOfOrderQueue] Cleanup job error:', e);
+      log.error('Error en trabajo de limpieza', e instanceof Error ? e : new Error(String(e)));
     }
-  }, 30_000); // 30 segundos
-  
-  console.log('[OutOfOrderQueue] Cleanup job started (30s interval)');
+  }, 30_000);
+
+  log.info('Trabajo de limpieza iniciado (intervalo 30s)');
 }
 
 export function stopCleanupJob(): void {
   if (cleanupInterval) {
     clearInterval(cleanupInterval);
     cleanupInterval = null;
-    console.log('[OutOfOrderQueue] Cleanup job stopped');
+    log.info('Trabajo de limpieza detenido');
   }
 }

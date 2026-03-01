@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { validateInventoryAuth, createAuthErrorResponse } from '@/src/core/middleware/inventory-auth';
 import { logWasteRecorded, logInventoryFailure } from '@/src/core/inventory/audit.service';
 import { asCentavos } from '@/src/core/types/shared';
+import { logger } from '@/src/core/observability/structured-logger';
 
 // Valid waste reason codes
 const WASTE_REASON_CODES = [
@@ -273,7 +274,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
       warning,
     });
   } catch (error) {
-    console.error('Error recording waste:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al registrar merma', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

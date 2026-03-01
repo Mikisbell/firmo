@@ -4,6 +4,9 @@
  */
 
 import { safeStorage } from '@/src/lib/storage';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('mac-detector');
 
 /**
  * Detects MAC address using WebRTC
@@ -18,7 +21,7 @@ export async function detectMACAddress(): Promise<string | null> {
       return mac;
     }
   } catch (error) {
-    console.warn('WebRTC MAC detection failed:', error);
+    log.warn('Detección de MAC por WebRTC falló', { error: String(error) });
   }
 
   // Fallback: return null (will use Device ID instead)
@@ -66,7 +69,7 @@ async function getMACFromWebRTC(): Promise<string | null> {
         pc.close();
       }, 1000);
     } catch (error) {
-      console.warn('WebRTC error:', error);
+      log.warn('Error de WebRTC', { error: String(error) });
       resolve(null);
     }
   });

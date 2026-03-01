@@ -139,6 +139,19 @@ export async function validateEvent(
         case "ORDER_CANCELLED":
             return validateOrderCancelled(tx, event);
 
+        case "REFUND_ISSUED":
+            return validateRefundIssued(tx, event);
+
+        // RESERVATION events are audit-only (state-of-record is the reservations table)
+        // Business rule validation happens in the reservation service layer, not here
+        case "RESERVATION_CREATED":
+        case "RESERVATION_CONFIRMED":
+        case "RESERVATION_CANCELLED":
+        case "RESERVATION_ARRIVED":
+        case "RESERVATION_SEATED":
+        case "RESERVATION_NO_SHOW":
+            return { valid: true };
+
         default:
             return { valid: true };
     }
@@ -146,10 +159,12 @@ export async function validateEvent(
 
 /**
  * Valida ORDER_CREATED
+ * - Debe haber un turno OPEN en la terminal
  * - Terminal debe tener rango asignado
  * - order_number debe estar dentro del rango del terminal
- * 
+ *
  * **Requirement 4.3:** Validación de order_number en rango asignado
+ * **Requirement C2:** Turno obligatorio para crear órdenes
  */
 async function validateOrderCreated(
     tx: Prisma.TransactionClient,
@@ -158,6 +173,27 @@ async function validateOrderCreated(
     const payload = event.payload as {
         order_number: number;
     };
+
+    // C2: Verificar turno abierto en la terminal
+    const openShift = await tx.shifts.findFirst({
+        where: {
+            tenant_id: event.tenant_id,
+            terminal_id: event.terminal_id,
+            status: "OPEN",
+        },
+        select: { id: true },
+    });
+
+    if (!openShift) {
+        return {
+            valid: false,
+            error: "NO_OPEN_SHIFT",
+            details: {
+                terminal_id: event.terminal_id,
+                message: "No hay turno abierto en esta terminal. Abra un turno antes de crear órdenes.",
+            },
+        };
+    }
 
     // Obtener rango del terminal
     const range = await tx.terminal_number_ranges.findUnique({
@@ -334,6 +370,7 @@ async function validateInvoiceIssued(
 /**
  * Valida ORDER_ITEM_ADDED
  * - Producto debe existir y estar activo
+ * - C4: Precio del cliente debe coincidir con catálogo (server-side price validation)
  * - Precio no negativo
  * - Cantidad válida
  * - No exceder límites
@@ -389,7 +426,7 @@ async function validateOrderItemAdded(
             return { 
                 valid: false, 
                 error: "INVALID_PRODUCT_ID",
-                details: { product_id: payload.line.product_id, reason: "Not a valid UUID" }
+                details: { product_id: payload.line.product_id, reason: "UUID no válido" }
             };
         }
 
@@ -401,6 +438,24 @@ async function validateOrderItemAdded(
 
         if (!product || !product.is_active) {
             return { valid: false, error: "PRODUCT_NOT_FOUND" };
+        }
+
+        // C4: Server-side price validation — reject if client price differs from catalog
+        if (product.price_cents !== undefined && product.price_cents !== null) {
+            const catalogPrice = Number(product.price_cents);
+            const clientPrice = payload.line.unit_price_cents;
+            if (clientPrice !== catalogPrice) {
+                return {
+                    valid: false,
+                    error: "PRICE_MISMATCH",
+                    details: {
+                        product_id: product.id,
+                        catalog_price_cents: catalogPrice,
+                        client_price_cents: clientPrice,
+                        message: "El precio del cliente no coincide con el catálogo. Posible manipulación de precio.",
+                    },
+                };
+            }
         }
     }
 
@@ -479,8 +534,11 @@ async function validateItemVoided(
 
 /**
  * Valida CHECK_PAYMENT_ADDED
+ * - Debe haber un turno OPEN en la terminal (C2)
  * - Monto debe ser positivo
  * - No exceder límites
+ * - Guard de sobrepago (max 150% del total del check)
+ * - Idempotency: rechazar duplicados por idempotency_key
  */
 async function validateCheckPaymentAdded(
     tx: Prisma.TransactionClient,
@@ -489,11 +547,33 @@ async function validateCheckPaymentAdded(
     const payload = event.payload as {
         order_id: string;
         check_id: string;
+        idempotency_key?: string;
         payment: {
             amount_cents: number;
             method: string;
         };
     };
+
+    // C2: Verificar turno abierto en la terminal
+    const openShift = await tx.shifts.findFirst({
+        where: {
+            tenant_id: event.tenant_id,
+            terminal_id: event.terminal_id,
+            status: "OPEN",
+        },
+        select: { id: true },
+    });
+
+    if (!openShift) {
+        return {
+            valid: false,
+            error: "NO_OPEN_SHIFT",
+            details: {
+                terminal_id: event.terminal_id,
+                message: "No hay turno abierto en esta terminal. Abra un turno antes de registrar pagos.",
+            },
+        };
+    }
 
     // Validar monto positivo
     if (!payload.payment?.amount_cents || payload.payment.amount_cents <= 0) {
@@ -508,6 +588,38 @@ async function validateCheckPaymentAdded(
             error: "INVALID_PAYMENT_METHOD",
             details: { method: payload.payment.method, valid: validMethods },
         };
+    }
+
+    // Overpayment guard: check_total * 1.5 max (allows cash rounding)
+    const order = await tx.orders.findUnique({
+        where: { id: payload.order_id },
+        select: { id: true, checks: true, order_status: true },
+    });
+
+    if (order && order.order_status === "CANCELLED") {
+        return { valid: false, error: "ORDER_CANCELLED" };
+    }
+
+    if (order?.checks) {
+        const checks = order.checks as any[];
+        const check = checks.find((c: any) => c.check_id === payload.check_id);
+        if (check && check.total_cents > 0) {
+            const existingPaid = (check.payment?.payments || [])
+                .reduce((sum: number, p: any) => sum + (p.amount_cents || 0), 0);
+            const newTotal = existingPaid + payload.payment.amount_cents;
+            const maxAllowed = Math.ceil(check.total_cents * 1.5);
+            if (newTotal > maxAllowed) {
+                return {
+                    valid: false,
+                    error: "OVERPAYMENT_DETECTED",
+                    details: {
+                        total_paid_after: newTotal,
+                        check_total: check.total_cents,
+                        max_allowed: maxAllowed,
+                    },
+                };
+            }
+        }
     }
 
     return { valid: true };
@@ -639,7 +751,7 @@ async function validateOrderCancelled(
             valid: false, 
             error: "ORDER_ALREADY_CONFIRMED",
             details: { 
-                message: "Use INVOICE_VOIDED + credit note for confirmed orders" 
+                message: "Use INVOICE_VOIDED + nota de crédito para órdenes confirmadas" 
             }
         };
     }
@@ -725,6 +837,65 @@ export function validateCheckStatus(status: string): ValidationResult {
             details: { status, valid: CHECK_STATUS_VALUES },
         };
     }
+    return { valid: true };
+}
+
+/**
+ * Valida REFUND_ISSUED
+ * - La orden debe existir
+ * - refund_amount no puede exceder original_amount
+ * - La orden debe tener pagos (no se puede reembolsar sin pago)
+ */
+async function validateRefundIssued(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent
+): Promise<ValidationResult> {
+    const payload = event.payload as {
+        order_id: string;
+        check_id: string;
+        original_amount: number;
+        refund_amount: number;
+    };
+
+    // Verificar que la orden existe
+    const order = await tx.orders.findUnique({
+        where: { id: payload.order_id },
+        select: { id: true, order_status: true },
+    });
+
+    if (!order) {
+        return {
+            valid: false,
+            error: "ORDER_NOT_FOUND",
+            details: { order_id: payload.order_id },
+        };
+    }
+
+    // refund_amount no puede exceder original_amount
+    if (payload.refund_amount > payload.original_amount) {
+        return {
+            valid: false,
+            error: "REFUND_EXCEEDS_ORIGINAL",
+            details: {
+                refund_amount: payload.refund_amount,
+                original_amount: payload.original_amount,
+            },
+        };
+    }
+
+    // Verificar que existen pagos para esta orden
+    const paymentCount = await tx.payments.count({
+        where: { tenant_id: event.tenant_id, order_id: payload.order_id },
+    });
+
+    if (paymentCount === 0) {
+        return {
+            valid: false,
+            error: "NO_PAYMENTS_TO_REFUND",
+            details: { order_id: payload.order_id },
+        };
+    }
+
     return { valid: true };
 }
 

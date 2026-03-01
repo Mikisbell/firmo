@@ -8,35 +8,31 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
+import { logger } from '@/src/core/observability/structured-logger';
+
+const demoRequestSchema = z.object({
+  name: z.string().min(1, 'Nombre es requerido').transform((v) => v.trim()),
+  email: z.string().email('Email válido es requerido').transform((v) => v.toLowerCase().trim()),
+  restaurant: z.string().min(1, 'Nombre del restaurante es requerido').transform((v) => v.trim()),
+  phone: z.string().nullish().transform((v) => v?.trim() || null),
+});
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, restaurant, phone } = body;
 
-    // Validate required fields
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    const parsed = demoRequestSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Nombre es requerido' },
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 },
       );
     }
 
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return NextResponse.json(
-        { error: 'Email válido es requerido' },
-        { status: 400 },
-      );
-    }
-
-    if (!restaurant || typeof restaurant !== 'string' || restaurant.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Nombre del restaurante es requerido' },
-        { status: 400 },
-      );
-    }
+    const { name, email, restaurant, phone } = parsed.data;
 
     // Store in tenant_settings as a demo_request (using events table for audit)
     // Since we don't have a dedicated demo_requests table, we store as an event
@@ -49,10 +45,10 @@ export async function POST(request: NextRequest) {
         entity_type: 'SYSTEM',
         entity_id: null,
         payload: {
-          name: name.trim(),
-          email: email.toLowerCase().trim(),
-          restaurant: restaurant.trim(),
-          phone: phone?.trim() || null,
+          name,
+          email,
+          restaurant,
+          phone,
           requested_at: new Date().toISOString(),
           source: 'landing_page',
         },
@@ -65,7 +61,7 @@ export async function POST(request: NextRequest) {
       message: 'Solicitud recibida. Te contactaremos pronto.',
     });
   } catch (error) {
-    console.error('Demo request error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al procesar solicitud de demo', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al procesar solicitud' },
       { status: 500 },

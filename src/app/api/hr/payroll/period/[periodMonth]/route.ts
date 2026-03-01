@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { PayrollService } from '@/src/core/services/payroll.service';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const service = new PayrollService(prisma);
 
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error('Error al listar planillas del período:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al listar planillas del período', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al listar planillas del período' },
       { status: 500 },

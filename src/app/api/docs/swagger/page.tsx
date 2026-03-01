@@ -43,7 +43,7 @@ export default function SwaggerUIPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading API documentation...</p>
+          <p className="text-gray-600">Cargando documentación de API...</p>
         </div>
       </div>
     );
@@ -54,13 +54,13 @@ export default function SwaggerUIPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center max-w-md">
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Documentation</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error al cargar documentación</h1>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600"
           >
-            Retry
+            Reintentar
           </button>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function SwaggerUIPage() {
   if (!spec) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-600">No API specification available</p>
+        <p className="text-gray-600">Especificación de API no disponible</p>
       </div>
     );
   }

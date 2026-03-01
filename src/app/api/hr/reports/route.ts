@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth(request);
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(report);
   } catch (error) {
-    console.error('Report generation error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al generar reporte', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al generar reporte' },
       { status: 500 }

@@ -10,6 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { ExportService } from '../export.service';
 import type { ExportColumn, ExcelConfig, PDFConfig } from '../export.service';
+import { seededMathRandom } from '@/src/test-utils/seeded-random';
 
 const service = new ExportService();
 
@@ -106,11 +107,12 @@ describe('ExportService - Excel', () => {
   });
 
   it('debe generar Excel con dataset grande (100 filas)', async () => {
+    const { randomInt, random: rng } = seededMathRandom(42);
     const largeRows = Array.from({ length: 100 }, (_, i) => ({
       name: `Mesero ${i + 1}`,
-      orders: Math.floor(Math.random() * 100),
-      salesCents: Math.floor(Math.random() * 500000),
-      margin: Math.random() * 50,
+      orders: randomInt(0, 99),
+      salesCents: randomInt(0, 499999),
+      margin: rng() * 50,
     }));
 
     const config: ExcelConfig = {

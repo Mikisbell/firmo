@@ -55,8 +55,10 @@ export async function GET() {
       },
     });
   } catch (error) {
-    // Graceful degradation - return unhealthy status
+    // Graceful degradation - return unhealthy status with actual error message
     logger.error('Health check endpoint failed', error as Error);
+
+    const errorMessage = error instanceof Error ? error.message : 'Health check failed';
 
     return NextResponse.json(
       {
@@ -66,21 +68,21 @@ export async function GET() {
           database: {
             status: 'down',
             responseTime: 0,
-            message: 'Health check failed',
+            message: errorMessage,
           },
           redis: {
             status: 'down',
             responseTime: 0,
-            message: 'Health check failed',
+            message: errorMessage,
           },
           eventSourcing: {
             status: 'down',
             responseTime: 0,
-            message: 'Health check failed',
+            message: errorMessage,
           },
         },
         responseTime: 0,
-        error: 'Health check failed',
+        error: errorMessage,
       },
       {
         status: 503,

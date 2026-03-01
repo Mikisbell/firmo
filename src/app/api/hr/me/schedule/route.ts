@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(mySchedule);
   } catch (error) {
     return NextResponse.json(
-      { error: 'Error fetching schedule' },
+      { error: 'Error al obtener horario' },
       { status: 500 },
     );
   }

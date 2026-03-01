@@ -18,6 +18,7 @@ import { ImageReorderRequestSchema } from '@/src/core/admin/schemas/product-imag
 import type { ProductImage } from '@/src/core/types/product-images';
 import { ZodError } from 'zod';
 import { metrics } from '@/src/core/observability/metrics';
+import { logger } from '@/src/core/observability/structured-logger';
 
 const TENANT_ID = getTenantId();
 
@@ -68,7 +69,7 @@ export async function GET(
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Product GET error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al obtener producto', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al obtener producto' },
       { status: 500 }
@@ -258,7 +259,7 @@ export async function PUT(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Product PUT error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al actualizar producto', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al actualizar producto' },
       { status: 500 }
@@ -334,7 +335,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Product DELETE error:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al eliminar producto', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Error al eliminar producto' },
       { status: 500 }

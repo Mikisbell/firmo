@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/src/core/observability/structured-logger';
 import { grantCrossTenantAdmin } from '@/src/core/tenant/cross-tenant-admin';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { z } from 'zod';
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     const authResult = await requireAdminAuth(request);
     if (!authResult.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No autorizado' },
         { status: 401 }
       );
     }
@@ -46,22 +47,22 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Cross-tenant admin access granted',
+      message: 'Acceso de administrador cross-tenant otorgado',
       employee_id: validated.employee_id,
       expires_in_days: validated.expiresInDays || null,
     });
   } catch (error: any) {
-    console.error('Error granting cross-tenant admin access:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al otorgar acceso de administrador cross-tenant', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'Error de validación', details: error.errors },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

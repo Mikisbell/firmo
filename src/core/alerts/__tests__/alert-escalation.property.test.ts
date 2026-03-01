@@ -113,6 +113,12 @@ vi.mock('@/src/core/observability/structured-logger', () => ({
     warn: vi.fn(),
     error: vi.fn(),
   },
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  })),
 }));
 
 // Mock metrics

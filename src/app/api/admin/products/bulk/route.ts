@@ -49,19 +49,17 @@ async function handlePOST(request: NextRequest) {
     const isDelete = body.operation === 'delete';
     
     // Validate with appropriate Zod schema
-    let validatedData;
-    if (isDelete) {
-      validatedData = BulkDeleteSchema.parse(body);
-    } else {
-      validatedData = BulkUpdateSchema.parse(body);
-    }
+    const validatedData = isDelete
+      ? BulkDeleteSchema.parse(body)
+      : BulkUpdateSchema.parse(body);
 
     const { product_ids } = validatedData;
-    
+    const updates = 'updates' in validatedData ? validatedData.updates : undefined;
+
     log.info({
       operation: isDelete ? 'bulk_delete' : 'bulk_update',
       productCount: product_ids.length,
-      updates: isDelete ? undefined : validatedData.updates,
+      updates,
     }, 'Validated bulk operation request');
 
     // Execute bulk operation
@@ -77,7 +75,7 @@ async function handlePOST(request: NextRequest) {
     } else {
       result = await bulkOperationsService.bulkUpdate(
         product_ids,
-        validatedData.updates,
+        updates!,
         tenantId,
         authResult.user.id
       );
@@ -98,8 +96,8 @@ async function handlePOST(request: NextRequest) {
       isDelete ? 'products_bulk_deleted_total' : 'products_bulk_updated_total',
       {
         tenant_id: tenantId,
-        success_count: result.success_count,
-        failure_count: result.failure_count,
+        success_count: String(result.success_count),
+        failure_count: String(result.failure_count),
       }
     );
 
@@ -110,7 +108,7 @@ async function handlePOST(request: NextRequest) {
       authResult.user.id,
       {
         productIds: product_ids,
-        updates: isDelete ? undefined : validatedData.updates,
+        updates: isDelete ? undefined : updates,
         successCount: result.success_count,
         failureCount: result.failure_count,
       }

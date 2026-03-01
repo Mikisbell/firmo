@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     if (!validation.success) {
       return NextResponse.json(
         {
-          error: 'Invalid request body',
+          error: 'Cuerpo de solicitud inválido',
           details: validation.error.errors,
         },
         { status: 400 }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Location updated successfully',
+      message: 'Ubicación actualizada exitosamente',
     });
   } catch (error) {
     logger.error('LOCATION_UPDATE_ERROR', 'Failed to update location', error instanceof Error ? error : undefined);
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message.includes('Invalid coordinates')) {
       return NextResponse.json(
         {
-          error: 'Invalid coordinates provided',
+          error: 'Coordenadas proporcionadas inválidas',
         },
         { status: 400 }
       );
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        error: 'Error interno del servidor',
       },
       { status: 500 }
     );
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        error: 'Error interno del servidor',
       },
       { status: 500 }
     );

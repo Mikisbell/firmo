@@ -12,6 +12,9 @@
 
 import webpush from 'web-push';
 import prisma from '@/src/core/db/prisma';
+import { createLogger } from '@/src/core/observability/structured-logger';
+
+const log = createLogger('push-service');
 import { deliveryRedisService } from './redis-connection';
 import type {
   PushNotification,
@@ -34,7 +37,7 @@ export function configurePushService(): void {
   const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@parkpos.com';
 
   if (!vapidPublicKey || !vapidPrivateKey) {
-    console.warn('VAPID keys not configured. Push notifications will not work.');
+    log.warn('Claves VAPID no configuradas. Las notificaciones push no funcionarán.');
     return;
   }
 
@@ -266,7 +269,7 @@ async function retryNotification(
   attempt: number
 ): Promise<void> {
   if (attempt > PUSH_NOTIFICATION_MAX_RETRIES) {
-    console.error(`Failed to send notification after ${PUSH_NOTIFICATION_MAX_RETRIES} attempts`, {
+    log.error('Error al enviar notificación después de máximos reintentos', new Error(`Falló después de ${PUSH_NOTIFICATION_MAX_RETRIES} intentos`), {
       subscriptionId: subscription.id,
       driverId: subscription.driverId,
     });
@@ -400,7 +403,7 @@ export async function processQueue(
       // Remove from queue if successful
       await redis.lrem(queueKey, 1, item);
     } catch (error) {
-      console.error('Error processing queued notification', { error, driverId });
+      log.error('Error al procesar notificación en cola', error instanceof Error ? error : new Error(String(error)), { driverId });
       // Keep in queue for next attempt
     }
   }

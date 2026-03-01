@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server';
 import { generateOpenAPISpec } from '@/src/lib/openapi/generator';
 import { exportToPostman } from '@/src/lib/openapi/postman-exporter';
+import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET() {
   try {
@@ -25,13 +26,13 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Failed to generate Postman collection:', error instanceof Error ? error.message : String(error));
+    logger.error('Error al generar colección Postman', error instanceof Error ? error : new Error(String(error)));
 
     return NextResponse.json(
       {
         error: {
           code: 'POSTMAN_EXPORT_ERROR',
-          message: 'Failed to generate Postman collection',
+          message: 'Error al generar colección Postman',
           timestamp: new Date().toISOString(),
         },
       },

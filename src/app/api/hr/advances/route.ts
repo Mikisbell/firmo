@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     return resultToResponse(result, 201);
   } catch {
     return resultToResponse(
-      { success: false, error: { message: 'Invalid request body', code: 'VALIDATION_ERROR', name: 'DomainError' } as any },
+      { success: false, error: { message: 'Cuerpo de solicitud inválido', code: 'VALIDATION_ERROR', name: 'DomainError' } as any },
     );
   }
 }

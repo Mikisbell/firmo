@@ -50,7 +50,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       vi.mocked(getSessionFromRequest).mockResolvedValue(null);
       const request = new MockNextRequest({
         reason: 'Test de limpieza de caché',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await clearCachePOST(request);
@@ -72,7 +72,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       });
       const request = new MockNextRequest({
         reason: 'Test de limpieza de caché',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await clearCachePOST(request);
@@ -94,7 +94,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       });
       const request = new MockNextRequest({
         reason: 'Corto', // Menos de 10 caracteres
-      }) as any;
+      }) as never;
 
       // Act
       const response = await clearCachePOST(request);
@@ -128,7 +128,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       const request = new MockNextRequest({
         reason: 'Limpieza de caché por mantenimiento programado',
         tags: ['products', 'tenants'],
-      }) as any;
+      }) as never;
 
       // Act
       const response = await clearCachePOST(request);
@@ -170,7 +170,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
 
       const request = new MockNextRequest({
         reason: 'Limpieza de caché por mantenimiento programado',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await clearCachePOST(request);
@@ -189,7 +189,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       vi.mocked(getSessionFromRequest).mockResolvedValue(null);
       const request = new MockNextRequest({
         reason: 'Test de reset de sincronización',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await resetSyncPOST(request);
@@ -211,7 +211,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       });
       const request = new MockNextRequest({
         reason: 'Test de reset de sincronización',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await resetSyncPOST(request);
@@ -234,7 +234,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       const request = new MockNextRequest({
         reason: 'Reset de sincronización por error',
         terminalId: 'invalid-uuid',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await resetSyncPOST(request);
@@ -269,7 +269,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
         reason: 'Reset de sincronización por backlog acumulado',
         terminalId: '123e4567-e89b-12d3-a456-426614174000',
         force: true,
-      }) as any;
+      }) as never;
 
       // Act
       const response = await resetSyncPOST(request);
@@ -298,7 +298,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       vi.mocked(getSessionFromRequest).mockResolvedValue(null);
       const request = new MockNextRequest({
         reason: 'Test de reconstrucción de proyecciones',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await rebuildProjectionsPOST(request);
@@ -320,7 +320,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       });
       const request = new MockNextRequest({
         reason: 'Test de reconstrucción de proyecciones',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await rebuildProjectionsPOST(request);
@@ -343,7 +343,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       const request = new MockNextRequest({
         reason: 'Reconstrucción de proyecciones por inconsistencia',
         projectionType: 'invalid-type',
-      }) as any;
+      }) as never;
 
       // Act
       const response = await rebuildProjectionsPOST(request);
@@ -379,7 +379,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
         projectionType: 'sales',
         fromDate: '2026-02-01T00:00:00Z',
         dryRun: false,
-      }) as any;
+      }) as never;
 
       // Act
       const response = await rebuildProjectionsPOST(request);
@@ -427,7 +427,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
         reason: 'Simulación de reconstrucción de proyecciones',
         projectionType: 'all',
         dryRun: true,
-      }) as any;
+      }) as never;
 
       // Act
       const response = await rebuildProjectionsPOST(request);
@@ -459,7 +459,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
 
           const request = new MockNextRequest({
             reason: 'Test de autorización',
-          }) as any;
+          }) as never;
 
           // Act
           const response = await endpoint(request);
@@ -489,7 +489,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       for (const endpoint of endpoints) {
         const request = new MockNextRequest({
           reason: 'Corto', // Menos de 10 caracteres
-        }) as any;
+        }) as never;
 
         // Act
         const response = await endpoint(request);
@@ -517,7 +517,7 @@ describe('Recovery Action API Endpoints - E2E Tests', () => {
       for (const endpoint of endpoints) {
         const request = new MockNextRequest({
           reason: longReason,
-        }) as any;
+        }) as never;
 
         // Act
         const response = await endpoint(request);

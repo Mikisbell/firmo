@@ -33,8 +33,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error capturado por ErrorBoundary:', error, errorInfo);
-    // Aquí se puede enviar a Sentry u otro servicio de monitoreo
-    // Sentry.captureException(error, { extra: errorInfo });
+    import('@/src/lib/sentry').then(({ captureException }) => {
+      captureException(error, { componentStack: errorInfo.componentStack });
+    }).catch(() => {});
   }
 
   render() {

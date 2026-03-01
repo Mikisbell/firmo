@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
   return NextResponse.json(
-    { error: 'Bulk import endpoint not yet implemented' },
+    { error: 'Endpoint de importación masiva aún no implementado' },
     { status: 404 }
   );
 }

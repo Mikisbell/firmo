@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     pinoLogger.error({ error }, 'Error listing refunds');
     return NextResponse.json(
-      { error: 'Failed to list refunds' },
+      { error: 'Error al listar reembolsos' },
       { status: 500 }
     );
   }
