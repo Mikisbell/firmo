@@ -202,6 +202,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Finanzas',
     icon: Wallet,
     items: [
+      { href: '/admin/ejecutivo', label: 'Ejecutivo', icon: TrendingUp, permission: 'view_reports' },
       { href: '/admin/caja-chica', label: 'Caja Chica', icon: Wallet, permission: 'manage_config' },
       { href: '/admin/compras', label: 'Compras', icon: ShoppingCart, permission: 'manage_products' },
       { href: '/admin/facturacion', label: 'Facturación', icon: FileText, permission: 'manage_config' },

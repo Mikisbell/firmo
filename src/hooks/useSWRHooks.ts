@@ -998,6 +998,33 @@ export function useTableStatus(locationId?: string, config?: SWRConfiguration) {
 
 // ============ EXPORTS ============
 
+// ============ DASHBOARD EJECUTIVO ============
+
+import type { ExecutiveDashboardData, PeriodRange } from '@/src/core/types/executive-dashboard';
+
+/**
+ * Hook para obtener datos del dashboard ejecutivo unificado
+ */
+export function useExecutiveDashboard(
+  period: PeriodRange | null,
+  config?: SWRConfiguration,
+) {
+  const queryString = period
+    ? `?preset=${period.preset}&start=${period.start}&end=${period.end}`
+    : null;
+
+  return useSWR<ExecutiveDashboardData>(
+    queryString ? `/api/admin/executive-dashboard${queryString}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      refreshInterval: 60000,
+      dedupingInterval: 10000,
+      ...config,
+    },
+  );
+}
+
 export type {
   CatalogItem,
   CatalogResponse,
