@@ -53,6 +53,7 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
+  LineChart,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -215,6 +216,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Reportes',
     icon: BarChart3,
     items: [
+      { href: '/admin/dashboard', label: 'Analytics', icon: LineChart, permission: 'view_reports' },
       { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, permission: 'view_reports' },
       { href: '/admin/reports/profitability', label: 'Rentabilidad', icon: TrendingUp, permission: 'view_reports' },
       { href: '/admin/monitoring', label: 'Monitoreo', icon: Activity, permission: 'view_dashboard' },
