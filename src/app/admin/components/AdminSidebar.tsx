@@ -64,6 +64,7 @@ import { useAdminPreload } from '@/src/lib/lazy-admin-components';
 export interface NavItem {
   href: string;
   label: string;
+  description?: string;
   icon: React.ElementType;
   permission?: string;
   badgeKey?: 'auditoria' | 'delivery';
@@ -164,15 +165,15 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Operaciones',
     icon: LayoutGrid,
     items: [
-      { href: '/admin/mesas', label: 'Mesas', icon: Grid3X3, permission: 'manage_config' },
-      { href: '/admin/mesas/qr', label: 'QR Mesas', icon: QrCode, permission: 'manage_config' },
-      { href: '/admin/mesas/operaciones', label: 'Op. Mesa', icon: LayoutGrid, permission: 'manage_config' },
-      { href: '/admin/estaciones', label: 'Estaciones KDS', icon: ChefHat, permission: 'manage_stations' },
-      { href: '/admin/reservas', label: 'Reservas', icon: CalendarClock, permission: 'manage_config' },
-      { href: '/admin/delivery', label: 'Delivery', icon: Truck, permission: 'manage_config', badgeKey: 'delivery' },
-      { href: '/admin/drivers', label: 'Motorizados', icon: Bike, permission: 'manage_employees' },
-      { href: '/admin/plataformas', label: 'Plataformas', icon: Globe, permission: 'manage_config' },
-      { href: '/admin/plataformas/pedidos', label: 'Pedidos App', icon: Smartphone, permission: 'manage_config' },
+      { href: '/admin/mesas', label: 'Mesas', description: 'Gestión de mesas y zonas del local', icon: Grid3X3, permission: 'manage_config' },
+      { href: '/admin/mesas/qr', label: 'QR Mesas', description: 'Códigos QR para autoservicio', icon: QrCode, permission: 'manage_config' },
+      { href: '/admin/mesas/operaciones', label: 'Op. Mesa', description: 'Operaciones en tiempo real por mesa', icon: LayoutGrid, permission: 'manage_config' },
+      { href: '/admin/estaciones', label: 'Estaciones KDS', description: 'Pantallas de cocina y despacho', icon: ChefHat, permission: 'manage_stations' },
+      { href: '/admin/reservas', label: 'Reservas', description: 'Reservas de clientes y disponibilidad', icon: CalendarClock, permission: 'manage_config' },
+      { href: '/admin/delivery', label: 'Delivery', description: 'Pedidos de delivery en curso', icon: Truck, permission: 'manage_config', badgeKey: 'delivery' },
+      { href: '/admin/drivers', label: 'Motorizados', description: 'Gestión de repartidores', icon: Bike, permission: 'manage_employees' },
+      { href: '/admin/plataformas', label: 'Plataformas', description: 'PedidosYa, Rappi, LlamaFood', icon: Globe, permission: 'manage_config' },
+      { href: '/admin/plataformas/pedidos', label: 'Pedidos App', description: 'Pedidos entrantes de apps externas', icon: Smartphone, permission: 'manage_config' },
     ],
   },
   {
@@ -180,11 +181,11 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Catálogo',
     icon: Package,
     items: [
-      { href: '/admin/productos', label: 'Productos', icon: Package, permission: 'manage_products' },
-      { href: '/admin/recetas', label: 'Recetas', icon: BookOpen, permission: 'manage_products' },
-      { href: '/admin/pollo-control', label: 'Control Pollo', icon: Egg, permission: 'manage_products' },
-      { href: '/inventario', label: 'Inventario', icon: Warehouse, permission: 'manage_products' },
-      { href: '/admin/promociones', label: 'Promociones', icon: Gift, permission: 'manage_promotions' },
+      { href: '/admin/productos', label: 'Productos', description: 'Carta, precios y categorías', icon: Package, permission: 'manage_products' },
+      { href: '/admin/recetas', label: 'Recetas', description: 'Ingredientes y costos por plato', icon: BookOpen, permission: 'manage_products' },
+      { href: '/admin/pollo-control', label: 'Control Pollo', description: 'Producción y merma de pollo', icon: Egg, permission: 'manage_products' },
+      { href: '/inventario', label: 'Inventario', description: 'Stock de insumos y alertas', icon: Warehouse, permission: 'manage_products' },
+      { href: '/admin/promociones', label: 'Promociones', description: 'Descuentos y combos activos', icon: Gift, permission: 'manage_promotions' },
     ],
   },
   {
@@ -192,10 +193,10 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Equipo',
     icon: Users,
     items: [
-      { href: '/admin/empleados', label: 'Empleados', icon: Users, permission: 'manage_employees' },
-      { href: '/admin/hr', label: 'Recursos Humanos', icon: Briefcase, permission: 'manage_employees' },
-      { href: '/admin/ranking-meseros', label: 'Ranking Meseros', icon: Award, permission: 'view_reports' },
-      { href: '/employee', label: 'Portal Empleado', icon: Store, permission: 'manage_employees' },
+      { href: '/admin/empleados', label: 'Empleados', description: 'Altas, bajas y roles del personal', icon: Users, permission: 'manage_employees' },
+      { href: '/admin/hr', label: 'Recursos Humanos', description: 'Asistencia, planillas y vacaciones', icon: Briefcase, permission: 'manage_employees' },
+      { href: '/admin/ranking-meseros', label: 'Ranking Meseros', description: 'Desempeño y ventas por mesero', icon: Award, permission: 'view_reports' },
+      { href: '/employee', label: 'Portal Empleado', description: 'Vista del empleado (boletas, horarios)', icon: Store, permission: 'manage_employees' },
     ],
   },
   {
@@ -203,12 +204,12 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Finanzas',
     icon: Wallet,
     items: [
-      { href: '/admin/ejecutivo', label: 'Ejecutivo', icon: TrendingUp, permission: 'view_reports' },
-      { href: '/admin/caja-chica', label: 'Caja Chica', icon: Wallet, permission: 'manage_config' },
-      { href: '/admin/compras', label: 'Compras', icon: ShoppingCart, permission: 'manage_products' },
-      { href: '/admin/facturacion', label: 'Facturación', icon: FileText, permission: 'manage_config' },
-      { href: '/admin/conciliacion', label: 'Conciliación', icon: Scale, permission: 'view_reports' },
-      { href: '/admin/estado-resultados', label: 'P&amp;L', icon: PieChart, permission: 'view_reports' },
+      { href: '/admin/ejecutivo', label: 'Ejecutivo', description: 'Vista unificada de rentabilidad', icon: TrendingUp, permission: 'view_reports' },
+      { href: '/admin/caja-chica', label: 'Caja Chica', description: 'Gastos menores y reembolsos', icon: Wallet, permission: 'manage_config' },
+      { href: '/admin/compras', label: 'Compras', description: 'Órdenes de compra a proveedores', icon: ShoppingCart, permission: 'manage_products' },
+      { href: '/admin/facturacion', label: 'Facturación', description: 'Boletas, facturas y notas SUNAT', icon: FileText, permission: 'manage_config' },
+      { href: '/admin/conciliacion', label: 'Conciliación', description: 'Cruce de caja vs ventas del día', icon: Scale, permission: 'view_reports' },
+      { href: '/admin/estado-resultados', label: 'P&amp;L', description: 'Estado de resultados detallado', icon: PieChart, permission: 'view_reports' },
     ],
   },
   {
@@ -216,10 +217,10 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Reportes',
     icon: BarChart3,
     items: [
-      { href: '/admin/dashboard', label: 'Analytics', icon: LineChart, permission: 'view_reports' },
-      { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, permission: 'view_reports' },
-      { href: '/admin/reports/profitability', label: 'Rentabilidad', icon: TrendingUp, permission: 'view_reports' },
-      { href: '/admin/monitoring', label: 'Monitoreo', icon: Activity, permission: 'view_dashboard' },
+      { href: '/admin/dashboard', label: 'Analytics', description: 'KPIs, ventas por hora, top productos', icon: LineChart, permission: 'view_reports' },
+      { href: '/admin/reportes', label: 'Reportes', description: 'Reportes exportables por período', icon: BarChart3, permission: 'view_reports' },
+      { href: '/admin/reports/profitability', label: 'Rentabilidad', description: 'Margen por producto y categoría', icon: TrendingUp, permission: 'view_reports' },
+      { href: '/admin/monitoring', label: 'Monitoreo', description: 'Salud del sistema y performance', icon: Activity, permission: 'view_dashboard' },
     ],
   },
   {
@@ -227,8 +228,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Seguridad',
     icon: Shield,
     items: [
-      { href: '/admin/auditoria', label: 'Auditoría', icon: Shield, permission: 'manage_terminals', badgeKey: 'auditoria' },
-      { href: '/admin/terminales', label: 'Terminales', icon: Monitor, permission: 'manage_terminals' },
+      { href: '/admin/auditoria', label: 'Auditoría', description: 'Historial de acciones y cambios', icon: Shield, permission: 'manage_terminals', badgeKey: 'auditoria' },
+      { href: '/admin/terminales', label: 'Terminales', description: 'Dispositivos POS registrados', icon: Monitor, permission: 'manage_terminals' },
     ],
   },
   {
@@ -236,8 +237,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Configuración',
     icon: Settings,
     items: [
-      { href: '/admin/configuracion', label: 'General', icon: Settings, permission: 'manage_config' },
-      { href: '/admin/configuracion/yape-plin', label: 'Yape / Plin', icon: Smartphone, permission: 'manage_config' },
+      { href: '/admin/configuracion', label: 'General', description: 'Nombre, RUC, logo y preferencias', icon: Settings, permission: 'manage_config' },
+      { href: '/admin/configuracion/yape-plin', label: 'Yape / Plin', description: 'Configurar pagos móviles', icon: Smartphone, permission: 'manage_config' },
     ],
   },
 ];
@@ -332,7 +333,7 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
     const ItemIcon = item.icon;
 
     return (
-      <Tooltip key={item.href} content={item.label} disabled={!collapsed}>
+      <Tooltip key={item.href} content={collapsed ? item.label : (item.description || item.label)} disabled={!collapsed && !item.description}>
         <Link
           href={item.href}
           onClick={() => setMobileOpen(false)}
