@@ -48,7 +48,8 @@ export function getClientIP(headers: Headers): string {
   // Intentar obtener IP de headers comunes
   const forwarded = headers.get('x-forwarded-for');
   if (forwarded) {
-    return forwarded.split(',')[0].trim();
+    const first = forwarded.split(',')[0].trim();
+    if (first) return first;
   }
 
   const realIP = headers.get('x-real-ip');
