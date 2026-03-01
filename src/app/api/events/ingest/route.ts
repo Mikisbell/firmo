@@ -384,6 +384,21 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
             case "SHIFT_OPENED": {
                 const p = payload as any;
 
+                // Validate opening cash does not exceed tenant max
+                const tenantSettings = await (tx as any).tenant_settings.findFirst({
+                    where: { tenant_id },
+                    select: { max_cash_opening_cents: true },
+                });
+                const maxOpening = tenantSettings?.max_cash_opening_cents ?? 50_000;
+                if (p.cash_opening_cents > maxOpening) {
+                    logger.warn('Monto de apertura excede máximo configurado', {
+                        tenantId: tenant_id,
+                        cashOpeningCents: p.cash_opening_cents,
+                        maxCents: maxOpening,
+                    });
+                    return false; // Reject this projection
+                }
+
                 // H3: Auto-close any existing OPEN shifts on this terminal
                 // Prevents overlapping shifts on the same terminal
                 await tx.shifts.updateMany({
@@ -409,23 +424,68 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         opened_at: new Date(occurred_at),
                         opened_by: actor_id!,
                         cash_opening_cents: p.cash_opening_cents,
+                        cash_expected_cents: p.cash_opening_cents,
                     },
                     update: {},
                 });
                 break;
             }
 
+            case "CASH_ADJUSTED": {
+                const p = payload as any;
+                const delta = p.delta_cents ?? 0;
+                // Adjust cash_expected_cents incrementally
+                await tx.shifts.updateMany({
+                    where: {
+                        id: p.shift_id,
+                        tenant_id,
+                        status: "OPEN",
+                    },
+                    data: {
+                        cash_expected_cents: { increment: delta },
+                    },
+                });
+                break;
+            }
+
             case "SHIFT_CLOSED": {
                 const p = payload as any;
+                // Fetch current shift state
+                const currentShift = await tx.shifts.findFirst({
+                    where: { id: p.shift_id, tenant_id },
+                    select: { cash_opening_cents: true, cash_expected_cents: true },
+                });
+
+                // Sum CASH payments received during this shift
+                const cashPayments = await tx.payments.aggregate({
+                    where: {
+                        tenant_id,
+                        shift_id: p.shift_id,
+                        payment_method: "CASH",
+                        status: "COMPLETED",
+                    },
+                    _sum: { amount_cents: true },
+                });
+                const cashSalesIn = cashPayments._sum.amount_cents ?? 0;
+
+                const openingCents = currentShift?.cash_opening_cents ?? 0;
+                // cash_expected_cents tracks opening + CASH_ADJUSTED deltas (via increment)
+                // Add CASH sales on top
+                const adjustmentsDelta = (currentShift?.cash_expected_cents ?? openingCents) - openingCents;
+                const cashExpected = openingCents + cashSalesIn + adjustmentsDelta;
+
+                const cashCounted = p.cash_counted_cents ?? 0;
+                const diffCents = cashCounted - cashExpected;
+
                 await tx.shifts.update({
                     where: { id: p.shift_id },
                     data: {
                         status: "CLOSED",
                         closed_at: new Date(occurred_at),
                         closed_by: actor_id,
-                        cash_expected_cents: p.cash_expected_cents,
-                        cash_counted_cents: p.cash_counted_cents,
-                        diff_cents: p.diff_cents,
+                        cash_expected_cents: cashExpected,
+                        cash_counted_cents: cashCounted,
+                        diff_cents: diffCents,
                     },
                 });
                 break;
@@ -851,6 +911,36 @@ export async function POST(req: Request) {
             maxWait: 10000, // 10 seconds max wait for transaction slot
             isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead, // Suficiente para prevenir phantom reads
         });
+
+        // Post-transaction: Cash variance alert on SHIFT_CLOSED
+        for (const ev of acceptedEvents) {
+            if (ev.event_type === 'SHIFT_CLOSED') {
+                try {
+                    const { CashAlertService } = await import('@/src/core/services/cash-alert.service');
+                    const cashAlertService = new CashAlertService(prisma);
+                    const p = ev.payload as any;
+                    // Read the updated shift to get computed values
+                    const closedShift = await prisma.shifts.findFirst({
+                        where: { id: p.shift_id, tenant_id },
+                        select: { cash_expected_cents: true, cash_counted_cents: true },
+                    });
+                    if (closedShift?.cash_expected_cents != null && closedShift?.cash_counted_cents != null) {
+                        await cashAlertService.checkVariance(
+                            tenant_id,
+                            p.shift_id,
+                            closedShift.cash_expected_cents,
+                            closedShift.cash_counted_cents,
+                            ev.actor_id || 'system',
+                        );
+                    }
+                } catch (alertErr) {
+                    logger.warn('No se pudo verificar varianza de caja', {
+                        eventId: ev.event_id,
+                        error: alertErr instanceof Error ? alertErr.message : String(alertErr),
+                    });
+                }
+            }
+        }
 
         // Publish events from outbox AFTER transaction commits
         // This ensures consistency - if publish fails, outbox worker will retry

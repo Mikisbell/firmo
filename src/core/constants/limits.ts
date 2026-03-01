@@ -37,6 +37,12 @@ export const LIMITS = {
     // === VOIDS/REFUNDS ===
     VOID_REASON_MIN_LENGTH: 3,         // Mínimo caracteres para razón de void
     MAX_VOID_AMOUNT_CENTS: 50_000_00,  // S/50,000 máximo void sin supervisor
+
+    // === CAJA (defaults, overrideable via tenant_settings) ===
+    DEFAULT_MAX_CASH_OPENING_CENTS: 50_000, // S/500 fondo inicial máximo por defecto
+    DEFAULT_CASH_VARIANCE_ALERT_CENTS: 2_000, // S/20 alerta de diferencia
+    IGV_RATE: 0.18,                    // IGV 18% (SUNAT)
+    TIP_UNTAXED_MAX_PERCENT: 10,       // Propina voluntaria no gravada hasta 10%
 } as const;
 
 // Tipo para TypeScript
@@ -67,4 +73,6 @@ export const LIMIT_ERRORS = {
     TIP_TOO_HIGH: `Propina máxima: ${LIMITS.MAX_TIP_PERCENT}% o ${formatCentsToSoles(LIMITS.MAX_TIP_AMOUNT_CENTS)}`,
     VOID_REASON_REQUIRED: `Razón de anulación requerida (mínimo ${LIMITS.VOID_REASON_MIN_LENGTH} caracteres)`,
     BATCH_TOO_LARGE: `Máximo ${LIMITS.MAX_EVENTS_PER_BATCH} eventos por batch`,
+    CASH_OPENING_TOO_HIGH: `Fondo inicial máximo: ${formatCentsToSoles(LIMITS.DEFAULT_MAX_CASH_OPENING_CENTS)}`,
+    CASH_VARIANCE_ALERT: `Diferencia de caja superior al umbral configurado`,
 } as const;

@@ -104,7 +104,7 @@ describe('getActiveShift', () => {
 
 describe('getShiftSummary', () => {
   it('debe retornar resumen con pagos', async () => {
-    mockPrisma.shifts.findUnique.mockResolvedValue(mockShift);
+    mockPrisma.shifts.findFirst.mockResolvedValue(mockShift);
     mockPrisma.payments.findMany.mockResolvedValue([
       { id: 'p1', amount_cents: 5000, payment_method: 'CASH', status: 'COMPLETED' },
       { id: 'p2', amount_cents: 3000, payment_method: 'CASH', status: 'COMPLETED' },
@@ -126,7 +126,7 @@ describe('getShiftSummary', () => {
   });
 
   it('debe retornar resumen vacío sin pagos', async () => {
-    mockPrisma.shifts.findUnique.mockResolvedValue(mockShift);
+    mockPrisma.shifts.findFirst.mockResolvedValue(mockShift);
     mockPrisma.payments.findMany.mockResolvedValue([]);
     mockPrisma.orders.count.mockResolvedValue(0);
 
@@ -141,7 +141,7 @@ describe('getShiftSummary', () => {
   });
 
   it('debe retornar error si turno no existe', async () => {
-    mockPrisma.shifts.findUnique.mockResolvedValue(null);
+    mockPrisma.shifts.findFirst.mockResolvedValue(null);
 
     const result = await service.getShiftSummary(TENANT, 'nonexistent');
 
@@ -151,15 +151,16 @@ describe('getShiftSummary', () => {
     }
   });
 
-  it('debe rechazar turno de otro tenant', async () => {
-    mockPrisma.shifts.findUnique.mockResolvedValue({
-      ...mockShift,
-      tenant_id: 'other-tenant',
-    });
+  it('debe rechazar turno de otro tenant (filtrado a nivel DB)', async () => {
+    // findFirst with tenant_id filter returns null for cross-tenant queries
+    mockPrisma.shifts.findFirst.mockResolvedValue(null);
 
     const result = await service.getShiftSummary(TENANT, SHIFT_ID);
 
     expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.message).toContain('no encontrado');
+    }
   });
 
   it('debe incluir turno cerrado con datos de cierre', async () => {
@@ -172,7 +173,7 @@ describe('getShiftSummary', () => {
       cash_counted_cents: 44500,
       diff_cents: -500,
     };
-    mockPrisma.shifts.findUnique.mockResolvedValue(closedShift);
+    mockPrisma.shifts.findFirst.mockResolvedValue(closedShift);
     mockPrisma.payments.findMany.mockResolvedValue([]);
     mockPrisma.orders.count.mockResolvedValue(12);
 

@@ -2,8 +2,8 @@ import { db } from "@/src/core/db/schema";
 import { newUUID } from "@/src/core/domain/ids";
 import type { ParkEvent, OrderType, PaymentMethod, ItemStatus } from "@/src/core/domain/events";
 import { getSyncClient } from "@/src/core/sync/client";
+import { LIMITS, LIMIT_ERRORS } from "@/src/core/constants/limits";
 
-// Helper para obtener secuencia de forma segura
 // Helper para obtener secuencia de forma segura
 async function getNextSequence(): Promise<number> {
     const lastEvent = await db.events.orderBy("terminal_sequence").last();
@@ -282,6 +282,10 @@ export const POSActions = {
         actor_id: string,
         cash_opening_cents: number
     ) {
+        if (cash_opening_cents > LIMITS.DEFAULT_MAX_CASH_OPENING_CENTS) {
+            throw new Error(LIMIT_ERRORS.CASH_OPENING_TOO_HIGH);
+        }
+
         const shift_id = newUUID();
 
         await appendEvent(tenant_id, terminal_id, {

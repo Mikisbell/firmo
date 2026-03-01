@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { POSActions } from "@/src/core/actions/pos.actions";
+import { DenominationCounter } from "./DenominationCounter";
 
 interface ShiftModalProps {
     isOpen: boolean;
@@ -33,6 +35,8 @@ export function ShiftModal({
     const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(false);
     const [movementType, setMovementType] = useState<"IN" | "OUT">("OUT");
+    const [useByDenom, setUseByDenom] = useState(false);
+    const denomCountsRef = useRef<Record<number, number>>({});
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,6 +50,23 @@ export function ShiftModal({
                 await POSActions.openShift(tenantId, terminalId, actorId, cents);
             } else if (mode === "close" && currentShiftId) {
                 await POSActions.closeShift(tenantId, terminalId, actorId, currentShiftId, cents, notes || undefined);
+
+                // Save denomination counts if used
+                if (useByDenom && Object.keys(denomCountsRef.current).length > 0) {
+                    try {
+                        await fetch("/api/pos/denominations", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                shiftId: currentShiftId,
+                                counts: denomCountsRef.current,
+                            }),
+                        });
+                    } catch {
+                        // Non-critical — shift already closed
+                    }
+                }
             } else if (mode === "movements" && onAdjustCash) {
                 const delta = movementType === "IN" ? cents : -cents;
                 await onAdjustCash(delta, notes || "Movimiento manual");
@@ -57,9 +78,8 @@ export function ShiftModal({
             setNotes("");
             setMovementType("OUT");
         } catch (error) {
-            console.error("Error with shift:", error);
             const message = error instanceof Error ? error.message : "Error al procesar el turno";
-            alert(`Error: ${message}`);
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -88,7 +108,7 @@ export function ShiftModal({
                         animate={{ scale: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         transition={{ type: "spring", damping: 20 }}
-                        className="bg-zinc-900 rounded-2xl p-6 w-full max-w-md border border-zinc-800 shadow-2xl"
+                        className={`bg-zinc-900 rounded-2xl p-6 w-full border border-zinc-800 shadow-2xl ${useByDenom && mode === "close" ? "max-w-lg" : "max-w-md"}`}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-xl font-bold text-white mb-4">
@@ -121,24 +141,65 @@ export function ShiftModal({
                                 </div>
                             )}
 
-                            <div>
-                                <label className="block text-sm text-zinc-400 mb-1">
-                                    {mode === "open" ? "Efectivo Inicial (S/)" :
-                                        mode === "close" ? "Efectivo Contado (S/)" :
-                                            "Monto (S/)"}
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-xl text-white font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="0.00"
-                                    autoFocus
-                                    required
-                                />
-                            </div>
+                            {/* Denomination toggle for close mode */}
+                            {mode === "close" && (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setUseByDenom(false)}
+                                        className={`flex-1 py-1.5 rounded-lg text-sm font-medium border ${!useByDenom
+                                            ? "bg-zinc-700 border-zinc-600 text-white"
+                                            : "border-zinc-700 text-zinc-500 hover:bg-zinc-800"
+                                            }`}
+                                    >
+                                        Monto directo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUseByDenom(true)}
+                                        className={`flex-1 py-1.5 rounded-lg text-sm font-medium border ${useByDenom
+                                            ? "bg-zinc-700 border-zinc-600 text-white"
+                                            : "border-zinc-700 text-zinc-500 hover:bg-zinc-800"
+                                            }`}
+                                    >
+                                        Por denominación
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Direct amount input (always for open/movements, toggle for close) */}
+                            {(mode !== "close" || !useByDenom) && (
+                                <div>
+                                    <label className="block text-sm text-zinc-400 mb-1">
+                                        {mode === "open" ? "Efectivo Inicial (S/)" :
+                                            mode === "close" ? "Efectivo Contado (S/)" :
+                                                "Monto (S/)"}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={amount}
+                                        onChange={(e) => setAmount(e.target.value)}
+                                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-xl text-white font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        placeholder="0.00"
+                                        autoFocus
+                                        required={!useByDenom}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Denomination counter for close mode */}
+                            {mode === "close" && useByDenom && (
+                                <div className="max-h-64 overflow-y-auto">
+                                    <DenominationCounter
+                                        onChange={(counts, totalCents) => {
+                                            denomCountsRef.current = counts;
+                                            setAmount((totalCents / 100).toFixed(2));
+                                        }}
+                                    />
+                                </div>
+                            )}
 
                             {mode === "close" && (
                                 <div className="bg-zinc-800 rounded-lg p-4 space-y-2">

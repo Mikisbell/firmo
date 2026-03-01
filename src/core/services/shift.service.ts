@@ -57,11 +57,11 @@ export class ShiftService {
     shiftId: string
   ): Promise<Result<ShiftSummary, DomainError>> {
     try {
-      const shift = await this.prisma.shifts.findUnique({
-        where: { id: shiftId },
+      const shift = await this.prisma.shifts.findFirst({
+        where: { id: shiftId, tenant_id: tenantId },
       });
 
-      if (!shift || shift.tenant_id !== tenantId) {
+      if (!shift) {
         return err(new DomainError('Turno no encontrado', 'NOT_FOUND'));
       }
 

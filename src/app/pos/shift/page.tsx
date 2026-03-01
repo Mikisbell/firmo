@@ -6,8 +6,9 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { Clock, CreditCard, History, RefreshCw } from "lucide-react";
+import { Clock, CreditCard, History, RefreshCw, FileText } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 import { useAuth } from "@/src/components/auth";
 import { ShiftModal } from "../components/ShiftModal";
 
@@ -224,6 +225,15 @@ export default function ShiftPage() {
                     <span className="text-sm text-zinc-400">
                       Apertura: {formatCents(shift.cash_opening_cents)}
                     </span>
+                    {shift.status === "CLOSED" && (
+                      <Link
+                        href={`/pos/shift/z-report?shiftId=${shift.id}`}
+                        className="p-1.5 rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
+                        title="Ver Reporte Z"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-amber-400" />
+                      </Link>
+                    )}
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       shift.status === "OPEN"
                         ? "bg-emerald-900 text-emerald-300"
@@ -248,7 +258,7 @@ export default function ShiftPage() {
           terminalId={terminalId}
           actorId={actorId}
           currentShiftId={activeShift?.id}
-          expectedCash={summary?.totalSalesCents || 0}
+          expectedCash={summary?.cashExpectedCents ?? summary?.totalSalesCents ?? 0}
           onClose={() => setShowShiftModal(false)}
           onSuccess={() => {
             setShowShiftModal(false);

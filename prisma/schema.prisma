@@ -198,6 +198,13 @@ model daily_sales_summary {
   orders_count       Int      @default(0)
   checks_count       Int      @default(0)
   payments_breakdown Json?
+  // === Desglose IGV SUNAT ===
+  gravado_base_cents Int      @default(0)
+  gravado_igv_cents  Int      @default(0)
+  exonerado_cents    Int      @default(0)
+  inafecto_cents     Int      @default(0)
+  boletas_count      Int      @default(0)
+  facturas_count     Int      @default(0)
   created_at         DateTime @default(now()) @db.Timestamptz(6)
   tenants            tenants  @relation(fields: [tenant_id], references: [id])
 
@@ -1171,11 +1178,77 @@ model shifts {
   tenants                               tenants    @relation(fields: [tenant_id], references: [id])
   tips                                  tips[]
 
+  shift_denominations           shift_denominations[]
+  z_reports                     z_reports[]
+
   @@index([tenant_id, opened_at(sort: Desc)], map: "idx_shifts_history")
   @@index([tenant_id, terminal_id, status], map: "idx_shifts_terminal_status")
   @@index([tenant_id, status])
   @@index([tenant_id, closed_by], map: "shifts_closed_by_idx")
   @@index([tenant_id, opened_by], map: "shifts_opened_by_idx")
+}
+
+/// Conteo por denominación al cierre de turno (billetes y monedas peruanas)
+model shift_denominations {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id   String @db.Uuid
+  shift_id    String @db.Uuid
+  /// Valor facial en centavos: 20000=S/200, 10000=S/100, ..., 10=S/0.10
+  face_value  Int
+  count       Int    @default(0)
+  total_cents Int    @default(0)
+
+  shifts  shifts  @relation(fields: [shift_id], references: [id])
+  tenants tenants @relation(fields: [tenant_id], references: [id])
+
+  @@unique([shift_id, face_value])
+  @@index([tenant_id, shift_id])
+}
+
+/// Reporte Z (cierre diario) / Reporte X (parcial) con desglose fiscal SUNAT
+model z_reports {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id             String   @db.Uuid
+  shift_id              String   @db.Uuid
+  terminal_id           String
+  report_type           String   @default("Z") // Z=cierre, X=parcial
+  report_number         Int      // Correlativo por terminal
+  // === Montos ===
+  gross_sales_cents     Int      @default(0)
+  net_sales_cents       Int      @default(0)
+  discount_cents        Int      @default(0)
+  voids_cents           Int      @default(0)
+  refunds_cents         Int      @default(0)
+  tips_cents            Int      @default(0)
+  // === Desglose IGV SUNAT ===
+  gravado_base_cents    Int      @default(0) // Base imponible (sin IGV)
+  gravado_igv_cents     Int      @default(0) // IGV 18%
+  exonerado_cents       Int      @default(0)
+  inafecto_cents        Int      @default(0)
+  // === Comprobantes ===
+  boletas_count         Int      @default(0)
+  boletas_total_cents   Int      @default(0)
+  facturas_count        Int      @default(0)
+  facturas_total_cents  Int      @default(0)
+  voided_invoices_count Int      @default(0)
+  credit_notes_count    Int      @default(0)
+  // === Pagos ===
+  payments_breakdown    Json?    // {CASH: {count, totalCents}, YAPE: {...}, ...}
+  // === Caja ===
+  cash_opening_cents    Int      @default(0)
+  cash_expected_cents   Int      @default(0)
+  cash_counted_cents    Int?
+  cash_diff_cents       Int?
+  orders_count          Int      @default(0)
+  // === Meta ===
+  generated_by          String   @db.Uuid
+  generated_at          DateTime @default(now()) @db.Timestamptz(6)
+
+  shifts  shifts  @relation(fields: [shift_id], references: [id])
+  tenants tenants @relation(fields: [tenant_id], references: [id])
+
+  @@unique([tenant_id, terminal_id, report_number])
+  @@index([tenant_id, generated_at(sort: Desc)])
 }
 
 model soft_locks {
@@ -1396,6 +1469,11 @@ model tenant_settings {
   yape_merchant_name            String?
   plin_merchant_phone           String?
   plin_merchant_name            String?
+  // === Caja Perú ===
+  max_cash_opening_cents        Int      @default(50000)  // S/500 máximo fondo inicial
+  cash_variance_alert_cents     Int      @default(2000)   // S/20 alerta diferencia arqueo
+  require_denomination_count    Boolean  @default(false)  // Exigir conteo por denominación al cierre
+  tip_max_untaxed_percent       Int      @default(10)     // Propina voluntaria no gravada hasta 10%
   tenants                       tenants  @relation(fields: [tenant_id], references: [id])
 }
 
@@ -1788,6 +1866,7 @@ model tenants {
   session_audit_log        session_audit_log[]
   sessions                 sessions[]
   shift_change_requests    shift_change_requests[]
+  shift_denominations      shift_denominations[]
   shifts                   shifts[]
   soft_locks               soft_locks[]
   station_alerts           station_alerts[]
@@ -1817,6 +1896,7 @@ model tenants {
   waitlist                 waitlist[]
   waste_logs               waste_logs[]
   whatsapp_messages        whatsapp_messages[]
+  z_reports                z_reports[]
   zones                    zones[]
 }
 

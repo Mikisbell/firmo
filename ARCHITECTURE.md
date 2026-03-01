@@ -25,7 +25,7 @@
 | Tipos de evento | 73 (discriminated union) |
 | Endpoints API | 261 route handlers |
 | Páginas | 83 |
-| Tests | 4813 (295 archivos) |
+| Tests | 4882 (301 archivos) |
 | Bundle | 6.5MB JS, 124 chunks, standalone 197MB |
 
 ## Diagrama de Alto Nivel
@@ -68,14 +68,16 @@ EXTERNAL: SUNAT · PedidosYa · LlamaFood · Twilio(WhatsApp) · Sentry · Logta
 | 9 | **Riesgos y Deuda** | [09-risks.md](docs/architecture/09-risks.md) | 5 riesgos + 7 deudas técnicas con matriz de prioridad |
 | 10 | **Glosario** | [10-glossary.md](docs/architecture/10-glossary.md) | Términos de dominio, acrónimos, roles |
 
-## Top 2 Riesgos Arquitectónicos
+## Top Riesgos Arquitectónicos
 
-| Riesgo | Severidad | Detalle |
-|--------|-----------|---------|
-| Event store sin retention (crece infinito) | ALTO | [09-risks.md#R1](docs/architecture/09-risks.md) |
-| Single DB sin RLS (aislamiento solo por código) | MEDIO | [09-risks.md#R4](docs/architecture/09-risks.md) |
+| Riesgo | Severidad | Estado | Detalle |
+|--------|-----------|--------|---------|
+| R1: Event store sin retention | ~~ALTO~~ BAJO | Mitigado | Archival + cron semanal. Pendiente: partitioning |
+| R4: Single DB sin RLS | ~~MEDIO~~ BAJO | Mitigado | RLS selectivo en 7 tablas sensibles |
+| R2: EventMigrator desconectado | — | Resuelto | Write-time migration en ingest |
+| R3: OOO queue in-memory | — | Resuelto | Persistida en `pending_events` |
 
-> Resueltos Mar 1, 2026: R2 (EventMigrator write-time), R3 (OOO queue persistida), D2 (cache unificada).
+> Todos los riesgos mitigados o resueltos Mar 1, 2026. Ver [09-risks.md](docs/architecture/09-risks.md) para detalle completo.
 
 ## Decisiones Clave
 
