@@ -18,7 +18,10 @@
       "WebFetch(domain:www.thenile.dev)",
       "mcp__plugin_engram_engram__mem_session_summary",
       "Read(//e/FREECLOUD/FREECLOUD-IA/PROYECTOS/park/**)",
-      "mcp__plugin_engram_engram__mem_context"
+      "mcp__plugin_engram_engram__mem_context",
+      "mcp__plugin_engram_engram__mem_get_observation",
+      "mcp__plugin_engram_engram__mem_session_start",
+      "mcp__plugin_engram_engram__mem_update"
     ]
   }
 }
