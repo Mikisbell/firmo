@@ -178,7 +178,7 @@ Eventos con "PAYMENT" en el nombre → estrategia REJECT. El cajero ve error y r
 
 ## ADR-009: RLS Selectivo para Tablas Sensibles
 
-**Estado**: Actualizada | **Fecha**: 2024-Q4 (revisada Mar 1, 2026)
+**Estado**: Parcialmente implementado (Guardrail) | **Fecha**: 2024-Q4 (revisada Mar 1, 2026; implementada Mar 2, 2026)
 
 ### Contexto
 Supabase ofrece RLS nativo en PostgreSQL. El sistema es multi-tenant con aislamiento por `tenant_id` en todas las tablas. La pregunta es si agregar RLS como segunda capa de protección.
@@ -198,3 +198,6 @@ RLS selectivo en 7 tablas sensibles como defensa en profundidad. Script SQL en `
 - **Positivas**: Segunda capa de protección para datos financieros y PII. Un query sin `WHERE tenant_id` en estas tablas retorna vacío en vez de data leak.
 - **Negativas**: Requiere `SET LOCAL app.current_tenant_id` por conexión si se usa un rol non-superuser. Prisma conecta como superuser (`postgres`) que bypasea RLS por defecto — el RLS protege contra queries directos desde Supabase Dashboard o client libraries.
 - **Nota**: El aislamiento primario sigue siendo por código (middleware + WHERE). RLS es la red de seguridad.
+
+### Implementación (Mar 2, 2026)
+RLS habilitado en 7 tablas como guardrail de base de datos. Prisma conecta como `postgres` (superuser, bypasea RLS). La protección es efectiva contra acceso directo via Supabase Dashboard o client libraries con roles non-superuser. Scripts idempotentes: `prisma/rls/enable-selective-rls.sql` (aplicar) y `prisma/rls/rollback-rls.sql` (revertir). Verificación: `npx tsx scripts/check-rls-status.ts`. Upgrade path a `app_user` con dual-client Prisma documentado en proposal (`openspec/changes/rls-postgresql/proposal.md`).
