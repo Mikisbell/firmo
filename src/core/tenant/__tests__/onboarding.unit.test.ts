@@ -9,6 +9,7 @@ import {
   markOnboardingComplete,
   getOnboardingStatus,
   resetOnboarding,
+  ONBOARDING_STEPS,
 } from '../onboarding';
 import prisma from '@/src/core/db/prisma';
 
@@ -17,6 +18,7 @@ vi.mock('@/src/core/db/prisma', () => ({
   default: {
     onboarding_steps: {
       create: vi.fn(),
+      createMany: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -40,96 +42,103 @@ describe('Onboarding Service', () => {
     vi.clearAllMocks();
   });
 
-  describe('createOnboardingChecklist', () => {
-    it('should create onboarding checklist with all standard steps', async () => {
-      const mockSteps = [
-        {
-          id: randomUUID(),
-          tenant_id,
-          step_number: 1,
-          step_key: 'CONFIGURE_BASIC_INFO',
-          title: 'Configure Basic Information',
-          description: 'Set up your restaurant name, RUC, and address',
-          is_required: true,
-          is_completed: false,
-          completed_at: null,
-          completed_by: null,
-          metadata: {},
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        {
-          id: randomUUID(),
-          tenant_id,
-          step_number: 2,
-          step_key: 'CONFIGURE_SETTINGS',
-          title: 'Configure Settings',
-          description: 'Set timezone, currency, and other preferences',
-          is_required: true,
-          is_completed: false,
-          completed_at: null,
-          completed_by: null,
-          metadata: {},
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ];
+  describe('ONBOARDING_STEPS constant', () => {
+    it('should have exactly 6 steps', () => {
+      expect(ONBOARDING_STEPS).toHaveLength(6);
+    });
 
-      vi.mocked(prisma.onboarding_steps.create).mockResolvedValueOnce(
-        mockSteps[0]
-      );
-      vi.mocked(prisma.onboarding_steps.create).mockResolvedValueOnce(
-        mockSteps[1]
-      );
+    it('should have correct step keys in order', () => {
+      const keys = ONBOARDING_STEPS.map((s) => s.step_key);
+      expect(keys).toEqual([
+        'CONFIGURE_BASIC_INFO',
+        'CREATE_EMPLOYEE',
+        'CREATE_PRODUCT',
+        'CONFIGURE_STATIONS',
+        'ACTIVATE_TERMINAL',
+        'CONFIGURE_PAYMENT_METHODS',
+      ]);
+    });
 
-      // Mock remaining steps
-      for (let i = 2; i < 7; i++) {
-        vi.mocked(prisma.onboarding_steps.create).mockResolvedValueOnce({
-          id: randomUUID(),
-          tenant_id,
-          step_number: i + 1,
-          step_key: `STEP_${i}`,
-          title: `Step ${i}`,
-          description: `Description ${i}`,
-          is_required: i < 5,
-          is_completed: false,
-          completed_at: null,
-          completed_by: null,
-          metadata: {},
-          created_at: new Date(),
-          updated_at: new Date(),
-        });
+    it('should have all titles in Spanish', () => {
+      for (const step of ONBOARDING_STEPS) {
+        // Spanish titles should NOT contain common English words
+        expect(step.title).not.toMatch(/^Configure |^Create First|^Set up/);
       }
+    });
+
+    it('should have 4 required and 2 optional steps', () => {
+      const required = ONBOARDING_STEPS.filter((s) => s.is_required);
+      const optional = ONBOARDING_STEPS.filter((s) => !s.is_required);
+      expect(required).toHaveLength(4);
+      expect(optional).toHaveLength(2);
+    });
+
+    it('should have sequential step numbers 1-6', () => {
+      const numbers = ONBOARDING_STEPS.map((s) => s.step_number);
+      expect(numbers).toEqual([1, 2, 3, 4, 5, 6]);
+    });
+
+    it('should have route for each step', () => {
+      for (const step of ONBOARDING_STEPS) {
+        expect(step.route).toBeDefined();
+        expect(step.route).toMatch(/^\/admin\//);
+      }
+    });
+  });
+
+  describe('createOnboardingChecklist', () => {
+    /**
+     * Helper: build mock steps array from ONBOARDING_STEPS constant
+     */
+    function buildMockSteps() {
+      return ONBOARDING_STEPS.map((stepDef) => ({
+        id: randomUUID(),
+        tenant_id,
+        step_number: stepDef.step_number,
+        step_key: stepDef.step_key,
+        title: stepDef.title,
+        description: stepDef.description,
+        is_required: stepDef.is_required,
+        is_completed: false,
+        completed_at: null,
+        completed_by: null,
+        metadata: {},
+        created_at: new Date(),
+        updated_at: new Date(),
+      }));
+    }
+
+    it('should create onboarding checklist with all 6 unified steps', async () => {
+      const mockSteps = buildMockSteps();
+
+      vi.mocked(prisma.onboarding_steps.createMany).mockResolvedValueOnce({
+        count: 6,
+      });
+      vi.mocked(prisma.onboarding_steps.findMany).mockResolvedValueOnce(
+        mockSteps
+      );
 
       const checklist = await createOnboardingChecklist(tenant_id);
 
       expect(checklist.tenant_id).toBe(tenant_id);
       expect(checklist.status).toBe('IN_PROGRESS');
-      expect(checklist.steps.length).toBe(7);
+      expect(checklist.steps).toHaveLength(6);
       expect(checklist.completion_percentage).toBe(0);
+      expect(prisma.onboarding_steps.createMany).toHaveBeenCalledTimes(1);
+      expect(prisma.onboarding_steps.findMany).toHaveBeenCalledWith({
+        where: { tenant_id },
+        orderBy: { step_number: 'asc' },
+      });
     });
 
     it('should create required and optional steps', async () => {
-      const mockSteps = [
-        {
-          id: randomUUID(),
-          tenant_id,
-          step_number: 1,
-          step_key: 'CONFIGURE_BASIC_INFO',
-          title: 'Configure Basic Information',
-          description: 'Set up your restaurant name, RUC, and address',
-          is_required: true,
-          is_completed: false,
-          completed_at: null,
-          completed_by: null,
-          metadata: {},
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ];
+      const mockSteps = buildMockSteps();
 
-      vi.mocked(prisma.onboarding_steps.create).mockResolvedValue(
-        mockSteps[0]
+      vi.mocked(prisma.onboarding_steps.createMany).mockResolvedValueOnce({
+        count: 6,
+      });
+      vi.mocked(prisma.onboarding_steps.findMany).mockResolvedValueOnce(
+        mockSteps
       );
 
       const checklist = await createOnboardingChecklist(tenant_id);
@@ -137,8 +146,30 @@ describe('Onboarding Service', () => {
       const requiredSteps = checklist.steps.filter((s) => s.is_required);
       const optionalSteps = checklist.steps.filter((s) => !s.is_required);
 
-      expect(requiredSteps.length).toBeGreaterThan(0);
-      expect(optionalSteps.length).toBeGreaterThan(0);
+      expect(requiredSteps).toHaveLength(4);
+      expect(optionalSteps).toHaveLength(2);
+    });
+
+    it('should accept optional tx parameter for transactional usage', async () => {
+      const mockSteps = buildMockSteps();
+      const mockTx = {
+        onboarding_steps: {
+          createMany: vi.fn().mockResolvedValueOnce({ count: 6 }),
+          findMany: vi.fn().mockResolvedValueOnce(mockSteps),
+        },
+      };
+
+      const checklist = await createOnboardingChecklist(
+        tenant_id,
+        mockTx as any
+      );
+
+      expect(checklist.steps).toHaveLength(6);
+      expect(checklist.status).toBe('IN_PROGRESS');
+      // Should use tx, NOT the prisma singleton
+      expect(mockTx.onboarding_steps.createMany).toHaveBeenCalledTimes(1);
+      expect(mockTx.onboarding_steps.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.onboarding_steps.createMany).not.toHaveBeenCalled();
     });
   });
 
@@ -150,8 +181,8 @@ describe('Onboarding Service', () => {
           tenant_id,
           step_number: 1,
           step_key: 'CONFIGURE_BASIC_INFO',
-          title: 'Configure Basic Information',
-          description: 'Set up your restaurant name, RUC, and address',
+          title: 'Configurar Información del Negocio',
+          description: 'Completa los datos de tu restaurante (nombre, RUC, dirección)',
           is_required: true,
           is_completed: false,
           completed_at: null,
@@ -164,9 +195,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 2,
-          step_key: 'CONFIGURE_SETTINGS',
-          title: 'Configure Settings',
-          description: 'Set timezone, currency, and other preferences',
+          step_key: 'CREATE_EMPLOYEE',
+          title: 'Crear Empleados',
+          description: 'Agrega al menos un empleado además del administrador',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -184,7 +215,7 @@ describe('Onboarding Service', () => {
       const checklist = await getOnboardingChecklist(tenant_id);
 
       expect(checklist.tenant_id).toBe(tenant_id);
-      expect(checklist.steps.length).toBe(2);
+      expect(checklist.steps).toHaveLength(2);
       expect(checklist.completion_percentage).toBe(50);
       expect(checklist.status).toBe('IN_PROGRESS');
     });
@@ -203,9 +234,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 1,
-          step_key: 'STEP_1',
-          title: 'Step 1',
-          description: 'Description 1',
+          step_key: 'CONFIGURE_BASIC_INFO',
+          title: 'Configurar Información del Negocio',
+          description: 'Completa los datos de tu restaurante',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -218,9 +249,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 2,
-          step_key: 'STEP_2',
-          title: 'Step 2',
-          description: 'Description 2',
+          step_key: 'CREATE_EMPLOYEE',
+          title: 'Crear Empleados',
+          description: 'Agrega al menos un empleado',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -233,9 +264,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 3,
-          step_key: 'STEP_3',
-          title: 'Step 3',
-          description: 'Description 3',
+          step_key: 'CREATE_PRODUCT',
+          title: 'Crear Productos',
+          description: 'Agrega los productos que venderás',
           is_required: true,
           is_completed: false,
           completed_at: null,
@@ -266,8 +297,8 @@ describe('Onboarding Service', () => {
         tenant_id,
         step_number: 1,
         step_key,
-        title: 'Configure Basic Information',
-        description: 'Set up your restaurant name, RUC, and address',
+        title: 'Configurar Información del Negocio',
+        description: 'Completa los datos de tu restaurante',
         is_required: true,
         is_completed: false,
         completed_at: null,
@@ -321,8 +352,8 @@ describe('Onboarding Service', () => {
         tenant_id,
         step_number: 1,
         step_key,
-        title: 'Configure Basic Information',
-        description: 'Set up your restaurant name, RUC, and address',
+        title: 'Configurar Información del Negocio',
+        description: 'Completa los datos de tu restaurante',
         is_required: true,
         is_completed: true,
         completed_at: new Date(),
@@ -361,9 +392,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 1,
-          step_key: 'STEP_1',
-          title: 'Step 1',
-          description: 'Description 1',
+          step_key: 'CONFIGURE_BASIC_INFO',
+          title: 'Configurar Información del Negocio',
+          description: 'Completa los datos de tu restaurante',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -376,9 +407,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 2,
-          step_key: 'STEP_2',
-          title: 'Step 2',
-          description: 'Description 2',
+          step_key: 'CREATE_EMPLOYEE',
+          title: 'Crear Empleados',
+          description: 'Agrega al menos un empleado',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -406,9 +437,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 1,
-          step_key: 'STEP_1',
-          title: 'Step 1',
-          description: 'Description 1',
+          step_key: 'CONFIGURE_BASIC_INFO',
+          title: 'Configurar Información del Negocio',
+          description: 'Completa los datos de tu restaurante',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -421,9 +452,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 2,
-          step_key: 'STEP_2',
-          title: 'Step 2',
-          description: 'Description 2',
+          step_key: 'CREATE_EMPLOYEE',
+          title: 'Crear Empleados',
+          description: 'Agrega al menos un empleado',
           is_required: true,
           is_completed: false,
           completed_at: null,
@@ -441,7 +472,7 @@ describe('Onboarding Service', () => {
       const result = await validateOnboardingComplete(tenant_id);
 
       expect(result.is_complete).toBe(false);
-      expect(result.missing_steps).toContain('STEP_2');
+      expect(result.missing_steps).toContain('CREATE_EMPLOYEE');
     });
 
     it('should ignore optional steps in completion check', async () => {
@@ -450,9 +481,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 1,
-          step_key: 'STEP_1',
-          title: 'Step 1',
-          description: 'Description 1',
+          step_key: 'CONFIGURE_BASIC_INFO',
+          title: 'Configurar Información del Negocio',
+          description: 'Completa los datos de tu restaurante',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -464,10 +495,10 @@ describe('Onboarding Service', () => {
         {
           id: randomUUID(),
           tenant_id,
-          step_number: 2,
-          step_key: 'STEP_2',
-          title: 'Step 2',
-          description: 'Description 2',
+          step_number: 4,
+          step_key: 'CONFIGURE_STATIONS',
+          title: 'Configurar Estaciones',
+          description: 'Configura las estaciones de cocina',
           is_required: false,
           is_completed: false,
           completed_at: null,
@@ -496,9 +527,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 1,
-          step_key: 'STEP_1',
-          title: 'Step 1',
-          description: 'Description 1',
+          step_key: 'CONFIGURE_BASIC_INFO',
+          title: 'Configurar Información del Negocio',
+          description: 'Completa los datos de tu restaurante',
           is_required: true,
           is_completed: true,
           completed_at: new Date(),
@@ -560,9 +591,9 @@ describe('Onboarding Service', () => {
           id: randomUUID(),
           tenant_id,
           step_number: 1,
-          step_key: 'STEP_1',
-          title: 'Step 1',
-          description: 'Description 1',
+          step_key: 'CONFIGURE_BASIC_INFO',
+          title: 'Configurar Información del Negocio',
+          description: 'Completa los datos de tu restaurante',
           is_required: true,
           is_completed: false,
           completed_at: null,
@@ -625,30 +656,9 @@ describe('Onboarding Service', () => {
 
   describe('resetOnboarding', () => {
     it('should reset onboarding for a tenant', async () => {
-      const mockSteps = [
-        {
-          id: randomUUID(),
-          tenant_id,
-          step_number: 1,
-          step_key: 'STEP_1',
-          title: 'Step 1',
-          description: 'Description 1',
-          is_required: true,
-          is_completed: false,
-          completed_at: null,
-          completed_by: null,
-          metadata: {},
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ];
-
       vi.mocked(prisma.onboarding_steps.deleteMany).mockResolvedValueOnce({
-        count: 1,
+        count: 6,
       });
-      vi.mocked(prisma.onboarding_steps.create).mockResolvedValue(
-        mockSteps[0]
-      );
       vi.mocked(prisma.tenant_settings.update).mockResolvedValueOnce({
         tenant_id,
         legal_name: 'Test Restaurant',
@@ -681,6 +691,30 @@ describe('Onboarding Service', () => {
         updated_at: new Date(),
       });
 
+      // Mock createMany + findMany for re-creating checklist
+      const mockSteps = ONBOARDING_STEPS.map((stepDef) => ({
+        id: randomUUID(),
+        tenant_id,
+        step_number: stepDef.step_number,
+        step_key: stepDef.step_key,
+        title: stepDef.title,
+        description: stepDef.description,
+        is_required: stepDef.is_required,
+        is_completed: false,
+        completed_at: null,
+        completed_by: null,
+        metadata: {},
+        created_at: new Date(),
+        updated_at: new Date(),
+      }));
+
+      vi.mocked(prisma.onboarding_steps.createMany).mockResolvedValueOnce({
+        count: 6,
+      });
+      vi.mocked(prisma.onboarding_steps.findMany).mockResolvedValueOnce(
+        mockSteps
+      );
+
       await resetOnboarding(tenant_id);
 
       expect(prisma.onboarding_steps.deleteMany).toHaveBeenCalledWith({
@@ -692,6 +726,7 @@ describe('Onboarding Service', () => {
           onboarding_status: 'IN_PROGRESS',
         }),
       });
+      expect(prisma.onboarding_steps.createMany).toHaveBeenCalledTimes(1);
     });
   });
 });

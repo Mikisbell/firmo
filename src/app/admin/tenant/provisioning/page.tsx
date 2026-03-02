@@ -134,7 +134,7 @@ export default function TenantProvisioningPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to provision tenant');
+        throw new Error(errorData.error || 'Error al provisionar tenant');
       }
 
       const data = await response.json();
@@ -155,7 +155,7 @@ export default function TenantProvisioningPage() {
         require_manager_for_offline: false,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'Ocurrio un error');
     } finally {
       setLoading(false);
     }
@@ -172,9 +172,9 @@ export default function TenantProvisioningPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold">Tenant Provisioning Complete</h1>
+          <h1 className="text-2xl font-bold">Aprovisionamiento de Tenant Completo</h1>
           <p className="text-zinc-400 mt-1">
-            Your new tenant has been successfully provisioned
+            Tu nuevo tenant ha sido aprovisionado exitosamente
           </p>
         </div>
 
@@ -187,9 +187,9 @@ export default function TenantProvisioningPage() {
           <div className="flex items-start gap-3">
             <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h2 className="text-lg font-semibold text-green-400">Success!</h2>
+              <h2 className="text-lg font-semibold text-green-400">Exito!</h2>
               <p className="text-green-300 text-sm mt-1">
-                Tenant "{formData.legal_name}" has been provisioned with all required resources.
+                Tenant &quot;{formData.legal_name}&quot; ha sido aprovisionado con todos los recursos requeridos.
               </p>
             </div>
           </div>
@@ -203,14 +203,14 @@ export default function TenantProvisioningPage() {
         >
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Lock className="w-5 h-5 text-amber-400" />
-            Tenant Credentials
+            Credenciales del Tenant
           </h2>
 
           <div className="space-y-4">
             {/* Tenant ID */}
             <div>
               <label className="text-xs text-zinc-500 uppercase mb-2 block">
-                Tenant ID
+                ID del Tenant
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -235,7 +235,7 @@ export default function TenantProvisioningPage() {
             {/* Admin Employee ID */}
             <div>
               <label className="text-xs text-zinc-500 uppercase mb-2 block">
-                Admin Employee ID
+                ID del Empleado Admin
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -260,7 +260,7 @@ export default function TenantProvisioningPage() {
             {/* Activation Code */}
             <div>
               <label className="text-xs text-zinc-500 uppercase mb-2 block">
-                Activation Code
+                Codigo de Activacion
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -285,7 +285,7 @@ export default function TenantProvisioningPage() {
             {/* Admin PIN */}
             <div>
               <label className="text-xs text-zinc-500 uppercase mb-2 block">
-                Admin PIN
+                PIN del Admin
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -327,7 +327,7 @@ export default function TenantProvisioningPage() {
         >
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-400" />
-            Onboarding Checklist
+            Lista de Configuracion
           </h2>
 
           <div className="space-y-3">
@@ -356,13 +356,13 @@ export default function TenantProvisioningPage() {
             onClick={() => setResult(null)}
             className="flex-1 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors font-medium"
           >
-            Provision Another Tenant
+            Provisionar Otro Tenant
           </button>
           <button
             onClick={() => window.location.href = '/admin/tenant/dashboard'}
             className="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors font-medium"
           >
-            Go to Dashboard
+            Ir al Dashboard
           </button>
         </div>
       </div>
@@ -373,9 +373,9 @@ export default function TenantProvisioningPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Provision New Tenant</h1>
+        <h1 className="text-2xl font-bold">Provisionar Nuevo Tenant</h1>
         <p className="text-zinc-400 mt-1">
-          Create a new tenant with all required configuration
+          Crear un nuevo tenant con toda la configuracion requerida
         </p>
       </div>
 
@@ -403,13 +403,13 @@ export default function TenantProvisioningPage() {
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Building2 className="w-5 h-5 text-blue-400" />
-            Business Information
+            Informacion del Negocio
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Legal Name *
+                Nombre Legal *
               </label>
               <input
                 data-testid="legal-name-input"
@@ -436,7 +436,7 @@ export default function TenantProvisioningPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-sm font-medium mb-2 block">Address</label>
+              <label className="text-sm font-medium mb-2 block">Direccion</label>
               <textarea
                 name="address_text"
                 value={formData.address_text || ''}
@@ -453,13 +453,13 @@ export default function TenantProvisioningPage() {
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <User className="w-5 h-5 text-green-400" />
-            Admin Information
+            Informacion del Administrador
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Admin Name *
+                Nombre del Admin *
               </label>
               <input
                 data-testid="admin-name-input"
@@ -475,7 +475,7 @@ export default function TenantProvisioningPage() {
 
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Admin PIN (4 digits) *
+                PIN del Admin (4 digitos) *
               </label>
               <input
                 data-testid="admin-pin-input"
@@ -496,12 +496,12 @@ export default function TenantProvisioningPage() {
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Globe className="w-5 h-5 text-purple-400" />
-            Regional Settings
+            Configuracion Regional
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Timezone</label>
+              <label className="text-sm font-medium mb-2 block">Zona Horaria</label>
               <select
                 name="timezone"
                 value={formData.timezone}
@@ -517,7 +517,7 @@ export default function TenantProvisioningPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Currency</label>
+              <label className="text-sm font-medium mb-2 block">Moneda</label>
               <select
                 name="currency"
                 value={formData.currency}
@@ -538,19 +538,19 @@ export default function TenantProvisioningPage() {
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-orange-400" />
-            Optional Settings
+            Configuracion Opcional
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Receipt Footer Text
+                Texto de Pie de Recibo
               </label>
               <textarea
                 name="receipt_footer_text"
                 value={formData.receipt_footer_text || ''}
                 onChange={handleInputChange}
-                placeholder="Thank you for your purchase!"
+                placeholder="Gracias por su compra!"
                 rows={2}
                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
@@ -559,7 +559,7 @@ export default function TenantProvisioningPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Default Delivery Fee (cents)
+                  Tarifa de Delivery por Defecto (centavos)
                 </label>
                 <input
                   type="number"
@@ -573,7 +573,7 @@ export default function TenantProvisioningPage() {
 
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Max Offline Coupons per Order
+                  Max Cupones Offline por Orden
                 </label>
                 <input
                   type="number"
@@ -595,7 +595,7 @@ export default function TenantProvisioningPage() {
                   onChange={handleInputChange}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
                 />
-                <span className="text-sm font-medium">Enable Tips</span>
+                <span className="text-sm font-medium">Habilitar Propinas</span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer">
@@ -606,7 +606,7 @@ export default function TenantProvisioningPage() {
                   onChange={handleInputChange}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
                 />
-                <span className="text-sm font-medium">Show Tips on Invoice</span>
+                <span className="text-sm font-medium">Mostrar Propinas en Factura</span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer">
@@ -617,7 +617,7 @@ export default function TenantProvisioningPage() {
                   onChange={handleInputChange}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
                 />
-                <span className="text-sm font-medium">Allow Offline Coupons</span>
+                <span className="text-sm font-medium">Permitir Cupones Offline</span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer">
@@ -628,7 +628,7 @@ export default function TenantProvisioningPage() {
                   onChange={handleInputChange}
                   className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
                 />
-                <span className="text-sm font-medium">Require Manager for Offline</span>
+                <span className="text-sm font-medium">Requerir Gerente para Offline</span>
               </label>
             </div>
           </div>
@@ -644,12 +644,12 @@ export default function TenantProvisioningPage() {
             {loading ? (
               <>
                 <Loader className="w-4 h-4 animate-spin" />
-                Provisioning...
+                Aprovisionando...
               </>
             ) : (
               <>
                 <CheckCircle className="w-4 h-4" />
-                Provision Tenant
+                Provisionar Tenant
               </>
             )}
           </button>

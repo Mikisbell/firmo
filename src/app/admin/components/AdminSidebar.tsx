@@ -54,6 +54,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   LineChart,
+  Rocket,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -158,6 +159,10 @@ interface NavGroup {
 
 const DASHBOARD_ITEM: NavItem = {
   href: '/admin', label: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard',
+};
+
+const ONBOARDING_ITEM: NavItem = {
+  href: '/admin/onboarding', label: 'Configuracion Inicial', description: 'Guia paso a paso para configurar tu negocio', icon: Rocket, permission: 'manage_config',
 };
 
 const NAV_GROUPS: NavGroup[] = [
@@ -326,6 +331,8 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
 
   const showDashboard = hasPermission(DASHBOARD_ITEM);
   const dashboardActive = isActive(DASHBOARD_ITEM.href);
+  const showOnboarding = hasPermission(ONBOARDING_ITEM);
+  const onboardingActive = isActive(ONBOARDING_ITEM.href);
 
   /* ── Expanded mode: full nav link ── */
   const renderNavLink = (item: NavItem, theme: GroupTheme) => {
@@ -491,6 +498,27 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
               >
                 <LayoutDashboard className={`w-[18px] h-[18px] flex-shrink-0 ${dashboardActive ? 'drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]' : ''}`} />
                 {!collapsed && <span className="text-sm font-medium">Dashboard</span>}
+              </Link>
+            </Tooltip>
+          )}
+
+          {/* Onboarding */}
+          {showOnboarding && (
+            <Tooltip content={collapsed ? 'Configuracion Inicial' : 'Guia paso a paso para configurar tu negocio'} disabled={!collapsed}>
+              <Link
+                href="/admin/onboarding"
+                onClick={() => setMobileOpen(false)}
+                className={`
+                  flex items-center gap-3 rounded-lg transition-all duration-150
+                  ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
+                  ${onboardingActive
+                    ? 'bg-gradient-to-r from-violet-500/20 to-purple-500/10 text-violet-400 border border-violet-500/20'
+                    : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100 border border-transparent'
+                  }
+                `}
+              >
+                <Rocket className={`w-[18px] h-[18px] flex-shrink-0 ${onboardingActive ? 'drop-shadow-[0_0_8px_rgba(139,92,246,0.6)]' : ''}`} />
+                {!collapsed && <span className="text-sm font-medium">Configuracion Inicial</span>}
               </Link>
             </Tooltip>
           )}

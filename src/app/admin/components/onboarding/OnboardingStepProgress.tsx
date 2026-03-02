@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * Onboarding Step Progress Component
+ *
+ * Displays the list of onboarding steps with their status (completed, current, locked).
+ * All user-facing text in Spanish.
+ *
+ * Requirements: F2.3
+ */
+
 import React from 'react';
 import { OnboardingStep } from '@/src/core/tenant/onboarding';
 import { CheckCircle2, Circle, Lock } from 'lucide-react';
@@ -20,7 +29,7 @@ export default function OnboardingStepProgress({
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold text-slate-900 mb-4">
-        Setup Steps
+        Pasos de Configuracion
       </h3>
 
       <div className="space-y-2">
@@ -66,7 +75,7 @@ export default function OnboardingStepProgress({
                     {step.step_number}. {step.title}
                   </p>
                   {step.is_required && (
-                    <p className="text-xs text-slate-500 mt-1">Required</p>
+                    <p className="text-xs text-slate-500 mt-1">Requerido</p>
                   )}
                 </div>
               </div>

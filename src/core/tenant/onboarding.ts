@@ -1,5 +1,9 @@
 import { randomUUID } from 'crypto';
+import { PrismaClient, Prisma } from '@prisma/client';
 import prisma from '@/src/core/db/prisma';
+import { ONBOARDING_STEPS, type OnboardingStepKey } from './onboarding-steps';
+
+export { ONBOARDING_STEPS, type OnboardingStepKey } from './onboarding-steps';
 
 export interface OnboardingStep {
   id: string;
@@ -7,11 +11,11 @@ export interface OnboardingStep {
   step_number: number;
   step_key: string;
   title: string;
-  description?: string;
+  description: string | null;
   is_required: boolean;
   is_completed: boolean;
-  completed_at?: Date | null;
-  completed_by?: string | null;
+  completed_at: Date | null;
+  completed_by: string | null;
   metadata?: any;
   created_at?: Date;
   updated_at?: Date;
@@ -24,58 +28,11 @@ export interface OnboardingChecklist {
   completion_percentage: number;
 }
 
-// Define the standard onboarding steps
-const STANDARD_ONBOARDING_STEPS = [
-  {
-    step_number: 1,
-    step_key: 'CONFIGURE_BASIC_INFO',
-    title: 'Configure Basic Information',
-    description: 'Set up your restaurant name, RUC, and address',
-    is_required: true,
-  },
-  {
-    step_number: 2,
-    step_key: 'CONFIGURE_SETTINGS',
-    title: 'Configure Settings',
-    description: 'Set timezone, currency, and other preferences',
-    is_required: true,
-  },
-  {
-    step_number: 3,
-    step_key: 'CREATE_TERMINAL',
-    title: 'Create First Terminal',
-    description: 'Set up your first POS terminal',
-    is_required: true,
-  },
-  {
-    step_number: 4,
-    step_key: 'CREATE_EMPLOYEE',
-    title: 'Create First Employee',
-    description: 'Add your first employee with PIN',
-    is_required: true,
-  },
-  {
-    step_number: 5,
-    step_key: 'CREATE_PRODUCT',
-    title: 'Create First Product',
-    description: 'Add your first product to the catalog',
-    is_required: true,
-  },
-  {
-    step_number: 6,
-    step_key: 'CONFIGURE_STATIONS',
-    title: 'Configure Stations',
-    description: 'Set up kitchen stations (Parrilla, Cocina, Bar, etc.)',
-    is_required: false,
-  },
-  {
-    step_number: 7,
-    step_key: 'CONFIGURE_PAYMENT_METHODS',
-    title: 'Configure Payment Methods',
-    description: 'Set up accepted payment methods',
-    is_required: false,
-  },
-];
+/**
+ * Prisma client type that works both standalone and inside a transaction.
+ * Accepts PrismaClient or Prisma.TransactionClient.
+ */
+type PrismaTransaction = PrismaClient | Prisma.TransactionClient;
 
 /**
  * Calculate completion percentage from steps
@@ -99,45 +56,42 @@ function determineStatus(steps: OnboardingStep[]): 'IN_PROGRESS' | 'COMPLETED' {
 }
 
 /**
- * Create onboarding checklist for a new tenant
- * Requirements: 13.1, 13.2
+ * Create onboarding checklist for a new tenant.
+ * Accepts optional tx parameter for transactional usage (e.g., inside provisionTenant).
+ * If no tx is provided, uses the prisma singleton (backward compatible).
+ *
+ * Requirements: 13.1, 13.2, F1.1, F1.4
  */
 export async function createOnboardingChecklist(
-  tenant_id: string
+  tenant_id: string,
+  tx?: PrismaTransaction
 ): Promise<OnboardingChecklist> {
-  const steps: OnboardingStep[] = [];
+  const client = tx || prisma;
 
-  for (const stepDef of STANDARD_ONBOARDING_STEPS) {
-    const step = await (prisma as any).onboarding_steps.create({
-      data: {
-        id: randomUUID(),
-        tenant_id,
-        step_number: stepDef.step_number,
-        step_key: stepDef.step_key,
-        title: stepDef.title,
-        description: stepDef.description,
-        is_required: stepDef.is_required,
-        is_completed: false,
-        completed_at: null,
-        completed_by: null,
-        metadata: {},
-      },
-    });
+  // Batch insert all steps in a single query for performance
+  const stepData = ONBOARDING_STEPS.map((stepDef) => ({
+    id: randomUUID(),
+    tenant_id,
+    step_number: stepDef.step_number,
+    step_key: stepDef.step_key,
+    title: stepDef.title,
+    description: stepDef.description,
+    is_required: stepDef.is_required,
+    is_completed: false,
+    completed_at: null,
+    completed_by: null,
+    metadata: {},
+  }));
 
-    steps.push({
-      id: step.id,
-      tenant_id,
-      step_number: stepDef.step_number,
-      step_key: stepDef.step_key,
-      title: stepDef.title,
-      description: stepDef.description,
-      is_required: stepDef.is_required,
-      is_completed: false,
-      completed_at: null,
-      completed_by: null,
-      metadata: {},
-    });
-  }
+  await client.onboarding_steps.createMany({
+    data: stepData,
+  });
+
+  // Fetch the created steps to return full objects with DB defaults
+  const steps = await client.onboarding_steps.findMany({
+    where: { tenant_id },
+    orderBy: { step_number: 'asc' },
+  });
 
   return {
     tenant_id,
@@ -154,7 +108,7 @@ export async function createOnboardingChecklist(
 export async function getOnboardingChecklist(
   tenant_id: string
 ): Promise<OnboardingChecklist> {
-  const steps = await (prisma as any).onboarding_steps.findMany({
+  const steps = await prisma.onboarding_steps.findMany({
     where: { tenant_id },
     orderBy: { step_number: 'asc' },
   });
@@ -183,7 +137,7 @@ export async function completeOnboardingStep(
   step_key: string,
   completed_by?: string
 ): Promise<OnboardingStep> {
-  const step = await (prisma as any).onboarding_steps.findUnique({
+  const step = await prisma.onboarding_steps.findUnique({
     where: {
       tenant_id_step_key: { tenant_id, step_key },
     },
@@ -193,7 +147,7 @@ export async function completeOnboardingStep(
     throw new Error(`Onboarding step ${step_key} not found`);
   }
 
-  const updatedStep = await (prisma as any).onboarding_steps.update({
+  const updatedStep = await prisma.onboarding_steps.update({
     where: {
       tenant_id_step_key: { tenant_id, step_key },
     },
@@ -215,7 +169,7 @@ export async function uncompleteOnboardingStep(
   tenant_id: string,
   step_key: string
 ): Promise<OnboardingStep> {
-  const step = await (prisma as any).onboarding_steps.findUnique({
+  const step = await prisma.onboarding_steps.findUnique({
     where: {
       tenant_id_step_key: { tenant_id, step_key },
     },
@@ -225,7 +179,7 @@ export async function uncompleteOnboardingStep(
     throw new Error(`Onboarding step ${step_key} not found`);
   }
 
-  const updatedStep = await (prisma as any).onboarding_steps.update({
+  const updatedStep = await prisma.onboarding_steps.update({
     where: {
       tenant_id_step_key: { tenant_id, step_key },
     },
@@ -250,7 +204,7 @@ export async function validateOnboardingComplete(
   missing_steps: string[];
   completion_percentage: number;
 }> {
-  const steps = await (prisma as any).onboarding_steps.findMany({
+  const steps = await prisma.onboarding_steps.findMany({
     where: { tenant_id },
     orderBy: { step_number: 'asc' },
   });
@@ -306,7 +260,7 @@ export async function getOnboardingStatus(
     throw new Error('Tenant not found');
   }
 
-  return (settings as any).onboarding_status || 'IN_PROGRESS';
+  return (settings.onboarding_status as 'IN_PROGRESS' | 'COMPLETED') || 'IN_PROGRESS';
 }
 
 /**
@@ -315,7 +269,7 @@ export async function getOnboardingStatus(
  */
 export async function resetOnboarding(tenant_id: string): Promise<void> {
   // Delete existing steps
-  await (prisma as any).onboarding_steps.deleteMany({
+  await prisma.onboarding_steps.deleteMany({
     where: { tenant_id },
   });
 

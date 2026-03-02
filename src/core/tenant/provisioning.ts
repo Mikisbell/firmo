@@ -1,9 +1,9 @@
 /**
  * Tenant Provisioning Service
- * 
+ *
  * Automates creation of new tenants with all required configuration.
  * Implements atomic provisioning with automatic rollback on failure.
- * 
+ *
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8
  */
 
@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/src/core/db/prisma';
 import { hashPin } from '@/src/core/auth/crypto-utils';
 import { createLogger } from '@/src/core/observability/structured-logger';
+import { createOnboardingChecklist, type OnboardingStep } from './onboarding';
 
 const log = createLogger('provisioning');
 
@@ -33,7 +34,7 @@ export interface TenantProvisioningRequest {
   require_manager_for_offline?: boolean;
 }
 
-export interface OnboardingStep {
+export interface ProvisioningOnboardingStep {
   id: string;
   step_number: number;
   title: string;
@@ -45,7 +46,7 @@ export interface TenantProvisioningResult {
   tenant_id: string;
   admin_employee_id: string;
   activation_code: string;
-  onboarding_checklist: OnboardingStep[];
+  onboarding_checklist: ProvisioningOnboardingStep[];
   credentials: {
     tenant_id: string;
     admin_employee_id: string;
@@ -73,7 +74,7 @@ export interface TenantProvisioningStatus {
 
 /**
  * Provision a new tenant with all required resources
- * 
+ *
  * This function creates:
  * 1. Tenant record
  * 2. Tenant settings with configuration
@@ -82,11 +83,10 @@ export interface TenantProvisioningStatus {
  * 5. Admin employee with hashed PIN
  * 6. 10 terminal number ranges
  * 7. Default terminal
- * 8. Activation code
- * 9. Onboarding checklist
- * 
+ * 8. Onboarding checklist (persisted in DB via createOnboardingChecklist)
+ *
  * All operations are atomic - if any step fails, all changes are rolled back.
- * 
+ *
  * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8**
  */
 export async function provisionTenant(
@@ -98,6 +98,7 @@ export async function provisionTenant(
 
   try {
     // Use transaction to ensure atomicity
+    // Extended timeout for remote Supabase Cloud (default 5s is too short for provisioning)
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create tenant record
       const tenant = await tx.tenants.create({
@@ -195,63 +196,29 @@ export async function provisionTenant(
         },
       });
 
-      // 8. Create onboarding checklist
-      const onboardingSteps: OnboardingStep[] = [
-        {
-          id: uuidv4(),
-          step_number: 1,
-          title: 'Configurar Información del Negocio',
-          description: 'Completa los datos de tu restaurante (nombre, RUC, dirección)',
-          is_completed: false,
-        },
-        {
-          id: uuidv4(),
-          step_number: 2,
-          title: 'Crear Empleados',
-          description: 'Agrega al menos un empleado además del administrador',
-          is_completed: false,
-        },
-        {
-          id: uuidv4(),
-          step_number: 3,
-          title: 'Crear Productos',
-          description: 'Agrega los productos que venderás (pollos, bebidas, etc.)',
-          is_completed: false,
-        },
-        {
-          id: uuidv4(),
-          step_number: 4,
-          title: 'Configurar Estaciones',
-          description: 'Configura las estaciones de cocina (parrilla, cocina, bar)',
-          is_completed: false,
-        },
-        {
-          id: uuidv4(),
-          step_number: 5,
-          title: 'Activar Terminal',
-          description: 'Activa tu terminal POS con el código de activación',
-          is_completed: false,
-        },
-        {
-          id: uuidv4(),
-          step_number: 6,
-          title: 'Realizar Primera Venta',
-          description: 'Realiza tu primera venta de prueba en el sistema',
-          is_completed: false,
-        },
-      ];
+      // 8. Create onboarding checklist (atomic, inside transaction)
+      const checklist = await createOnboardingChecklist(tenantId, tx);
 
       return {
         tenant_id: tenantId,
         admin_employee_id: adminEmployeeId,
         activation_code: activationCode,
-        onboarding_checklist: onboardingSteps,
+        onboarding_checklist: checklist.steps.map((s) => ({
+          id: s.id,
+          step_number: s.step_number,
+          title: s.title,
+          description: s.description || '',
+          is_completed: s.is_completed,
+        })),
         credentials: {
           tenant_id: tenantId,
           admin_employee_id: adminEmployeeId,
           admin_pin: request.admin_pin,
         },
       };
+    }, {
+      timeout: 30000,  // 30s for remote Supabase Cloud
+      maxWait: 10000,  // 10s max wait for transaction slot
     });
 
     return result;
@@ -263,9 +230,9 @@ export async function provisionTenant(
 
 /**
  * Get tenant provisioning status
- * 
+ *
  * Checks if a tenant has been fully provisioned with all required resources.
- * 
+ *
  * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
  */
 export async function getTenantProvisioningStatus(

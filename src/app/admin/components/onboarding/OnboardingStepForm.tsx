@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * Onboarding Step Form Component
+ *
+ * Displays the content and actions for a single onboarding step.
+ * Uses ONBOARDING_STEPS from the unified constant.
+ * All user-facing text in Spanish.
+ *
+ * Requirements: F2.3
+ */
+
 import React from 'react';
 import { OnboardingStep } from '@/src/core/tenant/onboarding';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
@@ -25,43 +35,12 @@ export default function OnboardingStepForm({
         return (
           <div className="space-y-4">
             <p className="text-slate-600">
-              Set up your restaurant's basic information. This will be displayed
-              on receipts and invoices.
+              Configura la informacion basica de tu restaurante. Estos datos apareceran
+              en recibos y facturas.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
-                ℹ️ You can update this information later in Settings.
-              </p>
-            </div>
-          </div>
-        );
-
-      case 'CONFIGURE_SETTINGS':
-        return (
-          <div className="space-y-4">
-            <p className="text-slate-600">
-              Configure your system preferences including timezone, currency,
-              and KDS settings.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-900">
-                ℹ️ Default timezone is set to America/Lima (Peru).
-              </p>
-            </div>
-          </div>
-        );
-
-      case 'CREATE_TERMINAL':
-        return (
-          <div className="space-y-4">
-            <p className="text-slate-600">
-              Create your first POS terminal. This is the device where orders
-              will be taken.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-900">
-                ℹ️ You can add more terminals later. Each terminal needs a
-                unique ID.
+                Puedes actualizar esta informacion despues en Configuracion.
               </p>
             </div>
           </div>
@@ -71,12 +50,12 @@ export default function OnboardingStepForm({
         return (
           <div className="space-y-4">
             <p className="text-slate-600">
-              Create your first employee. This person will be able to log in to
-              the system using their PIN.
+              Crea tu primer empleado. Esta persona podra iniciar sesion en el
+              sistema usando su PIN.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
-                ℹ️ Make sure to set a secure PIN (4-6 digits).
+                Asegurate de configurar un PIN seguro (4-6 digitos).
               </p>
             </div>
           </div>
@@ -86,13 +65,13 @@ export default function OnboardingStepForm({
         return (
           <div className="space-y-4">
             <p className="text-slate-600">
-              Add your first product to the catalog. This will be available for
-              ordering.
+              Agrega tu primer producto al catalogo. Estara disponible para
+              tomar pedidos.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
-                ℹ️ Products are organized by category and assigned to kitchen
-                stations.
+                Los productos se organizan por categoria y se asignan a
+                estaciones de cocina.
               </p>
             </div>
           </div>
@@ -102,13 +81,29 @@ export default function OnboardingStepForm({
         return (
           <div className="space-y-4">
             <p className="text-slate-600">
-              Configure your kitchen stations. These are where orders are sent
-              for preparation.
+              Configura tus estaciones de cocina. Los pedidos se envian a estas
+              estaciones para su preparacion.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
-                ℹ️ Default stations: Parrilla, Cocina, Bar, Empaque. You can
-                customize these.
+                Estaciones por defecto: Parrilla, Cocina, Bar, Empaque. Puedes
+                personalizarlas.
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'ACTIVATE_TERMINAL':
+        return (
+          <div className="space-y-4">
+            <p className="text-slate-600">
+              Activa tu terminal POS con el codigo de activacion proporcionado.
+              El terminal es donde se tomaran los pedidos.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-900">
+                Puedes agregar mas terminales despues. Cada terminal necesita un
+                codigo unico.
               </p>
             </div>
           </div>
@@ -118,11 +113,12 @@ export default function OnboardingStepForm({
         return (
           <div className="space-y-4">
             <p className="text-slate-600">
-              Set up the payment methods your restaurant accepts.
+              Configura los metodos de pago que acepta tu restaurante.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
-                ℹ️ Common methods: Cash, Card, QR Code. You can add more later.
+                Metodos comunes: Efectivo, Tarjeta, Codigo QR. Puedes agregar
+                mas despues.
               </p>
             </div>
           </div>
@@ -131,7 +127,7 @@ export default function OnboardingStepForm({
       default:
         return (
           <p className="text-slate-600">
-            Complete this step to continue with the setup.
+            Completa este paso para continuar con la configuracion.
           </p>
         );
     }
@@ -173,9 +169,9 @@ export default function OnboardingStepForm({
         <div className="mb-6 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
           <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-green-900">Step Completed</p>
+            <p className="font-medium text-green-900">Paso Completado</p>
             <p className="text-sm text-green-700">
-              This step has been completed. You can move to the next step.
+              Este paso ha sido completado. Puedes continuar al siguiente paso.
             </p>
           </div>
         </div>
@@ -189,7 +185,7 @@ export default function OnboardingStepForm({
             disabled={isLoading}
             className="px-6 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors disabled:opacity-50"
           >
-            Skip
+            Omitir
           </button>
         )}
 
@@ -201,15 +197,15 @@ export default function OnboardingStepForm({
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Processing...
+              Procesando...
             </>
           ) : step.is_completed ? (
             <>
               <CheckCircle2 className="w-4 h-4" />
-              Completed
+              Completado
             </>
           ) : (
-            'Complete Step'
+            'Completar Paso'
           )}
         </button>
       </div>
@@ -217,8 +213,8 @@ export default function OnboardingStepForm({
       {/* Help Text */}
       <div className="mt-6 pt-6 border-t border-slate-200">
         <p className="text-xs text-slate-500">
-          💡 Tip: You can complete these steps in any order. Required steps are
-          marked with a red asterisk.
+          Consejo: Puedes completar estos pasos en cualquier orden. Los pasos requeridos
+          estan marcados con asterisco rojo.
         </p>
       </div>
     </div>

@@ -1,6 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+/**
+ * Onboarding Wizard Component
+ *
+ * Displays the full onboarding wizard with progress bar, step list, and step forms.
+ * All user-facing text in Spanish.
+ *
+ * Requirements: F2.2, F2.3
+ */
+
+import React, { useState } from 'react';
 import { OnboardingStep } from '@/src/core/tenant/onboarding';
 import OnboardingStepProgress from './OnboardingStepProgress';
 import OnboardingStepForm from './OnboardingStepForm';
@@ -65,7 +74,7 @@ export default function OnboardingWizard({
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to complete step'
+        err instanceof Error ? err.message : 'Error al completar paso'
       );
     } finally {
       setIsLoading(false);
@@ -101,11 +110,10 @@ export default function OnboardingWizard({
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Welcome to PARK POS
+            Bienvenido a PARK POS
           </h1>
           <p className="text-slate-600">
-            Let's set up your restaurant system. Complete the required steps to
-            get started.
+            Configuremos tu sistema de restaurante. Completa los pasos requeridos para comenzar.
           </p>
         </div>
 
@@ -113,7 +121,7 @@ export default function OnboardingWizard({
         <div className="mb-8 bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">
-              Setup Progress
+              Progreso de Configuracion
             </h2>
             <span className="text-2xl font-bold text-blue-600">
               {completionPercentage}%
@@ -126,8 +134,7 @@ export default function OnboardingWizard({
             />
           </div>
           <p className="text-sm text-slate-600 mt-2">
-            {completedRequired} of {requiredSteps.length} required steps
-            completed
+            {completedRequired} de {requiredSteps.length} pasos requeridos completados
           </p>
         </div>
 
@@ -160,11 +167,10 @@ export default function OnboardingWizard({
         {completionPercentage === 100 && (
           <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-green-900 mb-2">
-              🎉 Setup Complete!
+              Configuracion Completa!
             </h3>
             <p className="text-green-700">
-              Your PARK POS system is ready to use. You can now start accepting
-              orders.
+              Tu sistema PARK POS esta listo para usar. Ya puedes comenzar a tomar pedidos.
             </p>
           </div>
         )}
