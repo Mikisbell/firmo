@@ -15,6 +15,7 @@ import { setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import { v4 as uuidv4 } from 'uuid';
 import type { TerminalRole } from '@/src/core/auth/types';
 import { EMPLOYEE_ROLES, ADMIN_ROLES } from '@/src/core/constants/roles';
+import { APP_VERSION } from '@/src/core/constants/version';
 
 interface TenantBranding {
   legal_name: string;
@@ -524,7 +525,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
           <Settings className="w-3.5 h-3.5" />
           Terminal fija
         </button>
-        <span className="text-zinc-800 text-xs">v2.1.1</span>
+        <span className="text-zinc-800 text-xs">v{APP_VERSION}</span>
       </div>
     </div>
   );

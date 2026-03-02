@@ -6,6 +6,7 @@ import PinPad from '@/src/components/auth/PinPad';
 import { ParkLogo } from '@/src/components/icons';
 import { Shield, ArrowLeft, AlertTriangle, Sparkles, WifiOff, CreditCard, ChevronLeft } from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
+import { APP_VERSION } from '@/src/core/constants/version';
 
 interface AdminLoginScreenProps {
   onSuccess: (employee: { id: string; name: string; role: string }) => void;
@@ -372,7 +373,7 @@ export default function AdminLoginScreen({ onSuccess, onBack }: AdminLoginScreen
         transition={{ delay: 0.6 }}
         className="py-4 text-center relative z-10"
       >
-        <p className="text-xs text-zinc-600">PARK POS v2.1.1</p>
+        <p className="text-xs text-zinc-600">PARK POS v{APP_VERSION}</p>
       </motion.footer>
     </div>
   );

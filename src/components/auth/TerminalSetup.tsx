@@ -8,6 +8,7 @@ import { getOrCreateDeviceId } from '@/src/core/auth/device-id';
 import type { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
 import { Monitor, Loader2, ArrowRight, ArrowLeft, Settings, Sparkles, Key } from 'lucide-react';
 import { ParkLogo } from '@/src/components/icons';
+import { APP_VERSION } from '@/src/core/constants/version';
 
 interface TerminalSetupProps { 
   /** @deprecated Navigation now happens internally using window.location.href */
@@ -383,7 +384,7 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
         <p className="text-xs text-zinc-600">
           <span className="bg-gradient-to-r from-zinc-600 to-zinc-500 bg-clip-text text-transparent">PARK POS</span>
           <span className="mx-2 text-zinc-700">•</span>
-          <span className="text-zinc-600">v2.1.1</span>
+          <span className="text-zinc-600">v{APP_VERSION}</span>
           <span className="mx-2 text-zinc-700">•</span>
           <span className="text-zinc-600">Sistema de Punto de Venta</span>
         </p>

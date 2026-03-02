@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { outOfOrderQueue, startCleanupJob } from "@/src/core/events/out-of-order-queue";
 import { rateLimiter } from "@/src/core/rate-limiting/rate-limiter";
 import { logger } from '@/src/core/observability/structured-logger';
+import { startSpan, endSpan } from '@/src/core/observability/tracing';
 import { eventMigrator } from "@/src/core/domain/event-migrator";
 import "@/src/core/domain/migrations";
 
@@ -699,6 +700,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ accepted: true, acked_through_terminal_sequence: to_terminal_sequence });
     }
 
+    const txSpan = startSpan('ingest.transaction', { tenantId: tenant_id, terminalId: terminal_id, batchSize: events.length });
+
     try {
         const deduped_event_ids: string[] = [];
         const rejected: Array<{ event_id: string; error: string; details?: Record<string, unknown> }> = [];
@@ -909,8 +912,13 @@ export async function POST(req: Request) {
         }, {
             timeout: 30000, // 30 seconds
             maxWait: 10000, // 10 seconds max wait for transaction slot
-            isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead, // Suficiente para prevenir phantom reads
+            isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
         });
+
+        txSpan.setAttribute('ingest.accepted', acceptedEvents.length);
+        txSpan.setAttribute('ingest.deduped', deduped_event_ids.length);
+        txSpan.setAttribute('ingest.rejected', rejected.length);
+        endSpan(txSpan);
 
         // Post-transaction: Cash variance alert on SHIFT_CLOSED
         for (const ev of acceptedEvents) {
@@ -997,6 +1005,7 @@ export async function POST(req: Request) {
             { status: 200 }
         );
     } catch (e: unknown) {
+        endSpan(txSpan, e);
         const msg = e instanceof Error ? e.message : String(e);
         logger.error('Error crítico de base de datos al guardar eventos', e instanceof Error ? e : new Error(msg), {
             tenantId: tenant_id,

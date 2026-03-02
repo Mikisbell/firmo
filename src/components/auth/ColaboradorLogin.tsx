@@ -20,6 +20,7 @@ import { safeStorage } from '@/src/lib/storage';
 import { setStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import { v4 as uuidv4 } from 'uuid';
 import type { TerminalRole } from '@/src/core/auth/types';
+import { APP_VERSION } from '@/src/core/constants/version';
 
 const FALLBACK_TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const SESSION_STORAGE_KEY = 'park_session_v2';
@@ -385,7 +386,7 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
         transition={{ delay: 0.6 }}
         className="py-4 text-center relative z-10"
       >
-        <p className="text-xs text-zinc-600">PARK POS v2.1.1</p>
+        <p className="text-xs text-zinc-600">PARK POS v{APP_VERSION}</p>
       </motion.footer>
     </div>
   );

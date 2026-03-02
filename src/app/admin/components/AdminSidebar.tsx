@@ -60,6 +60,7 @@ import { useSidebarBadges } from '../hooks/useSidebarBadges';
 import { TenantLogo } from '@/src/components/branding';
 import { useTenantBranding } from '@/src/core/tenant/branding-context';
 import { useAdminPreload } from '@/src/lib/lazy-admin-components';
+import { APP_VERSION } from '@/src/core/constants/version';
 
 export interface NavItem {
   href: string;
@@ -209,7 +210,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/compras', label: 'Compras', description: 'Órdenes de compra a proveedores', icon: ShoppingCart, permission: 'manage_products' },
       { href: '/admin/facturacion', label: 'Facturación', description: 'Boletas, facturas y notas SUNAT', icon: FileText, permission: 'manage_config' },
       { href: '/admin/conciliacion', label: 'Conciliación', description: 'Cruce de caja vs ventas del día', icon: Scale, permission: 'view_reports' },
-      { href: '/admin/estado-resultados', label: 'P&amp;L', description: 'Estado de resultados detallado', icon: PieChart, permission: 'view_reports' },
+      { href: '/admin/estado-resultados', label: 'P&L', description: 'Estado de resultados detallado', icon: PieChart, permission: 'view_reports' },
     ],
   },
   {
@@ -581,7 +582,7 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
                 <span>PARK POS</span>
                 <span>&middot;</span>
-                <span>v2.1.1</span>
+                <span>v{APP_VERSION}</span>
               </div>
             </div>
           )}
