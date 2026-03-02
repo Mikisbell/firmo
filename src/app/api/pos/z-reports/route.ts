@@ -34,15 +34,20 @@ export async function POST(request: NextRequest) {
 
   const type = (reportType === 'X' ? 'X' : 'Z') as 'Z' | 'X';
 
-  const service = new ZReportService(prisma);
-  const result = await service.generateReport(tenantId, shiftId, type, actorId);
+  try {
+    const service = new ZReportService(prisma);
+    const result = await service.generateReport(tenantId, shiftId, type, actorId);
 
-  if (!result.success) {
-    const status = result.error.code === 'NOT_FOUND' ? 404 : 400;
-    return NextResponse.json({ error: result.error.message }, { status });
+    if (!result.success) {
+      const status = result.error.code === 'NOT_FOUND' ? 404 : 400;
+      return NextResponse.json({ error: result.error.message }, { status });
+    }
+
+    return NextResponse.json(result.data);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Error interno';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json(result.data);
 }
 
 export async function GET(request: NextRequest) {

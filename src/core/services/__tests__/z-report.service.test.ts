@@ -25,7 +25,11 @@ function createMockPrisma() {
       count: vi.fn(),
     },
     orders: {
+      findMany: vi.fn(),
       count: vi.fn(),
+      aggregate: vi.fn(),
+    },
+    tips: {
       aggregate: vi.fn(),
     },
     z_reports: {
@@ -75,14 +79,23 @@ describe('generateReport', () => {
     mockPrisma.z_reports.findFirst.mockResolvedValue(null); // No existing report
 
     mockPrisma.payments.findMany.mockResolvedValue([
-      { payment_method: 'CASH', amount_cents: 30_000, tip_cents: 500 },
-      { payment_method: 'CASH', amount_cents: 15_000, tip_cents: 0 },
-      { payment_method: 'YAPE', amount_cents: 12_000, tip_cents: 0 },
+      { payment_method: 'CASH', amount_cents: 30_000 },
+      { payment_method: 'CASH', amount_cents: 15_000 },
+      { payment_method: 'YAPE', amount_cents: 12_000 },
+    ]);
+
+    // Tips from tips table
+    mockPrisma.tips.aggregate.mockResolvedValue({ _sum: { amount: 500 } });
+
+    // orders.findMany returns order IDs for invoice join
+    mockPrisma.orders.findMany.mockResolvedValue([
+      { id: 'order-1' },
+      { id: 'order-2' },
     ]);
 
     mockPrisma.invoices.findMany.mockResolvedValue([
-      { invoice_type: 'BOLETA', subtotal_cents: 40_678, igv_cents: 7_322, total_cents: 48_000, tax_category: 'GRAVADO' },
-      { invoice_type: 'FACTURA', subtotal_cents: 7_627, igv_cents: 1_373, total_cents: 9_000, tax_category: 'GRAVADO' },
+      { invoice_type: 'BOLETA', total_cents: 48_000 },
+      { invoice_type: 'FACTURA', total_cents: 9_000 },
     ]);
 
     mockPrisma.invoices.count
@@ -116,6 +129,7 @@ describe('generateReport', () => {
       expect(result.data.paymentsBreakdown.YAPE.totalCents).toBe(12_000);
       expect(result.data.boletasCount).toBe(1);
       expect(result.data.facturasCount).toBe(1);
+      // IGV estimated from total_cents: 48000/1.18=40678, 9000/1.18=7627 → base=48305, igv=8695
       expect(result.data.gravadoBaseCents).toBe(48_305);
       expect(result.data.gravadoIgvCents).toBe(8_695);
     }
@@ -198,8 +212,14 @@ describe('generateReport', () => {
     mockPrisma.z_reports.findFirst.mockResolvedValue(null);
 
     mockPrisma.payments.findMany.mockResolvedValue([
-      { payment_method: 'CASH', amount_cents: 11_800, tip_cents: 0 },
+      { payment_method: 'CASH', amount_cents: 11_800 },
     ]);
+
+    // Tips from tips table
+    mockPrisma.tips.aggregate.mockResolvedValue({ _sum: { amount: 0 } });
+
+    // orders.findMany returns order IDs for invoice join
+    mockPrisma.orders.findMany.mockResolvedValue([{ id: 'order-1' }]);
 
     mockPrisma.invoices.findMany.mockResolvedValue([]); // No invoices
     mockPrisma.invoices.count.mockResolvedValue(0);

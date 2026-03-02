@@ -116,13 +116,11 @@ export class ZReportService {
       select: {
         payment_method: true,
         amount_cents: true,
-        tip_cents: true,
       },
     });
 
     const paymentsBreakdown: Record<string, { count: number; totalCents: number }> = {};
     let grossSalesCents = 0;
-    let tipsCents = 0;
 
     for (const p of payments) {
       const method = p.payment_method;
@@ -132,24 +130,36 @@ export class ZReportService {
       paymentsBreakdown[method].count++;
       paymentsBreakdown[method].totalCents += p.amount_cents;
       grossSalesCents += p.amount_cents;
-      tipsCents += p.tip_cents ?? 0;
     }
 
-    // 3. Aggregate invoices for IGV breakdown
-    const invoices = await (this.prisma as any).invoices.findMany({
-      where: {
-        tenant_id: tenantId,
-        shift_id: shiftId,
-        status: { in: ['ACCEPTED', 'PENDING'] },
-      },
-      select: {
-        invoice_type: true,
-        subtotal_cents: true,
-        igv_cents: true,
-        total_cents: true,
-        tax_category: true,
-      },
+    // 2b. Aggregate tips from tips table
+    const tipsAgg = await (this.prisma as any).tips.aggregate({
+      where: { tenant_id: tenantId, shift_id: shiftId },
+      _sum: { amount: true },
     });
+    const tipsCents = tipsAgg._sum?.amount ?? 0;
+
+    // 3. Get order IDs for this shift (invoices join through orders)
+    const shiftOrders = await (this.prisma as any).orders.findMany({
+      where: { tenant_id: tenantId, shift_id: shiftId },
+      select: { id: true },
+    });
+    const shiftOrderIds: string[] = shiftOrders.map((o: any) => o.id);
+
+    // 3b. Aggregate invoices for IGV breakdown
+    const invoices = shiftOrderIds.length > 0
+      ? await (this.prisma as any).invoices.findMany({
+          where: {
+            tenant_id: tenantId,
+            order_id: { in: shiftOrderIds },
+            status: { in: ['ACCEPTED', 'PENDING'] },
+          },
+          select: {
+            invoice_type: true,
+            total_cents: true,
+          },
+        })
+      : [];
 
     let boletasCount = 0;
     let boletasTotalCents = 0;
@@ -169,15 +179,10 @@ export class ZReportService {
         facturasTotalCents += inv.total_cents;
       }
 
-      const category = inv.tax_category ?? 'GRAVADO';
-      if (category === 'GRAVADO') {
-        gravadoBaseCents += inv.subtotal_cents;
-        gravadoIgvCents += inv.igv_cents ?? 0;
-      } else if (category === 'EXONERADO') {
-        exoneradoCents += inv.total_cents;
-      } else if (category === 'INAFECTO') {
-        inafectoCents += inv.total_cents;
-      }
+      // Estimate IGV from total_cents (all invoices treated as GRAVADO)
+      const base = Math.round(inv.total_cents / (1 + LIMITS.IGV_RATE));
+      gravadoBaseCents += base;
+      gravadoIgvCents += inv.total_cents - base;
     }
 
     // If no invoices but we have sales, estimate IGV from gross sales
@@ -186,22 +191,26 @@ export class ZReportService {
       gravadoIgvCents = grossSalesCents - gravadoBaseCents;
     }
 
-    // 4. Count voided invoices and credit notes
-    const voidedInvoicesCount = await (this.prisma as any).invoices.count({
-      where: {
-        tenant_id: tenantId,
-        shift_id: shiftId,
-        status: 'VOIDED',
-      },
-    });
+    // 4. Count voided invoices and credit notes (join through orders)
+    const voidedInvoicesCount = shiftOrderIds.length > 0
+      ? await (this.prisma as any).invoices.count({
+          where: {
+            tenant_id: tenantId,
+            order_id: { in: shiftOrderIds },
+            status: 'VOIDED',
+          },
+        })
+      : 0;
 
-    const creditNotesCount = await (this.prisma as any).invoices.count({
-      where: {
-        tenant_id: tenantId,
-        shift_id: shiftId,
-        invoice_type: 'CREDIT_NOTE',
-      },
-    });
+    const creditNotesCount = shiftOrderIds.length > 0
+      ? await (this.prisma as any).invoices.count({
+          where: {
+            tenant_id: tenantId,
+            order_id: { in: shiftOrderIds },
+            invoice_type: 'CREDIT_NOTE',
+          },
+        })
+      : 0;
 
     // 5. Count orders
     const ordersCount = await (this.prisma as any).orders.count({

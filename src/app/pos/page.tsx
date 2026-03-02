@@ -348,7 +348,7 @@ export default function POSPage() {
     };
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-950/20 via-zinc-950 to-zinc-950">
+        <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-950/20 via-zinc-950 to-zinc-950" data-testid="pos-page">
             <Toaster position="top-center" richColors />
             
             {/* Mobile Warning - POS is optimized for tablet/desktop */}
@@ -457,7 +457,7 @@ export default function POSPage() {
                         )}
 
                         {/* Sync Status Badge */}
-                        <div className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-full border transition-colors ${pendingSync > 0
+                        <div data-testid="pos-sync-status" className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-full border transition-colors ${pendingSync > 0
                             ? (pendingSync > 10 ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/30 animate-pulse" : "text-blue-400 bg-blue-500/10 border-blue-500/30")
                             : "text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
                             }`}>
@@ -466,7 +466,7 @@ export default function POSPage() {
                         </div>
 
                         {/* Online/Offline Status */}
-                        <div className={`flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border ${isOnline
+                        <div data-testid="pos-online-status" className={`flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border ${isOnline
                             ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
                             : "text-red-400 bg-red-500/10 border-red-500/30"
                             }`}>

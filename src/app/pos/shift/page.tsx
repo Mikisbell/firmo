@@ -104,12 +104,12 @@ export default function ShiftPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-zinc-950 text-white p-6" data-testid="shift-page">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Gestión de Turnos</h1>
+            <h1 className="text-2xl font-bold" data-testid="shift-page-title">Gestión de Turnos</h1>
             <p className="text-zinc-400 text-sm">Terminal: {terminalId}</p>
           </div>
           <div className="flex gap-2">
@@ -117,12 +117,14 @@ export default function ShiftPage() {
               onClick={fetchData}
               className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
               title="Actualizar"
+              data-testid="shift-refresh-btn"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
             <button
               onClick={handleOpenShiftModal}
               className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-medium transition-colors"
+              data-testid="shift-toggle-btn"
             >
               {activeShift ? "Cerrar Turno" : "Abrir Turno"}
             </button>
@@ -136,7 +138,7 @@ export default function ShiftPage() {
           <div className="flex items-center gap-3 mb-4">
             <Clock className={`w-6 h-6 ${activeShift ? "text-emerald-400" : "text-zinc-500"}`} />
             <div>
-              <h2 className="font-semibold text-lg">
+              <h2 className="font-semibold text-lg" data-testid="shift-active-label">
                 {activeShift ? "Turno Abierto" : "Sin Turno Activo"}
               </h2>
               {activeShift && (
@@ -151,17 +153,17 @@ export default function ShiftPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
               <div className="bg-zinc-800/50 rounded-lg p-4">
                 <div className="text-zinc-400 text-xs uppercase mb-1">Ventas</div>
-                <div className="text-xl font-bold text-emerald-400">
+                <div className="text-xl font-bold text-emerald-400" data-testid="shift-summary-sales">
                   {formatCents(summary.totalSalesCents)}
                 </div>
               </div>
               <div className="bg-zinc-800/50 rounded-lg p-4">
                 <div className="text-zinc-400 text-xs uppercase mb-1">Órdenes</div>
-                <div className="text-xl font-bold">{summary.ordersCount}</div>
+                <div className="text-xl font-bold" data-testid="shift-summary-orders">{summary.ordersCount}</div>
               </div>
               <div className="bg-zinc-800/50 rounded-lg p-4">
                 <div className="text-zinc-400 text-xs uppercase mb-1">Ticket Prom.</div>
-                <div className="text-xl font-bold">
+                <div className="text-xl font-bold" data-testid="shift-summary-avg">
                   {summary.ordersCount > 0
                     ? formatCents(Math.round(summary.totalSalesCents / summary.ordersCount))
                     : "S/ 0.00"}
@@ -169,7 +171,7 @@ export default function ShiftPage() {
               </div>
               <div className="bg-zinc-800/50 rounded-lg p-4">
                 <div className="text-zinc-400 text-xs uppercase mb-1">Apertura Caja</div>
-                <div className="text-xl font-bold">{formatCents(summary.cashOpeningCents)}</div>
+                <div className="text-xl font-bold" data-testid="shift-summary-opening">{formatCents(summary.cashOpeningCents)}</div>
               </div>
             </div>
           )}
@@ -201,7 +203,7 @@ export default function ShiftPage() {
         )}
 
         {/* Shift History */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6" data-testid="shift-history-section">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <History className="w-5 h-5 text-amber-400" />
             Historial de Turnos
@@ -214,6 +216,7 @@ export default function ShiftPage() {
                 <div
                   key={shift.id}
                   className="flex items-center justify-between bg-zinc-800/50 rounded-lg p-3"
+                  data-testid={`shift-history-item-${shift.id}`}
                 >
                   <div>
                     <span className="text-sm font-medium">
@@ -230,6 +233,7 @@ export default function ShiftPage() {
                         href={`/pos/shift/z-report?shiftId=${shift.id}`}
                         className="p-1.5 rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
                         title="Ver Reporte Z"
+                        data-testid={`shift-z-report-link-${shift.id}`}
                       >
                         <FileText className="w-3.5 h-3.5 text-amber-400" />
                       </Link>

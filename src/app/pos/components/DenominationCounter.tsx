@@ -42,9 +42,9 @@ export function DenominationCounter({ onChange }: DenominationCounterProps) {
   const coins = PEN_DENOMINATIONS.filter(d => d.type === "coin");
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="denomination-counter">
       {/* Bills */}
-      <div>
+      <div data-testid="denomination-bills-section">
         <div className="text-xs text-zinc-500 uppercase font-medium mb-1.5">Billetes</div>
         <div className="space-y-1.5">
           {bills.map(d => {
@@ -61,9 +61,10 @@ export function DenominationCounter({ onChange }: DenominationCounterProps) {
                   onChange={e => handleChange(d.faceCents, e.target.value)}
                   className="w-16 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-center text-white text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   placeholder="0"
+                  data-testid={`denom-input-${d.faceCents}`}
                 />
                 <span className="text-zinc-600 text-xs">=</span>
-                <span className="w-20 text-right text-sm font-mono text-zinc-400">
+                <span className="w-20 text-right text-sm font-mono text-zinc-400" data-testid={`denom-subtotal-${d.faceCents}`}>
                   {subtotal > 0 ? `S/ ${(subtotal / 100).toFixed(2)}` : "-"}
                 </span>
               </div>
@@ -73,7 +74,7 @@ export function DenominationCounter({ onChange }: DenominationCounterProps) {
       </div>
 
       {/* Coins */}
-      <div>
+      <div data-testid="denomination-coins-section">
         <div className="text-xs text-zinc-500 uppercase font-medium mb-1.5">Monedas</div>
         <div className="space-y-1.5">
           {coins.map(d => {
@@ -90,9 +91,10 @@ export function DenominationCounter({ onChange }: DenominationCounterProps) {
                   onChange={e => handleChange(d.faceCents, e.target.value)}
                   className="w-16 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-center text-white text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   placeholder="0"
+                  data-testid={`denom-input-${d.faceCents}`}
                 />
                 <span className="text-zinc-600 text-xs">=</span>
-                <span className="w-20 text-right text-sm font-mono text-zinc-400">
+                <span className="w-20 text-right text-sm font-mono text-zinc-400" data-testid={`denom-subtotal-${d.faceCents}`}>
                   {subtotal > 0 ? `S/ ${(subtotal / 100).toFixed(2)}` : "-"}
                 </span>
               </div>
@@ -104,7 +106,7 @@ export function DenominationCounter({ onChange }: DenominationCounterProps) {
       {/* Total */}
       <div className="border-t border-zinc-700 pt-2 flex justify-between items-center">
         <span className="text-sm font-semibold text-white">Total Contado</span>
-        <span className="text-lg font-bold font-mono text-emerald-400">
+        <span className="text-lg font-bold font-mono text-emerald-400" data-testid="denomination-total">
           S/ {(totalCents / 100).toFixed(2)}
         </span>
       </div>
