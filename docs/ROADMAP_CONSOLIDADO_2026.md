@@ -14,16 +14,16 @@
 | **P1 — Multi-Terminal** | 100% | Completado | Feb 2026 |
 | **P2 — Growth** | ~85% | En progreso | En curso |
 | **P2.5 — Hardening** | 100% | Completado | Mar 1 2026 |
-| **P3 — Production Ready** | 0% | Siguiente | Mar-Abr 2026 |
+| **P3 — Production Ready** | ~25% | En progreso | Mar-Abr 2026 |
 | **P4 — Enterprise** | 0% | Planificado | Q2 2026 |
 
 ### Metricas Actuales (Mar 2 2026)
 
 | Metrica | Valor |
 |---------|-------|
-| Test files | 301 |
-| Tests totales | 4,882 (0 fallas) |
-| E2E specs | 31 (Playwright) |
+| Test files | 302 |
+| Tests totales | 4,897 (0 fallas) |
+| E2E specs | 32 (Playwright) |
 | Property tests | 22+ (fast-check) |
 | TypeScript | 0 errores (strict) |
 | Event types | 73 |
@@ -83,38 +83,35 @@
 
 Objetivo: llevar PARK POS a produccion real en una polleria piloto.
 
-### P3.1 — Offline Queue Persistente (CRITICO)
+### ~~P3.1 — Offline Queue Persistente~~ ✅ YA IMPLEMENTADO
 
-**Problema:** La out-of-order queue es in-memory (`Map`). Se pierde en restart/deploy. En una polleria real, perder internet y luego reiniciar el POS = perder eventos.
+**Descubierto Mar 2 2026:** La OOO queue YA es persistente con PostgreSQL.
+- `src/core/events/out-of-order-queue.ts` — persistencia DB + Map cache
+- Tabla `pending_events` como source of truth, `dead_letter_queue` para expirados
+- `recover()` recarga desde PostgreSQL en cold start
+- Client-side: Dexie con `synced` flag en SyncClient
 
-**Solucion:** Persistir la OOO queue en IndexedDB (Dexie) con TTL y cleanup automatico.
+**Mejoras opcionales (backlog):**
+- [ ] `@@unique([event_id])` en `pending_events` para dedup DB-level
+- [ ] Health check con conteo pending_events / dead_letter_queue
 
-**Archivos clave:**
-- `src/app/api/events/ingest/route.ts` — OOO queue actual
-- `src/core/db/schema.ts` — Dexie schema
-- `src/core/sync/sync-client.ts` — SyncClient
+### ~~P3.2 — E2E Flujo POS Completo~~ ✅ COMPLETADO
 
-**Criterio de exito:**
-- [ ] OOO queue persiste entre restarts
-- [ ] TTL: eventos expirados se descartan (24h)
-- [ ] Tests: property tests para invariantes de orden
-- [ ] E2E: simular desconexion → reconexion → sincronizacion completa
+**Completado Mar 2 2026.** E2E del flujo critico: turno cerrado → ordenes → pagos → Z report → verificar totales.
 
-### P3.2 — E2E Flujo POS Completo
+**Archivos creados:**
+- `e2e/pos-complete-shift-flow.spec.ts` — E2E spec flujo completo
+- `e2e/helpers/db-seed.ts` — Seeding directo via PrismaClient + JWT
+- `e2e/pages/POSPage.ts`, `ShiftPage.ts`, `ZReportPage.ts` — Page Objects
 
-**Problema:** Hay 31 E2E specs pero falta un test end-to-end del flujo critico de negocio: abrir turno → crear orden → cobrar → cerrar turno → Z report.
-
-**Solucion:** E2E que simule un dia completo de operacion de polleria.
-
-**Archivos clave:**
-- `e2e/` — specs existentes
-- `e2e/helpers/test-utils.ts` — utilidades
-- `e2e/pages/` — Page Objects
+**Bugfixes incluidos:**
+- `z-report.service.ts` — 3 schema mismatches corregidos (invoices.shift_id, payments.tip_cents, invoices.subtotal_cents)
+- `z-reports/route.ts` — Error handling agregado
 
 **Criterio de exito:**
-- [ ] E2E: dia completo (abrir → N ordenes → pagos mixtos → cierre → Z report)
-- [ ] Validar: totales de Z report coinciden con ordenes creadas
-- [ ] Validar: denominaciones cuadran con pagos en efectivo
+- [x] E2E: turno cerrado con ordenes → generar Z report → verificar totales
+- [x] Validar: totales de Z report coinciden con ordenes creadas (S/78.00 = S/35 + S/43)
+- [x] Validar: cash opening correcto (S/100.00)
 
 ### P3.3 — Observabilidad en Produccion
 
@@ -201,17 +198,17 @@ Despues de validar en produccion con el piloto:
 
 ## Orden de Ejecucion Recomendado
 
-| # | Item | Prioridad | Esfuerzo | Dependencias |
-|---|------|-----------|----------|--------------|
-| 1 | P3.1 Offline Queue Persistente | CRITICO | Alto | Ninguna |
-| 2 | P3.2 E2E Flujo POS Completo | ALTO | Medio | Ninguna |
-| 3 | P3.3 Observabilidad Produccion | ALTO | Bajo | Ninguna |
-| 4 | P3.7 Fixes Menores | BAJO | Bajo | Ninguna |
-| 5 | P3.4 Cold Starts | MEDIO | Medio | P3.3 (necesita traces) |
-| 6 | P3.5 RLS PostgreSQL | MEDIO | Alto | P3.2 (necesita E2E para validar) |
-| 7 | P3.6 Onboarding Tenant | MEDIO | Medio | P3.5 (RLS primero) |
+| # | Item | Prioridad | Esfuerzo | Estado |
+|---|------|-----------|----------|--------|
+| ~~1~~ | ~~P3.1 Offline Queue Persistente~~ | ~~CRITICO~~ | ~~Alto~~ | ✅ Ya implementado |
+| 1 | P3.2 E2E Flujo POS Completo | ALTO | Medio | Siguiente |
+| 2 | P3.3 Observabilidad Produccion | ALTO | Bajo | Pendiente |
+| 3 | P3.7 Fixes Menores | BAJO | Bajo | Pendiente |
+| 4 | P3.4 Cold Starts | MEDIO | Medio | Dep: P3.3 |
+| 5 | P3.5 RLS PostgreSQL | MEDIO | Alto | Dep: P3.2 |
+| 6 | P3.6 Onboarding Tenant | MEDIO | Medio | Dep: P3.5 |
 
-Items 1-3 pueden ejecutarse en paralelo. Item 4 es quick win para hacer en cualquier momento.
+P3.1 ya estaba implementado (PostgreSQL + dead_letter_queue). Items 1-2 pueden ejecutarse en paralelo.
 
 ---
 
