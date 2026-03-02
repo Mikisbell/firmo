@@ -16,7 +16,7 @@ const nextConfig = {
     optimizeFonts: true,
 
     // Exclude heavy server-only packages from serverless bundles (reduces cold start)
-    serverExternalPackages: ['@prisma/client', 'prisma', 'pino', 'pino-pretty', '@logtail/pino', '@opentelemetry/sdk-node', '@opentelemetry/sdk-trace-node'],
+    serverExternalPackages: ['@prisma/client', 'prisma', 'pino', 'pino-pretty', '@logtail/pino', '@opentelemetry/sdk-node', '@opentelemetry/sdk-trace-node', '@vercel/otel'],
 
     // Code Splitting Optimization
     experimental: {
