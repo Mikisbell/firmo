@@ -41,7 +41,11 @@ export function configurePushService(): void {
     return;
   }
 
-  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+  try {
+    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+  } catch (error) {
+    log.warn('Claves VAPID inválidas. Las notificaciones push no funcionarán.', { error: String(error) });
+  }
 }
 
 // Initialize on module load
