@@ -1,5 +1,5 @@
 /**
- * SUNAT Contingency Mode
+ * SUNAT Contingency Mode — Persistent (Prisma-backed)
  *
  * Per SUNAT regulation, when electronic invoicing is unavailable (SUNAT down,
  * internet outage, certificate issues), the business can operate in
@@ -9,13 +9,17 @@
  * - Issue invoices with contingency flag (for later reconciliation)
  * - All contingency invoices must be sent to SUNAT within 7 calendar days
  * - Uses "offline" series prefix (same series but tracked separately)
- * - Maintains local queue for deferred SUNAT submission
+ * - Maintains DB-persisted queue for deferred SUNAT submission
+ *
+ * Refactored from in-memory singleton to Prisma-backed persistence (Phase 4).
+ * Health checks are passive — the queue worker auto-deactivates contingency
+ * on successful SUNAT response.
  *
  * @module core/integrations/sunat/contingency
  */
 
+import type { PrismaClient } from '@prisma/client';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
-import { sunatClient } from './client';
 
 // ============================================================================
 // Types
@@ -28,18 +32,22 @@ export type ContingencyReason =
   | 'MANUAL_ACTIVATION';  // Operator-activated contingency
 
 export interface ContingencyState {
+  id: string;
+  tenantId: string;
   active: boolean;
-  reason: ContingencyReason | null;
-  activatedAt: Date | null;
+  reason: string;
+  activatedAt: Date;
   activatedBy: string | null;
-  /** Count of invoices issued during this contingency period */
+  deactivatedAt: Date | null;
   pendingCount: number;
-  /** Auto-deactivation after SUNAT is reachable again */
-  lastHealthCheck: Date | null;
-  lastHealthResult: boolean;
+  autoActivated: boolean;
+  failureCount: number;
+  createdAt: Date;
 }
 
 export interface ContingencyInvoice {
+  id: string;
+  contingencyId: string;
   invoiceId: string;
   tenantId: string;
   series: string;
@@ -47,196 +55,339 @@ export interface ContingencyInvoice {
   issuedAt: Date;
   /** Must be reconciled by this date (issued + 7 days) */
   reconcileBy: Date;
-  reconciled: boolean;
+  reconciledAt: Date | null;
 }
 
 // ============================================================================
-// Contingency Manager
+// Constants
 // ============================================================================
 
 const RECONCILIATION_WINDOW_DAYS = 7;
-const HEALTH_CHECK_INTERVAL_MS = 60_000; // 1 minute
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// ============================================================================
+// Contingency Manager — Prisma Persistent
+// ============================================================================
 
 export class ContingencyManager {
-  private state: ContingencyState = {
-    active: false,
-    reason: null,
-    activatedAt: null,
-    activatedBy: null,
-    pendingCount: 0,
-    lastHealthCheck: null,
-    lastHealthResult: true,
-  };
-
-  private healthCheckTimer: ReturnType<typeof setInterval> | null = null;
-  private pendingInvoices: ContingencyInvoice[] = [];
-
-  /** Get current contingency state */
-  getState(): Readonly<ContingencyState> {
-    return { ...this.state };
-  }
-
-  /** Check if we're in contingency mode */
-  isActive(): boolean {
-    return this.state.active;
-  }
+  constructor(private readonly prisma: PrismaClient) {}
 
   /**
-   * Activate contingency mode
+   * Get the active contingency state for a tenant.
+   * Returns null if no active contingency exists.
    */
-  activate(reason: ContingencyReason, activatedBy: string): void {
-    if (this.state.active) {
-      pinoLogger.warn({ existingReason: this.state.reason, newReason: reason }, 'Contingency already active');
-      return;
-    }
-
-    this.state = {
-      active: true,
-      reason,
-      activatedAt: new Date(),
-      activatedBy,
-      pendingCount: 0,
-      lastHealthCheck: null,
-      lastHealthResult: false,
-    };
-
-    pinoLogger.info({ reason, activatedBy }, 'SUNAT contingency mode ACTIVATED');
-
-    // Start health check polling to auto-deactivate when SUNAT is back
-    this.startHealthChecks();
-  }
-
-  /**
-   * Deactivate contingency mode (manual or auto when SUNAT is reachable)
-   */
-  deactivate(): void {
-    if (!this.state.active) return;
-
-    pinoLogger.info({
-      reason: this.state.reason,
-      duration: Date.now() - (this.state.activatedAt?.getTime() || 0),
-      pendingCount: this.state.pendingCount,
-    }, 'SUNAT contingency mode DEACTIVATED');
-
-    this.state.active = false;
-    this.stopHealthChecks();
-  }
-
-  /**
-   * Register an invoice issued during contingency
-   * Returns the reconciliation deadline
-   */
-  registerContingencyInvoice(invoice: {
-    invoiceId: string;
-    tenantId: string;
-    series: string;
-    number: string;
-  }): Date {
-    const issuedAt = new Date();
-    const reconcileBy = new Date(issuedAt.getTime() + RECONCILIATION_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-
-    this.pendingInvoices.push({
-      ...invoice,
-      issuedAt,
-      reconcileBy,
-      reconciled: false,
+  async getState(tenantId: string): Promise<ContingencyState | null> {
+    const record = await (this.prisma as any).sunat_contingency.findFirst({
+      where: { tenant_id: tenantId, active: true },
     });
 
-    this.state.pendingCount++;
+    if (!record) return null;
 
-    pinoLogger.info({
-      invoiceId: invoice.invoiceId,
-      reconcileBy: reconcileBy.toISOString(),
-      pendingCount: this.state.pendingCount,
-    }, 'Contingency invoice registered');
-
-    return reconcileBy;
+    return this.mapRecordToState(record);
   }
 
   /**
-   * Mark a contingency invoice as reconciled (sent to SUNAT successfully)
+   * Check if contingency mode is active for a tenant
    */
-  markReconciled(invoiceId: string): void {
-    const invoice = this.pendingInvoices.find(i => i.invoiceId === invoiceId);
-    if (invoice && !invoice.reconciled) {
-      invoice.reconciled = true;
-      this.state.pendingCount = Math.max(0, this.state.pendingCount - 1);
+  async isActive(tenantId: string): Promise<boolean> {
+    const state = await this.getState(tenantId);
+    return state !== null && state.active;
+  }
+
+  /**
+   * Activate contingency mode for a tenant.
+   * If already active, logs a warning and returns the existing state.
+   */
+  async activate(
+    tenantId: string,
+    reason: ContingencyReason,
+    activatedBy?: string,
+    autoActivated = false,
+  ): Promise<ContingencyState> {
+    // Check if already active
+    const existing = await this.getState(tenantId);
+    if (existing) {
+      pinoLogger.warn(
+        { tenantId, existingReason: existing.reason, newReason: reason },
+        'Contingency already active',
+      );
+      return existing;
     }
-  }
 
-  /**
-   * Get invoices that are approaching their reconciliation deadline
-   * Returns invoices that must be sent within the next N hours
-   */
-  getUrgentReconciliations(hoursThreshold: number = 24): ContingencyInvoice[] {
-    const cutoff = new Date(Date.now() + hoursThreshold * 60 * 60 * 1000);
-    return this.pendingInvoices.filter(
-      i => !i.reconciled && i.reconcileBy <= cutoff
-    );
-  }
-
-  /**
-   * Get overdue invoices (past reconciliation deadline)
-   */
-  getOverdueInvoices(): ContingencyInvoice[] {
     const now = new Date();
-    return this.pendingInvoices.filter(
-      i => !i.reconciled && i.reconcileBy < now
+
+    const record = await (this.prisma as any).sunat_contingency.create({
+      data: {
+        tenant_id: tenantId,
+        active: true,
+        reason,
+        activated_at: now,
+        activated_by: activatedBy ?? null,
+        pending_count: 0,
+        auto_activated: autoActivated,
+        failure_count: 0,
+      },
+    });
+
+    pinoLogger.info(
+      { tenantId, reason, activatedBy, autoActivated },
+      'SUNAT contingency mode ACTIVATED',
     );
+
+    return this.mapRecordToState(record);
   }
 
   /**
-   * Get all pending (non-reconciled) invoices
+   * Deactivate contingency mode for a tenant.
+   * Fails if there are overdue invoices that have not been reconciled.
    */
-  getPendingInvoices(): ContingencyInvoice[] {
-    return this.pendingInvoices.filter(i => !i.reconciled);
-  }
+  async deactivate(
+    tenantId: string,
+    options?: { force?: boolean },
+  ): Promise<boolean> {
+    const state = await this.getState(tenantId);
+    if (!state) return false;
 
-  // ========================================================================
-  // Health Checks
-  // ========================================================================
-
-  private startHealthChecks(): void {
-    if (this.healthCheckTimer) return;
-
-    this.healthCheckTimer = setInterval(async () => {
-      try {
-        const isReachable = await this.checkSunatHealth();
-        this.state.lastHealthCheck = new Date();
-        this.state.lastHealthResult = isReachable;
-
-        if (isReachable && this.state.active) {
-          pinoLogger.info('SUNAT is reachable again, auto-deactivating contingency mode');
-          this.deactivate();
-        }
-      } catch (err) {
-        pinoLogger.error({ error: err }, 'Health check failed');
+    // Check for overdue invoices unless forced
+    if (!options?.force) {
+      const overdue = await this.getOverdueInvoices(tenantId);
+      if (overdue.length > 0) {
+        pinoLogger.warn(
+          { tenantId, overdueCount: overdue.length },
+          'Cannot deactivate contingency: overdue invoices exist',
+        );
+        return false;
       }
-    }, HEALTH_CHECK_INTERVAL_MS);
-  }
-
-  private stopHealthChecks(): void {
-    if (this.healthCheckTimer) {
-      clearInterval(this.healthCheckTimer);
-      this.healthCheckTimer = null;
     }
+
+    const now = new Date();
+
+    await (this.prisma as any).sunat_contingency.update({
+      where: { id: state.id },
+      data: {
+        active: false,
+        deactivated_at: now,
+      },
+    });
+
+    pinoLogger.info(
+      {
+        tenantId,
+        reason: state.reason,
+        duration: now.getTime() - state.activatedAt.getTime(),
+        pendingCount: state.pendingCount,
+      },
+      'SUNAT contingency mode DEACTIVATED',
+    );
+
+    return true;
   }
 
-  private async checkSunatHealth(): Promise<boolean> {
-    try {
-      // Try a lightweight SUNAT query
-      const result = await sunatClient.queryInvoiceStatus('03', 'B001', '00000001');
-      return result.success;
-    } catch {
-      return false;
+  /**
+   * Register an invoice issued during contingency.
+   * Creates a record in sunat_contingency_invoices and increments pending_count.
+   * Returns the reconciliation deadline.
+   */
+  async registerContingencyInvoice(params: {
+    tenantId: string;
+    invoiceId: string;
+    series: string;
+    number: string;
+    issuedAt?: Date;
+  }): Promise<ContingencyInvoice> {
+    const state = await this.getState(params.tenantId);
+    if (!state) {
+      throw new Error(
+        `No active contingency for tenant ${params.tenantId}`,
+      );
     }
+
+    const issuedAt = params.issuedAt ?? new Date();
+    const reconcileBy = new Date(
+      issuedAt.getTime() + RECONCILIATION_WINDOW_DAYS * MS_PER_DAY,
+    );
+
+    // Create invoice record + increment pending_count in a transaction
+    const [invoiceRecord] = await this.prisma.$transaction([
+      (this.prisma as any).sunat_contingency_invoices.create({
+        data: {
+          contingency_id: state.id,
+          invoice_id: params.invoiceId,
+          tenant_id: params.tenantId,
+          series: params.series,
+          number: params.number,
+          issued_at: issuedAt,
+          reconcile_by: reconcileBy,
+        },
+      }),
+      (this.prisma as any).sunat_contingency.update({
+        where: { id: state.id },
+        data: { pending_count: { increment: 1 } },
+      }),
+    ]);
+
+    pinoLogger.info(
+      {
+        tenantId: params.tenantId,
+        invoiceId: params.invoiceId,
+        reconcileBy: reconcileBy.toISOString(),
+        pendingCount: state.pendingCount + 1,
+      },
+      'Contingency invoice registered',
+    );
+
+    return this.mapInvoiceRecord(invoiceRecord);
   }
 
-  /** Clean up resources */
-  destroy(): void {
-    this.stopHealthChecks();
+  /**
+   * Mark a contingency invoice as reconciled (sent to SUNAT successfully).
+   * Updates reconciled_at and decrements pending_count.
+   */
+  async markReconciled(tenantId: string, invoiceId: string): Promise<boolean> {
+    const invoice = await (
+      this.prisma as any
+    ).sunat_contingency_invoices.findFirst({
+      where: {
+        tenant_id: tenantId,
+        invoice_id: invoiceId,
+        reconciled_at: null,
+      },
+    });
+
+    if (!invoice) return false;
+
+    const now = new Date();
+
+    await this.prisma.$transaction([
+      (this.prisma as any).sunat_contingency_invoices.update({
+        where: { id: invoice.id },
+        data: { reconciled_at: now },
+      }),
+      (this.prisma as any).sunat_contingency.update({
+        where: { id: invoice.contingency_id },
+        data: { pending_count: { decrement: 1 } },
+      }),
+    ]);
+
+    pinoLogger.info(
+      { tenantId, invoiceId, contingencyId: invoice.contingency_id },
+      'Contingency invoice reconciled',
+    );
+
+    return true;
+  }
+
+  /**
+   * Get all pending (non-reconciled) contingency invoices for a tenant
+   */
+  async getPendingInvoices(tenantId: string): Promise<ContingencyInvoice[]> {
+    const records = await (
+      this.prisma as any
+    ).sunat_contingency_invoices.findMany({
+      where: {
+        tenant_id: tenantId,
+        reconciled_at: null,
+      },
+      orderBy: { issued_at: 'asc' },
+    });
+
+    return records.map((r: any) => this.mapInvoiceRecord(r));
+  }
+
+  /**
+   * Get invoices approaching their reconciliation deadline.
+   * Returns invoices that must be sent within the next N hours.
+   */
+  async getUrgentReconciliations(
+    tenantId: string,
+    hoursThreshold = 24,
+  ): Promise<ContingencyInvoice[]> {
+    const cutoff = new Date(
+      Date.now() + hoursThreshold * 60 * 60 * 1000,
+    );
+
+    const records = await (
+      this.prisma as any
+    ).sunat_contingency_invoices.findMany({
+      where: {
+        tenant_id: tenantId,
+        reconciled_at: null,
+        reconcile_by: { lte: cutoff },
+      },
+      orderBy: { reconcile_by: 'asc' },
+    });
+
+    return records.map((r: any) => this.mapInvoiceRecord(r));
+  }
+
+  /**
+   * Get overdue invoices (past reconciliation deadline and not reconciled)
+   */
+  async getOverdueInvoices(tenantId: string): Promise<ContingencyInvoice[]> {
+    const now = new Date();
+
+    const records = await (
+      this.prisma as any
+    ).sunat_contingency_invoices.findMany({
+      where: {
+        tenant_id: tenantId,
+        reconciled_at: null,
+        reconcile_by: { lt: now },
+      },
+      orderBy: { reconcile_by: 'asc' },
+    });
+
+    return records.map((r: any) => this.mapInvoiceRecord(r));
+  }
+
+  /**
+   * Increment failure count on the active contingency (used by queue worker)
+   */
+  async incrementFailureCount(tenantId: string): Promise<void> {
+    const state = await this.getState(tenantId);
+    if (!state) return;
+
+    await (this.prisma as any).sunat_contingency.update({
+      where: { id: state.id },
+      data: { failure_count: { increment: 1 } },
+    });
+  }
+
+  // ========================================================================
+  // Private Mappers
+  // ========================================================================
+
+  private mapRecordToState(record: any): ContingencyState {
+    return {
+      id: record.id,
+      tenantId: record.tenant_id,
+      active: record.active,
+      reason: record.reason,
+      activatedAt: new Date(record.activated_at),
+      activatedBy: record.activated_by,
+      deactivatedAt: record.deactivated_at
+        ? new Date(record.deactivated_at)
+        : null,
+      pendingCount: record.pending_count,
+      autoActivated: record.auto_activated,
+      failureCount: record.failure_count,
+      createdAt: new Date(record.created_at),
+    };
+  }
+
+  private mapInvoiceRecord(record: any): ContingencyInvoice {
+    return {
+      id: record.id,
+      contingencyId: record.contingency_id,
+      invoiceId: record.invoice_id,
+      tenantId: record.tenant_id,
+      series: record.series,
+      number: record.number,
+      issuedAt: new Date(record.issued_at),
+      reconcileBy: new Date(record.reconcile_by),
+      reconciledAt: record.reconciled_at
+        ? new Date(record.reconciled_at)
+        : null,
+    };
   }
 }
-
-/** Singleton contingency manager */
-export const contingencyManager = new ContingencyManager();

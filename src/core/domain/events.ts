@@ -806,6 +806,44 @@ const ReservationNoShowPayload = z.object({
 });
 
 // ============================================================================
+// SUNAT Electronic Invoicing Events (F1 - Facturacion Electronica)
+// ============================================================================
+
+// INVOICE_SENT_TO_SUNAT - Invoice dispatched to SUNAT via queue worker
+const InvoiceSentToSunatPayload = z.object({
+    invoice_id: uuidSchema,
+    queue_item_id: uuidSchema,
+    provider: z.enum(["sunat-direct", "nubefact", "mock"]),
+    attempt: z.number().int().positive(),
+    success: z.boolean(),
+});
+
+// INVOICE_SUNAT_ACCEPTED - SUNAT accepted the invoice (CDR code = "0")
+const InvoiceSunatAcceptedPayload = z.object({
+    invoice_id: uuidSchema,
+    response_code: z.string().min(1),
+    hash: z.string().min(1),
+    cdr_received_at: isoDateSchema,
+});
+
+// INVOICE_SUNAT_REJECTED - SUNAT rejected the invoice (CDR code != "0")
+const InvoiceSunatRejectedPayload = z.object({
+    invoice_id: uuidSchema,
+    response_code: z.string().min(1),
+    error_message: z.string().min(1),
+    attempts: z.number().int().nonnegative(),
+});
+
+// DAILY_SUMMARY_SENT - Resumen Diario de Boletas sent to SUNAT
+const DailySummarySentPayload = z.object({
+    summary_id: uuidSchema,
+    tenant_id: uuidSchema,
+    summary_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    boletas_count: z.number().int().nonnegative(),
+    ticket_number: z.string().optional(),
+});
+
+// ============================================================================
 // Discriminated Union of All Events
 // ============================================================================
 
@@ -1231,6 +1269,28 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("RESERVATION"),
         payload: ReservationNoShowPayload,
     }),
+
+    // SUNAT Electronic Invoicing events
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("INVOICE_SENT_TO_SUNAT"),
+        aggregate_type: z.literal("INVOICE"),
+        payload: InvoiceSentToSunatPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("INVOICE_SUNAT_ACCEPTED"),
+        aggregate_type: z.literal("INVOICE"),
+        payload: InvoiceSunatAcceptedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("INVOICE_SUNAT_REJECTED"),
+        aggregate_type: z.literal("INVOICE"),
+        payload: InvoiceSunatRejectedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("DAILY_SUMMARY_SENT"),
+        aggregate_type: z.literal("INVOICE"),
+        payload: DailySummarySentPayload,
+    }),
 ]);
 
 // ============================================================================
@@ -1323,6 +1383,12 @@ export type ReservationCancelledEvent = Extract<ParkEvent, { event_type: "RESERV
 export type ReservationArrivedEvent = Extract<ParkEvent, { event_type: "RESERVATION_ARRIVED" }>;
 export type ReservationSeatedEvent = Extract<ParkEvent, { event_type: "RESERVATION_SEATED" }>;
 export type ReservationNoShowEvent = Extract<ParkEvent, { event_type: "RESERVATION_NO_SHOW" }>;
+
+// SUNAT Electronic Invoicing event types
+export type InvoiceSentToSunatEvent = Extract<ParkEvent, { event_type: "INVOICE_SENT_TO_SUNAT" }>;
+export type InvoiceSunatAcceptedEvent = Extract<ParkEvent, { event_type: "INVOICE_SUNAT_ACCEPTED" }>;
+export type InvoiceSunatRejectedEvent = Extract<ParkEvent, { event_type: "INVOICE_SUNAT_REJECTED" }>;
+export type DailySummarySentEvent = Extract<ParkEvent, { event_type: "DAILY_SUMMARY_SENT" }>;
 
 // ============================================================================
 // Ingest Request Schema

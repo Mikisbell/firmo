@@ -556,6 +556,10 @@ model invoice_cdr {
   hash             String?
   cdr_xml          String?
   received_at      DateTime @default(now()) @db.Timestamptz(6)
+  // SUNAT direct adapter fields (F1)
+  signed_xml       String?
+  pdf_base64       String?
+  qr_string        String?
   invoices         invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   tenants          tenants  @relation(fields: [tenant_id], references: [id])
 
@@ -599,9 +603,10 @@ model invoices {
   voided_by         String?         @db.Uuid
   voided_at         DateTime?       @db.Timestamptz(6)
   created_at        DateTime        @default(now()) @db.Timestamptz(6)
-  credit_notes      credit_notes[]
-  invoice_cdr       invoice_cdr[]
-  invoice_queue     invoice_queue[]
+  credit_notes                 credit_notes[]
+  invoice_cdr                  invoice_cdr[]
+  invoice_queue                invoice_queue[]
+  sunat_contingency_invoices   sunat_contingency_invoices[]
   orders            orders          @relation(fields: [order_id], references: [id])
   tenants           tenants         @relation(fields: [tenant_id], references: [id])
 
@@ -1330,6 +1335,10 @@ model sunat_daily_summary {
   sunat_status   String    @default("PENDING")
   cdr_received   DateTime? @db.Timestamptz(6)
   created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  // SUNAT direct adapter fields (F1)
+  cdr_xml        String?
+  last_error     String?
+  attempts       Int       @default(0)
   tenants        tenants   @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, location_id, summary_date])
@@ -1474,6 +1483,16 @@ model tenant_settings {
   cash_variance_alert_cents     Int      @default(2000)   // S/20 alerta diferencia arqueo
   require_denomination_count    Boolean  @default(false)  // Exigir conteo por denominación al cierre
   tip_max_untaxed_percent       Int      @default(10)     // Propina voluntaria no gravada hasta 10%
+  // === SUNAT Electronic Invoicing ===
+  sunat_provider                String?  @default("NONE")       // SUNAT_DIRECT | NUBEFACT | NONE
+  sunat_mode                    String?  @default("DISABLED")   // PRODUCTION | BETA | DISABLED
+  sunat_sol_user                String?                          // SOL username (e.g., "MODDATOS")
+  sunat_sol_password            String?                          // Encrypted AES-256-GCM
+  sunat_certificate_pem         String?                          // Encrypted AES-256-GCM
+  sunat_private_key_pem         String?                          // Encrypted AES-256-GCM
+  sunat_cert_expires_at         DateTime? @db.Timestamptz(6)     // Certificate expiration
+  nubefact_token                String?                          // Encrypted AES-256-GCM
+  nubefact_url                  String?                          // Nubefact API URL
   tenants                       tenants  @relation(fields: [tenant_id], references: [id])
 }
 
@@ -1873,6 +1892,8 @@ model tenants {
   stations                 stations[]
   stock_alerts             stock_alerts[]
   stock_transfers          stock_transfers[]
+  sunat_contingency            sunat_contingency[]
+  sunat_contingency_invoices   sunat_contingency_invoices[]
   sunat_daily_summary      sunat_daily_summary[]
   supplier_products        supplier_products[]
   suppliers                suppliers[]
@@ -2752,4 +2773,42 @@ model payment_settlements {
 
   @@unique([tenant_id, period_start, period_end, payment_method])
   @@index([tenant_id, status])
+}
+
+model sunat_contingency {
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                  String                       @db.Uuid
+  active                     Boolean                      @default(true)
+  reason                     String
+  activated_at               DateTime                     @db.Timestamptz(6)
+  activated_by               String?                      @db.Uuid
+  deactivated_at             DateTime?                    @db.Timestamptz(6)
+  pending_count              Int                          @default(0)
+  auto_activated             Boolean                      @default(false)
+  failure_count              Int                          @default(0)
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  tenants                    tenants                      @relation(fields: [tenant_id], references: [id])
+  sunat_contingency_invoices sunat_contingency_invoices[]
+
+  @@index([tenant_id, active])
+}
+
+model sunat_contingency_invoices {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contingency_id   String             @db.Uuid
+  invoice_id       String             @db.Uuid
+  tenant_id        String             @db.Uuid
+  series           String
+  number           String
+  issued_at        DateTime           @db.Timestamptz(6)
+  reconcile_by     DateTime           @db.Timestamptz(6)
+  reconciled_at    DateTime?          @db.Timestamptz(6)
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  sunat_contingency sunat_contingency @relation(fields: [contingency_id], references: [id])
+  invoices         invoices           @relation(fields: [invoice_id], references: [id])
+  tenants          tenants            @relation(fields: [tenant_id], references: [id])
+
+  @@index([tenant_id, reconciled_at])
+  @@index([contingency_id])
+  @@index([tenant_id, reconcile_by])
 }

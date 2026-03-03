@@ -9,6 +9,8 @@
 
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { Result, ok, err, DomainError } from '@/src/core/result';
+import { InvoiceProviderRouter } from './provider-router';
+import type { SunatDocumentResult } from './sunat-direct-adapter';
 
 // SUNAT Configuration
 const SUNAT_CONFIG = {
@@ -110,22 +112,25 @@ export class SunatClient {
   /**
    * Send invoice to SUNAT
    * In development: Simulates SUNAT response
-   * In production: Calls real SUNAT web service
+   * In production: Delegates to InvoiceProviderRouter (per-tenant adapter)
+   *
+   * @param invoice - Invoice data (money in centavos)
+   * @param tenantId - Tenant UUID (from JWT). Required in production.
    */
-  async sendInvoice(invoice: InvoiceData): Promise<Result<CdrResponse, DomainError>> {
-    if (this.isProduction && !this.isConfigured()) {
-      return err(new DomainError(
-        'SUNAT not configured. Set SUNAT_RUC, SUNAT_USERNAME, SUNAT_PASSWORD, SUNAT_CERTIFICATE, SUNAT_PRIVATE_KEY',
-        'SUNAT_NOT_CONFIGURED'
-      ));
-    }
-
+  async sendInvoice(invoice: InvoiceData, tenantId?: string): Promise<Result<CdrResponse, DomainError>> {
     if (!this.isProduction) {
       return this.mockSendInvoice(invoice);
     }
 
-    // Production: Call real SUNAT API
-    return this.realSendInvoice(invoice);
+    if (!tenantId) {
+      return err(new DomainError(
+        'tenantId requerido para enviar comprobante a SUNAT en produccion',
+        'SUNAT_TENANT_ID_REQUIRED'
+      ));
+    }
+
+    // Production: Delegate to InvoiceProviderRouter
+    return this.realSendInvoice(invoice, tenantId);
   }
 
   /**
@@ -262,35 +267,47 @@ export class SunatClient {
   }
 
   /**
-   * Real SUNAT implementation
+   * Real SUNAT implementation — delegates to InvoiceProviderRouter.
+   * Resolves the correct adapter (SunatDirect or Nubefact) based on tenant config.
    */
-  private async realSendInvoice(invoice: InvoiceData): Promise<Result<CdrResponse, DomainError>> {
-    // This is where the real SUNAT integration would go
-    // Using node-soap or similar library
-    
-    pinoLogger.info({ 
-      serie: invoice.serie, 
-      numero: invoice.numero 
-    }, 'Sending invoice to real SUNAT');
+  private async realSendInvoice(invoice: InvoiceData, tenantId: string): Promise<Result<CdrResponse, DomainError>> {
+    pinoLogger.info({
+      serie: invoice.serie,
+      numero: invoice.numero,
+      tenantId,
+    }, 'Sending invoice to SUNAT via provider router');
 
     try {
-      // Implementation would:
-      // 1. Sign XML with certificate
-      // 2. Zip the XML
-      // 3. Call SUNAT web service
-      // 4. Parse response
-      // 5. Store CDR
+      const router = new InvoiceProviderRouter();
+      const providerResult = await router.getProvider(tenantId);
 
-      // Placeholder for now
-      return err(new DomainError(
-        'Real SUNAT integration not yet implemented. Use development mode for testing.',
-        'SUNAT_NOT_IMPLEMENTED'
-      ));
+      if (!providerResult.success) {
+        return err(providerResult.error);
+      }
+
+      const provider = providerResult.data;
+      const result = await provider.sendInvoice(invoice);
+
+      if (!result.success) {
+        return err(result.error);
+      }
+
+      // Map SunatDocumentResult to CdrResponse for backward compatibility
+      const docResult: SunatDocumentResult = result.data;
+      const cdrResponse: CdrResponse = {
+        codigoRespuesta: docResult.cdrResponseCode,
+        descripcionRespuesta: docResult.cdrResponseMessage,
+        cdrXml: docResult.cdrXml || undefined,
+        hash: docResult.hash || undefined,
+        fechaRecepcion: new Date(),
+      };
+
+      return ok(cdrResponse);
     } catch (error) {
-      pinoLogger.error({ 
-        error, 
-        serie: invoice.serie, 
-        numero: invoice.numero 
+      pinoLogger.error({
+        error,
+        serie: invoice.serie,
+        numero: invoice.numero
       }, 'SUNAT submission failed');
 
       return err(new DomainError(
