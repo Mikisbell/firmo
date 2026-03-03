@@ -43,8 +43,11 @@ Shared DB con `tenant_id` en todas las tablas relevantes.
 
 ### Consecuencias
 - **Positivas**: Una sola DB para operar, migraciones simples, queries cross-tenant para analytics
-- **Negativas**: Sin Row-Level Security (RLS) — aislamiento depende de `WHERE tenant_id`. Noisy neighbor posible. Backup/restore por tenant individual es imposible.
-- **Riesgos aceptados**: Un query sin `WHERE tenant_id` = data leak. Mitigado por middleware obligatorio.
+- **Negativas**: Noisy neighbor posible. Backup/restore por tenant individual es imposible.
+- **Riesgos aceptados**: Un query sin `WHERE tenant_id` = data leak. Mitigado por middleware obligatorio + RLS guardrail (ver ADR-009).
+
+### Actualizacion (Mar 2, 2026)
+RLS habilitado como guardrail en 123 de 126 tablas. Las policies `tenant_isolation_*` de P3.5 protegen 7 tablas criticas; Supabase agrega policies nativas en las demas. Ver `docs/operations/rls-setup.md`.
 
 ---
 
@@ -178,7 +181,7 @@ Eventos con "PAYMENT" en el nombre → estrategia REJECT. El cajero ve error y r
 
 ## ADR-009: RLS Selectivo para Tablas Sensibles
 
-**Estado**: Parcialmente implementado (Guardrail) | **Fecha**: 2024-Q4 (revisada Mar 1, 2026; implementada Mar 2, 2026)
+**Estado**: Implementado y ejecutado (Guardrail) | **Fecha**: 2024-Q4 (revisada Mar 1, 2026; ejecutada en Supabase Mar 2, 2026)
 
 ### Contexto
 Supabase ofrece RLS nativo en PostgreSQL. El sistema es multi-tenant con aislamiento por `tenant_id` en todas las tablas. La pregunta es si agregar RLS como segunda capa de protección.
@@ -201,3 +204,15 @@ RLS selectivo en 7 tablas sensibles como defensa en profundidad. Script SQL en `
 
 ### Implementación (Mar 2, 2026)
 RLS habilitado en 7 tablas como guardrail de base de datos. Prisma conecta como `postgres` (superuser, bypasea RLS). La protección es efectiva contra acceso directo via Supabase Dashboard o client libraries con roles non-superuser. Scripts idempotentes: `prisma/rls/enable-selective-rls.sql` (aplicar) y `prisma/rls/rollback-rls.sql` (revertir). Verificación: `npx tsx scripts/check-rls-status.ts`. Upgrade path a `app_user` con dual-client Prisma documentado en proposal (`openspec/changes/rls-postgresql/proposal.md`).
+
+### Verificación Post-Ejecución (Mar 2, 2026)
+Ejecutado via `npx prisma db execute --schema prisma/schema.prisma --file prisma/rls/enable-selective-rls.sql`.
+
+Estado real de la DB:
+- **123 de 126 tablas** tienen RLS habilitado (Supabase habilita por defecto + nuestras 7 policies)
+- **7 tablas** con policy `tenant_isolation_*` explicita (P3.5)
+- **3 tablas sin RLS**: `_prisma_migrations` (interna), `shift_denominations` (referencia), `z_reports` (financiero — candidato a agregar)
+- Policies de `events`, `orders`, `employees`: 5 cada una (4 Supabase auto + 1 nuestra)
+- Policies de `payments`, `active_sessions`, `archived_events`, `pending_events`: 1 cada una (solo nuestra)
+
+Ver estado completo en `docs/operations/database-status.md`.

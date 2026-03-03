@@ -1,12 +1,25 @@
 # RLS Setup — Row-Level Security para PARK POS
 
-> P3.5 Guardrail | ADR-009 | 7 tablas sensibles
+> P3.5 Guardrail | ADR-009 | 7 tablas sensibles | **EJECUTADO Mar 2, 2026**
 
 ## Resumen
 
 RLS (Row-Level Security) en PostgreSQL actua como red de seguridad para el aislamiento multi-tenant. El aislamiento primario es por codigo (middleware + `WHERE tenant_id`). RLS protege contra acceso directo a la base de datos via Supabase Dashboard, client libraries, o queries ad-hoc con roles non-superuser.
 
 **Impacto en la aplicacion: CERO.** Prisma conecta como `postgres` (superuser) que bypasea RLS por defecto.
+
+## Estado Actual (Verificado Mar 2, 2026)
+
+RLS ejecutado exitosamente en Supabase Cloud via `prisma db execute`.
+
+| Estadistica | Valor |
+|-------------|-------|
+| Tablas con RLS en la DB | 123 de 126 (98.4%) |
+| Tablas con policy `tenant_isolation_*` (P3.5) | 7 |
+| Tablas con policies Supabase nativas | ~115 |
+| Tablas sin RLS | 3 (`_prisma_migrations`, `shift_denominations`, `z_reports`) |
+
+**Nota:** Supabase habilita RLS por defecto en tablas nuevas y agrega 4 policies automaticas. Nuestro script P3.5 agrego `tenant_isolation_*` como policy adicional en 7 tablas criticas. Para `events`, `orders` y `employees`, la policy P3.5 es la 5ta; para las otras 4, es la unica.
 
 ## Tablas Protegidas
 
@@ -22,17 +35,23 @@ RLS (Row-Level Security) en PostgreSQL actua como red de seguridad para el aisla
 
 ## Habilitar RLS
 
-### Paso 1: Abrir Supabase Dashboard
+> **Ya ejecutado** el 2 de Marzo 2026 via `npx prisma db execute --schema prisma/schema.prisma --file prisma/rls/enable-selective-rls.sql`
 
-Ir a **Supabase Dashboard > SQL Editor** del proyecto.
+### Opcion A: Via Prisma (recomendado)
 
-### Paso 2: Ejecutar el script
+```bash
+npx prisma db execute --schema prisma/schema.prisma --file prisma/rls/enable-selective-rls.sql
+```
 
-Copiar el contenido completo de `prisma/rls/enable-selective-rls.sql` y pegarlo en el SQL Editor. Ejecutar.
+### Opcion B: Via Supabase Dashboard
+
+1. Ir a **Supabase Dashboard > SQL Editor** del proyecto
+2. Copiar el contenido completo de `prisma/rls/enable-selective-rls.sql` y pegarlo en el SQL Editor
+3. Ejecutar
 
 El script es **idempotente**: se puede ejecutar multiples veces sin error. Usa `DROP POLICY IF EXISTS` antes de cada `CREATE POLICY`.
 
-### Paso 3: Verificar en SQL Editor
+### Verificar en SQL Editor
 
 Ejecutar este query directamente en el SQL Editor para confirmar:
 
