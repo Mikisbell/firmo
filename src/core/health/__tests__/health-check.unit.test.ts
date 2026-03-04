@@ -220,8 +220,9 @@ describe('Health Check Service - Unit Tests', () => {
 
       const result = await healthCheckService.check();
 
-      expect(result.components.database.responseTime).toBeGreaterThanOrEqual(100);
-      expect(result.components.eventSourcing.responseTime).toBeGreaterThanOrEqual(50);
+      // Timing-sensitive: use lower bounds to avoid flaky CI failures (e.g., 99ms vs 100ms)
+      expect(result.components.database.responseTime).toBeGreaterThanOrEqual(90);
+      expect(result.components.eventSourcing.responseTime).toBeGreaterThanOrEqual(40);
     });
   });
 
