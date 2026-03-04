@@ -60,7 +60,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
             <TicketTemplate
                 tenantName="PARK POS"
                 date={new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}
-                orderNumber={999}
+                orderNumber={order.order_number}
                 lines={linesToPrint}
                 subtotal={check.subtotal_cents}
                 discount={check.discount_cents}
@@ -202,9 +202,6 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
             <div className="bg-white border-t border-dashed border-gray-300 p-6 pb-8 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] sticky bottom-0 z-20">
                 {/* Math Summary */}
                 <div className="space-y-4 mb-6">
-                    <div className="flex-1">
-                        {/* Removed redundant flex layout */}
-                    </div>
                     <div className="flex justify-between text-gray-500 font-mono text-sm">
                         <span>SUB TOTAL</span>
                         <span>S/ {(check.subtotal_cents / 100).toFixed(2)}</span>
@@ -265,7 +262,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-indigo-500/30 shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
                                 <FileText className="w-5 h-5" />
-                                EMITIR DOT
+                                EMITIR DOC
                             </button>
                         </div>
                     )}

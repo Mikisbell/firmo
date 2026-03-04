@@ -6,6 +6,7 @@
 import { AuthProvider } from '@/src/components/auth';
 import { RoleGuard } from '@/src/components/auth/RoleGuard';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 export default function POSLayout({
   children,
@@ -15,7 +16,7 @@ export default function POSLayout({
   return (
     <ErrorBoundary>
       <AuthProvider requireAuth={true}>
-        <RoleGuard allowedRoles={['CASHIER']}>
+        <RoleGuard allowedRoles={[...ADMIN_ROLES, 'CASHIER']}>
           {children}
         </RoleGuard>
       </AuthProvider>

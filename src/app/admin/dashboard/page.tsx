@@ -325,14 +325,36 @@ export default function AnalyticsDashboardPage() {
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <ChefHat className="w-5 h-5 text-orange-400" />
             Estaciones KDS
+            {stationStats.hasAlerts && (
+              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-normal">
+                {stationStats.totalPending} pendientes
+              </span>
+            )}
           </h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {metrics?.stations && metrics.stations.length > 0 ? (
-              metrics.stations.map((station) => (
-                <StationCard key={station.station} station={station} />
-              ))
+              (() => {
+                // Identify bottleneck: station with highest load among those with pending items
+                const activeStations = metrics.stations.filter(s => s.pending_items > 0);
+                const bottleneckStation = activeStations.length > 0
+                  ? activeStations.reduce((max, s) => (s.load ?? 0) > (max.load ?? 0) ? s : max, activeStations[0])
+                  : null;
+                const bottleneckName = bottleneckStation && (bottleneckStation.load ?? 0) >= 50
+                  ? bottleneckStation.station
+                  : null;
+
+                return metrics.stations
+                  .filter(s => s.pending_items > 0 || (s.load ?? 0) > 0)
+                  .map((station) => (
+                    <StationCard
+                      key={station.station}
+                      station={station}
+                      isBottleneck={station.station === bottleneckName}
+                    />
+                  ));
+              })()
             ) : (
-              <div className="text-center py-8 text-zinc-500">
+              <div className="col-span-2 text-center py-8 text-zinc-500">
                 <ChefHat className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Sin datos de estaciones KDS</p>
                 <p className="text-xs mt-1 text-zinc-600">
@@ -448,46 +470,87 @@ function KPICard({
   );
 }
 
-function StationCard({ station }: { station: StationMetrics }) {
+function StationCard({ station, isBottleneck }: { station: StationMetrics; isBottleneck?: boolean }) {
   const getStationIcon = (name: string) => {
     switch (name.toUpperCase()) {
+      case 'PARRILLA': return Flame;
       case 'COCINA': return ChefHat;
       case 'HORNO': return Flame;
       case 'BAR': return Wine;
+      case 'FRIOS': return ChefHat;
+      case 'POSTRES': return ChefHat;
       default: return ChefHat;
     }
   };
 
   const Icon = getStationIcon(station.station);
   const hasAlert = station.has_alert;
+  const load = station.load ?? 0;
+  const efficiency = station.efficiency ?? 100;
+
+  const loadColor = load >= 80 ? 'bg-red-500' : load >= 50 ? 'bg-yellow-500' : 'bg-green-500';
+  const effColor = efficiency < 70 ? 'text-red-400' : efficiency < 85 ? 'text-yellow-400' : 'text-green-400';
 
   return (
-    <div className={`flex items-center justify-between p-3 rounded-lg ${hasAlert ? 'bg-red-500/10 border border-red-500/30' : 'bg-zinc-800/50'}`}>
-      <div className="flex items-center gap-3">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasAlert ? 'bg-red-500/20 text-red-400' : 'bg-zinc-700 text-zinc-400'}`}>
-          <Icon className="w-4 h-4" />
+    <div className={`p-3 rounded-lg border transition-all ${
+      isBottleneck ? 'bg-red-500/10 border-red-500/30 ring-1 ring-red-500/20' :
+      hasAlert ? 'bg-red-500/10 border-red-500/30' :
+      'bg-zinc-800/50 border-transparent'
+    }`}>
+      {/* Header: Icon + Name + Pending count */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+            hasAlert ? 'bg-red-500/20 text-red-400' : 'bg-zinc-700 text-zinc-400'
+          }`}>
+            <Icon className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="font-medium text-sm">{station.station}</p>
+            <p className="text-xs text-zinc-500">
+              {station.avg_prep_time_minutes > 0
+                ? `~${station.avg_prep_time_minutes.toFixed(0)} min`
+                : 'Sin datos'}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="font-medium">{station.station}</p>
-          <p className="text-xs text-zinc-500">
-            {station.avg_prep_time_minutes > 0 
-              ? `~${station.avg_prep_time_minutes.toFixed(0)} min prep`
-              : 'Sin datos de tiempo'}
+        <div className="text-right">
+          <p className={`text-lg font-bold ${hasAlert ? 'text-red-400' : ''}`}>
+            {station.pending_items}
           </p>
+          <p className="text-[10px] text-zinc-500 uppercase">pend.</p>
         </div>
       </div>
-      <div className="text-right">
-        <p className={`text-lg font-bold ${hasAlert ? 'text-red-400' : ''}`}>
-          {station.pending_items}
-        </p>
-        <p className="text-xs text-zinc-500">pendientes</p>
+
+      {/* Load bar */}
+      <div className="mb-2">
+        <div className="flex justify-between text-[10px] mb-0.5">
+          <span className="text-zinc-500">Carga</span>
+          <span className="text-zinc-400">{load}%</span>
+        </div>
+        <div className="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+          <div className={`h-full transition-all ${loadColor}`} style={{ width: `${load}%` }} />
+        </div>
+      </div>
+
+      {/* Efficiency + Oldest item */}
+      <div className="flex items-center justify-between text-xs">
+        <span className={`font-bold ${effColor}`}>{efficiency}% efic.</span>
         {station.oldest_item_minutes !== null && station.oldest_item_minutes > 0 && (
-          <p className="text-xs text-amber-400 flex items-center gap-1 justify-end mt-1">
+          <span className="text-amber-400 flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            {station.oldest_item_minutes.toFixed(0)}m más antiguo
-          </p>
+            {station.oldest_item_minutes.toFixed(0)}m
+          </span>
         )}
       </div>
+
+      {/* Bottleneck indicator */}
+      {isBottleneck && (
+        <div className="mt-2 text-[10px] text-red-400 font-bold uppercase tracking-wider flex items-center gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          Cuello de botella
+        </div>
+      )}
     </div>
   );
 }

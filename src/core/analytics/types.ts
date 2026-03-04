@@ -9,11 +9,13 @@ import type { PaymentMethod, Centavos } from '@/src/core/types/shared';
 export type { PaymentMethod, Centavos };
 
 export interface StationMetrics {
-  station: string;  // COCINA, HORNO, BAR
+  station: string;  // COCINA, HORNO, BAR, PARRILLA
   avg_prep_time_minutes: number;
   pending_items: number;
   oldest_item_minutes: number | null;
   has_alert: boolean;  // > 10 items pendientes
+  efficiency: number;  // 0-100%, orders completed within estimated_time
+  load: number;        // 0-100%, current capacity utilization
 }
 
 export interface RealtimeMetrics {

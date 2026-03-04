@@ -53,10 +53,10 @@ export function PaymentModal({ totalDueCents, remainingCents, orderNumber, onClo
     const shortcuts = [10, 20, 50, 100];
 
     const methods = [
-        { id: "CASH", label: "Efectivo", icon: Banknote, color: "emerald" },
-        { id: "CARD", label: "Tarjeta", icon: CreditCard, color: "blue" },
-        { id: "YAPE", label: "Yape", icon: Smartphone, color: "purple" },
-        { id: "PLIN", label: "Plin", icon: Smartphone, color: "cyan" },
+        { id: "CASH", label: "Efectivo", icon: Banknote, selected: "border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500", iconBg: "bg-emerald-200", iconText: "text-emerald-700", checkText: "text-emerald-600" },
+        { id: "CARD", label: "Tarjeta", icon: CreditCard, selected: "border-blue-500 bg-blue-50 text-blue-700 ring-1 ring-blue-500", iconBg: "bg-blue-200", iconText: "text-blue-700", checkText: "text-blue-600" },
+        { id: "YAPE", label: "Yape", icon: Smartphone, selected: "border-purple-500 bg-purple-50 text-purple-700 ring-1 ring-purple-500", iconBg: "bg-purple-200", iconText: "text-purple-700", checkText: "text-purple-600" },
+        { id: "PLIN", label: "Plin", icon: Smartphone, selected: "border-cyan-500 bg-cyan-50 text-cyan-700 ring-1 ring-cyan-500", iconBg: "bg-cyan-200", iconText: "text-cyan-700", checkText: "text-cyan-600" },
     ] as const;
 
     return (
@@ -123,19 +123,19 @@ export function PaymentModal({ totalDueCents, remainingCents, orderNumber, onClo
                                             relative p-3 md:p-4 rounded-xl border flex flex-col items-center gap-2 md:gap-3
                                             transition-all duration-200 group touch-manipulation min-h-[80px] md:min-h-[100px]
                                             ${isSelected
-                                                ? `border-${m.color}-500 bg-${m.color}-50 text-${m.color}-700 shadow-md ring-1 ring-${m.color}-500`
+                                                ? `${m.selected} shadow-md`
                                                 : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100 text-gray-600"
                                             }
                                         `}
                                     >
-                                        <div className={`p-2 rounded-full ${isSelected ? `bg-${m.color}-200` : "bg-gray-100 group-hover:bg-white"} transition-colors`}>
-                                            <m.icon className={`w-5 h-5 md:w-6 md:h-6 ${isSelected ? `text-${m.color}-700` : "text-gray-500"}`} />
+                                        <div className={`p-2 rounded-full ${isSelected ? m.iconBg : "bg-gray-100 group-hover:bg-white"} transition-colors`}>
+                                            <m.icon className={`w-5 h-5 md:w-6 md:h-6 ${isSelected ? m.iconText : "text-gray-500"}`} />
                                         </div>
                                         <span className="font-bold text-sm">{m.label}</span>
                                         {isSelected && (
                                             <motion.div
                                                 layoutId="check"
-                                                className={`absolute top-2 right-2 text-${m.color}-600`}
+                                                className={`absolute top-2 right-2 ${m.checkText}`}
                                             >
                                                 <Check className="w-4 h-4" />
                                             </motion.div>

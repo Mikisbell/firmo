@@ -146,3 +146,121 @@ export function useInvoiceStats(
     isLoading,
   };
 }
+
+// ============================================================================
+// SUNAT Configuration Hook
+// ============================================================================
+
+export interface SunatConfig {
+  sunat_provider: string;
+  sunat_mode: string;
+  sunat_sol_user: string | null;
+  has_sol_password: boolean;
+  has_certificate: boolean;
+  has_private_key: boolean;
+  sunat_cert_expires_at: string | null;
+  cert_expires_in_days: number | null;
+  nubefact_url: string | null;
+  has_nubefact_token: boolean;
+  ruc: string | null;
+}
+
+export function useSunatConfig(config?: SWRConfiguration) {
+  const { data, error, isLoading, mutate } = useSWR<SunatConfig>(
+    '/api/admin/facturacion/configuracion',
+    fetcher,
+    { revalidateOnFocus: false, ...config },
+  );
+
+  return { config: data ?? null, error, isLoading, mutate };
+}
+
+// ============================================================================
+// SUNAT Contingency Hook
+// ============================================================================
+
+export interface ContingencyInvoiceItem {
+  id: string;
+  invoiceId: string;
+  series: string;
+  number: string;
+  issuedAt: string;
+  reconcileBy: string;
+  reconciledAt?: string | null;
+}
+
+export interface ContingencyState {
+  active: boolean;
+  state: {
+    id: string;
+    reason: string;
+    activatedAt: string;
+    activatedBy: string | null;
+    deactivatedAt: string | null;
+    pendingCount: number;
+    autoActivated: boolean;
+    failureCount: number;
+    createdAt: string;
+  } | null;
+  pendingInvoices: ContingencyInvoiceItem[];
+  overdueInvoices: ContingencyInvoiceItem[];
+  urgentInvoices: ContingencyInvoiceItem[];
+}
+
+export function useSunatContingency(config?: SWRConfiguration) {
+  const { data, error, isLoading, mutate } = useSWR<ContingencyState>(
+    '/api/admin/facturacion/contingencia',
+    fetcher,
+    { refreshInterval: 30_000, revalidateOnFocus: true, ...config },
+  );
+
+  return { contingency: data ?? null, error, isLoading, mutate };
+}
+
+// ============================================================================
+// SUNAT Daily Summary Hook
+// ============================================================================
+
+export interface DailySummaryItem {
+  id: string;
+  tenant_id: string;
+  summary_date: string;
+  summary_number: string;
+  boletas_count: number;
+  boletas_total_cents: number;
+  ticket_number: string | null;
+  sunat_status: string;
+  last_error: string | null;
+  created_at: string;
+}
+
+interface DailySummaryResponse {
+  items: DailySummaryItem[];
+  pagination: { total: number; page: number; limit: number; pages: number };
+}
+
+export function useDailySummaries(
+  filters?: { page?: number; limit?: number; from?: string; to?: string },
+  config?: SWRConfiguration,
+) {
+  const params = new URLSearchParams();
+  if (filters?.page) params.set('page', String(filters.page));
+  if (filters?.limit) params.set('limit', String(filters.limit));
+  if (filters?.from) params.set('from', filters.from);
+  if (filters?.to) params.set('to', filters.to);
+  const qs = params.toString();
+
+  const { data, error, isLoading, mutate } = useSWR<DailySummaryResponse>(
+    `/api/admin/facturacion/resumenes-diarios${qs ? `?${qs}` : ''}`,
+    fetcher,
+    { refreshInterval: 60_000, revalidateOnFocus: true, ...config },
+  );
+
+  return {
+    summaries: data?.items ?? [],
+    pagination: data?.pagination ?? null,
+    error,
+    isLoading,
+    mutate,
+  };
+}

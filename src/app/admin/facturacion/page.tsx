@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * Admin Facturación Page - Invoice Management Dashboard
+ * Admin Facturación Page — Tabbed dashboard for invoicing management.
  *
- * Stats cards, filters, and invoice table.
+ * Tabs: Comprobantes | Configuración | Resúmenes Diarios | Contingencia
  * Dark theme (zinc-900/800) consistent with admin UI.
  *
  * @module app/admin/facturacion/page
@@ -11,15 +11,87 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FileText, Search, Download, Eye, XCircle, Loader2, ReceiptText, AlertTriangle } from 'lucide-react';
+import {
+  FileText,
+  Search,
+  Download,
+  Eye,
+  XCircle,
+  Loader2,
+  ReceiptText,
+  AlertTriangle,
+  Settings,
+  CalendarDays,
+  ShieldAlert,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useInvoices, useInvoiceStats } from '@/src/hooks/useFacturacion';
+import ConfiguracionTab from './configuracion-tab';
+import ResumenesTab from './resumenes-tab';
+import ContingenciaTab from './contingencia-tab';
 
 function centsToSoles(cents: number): string {
   return `S/ ${(cents / 100).toFixed(2)}`;
 }
 
+type Tab = 'comprobantes' | 'configuracion' | 'resumenes' | 'contingencia';
+
+const tabs: { id: Tab; label: string; icon: typeof FileText }[] = [
+  { id: 'comprobantes', label: 'Comprobantes', icon: FileText },
+  { id: 'configuracion', label: 'Configuración', icon: Settings },
+  { id: 'resumenes', label: 'Resúmenes Diarios', icon: CalendarDays },
+  { id: 'contingencia', label: 'Contingencia', icon: ShieldAlert },
+];
+
 export default function FacturacionPage() {
+  const [activeTab, setActiveTab] = useState<Tab>('comprobantes');
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
+          <ReceiptText className="w-6 h-6 text-amber-400" />
+          Facturación Electrónica
+        </h1>
+        <p className="text-sm text-zinc-400 mt-1">Gestión de boletas, facturas y comprobantes SUNAT</p>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-1 border-b border-zinc-700 overflow-x-auto">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-amber-400 text-amber-400'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'comprobantes' && <ComprobantesTab />}
+      {activeTab === 'configuracion' && <ConfiguracionTab />}
+      {activeTab === 'resumenes' && <ResumenesTab />}
+      {activeTab === 'contingencia' && <ContingenciaTab />}
+    </div>
+  );
+}
+
+// ============================================================================
+// Comprobantes Tab (original content)
+// ============================================================================
+
+function ComprobantesTab() {
   const [page, setPage] = useState(1);
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -69,15 +141,6 @@ export default function FacturacionPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
-          <ReceiptText className="w-6 h-6 text-amber-400" />
-          Facturación Electrónica
-        </h1>
-        <p className="text-sm text-zinc-400 mt-1">Gestión de boletas, facturas y comprobantes SUNAT</p>
-      </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[

@@ -18,7 +18,8 @@ import type {
   PaymentMethod,
 } from './types';
 
-const STATIONS = ['COCINA', 'HORNO', 'BAR'] as const;
+const STATIONS = ['PARRILLA', 'COCINA', 'HORNO', 'BAR', 'FRIOS'] as const;
+const MAX_STATION_CAPACITY = 15; // Max concurrent orders per station
 // Cache TTL: 5 minutos para tests E2E (antes: 30 segundos)
 // En tests E2E, los datos no cambian frecuentemente, podemos cachear por más tiempo
 const CACHE_TTL_MS = process.env.NODE_ENV === 'test' ? 5 * 60 * 1000 : 30_000;
@@ -208,10 +209,20 @@ export async function getRealtimeMetrics(
 
 export async function getStationMetrics(tenantId: string): Promise<StationMetrics[]> {
   const businessDate = getCurrentBusinessDate();
-  
+
   // Convert business_date string to DateTime for Prisma
   const businessDateTime = new Date(`${businessDate}T00:00:00.000Z`);
-  
+
+  // Fetch estimated_time per station for efficiency calculation
+  const stationConfigs = await prisma.stations.findMany({
+    where: { tenant_id: tenantId, is_active: true },
+    select: { code: true, estimated_time: true },
+  });
+  const estimatedTimeByStation: Record<string, number> = {};
+  for (const sc of stationConfigs) {
+    estimatedTimeByStation[sc.code] = sc.estimated_time;
+  }
+
   // Get orders with pending items
   const orders = await prisma.orders.findMany({
     where: {
@@ -228,12 +239,14 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
   const stationData: Record<string, {
     pending: number;
     prepTimes: number[];
+    onTimeCount: number;
+    completedCount: number;
     oldestMinutes: number | null;
   }> = {};
 
   // Initialize stations
   for (const station of STATIONS) {
-    stationData[station] = { pending: 0, prepTimes: [], oldestMinutes: null };
+    stationData[station] = { pending: 0, prepTimes: [], onTimeCount: 0, completedCount: 0, oldestMinutes: null };
   }
 
   const now = Date.now();
@@ -252,7 +265,7 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
 
       if (item.status === 'PENDING' || item.status === 'COOKING') {
         stationData[station].pending++;
-        
+
         // Calculate age of oldest pending item
         const ageMinutes = Math.round((now - new Date(order.created_at).getTime()) / 60000);
         if (stationData[station].oldestMinutes === null || ageMinutes > stationData[station].oldestMinutes) {
@@ -260,10 +273,15 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
         }
       }
 
-      // Calculate prep time for completed items
+      // Calculate prep time and efficiency for completed items
       if (item.status === 'READY' && item.started_cooking_at && item.ready_at) {
         const prepTime = (new Date(item.ready_at).getTime() - new Date(item.started_cooking_at).getTime()) / 60000;
         stationData[station].prepTimes.push(prepTime);
+        stationData[station].completedCount++;
+        const estimated = estimatedTimeByStation[station] ?? 10;
+        if (prepTime <= estimated) {
+          stationData[station].onTimeCount++;
+        }
       }
     }
   }
@@ -273,6 +291,10 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
     const avgPrepTime = data.prepTimes.length > 0
       ? Math.round((data.prepTimes.reduce((a, b) => a + b, 0) / data.prepTimes.length) * 10) / 10
       : 0;
+    const efficiency = data.completedCount > 0
+      ? Math.round((data.onTimeCount / data.completedCount) * 100)
+      : 100;
+    const load = Math.min(100, Math.round((data.pending / MAX_STATION_CAPACITY) * 100));
 
     return {
       station,
@@ -280,6 +302,8 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
       avg_prep_time_minutes: avgPrepTime,
       oldest_item_minutes: data.oldestMinutes,
       has_alert: data.pending > 10,
+      efficiency,
+      load,
     };
   });
 }

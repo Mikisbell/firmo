@@ -6,11 +6,21 @@ Todo en espanol. Codigo, variables y comentarios en ingles.
 ## Memory Protocol (Engram v1.6.0)
 
 Engram proporciona memoria persistente cross-session via MCP (13 tools).
-Usar automaticamente:
+
+### Recall OBLIGATORIO (antes de trabajar)
+- **ANTES de modificar cualquier archivo**: `mem_search` del modulo/area relevante
+- **Al iniciar sesion**: `mem_context(project="park-pos")` para cargar contexto reciente
+- **Al cambiar de area**: buscar bugs, decisions, patterns del nuevo dominio
+- Usar skill `engram-recall` para busquedas estructuradas por area
+
+### Save OBLIGATORIO (despues de trabajar)
 - `mem_save` despues de cada decision arquitectonica, bug resuelto, o descubrimiento
-- `mem_search` al iniciar trabajo en area similar a trabajo previo
 - `mem_session_summary` OBLIGATORIO antes de cerrar sesion
 - `mem_suggest_topic_key` para descubrir topic_key correcto antes de guardar
+
+### Sub-agentes con Engram
+- Todo sub-agente SDD (`/sdd-apply`, `/sdd-verify`) debe buscar Engram antes de implementar
+- Incluir en prompt del sub-agente: "Busca en Engram bugs y patrones del area: mem_search(query='{area}')"
 
 Topicos: `architecture/*`, `config/*`, `bugs/*`, `decisions/*`, `patterns/*`
 Formato senal: What / Why / Where / Learned
@@ -86,9 +96,27 @@ Task(
   prompt: 'You are an SDD sub-agent. Read the skill at ~/.claude/skills/sdd-{phase}/SKILL.md FIRST.
   CONTEXT: Project: park-pos | Change: {name} | Store: engram | Config: openspec/config.yaml
   Previous artifacts: {list}
+
+  ENGRAM RECALL (OBLIGATORIO antes de implementar):
+  1. mem_search(query="{change-name}", project="park-pos", limit=5) — contexto del cambio
+  2. mem_search(query="{area keywords} bug", project="park-pos", type="bugfix", limit=5) — bugs conocidos
+  3. mem_search(query="{area keywords} pattern", project="park-pos", type="pattern", limit=5) — patrones
+  Usa los resultados para evitar repetir errores y seguir convenciones existentes.
+
+  ENGRAM SAVE (OBLIGATORIO despues de implementar):
+  Guardar decisiones, bugs encontrados, patrones nuevos con mem_save.
+
   TASK: {description}
   Return: status, executive_summary, artifacts, next_recommended, risks.'
 )
+```
+
+### Non-SDD Agent Pattern
+Para cualquier sub-agente (Explore, general-purpose, etc.), incluir siempre:
+```
+ENGRAM: Tienes acceso a memoria persistente. ANTES de trabajar:
+- mem_search(query="{tema}", project="park-pos") para contexto
+DESPUES de descubrir algo nuevo: mem_save con formato What/Why/Where/Learned.
 ```
 
 ### State Tracking
@@ -124,6 +152,11 @@ Do NOT force SDD on small tasks (single file edits, quick fixes, questions).
 | `playwright` | Tests E2E — Page Objects, selectors |
 | `github-pr` | Pull Requests — conventional commits, gh CLI |
 | `skill-creator` | Crear nuevos skills |
+
+### Memory Skills
+| Skill | Trigger |
+|-------|---------|
+| `engram-recall` | Inicio de sesion, cambio de area, "contexto", "que sabemos de" |
 
 ### PARK Domain Skills
 | Skill | Trigger |

@@ -20,6 +20,7 @@ import type { InvoiceProviderRouter, InvoiceProvider } from '@/src/core/integrat
 import type { InvoiceData } from '@/src/core/integrations/sunat/client';
 import { SunatDirectAdapterImpl } from '@/src/core/integrations/sunat/sunat-direct-adapter';
 import type { SunatDocumentResult, CreditNoteData, VoidData, TicketStatusResult } from '@/src/core/integrations/sunat/sunat-direct-adapter';
+import { ContingencyManager } from '@/src/core/integrations/sunat/contingency';
 
 // ============================================================================
 // Constants
@@ -73,12 +74,14 @@ interface QueueItem {
 export class SunatQueueWorker {
   private prisma: PrismaClient;
   private providerRouter: InvoiceProviderRouter;
+  private contingencyManager: ContingencyManager;
   private logger;
   private consecutiveFailures: Map<string, number> = new Map();
 
   constructor(prisma: PrismaClient, providerRouter: InvoiceProviderRouter) {
     this.prisma = prisma;
     this.providerRouter = providerRouter;
+    this.contingencyManager = new ContingencyManager(prisma);
     this.logger = pinoLogger.child
       ? pinoLogger.child({ module: 'sunat-queue-worker' })
       : pinoLogger;
@@ -176,12 +179,26 @@ export class SunatQueueWorker {
             failed++;
             this.incrementFailureCount(tenantId);
 
-            // Check auto-contingency threshold
+            // Check auto-contingency threshold → activate contingency mode
             if (this.getFailureCount(tenantId) >= AUTO_CONTINGENCY_THRESHOLD) {
               this.logger.warn(
                 { tenantId, failures: this.getFailureCount(tenantId) },
-                'Auto-contingency threshold reached',
+                'Auto-contingency threshold reached, activating contingency mode',
               );
+              try {
+                await this.contingencyManager.activate(
+                  tenantId,
+                  'SUNAT_UNREACHABLE',
+                  undefined,
+                  true, // autoActivated
+                );
+                this.resetFailureCount(tenantId);
+              } catch (contingencyError) {
+                this.logger.error(
+                  { tenantId, error: (contingencyError as Error).message },
+                  'Failed to activate contingency mode',
+                );
+              }
             }
           }
         }
@@ -350,7 +367,7 @@ export class SunatQueueWorker {
     item: QueueItem,
     provider: InvoiceProvider,
   ): Promise<Result<SunatDocumentResult, DomainError>> {
-    // Load invoice data from DB
+    // Load invoice with related order
     const invoice = await (this.prisma as any).invoices.findUnique({
       where: { id: item.invoice_id },
       include: { orders: true },
@@ -364,7 +381,13 @@ export class SunatQueueWorker {
       ));
     }
 
-    // Build InvoiceData from stored invoice
+    // Resolve items from order → check → lines
+    const sunatItems = this.resolveInvoiceItems(invoice);
+    const customerName = await this.resolveCustomerName(invoice, item.tenant_id);
+
+    // Calculate totals per tax category from resolved items
+    const { totalGravadas, totalIgv } = this.calculateTaxTotals(sunatItems, invoice.total_cents);
+
     const invoiceData: InvoiceData = {
       serie: invoice.series ?? '',
       numero: invoice.invoice_number ?? '',
@@ -372,12 +395,12 @@ export class SunatQueueWorker {
       fechaEmision: new Date(invoice.created_at).toISOString().split('T')[0],
       tipoDocumentoCliente: invoice.customer_doc_type === 'RUC' ? '6' : '1',
       numeroDocumentoCliente: invoice.customer_doc ?? '',
-      razonSocialCliente: '', // Will be populated from order/tenant data
+      razonSocialCliente: customerName,
       moneda: 'PEN',
-      totalGravadas: Math.round(invoice.total_cents / 1.18),
-      totalIgv: invoice.total_cents - Math.round(invoice.total_cents / 1.18),
+      totalGravadas,
+      totalIgv,
       totalImporte: invoice.total_cents,
-      items: [], // Items will be loaded from order data
+      items: sunatItems,
     };
 
     return provider.sendInvoice(invoiceData);
@@ -417,7 +440,7 @@ export class SunatQueueWorker {
   ): Promise<Result<SunatDocumentResult, DomainError>> {
     const creditNote = await (this.prisma as any).credit_notes.findFirst({
       where: { invoice_id: item.invoice_id },
-      include: { invoices: true },
+      include: { invoices: { include: { orders: true } } },
     });
 
     if (!creditNote) {
@@ -427,6 +450,19 @@ export class SunatQueueWorker {
         { invoiceId: item.invoice_id },
       ));
     }
+
+    // Resolve items from the original invoice
+    const sunatItems = creditNote.invoices
+      ? this.resolveInvoiceItems(creditNote.invoices)
+      : [];
+    const customerName = await this.resolveCustomerName(
+      creditNote.invoices,
+      item.tenant_id,
+    );
+    const { totalGravadas, totalIgv } = this.calculateTaxTotals(
+      sunatItems,
+      creditNote.total_cents,
+    );
 
     const creditNoteData: CreditNoteData = {
       serie: creditNote.series ?? '',
@@ -440,15 +476,157 @@ export class SunatQueueWorker {
       motivo: creditNote.reason ?? 'Devolucion',
       tipoDocumentoCliente: creditNote.invoices?.customer_doc_type === 'RUC' ? '6' : '1',
       numeroDocumentoCliente: creditNote.invoices?.customer_doc ?? '',
-      razonSocialCliente: '',
+      razonSocialCliente: customerName,
       moneda: 'PEN',
-      totalGravadas: Math.round(creditNote.total_cents / 1.18),
-      totalIgv: creditNote.total_cents - Math.round(creditNote.total_cents / 1.18),
+      totalGravadas,
+      totalIgv,
       totalImporte: creditNote.total_cents,
-      items: [],
+      items: sunatItems,
     };
 
     return provider.sendCreditNote(creditNoteData);
+  }
+
+  // ============================================================================
+  // Private: Invoice Data Resolution
+  // ============================================================================
+
+  /**
+   * Resolve SUNAT line items from invoice → order → check → lines.
+   * Matches check.lines (by line_id) to order.items to build the
+   * items array required by SUNAT UBL 2.1.
+   *
+   * Uses `any` because Prisma dynamic includes + JSON columns yield untyped results.
+   */
+  private resolveInvoiceItems(invoice: any): Array<{
+    codigo: string;
+    descripcion: string;
+    cantidad: number;
+    unidadMedida: string;
+    precioUnitario: number;
+    precioTotal: number;
+    igv: number;
+  }> {
+    const order = invoice.orders;
+    if (!order) return [];
+
+    // Parse order items JSON
+    const orderItems: any[] = Array.isArray(order.items)
+      ? order.items
+      : (() => { try { return JSON.parse(order.items); } catch { return []; } })();
+
+    if (orderItems.length === 0) return [];
+
+    // Build lookup by line_id
+    const itemsByLineId = new Map<string, any>();
+    for (const item of orderItems) {
+      if (item.line_id) {
+        itemsByLineId.set(item.line_id, item);
+      }
+    }
+
+    // Find the matching check for this invoice
+    const checks: any[] = Array.isArray(order.checks)
+      ? order.checks
+      : (() => { try { return JSON.parse(order.checks); } catch { return []; } })();
+
+    const check = checks.find((c: any) => c.check_id === invoice.check_id);
+
+    // If check has specific lines, use those; otherwise use all order items
+    const linesToUse = check?.lines?.length > 0
+      ? check.lines.map((cl: any) => {
+          const orderItem = itemsByLineId.get(cl.line_id);
+          if (!orderItem) return null;
+          return { ...orderItem, qty: cl.qty ?? orderItem.qty };
+        }).filter(Boolean)
+      : orderItems.filter((item: any) => item.status !== 'VOIDED');
+
+    return linesToUse.map((item: any) => {
+      const qty = item.qty ?? 1;
+      const unitPriceCents = item.unit_price_cents ?? 0;
+      const totalCents = unitPriceCents * qty;
+      const taxCategory = item.tax_category ?? 'GRAVADO';
+
+      // IGV calculation: GRAVADO = 18%, EXONERADO/INAFECTO = 0%
+      const igvCents = taxCategory === 'GRAVADO'
+        ? totalCents - Math.round(totalCents / 1.18)
+        : 0;
+
+      return {
+        codigo: item.sku ?? item.product_id ?? '',
+        descripcion: item.name ?? 'Producto',
+        cantidad: qty,
+        unidadMedida: 'NIU', // Unidad (SUNAT catalog 03)
+        precioUnitario: unitPriceCents,
+        precioTotal: totalCents,
+        igv: igvCents,
+      };
+    });
+  }
+
+  /**
+   * Resolve customer name for SUNAT.
+   * - BOLETA: "-" (SUNAT allows anonymous for boletas)
+   * - FACTURA: Look up from customers table or tenant_settings
+   *
+   * Uses `any` because Prisma dynamic includes yield untyped results.
+   */
+  private async resolveCustomerName(
+    invoice: any, // Prisma dynamic include yields untyped result
+    tenantId: string,
+  ): Promise<string> {
+    if (!invoice) return '-';
+
+    // BOLETA doesn't require customer name
+    if (invoice.invoice_type !== 'FACTURA') {
+      return '-';
+    }
+
+    // FACTURA: try to find customer by document number
+    if (invoice.customer_doc) {
+      try {
+        // Prisma generic PrismaClient type doesn't expose model accessors — cast required
+        const customer = await (this.prisma as any).customers.findFirst({
+          where: {
+            tenant_id: tenantId,
+            phone: invoice.customer_doc, // Customers might store RUC in phone or other field
+          },
+          select: { name: true },
+        });
+        if (customer?.name) return customer.name;
+      } catch {
+        // Lookup failed — continue with fallback
+      }
+    }
+
+    // Fallback: use "-" (SUNAT will validate separately)
+    return '-';
+  }
+
+  /**
+   * Calculate SUNAT tax totals from resolved items.
+   * Falls back to simple 18% calculation if no items resolved.
+   */
+  private calculateTaxTotals(
+    items: Array<{ precioTotal: number; igv: number }>,
+    invoiceTotalCents: number,
+  ): { totalGravadas: number; totalIgv: number } {
+    if (items.length === 0) {
+      // Fallback: assume all gravado at 18%
+      const totalGravadas = Math.round(invoiceTotalCents / 1.18);
+      return {
+        totalGravadas,
+        totalIgv: invoiceTotalCents - totalGravadas,
+      };
+    }
+
+    let totalGravadas = 0;
+    let totalIgv = 0;
+    for (const item of items) {
+      totalGravadas += item.precioTotal - item.igv;
+      totalIgv += item.igv;
+    }
+    return { totalGravadas, totalIgv };
   }
 
   // ============================================================================
