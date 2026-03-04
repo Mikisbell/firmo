@@ -3,8 +3,7 @@
  * If DSN is not set or @sentry/nextjs is not installed, all exports are safe no-ops.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _sentry: any = null
+let _sentry: any = null // Sentry module — dynamic import yields untyped result
 let _initialized = false
 
 async function getSentry() {
