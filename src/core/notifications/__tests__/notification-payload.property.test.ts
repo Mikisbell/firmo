@@ -299,8 +299,8 @@ describe('Property 8: Notification Payload Completeness', () => {
           (tableNumber, totalCents, waiterName, orderId) => {
             const payload = buildRequestCheckPayload(tableNumber, totalCents, waiterName, orderId);
 
-            // Extract the number from the body
-            const match = payload.body.match(/S\/\s*([\d.]+)/);
+            // Extract the number from the body (anchor to "Total:" to avoid matching waiter name)
+            const match = payload.body.match(/Total:\s*S\/\s*([\d.]+)/);
             expect(match).not.toBeNull();
             
             if (match) {
