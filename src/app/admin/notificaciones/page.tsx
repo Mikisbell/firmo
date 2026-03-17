@@ -46,7 +46,7 @@ export default function NotificacionesAdminPage() {
       setSendingTo(employeeId);
       setSuccessMessage(null);
       
-      const res = await fetch('/api/notifications/test', {
+      const res = await fetch('/api/admin/notifications/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // Include httpOnly cookies for authentication

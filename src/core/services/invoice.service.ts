@@ -20,6 +20,7 @@ import { Result, ok, err, DomainError, ValidationError, NotFoundError, ConflictE
 import { CacheService } from '@/src/core/cache/redis.service';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { withTransaction } from '@/src/core/db/transaction';
+import { LoyaltyService, EarnPointsResult } from '@/src/core/services/loyalty.service';
 
 // ============================================================================
 // Tipos y Enums
@@ -100,6 +101,9 @@ export interface InvoiceResult {
   status: InvoiceStatus;
   sunatStatus: SunatStatus;
   createdAt: Date;
+  loyaltyPointsEarned?: number;
+  loyaltyNewBalance?: number;
+  loyaltyTier?: string;
 }
 
 export interface CreditNoteResult {
@@ -264,6 +268,7 @@ export class InvoiceService {
             invoice_number: invoiceNumber,
             customer_doc_type: input.customerDocType,
             customer_doc: input.customerDoc,
+            customer_name: input.customerName ?? null,
             total_cents: input.paymentSummary.totalCents,
             payment_summary: input.paymentSummary as any,
             status: 'ISSUED',
@@ -309,7 +314,68 @@ export class InvoiceService {
           },
         });
 
-        return invoice;
+        // Auto-create/link customer if doc provided
+        if (input.customerDoc) {
+          let customerId: string | null = null;
+
+          const existing = await tx.customers.findFirst({
+            where: { tenant_id: input.tenantId, doc_number: input.customerDoc },
+            select: { id: true, name: true },
+          });
+
+          if (existing) {
+            customerId = existing.id;
+            // Update name if we have one and customer doesn't
+            if (input.customerName && !existing.name) {
+              await tx.customers.update({
+                where: { id: existing.id },
+                data: { name: input.customerName },
+              });
+            }
+          } else {
+            // Auto-create customer with placeholder phone
+            const newCustomer = await tx.customers.create({
+              data: {
+                id: uuidv4(),
+                tenant_id: input.tenantId,
+                phone: `DOC-${input.customerDoc}`,
+                name: input.customerName ?? null,
+                doc_type: input.customerDocType ?? null,
+                doc_number: input.customerDoc,
+              },
+            });
+            customerId = newCustomer.id;
+          }
+
+          if (customerId) {
+            await tx.invoices.update({
+              where: { id: invoiceId },
+              data: { customer_id: customerId },
+            });
+          }
+        }
+
+        // Loyalty points accumulation
+        let loyaltyResult: EarnPointsResult | null = null;
+        const resolvedCustomerId = input.customerDoc
+          ? (await tx.invoices.findUnique({ where: { id: invoiceId }, select: { customer_id: true } }))?.customer_id
+          : null;
+        if (resolvedCustomerId) {
+          try {
+            const loyalty = new LoyaltyService(this.prisma);
+            loyaltyResult = await loyalty.earnPoints(tx, {
+              tenantId: input.tenantId,
+              customerId: resolvedCustomerId,
+              totalCents: input.paymentSummary.totalCents,
+              invoiceId,
+              actorId: input.issuedBy,
+            });
+          } catch (e) {
+            pinoLogger.warn({ error: e, invoiceId }, 'Loyalty points earn failed (non-blocking)');
+          }
+        }
+
+        return { invoice, loyaltyResult };
       },
       { maxRetries: 3, isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
@@ -326,13 +392,18 @@ export class InvoiceService {
       ));
     }
 
-    const invoice = txResult.data;
+    const { invoice, loyaltyResult } = txResult.data;
 
     // Invalidar caches relevantes
     await this.invalidateInvoiceCaches(input.tenantId, invoiceId, input.orderId);
 
     // Construir resultado
     const result = this.mapInvoiceToResult(invoice);
+    if (loyaltyResult) {
+      result.loyaltyPointsEarned = loyaltyResult.pointsEarned;
+      result.loyaltyNewBalance = loyaltyResult.newBalance;
+      result.loyaltyTier = loyaltyResult.tier;
+    }
 
     pinoLogger.info(
       {
@@ -453,6 +524,14 @@ export class InvoiceService {
               status: 'PENDING',
             },
           });
+        }
+
+        // Reverse loyalty points if any were earned
+        try {
+          const loyalty = new LoyaltyService(this.prisma);
+          await loyalty.reverseEarnedPoints(tx, input.tenantId, input.invoiceId);
+        } catch (e) {
+          pinoLogger.warn({ error: e, invoiceId: input.invoiceId }, 'Loyalty points reversal failed (non-blocking)');
         }
 
         return voidedInvoice;

@@ -843,6 +843,24 @@ const DailySummarySentPayload = z.object({
     ticket_number: z.string().optional(),
 });
 
+// Loyalty events (store-only, no server-side projection)
+const LoyaltyPointsEarnedPayload = z.object({
+    customer_id: uuidSchema,
+    invoice_id: uuidSchema.optional(),
+    points_earned: z.number().int().nonnegative(),
+    multiplier: z.number().positive(),
+    new_balance: z.number().int().nonnegative(),
+    tier: z.string(),
+});
+
+const LoyaltyPointsRedeemedPayload = z.object({
+    customer_id: uuidSchema,
+    order_id: uuidSchema.optional(),
+    points_redeemed: z.number().int().positive(),
+    discount_cents: centsSchema,
+    new_balance: z.number().int().nonnegative(),
+});
+
 // ============================================================================
 // Discriminated Union of All Events
 // ============================================================================
@@ -1291,6 +1309,18 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         aggregate_type: z.literal("INVOICE"),
         payload: DailySummarySentPayload,
     }),
+
+    // LOYALTY events (store-only)
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("LOYALTY_POINTS_EARNED"),
+        aggregate_type: z.literal("CUSTOMER"),
+        payload: LoyaltyPointsEarnedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("LOYALTY_POINTS_REDEEMED"),
+        aggregate_type: z.literal("CUSTOMER"),
+        payload: LoyaltyPointsRedeemedPayload,
+    }),
 ]);
 
 // ============================================================================
@@ -1389,6 +1419,10 @@ export type InvoiceSentToSunatEvent = Extract<ParkEvent, { event_type: "INVOICE_
 export type InvoiceSunatAcceptedEvent = Extract<ParkEvent, { event_type: "INVOICE_SUNAT_ACCEPTED" }>;
 export type InvoiceSunatRejectedEvent = Extract<ParkEvent, { event_type: "INVOICE_SUNAT_REJECTED" }>;
 export type DailySummarySentEvent = Extract<ParkEvent, { event_type: "DAILY_SUMMARY_SENT" }>;
+
+// Loyalty event types
+export type LoyaltyPointsEarnedEvent = Extract<ParkEvent, { event_type: "LOYALTY_POINTS_EARNED" }>;
+export type LoyaltyPointsRedeemedEvent = Extract<ParkEvent, { event_type: "LOYALTY_POINTS_REDEEMED" }>;
 
 // ============================================================================
 // Ingest Request Schema

@@ -76,7 +76,7 @@ export class SunatQueueWorker {
   private providerRouter: InvoiceProviderRouter;
   private contingencyManager: ContingencyManager;
   private logger;
-  private consecutiveFailures: Map<string, number> = new Map();
+  private batchFailures: Map<string, number> = new Map();
 
   constructor(prisma: PrismaClient, providerRouter: InvoiceProviderRouter) {
     this.prisma = prisma;
@@ -180,9 +180,10 @@ export class SunatQueueWorker {
             this.incrementFailureCount(tenantId);
 
             // Check auto-contingency threshold → activate contingency mode
-            if (this.getFailureCount(tenantId) >= AUTO_CONTINGENCY_THRESHOLD) {
+            const failureCount = await this.getFailureCount(tenantId);
+            if (failureCount >= AUTO_CONTINGENCY_THRESHOLD) {
               this.logger.warn(
-                { tenantId, failures: this.getFailureCount(tenantId) },
+                { tenantId, failures: failureCount },
                 'Auto-contingency threshold reached, activating contingency mode',
               );
               try {
@@ -367,10 +368,10 @@ export class SunatQueueWorker {
     item: QueueItem,
     provider: InvoiceProvider,
   ): Promise<Result<SunatDocumentResult, DomainError>> {
-    // Load invoice with related order
+    // Load invoice with related order and customer
     const invoice = await (this.prisma as any).invoices.findUnique({
       where: { id: item.invoice_id },
-      include: { orders: true },
+      include: { customer: true, orders: { include: { customers: true } } },
     });
 
     if (!invoice) {
@@ -383,7 +384,27 @@ export class SunatQueueWorker {
 
     // Resolve items from order → check → lines
     const sunatItems = this.resolveInvoiceItems(invoice);
+    
+    // Validate: SUNAT requires at least 1 item per invoice
+    if (sunatItems.length === 0) {
+      return err(new DomainError(
+        'Factura sin items: no se puede enviar a SUNAT',
+        'SUNAT_REJECTED',
+        { invoiceId: item.invoice_id },
+      ));
+    }
+    
     const customerName = await this.resolveCustomerName(invoice, item.tenant_id);
+    
+    // Validate: FACTURA requires valid customer name (RUC requires razon social)
+    // Note: '-' is valid for BOLETA (anonymous customer) but invalid for FACTURA
+    if (invoice.invoice_type === 'FACTURA' && (customerName === '' || customerName === '-')) {
+      return err(new DomainError(
+        'Factura sin nombre de cliente: RUC requiere razon social',
+        'SUNAT_REJECTED',
+        { invoiceId: item.invoice_id, customerDoc: invoice.customer_doc },
+      ));
+    }
 
     // Calculate totals per tax category from resolved items
     const { totalGravadas, totalIgv } = this.calculateTaxTotals(sunatItems, invoice.total_cents);
@@ -440,7 +461,7 @@ export class SunatQueueWorker {
   ): Promise<Result<SunatDocumentResult, DomainError>> {
     const creditNote = await (this.prisma as any).credit_notes.findFirst({
       where: { invoice_id: item.invoice_id },
-      include: { invoices: { include: { orders: true } } },
+      include: { invoices: { include: { customer: true, orders: { include: { customers: true } } } } },
     });
 
     if (!creditNote) {
@@ -455,10 +476,31 @@ export class SunatQueueWorker {
     const sunatItems = creditNote.invoices
       ? this.resolveInvoiceItems(creditNote.invoices)
       : [];
+    
+    // Validate: SUNAT requires at least 1 item per credit note
+    if (sunatItems.length === 0) {
+      return err(new DomainError(
+        'Nota de credito sin items: no se puede enviar a SUNAT',
+        'SUNAT_REJECTED',
+        { invoiceId: item.invoice_id },
+      ));
+    }
+    
     const customerName = await this.resolveCustomerName(
       creditNote.invoices,
       item.tenant_id,
     );
+    
+    // Validate: FACTURA credit note requires valid customer name
+    // Note: '-' is valid for BOLETA (anonymous customer) but invalid for FACTURA
+    if (creditNote.invoices?.invoice_type === 'FACTURA' && (customerName === '' || customerName === '-')) {
+      return err(new DomainError(
+        'Nota de credito sin nombre de cliente: RUC requiere razon social',
+        'SUNAT_REJECTED',
+        { invoiceId: item.invoice_id },
+      ));
+    }
+    
     const { totalGravadas, totalIgv } = this.calculateTaxTotals(
       sunatItems,
       creditNote.total_cents,
@@ -508,14 +550,20 @@ export class SunatQueueWorker {
     igv: number;
   }> {
     const order = invoice.orders;
-    if (!order) return [];
+    if (!order) {
+      this.logger.warn({ invoiceId: invoice.id }, 'resolveInvoiceItems: no order relation loaded');
+      return [];
+    }
 
-    // Parse order items JSON
+    // Parse order items JSON (Prisma auto-parses Json columns)
     const orderItems: any[] = Array.isArray(order.items)
       ? order.items
       : (() => { try { return JSON.parse(order.items); } catch { return []; } })();
 
-    if (orderItems.length === 0) return [];
+    if (orderItems.length === 0) {
+      this.logger.warn({ invoiceId: invoice.id, orderId: order.id }, 'resolveInvoiceItems: order has no items');
+      return [];
+    }
 
     // Build lookup by line_id
     const itemsByLineId = new Map<string, any>();
@@ -567,7 +615,7 @@ export class SunatQueueWorker {
   /**
    * Resolve customer name for SUNAT.
    * - BOLETA: "-" (SUNAT allows anonymous for boletas)
-   * - FACTURA: Look up from customers table or tenant_settings
+   * - FACTURA: Snapshot from invoice → order customer relation → lookup → "-"
    *
    * Uses `any` because Prisma dynamic includes yield untyped results.
    */
@@ -582,15 +630,22 @@ export class SunatQueueWorker {
       return '-';
     }
 
-    // FACTURA: try to find customer by document number
-    if (invoice.customer_doc) {
+    // 1. Best: use the snapshot stored on the invoice at emission time
+    if (invoice.customer_name) return invoice.customer_name;
+
+    // 2. Try from invoice → customer FK (loaded via include: { customer: true })
+    if (invoice.customer?.name) return invoice.customer.name;
+
+    // 3. Try from order → customer relation (loaded via include)
+    const customerFromOrder = invoice.orders?.customers;
+    if (customerFromOrder?.name) return customerFromOrder.name;
+
+    // 4. Fallback: look up customer by order's customer_id
+    const customerId = invoice.orders?.customer_id;
+    if (customerId) {
       try {
-        // Prisma generic PrismaClient type doesn't expose model accessors — cast required
-        const customer = await (this.prisma as any).customers.findFirst({
-          where: {
-            tenant_id: tenantId,
-            phone: invoice.customer_doc, // Customers might store RUC in phone or other field
-          },
+        const customer = await (this.prisma as any).customers.findUnique({
+          where: { id: customerId },
           select: { name: true },
         });
         if (customer?.name) return customer.name;
@@ -599,7 +654,19 @@ export class SunatQueueWorker {
       }
     }
 
-    // Fallback: use "-" (SUNAT will validate separately)
+    // 5. Last resort: look up customer by doc_number
+    if (invoice.customer_doc) {
+      try {
+        const customer = await (this.prisma as any).customers.findFirst({
+          where: { tenant_id: tenantId, doc_number: invoice.customer_doc },
+          select: { name: true },
+        });
+        if (customer?.name) return customer.name;
+      } catch {
+        // Lookup failed — continue with fallback
+      }
+    }
+
     return '-';
   }
 
@@ -947,16 +1014,39 @@ export class SunatQueueWorker {
   }
 
   private incrementFailureCount(tenantId: string): void {
-    const current = this.consecutiveFailures.get(tenantId) ?? 0;
-    this.consecutiveFailures.set(tenantId, current + 1);
+    const current = this.batchFailures.get(tenantId) ?? 0;
+    this.batchFailures.set(tenantId, current + 1);
   }
 
   private resetFailureCount(tenantId: string): void {
-    this.consecutiveFailures.set(tenantId, 0);
+    this.batchFailures.set(tenantId, 0);
   }
 
-  private getFailureCount(tenantId: string): number {
-    return this.consecutiveFailures.get(tenantId) ?? 0;
+  /**
+   * Count consecutive recent failures for a tenant.
+   * Combines in-batch failures with DB-persisted failures from prior runs
+   * (items attempted in last 30 min that are FAILED or still PENDING with errors).
+   */
+  private async getFailureCount(tenantId: string): Promise<number> {
+    const batchCount = this.batchFailures.get(tenantId) ?? 0;
+
+    try {
+      const since = new Date(Date.now() - 30 * 60 * 1000); // 30 min window
+      const dbCount = await (this.prisma as any).invoice_queue.count({
+        where: {
+          tenant_id: tenantId,
+          last_attempt_at: { gte: since },
+          OR: [
+            { status: 'FAILED' },
+            { status: 'PENDING', last_error: { not: null } },
+          ],
+        },
+      });
+      return batchCount + (dbCount as number);
+    } catch {
+      // If DB query fails, fall back to batch-only count
+      return batchCount;
+    }
   }
 }
 

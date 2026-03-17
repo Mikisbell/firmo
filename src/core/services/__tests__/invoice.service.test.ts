@@ -22,9 +22,11 @@ vi.mock('@/src/core/db/transaction', () => ({
   }),
 }));
 
-vi.mock('@/src/core/observability/logger-pino', () => ({
-  pinoLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
-}));
+vi.mock('@/src/core/observability/logger-pino', () => {
+  const logger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), child: vi.fn() };
+  logger.child.mockReturnValue(logger);
+  return { pinoLogger: logger };
+});
 
 vi.mock('@/src/core/cache/redis.service', () => {
   class MockCacheService {
@@ -44,6 +46,7 @@ function createMockPrisma() {
   return {
     invoices: {
       findFirst: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
       findMany: vi.fn(),
       count: vi.fn(),
       create: vi.fn(),
@@ -68,8 +71,24 @@ function createMockPrisma() {
     orders: {
       findFirst: vi.fn(),
     },
+    customers: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'auto-cust-001' }),
+      update: vi.fn().mockResolvedValue({}),
+    },
     events: {
       create: vi.fn(),
+    },
+    tenant_settings: {
+      findUnique: vi.fn().mockResolvedValue({ loyalty_enabled: false }),
+    },
+    customer_profile: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn(),
+    },
+    loyalty_ledger: {
+      create: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
     },
     $queryRaw: vi.fn(),
     $transaction: vi.fn(),

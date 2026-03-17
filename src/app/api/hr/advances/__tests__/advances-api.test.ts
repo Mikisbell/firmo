@@ -96,14 +96,14 @@ function unauthorizedUser() {
 }
 
 function makeRequest(url: string, method: string = 'GET', body?: unknown): NextRequest {
-  const init: RequestInit = {
+  const init: Record<string, unknown> = {
     method,
     headers: { 'content-type': 'application/json' },
   };
   if (body && method !== 'GET') {
     init.body = JSON.stringify(body);
   }
-  return new NextRequest(url, init as Parameters<typeof NextRequest>[1]);
+  return new NextRequest(url, init as any);
 }
 
 function mockAdvanceRecord(overrides?: Record<string, unknown>) {

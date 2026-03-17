@@ -44,11 +44,12 @@ ALTER TABLE "station_alerts"
 -- 4. Drop deprecated time_off_requests table
 -- ============================================================================
 
--- Disable RLS first (if enabled)
-ALTER TABLE IF EXISTS "time_off_requests" DISABLE ROW LEVEL SECURITY;
-
--- Drop policies
-DROP POLICY IF EXISTS "tenant_isolation" ON "time_off_requests";
-
--- Drop the table
-DROP TABLE IF EXISTS "time_off_requests";
+-- Disable RLS + drop policy + drop table (all conditional on table existence)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'time_off_requests') THEN
+    EXECUTE 'ALTER TABLE "time_off_requests" DISABLE ROW LEVEL SECURITY';
+    EXECUTE 'DROP POLICY IF EXISTS "tenant_isolation" ON "time_off_requests"';
+    EXECUTE 'DROP TABLE "time_off_requests"';
+  END IF;
+END $$;

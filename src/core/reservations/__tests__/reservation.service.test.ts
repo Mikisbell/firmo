@@ -119,6 +119,11 @@ const LOCATION_ID = "location-test-001";
 const ACTOR_ID = "admin-test-001";
 const RESERVATION_ID = "res-test-001";
 
+// Dynamic future dates — always 7 days ahead to pass "no past dates" validation
+const FUTURE_DATE = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+FUTURE_DATE.setHours(0, 0, 0, 0);
+const FUTURE_DATE_STR = FUTURE_DATE.toISOString().split("T")[0]!; // "YYYY-MM-DD"
+
 function makeMockReservation(overrides: Record<string, unknown> = {}) {
     return {
         id: RESERVATION_ID,
@@ -127,7 +132,7 @@ function makeMockReservation(overrides: Record<string, unknown> = {}) {
         customer_name: "Maria Lopez",
         customer_phone: "987654321",
         customer_email: null,
-        date: new Date("2026-03-15T00:00:00"),
+        date: FUTURE_DATE,
         time: "19:00",
         duration_minutes: 90,
         party_size: 4,
@@ -444,7 +449,7 @@ describe("checkAvailability", () => {
             },
         } as any;
 
-        const result = await checkAvailability(tx, TENANT_ID, new Date("2026-03-15"), "19:00", 4);
+        const result = await checkAvailability(tx, TENANT_ID, FUTURE_DATE, "19:00", 4);
         expect(result.success).toBe(true);
         if (result.success) {
             expect(result.data.available).toBe(true);
@@ -462,7 +467,7 @@ describe("checkAvailability", () => {
             },
         } as any;
 
-        const result = await checkAvailability(tx, TENANT_ID, new Date("2026-03-15"), "19:00", 4);
+        const result = await checkAvailability(tx, TENANT_ID, FUTURE_DATE, "19:00", 4);
         expect(result.success).toBe(true);
         if (result.success) {
             expect(result.data.available).toBe(false);
@@ -487,7 +492,7 @@ describe("checkAvailability", () => {
             },
         } as any;
 
-        const result = await checkAvailability(tx, TENANT_ID, new Date("2026-03-15"), "19:30", 4);
+        const result = await checkAvailability(tx, TENANT_ID, FUTURE_DATE, "19:30", 4);
         expect(result.success).toBe(true);
         if (result.success) {
             expect(result.data.available).toBe(false);
@@ -513,7 +518,7 @@ describe("checkAvailability", () => {
         } as any;
 
         // Request at 21:00 — no overlap with 19:00-20:30
-        const result = await checkAvailability(tx, TENANT_ID, new Date("2026-03-15"), "21:00", 4);
+        const result = await checkAvailability(tx, TENANT_ID, FUTURE_DATE, "21:00", 4);
         expect(result.success).toBe(true);
         if (result.success) {
             expect(result.data.available).toBe(true);
@@ -539,7 +544,7 @@ describe("checkAvailability", () => {
         } as any;
 
         // 1 table, 1 unassigned overlapping = 0 available
-        const result = await checkAvailability(tx, TENANT_ID, new Date("2026-03-15"), "19:30", 4);
+        const result = await checkAvailability(tx, TENANT_ID, FUTURE_DATE, "19:30", 4);
         expect(result.success).toBe(true);
         if (result.success) {
             expect(result.data.available).toBe(false);
@@ -556,7 +561,7 @@ describe("createReservation", () => {
     const validInput = {
         customer_name: "Maria Lopez",
         customer_phone: "987654321",
-        date: "2026-03-15",
+        date: FUTURE_DATE_STR,
         time: "19:00",
         party_size: 4,
     };
@@ -590,7 +595,7 @@ describe("createReservation", () => {
         expect(result.success).toBe(true);
         if (result.success) {
             expect(result.data.status).toBe("PENDING");
-            expect(result.data.date).toBe("2026-03-15");
+            expect(result.data.date).toBe(FUTURE_DATE_STR);
             expect(result.data.time).toBe("19:00");
             expect(result.data.party_size).toBe(4);
             expect(result.data.confirmation_code).toBeTruthy();
@@ -759,7 +764,7 @@ describe("getReservationsByDate", () => {
             .mockResolvedValueOnce(reservations);
 
         const result = await getReservationsByDate(TENANT_ID, {
-            date: "2026-03-15",
+            date: FUTURE_DATE_STR,
         });
 
         expect(result.success).toBe(true);
@@ -777,7 +782,7 @@ describe("getReservationsByDate", () => {
             .mockResolvedValueOnce([])
             .mockResolvedValueOnce([]);
 
-        const result = await getReservationsByDate(TENANT_ID, { date: "2026-03-15" });
+        const result = await getReservationsByDate(TENANT_ID, { date: FUTURE_DATE_STR });
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -792,7 +797,7 @@ describe("getReservationsByDate", () => {
             .mockResolvedValueOnce([makeMockReservation({ status: "PENDING" })]);
 
         const result = await getReservationsByDate(TENANT_ID, {
-            date: "2026-03-15",
+            date: FUTURE_DATE_STR,
             status: "PENDING",
         });
 
@@ -905,7 +910,7 @@ describe("Concurrency: Overbooking Prevention", () => {
         const validInput = {
             customer_name: "Cliente Test",
             customer_phone: "987654321",
-            date: "2026-03-15",
+            date: FUTURE_DATE_STR,
             time: "19:00",
             party_size: 2,
         };

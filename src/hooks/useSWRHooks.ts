@@ -617,6 +617,42 @@ export function useNotificationStatus(config?: SWRConfiguration) {
   );
 }
 
+// ============ IN-APP NOTIFICATIONS ============
+
+export interface InAppNotification {
+  id: string;
+  tenant_id: string;
+  recipient_id: string;
+  type: 'LEAVE_REQUEST' | 'ADVANCE_REQUEST' | 'PAYSLIP_READY' | 'SHIFT_REMINDER' | 'GENERAL';
+  title: string;
+  body: string;
+  read: boolean;
+  data: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface InAppNotificationsResponse {
+  data: InAppNotification[];
+  unread_count: number;
+}
+
+/**
+ * Hook para obtener notificaciones in-app del empleado autenticado
+ * Polling cada 30s para mantener el badge actualizado
+ */
+export function useInAppNotifications(config?: SWRConfiguration) {
+  return useSWR<InAppNotificationsResponse>(
+    '/api/admin/notifications',
+    fetcher,
+    {
+      refreshInterval: 30 * 1000,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      ...config,
+    },
+  );
+}
+
 interface Promotion {
   id: string;
   tenant_id: string;
@@ -712,11 +748,55 @@ export function useTables(config?: SWRConfiguration) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Customers
+// ---------------------------------------------------------------------------
+
+interface CustomerItem {
+  id: string;
+  phone: string;
+  name: string | null;
+  email: string | null;
+  doc_type: string | null;
+  doc_number: string | null;
+  total_orders: number;
+  total_spent: number;
+  last_order_at: string | null;
+  updated_at: string;
+}
+
+interface CustomersResponse {
+  items: CustomerItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export function useCustomers(
+  params?: { search?: string; doc_type?: string; page?: number },
+  config?: SWRConfiguration,
+) {
+  const searchParams = new URLSearchParams();
+  if (params?.search) searchParams.set('search', params.search);
+  if (params?.doc_type) searchParams.set('doc_type', params.doc_type);
+  if (params?.page) searchParams.set('page', String(params.page));
+
+  return useSWR<CustomersResponse>(
+    `/api/admin/customers?${searchParams.toString()}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 2000,
+      ...config,
+    },
+  );
+}
+
 /**
  * Hook para obtener lista de estaciones de cocina
- * 
+ *
  * @returns {object} { data, error, isLoading, mutate }
- * 
+ *
  * @example
  * const { data, error, isLoading, mutate } = useStations();
  * if (isLoading) return <Loading />;

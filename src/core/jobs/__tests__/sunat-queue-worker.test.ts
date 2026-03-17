@@ -113,6 +113,7 @@ function makePrisma(items: any[] = [], pendingTickets: any[] = []) {
     $queryRawUnsafe: queryRawMock,
     invoice_queue: {
       update: vi.fn().mockResolvedValue({}),
+      count: vi.fn().mockResolvedValue(0),
     },
     invoices: {
       findUnique: vi.fn().mockResolvedValue({
@@ -125,7 +126,18 @@ function makePrisma(items: any[] = [], pendingTickets: any[] = []) {
         customer_doc: '12345678',
         total_cents: 1180,
         created_at: new Date('2026-03-02'),
-        orders: { items: [] },
+        customer: null,
+        orders: {
+          id: 'order-001',
+          items: [
+            { line_id: 'line-1', name: 'Pollo a la brasa', qty: 1, unit_price_cents: 1000, sku: 'POLLO-01' },
+          ],
+          checks: [
+            { check_id: 'check-001', lines: [{ line_id: 'line-1', qty: 1 }] },
+          ],
+          customers: null,
+        },
+        check_id: 'check-001',
       }),
     },
     credit_notes: {
@@ -415,6 +427,16 @@ describe('SunatQueueWorker', () => {
           invoice_type: 'BOLETA',
           customer_doc_type: 'DNI',
           customer_doc: '12345678',
+          customer_name: 'Test Customer',
+          customer: null,
+          orders: {
+            id: 'order-001',
+            items: [
+              { line_id: 'line-1', name: 'Product', qty: 1, unit_price_cents: 1000, sku: 'PROD-01' },
+            ],
+            checks: [{ check_id: 'check-001', lines: [{ line_id: 'line-1', qty: 1 }] }],
+            customers: null,
+          },
         },
       });
 

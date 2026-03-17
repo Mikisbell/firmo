@@ -1,0 +1,79 @@
+name: GGA Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-code:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full git history for PR mode
+      
+      - name: Install GGA
+        run: |
+          # Install GGA via Homebrew
+          brew install gentleman-programming/tap/gga
+          
+          # Verify installation
+          gga version
+      
+      - name: Configure AI Provider
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # Verify API key is configured
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "❌ ANTHROPIC_API_KEY secret not configured"
+            echo "Please add ANTHROPIC_API_KEY to repository secrets"
+            exit 1
+          fi
+          
+          echo "✅ AI provider credentials configured"
+      
+      - name: Cache GGA results
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/gga
+          key: gga-${{ hashFiles('AGENTS.md', '.gga') }}-${{ github.sha }}
+          restore-keys: |
+            gga-${{ hashFiles('AGENTS.md', '.gga') }}-
+            gga-
+      
+      - name: Run GGA Code Review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Gentleman Guardian Angel - PR Code Review"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          
+          # Run GGA in PR mode with CI flag
+          gga run --pr-mode --ci
+      
+      - name: Upload violation report
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: gga-violations
+          path: |
+            gga-report.txt
+          retention-days: 30
+      
+      - name: Comment PR on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **GGA Code Review Failed**\n\nPlease review the violations in the workflow logs and fix them before merging.\n\nTo view details:\n1. Check the workflow run logs\n2. Download the violation report artifact\n\nTo bypass locally (not recommended):\n```bash\ngit commit --no-verify\n```'
+            })

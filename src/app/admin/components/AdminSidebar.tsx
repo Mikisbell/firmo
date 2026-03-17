@@ -55,6 +55,7 @@ import {
   PanelLeftOpen,
   LineChart,
   Rocket,
+  UserCheck,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -214,6 +215,9 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/caja-chica', label: 'Caja Chica', description: 'Gastos menores y reembolsos', icon: Wallet, permission: 'manage_config' },
       { href: '/admin/compras', label: 'Compras', description: 'Órdenes de compra a proveedores', icon: ShoppingCart, permission: 'manage_products' },
       { href: '/admin/facturacion', label: 'Facturación', description: 'Boletas, facturas y notas SUNAT', icon: FileText, permission: 'manage_config' },
+      { href: '/admin/clientes', label: 'Clientes', description: 'Identidad fiscal: RUC, DNI y datos', icon: UserCheck, permission: 'manage_config' },
+      { href: '/admin/fidelizacion', label: 'Fidelización', description: 'Puntos, tiers y programa de lealtad', icon: Award, permission: 'manage_config' },
+      { href: '/admin/crm', label: 'CRM', description: 'Segmentos, campañas y mensajería', icon: Users, permission: 'manage_config' },
       { href: '/admin/conciliacion', label: 'Conciliación', description: 'Cruce de caja vs ventas del día', icon: Scale, permission: 'view_reports' },
       { href: '/admin/estado-resultados', label: 'P&L', description: 'Estado de resultados detallado', icon: PieChart, permission: 'view_reports' },
     ],

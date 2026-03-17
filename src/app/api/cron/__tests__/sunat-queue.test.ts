@@ -148,21 +148,12 @@ describe('SUNAT Queue Cron Endpoint', () => {
     expect(body.error).toBe('SUNAT queue worker failed');
   });
 
-  it('should pass when CRON_SECRET is not set (no auth required)', async () => {
+  it('should return 401 when CRON_SECRET is not set (fail-safe)', async () => {
     delete process.env.CRON_SECRET;
-
-    mockProcessBatch.mockResolvedValue({
-      processed: 0,
-      succeeded: 0,
-      failed: 0,
-      skipped: 0,
-      duration_ms: 10,
-      details: [],
-    });
 
     const request = makeRequest(); // No authorization header
     const response = await GET(request);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(401);
   });
 });

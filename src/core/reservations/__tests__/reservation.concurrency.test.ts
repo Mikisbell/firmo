@@ -62,10 +62,15 @@ import { ConflictError } from "@/src/core/result";
 const TENANT_ID = "tenant-concurrency-001";
 const LOCATION_ID = "location-concurrency-001";
 
+// Dynamic future date — always 7 days ahead to pass "no past dates" validation
+const FUTURE_DATE = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+FUTURE_DATE.setHours(0, 0, 0, 0);
+const FUTURE_DATE_STR = FUTURE_DATE.toISOString().split("T")[0]!;
+
 const validInput = {
     customer_name: "Cliente Concurrente",
     customer_phone: "987654321",
-    date: "2026-03-15",
+    date: FUTURE_DATE_STR,
     time: "19:00",
     party_size: 2,
 };

@@ -153,10 +153,17 @@ model customer_profile {
   favorite_products    Json?
   recency_days         Int?
   frequency_30d        Int?
-  is_birthday          Boolean   @default(false)
-  updated_at           DateTime  @default(now()) @db.Timestamptz(6)
-  customers            customers @relation(fields: [customer_id], references: [id])
-  tenants              tenants   @relation(fields: [tenant_id], references: [id])
+  monetary_30d         Int?
+  rfm_segment          String?
+  rfm_calculated_at    DateTime? @db.Timestamptz(6)
+  is_birthday              Boolean   @default(false)
+  updated_at               DateTime  @default(now()) @db.Timestamptz(6)
+  loyalty_points_balance   Int       @default(0)
+  loyalty_lifetime_points  Int       @default(0)
+  loyalty_tier             String    @default("BRONCE")
+  loyalty_tier_updated_at  DateTime? @db.Timestamptz(6)
+  customers                customers @relation(fields: [customer_id], references: [id])
+  tenants                  tenants   @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, customer_id])
 }
@@ -172,6 +179,8 @@ model customers {
   marketing_opt_in   Boolean              @default(true)
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)
   email              String?
+  doc_type           String?
+  doc_number         String?
   last_order_at      DateTime?            @db.Timestamptz(6)
   notes              String?
   total_orders       Int                  @default(0)
@@ -181,6 +190,8 @@ model customers {
   tenants            tenants              @relation(fields: [tenant_id], references: [id])
   delivery_addresses delivery_addresses[]
   orders             orders[]
+  invoices           invoices[]           @relation("invoice_customer")
+  loyalty_ledger     loyalty_ledger[]
 
   @@unique([tenant_id, phone])
 }
@@ -526,6 +537,26 @@ model inventory_log {
   @@index([inventory_id])
 }
 
+model loyalty_ledger {
+  id              String    @id @db.Uuid
+  tenant_id       String    @db.Uuid
+  customer_id     String    @db.Uuid
+  type            String    @db.VarChar(20)
+  points          Int
+  balance_after   Int
+  reference_type  String?   @db.VarChar(20)
+  reference_id    String?   @db.Uuid
+  description     String?
+  multiplier      Decimal   @default(1.0) @db.Decimal(3, 1)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  created_by      String?   @db.Uuid
+  tenants         tenants   @relation(fields: [tenant_id], references: [id])
+  customers       customers @relation(fields: [customer_id], references: [id])
+
+  @@index([tenant_id, customer_id, created_at(sort: Desc)])
+  @@index([tenant_id, reference_type, reference_id])
+}
+
 model locations {
   id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id      String           @db.Uuid
@@ -596,6 +627,7 @@ model invoices {
   invoice_number    String?
   customer_doc_type String?
   customer_doc      String?
+  customer_name     String?
   total_cents       Int
   payment_summary   Json?
   status            String          @default("ISSUED")
@@ -607,12 +639,15 @@ model invoices {
   invoice_cdr                  invoice_cdr[]
   invoice_queue                invoice_queue[]
   sunat_contingency_invoices   sunat_contingency_invoices[]
+  customer_id       String?         @db.Uuid
   orders            orders          @relation(fields: [order_id], references: [id])
   tenants           tenants         @relation(fields: [tenant_id], references: [id])
+  customer          customers?      @relation("invoice_customer", fields: [customer_id], references: [id])
 
   @@unique([tenant_id, order_id, check_id])
   @@unique([tenant_id, series, invoice_number])
   @@index([tenant_id, created_at(sort: Desc)])
+  @@index([tenant_id, customer_id])
 }
 
 model payments {
@@ -1493,6 +1528,14 @@ model tenant_settings {
   sunat_cert_expires_at         DateTime? @db.Timestamptz(6)     // Certificate expiration
   nubefact_token                String?                          // Encrypted AES-256-GCM
   nubefact_url                  String?                          // Nubefact API URL
+  // === Peru Identity Lookup (RENIEC/SUNAT) ===
+  peru_identity_api_token       String?                          // apis.net.pe Bearer token
+  // === Loyalty Program ===
+  loyalty_enabled               Boolean  @default(false)
+  loyalty_points_per_sol        Int      @default(1)
+  loyalty_redemption_rate       Int      @default(100)           // points per S/1.00 discount
+  loyalty_tiers                 Json?                            // LoyaltyTier[] JSON
+  loyalty_min_redemption_points Int      @default(100)
   tenants                       tenants  @relation(fields: [tenant_id], references: [id])
 }
 
@@ -1915,6 +1958,7 @@ model tenants {
   training_records         training_records[]
   transaction_limits       transaction_limits[]
   waitlist                 waitlist[]
+  loyalty_ledger           loyalty_ledger[]
   waste_logs               waste_logs[]
   whatsapp_messages        whatsapp_messages[]
   z_reports                z_reports[]
@@ -2811,4 +2855,19 @@ model sunat_contingency_invoices {
   @@index([tenant_id, reconciled_at])
   @@index([contingency_id])
   @@index([tenant_id, reconcile_by])
+}
+
+model notifications {
+  id           String   @id @default(cuid())
+  tenant_id    String
+  recipient_id String
+  type         String
+  title        String
+  body         String
+  read         Boolean  @default(false)
+  data         Json?
+  created_at   DateTime @default(now())
+
+  @@index([tenant_id, recipient_id])
+  @@index([tenant_id, recipient_id, read])
 }

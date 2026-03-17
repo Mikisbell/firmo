@@ -11,6 +11,7 @@ import { BookOpen, Plus, Edit2, Trash2, Calculator, ChefHat } from 'lucide-react
 import { toast } from 'sonner';
 import { useRecipes } from '@/src/hooks/useRecipes';
 import { motion, AnimatePresence } from 'framer-motion';
+import RecipeModal from './components/RecipeModal';
 
 interface Recipe {
   id: string;
@@ -60,6 +61,8 @@ export default function RecetasPage() {
   const [category, setCategory] = useState('');
   const [station, setStation] = useState('');
   const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
 
   const { recipes, total, totalPages, isLoading, error, mutate } = useRecipes({
     page,
@@ -104,6 +107,7 @@ export default function RecetasPage() {
   };
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -118,7 +122,7 @@ export default function RecetasPage() {
         </div>
         <button
           className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors min-h-[44px]"
-          onClick={() => toast.info('Formulario de nueva receta - próximamente')}
+          onClick={() => { setEditingRecipe(null); setShowModal(true); }}
         >
           <Plus className="w-4 h-4" />
           Nueva Receta
@@ -229,7 +233,7 @@ export default function RecetasPage() {
                             <Calculator className="w-4 h-4 text-emerald-400" />
                           </button>
                           <button
-                            onClick={() => toast.info('Editar receta - próximamente')}
+                            onClick={() => { setEditingRecipe(recipe); setShowModal(true); }}
                             className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
                             title="Editar"
                           >
@@ -278,5 +282,15 @@ export default function RecetasPage() {
         )}
       </div>
     </div>
+
+    {/* Recipe Create / Edit Modal */}
+    {showModal && (
+      <RecipeModal
+        recipe={editingRecipe}
+        onClose={() => { setShowModal(false); setEditingRecipe(null); }}
+        onSuccess={() => mutate()}
+      />
+    )}
+    </>
   );
 }

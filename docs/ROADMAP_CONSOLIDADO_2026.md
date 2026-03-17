@@ -1,8 +1,8 @@
 # PARK POS — Roadmap 2026
 
-**Version:** 3.1.0
-**Fecha:** 2 Marzo 2026
-**Estado:** P3 Production Ready — COMPLETADO
+**Version:** 3.2.0
+**Fecha:** 17 Marzo 2026
+**Estado:** P4 Enterprise — EN PROGRESO (~75% completo)
 
 ---
 
@@ -15,7 +15,7 @@
 | **P2 — Growth** | ~85% | En progreso | En curso |
 | **P2.5 — Hardening** | 100% | Completado | Mar 1 2026 |
 | **P3 — Production Ready** | 100% | Completado | Mar 2 2026 |
-| **P4 — Enterprise** | 0% | Planificado | Q2 2026 |
+| **P4 — Enterprise** | ~75% | En progreso | Q1-Q2 2026 |
 
 ### Metricas Actuales (Mar 2 2026)
 
@@ -206,15 +206,25 @@ Objetivo: llevar PARK POS a produccion real en una polleria piloto.
 
 ---
 
-## P4: Enterprise (Q2 2026)
+## P4: Enterprise (Q1-Q2 2026)
 
-Despues de validar en produccion con el piloto:
+**Estado real (17 Mar 2026):** ~75% implementado. Ver análisis completo en [docs/P4-ENTERPRISE-STATUS.md](P4-ENTERPRISE-STATUS.md).
 
-- **Facturacion SUNAT real** — integracion con OSE para boletas/facturas electronicas
-- **CRM & Fidelizacion** — programa de puntos, niveles, promociones personalizadas
-- **Multi-sucursal** — consolidacion de reportes, gestion centralizada
-- **Saga Pattern** — compensating transactions para flujos complejos
-- **Integracion WhatsApp** — confirmaciones, notificaciones, pedidos
+| Feature | Estado | Notas |
+|---------|--------|-------|
+| **P4.0 — HR / RRHH** | ✅ Completo | 232 tests, 61 endpoints, 10 páginas UI |
+| **P4.1 — SUNAT Facturación** | ⚠️ 95% | 2 bugs en queue worker + credenciales reales pendientes |
+| **P4.2 — Loyalty & Fidelización** | ✅ Completo | Earning, redención, tiers automáticos |
+| **P4.3 — CRM (Segmentos, Campañas)** | ✅ Completo | RFM, WhatsApp outbox, 5 servicios |
+| **P4.4 — Multi-sucursal** | ❌ Pendiente | Schema DB listo, 0% aplicación |
+| **Saga Pattern** | ✅ Existe | `src/core/saga/` — orchestrator completo |
+| **WhatsApp Notificaciones** | ✅ Implementado | Delivery + CRM messaging |
+
+### P4 Pendiente
+
+1. **Multi-sucursal (P4.4)** — único módulo sin implementar (3-5 días estimado)
+2. **SUNAT bugs** — corregir `items[]` vacío + auto-contingencia antes de producción
+3. **SUNAT credenciales** — SOL real + certificado digital (.pfx)
 
 ---
 
@@ -243,5 +253,5 @@ Despues de validar en produccion con el piloto:
 
 ---
 
-**Ultima actualizacion:** 2 Marzo 2026
-**Proxima revision:** Inicio de P4 Enterprise
+**Ultima actualizacion:** 17 Marzo 2026
+**Proxima revision:** Completar P4.4 Multi-sucursal + SUNAT producción

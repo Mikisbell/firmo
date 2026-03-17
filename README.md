@@ -168,6 +168,7 @@ Ver [ARCHITECTURE.md](./docs/02-architecture/ARCHITECTURE.md) para detalles comp
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Guía para contribuir al proyecto |
 | [DEPLOYMENT.md](./docs/06-deployment/DEPLOYMENT.md) | Guía de despliegue a producción |
 | [AGENTS.md](./AGENTS.md) | Uso de agents y skills de Kiro |
+| [GGA-SETUP.md](./docs/gga-setup.md) | Configuración de code review automatizado |
 
 ### Documentación Técnica Completa
 
@@ -181,6 +182,76 @@ Toda la documentación técnica está organizada en el directorio `docs/`:
 - **adr/** - Decisiones arquitectónicas (ADRs)
 
 Ver [docs/README.md](./docs/README.md) para el índice completo.
+
+---
+
+## 🤖 Code Review Automatizado (GGA)
+
+PARK POS utiliza **Gentleman Guardian Angel (GGA)** para validación automática de código con IA. GGA revisa cada commit contra las reglas de `AGENTS.md` antes de permitir el commit.
+
+**Reglas validadas automáticamente:**
+- ✅ Money en centavos (Int) - nunca float/decimal
+- ✅ tenant_id desde JWT - nunca desde request body
+- ✅ ADMIN_ROLES.includes() - nunca role === 'ADMIN'
+- ✅ PrismaClient singleton - nunca new PrismaClient()
+- ✅ Test cleanup con tenant_id - nunca deleteMany({})
+- ✅ Structured logging (Pino) - nunca console.log de PIN/mac_address
+
+**Setup rápido:**
+```bash
+# Instalar GGA
+brew install gentleman-programming/tap/gga
+
+# Instalar hooks
+./scripts/install-gga-hooks.sh
+
+# Configurar API key
+export ANTHROPIC_API_KEY="your-key"
+```
+
+Ver [docs/gga-setup.md](./docs/gga-setup.md) para guía completa.
+
+### 🔗 GGA-Engram Bridge (Memory Persistence)
+
+El bridge GGA-Engram captura automáticamente las violaciones de código detectadas por GGA y las persiste en el sistema de memoria Engram. Esto permite al orquestador Kiro analizar patrones de violaciones recurrentes y proporcionar orientación contextual.
+
+**Características:**
+- ✅ Captura automática de violaciones de GGA
+- ✅ Persistencia vía protocolo MCP a Engram
+- ✅ Consultas de historial de violaciones
+- ✅ Análisis de patrones y tendencias
+- ✅ Fail-safe: nunca bloquea commits
+
+**Configuración:**
+
+```bash
+# Habilitar el bridge (opcional)
+export GGA_ENGRAM_BRIDGE_ENABLED=true
+
+# Configurar path del servidor Engram (opcional)
+export ENGRAM_MCP_SERVER_PATH="engram"
+
+# Configurar nivel de log (opcional)
+export GGA_BRIDGE_LOG_LEVEL="info"  # debug|info|warn|error
+```
+
+**Uso:**
+
+El bridge se ejecuta automáticamente después de cada revisión de GGA en el pre-commit hook. No requiere intervención manual.
+
+Para deshabilitar el bridge:
+```bash
+export GGA_ENGRAM_BRIDGE_ENABLED=false
+# O simplemente no configurar la variable
+```
+
+**Consultar historial de violaciones:**
+
+El orquestador Kiro puede consultar violaciones usando Engram MCP:
+- Por regla: `mem_search` con query "TypeScript Rule"
+- Por archivo: `mem_search` con query "src/components/Button.tsx"
+- Recientes: `mem_context` con project "park-pos"
+- Resúmenes: `mem_search` con type "code_review_summary"
 
 ---
 

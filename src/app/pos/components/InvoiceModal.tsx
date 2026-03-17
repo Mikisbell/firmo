@@ -7,11 +7,16 @@
  * FACTURA requires RUC (11 digits) + Razón Social.
  * BOLETA has optional DNI (8 digits).
  *
+ * Features:
+ * - Auto-lookup: searches local DB → RENIEC/SUNAT when doc is complete
+ * - Auto-fills Razón Social from lookup result
+ * - Shows source badge (local customer / RENIEC / SUNAT)
+ *
  * @module app/pos/components/InvoiceModal
  */
 
-import { useState } from 'react';
-import { X, FileText, Check, Loader2, ReceiptText } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, FileText, Check, Loader2, ReceiptText, UserCheck, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -29,6 +34,20 @@ interface InvoiceModalProps {
   onSkip: () => void;
 }
 
+interface LookupResult {
+  found: boolean;
+  source?: 'local' | 'cache' | 'external';
+  customer?: {
+    name: string;
+    doc_type: string;
+    doc_number: string;
+    address?: string;
+    estado?: string;
+    condicion?: string;
+  };
+  localCustomerId?: string;
+}
+
 export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, onSkip }: InvoiceModalProps) {
   const [invoiceType, setInvoiceType] = useState<'BOLETA' | 'FACTURA'>('BOLETA');
   const [ruc, setRuc] = useState('');
@@ -36,6 +55,66 @@ export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, on
   const [dni, setDni] = useState('');
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Lookup state
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResult, setLookupResult] = useState<LookupResult | null>(null);
+  const [customerHint, setCustomerHint] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Auto-lookup when document number is complete
+  useEffect(() => {
+    const docNumber = invoiceType === 'FACTURA' ? ruc : dni;
+    const docType = invoiceType === 'FACTURA' ? 'RUC' : 'DNI';
+    const expectedLen = invoiceType === 'FACTURA' ? 11 : 8;
+
+    // Reset if incomplete
+    if (docNumber.length !== expectedLen) {
+      setLookupResult(null);
+      setCustomerHint('');
+      return;
+    }
+
+    // Debounce the lookup
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setLookupLoading(true);
+      try {
+        const res = await fetch(
+          `/api/pos/customers/lookup?doc_number=${docNumber}&doc_type=${docType}`,
+          { credentials: 'include' },
+        );
+        if (res.ok) {
+          const data: LookupResult = await res.json();
+          setLookupResult(data);
+
+          if (data.found && data.customer) {
+            if (invoiceType === 'FACTURA') {
+              // Auto-fill razón social
+              setRazonSocial(data.customer.name);
+            } else {
+              // Show name as hint for BOLETA
+              setCustomerHint(data.customer.name);
+            }
+          }
+        }
+      } catch {
+        // Silently fail — don't block the cashier
+      } finally {
+        setLookupLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [ruc, dni, invoiceType]);
+
+  // Reset lookup when switching type
+  useEffect(() => {
+    setLookupResult(null);
+    setCustomerHint('');
+  }, [invoiceType]);
 
   const isFacturaValid = invoiceType === 'FACTURA'
     ? ruc.length === 11 && razonSocial.trim().length > 0
@@ -54,7 +133,12 @@ export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, on
     try {
       const emitData = invoiceType === 'FACTURA'
         ? { invoiceType: 'FACTURA' as const, customerDocType: 'RUC', customerDoc: ruc, customerName: razonSocial }
-        : { invoiceType: 'BOLETA' as const, customerDocType: dni ? 'DNI' : undefined, customerDoc: dni || undefined };
+        : {
+            invoiceType: 'BOLETA' as const,
+            customerDocType: dni ? 'DNI' : undefined,
+            customerDoc: dni || undefined,
+            customerName: customerHint || undefined,
+          };
 
       // Call POS API for SUNAT emission
       const res = await fetch('/api/pos/invoices', {
@@ -76,7 +160,11 @@ export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, on
       });
 
       if (res.ok) {
-        toast.success(`${invoiceType === 'FACTURA' ? 'Factura' : 'Boleta'} emitida`);
+        const invoiceResult = await res.json().catch(() => ({}));
+        const loyaltyMsg = invoiceResult.loyaltyPointsEarned
+          ? ` — +${invoiceResult.loyaltyPointsEarned} pts (${invoiceResult.loyaltyTier})`
+          : '';
+        toast.success(`${invoiceType === 'FACTURA' ? 'Factura' : 'Boleta'} emitida${loyaltyMsg}`);
       } else {
         const errData = await res.json().catch(() => ({ error: 'Error al emitir' }));
         // Don't block on emission errors — still call onEmit
@@ -93,6 +181,39 @@ export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, on
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const sourceLabel = lookupResult?.found
+    ? lookupResult.source === 'local'
+      ? 'Cliente registrado'
+      : lookupResult.source === 'external'
+        ? (invoiceType === 'FACTURA' ? 'SUNAT' : 'RENIEC')
+        : (invoiceType === 'FACTURA' ? 'SUNAT' : 'RENIEC')
+    : null;
+
+  const SourceBadge = () => {
+    if (lookupLoading) {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-gray-500 mt-1">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Consultando...
+        </span>
+      );
+    }
+    if (!lookupResult?.found || !sourceLabel) return null;
+
+    const isLocal = lookupResult.source === 'local';
+    return (
+      <span className={`inline-flex items-center gap-1 text-xs mt-1 ${
+        isLocal ? 'text-emerald-600' : 'text-blue-600'
+      }`}>
+        {isLocal ? <UserCheck className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
+        {sourceLabel}
+        {lookupResult.customer?.estado && lookupResult.customer.estado !== 'ACTIVO' && (
+          <span className="text-red-500 ml-1">({lookupResult.customer.estado})</span>
+        )}
+      </span>
+    );
   };
 
   return (
@@ -170,21 +291,27 @@ export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, on
                   <label className="block text-xs font-bold text-blue-700 uppercase mb-1">
                     RUC *
                   </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={ruc}
-                    onChange={(e) => setRuc(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                    placeholder="20123456789"
-                    className={`w-full px-3 py-2.5 bg-white border rounded-lg text-sm font-medium outline-none transition-shadow ${
-                      ruc.length > 0 && ruc.length !== 11
-                        ? 'border-red-400 focus:ring-2 focus:ring-red-500'
-                        : 'border-blue-300 focus:ring-2 focus:ring-blue-500'
-                    }`}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={ruc}
+                      onChange={(e) => setRuc(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                      placeholder="20123456789"
+                      className={`w-full px-3 py-2.5 bg-white border rounded-lg text-sm font-medium outline-none transition-shadow ${
+                        ruc.length > 0 && ruc.length !== 11
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-500'
+                          : 'border-blue-300 focus:ring-2 focus:ring-blue-500'
+                      }`}
+                    />
+                    {lookupLoading && ruc.length === 11 && (
+                      <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-blue-400" />
+                    )}
+                  </div>
                   {ruc.length > 0 && ruc.length !== 11 && (
                     <p className="text-xs text-red-600 mt-1">RUC debe tener 11 dígitos</p>
                   )}
+                  <SourceBadge />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-blue-700 uppercase mb-1">
@@ -197,6 +324,9 @@ export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, on
                     placeholder="Empresa SAC"
                     className="w-full px-3 py-2.5 bg-white border border-blue-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                   />
+                  {lookupResult?.found && lookupResult.customer?.address && (
+                    <p className="text-xs text-gray-500 mt-1">{lookupResult.customer.address}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -208,21 +338,30 @@ export function InvoiceModal({ orderId, checkId, totalCents, onClose, onEmit, on
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
                     DNI (opcional)
                   </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={dni}
-                    onChange={(e) => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                    placeholder="12345678"
-                    className={`w-full px-3 py-2.5 bg-white border rounded-lg text-sm font-medium outline-none transition-shadow ${
-                      dni.length > 0 && dni.length !== 8
-                        ? 'border-red-400 focus:ring-2 focus:ring-red-500'
-                        : 'border-gray-300 focus:ring-2 focus:ring-amber-500'
-                    }`}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={dni}
+                      onChange={(e) => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                      placeholder="12345678"
+                      className={`w-full px-3 py-2.5 bg-white border rounded-lg text-sm font-medium outline-none transition-shadow ${
+                        dni.length > 0 && dni.length !== 8
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-500'
+                          : 'border-gray-300 focus:ring-2 focus:ring-amber-500'
+                      }`}
+                    />
+                    {lookupLoading && dni.length === 8 && (
+                      <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-amber-400" />
+                    )}
+                  </div>
                   {dni.length > 0 && dni.length !== 8 && (
                     <p className="text-xs text-red-600 mt-1">DNI debe tener 8 dígitos</p>
                   )}
+                  {customerHint && (
+                    <p className="text-xs text-emerald-600 mt-1 font-medium">{customerHint}</p>
+                  )}
+                  <SourceBadge />
                 </div>
               </div>
             )}

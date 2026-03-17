@@ -4,7 +4,7 @@ import path from "node:path";
 export default defineConfig({
     test: {
         environment: "node",
-        exclude: ['**/node_modules/**', '**/e2e/**'],
+        exclude: ['**/node_modules/**', '**/e2e/**', '**/.claude/worktrees/**'],
         testTimeout: 30000, // 30 seconds for async property tests with DB operations
         env: {
             // Variables de entorno necesarias para tests
