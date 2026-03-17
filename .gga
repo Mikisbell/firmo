@@ -20,5 +20,8 @@ STRICT_MODE="true"
 # Timeout in seconds for AI provider response
 TIMEOUT="300"
 
+# Max files per review batch (splits large commits into smaller API calls)
+BATCH_SIZE="10"
+
 # Base branch for --pr-mode (auto-detects main/master/develop if empty)
 # PR_BASE_BRANCH="main"
