@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { requirePosAuth } from '@/src/core/middleware/pos-auth';
-import { createLogger } from '@/src/core/observability/logger';
+import { createLogger } from '@/src/core/observability/structured-logger';
 
 const logger = createLogger('pos-zones');
 
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(zones);
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching POS zones');
+    logger.error('Error fetching POS zones', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Error al obtener zonas' }, { status: 500 });
   }
 }
