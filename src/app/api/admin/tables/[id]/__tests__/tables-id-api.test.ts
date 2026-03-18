@@ -212,36 +212,26 @@ describe('PUT /api/admin/tables/[id]', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns 404 when tenant has no active location', async () => {
-    mockAuthOk();
-    mockLocFindFirst.mockResolvedValue(null);
-    const res = await PUT(makeRequest('PUT', validPayload), makeParams());
-    expect(res.status).toBe(404);
-    const body = await res.json();
-    expect(body.error).toBe('Sucursal no encontrada');
-  });
-
   it('returns 404 when table not found', async () => {
     mockAuthOk();
-    mockLocFindFirst.mockResolvedValue({ id: LOCATION_ID });
     mockTablesFindFirst.mockResolvedValue(null); // table not found
     const res = await PUT(makeRequest('PUT', validPayload), makeParams());
     expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBe('Mesa no encontrada');
   });
 
   it('returns 409 on duplicate number', async () => {
     mockAuthOk();
-    mockLocFindFirst.mockResolvedValue({ id: LOCATION_ID });
     mockTablesFindFirst
       .mockResolvedValueOnce(mockTable)           // existing check: found
-      .mockResolvedValueOnce({ id: 'other-id' }); // duplicate check: found
+      .mockResolvedValueOnce({ id: 'other-id' }); // duplicate found in same location
     const res = await PUT(makeRequest('PUT', validPayload), makeParams());
     expect(res.status).toBe(409);
   });
 
   it('returns 200 on successful update', async () => {
     mockAuthOk();
-    mockLocFindFirst.mockResolvedValue({ id: LOCATION_ID });
     mockTablesFindFirst
       .mockResolvedValueOnce(mockTable) // existing check
       .mockResolvedValueOnce(null);     // no duplicate for number '10'
@@ -252,24 +242,24 @@ describe('PUT /api/admin/tables/[id]', () => {
     expect(body.number).toBe('10');
   });
 
-  it('resolves location_id from DB not from env', async () => {
+  it('uses existing table location_id for duplicate check (not getTenantLocationId)', async () => {
     mockAuthOk();
-    mockLocFindFirst.mockResolvedValue({ id: LOCATION_ID });
     mockTablesFindFirst
       .mockResolvedValueOnce(mockTable)
       .mockResolvedValueOnce(null);
     mockTxUpdate(updatedTable);
     await PUT(makeRequest('PUT', validPayload), makeParams());
-    expect(mockLocFindFirst).toHaveBeenCalledWith(
+    // Duplicate check must use existing.location_id, not a separate DB call
+    expect(mockLocFindFirst).not.toHaveBeenCalled();
+    expect(mockTablesFindFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ tenant_id: TENANT_ID, is_active: true }),
+        where: expect.objectContaining({ location_id: LOCATION_ID }),
       })
     );
   });
 
   it('returns 400 on invalid payload', async () => {
     mockAuthOk();
-    mockLocFindFirst.mockResolvedValue({ id: LOCATION_ID });
     const res = await PUT(makeRequest('PUT', { capacity: -1 }), makeParams());
     expect(res.status).toBe(400);
   });

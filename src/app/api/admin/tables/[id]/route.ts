@@ -12,14 +12,6 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-async function getTenantLocationId(tenantId: string): Promise<string | null> {
-  const loc = await prisma.locations.findFirst({
-    where: { tenant_id: tenantId, is_active: true },
-    select: { id: true },
-    orderBy: { created_at: 'asc' },
-  });
-  return loc?.id ?? null;
-}
 
 const updateTableSchema = z.object({
   number: z.string().min(1).max(20).optional(),
@@ -119,48 +111,44 @@ export async function PUT(
     
     // Extract tenantId from JWT
     const tenantId = authResult.user.tenantId;
-    const locationId = await getTenantLocationId(tenantId);
-    if (!locationId) {
-      return NextResponse.json({ error: 'Sucursal no encontrada' }, { status: 404 });
-    }
-    
+
     log.info({ operation: 'update_table', tableId: id }, 'Updating table');
-    
+
     const body = await request.json();
-    
+
     const parsed = updateTableSchema.safeParse(body);
     if (!parsed.success) {
       log.warn({
         operation: 'update_table_validation_error',
         errors: parsed.error.flatten(),
       }, 'Invalid table data');
-      
+
       return NextResponse.json(
         { error: 'Datos inválidos', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
-    
+
     const data = parsed.data;
-    
+
     // Check table exists with tenantId from JWT
     const checkStart = Date.now();
     const existing = await prisma.tables.findFirst({
       where: { id, tenant_id: tenantId },
     });
     logPerformance('db_check_table_exists', Date.now() - checkStart);
-    
+
     if (!existing) {
       log.warn({ operation: 'update_table_not_found', tableId: id }, 'Table not found');
       return NextResponse.json({ error: 'Mesa no encontrada' }, { status: 404 });
     }
-    
-    // Check duplicate number if changing (with tenantId from JWT)
+
+    // Check duplicate number if changing — scope to the table's own location_id
     if (data.number && data.number !== existing.number) {
       const duplicate = await prisma.tables.findFirst({
         where: {
           tenant_id: tenantId,
-          location_id: locationId,
+          location_id: existing.location_id,
           number: data.number,
           id: { not: id },
         },
