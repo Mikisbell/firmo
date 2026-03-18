@@ -16,10 +16,16 @@ import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observ
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId, getLocationId } from '@/src/core/config/location';
 
-const TENANT_ID = getTenantId();
-const LOCATION_ID = getLocationId();
+// Lookup tenant's real location_id from DB (not hardcoded env default)
+async function getTenantLocationId(tenantId: string): Promise<string | null> {
+  const loc = await prisma.locations.findFirst({
+    where: { tenant_id: tenantId, is_active: true },
+    select: { id: true },
+    orderBy: { created_at: 'asc' },
+  });
+  return loc?.id ?? null;
+}
 
 // GET - List all tables with pagination
 async function handleGET(request: NextRequest) {
@@ -41,11 +47,16 @@ async function handleGET(request: NextRequest) {
     
     // Extract tenantId from JWT
     const tenantId = authResult.user.tenantId;
-    
+
+    const locationId = await getTenantLocationId(tenantId);
+    if (!locationId) {
+      return NextResponse.json({ error: 'Sucursal no encontrada' }, { status: 404 });
+    }
+
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
     const validatedQuery = TableQuerySchema.parse(queryParams);
-    
+
     // Parse pagination parameters
     const params = parsePaginationParams(request.nextUrl.searchParams);
 
@@ -73,7 +84,7 @@ async function handleGET(request: NextRequest) {
     // Build where clause with tenantId from JWT
     const where: Record<string, unknown> = {
       tenant_id: tenantId,
-      location_id: LOCATION_ID,
+      location_id: locationId,
     };
     
     if (validatedQuery.zone_id) where.zone_id = validatedQuery.zone_id;
@@ -200,16 +211,21 @@ async function handlePOST(request: NextRequest) {
     
     // Extract tenantId from JWT
     const tenantId = authResult.user.tenantId;
-    
+
+    const locationId = await getTenantLocationId(tenantId);
+    if (!locationId) {
+      return NextResponse.json({ error: 'Sucursal no encontrada' }, { status: 404 });
+    }
+
     const body = await request.json();
-    
+
     // Validate with Zod
     const validatedData = CreateTableSchema.parse(body);
     const { number, display_name, zone_id, capacity, shape, position_x, position_y, width, height, rotation, is_active } = validatedData;
 
     // Check duplicate number with tenantId from JWT
     const existing = await prisma.tables.findFirst({
-      where: { tenant_id: tenantId, location_id: LOCATION_ID, number },
+      where: { tenant_id: tenantId, location_id: locationId, number },
     });
 
     if (existing) {
@@ -249,7 +265,7 @@ async function handlePOST(request: NextRequest) {
         data: {
           id: randomUUID(),
           tenant_id: tenantId,
-          location_id: LOCATION_ID,
+          location_id: locationId,
           number,
           display_name: display_name || `Mesa ${number}`,
           zone_id: zone_id || null,
