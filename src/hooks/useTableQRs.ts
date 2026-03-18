@@ -22,8 +22,14 @@ interface TableQRsResponse {
 }
 
 export function useTableQRs(locationId: string | null, config?: SWRConfiguration) {
+  const swrKey = locationId === 'all'
+    ? '/api/admin/mesas/qr'
+    : locationId
+    ? `/api/admin/mesas/qr?location_id=${locationId}`
+    : null;
+
   const { data, error, isLoading, mutate } = useSWR<TableQRsResponse>(
-    locationId ? `/api/admin/mesas/qr?location_id=${locationId}` : null,
+    swrKey,
     fetcher,
     {
       revalidateOnFocus: false,

@@ -9,29 +9,13 @@
  * @module app/admin/mesas/qr/page
  */
 
-import { useState } from 'react';
 import { QrCode, Download, Loader2, Grid3X3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTableQRs } from '@/src/hooks/useTableQRs';
-import useSWR from 'swr';
-import { fetcher } from '@/src/lib/swr-config';
-
-interface Location {
-  id: string;
-  code: string;
-  name: string;
-}
 
 export default function TableQRPage() {
-  const { data: locationsData } = useSWR<{ locations: Location[] }>(
-    '/api/admin/locations',
-    fetcher,
-    { revalidateOnFocus: false },
-  );
-
-  const locations = locationsData?.locations ?? [];
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const { items: qrItems, isLoading } = useTableQRs(selectedLocation);
+  // Load QR codes for all active tables (no location filter needed)
+  const { items: qrItems, isLoading } = useTableQRs('all');
 
   const handleDownload = (qrDataUrl: string, displayName: string) => {
     const link = document.createElement('a');
@@ -77,25 +61,6 @@ export default function TableQRPage() {
         )}
       </div>
 
-      {/* Location Selector */}
-      <div className="bg-zinc-800 rounded-xl border border-zinc-700 p-4">
-        <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">
-          Seleccionar Local
-        </label>
-        <select
-          value={selectedLocation ?? ''}
-          onChange={(e) => setSelectedLocation(e.target.value || null)}
-          className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-600 rounded-lg text-zinc-100 text-sm outline-none focus:ring-2 focus:ring-amber-500"
-        >
-          <option value="">-- Seleccionar local --</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>
-              {loc.name} ({loc.code})
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center h-48">
@@ -103,18 +68,11 @@ export default function TableQRPage() {
         </div>
       )}
 
-      {/* No location selected */}
-      {!selectedLocation && !isLoading && (
+      {/* No tables */}
+      {!isLoading && qrItems.length === 0 && (
         <div className="flex flex-col items-center justify-center h-48 text-zinc-500">
           <Grid3X3 className="w-12 h-12 mb-3 opacity-50" />
-          <p className="text-sm">Seleccione un local para generar códigos QR</p>
-        </div>
-      )}
-
-      {/* QR Grid */}
-      {selectedLocation && !isLoading && qrItems.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-48 text-zinc-500">
-          <p className="text-sm">No hay mesas activas en este local</p>
+          <p className="text-sm">No hay mesas activas</p>
         </div>
       )}
 

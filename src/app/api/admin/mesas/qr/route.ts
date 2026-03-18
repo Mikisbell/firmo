@@ -18,14 +18,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // location_id is optional — when omitted, QRs are generated for all active tables
     const locationId = request.nextUrl.searchParams.get('location_id');
-
-    if (!locationId) {
-      return NextResponse.json(
-        { error: 'location_id es requerido' },
-        { status: 400 },
-      );
-    }
 
     // Use origin as base URL for QR codes
     const baseUrl = request.nextUrl.origin;
