@@ -33,8 +33,8 @@ const JWT_AUDIENCE = 'park-pos-client';
 // Lockout settings
 const MAX_FAILED_ATTEMPTS = 3;
 const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
-const SESSION_DURATION_MS = 30 * 60 * 1000; // 30 minutes
-const SESSION_INACTIVITY_MS = 15 * 60 * 1000; // 15 minutes
+const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours — full shift duration
+const SESSION_INACTIVITY_MS = 8 * 60 * 60 * 1000; // 8 hours inactivity before auto-logout
 
 export interface AuthPayload extends JWTPayload {
     sub: string;        // employee_id
