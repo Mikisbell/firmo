@@ -23,13 +23,13 @@ interface Location {
 }
 
 export default function TableQRPage() {
-  const { data: locationsData } = useSWR<{ items: Location[] }>(
+  const { data: locationsData } = useSWR<{ locations: Location[] }>(
     '/api/admin/locations',
     fetcher,
     { revalidateOnFocus: false },
   );
 
-  const locations = locationsData?.items ?? [];
+  const locations = locationsData?.locations ?? [];
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const { items: qrItems, isLoading } = useTableQRs(selectedLocation);
 
