@@ -16,7 +16,14 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getLocationId } from '@/src/core/config/location';
+async function getTenantLocationId(tenantId: string): Promise<string | null> {
+  const loc = await prisma.locations.findFirst({
+    where: { tenant_id: tenantId, is_active: true },
+    select: { id: true },
+    orderBy: { created_at: 'asc' },
+  });
+  return loc?.id ?? null;
+}
 
 // GET - List all zones with pagination
 async function handleGET(request: NextRequest) {
@@ -30,11 +37,15 @@ async function handleGET(request: NextRequest) {
   }
   
   const tenantId = authResult.user.tenantId;
-  const LOCATION_ID = getLocationId();
   const log = createRequestLogger(requestId, authResult.user.id);
-  
+
   try {
     log.info({ operation: 'list_zones', tenantId }, 'Listing zones');
+
+    const locationId = await getTenantLocationId(tenantId);
+    if (!locationId) {
+      return NextResponse.json({ error: 'Sucursal no encontrada' }, { status: 404 });
+    }
     
     // Parse and validate query parameters with Zod
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -66,9 +77,9 @@ async function handleGET(request: NextRequest) {
     }
 
     // Build where clause
-    const where: any = { 
+    const where: any = {
       tenant_id: tenantId,
-      location_id: LOCATION_ID,
+      location_id: locationId,
     };
     // Default: only active zones. Pass is_active=false to see inactive
     if (validatedQuery.is_active !== undefined) {
@@ -175,16 +186,20 @@ async function handlePOST(request: NextRequest) {
   }
 
   const tenantId = authResult.user.tenantId;
-  const LOCATION_ID = getLocationId();
   const log = createRequestLogger(requestId, authResult.user.id, {
     userRole: authResult.user.role,
   });
 
   try {
     log.info({ operation: 'create_zone', tenantId }, 'Creating new zone');
-    
+
+    const locationId = await getTenantLocationId(tenantId);
+    if (!locationId) {
+      return NextResponse.json({ error: 'Sucursal no encontrada' }, { status: 404 });
+    }
+
     const body = await request.json();
-    
+
     // Validate with Zod
     const validatedData = CreateZoneSchema.parse(body);
     const { code, name, color, is_outdoor, is_smoking, has_ac, sort_order, is_active } = validatedData;
@@ -192,9 +207,9 @@ async function handlePOST(request: NextRequest) {
     // Check for duplicate code
     const checkStart = Date.now();
     const existing = await prisma.zones.findFirst({
-      where: { 
+      where: {
         tenant_id: tenantId,
-        location_id: LOCATION_ID,
+        location_id: locationId,
         code,
       },
     });
@@ -219,7 +234,7 @@ async function handlePOST(request: NextRequest) {
         data: {
           id: randomUUID(),
           tenant_id: tenantId,
-          location_id: LOCATION_ID,
+          location_id: locationId,
           code,
           name,
           color,
@@ -254,20 +269,20 @@ async function handlePOST(request: NextRequest) {
     // Record business metrics
     metrics.increment('zones_created_total', {
       tenant_id: tenantId,
-      location_id: LOCATION_ID,
+      location_id: locationId,
     });
 
     // Update active zones gauge
     const activeCount = await prisma.zones.count({
       where: { 
         tenant_id: tenantId,
-        location_id: LOCATION_ID,
+        location_id: locationId,
         is_active: true,
       },
     });
     metrics.set('zones_active', activeCount, {
       tenant_id: tenantId,
-      location_id: LOCATION_ID,
+      location_id: locationId,
     });
 
     // Log audit event
