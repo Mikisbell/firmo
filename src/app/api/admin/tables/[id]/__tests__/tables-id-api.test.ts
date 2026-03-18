@@ -221,13 +221,29 @@ describe('PUT /api/admin/tables/[id]', () => {
     expect(body.error).toBe('Mesa no encontrada');
   });
 
-  it('returns 409 on duplicate number', async () => {
+  it('returns 409 on duplicate number (active table)', async () => {
     mockAuthOk();
     mockTablesFindFirst
       .mockResolvedValueOnce(mockTable)           // existing check: found
       .mockResolvedValueOnce({ id: 'other-id' }); // duplicate found in same location
     const res = await PUT(makeRequest('PUT', validPayload), makeParams());
     expect(res.status).toBe(409);
+  });
+
+  it('allows reusing number of a soft-deleted table (is_active: false)', async () => {
+    mockAuthOk();
+    mockTablesFindFirst
+      .mockResolvedValueOnce(mockTable) // existing check: found
+      .mockResolvedValueOnce(null);     // no active duplicate
+    mockTxUpdate(updatedTable);
+    const res = await PUT(makeRequest('PUT', validPayload), makeParams());
+    expect(res.status).toBe(200);
+    // Duplicate check must include is_active: true
+    expect(mockTablesFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ is_active: true }),
+      })
+    );
   });
 
   it('returns 200 on successful update', async () => {

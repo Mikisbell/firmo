@@ -151,6 +151,7 @@ export async function PUT(
           location_id: existing.location_id,
           number: data.number,
           id: { not: id },
+          is_active: true,
         },
       });
       if (duplicate) {
