@@ -11,7 +11,7 @@
 import { useState, useCallback } from 'react';
 import { ShoppingCart, Plus, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePurchaseOrders } from '@/src/hooks/useSWRHooks';
+import { usePurchaseOrders, useLocations } from '@/src/hooks/useSWRHooks';
 import type { PurchaseOrderStatus } from '@/src/core/services/purchases.service';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -32,12 +32,12 @@ function formatCurrency(cents: number) {
   return `S/ ${(cents / 100).toFixed(2)}`;
 }
 
-const DEFAULT_LOCATION = 'loc-default';
-
 export default function ComprasPage() {
+  const { data: locationsData } = useLocations();
+  const locationId = locationsData?.locations[0]?.id ?? null;
   const [statusFilter, setStatusFilter] = useState<string>('');
   const { data, error, isLoading, mutate } = usePurchaseOrders(
-    { locationId: DEFAULT_LOCATION, status: statusFilter || undefined },
+    locationId ? { locationId, status: statusFilter || undefined } : null,
   );
 
   const handleUpdateStatus = useCallback(async (poId: string, newStatus: PurchaseOrderStatus) => {

@@ -902,6 +902,22 @@ interface PettyCashResponse {
   transactions: PettyCashTransaction[];
 }
 
+export interface Location {
+  id: string;
+  code: string;
+  name: string;
+  address: string | null;
+  timezone: string;
+}
+
+export function useLocations(config?: SWRConfiguration) {
+  return useSWR<{ locations: Location[] }>(
+    '/api/admin/locations',
+    fetcher,
+    { revalidateOnFocus: false, ...config }
+  );
+}
+
 /**
  * Hook para obtener balance y transacciones de caja chica
  */

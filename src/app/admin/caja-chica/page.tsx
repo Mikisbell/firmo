@@ -11,7 +11,7 @@
 import { useState, useCallback } from 'react';
 import { Wallet, Plus, Minus, RefreshCw, CheckCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePettyCash } from '@/src/hooks/useSWRHooks';
+import { usePettyCash, useLocations } from '@/src/hooks/useSWRHooks';
 import type { PettyCashCategory } from '@/src/core/services/petty-cash.service';
 
 const CATEGORIES: { value: PettyCashCategory; label: string }[] = [
@@ -27,12 +27,12 @@ function formatCurrency(cents: number) {
   return `S/ ${(cents / 100).toFixed(2)}`;
 }
 
-// TODO: Get from tenant config or URL params
-const DEFAULT_LOCATION = 'loc-default';
 const DEFAULT_SHIFT = 'shift-default';
 
 export default function CajaChicaPage() {
-  const { data, error, isLoading, mutate } = usePettyCash(DEFAULT_LOCATION);
+  const { data: locationsData } = useLocations();
+  const locationId = locationsData?.locations[0]?.id ?? null;
+  const { data, error, isLoading, mutate } = usePettyCash(locationId);
   const [showForm, setShowForm] = useState<'INCOME' | 'EXPENSE' | null>(null);
   const [showReconcile, setShowReconcile] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -63,7 +63,7 @@ export default function CajaChicaPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          locationId: DEFAULT_LOCATION,
+          locationId: locationId,
           shiftId: DEFAULT_SHIFT,
           type: showForm,
           amount: Math.round(parseFloat(amount) * 100),
@@ -96,7 +96,7 @@ export default function CajaChicaPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          locationId: DEFAULT_LOCATION,
+          locationId: locationId,
           countedAmount: Math.round(parseFloat(countedAmount) * 100),
         }),
       });

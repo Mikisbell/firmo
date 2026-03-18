@@ -7,6 +7,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fc from 'fast-check';
 
+// Mock event-bus before imports to prevent SupabaseEventBus connection attempts in CI
+vi.mock('@/src/core/infra/event-bus', () => ({
+  eventBus: {
+    publish: vi.fn(),
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+  },
+}));
+
 // Mock Dexie before imports
 vi.mock('@/src/core/db/schema', () => {
   const sagaLogs = new Map<string, any>();
