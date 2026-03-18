@@ -12,8 +12,14 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
-import { getLocationId } from '@/src/core/config/location';
+async function getTenantLocationId(tenantId: string): Promise<string | null> {
+  const loc = await prisma.locations.findFirst({
+    where: { tenant_id: tenantId, is_active: true },
+    select: { id: true },
+    orderBy: { created_at: 'asc' },
+  });
+  return loc?.id ?? null;
+}
 
 const updateTableSchema = z.object({
   number: z.string().min(1).max(20).optional(),
@@ -113,7 +119,10 @@ export async function PUT(
     
     // Extract tenantId from JWT
     const tenantId = authResult.user.tenantId;
-    const locationId = getLocationId();
+    const locationId = await getTenantLocationId(tenantId);
+    if (!locationId) {
+      return NextResponse.json({ error: 'Sucursal no encontrada' }, { status: 404 });
+    }
     
     log.info({ operation: 'update_table', tableId: id }, 'Updating table');
     
