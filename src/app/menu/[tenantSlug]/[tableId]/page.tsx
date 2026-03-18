@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, use } from 'react';
-import { Loader2, Bell, MapPin, UtensilsCrossed } from 'lucide-react';
+import { Loader2, Bell, MapPin, UtensilsCrossed, MessageSquarePlus, ChevronDown, ChevronUp, Star } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -45,6 +45,13 @@ export default function PublicMenuPage({ params }: { params: Promise<PageParams>
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [callingWaiter, setCallingWaiter] = useState(false);
   const [waiterCalled, setWaiterCalled] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'QUEJA' | 'SUGERENCIA' | 'ELOGIO'>('ELOGIO');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackName, setFeedbackName] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState<number>(5);
+  const [sendingFeedback, setSendingFeedback] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   useEffect(() => {
     async function fetchMenu() {
@@ -68,6 +75,32 @@ export default function PublicMenuPage({ params }: { params: Promise<PageParams>
     }
     fetchMenu();
   }, [tenantSlug, tableId]);
+
+  const handleSendFeedback = async () => {
+    if (!feedbackMessage.trim() || sendingFeedback) return;
+    setSendingFeedback(true);
+    try {
+      const res = await fetch(`/api/menu/${tenantSlug}/${tableId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: feedbackType,
+          message: feedbackMessage.trim(),
+          customer_name: feedbackName.trim() || undefined,
+          rating: feedbackRating,
+        }),
+      });
+      if (res.ok) {
+        setFeedbackSent(true);
+        setFeedbackMessage('');
+        setFeedbackName('');
+      }
+    } catch {
+      // silent fail — user can retry
+    } finally {
+      setSendingFeedback(false);
+    }
+  };
 
   const handleCallWaiter = async () => {
     if (callingWaiter || waiterCalled) return;
@@ -203,6 +236,104 @@ export default function PublicMenuPage({ params }: { params: Promise<PageParams>
               </div>
             </div>
           ))}
+      </div>
+
+      {/* Feedback Section */}
+      <div className="max-w-lg mx-auto px-4 pb-4">
+        <button
+          onClick={() => { setShowFeedback(!showFeedback); setFeedbackSent(false); }}
+          className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-gray-700 font-medium text-sm"
+        >
+          <span className="flex items-center gap-2">
+            <MessageSquarePlus className="w-4 h-4 text-amber-500" />
+            Deja tu opinión
+          </span>
+          {showFeedback ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        </button>
+
+        {showFeedback && (
+          <div className="mt-2 bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-4">
+            {feedbackSent ? (
+              <div className="text-center py-4">
+                <p className="text-2xl mb-2">🙏</p>
+                <p className="font-semibold text-gray-800">¡Gracias por tu opinión!</p>
+                <p className="text-sm text-gray-500 mt-1">Tu mensaje nos ayuda a mejorar.</p>
+                <button
+                  onClick={() => setFeedbackSent(false)}
+                  className="mt-3 text-xs text-amber-600 underline"
+                >
+                  Enviar otra opinión
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Type selector */}
+                <div className="flex gap-2">
+                  {([
+                    { value: 'ELOGIO', label: '👍 Elogio' },
+                    { value: 'SUGERENCIA', label: '💡 Sugerencia' },
+                    { value: 'QUEJA', label: '😤 Queja' },
+                  ] as const).map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => setFeedbackType(value)}
+                      className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                        feedbackType === value
+                          ? 'bg-amber-500 text-white border-amber-500'
+                          : 'bg-gray-50 text-gray-600 border-gray-200'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Star rating */}
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} onClick={() => setFeedbackRating(star)}>
+                      <Star
+                        className={`w-6 h-6 transition-colors ${
+                          star <= feedbackRating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="text-xs text-gray-400 ml-1">{feedbackRating}/5</span>
+                </div>
+
+                {/* Message */}
+                <textarea
+                  value={feedbackMessage}
+                  onChange={(e) => setFeedbackMessage(e.target.value)}
+                  placeholder="Cuéntanos tu experiencia..."
+                  rows={3}
+                  maxLength={1000}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none outline-none focus:border-amber-400"
+                />
+
+                {/* Optional name */}
+                <input
+                  type="text"
+                  value={feedbackName}
+                  onChange={(e) => setFeedbackName(e.target.value)}
+                  placeholder="Tu nombre (opcional)"
+                  maxLength={100}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-amber-400"
+                />
+
+                <button
+                  onClick={handleSendFeedback}
+                  disabled={!feedbackMessage.trim() || sendingFeedback}
+                  className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {sendingFeedback ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {sendingFeedback ? 'Enviando...' : 'Enviar opinión'}
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Call Waiter Button - Sticky bottom */}

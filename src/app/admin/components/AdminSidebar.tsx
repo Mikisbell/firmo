@@ -50,6 +50,7 @@ import {
   Scale,
   Globe,
   LayoutGrid,
+  MessageSquare,
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
@@ -174,6 +175,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/mesas', label: 'Mesas', description: 'Gestión de mesas y zonas del local', icon: Grid3X3, permission: 'manage_config' },
       { href: '/admin/mesas/qr', label: 'QR Mesas', description: 'Códigos QR para autoservicio', icon: QrCode, permission: 'manage_config' },
+      { href: '/admin/feedback', label: 'Opiniones', description: 'Quejas, sugerencias y elogios de clientes', icon: MessageSquare, permission: 'manage_config' },
       { href: '/admin/mesas/operaciones', label: 'Op. Mesa', description: 'Operaciones en tiempo real por mesa', icon: LayoutGrid, permission: 'manage_config' },
       { href: '/admin/estaciones', label: 'Estaciones KDS', description: 'Pantallas de cocina y despacho', icon: ChefHat, permission: 'manage_stations' },
       { href: '/admin/reservas', label: 'Reservas', description: 'Reservas de clientes y disponibilidad', icon: CalendarClock, permission: 'manage_config' },

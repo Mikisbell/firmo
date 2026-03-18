@@ -1435,6 +1435,22 @@ model sync_conflicts {
   @@index([tenant_id, severity])
 }
 
+model customer_feedback {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id     String   @db.Uuid
+  table_id      String?  @db.Uuid
+  table_number  String?
+  type          String   // QUEJA | SUGERENCIA | ELOGIO
+  message       String
+  customer_name String?
+  rating        Int?     // 1-5, optional
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  tenants       tenants  @relation(fields: [tenant_id], references: [id])
+
+  @@index([tenant_id, type, created_at(sort: Desc)])
+  @@index([tenant_id, created_at(sort: Desc)])
+}
+
 model table_layouts {
   id                   String   @id @db.Uuid
   tenant_id            String   @db.Uuid
@@ -1861,6 +1877,7 @@ model tenants {
   coupons                  coupons[]
   credit_notes             credit_notes[]
   cross_tenant_audit_log   cross_tenant_audit_log[]
+  customer_feedback        customer_feedback[]
   customer_profile         customer_profile[]
   customers                customers[]
   daily_sales_summary      daily_sales_summary[]
