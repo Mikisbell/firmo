@@ -65,7 +65,15 @@ interface Station {
 }
 
 interface StationsResponse {
-  stations: Station[];
+  items: Station[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
 }
 
 interface Table {

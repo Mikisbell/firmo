@@ -54,7 +54,7 @@ const filters: FilterConfig[] = [
 export default function StationsPage() {
   // Migrado a SWR - Tarea 9.3 Lote 2
   const { data, error: swrError, isLoading: loading, mutate } = useStations();
-  const stations = data?.stations || [];
+  const stations = data?.items || [];
   const error = swrError ? 'Error al cargar estaciones' : null;
   
   const [showModal, setShowModal] = useState(false);

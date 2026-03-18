@@ -7,29 +7,26 @@
  * Requirements: 2.1, 2.2, 2.5, 2.6, 2.9, 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '../components/ImageUpload';
 import type { ProductImage } from '@/src/core/types/product-images';
+import { useStations } from '@/src/hooks/useSWRHooks';
 
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
   { value: 'PARRILLAS', label: 'Parrillas' },
+  { value: 'CRIOLLOS', label: 'Criollos' },
+  { value: 'SALCHIPAPAS', label: 'Salchipapas' },
+  { value: 'ALITAS', label: 'Alitas' },
+  { value: 'PIQUEOS', label: 'Piqueos' },
   { value: 'BEBIDAS', label: 'Bebidas' },
+  { value: 'GUARNICIONES', label: 'Guarniciones' },
   { value: 'EXTRAS', label: 'Extras' },
   { value: 'POSTRES', label: 'Postres' },
   { value: 'COMBOS', label: 'Combos' },
-];
-
-const STATION_OPTIONS = [
-  { value: 'PARRILLA', label: 'Parrilla' },
-  { value: 'COCINA', label: 'Cocina' },
-  { value: 'BAR', label: 'Bar' },
-  { value: 'HORNO', label: 'Horno' },
-  { value: 'POSTRES', label: 'Postres' },
-  { value: 'EMPAQUE', label: 'Empaque' },
 ];
 
 const TYPE_OPTIONS = [
@@ -39,16 +36,26 @@ const TYPE_OPTIONS = [
 
 export default function NewProductPage() {
   const router = useRouter();
+  const { data: stationsData, isLoading: loadingStations } = useStations();
+  const stations = stationsData?.items ?? [];
+
   const [form, setForm] = useState({
     sku: '',
     name: '',
     short_name: '',
-    price_soles: '', // Display as soles, convert to centavos
+    price_soles: '',
     category: 'POLLOS',
-    station: 'PARRILLA',
+    station: '',
     type: 'SIMPLE',
     is_active: true,
   });
+
+  // Auto-select first station when loaded
+  useEffect(() => {
+    if (stations.length > 0 && !form.station) {
+      setForm(f => ({ ...f, station: stations[0].code }));
+    }
+  }, [stations]);
   const [images, setImages] = useState<ProductImage[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -256,12 +263,14 @@ export default function NewProductPage() {
               <select
                 value={form.station}
                 onChange={(e) => setForm({ ...form, station: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors disabled:opacity-50"
                 required
+                disabled={loadingStations}
               >
-                {STATION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {loadingStations && <option value="">Cargando estaciones...</option>}
+                {stations.map((s) => (
+                  <option key={s.id} value={s.code}>
+                    {s.name}
                   </option>
                 ))}
               </select>

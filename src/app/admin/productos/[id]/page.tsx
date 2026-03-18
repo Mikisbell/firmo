@@ -13,24 +13,20 @@ import { ArrowLeft, Package, DollarSign, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '../components/ImageUpload';
 import type { ProductImage } from '@/src/core/types/product-images';
-import { useProduct } from '@/src/hooks/useSWRHooks';
+import { useProduct, useStations } from '@/src/hooks/useSWRHooks';
 
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
   { value: 'PARRILLAS', label: 'Parrillas' },
+  { value: 'CRIOLLOS', label: 'Criollos' },
+  { value: 'SALCHIPAPAS', label: 'Salchipapas' },
+  { value: 'ALITAS', label: 'Alitas' },
+  { value: 'PIQUEOS', label: 'Piqueos' },
   { value: 'BEBIDAS', label: 'Bebidas' },
+  { value: 'GUARNICIONES', label: 'Guarniciones' },
   { value: 'EXTRAS', label: 'Extras' },
   { value: 'POSTRES', label: 'Postres' },
   { value: 'COMBOS', label: 'Combos' },
-];
-
-const STATION_OPTIONS = [
-  { value: 'PARRILLA', label: 'Parrilla' },
-  { value: 'COCINA', label: 'Cocina' },
-  { value: 'BAR', label: 'Bar' },
-  { value: 'HORNO', label: 'Horno' },
-  { value: 'POSTRES', label: 'Postres' },
-  { value: 'EMPAQUE', label: 'Empaque' },
 ];
 
 const TYPE_OPTIONS = [
@@ -57,6 +53,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   
   // Migrado a SWR - deduplicación automática, revalidación inteligente
   const { data: product, error: fetchError, isLoading: loading, mutate } = useProduct(productId);
+  const { data: stationsData, isLoading: loadingStations } = useStations();
+  const stations = stationsData?.items ?? [];
   
   const [form, setForm] = useState({
     sku: '',
@@ -383,12 +381,17 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               <select
                 value={form.station}
                 onChange={(e) => setForm({ ...form, station: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors disabled:opacity-50"
                 required
+                disabled={loadingStations}
               >
-                {STATION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {/* Fallback: si el producto tiene una estación que ya no existe en BD */}
+                {form.station && !stations.find(s => s.code === form.station) && (
+                  <option value={form.station}>{form.station} (inactiva)</option>
+                )}
+                {stations.map((s) => (
+                  <option key={s.id} value={s.code}>
+                    {s.name}
                   </option>
                 ))}
               </select>
