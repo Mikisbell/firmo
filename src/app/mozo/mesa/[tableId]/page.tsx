@@ -145,7 +145,7 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                     targetOrderId,
                     {
                         product_id: product.id,
-                        sku: product.id,
+                        sku: product.sku ?? product.id,
                         name: product.name,
                         unit_price_cents: product.price,
                         station: product.station,

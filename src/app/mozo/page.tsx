@@ -454,7 +454,7 @@ export default function WaiterPage() {
                             className="min-h-[100px] md:min-h-[140px] aspect-[4/3] rounded-xl md:rounded-2xl border-2 border-dashed border-violet-500/30 text-violet-500/50 flex flex-col items-center justify-center hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-400 transition-colors"
                         >
                             <span className="text-2xl md:text-3xl font-light mb-0.5 md:mb-1">+</span>
-                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider">Barra</span>
+                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider">+ Mesa</span>
                         </motion.button>
                     )}
                 </motion.div>
