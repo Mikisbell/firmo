@@ -39,7 +39,7 @@ export default function TableQRPage() {
     }
   }, [locations, selectedLocation]);
 
-  const { items: qrItems, isLoading } = useTableQRs(selectedLocation);
+  const { items: qrItems, isLoading, error: qrError } = useTableQRs(selectedLocation);
 
   const handleDownload = (qrDataUrl: string, displayName: string) => {
     const link = document.createElement('a');
@@ -112,8 +112,17 @@ export default function TableQRPage() {
         </div>
       )}
 
+      {/* API error (e.g. slug not configured) */}
+      {!isLoading && qrError && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 text-sm">
+          {qrError.message?.includes('slug') || String(qrError).includes('slug')
+            ? 'El restaurante no tiene slug configurado. Ve a Configuración → Perfil del restaurante y define el identificador URL.'
+            : 'Error al generar los códigos QR. Intenta de nuevo.'}
+        </div>
+      )}
+
       {/* No tables */}
-      {!isLoading && selectedLocation && qrItems.length === 0 && (
+      {!isLoading && !qrError && selectedLocation && qrItems.length === 0 && (
         <div className="flex flex-col items-center justify-center h-48 text-zinc-500">
           <Grid3X3 className="w-12 h-12 mb-3 opacity-50" />
           <p className="text-sm">No hay mesas activas en esta sucursal</p>
