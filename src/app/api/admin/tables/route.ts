@@ -16,16 +16,7 @@ import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observ
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-
-// Lookup tenant's real location_id from DB (not hardcoded env default)
-async function getTenantLocationId(tenantId: string): Promise<string | null> {
-  const loc = await prisma.locations.findFirst({
-    where: { tenant_id: tenantId, is_active: true },
-    select: { id: true },
-    orderBy: { created_at: 'asc' },
-  });
-  return loc?.id ?? null;
-}
+import { getTenantLocationId } from '@/src/core/locations/location.helpers';
 
 // GET - List all tables with pagination
 async function handleGET(request: NextRequest) {

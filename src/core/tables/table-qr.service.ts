@@ -97,7 +97,7 @@ export class TableQrService {
    */
   async generateAllTableQRs(
     tenantId: string,
-    locationId: string | null,
+    locationId: string,
     baseUrl: string,
   ): Promise<Result<TableQRItem[], DomainError>> {
     // Get tenant slug
@@ -113,12 +113,9 @@ export class TableQrService {
       ));
     }
 
-    // Get active tables — filter by location only when provided
-    const where: Record<string, unknown> = { tenant_id: tenantId, is_active: true };
-    if (locationId) where.location_id = locationId;
-
+    // Get active tables for the location
     const tables = await this.prisma.tables.findMany({
-      where,
+      where: { tenant_id: tenantId, location_id: locationId, is_active: true },
       orderBy: { number: 'asc' },
       select: { id: true, number: true, display_name: true },
     });

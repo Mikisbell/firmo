@@ -4,18 +4,42 @@
  * Admin Table QR Codes Page
  *
  * Generate and download QR codes for restaurant tables.
- * Dark theme (zinc-900/800) consistent with admin UI.
+ * Auto-selects the primary location; shows selector only for multi-location tenants.
  *
  * @module app/admin/mesas/qr/page
  */
 
+import { useState, useEffect } from 'react';
 import { QrCode, Download, Loader2, Grid3X3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTableQRs } from '@/src/hooks/useTableQRs';
+import useSWR from 'swr';
+import { fetcher } from '@/src/lib/swr-config';
+
+interface Location {
+  id: string;
+  code: string;
+  name: string;
+}
 
 export default function TableQRPage() {
-  // Load QR codes for all active tables (no location filter needed)
-  const { items: qrItems, isLoading } = useTableQRs('all');
+  const { data: locationsData } = useSWR<{ locations: Location[] }>(
+    '/api/admin/locations',
+    fetcher,
+    { revalidateOnFocus: false },
+  );
+
+  const locations = locationsData?.locations ?? [];
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+
+  // Auto-select first location as soon as list loads
+  useEffect(() => {
+    if (locations.length > 0 && !selectedLocation) {
+      setSelectedLocation(locations[0].id);
+    }
+  }, [locations, selectedLocation]);
+
+  const { items: qrItems, isLoading } = useTableQRs(selectedLocation);
 
   const handleDownload = (qrDataUrl: string, displayName: string) => {
     const link = document.createElement('a');
@@ -61,6 +85,26 @@ export default function TableQRPage() {
         )}
       </div>
 
+      {/* Location selector — only shown when tenant has multiple locations */}
+      {locations.length > 1 && (
+        <div className="bg-zinc-800 rounded-xl border border-zinc-700 p-4">
+          <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">
+            Sucursal
+          </label>
+          <select
+            value={selectedLocation ?? ''}
+            onChange={(e) => setSelectedLocation(e.target.value || null)}
+            className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-600 rounded-lg text-zinc-100 text-sm outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            {locations.map((loc) => (
+              <option key={loc.id} value={loc.id}>
+                {loc.name} ({loc.code})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center h-48">
@@ -69,13 +113,14 @@ export default function TableQRPage() {
       )}
 
       {/* No tables */}
-      {!isLoading && qrItems.length === 0 && (
+      {!isLoading && selectedLocation && qrItems.length === 0 && (
         <div className="flex flex-col items-center justify-center h-48 text-zinc-500">
           <Grid3X3 className="w-12 h-12 mb-3 opacity-50" />
-          <p className="text-sm">No hay mesas activas</p>
+          <p className="text-sm">No hay mesas activas en esta sucursal</p>
         </div>
       )}
 
+      {/* QR Grid */}
       {qrItems.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {qrItems.map((item) => (
