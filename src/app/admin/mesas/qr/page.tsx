@@ -142,10 +142,7 @@ export default function TableQRPage() {
                 alt={`QR ${item.displayName}`}
                 className="w-full aspect-square rounded-lg bg-white p-2"
               />
-              <div className="text-center">
-                <p className="text-sm font-bold text-zinc-100">{item.displayName}</p>
-                <p className="text-xs text-zinc-500 truncate max-w-full">{item.menuUrl}</p>
-              </div>
+              <p className="text-sm font-bold text-zinc-100 text-center">{item.displayName}</p>
               <button
                 onClick={() => handleDownload(item.qrDataUrl, item.displayName)}
                 className="w-full flex items-center justify-center gap-1 text-xs font-medium text-amber-400 hover:text-amber-300 py-1.5 border border-zinc-600 rounded-lg hover:border-zinc-500 transition-colors"

@@ -113,11 +113,15 @@ export class TableQrService {
       ));
     }
 
-    // Get active tables for the location
-    const tables = await this.prisma.tables.findMany({
+    // Get active tables for the location, sorted numerically
+    const tables = (await this.prisma.tables.findMany({
       where: { tenant_id: tenantId, location_id: locationId, is_active: true },
-      orderBy: { number: 'asc' },
       select: { id: true, number: true, display_name: true },
+    })).sort((a, b) => {
+      const na = parseInt(a.number, 10);
+      const nb = parseInt(b.number, 10);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return a.number.localeCompare(b.number);
     });
 
     if (tables.length === 0) {
