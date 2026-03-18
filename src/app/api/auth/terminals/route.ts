@@ -6,13 +6,12 @@ import prisma from '@/src/core/db/prisma';
 import { getTenantId } from '@/src/core/config/tenant';
 import { logger } from '@/src/core/observability/structured-logger';
 
-const TENANT_ID = getTenantId();
 
 export async function GET() {
   try {
     const terminals = await prisma.terminals.findMany({
       where: {
-        tenant_id: TENANT_ID,
+        tenant_id: getTenantId(),
         is_allowed: true,
       },
       select: {

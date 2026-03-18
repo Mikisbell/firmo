@@ -7,11 +7,10 @@ import { DriverService } from '@/src/core/delivery';
 import { getTenantId } from '@/src/core/config/tenant';
 import { logger } from '@/src/core/observability/structured-logger';
 
-const TENANT_ID = getTenantId();
 
 export async function GET() {
   try {
-    const drivers = await DriverService.getAvailable(TENANT_ID);
+    const drivers = await DriverService.getAvailable(getTenantId());
     return NextResponse.json({ drivers });
   } catch (error) {
     logger.error('Error al obtener repartidores disponibles', error instanceof Error ? error : new Error(String(error)));

@@ -20,7 +20,6 @@ import prisma from '@/src/core/db/prisma';
 import { cache } from '@/src/core/cache/redis.service';
 import { logger } from '@/src/core/observability/structured-logger';
 
-const TENANT_ID = getTenantId();
 
 const CreateDeliverySchema = z.object({
   orderId: z.string().uuid(),
@@ -45,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const delivery = await DeliveryService.createDeliveryOrder({
-      tenantId: TENANT_ID,
+      tenantId: getTenantId(),
       orderId: parsed.data.orderId,
       addressText: parsed.data.addressText,
       addressReference: parsed.data.addressReference,
@@ -91,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where = {
-      tenant_id: TENANT_ID,
+      tenant_id: getTenantId(),
       status: { in: statuses }
     };
 

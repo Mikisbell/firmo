@@ -10,7 +10,6 @@ import { getTenantId } from '@/src/core/config/tenant';
 import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
 
 // Tenant is always resolved from server-side env — never from client input
-const TENANT_ID = getTenantId();
 
 // Strict rate limit: 15 DNI checks per minute per IP (prevents enumeration)
 const DNI_RATE_LIMIT = { maxRequests: 15, windowMs: 60000 };
@@ -32,7 +31,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ exists: false }, { status: 200 });
     }
 
-    const tenantId = TENANT_ID;
+    const tenantId = getTenantId();
 
     const employee = await prisma.employees.findFirst({
       where: { tenant_id: tenantId, dni, is_active: true },

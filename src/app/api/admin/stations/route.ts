@@ -18,7 +18,6 @@ import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/location';
 
-const TENANT_ID = getTenantId();
 
 // GET - List all stations with pagination
 async function handleGET(request: NextRequest) {

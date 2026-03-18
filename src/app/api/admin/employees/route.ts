@@ -19,7 +19,6 @@ import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics, MetricNames } from '@/src/core/observability/metrics';
 import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = getTenantId();
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts
 
 function hashPin(pin: string): string {

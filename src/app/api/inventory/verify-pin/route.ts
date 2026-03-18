@@ -15,7 +15,6 @@ import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limi
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
 import { logger } from '@/src/core/observability/structured-logger';
 
-const TENANT_ID = getTenantId();
 
 const RequestSchema = z.object({
   pin: z.string().min(4).max(6),
@@ -46,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     const result = await authenticate(
       prisma,
-      TENANT_ID,
+      getTenantId(),
       pin,
       allowedRoles,
       { ip, userAgent }

@@ -20,7 +20,6 @@ import { ZodError } from 'zod';
 import { metrics } from '@/src/core/observability/metrics';
 import { logger } from '@/src/core/observability/structured-logger';
 
-const TENANT_ID = getTenantId();
 
 // Validate UUID format
 function isValidUUID(id: string): boolean {

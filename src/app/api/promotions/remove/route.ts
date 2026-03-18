@@ -10,7 +10,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -29,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { user } = authResult;
-    const tenantId = getTenantId();
+    const tenantId = user.tenantId;
     
     // Parse and validate request body
     const body = await request.json();

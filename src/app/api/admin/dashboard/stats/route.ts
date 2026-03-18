@@ -17,7 +17,6 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 import { DashboardService } from '@/src/core/services/dashboard.service';
 
-const TENANT_ID = getTenantId();
 
 export interface DashboardStats {
   salesToday: number;

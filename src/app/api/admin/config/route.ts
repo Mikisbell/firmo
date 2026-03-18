@@ -15,7 +15,6 @@ import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = getTenantId();
 
 async function handleGET(request: NextRequest) {
   const requestId = randomUUID();

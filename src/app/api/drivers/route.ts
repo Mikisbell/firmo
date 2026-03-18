@@ -18,7 +18,6 @@ import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagina
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/structured-logger';
 
-const TENANT_ID = getTenantId();
 
 const CreateDriverSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -32,12 +31,12 @@ export async function GET(request: NextRequest) {
     
     // Get total count of drivers
     const total = await prisma.drivers.count({
-      where: { tenant_id: TENANT_ID }
+      where: { tenant_id: getTenantId() }
     });
     
     // Get paginated drivers with status
     const drivers = await prisma.drivers.findMany({
-      where: { tenant_id: TENANT_ID },
+      where: { tenant_id: getTenantId() },
       skip: params.skip,
       take: params.limit,
       orderBy: { name: 'asc' },
@@ -103,7 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     const driver = await DriverService.create(
-      TENANT_ID,
+      authResult.user.tenantId,
       parsed.data.name,
       parsed.data.phone
     );

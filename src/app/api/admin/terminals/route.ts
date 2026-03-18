@@ -17,7 +17,6 @@ import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = getTenantId();
 
 // GET - List all terminals with pagination
 async function handleGET(request: NextRequest) {

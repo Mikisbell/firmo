@@ -16,7 +16,6 @@ import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { getTenantId } from '@/src/core/config/tenant';
 
-const TENANT_ID = getTenantId();
 
 // GET - List all promotions with pagination
 async function handleGET(request: NextRequest) {
