@@ -76,8 +76,8 @@ export async function validateAdminAuth(request: NextRequest): Promise<
     return {
       valid: false,
       response: NextResponse.json(
-        { error: 'Error al validar autenticación' },
-        { status: 500 }
+        { error: 'No autenticado. Por favor inicie sesión.' },
+        { status: 401 }
       ),
     };
   }
