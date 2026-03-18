@@ -8,11 +8,14 @@ export async function GET(request: Request) {
     return authResult.response;
   }
 
-  const locations = await prisma.locations.findMany({
-    where: { tenant_id: authResult.user.tenantId, is_active: true },
-    select: { id: true, code: true, name: true, address: true, timezone: true },
-    orderBy: { name: 'asc' },
-  });
-
-  return NextResponse.json({ locations });
+  try {
+    const locations = await prisma.locations.findMany({
+      where: { tenant_id: authResult.user.tenantId, is_active: true },
+      select: { id: true, code: true, name: true, address: true, timezone: true },
+      orderBy: { name: 'asc' },
+    });
+    return NextResponse.json({ locations });
+  } catch {
+    return NextResponse.json({ error: 'Error al obtener locaciones' }, { status: 500 });
+  }
 }
