@@ -109,13 +109,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Upload build
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: .next/
-          retention-days: 1
-
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
@@ -163,11 +156,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Download build
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: .next/
+      - name: Build for E2E
+        run: npm run build
 
       - name: Run E2E tests
         run: npm run test:e2e
