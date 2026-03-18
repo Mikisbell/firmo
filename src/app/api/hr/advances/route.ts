@@ -1,5 +1,7 @@
 /**
- * Advances API - POST (request advance)
+ * Advances API
+ * GET  - List advances for tenant (optional ?status filter)
+ * POST - Request a new advance
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,6 +10,29 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { AdvanceService } from '@/src/core/services/advance.service';
 import { resultToResponse } from '@/src/app/api/hr/_shared/api-helpers';
+
+export async function GET(request: NextRequest) {
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) return authResult.response;
+
+  const tenantId = authResult.user.tenantId;
+  const status = request.nextUrl.searchParams.get('status') || undefined;
+
+  try {
+    const where: Record<string, unknown> = { tenant_id: tenantId };
+    if (status) where.status = status;
+
+    const items = await prisma.advances.findMany({
+      where,
+      include: { employee: { select: { name: true, role: true } } },
+      orderBy: { created_at: 'desc' },
+      take: 100,
+    });
+    return NextResponse.json({ items });
+  } catch {
+    return NextResponse.json({ error: 'Error al obtener adelantos' }, { status: 500 });
+  }
+}
 
 const AdvanceRequestSchema = z.object({
   employee_id: z.string().min(1).max(255),

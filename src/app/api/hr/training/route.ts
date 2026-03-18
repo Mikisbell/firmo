@@ -1,12 +1,37 @@
 /**
- * Training API - POST (record training)
+ * Training API
+ * GET  - List training records for tenant (optional ?type filter)
+ * POST - Record a new training
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { TrainingService } from '@/src/core/services/training.service';
 import { resultToResponse } from '@/src/app/api/hr/_shared/api-helpers';
+
+export async function GET(request: NextRequest) {
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) return authResult.response;
+
+  const tenantId = authResult.user.tenantId;
+  const type = request.nextUrl.searchParams.get('type') || undefined;
+
+  try {
+    const where: Record<string, unknown> = { tenant_id: tenantId };
+    if (type) where.training_type = type;
+
+    const items = await prisma.training_records.findMany({
+      where,
+      include: { employee: { select: { name: true, role: true } } },
+      orderBy: { completion_date: 'desc' },
+      take: 100,
+    });
+    return NextResponse.json({ items });
+  } catch {
+    return NextResponse.json({ error: 'Error al obtener capacitaciones' }, { status: 500 });
+  }
+}
 
 const service = new TrainingService(prisma);
 

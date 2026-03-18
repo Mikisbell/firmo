@@ -1,5 +1,7 @@
 /**
- * Leave Requests API - POST (create)
+ * Leave Requests API
+ * GET  - List leave requests for tenant (optional ?status filter)
+ * POST - Create a new leave request
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,6 +10,29 @@ import prisma from '@/src/core/db/prisma';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { LeaveRequestService } from '@/src/core/services/leave-request.service';
 import { resultToResponse } from '@/src/app/api/hr/_shared/api-helpers';
+
+export async function GET(request: NextRequest) {
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) return authResult.response;
+
+  const tenantId = authResult.user.tenantId;
+  const status = request.nextUrl.searchParams.get('status') || undefined;
+
+  try {
+    const where: Record<string, unknown> = { tenant_id: tenantId };
+    if (status) where.status = status;
+
+    const items = await prisma.leave_requests.findMany({
+      where,
+      include: { employee: { select: { name: true, role: true } } },
+      orderBy: { created_at: 'desc' },
+      take: 100,
+    });
+    return NextResponse.json({ items });
+  } catch {
+    return NextResponse.json({ error: 'Error al obtener solicitudes de permiso' }, { status: 500 });
+  }
+}
 
 const LeaveRequestSchema = z.object({
   employee_id: z.string().min(1).max(255),
