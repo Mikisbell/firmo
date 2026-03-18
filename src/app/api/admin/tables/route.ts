@@ -142,8 +142,8 @@ async function handleGET(request: NextRequest) {
     // Create response
     const response = createPaginatedResponse(items, total, params);
 
-    // Cache for 60 seconds
-    await cache.set(cacheKey, response, 60);
+    // Cache for 60 seconds with tag so invalidatePattern('tables:*') works
+    await cache.set(cacheKey, response, { ttl: 60, tags: ['tables'] });
 
     log.info({
       operation: 'list_tables_success',
