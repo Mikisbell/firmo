@@ -294,13 +294,30 @@ export default function POSPage() {
 
         setCurrentOrder(result);
         setSelectedCheckId(result.check_id);
-        
+
+        // Register delivery order in DB so admin & drivers can track it
+        if (data.order_type === "DELIVERY" && data.delivery_address) {
+            fetch('/api/delivery', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: result.order_id,
+                    addressText: data.delivery_address,
+                    addressReference: data.delivery_reference || undefined,
+                    customerPhone: data.customer_phone,
+                    deliveryFee: data.delivery_fee_cents || 0,
+                }),
+            }).catch(() => {
+                // Non-blocking — order was created successfully, delivery tracking is best-effort
+            });
+        }
+
         // Switch to catalog view to add items
         setCashierView("DELIVERY");
-        
+
         toast.success(
-            data.order_type === "DELIVERY" 
-                ? `Pedido delivery para ${data.customer_name}` 
+            data.order_type === "DELIVERY"
+                ? `Pedido delivery para ${data.customer_name}`
                 : `Pedido para llevar - ${data.customer_name}`,
             { duration: 2000 }
         );
