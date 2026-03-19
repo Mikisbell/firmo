@@ -200,7 +200,7 @@ function DeliveryCard({ delivery, driverId, onAction }: DeliveryCardProps) {
         setLoading(true);
         try {
             const res = await fetch(path, {
-                method: "POST",
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: body ? JSON.stringify(body) : undefined,
             });

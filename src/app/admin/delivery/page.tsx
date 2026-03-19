@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Truck, RefreshCw, Clock, Bike, CheckCircle, Package } from 'lucide-react';
+import { Truck, RefreshCw, Clock, Bike, CheckCircle, Package, ExternalLink } from 'lucide-react';
 import { DeliveryCard } from './components/DeliveryCard';
 import { MetricsSummary } from './components/MetricsSummary';
 
@@ -201,6 +201,17 @@ export default function DeliveryDispatchPage() {
           >
             <RefreshCw className={`w-4 h-4 text-zinc-400 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
+          <a
+            href="/driver"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium transition-colors"
+            title="Abrir app motorizado"
+          >
+            <Bike className="w-3.5 h-3.5" />
+            App Motorizado
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </a>
         </div>
         <MetricsSummary />
       </div>
