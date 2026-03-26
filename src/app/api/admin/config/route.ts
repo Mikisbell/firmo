@@ -13,7 +13,6 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
 
 
 async function handleGET(request: NextRequest) {
@@ -61,8 +60,8 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json({ error: 'Configuración no encontrada' }, { status: 404 });
     }
 
-    // Cache for 10 minutes (config doesn't change often)
-    await cache.set(cacheKey, settings, 600);
+    // Cache for 10 minutes with tag for proper invalidation
+    await cache.set(cacheKey, settings, { ttl: 600, tags: ['config'] });
 
     // Record business metrics with tenantId from JWT
     metrics.increment('config_requests_total', {
@@ -168,7 +167,7 @@ async function handlePUT(request: NextRequest) {
     logPerformance('db_transaction_update_config', Date.now() - txStart);
 
     // Invalidate config cache
-    await cache.invalidatePattern('config:*');
+    await cache.deleteByTag('config');
 
     // Record business metrics with tenantId from JWT
     metrics.increment('config_updates_total', {

@@ -53,11 +53,12 @@ export async function GET(
       return NextResponse.json(cached);
     }
 
-    // Get station by ID to find the code
+    // Get station by ID — must belong to the authenticated tenant
     const { default: prisma } = await import('@/src/core/db/prisma');
+    const tenantId = authResult.user.tenantId;
 
-    const station = await prisma.stations.findUnique({
-      where: { id },
+    const station = await prisma.stations.findFirst({
+      where: { id, tenant_id: tenantId },
       select: { code: true },
     });
 
@@ -73,7 +74,7 @@ export async function GET(
     const metrics = await calculateStationMetrics(station.code);
 
     // Cache for 5 minutes
-    await cache.set(cacheKey, metrics, CACHE_TTL.METRICS);
+    await cache.set(cacheKey, metrics, { ttl: CACHE_TTL.METRICS, tags: ['station', `station:${id}`] });
 
     pinoLogger.info(
       { stationId: id, metrics },

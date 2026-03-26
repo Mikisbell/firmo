@@ -45,7 +45,7 @@ export const CreateEmployeeSchema = z.object({
     .string()
     .regex(/^\d{4,6}$/, "PIN debe ser de 4-6 digits numericos"),
   dni: DniSchema,
-  is_active: z.boolean().default(true).optional(),
+  is_active: z.boolean().optional().default(true),
 });
 
 export type CreateEmployeeDTO = z.infer<typeof CreateEmployeeSchema>;
@@ -81,8 +81,8 @@ export const EmployeeIdSchema = z.string().uuid("ID de empleado invalido");
  * Employee Query Params Schema
  */
 export const EmployeeQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
   is_active: z
     .enum(["true", "false"])
     .transform((val) => val === "true")

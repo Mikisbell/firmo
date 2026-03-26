@@ -16,7 +16,6 @@ import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observ
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/location';
 
 
 // GET - List all stations with pagination
@@ -128,7 +127,7 @@ async function handleGET(request: NextRequest) {
     const response = createPaginatedResponse(items, total, params);
 
     // Cache for 5 minutes (stations don't change often)
-    await cache.set(cacheKey, response, 300);
+    await cache.set(cacheKey, response, { ttl: 300, tags: ['stations'] });
 
     log.info({
       operation: 'list_stations_success',

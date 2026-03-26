@@ -73,6 +73,30 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  try {
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
+    const { id } = await params;
+    RecipeIdSchema.parse(id);
+
+    const result = await recipeService.calculateCost(authResult.user.tenantId, id);
+
+    if (!result.success) {
+      const status = result.error.code === 'NOT_FOUND' ? 404 : 500;
+      return NextResponse.json({ error: result.error.message }, { status });
+    }
+
+    return NextResponse.json(result.data);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Error al calcular costo de receta' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const authResult = await requireAdminAuth(request);

@@ -117,8 +117,8 @@ async function handleGET(request: NextRequest) {
     // Create paginated response
     const response = createPaginatedResponse(customers, total, params);
 
-    // Cache for 60 seconds
-    await cache.set(cacheKey, response, 60);
+    // Cache for 60 seconds with tag for proper invalidation
+    await cache.set(cacheKey, response, { ttl: 60, tags: ['customers'] });
 
     log.info({
       operation: 'list_customers_success',
@@ -271,7 +271,7 @@ async function handlePOST(request: NextRequest) {
     logPerformance('db_transaction_create_customer', Date.now() - txStart);
 
     // Invalidate customers cache
-    await cache.invalidatePattern('customers:*');
+    await cache.deleteByTag('customers');
 
     // Record business metrics
     metrics.increment('customers_created_total', {

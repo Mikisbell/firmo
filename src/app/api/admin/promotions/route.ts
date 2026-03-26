@@ -14,7 +14,6 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
 
 
 // GET - List all promotions with pagination
@@ -125,8 +124,8 @@ async function handleGET(request: NextRequest) {
     // Create response
     const response = createPaginatedResponse(promotions, total, params);
 
-    // Cache for 60 seconds
-    await cache.set(cacheKey, response, 60);
+    // Cache for 60 seconds with tag for proper invalidation
+    await cache.set(cacheKey, response, { ttl: 60, tags: ['promotions'] });
 
     log.info({
       operation: 'list_promotions_success',
@@ -237,8 +236,8 @@ async function handlePOST(request: NextRequest) {
     });
     logPerformance('db_transaction_create_promotion', Date.now() - txStart);
 
-    // Invalidate promotions cache for this tenant
-    await cache.invalidatePattern(`promotions:${tenantId}:*`);
+    // Invalidate promotions cache
+    await cache.deleteByTag('promotions');
 
     // Record business metrics
     metrics.increment('promotions_created_total', {

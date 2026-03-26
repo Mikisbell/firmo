@@ -11,8 +11,8 @@ import { z } from 'zod';
 // ============================================================================
 
 export const InvoiceQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(20).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
   type: z.enum(['BOLETA', 'FACTURA']).optional(),
   status: z.enum(['ISSUED', 'VOIDED', 'PENDING']).optional(),
   sunat_status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'TIMEOUT']).optional(),

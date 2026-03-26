@@ -14,7 +14,6 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics, MetricNames } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
 
 
 // GET - List all products with pagination
@@ -115,8 +114,8 @@ async function handleGET(request: NextRequest) {
     // Create response
     const response = createPaginatedResponse(products, total, params);
 
-    // Cache for 60 seconds
-    await cache.set(cacheKey, response, 60);
+    // Cache for 60 seconds with tag for invalidation
+    await cache.set(cacheKey, response, { ttl: 60, tags: ['products'] });
 
     log.info({
       operation: 'list_products_success',
@@ -264,8 +263,8 @@ async function handlePOST(request: NextRequest) {
     });
     logPerformance('db_transaction_create_product', Date.now() - txStart);
 
-    // Invalidate products cache for this tenant
-    await cache.invalidatePattern(`products:${tenantId}:*`);
+    // Invalidate products cache by tag (consistent with PUT/DELETE in [id]/route.ts)
+    await cache.deleteByTag('products');
 
     // Record business metrics
     metrics.increment('products_created_total', {

@@ -12,7 +12,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 import { cache } from '@/src/core/cache/cache-service';
 import { ImageReorderRequestSchema } from '@/src/core/admin/schemas/product-image.schema';
 import type { ProductImage } from '@/src/core/types/product-images';
@@ -129,7 +128,7 @@ export async function PUT(
 
     // Validate category if provided
     if (category) {
-      const validCategories = ['POLLOS', 'PARRILLAS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS'];
+      const validCategories = ['POLLOS', 'PARRILLAS', 'CRIOLLOS', 'SALCHIPAPAS', 'ALITAS', 'PIQUEOS', 'BEBIDAS', 'GUARNICIONES', 'EXTRAS', 'POSTRES', 'COMBOS'];
       if (!validCategories.includes(category)) {
         return NextResponse.json(
           { error: `Categoría inválida. Debe ser uno de: ${validCategories.join(', ')}` },
@@ -201,7 +200,7 @@ export async function PUT(
     // Update product in transaction with audit trail and catalog version increment
     const updated = await prisma.$transaction(async (tx) => {
       const updatedProduct = await tx.products.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: {
           ...(sku && { sku }),
           ...(name && { name }),
@@ -309,7 +308,7 @@ export async function DELETE(
     // Soft delete in transaction with audit trail
     await prisma.$transaction(async (tx) => {
       await tx.products.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: { is_active: false },
       });
 

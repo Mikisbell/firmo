@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/structured-logger';
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 /**
  * GET /api/admin/tenants/current/health
@@ -16,6 +17,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
+      );
+    }
+    if (!(ADMIN_ROLES as readonly string[]).includes(session.role)) {
+      return NextResponse.json(
+        { error: 'Se requiere rol de administrador' },
+        { status: 403 }
       );
     }
 

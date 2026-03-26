@@ -15,7 +15,6 @@ import { createRequestLogger, logPerformance } from '@/src/core/observability/lo
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 
 
 async function handleGET(request: NextRequest) {
@@ -97,7 +96,7 @@ async function handleGET(request: NextRequest) {
     };
 
     // Cache for 2 minutes (audit data doesn't change often)
-    await cache.set(cacheKey, response, 120);
+    await cache.set(cacheKey, response, { ttl: 120, tags: ['audit:events'] });
 
     // Record business metrics with tenantId from JWT
     metrics.increment('audit_events_requests_total', {

@@ -72,7 +72,7 @@ async function handlePUT(
     const txStart = Date.now();
     const station = await prisma.$transaction(async (tx) => {
       const updated = await tx.stations.update({
-        where: { id: id },
+        where: { id: id, tenant_id: tenantId },
         data: validatedData,
       });
 
@@ -246,7 +246,7 @@ async function handleDELETE(
     const txStart = Date.now();
     const station = await prisma.$transaction(async (tx) => {
       const deleted = await tx.stations.update({
-        where: { id: id },
+        where: { id: id, tenant_id: tenantId },
         data: { is_active: false },
       });
 

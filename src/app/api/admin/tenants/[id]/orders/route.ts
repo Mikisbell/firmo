@@ -22,6 +22,11 @@ export async function GET(
     const offset = parseInt(searchParams.get('offset') || '0');
     const status = searchParams.get('status');
 
+    const VALID_ORDER_STATUSES = ['OPEN', 'CLOSED', 'PAID', 'CANCELLED', 'VOIDED', 'CONFIRMED'];
+    if (status && !VALID_ORDER_STATUSES.includes(status)) {
+      return NextResponse.json({ error: 'status inválido' }, { status: 400 });
+    }
+
     // Get authentication session
     const session = await getSessionFromRequest(request, prisma);
     if (!session || !session.employeeId) {

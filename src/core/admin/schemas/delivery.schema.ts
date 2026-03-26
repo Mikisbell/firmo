@@ -19,8 +19,8 @@ export const DeliveryHistoryQuerySchema = z.object({
     .optional(),
   status: z.string().optional(),
   driverId: z.string().optional(),
-  limit: z.coerce.number().int().min(1).max(200).default(50).optional(),
-  offset: z.coerce.number().int().min(0).default(0).optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
 export type DeliveryHistoryQueryParams = z.infer<typeof DeliveryHistoryQuerySchema>;

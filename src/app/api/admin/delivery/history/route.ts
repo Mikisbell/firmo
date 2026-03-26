@@ -37,9 +37,10 @@ async function handleGET(request: NextRequest) {
     const queryParams = Object.fromEntries(request.nextUrl.searchParams);
     const validatedQuery = DeliveryHistoryQuerySchema.parse(queryParams);
 
-    // Generate cache key
+    // Generate cache key — tenantId MUST be included to prevent cross-tenant leaks
     const cacheKey = generateCacheKey(
       'delivery:history',
+      tenantId,
       validatedQuery.dateFrom ?? 'all',
       validatedQuery.dateTo ?? 'all',
       validatedQuery.status ?? 'all',
@@ -108,7 +109,7 @@ async function handleGET(request: NextRequest) {
     const driverIds = [...new Set(deliveries.map((d: any) => d.driver_id).filter(Boolean))] as string[];
     const drivers = driverIds.length > 0
       ? await prisma.drivers.findMany({
-          where: { id: { in: driverIds } },
+          where: { id: { in: driverIds }, tenant_id: tenantId },
           select: { id: true, name: true },
         })
       : [];
@@ -130,7 +131,7 @@ async function handleGET(request: NextRequest) {
     };
 
     // Cache for 2 minutes
-    await cache.set(cacheKey, response, 120);
+    await cache.set(cacheKey, response, { ttl: 120, tags: ['delivery:history'] });
 
     // Record business metrics
     metrics.increment('delivery_history_requests_total', {

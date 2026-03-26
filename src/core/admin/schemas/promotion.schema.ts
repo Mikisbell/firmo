@@ -72,8 +72,8 @@ export const PromotionIdSchema = z.string().uuid('ID de promoción inválido');
  * Validates query parameters for listing promotions
  */
 export const PromotionQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
   is_active: z
     .enum(['true', 'false'])
     .transform((val) => val === 'true')

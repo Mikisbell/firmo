@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
 
     // Reset status to PENDING so the cron picks it up again
     await dailySummary.update({
-      where: { id: summaryId },
+      where: { id: summaryId, tenant_id: tenantId },
       data: {
         sunat_status: 'PENDING',
         last_error: null,

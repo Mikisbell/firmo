@@ -56,15 +56,15 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Get metrics from service
+    // Get metrics from service — pass date so it returns data for the requested day
     const serviceStart = Date.now();
-    const hourlySales = await getHourlySales(tenantId);
+    const hourlySales = await getHourlySales(tenantId, validatedQuery.date);
     logPerformance('service_get_hourly_sales', Date.now() - serviceStart);
 
     const response = { hourly: hourlySales };
 
     // Cache for 5 minutes (hourly data doesn't change that often)
-    await cache.set(cacheKey, response, 300);
+    await cache.set(cacheKey, response, { ttl: 300, tags: ['analytics:hourly'] });
 
     // Record business metrics
     metrics.increment('analytics_hourly_requests_total', {

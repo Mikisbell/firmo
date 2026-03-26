@@ -20,7 +20,7 @@ export const ONBOARDING_STEPS = [
     title: 'Configurar Información del Negocio',
     description: 'Completa los datos de tu restaurante (nombre, RUC, dirección)',
     is_required: true,
-    route: '/admin/config',
+    route: '/admin/configuracion',
   },
   {
     step_number: 2,
@@ -28,7 +28,7 @@ export const ONBOARDING_STEPS = [
     title: 'Crear Empleados',
     description: 'Agrega al menos un empleado además del administrador',
     is_required: true,
-    route: '/admin/employees',
+    route: '/admin/empleados',
   },
   {
     step_number: 3,
@@ -36,7 +36,7 @@ export const ONBOARDING_STEPS = [
     title: 'Crear Productos',
     description: 'Agrega los productos que venderás (pollos, bebidas, etc.)',
     is_required: true,
-    route: '/admin/products',
+    route: '/admin/productos',
   },
   {
     step_number: 4,
@@ -44,7 +44,7 @@ export const ONBOARDING_STEPS = [
     title: 'Configurar Estaciones',
     description: 'Configura las estaciones de cocina (parrilla, cocina, bar)',
     is_required: false,
-    route: '/admin/stations',
+    route: '/admin/estaciones',
   },
   {
     step_number: 5,
@@ -52,7 +52,7 @@ export const ONBOARDING_STEPS = [
     title: 'Activar Terminal',
     description: 'Activa tu terminal POS con el código de activación',
     is_required: true,
-    route: '/admin/terminals',
+    route: '/admin/terminales',
   },
   {
     step_number: 6,
@@ -60,7 +60,7 @@ export const ONBOARDING_STEPS = [
     title: 'Configurar Métodos de Pago',
     description: 'Configura los métodos de pago que acepta tu restaurante',
     is_required: false,
-    route: '/admin/payment-methods',
+    route: '/admin/configuracion',
   },
 ] as const;
 

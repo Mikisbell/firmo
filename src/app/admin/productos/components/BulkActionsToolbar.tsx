@@ -39,7 +39,12 @@ type BulkAction = 'activate' | 'deactivate' | 'change_category' | 'change_statio
 const CATEGORY_OPTIONS = [
   { value: 'POLLOS', label: 'Pollos' },
   { value: 'PARRILLAS', label: 'Parrillas' },
+  { value: 'CRIOLLOS', label: 'Criollos' },
+  { value: 'SALCHIPAPAS', label: 'Salchipapas' },
+  { value: 'ALITAS', label: 'Alitas' },
+  { value: 'PIQUEOS', label: 'Piqueos' },
   { value: 'BEBIDAS', label: 'Bebidas' },
+  { value: 'GUARNICIONES', label: 'Guarniciones' },
   { value: 'EXTRAS', label: 'Extras' },
   { value: 'POSTRES', label: 'Postres' },
   { value: 'COMBOS', label: 'Combos' },

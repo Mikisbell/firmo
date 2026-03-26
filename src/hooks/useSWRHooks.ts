@@ -680,7 +680,8 @@ interface Promotion {
 }
 
 interface PromotionsResponse {
-  promotions: Promotion[];
+  items: Promotion[];
+  pagination: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean; hasPrev: boolean };
 }
 
 /**

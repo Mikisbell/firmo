@@ -11,7 +11,7 @@ import { NextRequest } from 'next/server';
 vi.mock('@/src/core/middleware/admin-auth', () => ({
   requireAdminAuth: vi.fn().mockResolvedValue({
     authorized: true,
-    user: { tenantId: 'test-tenant', role: 'ADMIN', employeeId: 'admin-1' },
+    user: { id: 'admin-1', tenantId: 'test-tenant', role: 'ADMIN', employeeId: 'admin-1' },
   }),
 }));
 
@@ -99,7 +99,7 @@ describe('Terminal Detail API', () => {
     // Reset admin auth mock to authorized
     vi.mocked(requireAdminAuth).mockResolvedValue({
       authorized: true,
-      user: { tenantId: 'test-tenant', role: 'ADMIN', employeeId: 'admin-1' } as any,
+      user: { id: 'admin-1', tenantId: 'test-tenant', role: 'ADMIN', employeeId: 'admin-1' } as any,
     });
   });
 

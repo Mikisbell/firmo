@@ -7,6 +7,13 @@ import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
 import { logger } from '@/src/core/observability/structured-logger';
+import type { AlertType } from '@/src/core/security/alert-service';
+
+const VALID_ALERT_TYPES: readonly string[] = [
+  'SIMULTANEOUS_LOGIN', 'SUSPICIOUS_IP', 'IMPOSSIBLE_TRAVEL', 'RATE_LIMIT_EXCEEDED',
+  'PRICE_CHANGE_LIMIT', 'REFUND_LIMIT_EXCEEDED', 'NEW_DEVICE', 'BLOCKED_DEVICE',
+  'DEVICE_MISMATCH', 'UNAUTHORIZED_TERMINAL_ACCESS',
+];
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -28,8 +35,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is admin
-    const employee = await prisma.employees.findUnique({
-      where: { id: session.employeeId },
+    const employee = await prisma.employees.findFirst({
+      where: { id: session.employeeId, tenant_id: session.tenantId },
     });
 
     if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {
@@ -55,7 +62,10 @@ export async function GET(request: NextRequest) {
     };
 
     if (alertType) {
-      where.alert_type = alertType;
+      if (!VALID_ALERT_TYPES.includes(alertType)) {
+        return NextResponse.json({ error: 'alert_type inválido' }, { status: 400 });
+      }
+      where.alert_type = alertType as AlertType;
     }
 
     if (isResolved !== null) {

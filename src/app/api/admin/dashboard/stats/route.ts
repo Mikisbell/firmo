@@ -14,7 +14,6 @@ import { createRequestLogger, logPerformance } from '@/src/core/observability/lo
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 import { DashboardService } from '@/src/core/services/dashboard.service';
 
 
@@ -267,7 +266,7 @@ async function handleGET(request: NextRequest) {
     };
 
     // Cache for 30 seconds (dashboard needs fresh data)
-    await cache.set(cacheKey, stats, 30);
+    await cache.set(cacheKey, stats, { ttl: 30, tags: ['dashboard'] });
 
     // Record business metrics with tenantId from JWT
     metrics.increment('dashboard_stats_requests_total', {

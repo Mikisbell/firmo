@@ -50,7 +50,7 @@ async function handleGET(request: NextRequest) {
     logPerformance('service_get_comparison', Date.now() - serviceStart);
 
     // Cache for 5 minutes
-    await cache.set(cacheKey, comparison, 300);
+    await cache.set(cacheKey, comparison, { ttl: 300, tags: ['analytics:comparison'] });
 
     // Record business metrics
     metrics.increment('analytics_comparison_requests_total', {

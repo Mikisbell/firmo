@@ -12,7 +12,6 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
 import { uploadImage } from '@/src/core/images/image.service';
 import { ImageUploadRequestSchema } from '@/src/core/admin/schemas/product-image.schema';
 import { ZodError } from 'zod';

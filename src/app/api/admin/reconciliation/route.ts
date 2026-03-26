@@ -13,6 +13,8 @@ import { ReconciliationService } from '@/src/core/services/reconciliation.servic
 import prisma from '@/src/core/db/prisma';
 import { z } from 'zod';
 
+const VALID_SETTLEMENT_STATUSES = ['PENDING', 'MATCHED', 'DISCREPANCY'] as const;
+
 const GenerateSchema = z.object({
   start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -22,20 +24,28 @@ export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth(request);
   if (!authResult.authorized) return authResult.response;
 
-  const service = new ReconciliationService(prisma);
-  const status = request.nextUrl.searchParams.get('status') as any;
-  const method = request.nextUrl.searchParams.get('method') ?? undefined;
+  try {
+    const service = new ReconciliationService(prisma);
+    const rawStatus = request.nextUrl.searchParams.get('status');
+    const method = request.nextUrl.searchParams.get('method') ?? undefined;
 
-  const result = await service.getSettlements(authResult.user.tenantId, {
-    status: status || undefined,
-    paymentMethod: method,
-  });
+    if (rawStatus && !(VALID_SETTLEMENT_STATUSES as readonly string[]).includes(rawStatus)) {
+      return NextResponse.json({ error: 'status inválido' }, { status: 400 });
+    }
 
-  if (!result.success) {
-    return NextResponse.json({ error: result.error.message }, { status: 400 });
+    const result = await service.getSettlements(authResult.user.tenantId, {
+      status: rawStatus as (typeof VALID_SETTLEMENT_STATUSES)[number] | undefined || undefined,
+      paymentMethod: method,
+    });
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ settlements: result.data });
+  } catch {
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
-
-  return NextResponse.json({ settlements: result.data });
 }
 
 export async function POST(request: NextRequest) {

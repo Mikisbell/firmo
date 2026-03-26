@@ -50,7 +50,7 @@ export async function POST(
 
     // Dismiss the alert
     const updatedAlert = await prisma.station_alerts.update({
-      where: { id: alertId },
+      where: { id: alertId, tenant_id: user.tenantId },
       data: {
         is_dismissed: true,
         dismissed_at: new Date(),

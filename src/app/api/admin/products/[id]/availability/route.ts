@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Invalidar caché Redis de productos
-    await cache.invalidatePattern(`products:${tenantId}:*`);
+    await cache.deleteByTag('products');
 
     return NextResponse.json(result.data);
   } catch (error) {

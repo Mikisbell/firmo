@@ -57,8 +57,8 @@ export const ZoneIdSchema = z.string().uuid('ID de zona inválido');
  * Validates query parameters for listing zones
  */
 export const ZoneQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
   is_active: z
     .enum(['true', 'false'])
     .transform((val) => val === 'true')

@@ -7,7 +7,7 @@
  * Requirements: 2.1, 2.2, 2.3
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Check, X, MapPin } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useTables } from '@/src/hooks/useSWRHooks';
@@ -58,6 +58,8 @@ export default function TablesPage() {
       console.error('Fetch error:', err);
     }
   }, [mutate]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Desactivar esta mesa?')) return;

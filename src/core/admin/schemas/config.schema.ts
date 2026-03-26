@@ -23,11 +23,6 @@ export const UpdateConfigSchema = z.object({
     .max(500, 'Dirección muy larga (máximo 500 caracteres)')
     .nullable()
     .optional(),
-  tax_rate: z
-    .number()
-    .min(0, 'Tasa de impuesto no puede ser negativa')
-    .max(100, 'Tasa de impuesto no puede exceder 100%')
-    .optional(),
 });
 
 export type UpdateConfigDTO = z.infer<typeof UpdateConfigSchema>;

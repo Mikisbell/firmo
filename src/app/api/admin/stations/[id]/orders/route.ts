@@ -7,7 +7,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 
 interface OrderItem {
   itemId: string;

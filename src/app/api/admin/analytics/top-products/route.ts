@@ -65,7 +65,7 @@ async function handleGET(request: NextRequest) {
     logPerformance('service_get_top_products', Date.now() - serviceStart);
 
     // Cache for 2 minutes
-    await cache.set(cacheKey, products, 120);
+    await cache.set(cacheKey, products, { ttl: 120, tags: ['analytics:top-products'] });
 
     // Record business metrics
     metrics.increment('analytics_top_products_requests_total', {

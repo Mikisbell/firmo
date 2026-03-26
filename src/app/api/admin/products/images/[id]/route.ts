@@ -11,7 +11,6 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
 import { deleteImage } from '@/src/core/images/image.service';
 import type { ProductImage } from '@/src/core/types/product-images';
 

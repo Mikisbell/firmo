@@ -32,8 +32,8 @@ export async function GET(
     }
 
     // Check if user is admin
-    const employee = await prisma.employees.findUnique({
-      where: { id: session.employeeId },
+    const employee = await prisma.employees.findFirst({
+      where: { id: session.employeeId, tenant_id: session.tenantId },
     });
 
     if (!employee || !(ADMIN_ROLES as readonly string[]).includes(employee.role)) {

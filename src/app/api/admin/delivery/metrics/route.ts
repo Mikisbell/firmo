@@ -10,7 +10,6 @@ import { createRequestLogger, logPerformance } from '@/src/core/observability/lo
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 
 
 async function handleGET(request: NextRequest) {
@@ -53,7 +52,7 @@ async function handleGET(request: NextRequest) {
     logPerformance('service_get_delivery_metrics', Date.now() - serviceStart);
 
     // Cache for 2 minutes
-    await cache.set(cacheKey, deliveryMetrics, 120);
+    await cache.set(cacheKey, deliveryMetrics, { ttl: 120, tags: ['delivery:metrics'] });
 
     // Record business metrics with tenantId from JWT
     metrics.increment('delivery_metrics_requests_total', {

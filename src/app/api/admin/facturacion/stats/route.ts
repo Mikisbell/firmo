@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { invoiceService } from '@/src/core/services/invoice.service';
 import { InvoiceStatsQuerySchema } from '@/src/core/admin/schemas/facturacion.schema';
+import { ZodError } from 'zod';
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth(request);
@@ -32,7 +33,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(result.data);
-  } catch {
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Error al obtener estadísticas' }, { status: 500 });
   }
 }

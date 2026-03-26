@@ -125,8 +125,8 @@ async function handleGET(request: NextRequest) {
     // Create response
     const response = createPaginatedResponse(transformedZones, total, params);
 
-    // Cache for 5 minutes (zones don't change often)
-    await cache.set(cacheKey, response, 300);
+    // Cache for 5 minutes with tag for invalidation
+    await cache.set(cacheKey, response, { ttl: 300, tags: ['zones'] });
 
     log.info({
       operation: 'list_zones_success',
@@ -264,7 +264,7 @@ async function handlePOST(request: NextRequest) {
     logPerformance('db_transaction_create_zone', Date.now() - txStart);
 
     // Invalidate zones cache
-    await cache.invalidatePattern(`zones:${tenantId}:*`);
+    await cache.deleteByTag('zones');
 
     // Record business metrics
     metrics.increment('zones_created_total', {

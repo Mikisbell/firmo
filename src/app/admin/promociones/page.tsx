@@ -43,7 +43,7 @@ const filters: FilterConfig[] = [
 export default function PromotionsPage() {
   // Migrado a SWR - Tarea 9.3 Lote 2
   const { data, error: swrError, isLoading: loading, mutate } = usePromotions();
-  const promotions = data?.promotions || [];
+  const promotions = data?.items || [];
   const error = swrError ? 'Error al cargar promociones' : null;
 
   const isExpired = (endsAt: string) => new Date(endsAt) < new Date();

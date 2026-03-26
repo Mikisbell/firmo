@@ -23,16 +23,20 @@ export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth(request);
   if (!authResult.authorized) return authResult.response;
 
-  const printerId = request.nextUrl.searchParams.get('printer_id') || undefined;
+  try {
+    const printerId = request.nextUrl.searchParams.get('printer_id') || undefined;
 
-  const service = new PrintJobService(prisma);
-  const result = await service.getPendingJobs(authResult.user.tenantId, printerId);
+    const service = new PrintJobService(prisma);
+    const result = await service.getPendingJobs(authResult.user.tenantId, printerId);
 
-  if (!result.success) {
-    return NextResponse.json({ error: result.error.message }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ jobs: result.data });
+  } catch {
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
-
-  return NextResponse.json({ jobs: result.data });
 }
 
 export async function POST(request: NextRequest) {

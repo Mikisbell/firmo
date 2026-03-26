@@ -35,9 +35,9 @@ export async function GET(request: NextRequest) {
       },
     });
     
-    // También obtener códigos de activación pendientes
+    // También obtener códigos de activación pendientes (solo del tenant actual)
     const activationCodes = await prisma.activation_codes.findMany({
-      where: { used: false },
+      where: { used: false, tenant_id: tenantId },
       select: {
         terminal_id: true,
         code: true,

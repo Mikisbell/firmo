@@ -30,7 +30,7 @@ export type HourlyAnalyticsQueryParams = z.infer<typeof HourlyAnalyticsQuerySche
  * Top Products Query Schema
  */
 export const TopProductsQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
   date_from: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha desde debe estar en formato YYYY-MM-DD')
@@ -47,7 +47,7 @@ export type TopProductsQueryParams = z.infer<typeof TopProductsQuerySchema>;
  * History Analytics Query Schema
  */
 export const HistoryAnalyticsQuerySchema = z.object({
-  days: z.coerce.number().int().min(1).max(90).default(7).optional(),
+  days: z.coerce.number().int().min(1).max(90).optional().default(7),
 });
 
 export type HistoryAnalyticsQueryParams = z.infer<typeof HistoryAnalyticsQuerySchema>;

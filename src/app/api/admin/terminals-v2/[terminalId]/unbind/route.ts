@@ -38,8 +38,8 @@ export async function POST(
     const { user } = authResult;
     const { terminalId } = await params;
 
-    // Get tenant ID
-    const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    // Get tenant ID from JWT (never from env)
+    const tenantId = authResult.user.tenantId;
 
     // Find the terminal
     const terminal = await prisma.terminal_devices.findFirst({

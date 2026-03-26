@@ -17,7 +17,6 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics, MetricNames } from '@/src/core/observability/metrics';
-import { getTenantId } from '@/src/core/config/tenant';
 
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts
 
@@ -116,8 +115,8 @@ async function handleGET(request: NextRequest) {
     // Create response
     const response = createPaginatedResponse(employees, total, params);
 
-    // Cache for 60 seconds
-    await cache.set(cacheKey, response, 60);
+    // Cache for 60 seconds with tag for invalidation
+    await cache.set(cacheKey, response, { ttl: 60, tags: ['employees'] });
 
     log.info({
       operation: 'list_employees_success',
@@ -258,8 +257,8 @@ async function handlePOST(request: NextRequest) {
     });
     logPerformance('db_transaction_create_employee', Date.now() - txStart);
 
-    // Invalidate employees cache for this tenant
-    await cache.invalidatePattern(`employees:${tenantId}:*`);
+    // Invalidate employees cache
+    await cache.deleteByTag('employees');
 
     // Record business metrics
     metrics.increment(MetricNames.EMPLOYEES_CREATED_TOTAL, {

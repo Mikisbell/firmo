@@ -77,9 +77,7 @@ export default function RecetasPage() {
   const handleCalculateCost = async (recipeId: string) => {
     try {
       const res = await fetch(`/api/admin/recipes/${recipeId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}), // Trigger cost recalculation
+        method: 'PATCH',
       });
       if (res.ok) {
         toast.success('Costo recalculado');

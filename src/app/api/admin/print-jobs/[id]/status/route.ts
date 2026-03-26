@@ -35,26 +35,30 @@ export async function PATCH(
     return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
 
-  const service = new PrintJobService(prisma);
-  let result;
+  try {
+    const service = new PrintJobService(prisma);
+    let result;
 
-  switch (parsed.data.status) {
-    case 'SENT':
-      result = await service.markJobSent(authResult.user.tenantId, id);
-      break;
-    case 'PRINTED':
-      result = await service.markJobPrinted(authResult.user.tenantId, id);
-      break;
-    case 'FAILED':
-      result = await service.markJobFailed(authResult.user.tenantId, id);
-      break;
-    default:
-      return NextResponse.json({ error: 'status inválido' }, { status: 400 });
+    switch (parsed.data.status) {
+      case 'SENT':
+        result = await service.markJobSent(authResult.user.tenantId, id);
+        break;
+      case 'PRINTED':
+        result = await service.markJobPrinted(authResult.user.tenantId, id);
+        break;
+      case 'FAILED':
+        result = await service.markJobFailed(authResult.user.tenantId, id);
+        break;
+      default:
+        return NextResponse.json({ error: 'status inválido' }, { status: 400 });
+    }
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
-
-  if (!result.success) {
-    return NextResponse.json({ error: result.error.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ success: true });
 }

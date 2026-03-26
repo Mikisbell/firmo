@@ -13,7 +13,6 @@ import { createRequestLogger, logPerformance } from '@/src/core/observability/lo
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 
 
 async function handleGET(request: NextRequest) {
@@ -122,8 +121,8 @@ async function handleGET(request: NextRequest) {
       by_payment_method: Object.entries(paymentTotals).map(([method, total]) => ({ method, total })),
     };
 
-    // Cache for 5 minutes
-    await cache.set(cacheKey, response, 300);
+    // Cache for 5 minutes with tag for proper invalidation
+    await cache.set(cacheKey, response, { ttl: 300, tags: ['reports'] });
 
     // Record business metrics with tenantId from JWT
     metrics.increment('reports_requests_total', {

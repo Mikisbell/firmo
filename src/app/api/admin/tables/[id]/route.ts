@@ -183,7 +183,7 @@ export async function PUT(
     const txStart = Date.now();
     const table = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.tables.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: {
           ...data,
           updated_at: new Date(),
@@ -305,7 +305,7 @@ export async function DELETE(
     const txStart = Date.now();
     await prisma.$transaction(async (tx: any) => {
       await tx.tables.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: { is_active: false, updated_at: new Date() },
       });
 

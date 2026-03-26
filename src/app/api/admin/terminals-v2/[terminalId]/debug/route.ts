@@ -1,24 +1,29 @@
 /**
  * Debug Terminal Status API
- * 
- * Returns raw terminal data for debugging unbind issues
+ *
+ * Returns raw terminal data for debugging unbind issues.
+ * Only available in non-production environments.
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/structured-logger';
+import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ terminalId: string }> }
 ) {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   }
 
+  const authResult = await requireAdminAuth(request);
+  if (!authResult.authorized) return authResult.response;
+
   try {
     const { terminalId } = await params;
-    const tenantId = process.env.TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const tenantId = authResult.user.tenantId;
 
     const terminal = await prisma.terminal_devices.findFirst({
       where: {

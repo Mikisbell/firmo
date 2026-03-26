@@ -187,7 +187,7 @@ async function handlePUT(
     const txStart = Date.now();
     const customer = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.customers.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: validatedData,
       });
 
@@ -212,7 +212,7 @@ async function handlePUT(
     logPerformance('db_transaction_update_customer', Date.now() - txStart);
 
     // Invalidate customers cache
-    await cache.invalidatePattern('customers:*');
+    await cache.deleteByTag('customers');
 
     // Log audit event
     logAudit('UPDATE', 'customers', authResult.user.id, {
@@ -364,7 +364,7 @@ async function handleDELETE(
     logPerformance('db_transaction_delete_customer', Date.now() - txStart);
 
     // Invalidate customers cache
-    await cache.invalidatePattern('customers:*');
+    await cache.deleteByTag('customers');
 
     // Record business metrics
     metrics.increment('customers_deleted_total', {

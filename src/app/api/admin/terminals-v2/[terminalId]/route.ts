@@ -47,7 +47,7 @@ export async function GET(
 
     // Get all activation codes for this terminal (history)
     const activationCodes = await prisma.activation_codes.findMany({
-      where: { terminal_id: terminalId },
+      where: { terminal_id: terminalId, tenant_id: tenantId },
       orderBy: { created_at: 'desc' },
     });
 

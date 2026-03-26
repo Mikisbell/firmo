@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       auditoriaCount = await prisma.admin_access_logs.count({
         where: {
+          tenant_id: session.tenantId,
           created_at: { gte: oneDayAgo },
           action: { in: ['DELETE', 'UPDATE'] }, // High-impact actions
         },
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
     try {
       deliveryCount = await prisma.delivery_orders.count({
         where: {
+          tenant_id: session.tenantId,
           status: 'PENDING',
           driver_id: null,
         },

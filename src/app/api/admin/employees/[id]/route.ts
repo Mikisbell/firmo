@@ -160,7 +160,7 @@ export async function PUT(
     // Update employee in transaction with audit trail
     const updated = await prisma.$transaction(async (tx: any) => {
       const updatedEmployee = await tx.employees.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: {
           ...(name && { name }),
           ...(role && { role }),
@@ -189,8 +189,8 @@ export async function PUT(
       return updatedEmployee;
     });
 
-    // Invalidar caché Redis de la lista de empleados para este tenant
-    await cache.invalidatePattern(`employees:${tenantId}:*`);
+    // Invalidate employees cache
+    await cache.deleteByTag('employees');
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -245,7 +245,7 @@ export async function DELETE(
     // Soft delete in transaction with audit trail
     await prisma.$transaction(async (tx) => {
       await tx.employees.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: { is_active: false },
       });
 
@@ -263,8 +263,8 @@ export async function DELETE(
       });
     });
 
-    // Invalidar caché Redis de la lista de empleados para este tenant
-    await cache.invalidatePattern(`employees:${tenantId}:*`);
+    // Invalidate employees cache
+    await cache.deleteByTag('employees');
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

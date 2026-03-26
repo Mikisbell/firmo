@@ -60,7 +60,7 @@ async function handleGET(request: NextRequest) {
     logPerformance('service_get_realtime_metrics', Date.now() - serviceStart);
 
     // Cache for 10 seconds (realtime data changes frequently)
-    await cache.set(cacheKey, analyticsMetrics, 10);
+    await cache.set(cacheKey, analyticsMetrics, { ttl: 10, tags: ['analytics:realtime'] });
 
     // Record business metrics
     metrics.increment('analytics_realtime_requests_total', {

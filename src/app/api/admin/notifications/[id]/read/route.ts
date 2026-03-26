@@ -25,22 +25,18 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const notification = await prisma.notifications.findFirst({
+    const result = await prisma.notifications.updateMany({
       where: {
         id,
         tenant_id: tenantId,
         recipient_id: employeeId,
       },
-    });
-
-    if (!notification) {
-      return NextResponse.json({ error: 'Notificación no encontrada' }, { status: 404 });
-    }
-
-    await prisma.notifications.update({
-      where: { id },
       data: { read: true },
     });
+
+    if (result.count === 0) {
+      return NextResponse.json({ error: 'Notificación no encontrada' }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -24,7 +24,7 @@ export const RecipeIngredientSchema = z.object({
     .positive('Cantidad debe ser mayor a 0')
     .max(99999, 'Cantidad muy alta'),
   unit: z.string().min(1, 'Unidad es requerida').trim(),
-  is_optional: z.boolean().default(false).optional(),
+  is_optional: z.boolean().optional().default(false),
 });
 
 export type RecipeIngredient = z.infer<typeof RecipeIngredientSchema>;
@@ -83,8 +83,8 @@ export type UpdateRecipeDTO = z.infer<typeof UpdateRecipeSchema>;
 export const RecipeIdSchema = z.string().uuid('ID de receta inválido');
 
 export const RecipeQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(20).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
   category: RecipeCategorySchema.optional(),
   is_active: z
     .enum(['true', 'false'])

@@ -127,6 +127,7 @@ vi.mock('@/src/core/cache/redis.service', () => ({
     set: vi.fn(async () => {}),
     del: vi.fn(async () => {}),
     invalidatePattern: vi.fn(async () => {}),
+    deleteByTag: vi.fn(async () => {}),
     isAvailable: vi.fn(() => true),
     getType: vi.fn(() => 'memory'),
   },
@@ -670,6 +671,39 @@ describe('Employee API Unit Tests', () => {
           }),
         })
       );
+    });
+
+    it('update where clause includes tenant_id (TOCTOU prevention)', async () => {
+      const employeeId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+      const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+      const existingEmployee = {
+        id: employeeId,
+        tenant_id: TENANT_ID,
+        name: 'Old Name',
+        role: 'WAITER',
+        pin_hash: hashPin('1234'),
+        is_active: true,
+        created_at: new Date(),
+      };
+
+      let capturedWhere: any;
+      vi.mocked(prisma.employees.findFirst).mockResolvedValue(existingEmployee as any);
+      vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => {
+        const tx = {
+          employees: {
+            update: vi.fn(async (args: any) => {
+              capturedWhere = args.where;
+              return { ...existingEmployee, name: 'New Name' };
+            }),
+          },
+          admin_access_logs: { create: vi.fn().mockResolvedValue({}) },
+        };
+        return callback(tx);
+      });
+
+      const request = createMockRequest({ name: 'New Name' }, 'PUT');
+      await PUT(request, { params: Promise.resolve({ id: employeeId }) });
+      expect(capturedWhere).toMatchObject({ id: employeeId, tenant_id: TENANT_ID });
     });
   });
 

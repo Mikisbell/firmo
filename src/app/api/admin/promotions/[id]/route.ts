@@ -108,7 +108,7 @@ export async function PUT(
     // Update promotion in transaction with audit trail
     const promotion = await prisma.$transaction(async (tx) => {
       const updated = await tx.promotions.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: {
           name: data.name,
           type: data.type,
@@ -140,7 +140,7 @@ export async function PUT(
     });
 
     // Invalidar caché Redis de la lista de promociones
-    await cache.invalidatePattern(`promotions:${tenantId}:*`);
+    await cache.deleteByTag('promotions');
 
     return NextResponse.json(promotion);
   } catch (error) {
@@ -183,7 +183,7 @@ export async function DELETE(
     // Soft delete in transaction with audit trail
     await prisma.$transaction(async (tx) => {
       await tx.promotions.update({
-        where: { id },
+        where: { id, tenant_id: tenantId },
         data: { is_active: false },
       });
 
@@ -202,7 +202,7 @@ export async function DELETE(
     });
 
     // Invalidar caché Redis de la lista de promociones
-    await cache.invalidatePattern(`promotions:${tenantId}:*`);
+    await cache.deleteByTag('promotions');
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

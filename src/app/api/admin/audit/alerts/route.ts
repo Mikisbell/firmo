@@ -43,6 +43,7 @@ async function handleGET(request: NextRequest) {
     // Generate cache key
     const cacheKey = generateCacheKey(
       'audit:alerts',
+      tenantId,
       validatedQuery.terminal_id ?? 'all',
       validatedQuery.severity ?? 'all',
       validatedQuery.acknowledged !== undefined ? String(validatedQuery.acknowledged) : 'all',
@@ -94,7 +95,7 @@ async function handleGET(request: NextRequest) {
     };
 
     // Cache for 1 minute (alerts are time-sensitive)
-    await cache.set(cacheKey, response, 60);
+    await cache.set(cacheKey, response, { ttl: 60, tags: ['audit:alerts'] });
 
     // Record business metrics
     metrics.increment('audit_alerts_requests_total', {

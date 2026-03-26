@@ -15,7 +15,6 @@ import { createRequestLogger, logPerformance } from '@/src/core/observability/lo
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 
 
 // GET - List all terminals with pagination
@@ -106,7 +105,7 @@ async function handleGET(request: NextRequest) {
     const response = createPaginatedResponse(terminals, total, params);
 
     // Cache for 2 minutes (terminals status changes frequently)
-    await cache.set(cacheKey, response, 120);
+    await cache.set(cacheKey, response, { ttl: 120, tags: ['terminals'] });
 
     // Record business metrics with tenantId from JWT
     const activeCount = terminals.filter(t => t.is_allowed).length;

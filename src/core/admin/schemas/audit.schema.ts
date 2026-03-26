@@ -39,7 +39,7 @@ export const AuditEventsQuerySchema = z.object({
     .string()
     .datetime('Fecha de fin inválida. Use formato ISO 8601')
     .optional(),
-  limit: z.coerce.number().int().min(1).max(1000).default(100).optional(),
+  limit: z.coerce.number().int().min(1).max(1000).optional().default(100),
 });
 
 export type AuditEventsQueryParams = z.infer<typeof AuditEventsQuerySchema>;
@@ -74,7 +74,7 @@ export const AuditAlertsQuerySchema = z.object({
     .string()
     .datetime('Fecha de fin inválida. Use formato ISO 8601')
     .optional(),
-  limit: z.coerce.number().int().min(1).max(1000).default(100).optional(),
+  limit: z.coerce.number().int().min(1).max(1000).optional().default(100),
 });
 
 export type AuditAlertsQueryParams = z.infer<typeof AuditAlertsQuerySchema>;

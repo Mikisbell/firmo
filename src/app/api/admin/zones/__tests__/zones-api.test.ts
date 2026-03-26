@@ -63,6 +63,7 @@ vi.mock('@/src/core/cache/redis.service', () => ({
     get: vi.fn(async () => null),
     set: vi.fn(async () => {}),
     invalidatePattern: vi.fn(async () => {}),
+    deleteByTag: vi.fn(async () => {}),
   },
   generateCacheKey: vi.fn((...args: any[]) => args.join(':')),
 }));

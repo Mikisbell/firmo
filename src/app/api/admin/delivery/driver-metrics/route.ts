@@ -46,7 +46,7 @@ async function handleGET(request: NextRequest) {
     const to = validatedQuery.dateTo || today.toISOString().split('T')[0];
 
     // Generate cache key
-    const cacheKey = generateCacheKey('delivery:driver-metrics', from, to);
+    const cacheKey = generateCacheKey('delivery:driver-metrics', tenantId, from, to);
 
     // Try to get from cache
     const cached = await cache.get(cacheKey);
@@ -71,7 +71,7 @@ async function handleGET(request: NextRequest) {
     };
 
     // Cache for 5 minutes
-    await cache.set(cacheKey, response, 300);
+    await cache.set(cacheKey, response, { ttl: 300, tags: ['delivery:driver-metrics'] });
 
     // Record business metrics
     metrics.increment('driver_metrics_requests_total', {

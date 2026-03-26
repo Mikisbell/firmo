@@ -12,7 +12,12 @@ import { ProductImagesArraySchema } from './product-image.schema';
 export const ProductCategorySchema = z.enum([
   'POLLOS',
   'PARRILLAS',
+  'CRIOLLOS',
+  'SALCHIPAPAS',
+  'ALITAS',
+  'PIQUEOS',
   'BEBIDAS',
+  'GUARNICIONES',
   'EXTRAS',
   'POSTRES',
   'COMBOS',
@@ -69,8 +74,8 @@ export const CreateProductSchema = z.object({
     .max(1000000, 'Precio muy alto (máximo S/10,000)'),
   category: ProductCategorySchema,
   station: ProductStationSchema,
-  type: ProductTypeSchema.default('SIMPLE').optional(),
-  is_active: z.boolean().default(true).optional(),
+  type: ProductTypeSchema.optional().default('SIMPLE'),
+  is_active: z.boolean().optional().default(true),
   images: ProductImagesArraySchema.optional().default([]),
 });
 
@@ -95,8 +100,8 @@ export const ProductIdSchema = z.string().uuid('ID de producto inválido');
  * Validates query parameters for listing products
  */
 export const ProductQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
   is_active: z
     .enum(['true', 'false'])
     .transform((val) => val === 'true')

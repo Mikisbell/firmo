@@ -48,8 +48,8 @@ export const CompleteProductionSchema = z.object({
     .number()
     .min(0, 'Merma no puede ser negativa')
     .max(500, 'Máximo 500 unidades')
-    .default(0)
-    .optional(),
+    .optional()
+    .default(0),
   waste_reason: z
     .string()
     .max(500, 'Razón muy larga (máximo 500 caracteres)')
@@ -66,8 +66,8 @@ export const PolloHistoryQuerySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)')
     .optional(),
-  page: z.coerce.number().int().min(1).default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(20).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
 });
 
 export type PolloHistoryQueryParams = z.infer<typeof PolloHistoryQuerySchema>;

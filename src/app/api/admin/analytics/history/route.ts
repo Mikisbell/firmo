@@ -117,7 +117,7 @@ async function handleGET(request: NextRequest) {
     }));
 
     // Cache for 10 minutes (historical data doesn't change)
-    await cache.set(cacheKey, metricsData, 600);
+    await cache.set(cacheKey, metricsData, { ttl: 600, tags: ['analytics:history'] });
 
     // Record business metrics
     metrics.increment('analytics_history_requests_total', {

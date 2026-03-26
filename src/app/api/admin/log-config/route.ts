@@ -17,6 +17,7 @@ import { logConfig, LogLevel, LogModule } from '@/src/core/observability/log-con
 import { getSessionFromRequest } from '@/src/core/auth/auth.service';
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/structured-logger';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 const LogConfigSchema = z.object({
   module: z.enum(['auth', 'sync', 'events', 'orders', 'global']),
@@ -33,13 +34,13 @@ const LogConfigSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticación
+    // Verificar autenticación y rol admin
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+    if (!(ADMIN_ROLES as readonly string[]).includes(session.role)) {
+      return NextResponse.json({ error: 'Se requiere rol de administrador' }, { status: 403 });
     }
 
     // Obtener configuración actual
@@ -74,13 +75,13 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autenticación
+    // Verificar autenticación y rol admin
     const session = await getSessionFromRequest(request, prisma);
     if (!session) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+    if (!(ADMIN_ROLES as readonly string[]).includes(session.role)) {
+      return NextResponse.json({ error: 'Se requiere rol de administrador' }, { status: 403 });
     }
 
     // Parsear body

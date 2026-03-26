@@ -548,9 +548,13 @@ function StationModal({
               required
               disabled={!!station}
             />
-            {station && (
+            {station ? (
               <p className="text-xs text-zinc-500 mt-1">
                 El código no se puede modificar
+              </p>
+            ) : (
+              <p className="text-xs text-zinc-500 mt-1">
+                Solo mayúsculas y guion bajo. Ej: PARRILLA, BAR_2
               </p>
             )}
           </div>
