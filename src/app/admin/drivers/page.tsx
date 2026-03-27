@@ -138,7 +138,7 @@ export default function DriversPage() {
           <tbody className="divide-y">
             {drivers.map(driver => (
               <tr key={driver.id} className={!driver.is_active ? 'bg-gray-50' : ''}>
-                <td className="px-4 py-3 font-medium">{driver.name}</td>
+                <td className="px-4 py-3 font-medium text-gray-900">{driver.name}</td>
                 <td className="px-4 py-3 text-gray-600">{driver.phone || '-'}</td>
                 <td className="px-4 py-3">
                   <StatusBadge status={driver.status} />
