@@ -12,6 +12,7 @@ import prisma from '@/src/core/db/prisma';
 import { DriverService, DriverServiceError } from '../driver.service';
 import { DeliveryService } from '../delivery.service';
 import { v4 as uuidv4 } from 'uuid';
+import { asCentavos } from '@/src/core/types/shared';
 
 // ─── Fixed Test IDs ───────────────────────────────────────────────────────────
 
@@ -223,7 +224,7 @@ describe('DriverService.getAvailable', () => {
       orderId: TEST_ORDER,
       addressText: 'Av. Test 123, Lima',
       customerPhone: '999999999',
-      deliveryFee: 500,
+      deliveryFee: asCentavos(500),
     });
     await DeliveryService.assignDriver(delivery.id, busy.id);
 
@@ -242,7 +243,7 @@ describe('DriverService.getAvailable', () => {
       orderId: TEST_ORDER,
       addressText: 'Av. Test 123, Lima',
       customerPhone: '999999999',
-      deliveryFee: 500,
+      deliveryFee: asCentavos(500),
     });
     await DeliveryService.assignDriver(delivery.id, busy.id);
     await DeliveryService.markDispatched(delivery.id);
@@ -261,7 +262,7 @@ describe('DriverService.getAvailable', () => {
       orderId: TEST_ORDER,
       addressText: 'Av. Test 123, Lima',
       customerPhone: '999999999',
-      deliveryFee: 500,
+      deliveryFee: asCentavos(500),
     });
     await DeliveryService.assignDriver(delivery.id, driver.id);
     await DeliveryService.markDispatched(delivery.id);
@@ -314,7 +315,7 @@ describe('DriverService.getDriverStatus', () => {
       orderId: TEST_ORDER,
       addressText: 'Calle Real 999, Lima',
       customerPhone: '912345678',
-      deliveryFee: 600,
+      deliveryFee: asCentavos(600),
     });
     await DeliveryService.assignDriver(delivery.id, driver.id);
 
@@ -332,7 +333,7 @@ describe('DriverService.getDriverStatus', () => {
       orderId: TEST_ORDER,
       addressText: 'Av. Arequipa 100, Miraflores',
       customerPhone: '945678123',
-      deliveryFee: 700,
+      deliveryFee: asCentavos(700),
     });
     await DeliveryService.assignDriver(delivery.id, driver.id);
     await DeliveryService.markDispatched(delivery.id);
@@ -397,7 +398,7 @@ describe('DriverService.listWithStatus', () => {
       orderId: TEST_ORDER,
       addressText: 'Jr. Ucayali 400, Lima',
       customerPhone: '923456789',
-      deliveryFee: 400,
+      deliveryFee: asCentavos(400),
     });
     await DeliveryService.assignDriver(delivery.id, driver.id);
 

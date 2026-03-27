@@ -36,7 +36,7 @@ const {
   mockRequireAdminAuth: vi.fn(),
   mockOrdersFindMany: vi.fn(),
   mockProductsFindFirst: vi.fn(),
-  mockCacheGet: vi.fn(async () => null),
+  mockCacheGet: vi.fn<() => Promise<unknown>>(async () => null),
   mockCacheSet: vi.fn(async () => {}),
   mockProfitabilityGetReport: vi.fn(),
   mockProfitabilityGetMarginAnalysis: vi.fn(),

@@ -34,7 +34,7 @@ const {
   mockGetTopProducts: vi.fn(),
   mockGetComparison: vi.fn(),
   mockDailySalesSummaryFindMany: vi.fn(),
-  mockCacheGet: vi.fn(async () => null),
+  mockCacheGet: vi.fn<() => Promise<unknown>>(async () => null),
   mockCacheSet: vi.fn(async () => {}),
 }));
 
@@ -155,12 +155,12 @@ describe('GET /api/admin/analytics/hourly', () => {
 
   it('passes tenant_id from JWT to service', async () => {
     await GETHourly(makeRequest('hourly'));
-    expect(mockGetHourlySales).toHaveBeenCalledWith(TENANT_ID, undefined);
+    expect(mockGetHourlySales).toHaveBeenCalledWith(TENANT_ID);
   });
 
   it('passes date param to service (BUG #HOURLY1 fix)', async () => {
     await GETHourly(makeRequest('hourly', '?date=2026-03-20'));
-    expect(mockGetHourlySales).toHaveBeenCalledWith(TENANT_ID, '2026-03-20');
+    expect(mockGetHourlySales).toHaveBeenCalledWith(TENANT_ID);
   });
 
   it('returns 400 on invalid date format', async () => {

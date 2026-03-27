@@ -50,7 +50,7 @@ interface Employee {
   name: string;
   role: string;
   is_active: boolean;
-  dni: string | null;
+  dni?: string | null;
 }
 
 interface Advance {

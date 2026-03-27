@@ -181,6 +181,7 @@ describe('Terminal Detail API', () => {
         created_at: new Date(),
       };
 
+      (prisma.terminal_devices.findFirst as any).mockResolvedValue({ id: 'some-uuid' });
       (generateActivationCode as any).mockResolvedValue(newCode);
       (formatActivationCode as any).mockReturnValue('999-888');
 

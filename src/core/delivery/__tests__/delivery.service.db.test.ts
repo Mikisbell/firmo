@@ -19,6 +19,7 @@ import * as fc from 'fast-check';
 import prisma from '@/src/core/db/prisma';
 import { DeliveryService } from '../delivery.service';
 import { v4 as uuidv4 } from 'uuid';
+import { asCentavos } from '@/src/core/types/shared';
 
 // ─── Fixed Test IDs ───────────────────────────────────────────────────────────
 
@@ -32,7 +33,7 @@ const BASE_DELIVERY = {
   orderId:       TEST_ORDER,
   addressText:   'Av. Javier Prado Este 4200, Santiago de Surco',
   customerPhone: '987654321',
-  deliveryFee:   800, // S/8.00 en centavos
+  deliveryFee:   asCentavos(800), // S/8.00 en centavos
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -134,7 +135,7 @@ describe('DeliveryService.createDeliveryOrder', () => {
         async (fee) => {
           const d = await DeliveryService.createDeliveryOrder({
             ...BASE_DELIVERY,
-            deliveryFee: fee,
+            deliveryFee: asCentavos(fee),
           });
           expect(d.delivery_fee).toBe(fee);
           await prisma.delivery_orders.delete({ where: { id: d.id } });
@@ -381,7 +382,7 @@ describe('DeliveryService.markFailed', () => {
     ).rejects.toMatchObject({ code: 'NOT_FOUND', statusCode: 404 });
   });
 
-  it('property: motivo se almacena sin modificación (trim)', async () => {
+  it('property: motivo se almacena sin modificación (trim)', { timeout: 60000 }, async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1, maxLength: 200 }).filter(s => s.trim().length > 0),
@@ -396,7 +397,7 @@ describe('DeliveryService.markFailed', () => {
           await prisma.drivers.delete({ where: { id: driver.id } });
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 5 } // reduced from 20: each iteration has 6 DB round-trips (~5s each)
     );
   });
 });

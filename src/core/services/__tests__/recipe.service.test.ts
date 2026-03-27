@@ -68,8 +68,8 @@ function makeValidInput(overrides?: Partial<CreateRecipeDTO>): CreateRecipeDTO {
     product_id: PRODUCT_ID,
     name: 'Pollo a la Brasa',
     ingredients: [
-      { inventory_code: 'POLLO-ENTERO', quantity: 1, unit: 'UNIDAD' },
-      { inventory_code: 'ADEREZO-BRASA', quantity: 0.067, unit: 'LITROS' },
+      { inventory_code: 'POLLO-ENTERO', quantity: 1, unit: 'UNIDAD', is_optional: false },
+      { inventory_code: 'ADEREZO-BRASA', quantity: 0.067, unit: 'LITROS', is_optional: false },
     ],
     yield_qty: 4,
     yield_unit: 'PORCIONES',
@@ -88,8 +88,8 @@ function makeRecipeRow(overrides?: Record<string, unknown>) {
     product_id: PRODUCT_ID,
     name: 'Pollo a la Brasa',
     ingredients: [
-      { inventory_code: 'POLLO-ENTERO', quantity: 1, unit: 'UNIDAD' },
-      { inventory_code: 'ADEREZO-BRASA', quantity: 0.067, unit: 'LITROS' },
+      { inventory_code: 'POLLO-ENTERO', quantity: 1, unit: 'UNIDAD', is_optional: false },
+      { inventory_code: 'ADEREZO-BRASA', quantity: 0.067, unit: 'LITROS', is_optional: false },
     ],
     yield_qty: 4,
     yield_unit: 'PORCIONES',
@@ -267,7 +267,7 @@ describe('RecipeService', () => {
       mockPrisma.recipes.count.mockResolvedValue(0);
       mockPrisma.products.findMany.mockResolvedValue([]);
 
-      const result = await service.list(TENANT_ID, { category: 'POLLO' });
+      const result = await service.list(TENANT_ID, { category: 'POLLO', limit: 20, page: 1 });
 
       expect(result.success).toBe(true);
       expect(mockPrisma.recipes.findMany).toHaveBeenCalledWith(
@@ -288,7 +288,7 @@ describe('RecipeService', () => {
         { id: 'other-product', name: 'Chaufa', station: 'COCINA' },
       ]);
 
-      const result = await service.list(TENANT_ID, { station: 'PARRILLA' });
+      const result = await service.list(TENANT_ID, { station: 'PARRILLA', limit: 20, page: 1 });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -336,7 +336,7 @@ describe('RecipeService', () => {
       const result = await service.update(
         TENANT_ID,
         RECIPE_ID,
-        { ingredients: [{ inventory_code: 'NO-EXISTE', quantity: 1, unit: 'KG' }] },
+        { ingredients: [{ inventory_code: 'NO-EXISTE', quantity: 1, unit: 'KG', is_optional: false }] },
         USER_ID,
       );
 

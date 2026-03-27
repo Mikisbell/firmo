@@ -25,7 +25,7 @@ const {
   mockRequireAdminAuth: vi.fn(),
   mockTerminalsCount: vi.fn(),
   mockTerminalsFindMany: vi.fn(),
-  mockCacheGet: vi.fn(async () => null),
+  mockCacheGet: vi.fn<() => Promise<unknown>>(async () => null),
   mockCacheSet: vi.fn(async () => {}),
 }));
 

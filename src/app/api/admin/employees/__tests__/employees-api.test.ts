@@ -745,7 +745,7 @@ describe('Employee API Unit Tests', () => {
       expect(response.status).toBe(204);
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: employeeId },
+          where: { id: employeeId, tenant_id: TENANT_ID },
           data: { is_active: false },
         })
       );

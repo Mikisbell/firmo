@@ -216,6 +216,7 @@ describe('PolloControlService', () => {
       const result = await service.completeProduction(TENANT_ID, LOG_ID, {
         cooked_units: 18,
         cooked_weight_kg: 32.5,
+        waste_units: 0,
       });
 
       expect(result.success).toBe(true);
@@ -237,6 +238,7 @@ describe('PolloControlService', () => {
       const result = await service.completeProduction(TENANT_ID, LOG_ID, {
         cooked_units: 15,
         cooked_weight_kg: 27.5,
+        waste_units: 0,
       });
 
       expect(result.success).toBe(true);
@@ -273,6 +275,7 @@ describe('PolloControlService', () => {
       const result = await service.completeProduction(TENANT_ID, 'no-existe', {
         cooked_units: 10,
         cooked_weight_kg: 25,
+        waste_units: 0,
       });
 
       expect(result.success).toBe(false);
@@ -289,6 +292,7 @@ describe('PolloControlService', () => {
       const result = await service.completeProduction(TENANT_ID, LOG_ID, {
         cooked_units: 10,
         cooked_weight_kg: 25,
+        waste_units: 0,
       });
 
       expect(result.success).toBe(false);

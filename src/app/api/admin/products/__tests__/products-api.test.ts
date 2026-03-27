@@ -32,7 +32,7 @@ const {
   mockCatalogMetaUpsert: vi.fn(),
   mockTransaction: vi.fn(),
   mockRequireAdminAuth: vi.fn(),
-  mockCacheGet: vi.fn(async () => null),
+  mockCacheGet: vi.fn<() => Promise<unknown>>(async () => null),
   mockCacheSet: vi.fn(async () => {}),
   mockDeleteByTag: vi.fn(async () => {}),
 }));

@@ -74,6 +74,11 @@ export const DriverService = {
     driverId: string,
     data: { name?: string; phone?: string }
   ): Promise<Driver> {
+    // Validate name if provided
+    if (data.name !== undefined && data.name.trim().length === 0) {
+      throw new DriverServiceError('Name cannot be empty', 'VALIDATION_ERROR');
+    }
+
     const driver = await prisma.drivers.findUnique({
       where: { id: driverId },
     });

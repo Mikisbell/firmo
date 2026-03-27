@@ -152,7 +152,7 @@ function makeParams<T extends object>(obj: T) {
 }
 
 function mockSessionOk() {
-  mockGetSessionFromRequest.mockResolvedValue({ employeeId: EMPLOYEE_ID, tenantId: TENANT_ID });
+  mockGetSessionFromRequest.mockResolvedValue({ employeeId: EMPLOYEE_ID, tenantId: TENANT_ID, role: 'ADMIN' });
 }
 
 function mockSessionNone() {
