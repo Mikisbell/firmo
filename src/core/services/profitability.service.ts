@@ -288,12 +288,14 @@ export class ProfitabilityService {
           
           // Actualizar totales
           const metrics = productMap.get(productId)!;
-          metrics.unitsSold += item.quantity;
+          const qty = Number.isFinite(item.quantity) ? Math.round(item.quantity) : 0;
+          const priceCents = Number.isFinite(item.priceCents) ? item.priceCents : 0;
+          metrics.unitsSold += qty;
           metrics.totalRevenueCents = unsafeCentavos(
-            metrics.totalRevenueCents + item.priceCents * item.quantity
+            metrics.totalRevenueCents + priceCents * qty
           );
           metrics.totalProfitCents = unsafeProfit(
-            metrics.totalProfitCents + metrics.profitCents * item.quantity
+            metrics.totalProfitCents + metrics.profitCents * qty
           );
         }
       }
@@ -618,26 +620,28 @@ export class ProfitabilityService {
    * Calcula el resumen agregado de un reporte
    */
   private calculateSummary(products: ProductMetrics[]) {
-    const totalRevenueCents = products.reduce(
+    const safeInt = (n: number) => (Number.isFinite(n) ? Math.round(n) : 0);
+
+    const totalRevenueCents = safeInt(products.reduce(
       (sum, p) => sum + p.totalRevenueCents,
       0
-    );
-    
-    const totalCogsCents = products.reduce(
+    ));
+
+    const totalCogsCents = safeInt(products.reduce(
       (sum, p) => sum + p.cogsCents * p.unitsSold,
       0
-    );
-    
-    const totalProfitCents = products.reduce(
+    ));
+
+    const totalProfitCents = safeInt(products.reduce(
       (sum, p) => sum + p.totalProfitCents,
       0
-    );
-    
+    ));
+
     const averageMargin = calculateMargin(
       toProfit(totalProfitCents),
       unsafeCentavos(totalRevenueCents)
     );
-    
+
     return {
       totalRevenueCents: unsafeCentavos(totalRevenueCents),
       totalCogsCents: toCOGS(totalCogsCents),
