@@ -7,8 +7,14 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { TrendingUp, Plus, Star, AlertTriangle, Eye, Search } from 'lucide-react';
+import { TrendingUp, Plus, Star, AlertTriangle, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
+
+interface EmployeeOption {
+  id: string;
+  name: string;
+}
 
 interface Evaluation {
   id: string;
@@ -52,14 +58,42 @@ const fetcher = (url: string) => fetch(url).then(r => {
   return r.json();
 });
 
+const EVAL_CRITERIA = ['puntualidad', 'presentacion', 'productividad', 'trabajo_equipo', 'atencion_cliente'];
+const CRITERIA_LABELS: Record<string, string> = {
+  puntualidad: 'Puntualidad',
+  presentacion: 'Presentación',
+  productividad: 'Productividad',
+  trabajo_equipo: 'Trabajo en Equipo',
+  atencion_cliente: 'Atención al Cliente',
+};
+
+function makeEmptyForm() {
+  return {
+    employee_id: '',
+    period_start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
+    period_end: new Date().toISOString().slice(0, 10),
+    comments: '',
+    scores: Object.fromEntries(EVAL_CRITERIA.map(c => [c, 5])) as Record<string, number>,
+  };
+}
+
 export default function EvaluationsPage() {
+  const { employee: adminEmployee } = useAuth();
   const [search, setSearch] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(makeEmptyForm);
 
   const { data, error, isLoading, mutate } = useSWR<{ items: Evaluation[] }>(
     '/api/hr/evaluations',
     fetcher
   );
+
+  const { data: empData } = useSWR<{ items: EmployeeOption[] }>(
+    showCreateModal ? '/api/hr/employees?pageSize=1000' : null,
+    fetcher
+  );
+  const employees = empData?.items ?? [];
 
   const evaluations = data?.items ?? (Array.isArray(data) ? data : []);
 
@@ -71,6 +105,46 @@ export default function EvaluationsPage() {
     ? filtered.reduce((sum, e) => sum + (e.overall_score ?? 0), 0) / filtered.filter(e => e.overall_score).length
     : 0;
 
+  const handleOpen = () => {
+    setForm(makeEmptyForm());
+    setShowCreateModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.employee_id || !form.period_start || !form.period_end) {
+      toast.error('Empleado y período son obligatorios');
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch('/api/hr/evaluations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: form.employee_id,
+          evaluator_id: adminEmployee?.id ?? form.employee_id,
+          period_start: form.period_start,
+          period_end: form.period_end,
+          scores: form.scores,
+          comments: form.comments || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? 'Error al crear');
+      }
+      toast.success('Evaluación creada');
+      setShowCreateModal(false);
+      mutate();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error al crear');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = 'w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500';
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -79,7 +153,7 @@ export default function EvaluationsPage() {
           <p className="text-zinc-400 text-sm">Revisiones de desempeño del personal</p>
         </div>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={handleOpen}
           className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -179,6 +253,99 @@ export default function EvaluationsPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-700">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-purple-400" />
+                <h2 className="text-white font-semibold">Nueva Evaluación</h2>
+              </div>
+              <button onClick={() => setShowCreateModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              <div>
+                <label className="block text-zinc-400 text-xs mb-1">Empleado *</label>
+                <select
+                  value={form.employee_id}
+                  onChange={e => setForm(f => ({ ...f, employee_id: e.target.value }))}
+                  className={inputCls}
+                >
+                  <option value="">Seleccionar empleado...</option>
+                  {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-zinc-400 text-xs mb-1">Período inicio *</label>
+                  <input
+                    type="date"
+                    value={form.period_start}
+                    onChange={e => setForm(f => ({ ...f, period_start: e.target.value }))}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs mb-1">Período fin *</label>
+                  <input
+                    type="date"
+                    value={form.period_end}
+                    onChange={e => setForm(f => ({ ...f, period_end: e.target.value }))}
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-zinc-400 text-xs mb-2">Puntuaciones (1–10)</label>
+                <div className="space-y-2">
+                  {EVAL_CRITERIA.map(c => (
+                    <div key={c} className="flex items-center justify-between gap-3">
+                      <span className="text-zinc-300 text-sm flex-1">{CRITERIA_LABELS[c]}</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={form.scores[c]}
+                        onChange={e => setForm(f => ({ ...f, scores: { ...f.scores, [c]: Number(e.target.value) } }))}
+                        className="w-20 bg-zinc-900 border border-zinc-700 text-white rounded-lg px-2 py-1 text-sm text-center"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-zinc-400 text-xs mb-1">Comentarios</label>
+                <textarea
+                  value={form.comments}
+                  onChange={e => setForm(f => ({ ...f, comments: e.target.value }))}
+                  rows={3}
+                  placeholder="Observaciones del período..."
+                  className={inputCls}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-zinc-700">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
+              >
+                {saving ? 'Guardando...' : 'Crear Evaluación'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

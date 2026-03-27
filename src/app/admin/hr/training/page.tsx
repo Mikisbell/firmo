@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { GraduationCap, Plus, AlertTriangle, Search, Calendar, Award } from 'lucide-react';
+import { GraduationCap, Plus, AlertTriangle, Search, Award, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Training {
@@ -25,6 +25,11 @@ interface Training {
   status?: string;
 }
 
+interface EmployeeOption {
+  id: string;
+  name: string;
+}
+
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
   SAFETY: { label: 'Seguridad', color: 'text-red-400 bg-red-500/20' },
   FOOD_HANDLING: { label: 'Manipulación Alimentos', color: 'text-orange-400 bg-orange-500/20' },
@@ -40,14 +45,34 @@ const fetcher = (url: string) => fetch(url).then(r => {
   return r.json();
 });
 
+const EMPTY_FORM = {
+  employee_id: '',
+  training_name: '',
+  training_type: 'OTHER',
+  provider: '',
+  duration_hours: 1,
+  completion_date: new Date().toISOString().slice(0, 10),
+  expires_at: '',
+  certificate_url: '',
+};
+
 export default function TrainingPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
 
   const { data, error, isLoading, mutate } = useSWR<{ items: Training[] }>(
     `/api/hr/training${typeFilter ? `?type=${typeFilter}` : ''}`,
     fetcher
   );
+
+  const { data: empData } = useSWR<{ items: EmployeeOption[] }>(
+    showModal ? '/api/hr/employees?pageSize=1000' : null,
+    fetcher
+  );
+  const employees = empData?.items ?? [];
 
   const trainings = data?.items ?? (Array.isArray(data) ? data : []);
 
@@ -66,6 +91,57 @@ export default function TrainingPage() {
     return expiryDate <= thirtyDaysFromNow && expiryDate >= new Date();
   });
 
+  const handleOpen = () => {
+    setForm(EMPTY_FORM);
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.employee_id || !form.training_name || !form.completion_date) {
+      toast.error('Empleado, título y fecha de completado son obligatorios');
+      return;
+    }
+    setSaving(true);
+    try {
+      const body: Record<string, unknown> = {
+        employee_id: form.employee_id,
+        training_name: form.training_name,
+        training_type: form.training_type,
+        duration_hours: Number(form.duration_hours),
+        completion_date: form.completion_date,
+      };
+      if (form.provider.trim()) body.provider = form.provider.trim();
+      if (form.expires_at) body.expires_at = form.expires_at;
+      if (form.certificate_url.trim()) body.certificate_url = form.certificate_url.trim();
+
+      const res = await fetch('/api/hr/training', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? 'Error al registrar');
+      }
+      toast.success('Capacitación registrada');
+      setShowModal(false);
+      mutate();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error al registrar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const field = (label: string, children: React.ReactNode) => (
+    <div>
+      <label className="block text-zinc-400 text-xs mb-1">{label}</label>
+      {children}
+    </div>
+  );
+
+  const inputCls = 'w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500';
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -74,6 +150,7 @@ export default function TrainingPage() {
           <p className="text-zinc-400 text-sm">Registro de entrenamientos y certificaciones</p>
         </div>
         <button
+          onClick={handleOpen}
           className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -191,6 +268,117 @@ export default function TrainingPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-700">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-teal-400" />
+                <h2 className="text-white font-semibold">Registrar Capacitación</h2>
+              </div>
+              <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              {field('Empleado *',
+                <select
+                  value={form.employee_id}
+                  onChange={e => setForm(f => ({ ...f, employee_id: e.target.value }))}
+                  className={inputCls}
+                >
+                  <option value="">Seleccionar empleado...</option>
+                  {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                </select>
+              )}
+              {field('Título / Nombre de la capacitación *',
+                <input
+                  type="text"
+                  value={form.training_name}
+                  onChange={e => setForm(f => ({ ...f, training_name: e.target.value }))}
+                  placeholder="Ej. Manipulación de alimentos DIGESA"
+                  className={inputCls}
+                />
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                {field('Tipo',
+                  <select
+                    value={form.training_type}
+                    onChange={e => setForm(f => ({ ...f, training_type: e.target.value }))}
+                    className={inputCls}
+                  >
+                    {Object.entries(TYPE_LABELS).map(([k, { label }]) => (
+                      <option key={k} value={k}>{label}</option>
+                    ))}
+                  </select>
+                )}
+                {field('Horas',
+                  <input
+                    type="number"
+                    min={1}
+                    value={form.duration_hours}
+                    onChange={e => setForm(f => ({ ...f, duration_hours: Number(e.target.value) }))}
+                    className={inputCls}
+                  />
+                )}
+              </div>
+              {field('Proveedor / Institución',
+                <input
+                  type="text"
+                  value={form.provider}
+                  onChange={e => setForm(f => ({ ...f, provider: e.target.value }))}
+                  placeholder="Ej. SENATI, SENCICO..."
+                  className={inputCls}
+                />
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                {field('Fecha de completado *',
+                  <input
+                    type="date"
+                    value={form.completion_date}
+                    onChange={e => setForm(f => ({ ...f, completion_date: e.target.value }))}
+                    className={inputCls}
+                  />
+                )}
+                {field('Fecha de vencimiento',
+                  <input
+                    type="date"
+                    value={form.expires_at}
+                    onChange={e => setForm(f => ({ ...f, expires_at: e.target.value }))}
+                    className={inputCls}
+                  />
+                )}
+              </div>
+              {field('URL del certificado',
+                <input
+                  type="url"
+                  value={form.certificate_url}
+                  onChange={e => setForm(f => ({ ...f, certificate_url: e.target.value }))}
+                  placeholder="https://..."
+                  className={inputCls}
+                />
+              )}
+            </div>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-zinc-700">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
+              >
+                {saving ? 'Guardando...' : 'Registrar'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
