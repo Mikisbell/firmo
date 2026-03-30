@@ -286,18 +286,29 @@ describe('Structured Logger - Property Tests', () => {
     });
 
     it('should not throw errors even with invalid input', () => {
+      // Some objects (e.g. { toString: 0 }) make String() throw TypeError.
+      // safeString isolates that coercion from the logger assertion — the
+      // property under test is logger robustness, not String() behaviour.
+      function safeString(val: unknown): string {
+        try {
+          return String(val);
+        } catch {
+          return '[non-stringifiable]';
+        }
+      }
+
       fc.assert(
         fc.property(
           logLevelArbitrary,
           fc.anything(),
           fc.anything(),
           (level, message, context) => {
-            // Should not throw regardless of input
+            const safeMessage = safeString(message);
             expect(() => {
               if (level === 'error' || level === 'fatal') {
-                logger[level](String(message), new Error('Test'), context as any);
+                logger[level](safeMessage, new Error('Test'), context as any);
               } else {
-                logger[level](String(message), context as any);
+                logger[level](safeMessage, context as any);
               }
             }).not.toThrow();
           }
