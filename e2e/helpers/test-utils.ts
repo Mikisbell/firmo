@@ -198,6 +198,7 @@ export async function setupWaiterTerminal(page: Page) {
         const terminalConfig = {
             terminal_id: "waiter_test_1",
             tenant_id: tenantId,
+            actor_id: "00000000-0000-0000-0000-000000000003", // Carlos López, WAITER
             device_fingerprint: "test-fingerprint-waiter-" + Date.now(),
             device_name: "Test Waiter Terminal",
             role: "WAITER",
@@ -206,10 +207,10 @@ export async function setupWaiterTerminal(page: Page) {
             registered_at: new Date().toISOString(),
         };
         localStorage.setItem('park_terminal_config', JSON.stringify(terminalConfig));
-        
+
         // Session
         const session = {
-            employee_id: "00000000-0000-0000-0000-000000000002",
+            employee_id: "00000000-0000-0000-0000-000000000003", // Carlos López, WAITER
             role: "WAITER",
             terminal_id: "waiter_test_1",
             logged_in_at: new Date().toISOString(),

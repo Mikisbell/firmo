@@ -27,6 +27,7 @@ import {
   UserPlus,
   Calculator,
   BarChart3,
+  Activity,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -110,6 +111,13 @@ const NAV_SECTIONS: NavSection[] = [
     href: '/admin/hr/training',
     icon: GraduationCap,
     color: 'text-teal-400 bg-teal-500/20',
+  },
+  {
+    title: 'Actividad Diaria',
+    description: 'Marcaciones y ventas por empleado del día',
+    href: '/admin/hr/actividad',
+    icon: Activity,
+    color: 'text-emerald-400 bg-emerald-500/20',
   },
 ];
 

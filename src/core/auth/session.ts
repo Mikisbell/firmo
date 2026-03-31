@@ -46,6 +46,21 @@ export function updateActivity(): void {
 
 export function clearSession(): void {
   if (typeof window === 'undefined') return;
+
+  // Fire-and-forget clock-out before wiping session data
+  try {
+    const session = getSession();
+    const raw = localStorage.getItem('park_terminal_config');
+    const cfg = raw ? JSON.parse(raw) : null;
+    if (session && cfg?.tenant_id) {
+      fetch('/api/attendance/clock-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-tenant-id': cfg.tenant_id },
+        body: JSON.stringify({ employee_id: session.employee_id }),
+      }).catch(() => {});
+    }
+  } catch { /* silencioso */ }
+
   sessionStorage.removeItem(SESSION_KEY);
 }
 
@@ -69,8 +84,35 @@ export function createSession(
     logged_in_at: new Date().toISOString(),
     last_activity_at: new Date().toISOString(),
   };
-  
+
   setSession(session);
+
+  // Sync actor_id in park_terminal_config so events carry the employee's UUID
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('park_terminal_config');
+      if (raw) {
+        const cfg = JSON.parse(raw);
+        cfg.actor_id = employee.id;
+        localStorage.setItem('park_terminal_config', JSON.stringify(cfg));
+      }
+    } catch { /* silencioso */ }
+  }
+
+  // Fire-and-forget clock-in (does not block login)
+  if (typeof window !== 'undefined') {
+    const tenantId = terminal.tenant_id;
+    fetch('/api/attendance/clock-in', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-tenant-id': tenantId },
+      body: JSON.stringify({
+        employee_id: employee.id,
+        terminal_id: terminal.terminal_id,
+        role: employee.role,
+      }),
+    }).catch(() => { /* silencioso — no bloquear login */ });
+  }
+
   return session;
 }
 
