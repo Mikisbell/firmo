@@ -9,7 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { TrendingUp, Plus, Star, AlertTriangle, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface EmployeeOption {
   id: string;
