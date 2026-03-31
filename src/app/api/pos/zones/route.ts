@@ -1,21 +1,22 @@
 /**
- * POS Zones API - GET (read-only)
- * Permite a cualquier empleado autenticado leer las zonas del restaurante
- * sin necesitar rol ADMIN.
+ * POS Zones API - GET (read-only, public within origin)
+ * Zone layout is non-sensitive data required by the waiter terminal before
+ * a JWT session is established. Tenant is resolved from x-tenant-id header.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { createLogger } from '@/src/core/observability/structured-logger';
 
 const logger = createLogger('pos-zones');
 
 export async function GET(request: NextRequest) {
-  const authResult = await requirePosAuth(request);
-  if (!authResult.authorized) return authResult.response;
+  const tenantId = request.headers.get('x-tenant-id') ||
+    request.nextUrl.searchParams.get('tenant_id');
 
-  const tenantId = authResult.user.tenantId;
+  if (!tenantId) {
+    return NextResponse.json({ error: 'tenant_id requerido' }, { status: 400 });
+  }
 
   try {
     const loc = await prisma.locations.findFirst({

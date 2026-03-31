@@ -2,6 +2,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useState, useEffect } from "react";
 import { db } from "@/src/core/db/schema";
 import { ParkEvent } from "@/src/core/domain/events";
+import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 
 export type TableStatus = "FREE" | "OCCUPIED" | "BILL_REQUESTED" | "PAID";
 
@@ -35,7 +36,12 @@ async function fetchTablesFromAPI(): Promise<Array<{
     is_active: boolean;
 }>> {
     try {
-        const res = await fetch('/api/pos/tables?active=true');
+        const config = getStoredTerminalConfig();
+        const tenantId = config?.tenant_id;
+        if (!tenantId) return [];
+        const res = await fetch('/api/pos/tables?active=true', {
+            headers: { 'x-tenant-id': tenantId },
+        });
         if (!res.ok) return [];
         return await res.json();
     } catch {
@@ -128,16 +134,35 @@ export function useTableStatus(zoneId?: string) {
         const now = Date.now();
 
         // Use API tables if available, fallback to default
+        // Fallback mirrors DB: 23 tables across 4 zones (SALON 1-10, TERRAZA 11-16, BAR 17-20, VIP 21-22+24)
+        const SALON    = { id: "salon",   code: "SALON",   name: "Salón Principal", color: "#4CAF50" };
+        const TERRAZA  = { id: "terraza", code: "TERRAZA", name: "Terraza",          color: "#2196F3" };
+        const BAR      = { id: "bar",     code: "BAR",     name: "Barra",            color: "#FF9800" };
+        const VIP      = { id: "vip",     code: "VIP",     name: "Zona VIP",         color: "#9C27B0" };
         const tablesToUse = apiTables.length > 0 ? apiTables : [
-            { id: "1", number: "1", display_name: "Mesa 1", zone: { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" } },
-            { id: "2", number: "2", display_name: "Mesa 2", zone: { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" } },
-            { id: "3", number: "3", display_name: "Mesa 3", zone: { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" } },
-            { id: "4", number: "4", display_name: "Mesa 4", zone: { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" } },
-            { id: "5", number: "5", display_name: "Mesa 5", zone: { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" } },
-            { id: "6", number: "6", display_name: "Mesa 6", zone: { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" } },
-            { id: "7", number: "7", display_name: "Mesa 7", zone: { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" } },
-            { id: "8", number: "8", display_name: "Mesa 8", zone: { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" } },
-            { id: "9", number: "9", display_name: "Mesa 9", zone: { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" } },
+            { id: "1",  number: "1",  display_name: null, zone: SALON   },
+            { id: "2",  number: "2",  display_name: null, zone: SALON   },
+            { id: "3",  number: "3",  display_name: null, zone: SALON   },
+            { id: "4",  number: "4",  display_name: null, zone: SALON   },
+            { id: "5",  number: "5",  display_name: null, zone: SALON   },
+            { id: "6",  number: "6",  display_name: null, zone: SALON   },
+            { id: "7",  number: "7",  display_name: null, zone: SALON   },
+            { id: "8",  number: "8",  display_name: null, zone: SALON   },
+            { id: "9",  number: "9",  display_name: null, zone: SALON   },
+            { id: "10", number: "10", display_name: null, zone: SALON   },
+            { id: "11", number: "11", display_name: null, zone: TERRAZA },
+            { id: "12", number: "12", display_name: null, zone: TERRAZA },
+            { id: "13", number: "13", display_name: null, zone: TERRAZA },
+            { id: "14", number: "14", display_name: null, zone: TERRAZA },
+            { id: "15", number: "15", display_name: null, zone: TERRAZA },
+            { id: "16", number: "16", display_name: null, zone: TERRAZA },
+            { id: "17", number: "17", display_name: null, zone: BAR     },
+            { id: "18", number: "18", display_name: null, zone: BAR     },
+            { id: "19", number: "19", display_name: null, zone: BAR     },
+            { id: "20", number: "20", display_name: null, zone: BAR     },
+            { id: "21", number: "21", display_name: null, zone: VIP     },
+            { id: "22", number: "22", display_name: null, zone: VIP     },
+            { id: "24", number: "24", display_name: null, zone: VIP     },
         ];
 
         // Initialize all tables as FREE
@@ -206,7 +231,10 @@ export function useZones() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/pos/zones')
+        const config = getStoredTerminalConfig();
+        const tenantId = config?.tenant_id;
+        if (!tenantId) { setLoading(false); return; }
+        fetch('/api/pos/zones', { headers: { 'x-tenant-id': tenantId } })
             .then(res => res.ok ? res.json() : [])
             .then(data => {
                 setZones(data);
