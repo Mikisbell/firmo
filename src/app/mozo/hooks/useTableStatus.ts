@@ -4,6 +4,17 @@ import { db } from "@/src/core/db/schema";
 import { ParkEvent } from "@/src/core/domain/events";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 
+/**
+ * TableStatus — offline-first vocabulary used by the mozo-app.
+ *
+ * VOCABULARY NOTE: 'FREE' here is the offline-first initial state for a table
+ * with no active order in IndexedDB. The database (admin-side) uses 'AVAILABLE'
+ * for the same concept in the tables.status column. These are intentionally kept
+ * separate: the mozo-app reconstructs state from local IndexedDB events and never
+ * reads table status directly from the DB. Changing 'FREE' to 'AVAILABLE' here
+ * would break the mozo reducer without a full sync-pipeline migration.
+ * See: src/app/admin/mesas/page.tsx for the DB-side 'AVAILABLE' vocabulary.
+ */
 export type TableStatus = "FREE" | "OCCUPIED" | "BILL_REQUESTED" | "PAID";
 
 export interface Zone {

@@ -19,6 +19,14 @@ export type EmployeeRole =
   | 'OWNER' | 'ADMIN' | 'MANAGER' | 'SUPERVISOR'
   | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'COOK' | 'PACKER' | 'BAR'
   | 'DRIVER';
+
+/**
+ * TODO(db-sync): This local TerminalRole uses legacy Spanish vocabulary stored in the
+ * DB terminal_devices.role column ('CAJA' | 'MOZO' | 'KDS_COCINA' | 'KDS_HORNO' | 'KDS_BAR').
+ * The canonical English TerminalRole is defined in src/core/constants/roles.ts.
+ * To unify, migrate the DB column values and update all consumers — do NOT change this
+ * union until that migration is complete or you will break active terminals.
+ */
 export type TerminalRole = 'CAJA' | 'MOZO' | 'KDS_COCINA' | 'KDS_HORNO' | 'KDS_BAR';
 
 export interface Employee {

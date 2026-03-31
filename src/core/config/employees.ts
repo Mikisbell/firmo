@@ -25,6 +25,8 @@ export const DEFAULT_EMPLOYEE_IDS = {
     WAITER_ANA: "00000000-0000-0000-0000-000000000008",
     WAITER_CARMEN: "00000000-0000-0000-0000-000000000009",
     DELIVERY_MIGUEL: "00000000-0000-0000-0000-000000000010",
+    /** Generic E2E test user — used by setupRoleTerminal() in e2e/helpers/test-utils.ts */
+    E2E_TEST: "00000000-0000-0000-0000-000000000099",
 } as const;
 
 /**
@@ -41,6 +43,7 @@ export const DEFAULT_EMPLOYEES = [
     { id: DEFAULT_EMPLOYEE_IDS.BAR_JORGE, name: "Jorge Díaz", role: "BAR", pin: "6666" },
     { id: DEFAULT_EMPLOYEE_IDS.WAITER_CARMEN, name: "Carmen Vega", role: "WAITER", pin: "7777" },
     { id: DEFAULT_EMPLOYEE_IDS.DELIVERY_MIGUEL, name: "Miguel Soto", role: "DRIVER", pin: "8888" },
+    { id: DEFAULT_EMPLOYEE_IDS.E2E_TEST, name: "Test E2E User", role: "ADMIN", pin: "9999" },
 ] as const;
 
 /**

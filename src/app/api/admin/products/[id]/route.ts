@@ -139,7 +139,7 @@ export async function PUT(
 
     // Validate station if provided
     if (station) {
-      const validStations = ['PARRILLA', 'COCINA', 'BAR', 'HORNO', 'POSTRES', 'EMPAQUE'];
+      const validStations = ['PARRILLA', 'COCINA', 'BAR', 'HORNO', 'POSTRES', 'EMPAQUE', 'FRIOS'];
       if (!validStations.includes(station)) {
         return NextResponse.json(
           { error: `Estación inválida. Debe ser uno de: ${validStations.join(', ')}` },

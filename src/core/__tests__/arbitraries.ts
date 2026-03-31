@@ -16,6 +16,10 @@ import fc from 'fast-check';
 export const productCategory = fc.constantFrom(
   'POLLOS',
   'PARRILLAS',
+  'CRIOLLOS',
+  'SALCHIPAPAS',
+  'ALITAS',
+  'PIQUEOS',
   'BEBIDAS',
   'EXTRAS',
   'POSTRES',

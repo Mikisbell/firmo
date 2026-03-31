@@ -311,10 +311,10 @@ export async function setupKDSTerminal(page: Page, station: string) {
         };
         localStorage.setItem('park_terminal_config', JSON.stringify(terminalConfig));
         
-        // Session for KDS
+        // Session for KDS — employee 0005 (Pedro Ruiz, KITCHEN)
         const session = {
-            employee_id: "00000000-0000-0000-0000-000000000003",
-            role: "COOK",
+            employee_id: "00000000-0000-0000-0000-000000000005",
+            role: "KITCHEN",
             terminal_id: `kds_${station.toLowerCase()}`,
             logged_in_at: new Date().toISOString(),
             pin_verified: true,
@@ -345,9 +345,9 @@ export async function setupCashierTerminal(page: Page) {
         };
         localStorage.setItem('park_terminal_config', JSON.stringify(terminalConfig));
         
-        // Session for Cashier
+        // Session for Cashier — employee 0002 (María García, CASHIER)
         const session = {
-            employee_id: "00000000-0000-0000-0000-000000000004",
+            employee_id: "00000000-0000-0000-0000-000000000002",
             role: "CASHIER",
             terminal_id: "cashier_test_1",
             logged_in_at: new Date().toISOString(),

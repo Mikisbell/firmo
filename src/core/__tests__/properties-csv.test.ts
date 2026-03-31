@@ -281,7 +281,7 @@ describe('CSV Import/Export Properties', () => {
           const hasInvalidName = !row.name || row.name.trim() === '';
           const priceNum = typeof row.price === 'string' ? parseFloat(row.price) : row.price;
           const hasInvalidPrice = isNaN(priceNum) || priceNum < 0;
-          const hasInvalidCategory = !['POLLOS', 'PARRILLAS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS', 'GUARNICIONES'].includes(row.category);
+          const hasInvalidCategory = !['POLLOS', 'PARRILLAS', 'CRIOLLOS', 'SALCHIPAPAS', 'ALITAS', 'PIQUEOS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS', 'GUARNICIONES'].includes(row.category);
           const hasInvalidStation = !['PARRILLA', 'COCINA', 'BAR', 'HORNO', 'POSTRES', 'EMPAQUE', 'FRIOS'].includes(row.station);
 
           const hasAnyInvalid = hasInvalidSKU || hasInvalidName || hasInvalidPrice || hasInvalidCategory || hasInvalidStation;

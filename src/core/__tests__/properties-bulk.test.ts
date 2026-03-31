@@ -120,7 +120,7 @@ describe('Bulk Operations Properties', () => {
           
           // Verify update structure
           expect(updates.category).toBe(category);
-          expect(['POLLOS', 'PARRILLAS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS', 'GUARNICIONES']).toContain(category);
+          expect(['POLLOS', 'PARRILLAS', 'CRIOLLOS', 'SALCHIPAPAS', 'ALITAS', 'PIQUEOS', 'BEBIDAS', 'EXTRAS', 'POSTRES', 'COMBOS', 'GUARNICIONES']).toContain(category);
           expect(ids.length).toBeGreaterThan(0);
         }
       ),

@@ -21,6 +21,13 @@ import { metrics } from '@/src/core/observability/metrics';
 // ============ TYPES ============
 
 export type TerminalStatus = 'pending' | 'active' | 'disabled';
+/**
+ * TODO(db-sync): This local TerminalRole uses legacy Spanish vocabulary stored in the
+ * DB terminal_devices.role column ('CAJA' | 'MOZO' | 'KDS_COCINA' | 'KDS_HORNO' | 'KDS_BAR').
+ * The canonical English TerminalRole is defined in src/core/constants/roles.ts.
+ * The type cast in mapToTerminalDevice() (record.role as TerminalRole) is safe because
+ * DB values were inserted with these exact strings. Migration required before changing this.
+ */
 export type TerminalRole = 'CAJA' | 'MOZO' | 'KDS_COCINA' | 'KDS_HORNO' | 'KDS_BAR';
 
 export interface TerminalDevice {

@@ -1,11 +1,9 @@
 // src/core/auth/types.ts
 // Types for terminal registration and authentication
 
-export type TerminalRole = 'CASHIER' | 'WAITER' | 'KDS' | 'ADMIN' | 'BAR';
-export type EmployeeRole =
-  | 'OWNER' | 'ADMIN' | 'MANAGER' | 'SUPERVISOR'
-  | 'CASHIER' | 'WAITER' | 'KITCHEN' | 'COOK' | 'PACKER' | 'BAR'
-  | 'DRIVER';
+// Import and re-export from single source of truth (src/core/constants/roles.ts)
+export type { TerminalRole, EmployeeRole, AdminAccessRole } from '@/src/core/constants/roles';
+import type { TerminalRole, EmployeeRole } from '@/src/core/constants/roles';
 
 export interface TerminalConfig {
   terminal_id: string;

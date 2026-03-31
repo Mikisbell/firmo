@@ -35,6 +35,7 @@ export const ProductStationSchema = z.enum([
   'HORNO',
   'POSTRES',
   'EMPAQUE',
+  'FRIOS',
 ]);
 
 export type ProductStation = z.infer<typeof ProductStationSchema>;
