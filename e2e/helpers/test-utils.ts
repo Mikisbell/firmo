@@ -216,8 +216,9 @@ export async function setupWaiterTerminal(page: Page) {
             pin_verified: true,
         };
         localStorage.setItem('park_session', JSON.stringify(session));
+        localStorage.setItem('e2e_mode', 'true');
     }, { tenantId: TENANT_ID });
-    
+
     // Seed test data in IndexedDB
     await page.evaluate(async ({ tenantId }) => {
         // Open IndexedDB
