@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { logger } from '@/src/core/observability/structured-logger';
 
 export type KardexMovementType = 'IN' | 'OUT' | 'WASTE' | 'ADJUST';
@@ -54,22 +55,18 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> }
 ): Promise<NextResponse<KardexResponse | { error: string }>> {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const { code } = await params;
     const { searchParams } = new URL(request.url);
-    
-    const tenantId = searchParams.get('tenant_id');
+
+    const tenantId = authResult.user.tenantId;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('page_size') || '50')));
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
     const typeFilter = searchParams.get('type') as KardexMovementType | null;
-
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Se requiere tenant_id' },
-        { status: 400 }
-      );
-    }
 
     // Find inventory item
     const inventory = await prisma.inventory.findFirst({

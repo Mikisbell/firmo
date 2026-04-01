@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { KardexMovementType } from '@/src/app/api/inventory/kardex/[code]/route';
 import { logger } from '@/src/core/observability/structured-logger';
 
@@ -33,18 +34,14 @@ export async function GET(
   request: NextRequest
 ): Promise<NextResponse<RecentMovementsResponse | { error: string }>> {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const { searchParams } = new URL(request.url);
-    
-    const tenantId = searchParams.get('tenant_id');
+
+    const tenantId = authResult.user.tenantId;
     const locationId = searchParams.get('location_id');
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10')));
-
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Se requiere tenant_id' },
-        { status: 400 }
-      );
-    }
 
     // Get recent inventory logs with inventory info
     const logs = await prisma.inventory_log.findMany({

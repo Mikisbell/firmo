@@ -5,10 +5,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/src/core/db/prisma';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { logger } from '@/src/core/observability/structured-logger';
 
 const lotsQuerySchema = z.object({
-  tenant_id: z.string().min(1, 'tenant_id es requerido'),
   location_id: z.string().optional(),
 });
 
@@ -37,11 +37,14 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> }
 ) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const { code } = await params;
     const { searchParams } = new URL(request.url);
+    const tenantId = authResult.user.tenantId;
 
     const parsed = lotsQuerySchema.safeParse({
-      tenant_id: searchParams.get('tenant_id') ?? undefined,
       location_id: searchParams.get('location_id') ?? undefined,
     });
     if (!parsed.success) {
@@ -50,7 +53,7 @@ export async function GET(
         { status: 400 }
       );
     }
-    const { tenant_id: tenantId, location_id: locationId } = parsed.data;
+    const { location_id: locationId } = parsed.data;
 
     // Buscar el inventario principal
     const inventory = await prisma.inventory.findFirst({

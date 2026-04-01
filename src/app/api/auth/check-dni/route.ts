@@ -46,7 +46,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ exists: true, name: displayName });
   } catch {
-    // On error, let the PIN step handle auth — don't block login
-    return NextResponse.json({ exists: true });
+    // On DB error, return false — the PIN step will reject invalid employees anyway.
+    // Returning exists:true on error would leak that the endpoint is functional
+    // and allow enumeration attacks to assume all DNIs exist during outages.
+    return NextResponse.json({ exists: false });
   }
 }

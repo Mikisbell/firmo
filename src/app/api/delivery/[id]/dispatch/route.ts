@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { cache } from '@/src/core/cache/redis.service';
 import { logger } from '@/src/core/observability/structured-logger';
 
@@ -12,6 +13,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const { id } = await params;
     const delivery = await DeliveryService.markDispatched(id);
 
