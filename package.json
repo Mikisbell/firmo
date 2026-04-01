@@ -25,9 +25,8 @@
     "docs:generate": "typedoc",
     "docs:watch": "typedoc --watch",
     "analyze": "ANALYZE=true next build",
-    "docker:build": "docker build -t park-pos .",
-    "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down",
+    "redis:up": "docker compose -f docker-compose.redis.yml up -d",
+    "redis:down": "docker compose -f docker-compose.redis.yml down",
     "ci": "npm run typecheck && npm run lint && npm test"
   },
   "dependencies": {
