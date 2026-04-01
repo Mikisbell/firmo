@@ -3,7 +3,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCents } from "@/src/core/domain/money";
-import { Trash2, Plus, Minus } from "lucide-react";
+import { Trash2, Plus, Minus, MessageSquare } from "lucide-react";
 
 export interface LineItemData {
     line_id: string;
@@ -11,6 +11,35 @@ export interface LineItemData {
     qty: number;
     unit_price_cents: number;
     line_total_cents: number;
+    notes?: string;
+    status?: string;
+}
+
+// Status badge for item lifecycle
+function ItemStatusBadge({ status }: { status: string }) {
+    switch (status) {
+        case "COOKING":
+        case "SUBMITTED":
+            return (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-500/20 text-orange-400">
+                    En cocina
+                </span>
+            );
+        case "READY":
+            return (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-400 animate-pulse">
+                    ¡Listo!
+                </span>
+            );
+        case "DONE":
+            return (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-700/50 text-zinc-500">
+                    Servido
+                </span>
+            );
+        default:
+            return null;
+    }
 }
 
 export const LineItem = React.memo(function LineItem({
@@ -18,6 +47,7 @@ export const LineItem = React.memo(function LineItem({
     onIncrement,
     onDecrement,
     onRemove,
+    onAddNote,
     readonly = false,
     compact = false,
 }: LineItemProps) {
@@ -32,15 +62,36 @@ export const LineItem = React.memo(function LineItem({
                 }`}
         >
             <div className="flex-1 min-w-0">
-                <p className={`font-medium truncate ${compact ? "text-xs" : "text-sm"}`} data-testid="order-item-name">
-                    {item.name}
-                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                    <p className={`font-medium truncate ${compact ? "text-xs" : "text-sm"}`} data-testid="order-item-name">
+                        {item.name}
+                    </p>
+                    {item.status && item.status !== "PENDING" && (
+                        <ItemStatusBadge status={item.status} />
+                    )}
+                </div>
                 <p className="text-xs text-zinc-500">
                     S/ {formatCents(item.unit_price_cents)} c/u
                 </p>
+                {item.notes && (
+                    <p className="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
+                        <MessageSquare size={10} className="shrink-0" />
+                        <span className="truncate">{item.notes}</span>
+                    </p>
+                )}
             </div>
 
             <div className="flex items-center gap-2 ml-2">
+                {!readonly && onAddNote && (
+                    <button
+                        onClick={() => onAddNote(item.line_id)}
+                        title="Agregar nota"
+                        className={`p-1 transition-colors ${item.notes ? "text-amber-400 hover:text-amber-300" : "text-zinc-600 hover:text-zinc-400 opacity-0 group-hover:opacity-100"}`}
+                    >
+                        <MessageSquare size={13} />
+                    </button>
+                )}
+
                 {!readonly && (
                     <div className="flex items-center gap-1 bg-zinc-900 rounded-lg px-1">
                         <button
@@ -87,6 +138,7 @@ interface LineItemProps {
     onIncrement?: (lineId: string) => void;
     onDecrement?: (lineId: string) => void;
     onRemove?: (lineId: string) => void;
+    onAddNote?: (lineId: string) => void;
     readonly?: boolean;
     compact?: boolean;
 }
@@ -96,6 +148,7 @@ interface LineItemListProps {
     onIncrement?: (lineId: string) => void;
     onDecrement?: (lineId: string) => void;
     onRemove?: (lineId: string) => void;
+    onAddNote?: (lineId: string) => void;
     readonly?: boolean;
     compact?: boolean;
     emptyMessage?: string;
@@ -106,6 +159,7 @@ export function LineItemList({
     onIncrement,
     onDecrement,
     onRemove,
+    onAddNote,
     readonly = false,
     compact = false,
     emptyMessage = "Sin productos aún",
@@ -126,6 +180,7 @@ export function LineItemList({
                             onIncrement={onIncrement}
                             onDecrement={onDecrement}
                             onRemove={onRemove}
+                            onAddNote={onAddNote}
                             readonly={readonly}
                             compact={compact}
                         />

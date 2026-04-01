@@ -13,7 +13,9 @@ import {
     Banknote,
     Smartphone,
     Receipt,
-    Trash2
+    Trash2,
+    ArrowLeftRight,
+    Scissors,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -35,11 +37,14 @@ interface OrderPanelProps {
     onIncrement?: (lineId: string) => void;
     onDecrement?: (lineId: string) => void;
     onRemove?: (lineId: string) => void;
+    onAddNote?: (lineId: string) => void;
 
     // Waiter actions
     onSendToKitchen?: () => void;
     onCallBill?: () => void;
     onPrintPrecheck?: () => void;
+    onTransferTable?: () => void;
+    onSplitBill?: () => void;
 
     // Cashier actions
     onPayCash?: () => void;
@@ -70,9 +75,12 @@ export function OrderPanel({
     onIncrement,
     onDecrement,
     onRemove,
+    onAddNote,
     onSendToKitchen,
     onCallBill,
     onPrintPrecheck,
+    onTransferTable,
+    onSplitBill,
     onPayCash,
     onPayYape,
     onPayCard,
@@ -132,6 +140,7 @@ export function OrderPanel({
                                             item={item}
                                             onIncrement={onIncrement}
                                             onDecrement={onDecrement}
+                                            onAddNote={!isPaid ? onAddNote : undefined}
                                             readonly={isPaid}
                                         />
                                     </SwipeableItem>
@@ -184,6 +193,31 @@ export function OrderPanel({
                                     <span>Pedir Cuenta</span>
                                 </button>
                             </div>
+
+                            {(onTransferTable || onSplitBill) && (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {onTransferTable && (
+                                        <button
+                                            onClick={onTransferTable}
+                                            disabled={items.length === 0}
+                                            className="flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 disabled:opacity-50 rounded-xl font-medium text-sm transition-colors min-h-[48px] touch-manipulation"
+                                        >
+                                            <ArrowLeftRight size={18} />
+                                            <span>Transferir</span>
+                                        </button>
+                                    )}
+                                    {onSplitBill && (
+                                        <button
+                                            onClick={onSplitBill}
+                                            disabled={items.length === 0}
+                                            className="flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 disabled:opacity-50 rounded-xl font-medium text-sm transition-colors min-h-[48px] touch-manipulation"
+                                        >
+                                            <Scissors size={18} />
+                                            <span>Dividir</span>
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </>
                     )}
 
@@ -253,6 +287,7 @@ export function OrderPanel({
                     onIncrement={onIncrement}
                     onDecrement={onDecrement}
                     onRemove={onRemove}
+                    onAddNote={!isPaid ? onAddNote : undefined}
                     readonly={isPaid}
                 />
             </div>
@@ -315,6 +350,31 @@ export function OrderPanel({
                                 <span>Pre-cuenta</span>
                             </button>
                         </div>
+
+                        {(onTransferTable || onSplitBill) && (
+                            <div className="grid grid-cols-2 gap-2">
+                                {onTransferTable && (
+                                    <button
+                                        onClick={onTransferTable}
+                                        disabled={items.length === 0}
+                                        className="flex items-center justify-center gap-2 py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 rounded-lg font-medium text-sm transition-colors"
+                                    >
+                                        <ArrowLeftRight size={16} />
+                                        <span>Transferir</span>
+                                    </button>
+                                )}
+                                {onSplitBill && (
+                                    <button
+                                        onClick={onSplitBill}
+                                        disabled={items.length === 0}
+                                        className="flex items-center justify-center gap-2 py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 rounded-lg font-medium text-sm transition-colors"
+                                    >
+                                        <Scissors size={16} />
+                                        <span>Dividir</span>
+                                    </button>
+                                )}
+                            </div>
+                        )}
 
                         <button
                             onClick={onSendToKitchen}
@@ -413,16 +473,45 @@ export function OrderPanel({
     );
 }
 
+// Status badge for mobile items
+function MobileStatusBadge({ status }: { status: string }) {
+    switch (status) {
+        case "COOKING":
+        case "SUBMITTED":
+            return (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-500/20 text-orange-400">
+                    En cocina
+                </span>
+            );
+        case "READY":
+            return (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-400 animate-pulse">
+                    ¡Listo!
+                </span>
+            );
+        case "DONE":
+            return (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-700/50 text-zinc-500">
+                    Servido
+                </span>
+            );
+        default:
+            return null;
+    }
+}
+
 // Mobile-optimized line item component with larger touch targets
 function MobileLineItem({
     item,
     onIncrement,
     onDecrement,
+    onAddNote,
     readonly = false,
 }: {
     item: LineItemData;
     onIncrement?: (lineId: string) => void;
     onDecrement?: (lineId: string) => void;
+    onAddNote?: (lineId: string) => void;
     readonly?: boolean;
 }) {
     return (
@@ -435,10 +524,20 @@ function MobileLineItem({
             className="flex items-center justify-between bg-zinc-800/50 rounded-xl border border-zinc-700/50 p-3"
         >
             <div className="flex-1 min-w-0 mr-3">
-                <p className="font-medium text-sm truncate" data-testid="order-item-name">{item.name}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-medium text-sm truncate" data-testid="order-item-name">{item.name}</p>
+                    {item.status && item.status !== "PENDING" && (
+                        <MobileStatusBadge status={item.status} />
+                    )}
+                </div>
                 <p className="text-xs text-zinc-500">
                     S/ {formatCents(item.unit_price_cents)} c/u
                 </p>
+                {item.notes && (
+                    <p className="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
+                        <span className="truncate">📝 {item.notes}</span>
+                    </p>
+                )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -466,6 +565,17 @@ function MobileLineItem({
                     <span className="font-mono text-sm bg-zinc-900 px-3 py-2 rounded-lg">
                         ×{item.qty}
                     </span>
+                )}
+
+                {!readonly && onAddNote && (
+                    <button
+                        onClick={() => onAddNote(item.line_id)}
+                        title="Agregar nota"
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors touch-manipulation ${item.notes ? "text-amber-400" : "text-zinc-600 hover:text-zinc-400"}`}
+                        aria-label="Nota del item"
+                    >
+                        <span className="text-base">📝</span>
+                    </button>
                 )}
 
                 <span className="font-bold text-sm w-16 text-right">

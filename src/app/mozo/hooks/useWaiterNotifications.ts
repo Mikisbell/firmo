@@ -12,6 +12,7 @@ export interface WaiterNotification {
   id: string;
   type: 'ITEM_READY' | 'REQUEST_CHECK';
   orderId: string;
+  lineId?: string; // line_id of the item (for ITEM_READY notifications)
   tableNumber: string;
   title: string;
   message: string;
@@ -51,6 +52,7 @@ export function useWaiterNotifications() {
     // Agrupar items listos por orden
     const readyItemsByOrder = new Map<string, Array<{
       itemId: string;
+      lineId: string;
       itemName: string;
       station: string;
       timestamp: Date;
@@ -82,6 +84,7 @@ export function useWaiterNotifications() {
 
         readyItemsByOrder.get(orderId)!.push({
           itemId: payload.line_id,
+          lineId: payload.line_id,
           itemName: payload.item_name || 'Item',
           station: payload.station || 'COCINA',
           timestamp: new Date(ev.occurred_at),
@@ -120,6 +123,7 @@ export function useWaiterNotifications() {
         id: `item-ready-${orderId}`,
         type: 'ITEM_READY',
         orderId,
+        lineId: items.length === 1 ? items[0].lineId : undefined,
         tableNumber,
         title: `🍽️ Mesa ${tableNumber}`,
         message,

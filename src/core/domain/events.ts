@@ -862,6 +862,26 @@ const LoyaltyPointsRedeemedPayload = z.object({
 });
 
 // ============================================================================
+// ORDER_ITEM_NOTE payload
+// ============================================================================
+
+const OrderItemNotePayload = z.object({
+    order_id: uuidSchema,
+    line_id: z.string().min(1),
+    note: z.string().max(200),
+});
+
+// ============================================================================
+// ORDER_TABLE_CHANGED payload
+// ============================================================================
+
+const OrderTableChangedPayload = z.object({
+    order_id: uuidSchema,
+    from_table: z.string(),
+    to_table: z.string(),
+});
+
+// ============================================================================
 // Discriminated Union of All Events
 // ============================================================================
 
@@ -928,6 +948,16 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("ORDER_COURSE_FIRED"),
         aggregate_type: z.literal("ORDER"),
         payload: OrderCourseFiredPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ORDER_ITEM_NOTE"),
+        aggregate_type: z.literal("ORDER"),
+        payload: OrderItemNotePayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("ORDER_TABLE_CHANGED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: OrderTableChangedPayload,
     }),
 
     // CHECK events (split bill)

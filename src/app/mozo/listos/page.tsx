@@ -2,15 +2,18 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, ChefHat, Utensils, Settings, ArrowRight, Clock } from "lucide-react";
+import { Bell, ChefHat, Utensils, Settings, ArrowRight, Clock, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 import { useWaiterNotifications } from "../hooks/useWaiterNotifications";
 import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
 import { useResponsive } from "@/src/hooks/useResponsive";
 import { MobileHeader, HeaderSpacer } from "@/src/components/ui/MobileHeader";
 import { BottomNavigation, BottomNavItem } from "@/src/components/ui/BottomNavigation";
+import { POSActions } from "@/src/core/actions/pos.actions";
+import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 
 export default function ListosPage() {
     const router = useRouter();
@@ -24,6 +27,41 @@ export default function ListosPage() {
         markAsRead(notificationId);
         router.push(`/mozo/mesa/${tableNumber}`);
     }, [markAsRead, router]);
+
+    // Feature 4: Mark item as served directly from listos page
+    const handleMarkServed = useCallback(async (
+        notificationId: string,
+        orderId: string,
+        lineId: string | undefined
+    ) => {
+        if (!lineId) {
+            toast.error("No se puede identificar el item específico");
+            return;
+        }
+
+        const config = getStoredTerminalConfig();
+        if (!config) {
+            toast.error("Terminal no configurado");
+            return;
+        }
+
+        try {
+            await POSActions.updateItemStatus(
+                config.tenant_id,
+                config.terminal_id,
+                config.actor_id,
+                orderId,
+                lineId,
+                "READY",
+                "DONE",
+                "waiter"
+            );
+            markAsRead(notificationId);
+            toast.success("Item marcado como servido");
+        } catch (_e) {
+            toast.error("Error al marcar como servido");
+        }
+    }, [markAsRead]);
 
     const navItems: BottomNavItem[] = [
         { id: 'mesas', icon: <Utensils className="w-6 h-6" />, label: 'Mesas', href: '/mozo' },
@@ -99,16 +137,14 @@ export default function ListosPage() {
                         {readyNotifications.map((notif) => {
                             const timeAgo = formatDistanceToNow(notif.timestamp, { addSuffix: true, locale: es });
                             return (
-                                <motion.button
+                                <motion.div
                                     key={notif.id}
                                     layout
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, x: -100 }}
-                                    onClick={() => handleItemClick(notif.id, notif.tableNumber)}
                                     className={`
                                         w-full text-left p-4 rounded-xl border-2 transition-all
-                                        hover:scale-[1.01] active:scale-[0.99]
                                         ${notif.read
                                             ? 'bg-zinc-900/50 border-zinc-700/50'
                                             : 'bg-emerald-950/40 border-emerald-500/50 shadow-lg shadow-emerald-900/20'
@@ -120,7 +156,11 @@ export default function ListosPage() {
                                             <ChefHat className="w-6 h-6" />
                                         </div>
 
-                                        <div className="flex-1 min-w-0">
+                                        {/* Clickable area — go to table */}
+                                        <button
+                                            onClick={() => handleItemClick(notif.id, notif.tableNumber)}
+                                            className="flex-1 min-w-0 text-left"
+                                        >
                                             <div className="flex items-center justify-between mb-1">
                                                 <h3 className={`font-bold text-base ${notif.read ? 'text-zinc-400' : 'text-emerald-300'}`}>
                                                     {notif.title}
@@ -141,11 +181,25 @@ export default function ListosPage() {
                                                     </span>
                                                 )}
                                             </div>
-                                        </div>
+                                        </button>
 
-                                        <ArrowRight className="w-5 h-5 text-zinc-600 flex-shrink-0" />
+                                        {/* Right actions */}
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            {/* Feature 4: Serve button (only when lineId is available) */}
+                                            {notif.lineId && !notif.read && (
+                                                <button
+                                                    onClick={() => handleMarkServed(notif.id, notif.orderId, notif.lineId)}
+                                                    title="Marcar como servido"
+                                                    className="p-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 rounded-xl transition-colors text-white"
+                                                    aria-label="Servir item"
+                                                >
+                                                    <Check className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                            <ArrowRight className="w-5 h-5 text-zinc-600" />
+                                        </div>
                                     </div>
-                                </motion.button>
+                                </motion.div>
                             );
                         })}
                     </AnimatePresence>

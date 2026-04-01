@@ -730,6 +730,52 @@ export const POSActions = {
     },
 
     /**
+     * Add or update a note on an order item (e.g. "sin cebolla")
+     */
+    async addItemNote(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        line_id: string,
+        note: string
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "ORDER_ITEM_NOTE",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: { order_id, line_id, note },
+        });
+    },
+
+    /**
+     * Transfer an order from one table to another
+     */
+    async transferTable(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        from_table: string,
+        to_table: string
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "ORDER_TABLE_CHANGED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: { order_id, from_table, to_table },
+        });
+    },
+
+    /**
      * Get next order number from server-side range allocator
      * Auto-allocates range if needed via API
      */

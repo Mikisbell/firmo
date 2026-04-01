@@ -13,6 +13,7 @@ export type SaleLine = {
     status: ItemStatus;
     tax_category: TaxCategory; // SUNAT: GRAVADO(18%), EXONERADO(0%), INAFECTO(0%)
     station: string; // Estación de cocina (PARRILLA, COCINA, BAR, etc.)
+    notes?: string; // Waiter note for kitchen (e.g. "sin cebolla")
     // Timestamps for item lifecycle tracking
     created_at?: string;
     submitted_at?: string | null; // When item was sent to kitchen
@@ -69,6 +70,14 @@ export type SaleProjection = {
 
     // Split bill support
     checks: CheckProjection[];
+
+    // Fulfillment info (for dine-in: table_number, etc.)
+    fulfillment?: {
+        table_number?: string;
+        guest_count?: number;
+        pickup_name?: string;
+        pickup_phone?: string;
+    };
 };
 
 export type ShiftStatus = "CLOSED" | "OPEN";

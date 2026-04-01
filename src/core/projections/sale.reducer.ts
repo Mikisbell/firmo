@@ -14,7 +14,7 @@ function computeSubtotal(lines: Record<string, SaleLine>): Centavos {
 }
 
 export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_CREATED" }>): SaleProjection {
-    const { order_id, order_number, order_type, items, checks } = e.payload;
+    const { order_id, order_number, order_type, items, checks, fulfillment } = e.payload;
 
     // Convert items array to lines record
     const lines: Record<string, SaleLine> = {};
@@ -68,6 +68,12 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
                 }))
             } : { status: "UNPAID" as const, payments: [] }
         })) ?? [],
+        fulfillment: fulfillment ? {
+            table_number: fulfillment.table_number,
+            guest_count: fulfillment.guest_count,
+            pickup_name: fulfillment.pickup_name,
+            pickup_phone: fulfillment.pickup_phone,
+        } : undefined,
     };
 }
 
@@ -486,6 +492,30 @@ export function applySaleEvent(
                 }
             }
             
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "ORDER_ITEM_NOTE": {
+            const { line_id, note } = e.payload;
+            const line = sale.lines[line_id];
+            if (line) {
+                line.notes = note;
+                sale.lines[line_id] = line;
+            } else {
+                warnings.push(`ORDER_ITEM_NOTE: line_id ${line_id} not found; ignored.`);
+            }
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
+        case "ORDER_TABLE_CHANGED": {
+            const { to_table } = e.payload;
+            if (sale.fulfillment) {
+                sale.fulfillment.table_number = to_table;
+            } else {
+                sale.fulfillment = { table_number: to_table };
+            }
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
         }
