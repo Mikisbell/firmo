@@ -26,17 +26,22 @@ const CreateDriverSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requireAdminAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
+    const tenantId = authResult.user.tenantId;
+
     // Parse pagination parameters (supports page/pageSize)
     const params = parsePaginationParams(request.nextUrl.searchParams);
-    
+
     // Get total count of drivers
     const total = await prisma.drivers.count({
-      where: { tenant_id: getTenantId() }
+      where: { tenant_id: tenantId }
     });
-    
+
     // Get paginated drivers with status
     const drivers = await prisma.drivers.findMany({
-      where: { tenant_id: getTenantId() },
+      where: { tenant_id: tenantId },
       skip: params.skip,
       take: params.limit,
       orderBy: { name: 'asc' },

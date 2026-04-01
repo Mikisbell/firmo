@@ -53,7 +53,7 @@ export interface KardexResponse {
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
-): Promise<NextResponse<KardexResponse | { error: string }>> {
+) {
   try {
     const authResult = await requirePosAuth(request);
     if (!authResult.authorized) return authResult.response;

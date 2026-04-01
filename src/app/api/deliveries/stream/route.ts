@@ -10,6 +10,7 @@
 import { NextRequest } from 'next/server';
 import { sseConnectionManager } from '@/src/core/delivery/sse-connection-manager';
 import { sseBroadcaster } from '@/src/core/delivery/sse-broadcaster';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { logger } from '@/src/core/observability/logger';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/src/core/db/prisma';
@@ -30,6 +31,9 @@ export const dynamic = 'force-dynamic';
  * - Last-Event-ID: Optional, for reconnection with missed events
  */
 export async function GET(request: NextRequest) {
+  const authResult = await requirePosAuth(request);
+  if (!authResult.authorized) return authResult.response;
+
   const searchParams = request.nextUrl.searchParams;
   const restaurantId = searchParams.get('restaurantId') || undefined;
   const driverId = searchParams.get('driverId') || undefined;

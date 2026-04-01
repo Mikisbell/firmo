@@ -32,7 +32,7 @@ interface RecentMovementsResponse {
  */
 export async function GET(
   request: NextRequest
-): Promise<NextResponse<RecentMovementsResponse | { error: string }>> {
+) {
   try {
     const authResult = await requirePosAuth(request);
     if (!authResult.authorized) return authResult.response;

@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DeliveryService } from '@/src/core/delivery';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { logger } from '@/src/core/observability/structured-logger';
 
 export async function GET(
@@ -11,6 +12,9 @@ export async function GET(
   { params }: { params: Promise<{ driverId: string }> }
 ) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const { driverId } = await params;
     const deliveries = await DeliveryService.getDriverDeliveries(driverId);
     return NextResponse.json({ deliveries });

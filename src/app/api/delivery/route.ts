@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DeliveryService, DeliveryServiceError } from '@/src/core/delivery';
 import { asCentavos } from '@/src/core/types/shared';
-import { getTenantId } from '@/src/core/config/tenant';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 import prisma from '@/src/core/db/prisma';
 import { cache } from '@/src/core/cache/redis.service';
@@ -33,6 +33,9 @@ const CreateDeliverySchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     const body = await request.json();
     const parsed = CreateDeliverySchema.safeParse(body);
 
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     const delivery = await DeliveryService.createDeliveryOrder({
-      tenantId: getTenantId(),
+      tenantId: authResult.user.tenantId,
       orderId: parsed.data.orderId,
       addressText: parsed.data.addressText,
       addressReference: parsed.data.addressReference,
@@ -77,20 +80,23 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) return authResult.response;
+
     // Parse pagination parameters (supports page/pageSize)
     const params = parsePaginationParams(request.nextUrl.searchParams);
-    
+
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get('status');
-    
+
     // Por defecto, obtener pendientes (PENDING, ASSIGNED, DISPATCHED)
-    const statuses: string[] = statusParam 
+    const statuses: string[] = statusParam
       ? statusParam.split(',')
       : ['PENDING', 'ASSIGNED', 'DISPATCHED'];
 
     // Build where clause
     const where = {
-      tenant_id: getTenantId(),
+      tenant_id: authResult.user.tenantId,
       status: { in: statuses }
     };
 
