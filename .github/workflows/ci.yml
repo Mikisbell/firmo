@@ -174,16 +174,6 @@ jobs:
             test-results/
           retention-days: 7
 
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: [unit-tests, build, e2e-tests]
-    if: github.ref == 'refs/heads/develop'
-    steps:
-      - uses: actions/checkout@v4
-
-      # TODO: Configure your deployment target below.
-      # Replace the placeholder with the actual deploy command for your
-      # platform (e.g., Vercel CLI, Railway CLI, rsync to VPS, etc.).
-      - name: Deploy to staging
-        run: echo "Deploy to staging - configure deployment target (Vercel/Railway/VPS)"
+  # Production deploys via Vercel GitHub integration (auto on push to main).
+  # Staging deploys via Vercel preview (auto on PRs).
+  # No manual deploy step needed — Vercel handles it.
