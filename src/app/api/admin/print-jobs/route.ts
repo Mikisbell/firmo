@@ -25,6 +25,54 @@ export async function GET(request: NextRequest) {
 
   try {
     const printerId = request.nextUrl.searchParams.get('printer_id') || undefined;
+    const status = request.nextUrl.searchParams.get('status') || undefined;
+    const all = request.nextUrl.searchParams.get('all') === 'true';
+    const limitParam = request.nextUrl.searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : 100;
+
+    if (all || status) {
+      const where: Record<string, unknown> = { tenant_id: authResult.user.tenantId };
+      if (status) where.status = status;
+      if (printerId) where.printer_id = printerId;
+
+      const jobs = await prisma.print_jobs.findMany({
+        where: where as any,
+        include: { printers: { select: { name: true } } },
+        orderBy: [{ created_at: 'desc' }],
+        take: Math.min(limit, 500),
+      });
+
+      const mapped = jobs.map((j: any) => ({
+        id: j.id,
+        tenantId: j.tenant_id,
+        printerId: j.printer_id,
+        printerName: j.printers?.name ?? null,
+        jobType: j.job_type,
+        priority: j.priority,
+        status: j.status,
+        attempts: j.attempts,
+        orderId: j.order_id,
+        checkId: j.check_id,
+        actorId: j.actor_id,
+        terminalId: j.terminal_id,
+        createdAt: new Date(j.created_at).toISOString(),
+        sentAt: j.sent_at ? new Date(j.sent_at).toISOString() : null,
+        printedAt: j.printed_at ? new Date(j.printed_at).toISOString() : null,
+        failedAt: j.failed_at ? new Date(j.failed_at).toISOString() : null,
+      }));
+
+      // If stats requested, also compute them
+      if (request.nextUrl.searchParams.get('stats') === 'true') {
+        const service = new PrintJobService(prisma);
+        const statsResult = await service.getJobStats(authResult.user.tenantId);
+        return NextResponse.json({
+          jobs: mapped,
+          stats: statsResult.success ? statsResult.data : null,
+        });
+      }
+
+      return NextResponse.json({ jobs: mapped });
+    }
 
     const service = new PrintJobService(prisma);
     const result = await service.getPendingJobs(authResult.user.tenantId, printerId);
