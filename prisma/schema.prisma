@@ -836,6 +836,39 @@ model orders {
   @@index([tenant_id, table_id])
   @@index([items(ops: JsonbPathOps)], map: "idx_orders_items_gin", type: Gin)
   @@index([tenant_id, promotion_id], map: "orders_promotion_id_idx")
+  order_item_projections order_item_projections[]
+}
+
+/// Materialized projection of each order line's lifecycle.
+/// Updated by the ingest pipeline on ORDER_ITEM_ADDED, ORDER_SUBMITTED,
+/// ORDER_ITEM_STATUS_CHANGED, ORDER_ITEM_VOIDED, ORDER_ITEM_NOTE, ORDER_TABLE_CHANGED.
+/// Powers /api/pos/ready-items (waiter "Listos" screen) without scanning orders.items JSON.
+model order_item_projections {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id    String    @db.Uuid
+  order_id     String    @db.Uuid
+  line_id      String
+  table_number String?
+  waiter_id    String?   @db.Uuid
+  name         String
+  qty          Int       @default(1)
+  station      String
+  status       String    @default("PENDING")
+  notes        String?
+  submitted_at DateTime? @db.Timestamptz(6)
+  ready_at     DateTime? @db.Timestamptz(6)
+  served_at    DateTime? @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+
+  orders  orders  @relation(fields: [order_id], references: [id])
+  tenants tenants @relation(fields: [tenant_id], references: [id])
+
+  @@unique([order_id, line_id])
+  @@index([tenant_id, status])
+  @@index([tenant_id, table_number, status])
+  @@index([tenant_id, station, status])
+  @@index([tenant_id, ready_at])
 }
 
 model petty_cash_balance {
@@ -1923,6 +1956,7 @@ model tenants {
   petty_cash_transactions  petty_cash_transactions[]
   pin_history              pin_history[]
   platform_configs         platform_configs[]
+  order_item_projections   order_item_projections[]
   platform_orders          platform_orders[]
   pollo_daily_summary      pollo_daily_summary[]
   pollo_production_logs    pollo_production_logs[]

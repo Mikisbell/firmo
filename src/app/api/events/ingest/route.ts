@@ -265,6 +265,28 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                             updated_at: new Date(occurred_at),
                         },
                     });
+
+                    // Project to order_item_projections for fast lifecycle queries
+                    const fulfillment = (order as any).fulfillment as any;
+                    const tableNumber: string | null = fulfillment?.table_number ?? null;
+                    await tx.$executeRaw`
+                        INSERT INTO order_item_projections
+                            (tenant_id, order_id, line_id, table_number, waiter_id, name, qty, station, status, created_at, updated_at)
+                        VALUES (
+                            ${tenant_id}::uuid,
+                            ${p.order_id}::uuid,
+                            ${p.line.line_id},
+                            ${tableNumber},
+                            ${actor_id ?? null}::uuid,
+                            ${p.line.name},
+                            ${p.line.qty ?? 1},
+                            ${p.line.station ?? 'COCINA'},
+                            'PENDING',
+                            ${new Date(occurred_at)},
+                            ${new Date(occurred_at)}
+                        )
+                        ON CONFLICT (order_id, line_id) DO NOTHING
+                    `;
                 }
                 break;
             }
@@ -586,7 +608,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         if (item) {
                             // Get location from order or use default
                             const locationId = (order as any).location_id || tenant_id;
-                            
+
                             // H5: Await deduction — log failures for reconciliation
                             const deductionResult = await deductInventoryForOrder(
                                 prisma,
@@ -614,6 +636,88 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         }
                     }
                 }
+
+                // Project status change to order_item_projections
+                {
+                    const now = new Date(occurred_at);
+                    const readyAt = p.to === 'READY' ? now : null;
+                    const servedAt = p.to === 'DONE' ? now : null;
+                    await tx.$executeRaw`
+                        UPDATE order_item_projections
+                        SET
+                            status     = ${p.to},
+                            ready_at   = COALESCE(ready_at,   ${readyAt}),
+                            served_at  = COALESCE(served_at,  ${servedAt}),
+                            updated_at = ${now}
+                        WHERE order_id = ${p.order_id}::uuid
+                          AND line_id  = ${p.line_id}
+                    `;
+                }
+                break;
+            }
+
+            case "ORDER_SUBMITTED": {
+                // Mark all submitted items as IN_KITCHEN in the projection
+                const p = payload as any;
+                const now = new Date(occurred_at);
+                // items_by_station: { [station]: [{line_id, ...}] }
+                const itemsByStation = p.items_by_station as Record<string, Array<{ line_id: string }>>;
+                for (const lineItems of Object.values(itemsByStation ?? {})) {
+                    for (const item of lineItems) {
+                        await tx.$executeRaw`
+                            UPDATE order_item_projections
+                            SET
+                                status       = 'IN_KITCHEN',
+                                submitted_at = COALESCE(submitted_at, ${now}),
+                                updated_at   = ${now}
+                            WHERE order_id = ${p.order_id}::uuid
+                              AND line_id  = ${item.line_id}
+                              AND status   = 'PENDING'
+                        `;
+                    }
+                }
+                break;
+            }
+
+            case "ORDER_ITEM_VOIDED": {
+                const p = payload as any;
+                await tx.$executeRaw`
+                    DELETE FROM order_item_projections
+                    WHERE order_id = ${p.order_id}::uuid
+                      AND line_id  = ${p.line_id}
+                `;
+                break;
+            }
+
+            case "ORDER_ITEM_NOTE": {
+                const p = payload as any;
+                await tx.$executeRaw`
+                    UPDATE order_item_projections
+                    SET notes = ${p.note}, updated_at = ${new Date(occurred_at)}
+                    WHERE order_id = ${p.order_id}::uuid
+                      AND line_id  = ${p.line_id}
+                `;
+                break;
+            }
+
+            case "ORDER_TABLE_CHANGED": {
+                // Update table_number on all projection rows for this order
+                const p = payload as any;
+                await tx.$executeRaw`
+                    UPDATE order_item_projections
+                    SET table_number = ${p.to_table}, updated_at = ${new Date(occurred_at)}
+                    WHERE order_id = ${p.order_id}::uuid
+                `;
+                break;
+            }
+
+            case "ORDER_CANCELLED": {
+                // Remove all projection rows — order is gone
+                const p = payload as any;
+                await tx.$executeRaw`
+                    DELETE FROM order_item_projections
+                    WHERE order_id = ${p.order_id}::uuid
+                `;
                 break;
             }
         }
