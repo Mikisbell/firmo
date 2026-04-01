@@ -61,14 +61,16 @@ async function ingest(events) {
 }
 
 function makeEvent(event_type, payload, overrides = {}) {
+  const aggregateId = overrides.aggregate_id || overrides.order_id || payload.order_id || payload.shift_id || randomUUID();
   return {
     event_id: randomUUID(),
     event_type,
     aggregate_type: 'ORDER',
-    aggregate_id: overrides.order_id || payload.order_id,
-    correlation_id: overrides.order_id || payload.order_id,
+    aggregate_id: aggregateId,
+    correlation_id: aggregateId,
     causation_id: null,
     actor_id: '00000000-0000-0000-0000-000000000003',
+    actor_role_snapshot: 'OWNER',
     tenant_id: TENANT_ID,
     terminal_id: TERMINAL_ID,
     terminal_sequence: overrides.seq || 1,
@@ -137,8 +139,36 @@ section('2. GET /api/pos/ready-items — validation');
 section('3. order_item_projections lifecycle');
 
 const ORDER_ID = randomUUID();
+const SHIFT_ID = randomUUID();
+const PRODUCT_ID_1 = randomUUID();
+const PRODUCT_ID_2 = randomUUID();
 const LINE_ID_1 = `smoke-line-${Date.now()}-1`;
 const LINE_ID_2 = `smoke-line-${Date.now()}-2`;
+
+// 3.0 — SHIFT_OPENED (required before ORDER_CREATED)
+{
+  const res = await ingest([makeEvent('SHIFT_OPENED', {
+    shift_id: SHIFT_ID,
+    cash_opening_cents: 10000,
+  }, { aggregate_type: 'SHIFT', aggregate_id: SHIFT_ID, seq: 0 })]);
+
+  if (res.status === 200) {
+    // Check body for rejections
+    const rejected = res.body?.rejected ?? [];
+    if (rejected.length === 0) {
+      ok('SHIFT_OPENED accepted — terminal has open shift');
+    } else {
+      const err = rejected[0]?.error;
+      if (err === 'SHIFT_ALREADY_OPEN' || err === 'DUPLICATE_EVENT') {
+        ok(`SHIFT_OPENED skipped (${err}) — shift already open`);
+      } else {
+        fail(`SHIFT_OPENED rejected: ${err}`, JSON.stringify(rejected[0]));
+      }
+    }
+  } else {
+    fail(`SHIFT_OPENED HTTP error (${res.status})`, JSON.stringify(res.body?.error ?? res.body));
+  }
+}
 
 // 3.1 — ORDER_CREATED
 {
@@ -151,10 +181,13 @@ const LINE_ID_2 = `smoke-line-${Date.now()}-2`;
     fulfillment: { table_number: '99', mode: 'DINE_IN' },
   }, { aggregate_id: ORDER_ID, seq: 1 })]);
 
-  if (res.status === 200) {
+  const rejected = res.body?.rejected ?? [];
+  if (res.status === 200 && rejected.length === 0) {
     ok('ORDER_CREATED accepted (status 200)');
+  } else if (res.status === 200 && rejected.length > 0) {
+    fail(`ORDER_CREATED rejected: ${rejected[0]?.error}`, JSON.stringify(rejected[0]));
   } else {
-    fail(`ORDER_CREATED rejected (status ${res.status})`, JSON.stringify(res.body?.error ?? res.body));
+    fail(`ORDER_CREATED HTTP error (status ${res.status})`, JSON.stringify(res.body?.error ?? res.body));
   }
 }
 
@@ -164,7 +197,7 @@ const LINE_ID_2 = `smoke-line-${Date.now()}-2`;
     order_id: ORDER_ID,
     line: {
       line_id: LINE_ID_1,
-      product_id: 'smoke-prod-001',
+      product_id: PRODUCT_ID_1,
       sku: 'SKU-SMOKE-001',
       name: '1/4 Pollo SMOKE',
       qty: 1,
@@ -178,7 +211,7 @@ const LINE_ID_2 = `smoke-line-${Date.now()}-2`;
     order_id: ORDER_ID,
     line: {
       line_id: LINE_ID_2,
-      product_id: 'smoke-prod-002',
+      product_id: PRODUCT_ID_2,
       sku: 'SKU-SMOKE-002',
       name: 'Gaseosa SMOKE',
       qty: 1,
@@ -189,10 +222,13 @@ const LINE_ID_2 = `smoke-line-${Date.now()}-2`;
   }, { aggregate_id: ORDER_ID, seq: 3 });
 
   const res = await ingest([ev1, ev2]);
-  if (res.status === 200) {
+  const rej22 = res.body?.rejected ?? [];
+  if (res.status === 200 && rej22.length === 0) {
     ok('ORDER_ITEM_ADDED × 2 accepted — rows should be in order_item_projections');
+  } else if (rej22.length > 0) {
+    fail(`ORDER_ITEM_ADDED rejected: ${rej22.map(r => r.error).join(', ')}`, JSON.stringify(rej22[0]));
   } else {
-    fail(`ORDER_ITEM_ADDED rejected (${res.status})`, JSON.stringify(res.body?.error ?? res.body));
+    fail(`ORDER_ITEM_ADDED HTTP error (${res.status})`, JSON.stringify(res.body?.error ?? res.body));
   }
 }
 
@@ -202,15 +238,18 @@ const LINE_ID_2 = `smoke-line-${Date.now()}-2`;
     order_id: ORDER_ID,
     submitted_at: new Date().toISOString(),
     items_by_station: {
-      HORNO: [{ line_id: LINE_ID_1, product_id: 'smoke-prod-001', name: '1/4 Pollo SMOKE', qty: 1 }],
-      BAR: [{ line_id: LINE_ID_2, product_id: 'smoke-prod-002', name: 'Gaseosa SMOKE', qty: 1 }],
+      HORNO: [{ line_id: LINE_ID_1, product_id: PRODUCT_ID_1, name: '1/4 Pollo SMOKE', qty: 1 }],
+      BAR: [{ line_id: LINE_ID_2, product_id: PRODUCT_ID_2, name: 'Gaseosa SMOKE', qty: 1 }],
     },
   }, { aggregate_id: ORDER_ID, seq: 4 })]);
 
-  if (res.status === 200) {
+  const rej3 = res.body?.rejected ?? [];
+  if (res.status === 200 && rej3.length === 0) {
     ok('ORDER_SUBMITTED accepted — items should be IN_KITCHEN');
+  } else if (rej3.length > 0) {
+    fail(`ORDER_SUBMITTED rejected: ${rej3[0]?.error}`, JSON.stringify(rej3[0]));
   } else {
-    fail(`ORDER_SUBMITTED rejected (${res.status})`, JSON.stringify(res.body?.error ?? res.body));
+    fail(`ORDER_SUBMITTED HTTP error (${res.status})`, JSON.stringify(res.body?.error ?? res.body));
   }
 }
 
@@ -224,10 +263,13 @@ const LINE_ID_2 = `smoke-line-${Date.now()}-2`;
     station: 'HORNO',
   }, { aggregate_id: ORDER_ID, seq: 5 })]);
 
-  if (res.status === 200) {
+  const rej4 = res.body?.rejected ?? [];
+  if (res.status === 200 && rej4.length === 0) {
     ok('ORDER_ITEM_STATUS_CHANGED(READY) accepted — item should be READY');
+  } else if (rej4.length > 0) {
+    fail(`STATUS_CHANGED(READY) rejected: ${rej4[0]?.error}`, JSON.stringify(rej4[0]));
   } else {
-    fail(`STATUS_CHANGED(READY) rejected (${res.status})`, JSON.stringify(res.body?.error ?? res.body));
+    fail(`STATUS_CHANGED(READY) HTTP error (${res.status})`, JSON.stringify(res.body?.error ?? res.body));
   }
 }
 
