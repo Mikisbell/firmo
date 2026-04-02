@@ -122,9 +122,11 @@ async function checkDependencies(
     }
     
     // INVOICE_ISSUED requiere que ORDER_CREATED exista
+    // aggregate_type is INVOICE so aggregate_id is the invoice ID, not order ID
     if (event_type === 'INVOICE_ISSUED') {
+        const invoicePayload = event.payload as { order_id?: string };
         const order = await tx.orders.findUnique({
-            where: { id: aggregate_id },
+            where: { id: invoicePayload.order_id ?? aggregate_id },
             select: { id: true }
         });
         
@@ -360,13 +362,31 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "CHECK_MARKED_PAID": {
                 const p = payload as any;
-                await tx.orders.update({
-                    where: { id: p.order_id },
-                    data: {
-                        unpaid_checks_count: { decrement: 1 },
-                        updated_at: new Date(occurred_at),
-                    },
-                });
+                // Update check payment status to PAID in order.checks[]
+                const paidOrder = await tx.orders.findUnique({ where: { id: p.order_id } });
+                if (paidOrder) {
+                    const paidChecks = (paidOrder.checks as any[]) || [];
+                    const updatedChecks = paidChecks.map((c: any) => {
+                        if (c.check_id !== p.check_id) return c;
+                        return { ...c, status: 'PAID', payment: { ...c.payment, status: 'PAID' } };
+                    });
+                    await tx.orders.update({
+                        where: { id: p.order_id },
+                        data: {
+                            checks: updatedChecks,
+                            unpaid_checks_count: { decrement: 1 },
+                            updated_at: new Date(occurred_at),
+                        },
+                    });
+                } else {
+                    await tx.orders.update({
+                        where: { id: p.order_id },
+                        data: {
+                            unpaid_checks_count: { decrement: 1 },
+                            updated_at: new Date(occurred_at),
+                        },
+                    });
+                }
                 break;
             }
 
