@@ -234,6 +234,7 @@ describe('Ingest — order_item_projections projections', () => {
   // ── ORDER_SUBMITTED ───────────────────────────────────────────────────────
 
   it('ORDER_SUBMITTED: updates status to IN_KITCHEN for each item', async () => {
+    mockOrderExists();
     const event = baseEvent('ORDER_SUBMITTED', {
       order_id: ORDER_ID,
       submitted_at: new Date().toISOString(),
