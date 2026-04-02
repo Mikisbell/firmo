@@ -13,7 +13,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DriverService, DriverServiceError } from '@/src/core/delivery';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
-import { getTenantId } from '@/src/core/config/tenant';
 import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagination';
 import prisma from '@/src/core/db/prisma';
 import { logger } from '@/src/core/observability/structured-logger';

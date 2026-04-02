@@ -151,7 +151,7 @@ export async function PATCH(
     if (isActive !== undefined) data.is_active = isActive;
 
     const printer = await prisma.printers.update({
-      where: { id },
+      where: { id, tenant_id: tenantId },
       data: data as any,
     });
 
@@ -192,7 +192,7 @@ export async function DELETE(
     }
 
     await prisma.printers.update({
-      where: { id },
+      where: { id, tenant_id: tenantId },
       data: { is_active: false },
     });
 

@@ -6,6 +6,8 @@
  * @module app/api/admin/printers/[id]/test/route
  */
 
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import prisma from '@/src/core/db/prisma';

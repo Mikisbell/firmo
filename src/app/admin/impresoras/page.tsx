@@ -70,8 +70,8 @@ export default function PrintersPage() {
         const data = await res.json();
         setPrinters(data.printers || []);
       }
-    } catch (err) {
-      console.error('Error fetching printers:', err);
+    } catch {
+      toast.error('Error al cargar impresoras');
     } finally {
       setLoading(false);
     }

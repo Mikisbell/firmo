@@ -11,7 +11,7 @@ import { PrintJobService } from '@/src/core/services/print-job.service';
 import prisma from '@/src/core/db/prisma';
 
 const createPrintJobSchema = z.object({
-  jobType: z.enum(['RECEIPT', 'KITCHEN_TICKET', 'PRE_CHECK', 'INVOICE'], { message: 'jobType inválido' }),
+  jobType: z.enum(['RECEIPT', 'KITCHEN_TICKET', 'PRE_CHECK', 'INVOICE', 'TEST'], { message: 'jobType inválido' }),
   payload: z.record(z.unknown()).optional().default({}),
   printerId: z.string().optional(),
   orderId: z.string().optional(),

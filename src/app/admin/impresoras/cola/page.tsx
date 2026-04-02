@@ -66,8 +66,9 @@ export default function PrintQueuePage() {
         if (data.stats) setStats(data.stats);
         setLastUpdate(new Date());
       }
-    } catch (err) {
-      console.error('Error fetching print jobs:', err);
+    } catch {
+      // Solo logear en primera carga, no en cada poll
+      if (loading) toast.error('Error al cargar cola de impresión');
     } finally {
       setLoading(false);
     }

@@ -14,7 +14,7 @@ import { randomUUID } from 'crypto';
 // Types
 // ============================================================================
 
-export type PrintJobType = 'RECEIPT' | 'KITCHEN_TICKET' | 'PRE_CHECK' | 'INVOICE';
+export type PrintJobType = 'RECEIPT' | 'KITCHEN_TICKET' | 'PRE_CHECK' | 'INVOICE' | 'TEST';
 export type PrintJobStatus = 'QUEUED' | 'SENT' | 'PRINTED' | 'FAILED';
 
 export interface PrintJobRecord {
@@ -64,6 +64,7 @@ const PRIORITY_MAP: Record<string, number> = {
   RECEIPT: 50,
   PRE_CHECK: 40,
   INVOICE: 30,
+  TEST: 10,
 };
 
 // ============================================================================
