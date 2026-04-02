@@ -52,14 +52,14 @@ const terminalArb = fc.record({
   fingerprint_hash: fc.string({ minLength: 64, maxLength: 64 }),
   fingerprint_salt: fc.string({ minLength: 64, maxLength: 64 }),
   status: fc.constant('active' as const),
-  bound_at: fc.date(),
-  last_seen_at: fc.date(),
-  last_fingerprint_check: fc.date(),
+  bound_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }),
+  last_seen_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }),
+  last_fingerprint_check: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }),
   drift_score: fc.integer({ min: 0, max: 100 }),
   location_id: fc.uuid(),
   device_name: fc.string({ minLength: 3, maxLength: 50 }),
-  created_at: fc.date(),
-  updated_at: fc.date(),
+  created_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }),
+  updated_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }),
 });
 
 const fingerprintSignalsArb = fc.record({
