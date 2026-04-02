@@ -6,7 +6,7 @@ import { validateEvent, type ValidationResult } from "@/src/core/validation";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 import { outOfOrderQueue, startCleanupJob } from "@/src/core/events/out-of-order-queue";
 import { rateLimiter } from "@/src/core/rate-limiting/rate-limiter";
 import { logger } from '@/src/core/observability/structured-logger';
@@ -59,114 +59,49 @@ async function checkDependencies(
     tx: Prisma.TransactionClient,
     event: ParkEvent
 ): Promise<{ hasDependency: boolean; reason?: string }> {
-    const { event_type, aggregate_id, aggregate_type } = event;
-    
-    // ORDER_ITEM_ADDED requiere que ORDER_CREATED exista
-    if (event_type === 'ORDER_ITEM_ADDED') {
+    const { event_type, aggregate_id } = event;
+
+    // All ORDER-aggregate events (except ORDER_CREATED itself) require the order to exist
+    const ORDER_DEPENDENT_EVENTS = new Set([
+        'ORDER_ITEM_ADDED', 'ORDER_ITEM_QTY_CHANGED', 'ORDER_ITEM_STATUS_CHANGED',
+        'ORDER_ITEM_VOIDED', 'ORDER_ITEM_NOTE', 'ORDER_TABLE_CHANGED',
+        'ORDER_SUBMITTED', 'ORDER_CANCELLED',
+        'CHECK_CREATED', 'CHECK_PAYMENT_ADDED', 'CHECK_MARKED_PAID',
+        'CHECK_TIP_SET', 'CHECK_ITEMS_UPDATED', 'CHECK_ITEMS_MOVED',
+        'REFUND_ISSUED', 'REQUEST_CHECK',
+    ]);
+
+    if (ORDER_DEPENDENT_EVENTS.has(event_type)) {
         const order = await tx.orders.findUnique({
             where: { id: aggregate_id },
-            select: { id: true }
+            select: { id: true },
         });
-        
         if (!order) {
-            return {
-                hasDependency: true,
-                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
-            };
+            return { hasDependency: true, reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found' };
         }
     }
-    
-    // CHECK_PAYMENT_ADDED requiere que ORDER_CREATED exista
-    if (event_type === 'CHECK_PAYMENT_ADDED') {
-        const order = await tx.orders.findUnique({
-            where: { id: aggregate_id },
-            select: { id: true }
-        });
-        
-        if (!order) {
-            return {
-                hasDependency: true,
-                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
-            };
-        }
-    }
-    
-    // CHECK_MARKED_PAID requiere que ORDER_CREATED exista
-    if (event_type === 'CHECK_MARKED_PAID') {
-        const order = await tx.orders.findUnique({
-            where: { id: aggregate_id },
-            select: { id: true }
-        });
-        
-        if (!order) {
-            return {
-                hasDependency: true,
-                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
-            };
-        }
-    }
-    
-    // ORDER_ITEM_STATUS_CHANGED requiere que ORDER_CREATED exista
-    if (event_type === 'ORDER_ITEM_STATUS_CHANGED') {
-        const order = await tx.orders.findUnique({
-            where: { id: aggregate_id },
-            select: { id: true }
-        });
-        
-        if (!order) {
-            return {
-                hasDependency: true,
-                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
-            };
-        }
-    }
-    
-    // INVOICE_ISSUED requiere que ORDER_CREATED exista
-    // aggregate_type is INVOICE so aggregate_id is the invoice ID, not order ID
+
+    // INVOICE_ISSUED: aggregate_type is INVOICE so aggregate_id is the invoice UUID
     if (event_type === 'INVOICE_ISSUED') {
         const invoicePayload = event.payload as { order_id?: string };
         const order = await tx.orders.findUnique({
             where: { id: invoicePayload.order_id ?? aggregate_id },
-            select: { id: true }
+            select: { id: true },
         });
-        
         if (!order) {
-            return {
-                hasDependency: true,
-                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
-            };
-        }
-    }
-    
-    // REFUND_ISSUED requiere que ORDER_CREATED exista
-    if (event_type === 'REFUND_ISSUED') {
-        const payload = event.payload as { order_id: string };
-        const order = await tx.orders.findUnique({
-            where: { id: payload.order_id },
-            select: { id: true }
-        });
-
-        if (!order) {
-            return {
-                hasDependency: true,
-                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
-            };
+            return { hasDependency: true, reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found' };
         }
     }
 
-    // CHECK_TIP_SET requiere que ORDER_CREATED exista
-    if (event_type === 'CHECK_TIP_SET') {
-        const payload = event.payload as { order_id: string };
-        const order = await tx.orders.findUnique({
-            where: { id: payload.order_id },
-            select: { id: true }
+    // SHIFT_CLOSED and CASH_ADJUSTED require the shift to exist
+    if (event_type === 'SHIFT_CLOSED' || event_type === 'CASH_ADJUSTED') {
+        const shiftPayload = event.payload as { shift_id: string };
+        const shift = await tx.shifts.findUnique({
+            where: { id: shiftPayload.shift_id },
+            select: { id: true },
         });
-
-        if (!order) {
-            return {
-                hasDependency: true,
-                reason: 'DEPENDENCY_MISSING: ORDER_CREATED not found'
-            };
+        if (!shift) {
+            return { hasDependency: true, reason: 'DEPENDENCY_MISSING: SHIFT_OPENED not found' };
         }
     }
 
@@ -427,8 +362,11 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         voided_by: p.approved_by,
                         voided_at: new Date(occurred_at),
                     },
-                }).catch(() => {
-                    // Invoice might not exist yet if events arrive out of order
+                }).catch((err: unknown) => {
+                    logger.warn('INVOICE_VOIDED: invoice not found (out-of-order events)', {
+                        invoiceId: p.invoice_id,
+                        error: err instanceof Error ? err.message : String(err),
+                    });
                 });
                 break;
             }
@@ -461,8 +399,11 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                     data: {
                         status: "VOIDED",
                     },
-                }).catch(() => {
-                    // Credit note might not exist yet
+                }).catch((err: unknown) => {
+                    logger.warn('CREDIT_NOTE_VOIDED: credit note not found (out-of-order events)', {
+                        creditNoteId: p.credit_note_id,
+                        error: err instanceof Error ? err.message : String(err),
+                    });
                 });
                 break;
             }
@@ -607,15 +548,20 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
 
             case "CHECK_TIP_SET": {
                 const p = payload as any;
-                const tipId = `${p.order_id}-${p.check_id}-tip`;
                 const activeShift = await tx.shifts.findFirst({
                     where: { tenant_id, terminal_id, status: "OPEN" },
                     select: { id: true },
                 });
+                if (!activeShift) {
+                    // No open shift — skip tip projection (tip still recorded in event)
+                    break;
+                }
                 const tipOrder = await tx.orders.findUnique({
                     where: { id: p.order_id },
                     select: { location_id: true, waiter_id: true },
                 });
+                // Use deterministic UUID v5-style ID for upsert idempotency
+                const tipId = uuidv5(`${p.order_id}-${p.check_id}-tip`, uuidv5.URL);
                 await tx.tips.upsert({
                     where: { id: tipId },
                     create: {
@@ -623,7 +569,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         tenant_id,
                         location_id: (tipOrder as any)?.location_id ?? tenant_id,
                         order_id: p.order_id,
-                        shift_id: activeShift?.id ?? '',
+                        shift_id: activeShift.id,
                         amount: p.tip_cents,
                         payment_method: 'CASH',
                         waiter_id: (tipOrder as any)?.waiter_id ?? actor_id!,
@@ -789,9 +735,10 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
             eventType: event_type,
             eventId: event.event_id,
         });
+        return false; // Projection failed — event should NOT be marked as processed
     }
 
-    return true; // Successfully processed
+    return true;
 }
 
 export async function POST(req: Request) {
@@ -972,9 +919,17 @@ export async function POST(req: Request) {
                 });
 
                 // 6. Project the event (apply to projections)
-                await projectEvent(tx, migrated);
+                const projected = await projectEvent(tx, migrated);
+                if (!projected) {
+                    logger.warn('Projection failed, event will be rejected', {
+                        eventId: ev.event_id,
+                        eventType: ev.event_type,
+                    });
+                    rejected.push({ event_id: ev.event_id, error: 'PROJECTION_FAILED' });
+                    continue;
+                }
 
-                // 6. INCREMENT REVISION for ORDER events after projection
+                // 6b. INCREMENT REVISION for ORDER events after projection
                 if (ev.aggregate_type === "ORDER") {
                     await tx.orders.update({
                         where: { id: ev.aggregate_id },
@@ -1036,7 +991,13 @@ export async function POST(req: Request) {
                             });
 
                             // Proyectar con evento migrado
-                            await projectEvent(tx, migratedQueued);
+                            const qProjected = await projectEvent(tx, migratedQueued);
+                            if (!qProjected) {
+                                logger.warn('Queued event projection failed', {
+                                    eventId: queuedEvent.event_id,
+                                    eventType: queuedEvent.event_type,
+                                });
+                            }
                             
                             // Incrementar revision
                             if (queuedEvent.aggregate_type === "ORDER") {
