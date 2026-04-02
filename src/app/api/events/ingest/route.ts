@@ -291,9 +291,31 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                 break;
             }
 
+            case "CHECK_CREATED": {
+                const p = payload as any;
+                const order = await tx.orders.findUnique({ where: { id: p.order_id } });
+                if (order) {
+                    const checks = (order.checks as any[]) || [];
+                    const exists = checks.some((c: any) => c.check_id === p.check?.check_id);
+                    if (!exists && p.check) {
+                        await tx.orders.update({
+                            where: { id: p.order_id },
+                            data: {
+                                checks: [...checks, p.check],
+                                unpaid_checks_count: (order.unpaid_checks_count ?? 0) + 1,
+                                updated_at: new Date(occurred_at),
+                            },
+                        });
+                    }
+                }
+                break;
+            }
+
             case "CHECK_PAYMENT_ADDED": {
                 const p = payload as any;
                 const paymentId = p.payment?.id || p.paymentId || uuidv4();
+                const amountCents = p.payment?.amount_cents ?? p.amountCents ?? 0;
+                const method = p.payment?.method ?? p.method ?? 'CASH';
                 await tx.payments.upsert({
                     where: { id: paymentId },
                     create: {
@@ -301,8 +323,8 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         tenant_id,
                         order_id: p.order_id,
                         check_id: p.check_id,
-                        amount_cents: p.payment?.amount_cents ?? p.amountCents ?? 0,
-                        payment_method: p.payment?.method ?? p.method ?? 'CASH',
+                        amount_cents: amountCents,
+                        payment_method: method,
                         reference: p.payment?.ref ?? p.reference ?? null,
                         status: 'COMPLETED',
                         processed_at: new Date(occurred_at),
@@ -312,6 +334,27 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                     },
                     update: {},
                 });
+
+                // Update order.checks[].payment for CHECK_MARKED_PAID validation
+                const payOrder = await tx.orders.findUnique({ where: { id: p.order_id } });
+                if (payOrder) {
+                    const checks = (payOrder.checks as any[]) || [];
+                    const updated = checks.map((c: any) => {
+                        if (c.check_id !== p.check_id) return c;
+                        const existing = c.payment?.payments || [];
+                        return {
+                            ...c,
+                            payment: {
+                                status: 'PARTIAL',
+                                payments: [...existing, { amount_cents: amountCents, method }],
+                            },
+                        };
+                    });
+                    await tx.orders.update({
+                        where: { id: p.order_id },
+                        data: { checks: updated, updated_at: new Date(occurred_at) },
+                    });
+                }
                 break;
             }
 
