@@ -162,19 +162,21 @@ const ONBOARDING_ITEM: NavItem = {
 };
 
 const NAV_GROUPS: NavGroup[] = [
-  // ── VENTAS: lo que se usa cada minuto ──
+  // ── VENTAS: operación diaria del restaurante ──
   {
     id: 'operaciones',
     label: 'Ventas',
     icon: LayoutGrid,
     items: [
       { href: '/admin/mesas', label: 'Mesas', description: 'Gestión de mesas, zonas y QR', icon: Grid3X3, permission: 'manage_config' },
-      { href: '/admin/delivery', label: 'Delivery', description: 'Pedidos, motorizados y plataformas', icon: Truck, permission: 'manage_config', badgeKey: 'delivery' },
-      { href: '/admin/reservas', label: 'Reservas', description: 'Reservas de clientes y disponibilidad', icon: CalendarClock, permission: 'manage_config' },
+      { href: '/admin/delivery', label: 'Delivery', description: 'Pedidos de delivery en curso', icon: Truck, permission: 'manage_config', badgeKey: 'delivery' },
+      { href: '/admin/plataformas', label: 'Plataformas', description: 'PedidosYa, Rappi, LlamaFood', icon: Globe, permission: 'manage_config' },
+      { href: '/admin/reservas', label: 'Reservas', description: 'Reservas y disponibilidad', icon: CalendarClock, permission: 'manage_config' },
+      { href: '/admin/feedback', label: 'Opiniones', description: 'Quejas, sugerencias y elogios', icon: MessageSquare, permission: 'manage_config' },
       { href: '/admin/clientes', label: 'Clientes', description: 'Datos fiscales, fidelización y CRM', icon: UserCheck, permission: 'manage_config' },
     ],
   },
-  // ── MENÚ: lo que cambia cada semana ──
+  // ── MENÚ: carta, recetas, stock ──
   {
     id: 'catalogo',
     label: 'Menú',
@@ -182,11 +184,13 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/productos', label: 'Productos', description: 'Carta, precios y categorías', icon: Package, permission: 'manage_products' },
       { href: '/admin/recetas', label: 'Recetas', description: 'Ingredientes y costos por plato', icon: BookOpen, permission: 'manage_products' },
-      { href: '/inventario', label: 'Inventario', description: 'Stock, alertas y compras', icon: Warehouse, permission: 'manage_products' },
+      { href: '/admin/pollo-control', label: 'Control Pollo', description: 'Producción y merma diaria', icon: Egg, permission: 'manage_products' },
+      { href: '/inventario', label: 'Inventario', description: 'Stock de insumos y alertas', icon: Warehouse, permission: 'manage_products' },
+      { href: '/admin/compras', label: 'Compras', description: 'Órdenes de compra a proveedores', icon: ShoppingCart, permission: 'manage_products' },
       { href: '/admin/promociones', label: 'Promociones', description: 'Descuentos y combos activos', icon: Gift, permission: 'manage_promotions' },
     ],
   },
-  // ── EQUIPO: lo que se toca cada mes ──
+  // ── EQUIPO: personal del restaurante ──
   {
     id: 'equipo',
     label: 'Equipo',
@@ -196,9 +200,10 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/drivers', label: 'Motorizados', description: 'Repartidores de delivery', icon: Bike, permission: 'manage_employees' },
       { href: '/admin/hr', label: 'Recursos Humanos', description: 'Asistencia, planillas y vacaciones', icon: Briefcase, permission: 'manage_employees' },
       { href: '/admin/ranking-meseros', label: 'Ranking Meseros', description: 'Desempeño y ventas por mesero', icon: Award, permission: 'view_reports' },
+      { href: '/employee', label: 'Portal Empleado', description: 'Vista del empleado (boletas, horarios)', icon: Store, permission: 'manage_employees' },
     ],
   },
-  // ── FINANZAS: lo que revisa el dueño ──
+  // ── FINANZAS: dinero y facturación ──
   {
     id: 'finanzas',
     label: 'Finanzas',
@@ -220,19 +225,21 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/dashboard', label: 'Analytics', description: 'KPIs, ventas por hora, top productos', icon: LineChart, permission: 'view_reports' },
       { href: '/admin/sucursales', label: 'Sucursales', description: 'Comparativa por sede', icon: Building2, permission: 'view_reports' },
       { href: '/admin/reports/profitability', label: 'Rentabilidad', description: 'Margen por producto y categoría', icon: TrendingUp, permission: 'view_reports' },
+      { href: '/admin/reportes', label: 'Exportables', description: 'Reportes por período', icon: BarChart3, permission: 'view_reports' },
     ],
   },
-  // ── CONFIGURACIÓN: setup del sistema ──
+  // ── CONFIGURACIÓN: setup y seguridad ──
   {
     id: 'configuracion',
     label: 'Configuración',
     icon: Settings,
     items: [
-      { href: '/admin/configuracion', label: 'General', description: 'Nombre, RUC, logo y preferencias', icon: Settings, permission: 'manage_config' },
+      { href: '/admin/configuracion', label: 'General', description: 'Nombre, RUC, logo, Yape/Plin', icon: Settings, permission: 'manage_config' },
       { href: '/admin/estaciones', label: 'Estaciones KDS', description: 'Pantallas de cocina y despacho', icon: ChefHat, permission: 'manage_stations' },
       { href: '/admin/impresoras', label: 'Impresoras', description: 'Impresoras térmicas y cola', icon: Printer, permission: 'manage_stations' },
       { href: '/admin/terminales', label: 'Terminales', description: 'Dispositivos POS registrados', icon: Monitor, permission: 'manage_terminals' },
       { href: '/admin/auditoria', label: 'Auditoría', description: 'Historial de acciones y seguridad', icon: Shield, permission: 'manage_terminals', badgeKey: 'auditoria' },
+      { href: '/admin/monitoring', label: 'Monitoreo', description: 'Salud del sistema y performance', icon: Activity, permission: 'view_dashboard' },
       { href: '/admin/design-system', label: 'Sistema de Diseño', description: 'Catálogo de componentes UI', icon: Palette, permission: 'manage_config' },
     ],
   },
