@@ -23,6 +23,7 @@ import type {
   OperationalAlert,
   DataSourceStatus,
 } from '@/src/core/types/executive-dashboard';
+import { Button, Card, MetricCard, PageHeader } from '@/src/components/ui';
 
 const LazyHourlySalesChart = lazy(() => import('./components/HourlySalesChart'));
 const LazyPaymentDonut = lazy(() => import('./components/PaymentDonut'));
@@ -75,19 +76,16 @@ function PeriodSelector({
   return (
     <div className="flex items-center gap-2">
       {presets.map((p) => (
-        <button
+        <Button
           key={p.key}
+          variant={value.preset === p.key ? 'primary' : 'secondary'}
+          size="sm"
           onClick={() =>
             onChange({ preset: p.key, ...getPeriodDates(p.key) })
           }
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-            value.preset === p.key
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-              : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700'
-          }`}
         >
           {p.label}
-        </button>
+        </Button>
       ))}
       <div className="flex items-center gap-1 ml-2">
         <input
@@ -97,9 +95,9 @@ function PeriodSelector({
           onChange={(e) =>
             onChange({ preset: 'custom', start: e.target.value, end: value.end })
           }
-          className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm text-zinc-300"
+          className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-2 py-1.5 text-sm text-park-gray-300"
         />
-        <span className="text-zinc-500 text-sm">—</span>
+        <span className="text-park-gray-400 text-sm">—</span>
         <input
           type="date"
           value={value.end}
@@ -108,50 +106,9 @@ function PeriodSelector({
           onChange={(e) =>
             onChange({ preset: 'custom', start: value.start, end: e.target.value })
           }
-          className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm text-zinc-300"
+          className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-2 py-1.5 text-sm text-park-gray-300"
         />
       </div>
-    </div>
-  );
-}
-
-function KPICard({
-  label,
-  value,
-  delta,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  delta: number | null;
-  icon: React.ElementType;
-  color: string;
-}) {
-  return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-zinc-400 text-sm">{label}</span>
-        <Icon className={`w-4 h-4 ${color}`} />
-      </div>
-      <div className="text-2xl font-bold text-zinc-100">{value}</div>
-      {delta !== null && (
-        <div className="flex items-center gap-1 mt-1">
-          {delta >= 0 ? (
-            <TrendingUp className="w-3 h-3 text-emerald-400" />
-          ) : (
-            <TrendingDown className="w-3 h-3 text-red-400" />
-          )}
-          <span
-            className={`text-xs font-medium ${
-              delta >= 0 ? 'text-emerald-400' : 'text-red-400'
-            }`}
-          >
-            {delta >= 0 ? '+' : ''}
-            {formatPercent(delta)} vs período anterior
-          </span>
-        </div>
-      )}
     </div>
   );
 }
@@ -179,7 +136,7 @@ function AlertBanner({ alerts }: { alerts: OperationalAlert[] }) {
           className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border ${bgMap[alert.severity]}`}
         >
           {iconMap[alert.severity]}
-          <span className="text-sm text-zinc-300">{alert.message}</span>
+          <span className="text-sm text-park-gray-300">{alert.message}</span>
         </div>
       ))}
     </div>
@@ -189,7 +146,7 @@ function AlertBanner({ alerts }: { alerts: OperationalAlert[] }) {
 function TopProductsTable({ products }: { products: TopProfitableProduct[] }) {
   if (products.length === 0) {
     return (
-      <p className="text-zinc-500 text-sm py-4 text-center">
+      <p className="text-park-gray-400 text-sm py-4 text-center">
         Sin datos de productos
       </p>
     );
@@ -198,7 +155,7 @@ function TopProductsTable({ products }: { products: TopProfitableProduct[] }) {
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-zinc-500 border-b border-zinc-800">
+        <tr className="text-park-gray-400 border-b border-park-gray-800">
           <th className="text-left py-2 font-medium">Producto</th>
           <th className="text-right py-2 font-medium">Vendidos</th>
           <th className="text-right py-2 font-medium">Ganancia</th>
@@ -209,13 +166,13 @@ function TopProductsTable({ products }: { products: TopProfitableProduct[] }) {
         {products.map((p) => (
           <tr
             key={p.productId}
-            className="border-b border-zinc-800/50 last:border-0"
+            className="border-b border-park-gray-800/50 last:border-0"
           >
             <td className="py-2.5">
-              <div className="text-zinc-200">{p.productName}</div>
-              <div className="text-zinc-500 text-xs">{p.category}</div>
+              <div className="text-park-gray-200">{p.productName}</div>
+              <div className="text-park-gray-400 text-xs">{p.category}</div>
             </td>
-            <td className="text-right text-zinc-300">{p.unitsSold}</td>
+            <td className="text-right text-park-gray-300">{p.unitsSold}</td>
             <td className="text-right text-emerald-400 font-medium">
               {formatCents(Number(p.totalProfitCents))}
             </td>
@@ -257,7 +214,7 @@ function SourceIndicator({ sources }: { sources: DataSourceStatus }) {
                 : 'bg-red-400'
             }`}
           />
-          <span className="text-zinc-500">{item.label}</span>
+          <span className="text-park-gray-400">{item.label}</span>
         </div>
       ))}
     </div>
@@ -275,51 +232,50 @@ export default function EjecutivoDashboardPage() {
   const { data, error, isLoading, mutate } = useExecutiveDashboard(period);
 
   const chartFallback = (
-    <div className="flex items-center justify-center h-48 text-zinc-600">
+    <div className="flex items-center justify-center h-48 text-park-gray-600">
       <Loader2 className="w-5 h-5 animate-spin" />
     </div>
   );
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
-          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-          <p className="text-red-400">Error al cargar dashboard</p>
-          <button
-            onClick={() => mutate()}
-            className="mt-3 px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg text-sm hover:bg-zinc-700"
-          >
-            Reintentar
-          </button>
-        </div>
+      <div className="p-4">
+        <Card padding="md">
+          <div className="text-center">
+            <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <p className="text-red-400">Error al cargar dashboard</p>
+            <Button
+              variant="secondary"
+              onClick={() => mutate()}
+              className="mt-3"
+            >
+              Reintentar
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100">
-            Dashboard Ejecutivo
-          </h1>
-          <p className="text-zinc-500 text-sm mt-0.5">
-            Vista unificada del negocio
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <PeriodSelector value={period} onChange={setPeriod} />
-          <button
-            onClick={() => mutate()}
-            disabled={isLoading}
-            className="p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 hover:bg-zinc-700 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard Ejecutivo"
+        description="Vista unificada de rentabilidad"
+        actions={
+          <div className="flex items-center gap-4">
+            <PeriodSelector value={period} onChange={setPeriod} />
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />}
+              onClick={() => mutate()}
+              disabled={isLoading}
+            />
+          </div>
+        }
+      />
 
       {isLoading && !data ? (
         <div className="flex items-center justify-center h-64">
@@ -332,100 +288,107 @@ export default function EjecutivoDashboardPage() {
 
           {/* Hero KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KPICard
+            <MetricCard
               label="Ventas Netas"
-              value={formatCents(data.netSalesCents)}
-              delta={data.comparison?.netSalesDelta ?? null}
-              icon={DollarSign}
-              color="text-emerald-400"
+              value={data.netSalesCents}
+              format="currency"
+              trend={data.comparison?.netSalesDelta != null ? {
+                value: Number(data.comparison.netSalesDelta.toFixed(1)),
+                isPositive: data.comparison.netSalesDelta >= 0,
+              } : undefined}
+              icon={<DollarSign className="w-5 h-5" />}
             />
-            <KPICard
+            <MetricCard
               label="Utilidad Bruta"
               value={`${formatCents(data.grossProfitCents)} (${formatPercent(data.grossMarginPercent)})`}
-              delta={data.comparison?.grossProfitDelta ?? null}
-              icon={TrendingUp}
-              color="text-blue-400"
+              trend={data.comparison?.grossProfitDelta != null ? {
+                value: Number(data.comparison.grossProfitDelta.toFixed(1)),
+                isPositive: data.comparison.grossProfitDelta >= 0,
+              } : undefined}
+              icon={<TrendingUp className="w-5 h-5" />}
             />
-            <KPICard
+            <MetricCard
               label="Gastos Operativos"
-              value={formatCents(data.operatingExpensesCents)}
-              delta={null}
-              icon={Receipt}
-              color="text-amber-400"
+              value={data.operatingExpensesCents}
+              format="currency"
+              icon={<Receipt className="w-5 h-5" />}
             />
-            <KPICard
+            <MetricCard
               label="Utilidad Neta"
               value={`${formatCents(data.netIncomeCents)} (${formatPercent(data.netMarginPercent)})`}
-              delta={data.comparison?.netIncomeDelta ?? null}
-              icon={DollarSign}
-              color={data.netIncomeCents >= 0 ? 'text-emerald-400' : 'text-red-400'}
+              trend={data.comparison?.netIncomeDelta != null ? {
+                value: Number(data.comparison.netIncomeDelta.toFixed(1)),
+                isPositive: data.comparison.netIncomeDelta >= 0,
+              } : undefined}
+              icon={<DollarSign className="w-5 h-5" />}
             />
           </div>
 
           {/* Secondary KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
-            <KPICard
-              label="Órdenes"
+            <MetricCard
+              label="Ordenes"
               value={data.ordersCount.toLocaleString()}
-              delta={data.comparison?.ordersCountDelta ?? null}
-              icon={ShoppingCart}
-              color="text-violet-400"
+              trend={data.comparison?.ordersCountDelta != null ? {
+                value: Number(data.comparison.ordersCountDelta.toFixed(1)),
+                isPositive: data.comparison.ordersCountDelta >= 0,
+              } : undefined}
+              icon={<ShoppingCart className="w-5 h-5" />}
             />
-            <KPICard
+            <MetricCard
               label="Ticket Promedio"
-              value={formatCents(data.avgTicketCents)}
-              delta={null}
-              icon={Receipt}
-              color="text-cyan-400"
+              value={data.avgTicketCents}
+              format="currency"
+              icon={<Receipt className="w-5 h-5" />}
             />
           </div>
 
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Hourly Sales */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:col-span-2">
-              <h3 className="text-sm font-medium text-zinc-400 mb-3">
+            <Card padding="md" className="lg:col-span-2">
+              <h3 className="text-sm font-medium text-park-gray-400 mb-3">
                 Ventas por Hora {period.preset !== 'today' && '— Hoy'}
               </h3>
               <Suspense fallback={chartFallback}>
                 <LazyHourlySalesChart data={data.hourlySales} />
               </Suspense>
-            </div>
+            </Card>
 
             {/* Payment breakdown */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-zinc-400 mb-3">
-                Métodos de Pago
+            <Card padding="md">
+              <h3 className="text-sm font-medium text-park-gray-400 mb-3">
+                Metodos de Pago
               </h3>
               <Suspense fallback={chartFallback}>
                 <LazyPaymentDonut data={data.paymentBreakdown} />
               </Suspense>
-            </div>
+            </Card>
           </div>
 
           {/* Bottom row: Top products + Margin by category */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-zinc-400 mb-3">
+            <Card padding="md">
+              <h3 className="text-sm font-medium text-park-gray-400 mb-3">
                 Top 5 Productos Rentables
               </h3>
               <TopProductsTable products={data.topProducts} />
-            </div>
+            </Card>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-zinc-400 mb-3">
-                Margen por Categoría
+            <Card padding="md">
+              <h3 className="text-sm font-medium text-park-gray-400 mb-3">
+                Margen por Categoria
               </h3>
               <Suspense fallback={chartFallback}>
                 <LazyMarginBar products={data.topProducts} />
               </Suspense>
-            </div>
+            </Card>
           </div>
 
           {/* Footer: source status + generated time */}
-          <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+          <div className="flex items-center justify-between pt-2 border-t border-park-gray-800">
             <SourceIndicator sources={data.sources} />
-            <span className="text-xs text-zinc-600">
+            <span className="text-xs text-park-gray-600">
               Actualizado: {new Date(data.generatedAt).toLocaleTimeString('es-PE')}
             </span>
           </div>

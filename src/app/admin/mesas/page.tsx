@@ -8,9 +8,10 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Check, X, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, MapPin, LayoutGrid } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useTables } from '@/src/hooks/useSWRHooks';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 interface Zone {
   id: string;
@@ -109,23 +110,32 @@ export default function TablesPage() {
       ) : <span className="text-zinc-500">Sin zona</span>,
     },
     { key: 'capacity', label: 'Capacidad', width: '90px', render: (t) => `${t.capacity} pers.` },
-    { key: 'shape', label: 'Forma', width: '100px', render: (t) => ({
-      SQUARE: 'Cuadrada',
-      ROUND: 'Redonda',
-      RECTANGLE: 'Rectangular',
-    }[t.shape] || t.shape) },
+    {
+      key: 'shape',
+      label: 'Forma',
+      width: '100px',
+      render: (t) => (
+        <Badge variant={
+          t.shape === 'SQUARE' ? 'success' :
+          t.shape === 'ROUND' ? 'info' :
+          'neutral'
+        }>
+          {({ SQUARE: 'Cuadrada', ROUND: 'Redonda', RECTANGLE: 'Rectangular' }[t.shape] || t.shape)}
+        </Badge>
+      ),
+    },
     {
       key: 'status',
       label: 'Estado',
       width: '100px',
       render: (t) => (
-        <span className={`px-2 py-1 rounded text-xs ${
-          t.status === 'AVAILABLE' ? 'bg-green-500/20 text-green-400' :
-          t.status === 'OCCUPIED' ? 'bg-amber-500/20 text-amber-400' :
-          'bg-zinc-500/20 text-zinc-400'
-        }`}>
+        <Badge variant={
+          t.status === 'AVAILABLE' ? 'success' :
+          t.status === 'OCCUPIED' ? 'warning' :
+          'neutral'
+        } dot>
           {t.status === 'AVAILABLE' ? 'Libre' : t.status === 'OCCUPIED' ? 'Ocupada' : t.status}
-        </span>
+        </Badge>
       ),
     },
     {
@@ -142,54 +152,80 @@ export default function TablesPage() {
       width: '100px',
       render: (t) => (
         <div className="flex items-center gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={(e) => { e.stopPropagation(); setEditingTable(t); setShowModal(true); }}
-            className="p-2 rounded hover:bg-zinc-800"
-            title="Editar"
+            icon={<Edit2 className="w-4 h-4" />}
           >
-            <Edit2 className="w-4 h-4 text-zinc-400" />
-          </button>
-          <button
+            Editar
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
-            className="p-2 rounded hover:bg-zinc-800"
-            title="Desactivar"
+            icon={<Trash2 className="w-4 h-4" />}
           >
-            <Trash2 className="w-4 h-4 text-red-400" />
-          </button>
+            Eliminar
+          </Button>
         </div>
       ),
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} padding="md">
+              <div className="space-y-2">
+                <div className="h-4 w-20 bg-park-gray-800 rounded animate-pulse" />
+                <div className="h-6 w-16 bg-park-gray-800 rounded animate-pulse" />
+              </div>
+            </Card>
+          ))}
+        </div>
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Mesas</h1>
-          <p className="text-zinc-400 mt-1">
-            {tables.length} mesas en {zones.length} zonas
-          </p>
-        </div>
-        <button
-          onClick={() => { setEditingTable(null); setShowModal(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Nueva Mesa
-        </button>
-      </div>
+      <PageHeader
+        title="Mesas"
+        description={`${tables.length} mesas en ${zones.length} zonas`}
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={() => { setEditingTable(null); setShowModal(true); }}
+          >
+            Nueva Mesa
+          </Button>
+        }
+      />
 
       {/* Zone summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {(zones && Array.isArray(zones) ? zones : []).map(zone => (
-          <div 
+          <Card
             key={zone.id}
-            className="p-3 rounded-lg border border-zinc-800"
-            style={{ borderLeftColor: zone.color, borderLeftWidth: 4 }}
+            padding="md"
           >
-            <div className="text-sm text-zinc-400">{zone.name}</div>
-            <div className="text-xl font-bold">{zone.tables_count} mesas</div>
-          </div>
+            <div style={{ borderLeftColor: zone.color, borderLeftWidth: 4, paddingLeft: 12 }}>
+              <div className="text-sm text-park-gray-400">{zone.name}</div>
+              <div className="text-xl font-bold text-white">{zone.tables_count} mesas</div>
+            </div>
+          </Card>
         ))}
       </div>
 
@@ -199,15 +235,26 @@ export default function TablesPage() {
         </div>
       )}
 
-      <DataTable
-        data={tables}
-        columns={columns}
-        filters={filters}
-        searchPlaceholder="Buscar por número o nombre..."
-        searchKeys={['number', 'display_name']}
-        loading={loading}
-        emptyMessage="No hay mesas"
-      />
+      <Card padding="none">
+        {tables.length === 0 ? (
+          <EmptyState
+            icon={<LayoutGrid />}
+            title="Sin mesas"
+            description="Agrega tu primera mesa para gestionar el salón"
+            action={{ label: 'Nueva Mesa', onClick: () => { setEditingTable(null); setShowModal(true); } }}
+          />
+        ) : (
+          <DataTable
+            data={tables}
+            columns={columns}
+            filters={filters}
+            searchPlaceholder="Buscar por número o nombre..."
+            searchKeys={['number', 'display_name']}
+            loading={loading}
+            emptyMessage="No hay mesas"
+          />
+        )}
+      </Card>
 
       {showModal && (
         <TableModal

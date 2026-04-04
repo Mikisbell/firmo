@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Truck, RefreshCw, Clock, Bike, CheckCircle, Package, ExternalLink } from 'lucide-react';
+import { RefreshCw, Bike, Package, ExternalLink } from 'lucide-react';
 import { DeliveryCard } from './components/DeliveryCard';
 import { MetricsSummary } from './components/MetricsSummary';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 interface DeliveryOrder {
   id: string;
@@ -54,13 +55,9 @@ function DriverStatusCard({ driver, deliveries }: { driver: Driver; deliveries: 
       </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-white truncate">{driver.name}</p>
-        <p className={`text-[10px] uppercase tracking-wide font-medium ${
-          isDispatched ? 'text-violet-400' :
-          isOnDelivery ? 'text-blue-400' :
-          'text-emerald-400'
-        }`}>
+        <Badge variant={isDispatched ? 'warning' : isOnDelivery ? 'info' : 'success'} size="sm">
           {isDispatched ? 'En camino' : isOnDelivery ? 'Asignado' : 'Disponible'}
-        </p>
+        </Badge>
       </div>
       {isOnDelivery && (
         <span className={`ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full ${
@@ -89,7 +86,10 @@ function KanbanColumn({
       </div>
       <div className="flex-1 border border-t-0 border-zinc-800 rounded-b-xl bg-zinc-900/40 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-340px)]">
         {count === 0 ? (
-          <p className="text-center text-zinc-600 text-sm py-8">{emptyText}</p>
+          <EmptyState
+            icon={<Package />}
+            title={emptyText}
+          />
         ) : children}
       </div>
     </div>
@@ -169,10 +169,19 @@ export default function DeliveryDispatchPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-zinc-700 border-t-orange-500 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-zinc-500 text-sm">Cargando panel de despacho...</p>
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} padding="md">
+              <div className="space-y-3">
+                <div className="h-6 w-32 bg-park-gray-800 rounded animate-pulse" />
+                {[1, 2].map((j) => (
+                  <div key={j} className="h-20 bg-park-gray-800 rounded animate-pulse" />
+                ))}
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -180,41 +189,34 @@ export default function DeliveryDispatchPage() {
 
   return (
     <div className="space-y-5 p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-orange-500/20 rounded-xl border border-orange-500/30">
-            <Truck className="w-5 h-5 text-orange-400" />
+      <PageHeader
+        title="Panel de Despacho"
+        description={lastUpdated ? `Actualizado: ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : undefined}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              icon={<RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />}
+              onClick={() => fetchData(true)}
+              loading={refreshing}
+            >
+              Actualizar
+            </Button>
+            <a
+              href="/driver"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium transition-colors"
+              title="Abrir app motorizado"
+            >
+              <Bike className="w-3.5 h-3.5" />
+              App Motorizado
+              <ExternalLink className="w-3 h-3 opacity-60" />
+            </a>
+            <MetricsSummary />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">Panel de Despacho</h1>
-            {lastUpdated && (
-              <p className="text-[10px] text-zinc-500 mt-0.5">
-                Actualizado: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => fetchData(true)}
-            disabled={refreshing}
-            className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 text-zinc-400 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <a
-            href="/driver"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium transition-colors"
-            title="Abrir app motorizado"
-          >
-            <Bike className="w-3.5 h-3.5" />
-            App Motorizado
-            <ExternalLink className="w-3 h-3 opacity-60" />
-          </a>
-        </div>
-        <MetricsSummary />
-      </div>
+        }
+      />
 
       {/* Driver Status Bar */}
       {allDrivers.length > 0 && (
@@ -296,16 +298,13 @@ export default function DeliveryDispatchPage() {
       {/* Quick stats bar */}
       <div className="grid grid-cols-3 gap-3 pt-2 border-t border-zinc-800">
         <div className="flex items-center gap-2 text-sm text-zinc-400">
-          <Package className="w-4 h-4 text-amber-400" />
-          <span>{pending.length} por asignar</span>
+          <Badge variant="warning" dot>{pending.length} por asignar</Badge>
         </div>
         <div className="flex items-center gap-2 text-sm text-zinc-400">
-          <Clock className="w-4 h-4 text-violet-400" />
-          <span>{enCamino.length} en ruta</span>
+          <Badge variant="info" dot>{enCamino.length} en ruta</Badge>
         </div>
         <div className="flex items-center gap-2 text-sm text-zinc-400">
-          <CheckCircle className="w-4 h-4 text-emerald-400" />
-          <span>{completados.filter(d => d.status === 'DELIVERED').length} entregados</span>
+          <Badge variant="success" dot>{completados.filter(d => d.status === 'DELIVERED').length} entregados</Badge>
         </div>
       </div>
     </div>

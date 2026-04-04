@@ -13,6 +13,7 @@ import { Wallet, Plus, Minus, RefreshCw, CheckCircle, Clock } from 'lucide-react
 import { toast } from 'sonner';
 import { usePettyCash, useLocations } from '@/src/hooks/useSWRHooks';
 import type { PettyCashCategory } from '@/src/core/services/petty-cash.service';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 const CATEGORIES: { value: PettyCashCategory; label: string }[] = [
   { value: 'SUPPLIES', label: 'Insumos' },
@@ -125,181 +126,198 @@ export default function CajaChicaPage() {
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Error');
-      toast.success('Transacción aprobada');
+      toast.success('Transaccion aprobada');
       mutate();
     } catch {
       toast.error('Error al aprobar');
     }
   }, [mutate]);
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Wallet className="w-7 h-7 text-emerald-400" />
-            Caja Chica
-          </h1>
-          <p className="text-zinc-400 mt-1">Control de gastos menores</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowForm('INCOME')}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm min-h-[40px]"
-          >
-            <Plus className="w-4 h-4" /> Ingreso
-          </button>
-          <button
-            onClick={() => setShowForm('EXPENSE')}
-            className="flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm min-h-[40px]"
-          >
-            <Minus className="w-4 h-4" /> Egreso
-          </button>
-          <button
-            onClick={() => setShowReconcile(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm min-h-[40px]"
-          >
-            <RefreshCw className="w-4 h-4" /> Reconciliar
-          </button>
-        </div>
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-6">
+      {/* Header */}
+      <PageHeader
+        title="Caja Chica"
+        description="Gastos menores y reembolsos"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="primary"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={() => setShowForm('INCOME')}
+            >
+              Ingreso
+            </Button>
+            <Button
+              variant="destructive"
+              icon={<Minus className="w-4 h-4" />}
+              onClick={() => setShowForm('EXPENSE')}
+            >
+              Egreso
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<RefreshCw className="w-4 h-4" />}
+              onClick={() => setShowReconcile(true)}
+            >
+              Reconciliar
+            </Button>
+          </div>
+        }
+      />
 
       {/* Balance Card */}
       {data?.balance && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          <p className="text-xs text-zinc-500 uppercase">Saldo Actual</p>
+        <Card padding="md">
+          <p className="text-xs text-park-gray-400 uppercase">Saldo Actual</p>
           <p className="text-4xl font-bold mt-2 text-emerald-400">
             {formatCurrency(data.balance.currentBalance)}
           </p>
-          <div className="flex gap-6 mt-4 text-sm text-zinc-400">
+          <div className="flex gap-6 mt-4 text-sm text-park-gray-400">
             <span>Min: {formatCurrency(data.balance.minBalance)}</span>
             <span>Max: {formatCurrency(data.balance.maxBalance)}</span>
-            <span>Aprobación &gt; {formatCurrency(data.balance.approvalThreshold)}</span>
+            <span>Aprobacion &gt; {formatCurrency(data.balance.approvalThreshold)}</span>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Transaction Form */}
       {showForm && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <Card padding="md">
           <h2 className="text-lg font-semibold mb-4">
             {showForm === 'INCOME' ? 'Registrar Ingreso' : 'Registrar Egreso'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-zinc-400">Monto (S/)</label>
+              <label className="text-sm text-park-gray-400">Monto (S/)</label>
               <input type="number" step="0.01" min="0.01" value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 min-h-[40px]"
+                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
               />
             </div>
             <div>
-              <label className="text-sm text-zinc-400">Categoría</label>
+              <label className="text-sm text-park-gray-400">Categoria</label>
               <select value={category} onChange={(e) => setCategory(e.target.value as PettyCashCategory)}
-                className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 min-h-[40px]"
+                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
               >
                 {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm text-zinc-400">Descripción</label>
+              <label className="text-sm text-park-gray-400">Descripcion</label>
               <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
-                className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 min-h-[40px]"
+                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
               />
             </div>
             <div>
-              <label className="text-sm text-zinc-400">N° Recibo (opcional)</label>
+              <label className="text-sm text-park-gray-400">N Recibo (opcional)</label>
               <input type="text" value={receiptNumber} onChange={(e) => setReceiptNumber(e.target.value)}
-                className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 min-h-[40px]"
+                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
               />
             </div>
             <div>
-              <label className="text-sm text-zinc-400">Proveedor (opcional)</label>
+              <label className="text-sm text-park-gray-400">Proveedor (opcional)</label>
               <input type="text" value={supplierName} onChange={(e) => setSupplierName(e.target.value)}
-                className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 min-h-[40px]"
+                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
               />
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <button onClick={handleSubmitTransaction} disabled={submitting || !amount || !description}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-lg min-h-[40px] disabled:opacity-50"
+            <Button
+              variant="primary"
+              onClick={handleSubmitTransaction}
+              disabled={submitting || !amount || !description}
+              loading={submitting}
             >
-              {submitting ? 'Guardando...' : 'Guardar'}
-            </button>
-            <button onClick={resetForm} className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg min-h-[40px]">
+              Guardar
+            </Button>
+            <Button variant="secondary" onClick={resetForm}>
               Cancelar
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Reconcile Form */}
       {showReconcile && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <Card padding="md">
           <h2 className="text-lg font-semibold mb-4">Reconciliar Caja</h2>
           <div className="max-w-xs">
-            <label className="text-sm text-zinc-400">Monto Contado (S/)</label>
+            <label className="text-sm text-park-gray-400">Monto Contado (S/)</label>
             <input type="number" step="0.01" min="0" value={countedAmount}
               onChange={(e) => setCountedAmount(e.target.value)}
-              className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 min-h-[40px]"
+              className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
             />
           </div>
           <div className="flex gap-2 mt-4">
-            <button onClick={handleReconcile} disabled={submitting || !countedAmount}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-lg min-h-[40px] disabled:opacity-50"
+            <Button
+              variant="primary"
+              onClick={handleReconcile}
+              disabled={submitting || !countedAmount}
+              loading={submitting}
             >
-              {submitting ? 'Reconciliando...' : 'Reconciliar'}
-            </button>
-            <button onClick={() => setShowReconcile(false)}
-              className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg min-h-[40px]"
-            >
+              Reconciliar
+            </Button>
+            <Button variant="secondary" onClick={() => setShowReconcile(false)}>
               Cancelar
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* Loading / Error */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-400" />
-        </div>
-      )}
+      {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400">
-          Error al cargar datos. Verifica la configuración de ubicación.
-        </div>
+        <Card padding="sm">
+          <p className="text-red-400 text-sm">
+            Error al cargar datos. Verifica la configuracion de ubicacion.
+          </p>
+        </Card>
       )}
 
       {/* Transactions Table */}
       {data && data.transactions.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <Card padding="none">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left px-4 py-3 text-zinc-400">Fecha</th>
-                  <th className="text-left px-4 py-3 text-zinc-400">Tipo</th>
-                  <th className="text-left px-4 py-3 text-zinc-400">Categoría</th>
-                  <th className="text-left px-4 py-3 text-zinc-400">Descripción</th>
-                  <th className="text-right px-4 py-3 text-zinc-400">Monto</th>
-                  <th className="text-center px-4 py-3 text-zinc-400">Estado</th>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Fecha</th>
+                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Tipo</th>
+                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Categoria</th>
+                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Descripcion</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Monto</th>
+                  <th className="text-center px-4 py-3 text-park-gray-400 font-medium">Estado</th>
                 </tr>
               </thead>
               <tbody>
                 {data.transactions.map((tx) => (
-                  <tr key={tx.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/50">
-                    <td className="px-4 py-3 text-zinc-500">
+                  <tr key={tx.id} className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors">
+                    <td className="px-4 py-3 text-park-gray-400">
                       {new Date(tx.createdAt).toLocaleDateString('es-PE')}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={tx.type === 'INCOME' ? 'text-emerald-400' : 'text-red-400'}>
+                      <Badge variant={tx.type === 'INCOME' ? 'success' : 'critical'}>
                         {tx.type === 'INCOME' ? 'Ingreso' : 'Egreso'}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-4 py-3">{tx.category}</td>
-                    <td className="px-4 py-3">{tx.description}</td>
+                    <td className="px-4 py-3 text-park-gray-300">{tx.category}</td>
+                    <td className="px-4 py-3 text-park-gray-300">{tx.description}</td>
                     <td className="px-4 py-3 text-right font-medium">
                       <span className={tx.type === 'INCOME' ? 'text-emerald-400' : 'text-red-400'}>
                         {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
@@ -307,16 +325,15 @@ export default function CajaChicaPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {tx.requiresApproval && !tx.approvedBy ? (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleApprove(tx.id)}
-                          className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300"
                         >
                           <Clock className="w-3 h-3" /> Pendiente
-                        </button>
+                        </Button>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
-                          <CheckCircle className="w-3 h-3" /> OK
-                        </span>
+                        <Badge variant="success" dot>OK</Badge>
                       )}
                     </td>
                   </tr>
@@ -324,14 +341,18 @@ export default function CajaChicaPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       )}
 
       {data && data.transactions.length === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <Wallet className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No hay transacciones registradas</p>
-        </div>
+        <Card padding="none">
+          <EmptyState
+            icon={<Wallet />}
+            title="Sin transacciones"
+            description="No hay transacciones registradas"
+            action={{ label: 'Registrar Ingreso', onClick: () => setShowForm('INCOME') }}
+          />
+        </Card>
       )}
     </div>
   );

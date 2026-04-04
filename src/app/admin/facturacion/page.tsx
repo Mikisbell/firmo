@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * Admin Facturación Page — Tabbed dashboard for invoicing management.
+ * Admin Facturacion Page — Tabbed dashboard for invoicing management.
  *
- * Tabs: Comprobantes | Configuración | Resúmenes Diarios | Contingencia
- * Dark theme (zinc-900/800) consistent with admin UI.
+ * Tabs: Comprobantes | Configuracion | Resumenes Diarios | Contingencia
+ * Dark theme consistent with admin UI.
  *
  * @module app/admin/facturacion/page
  */
@@ -29,6 +29,7 @@ import { useInvoices, useInvoiceStats } from '@/src/hooks/useFacturacion';
 import ConfiguracionTab from './configuracion-tab';
 import ResumenesTab from './resumenes-tab';
 import ContingenciaTab from './contingencia-tab';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 function centsToSoles(cents: number): string {
   return `S/ ${(cents / 100).toFixed(2)}`;
@@ -38,8 +39,8 @@ type Tab = 'comprobantes' | 'configuracion' | 'resumenes' | 'contingencia';
 
 const tabs: { id: Tab; label: string; icon: typeof FileText }[] = [
   { id: 'comprobantes', label: 'Comprobantes', icon: FileText },
-  { id: 'configuracion', label: 'Configuración', icon: Settings },
-  { id: 'resumenes', label: 'Resúmenes Diarios', icon: CalendarDays },
+  { id: 'configuracion', label: 'Configuracion', icon: Settings },
+  { id: 'resumenes', label: 'Resumenes Diarios', icon: CalendarDays },
   { id: 'contingencia', label: 'Contingencia', icon: ShieldAlert },
 ];
 
@@ -47,18 +48,15 @@ export default function FacturacionPage() {
   const [activeTab, setActiveTab] = useState<Tab>('comprobantes');
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
-          <ReceiptText className="w-6 h-6 text-amber-400" />
-          Facturación Electrónica
-        </h1>
-        <p className="text-sm text-zinc-400 mt-1">Gestión de boletas, facturas y comprobantes SUNAT</p>
-      </div>
+      <PageHeader
+        title="Facturacion"
+        description="Boletas, facturas y notas SUNAT"
+      />
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 border-b border-zinc-700 overflow-x-auto">
+      <div className="flex gap-1 border-b border-park-gray-800 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -67,8 +65,8 @@ export default function FacturacionPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-amber-400 text-amber-400'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  ? 'border-park-brand-500 text-park-brand-400'
+                  : 'border-transparent text-park-gray-400 hover:text-park-gray-200'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -91,6 +89,12 @@ export default function FacturacionPage() {
 // Comprobantes Tab (original content)
 // ============================================================================
 
+const STATUS_BADGE_MAP: Record<string, 'success' | 'critical' | 'warning' | 'neutral'> = {
+  ISSUED: 'success',
+  VOIDED: 'critical',
+  PENDING: 'warning',
+};
+
 function ComprobantesTab() {
   const [page, setPage] = useState(1);
   const [filterType, setFilterType] = useState('');
@@ -107,9 +111,9 @@ function ComprobantesTab() {
   });
 
   const handleVoid = async (invoiceId: string) => {
-    const reason = prompt('Razón de anulación (mín. 5 caracteres):');
+    const reason = prompt('Razon de anulacion (min. 5 caracteres):');
     if (!reason || reason.length < 5) {
-      toast.error('La razón debe tener al menos 5 caracteres');
+      toast.error('La razon debe tener al menos 5 caracteres');
       return;
     }
 
@@ -129,36 +133,34 @@ function ComprobantesTab() {
       toast.success('Factura anulada');
       mutate();
     } catch {
-      toast.error('Error de conexión');
+      toast.error('Error de conexion');
     }
-  };
-
-  const statusColor: Record<string, string> = {
-    ISSUED: 'text-green-400 bg-green-400/10',
-    VOIDED: 'text-red-400 bg-red-400/10',
-    PENDING: 'text-yellow-400 bg-yellow-400/10',
   };
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Boletas', value: stats?.boletaCount ?? 0, icon: FileText, color: 'text-amber-400' },
-          { label: 'Facturas', value: stats?.facturaCount ?? 0, icon: FileText, color: 'text-blue-400' },
-          { label: 'Anuladas', value: stats?.voidedCount ?? 0, icon: XCircle, color: 'text-red-400' },
-          { label: 'Pendientes SUNAT', value: stats?.pendingSunatCount ?? 0, icon: AlertTriangle, color: 'text-yellow-400' },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-zinc-800 rounded-xl border border-zinc-700 p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <stat.icon className={`w-4 h-4 ${stat.color}`} />
-              <span className="text-xs font-bold text-zinc-400 uppercase">{stat.label}</span>
-            </div>
-            <p className="text-2xl font-black text-zinc-100">
-              {statsLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : stat.value}
-            </p>
-          </div>
-        ))}
+        <MetricCard
+          label="Boletas"
+          value={statsLoading ? '...' : (stats?.boletaCount ?? 0)}
+          icon={<FileText className="w-5 h-5 text-amber-400" />}
+        />
+        <MetricCard
+          label="Facturas"
+          value={statsLoading ? '...' : (stats?.facturaCount ?? 0)}
+          icon={<FileText className="w-5 h-5 text-blue-400" />}
+        />
+        <MetricCard
+          label="Anuladas"
+          value={statsLoading ? '...' : (stats?.voidedCount ?? 0)}
+          icon={<XCircle className="w-5 h-5 text-red-400" />}
+        />
+        <MetricCard
+          label="Pendientes SUNAT"
+          value={statsLoading ? '...' : (stats?.pendingSunatCount ?? 0)}
+          icon={<AlertTriangle className="w-5 h-5 text-yellow-400" />}
+        />
       </div>
 
       {/* Filters */}
@@ -166,7 +168,7 @@ function ComprobantesTab() {
         <select
           value={filterType}
           onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-zinc-100 outline-none"
+          className="px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm text-park-gray-200 outline-none"
         >
           <option value="">Todos los tipos</option>
           <option value="BOLETA">Boleta</option>
@@ -176,7 +178,7 @@ function ComprobantesTab() {
         <select
           value={filterStatus}
           onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-zinc-100 outline-none"
+          className="px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm text-park-gray-200 outline-none"
         >
           <option value="">Todos los estados</option>
           <option value="ISSUED">Emitida</option>
@@ -184,74 +186,73 @@ function ComprobantesTab() {
         </select>
 
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-park-gray-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar por documento, serie..."
-            className="w-full pl-9 pr-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm text-park-gray-200 placeholder-park-gray-400 outline-none focus:ring-1 focus:ring-park-brand-500"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden">
+      <Card padding="none">
         {isLoading ? (
           <div className="flex items-center justify-center h-48">
-            <Loader2 className="w-8 h-8 text-zinc-500 animate-spin" />
+            <Loader2 className="w-8 h-8 text-park-gray-600 animate-spin" />
           </div>
         ) : invoices.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-zinc-500">
-            <FileText className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">No hay comprobantes</p>
-          </div>
+          <EmptyState
+            icon={<FileText />}
+            title="Sin comprobantes"
+            description="No hay comprobantes que coincidan con los filtros"
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-700 bg-zinc-900/50">
-                  <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400 uppercase">Serie - Nro</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400 uppercase">Tipo</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400 uppercase">Doc. Cliente</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-zinc-400 uppercase">Total</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-zinc-400 uppercase">Estado</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400 uppercase">Fecha</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-zinc-400 uppercase">Acciones</th>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-park-gray-400 uppercase">Serie - Nro</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-park-gray-400 uppercase">Tipo</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-park-gray-400 uppercase">Doc. Cliente</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold text-park-gray-400 uppercase">Total</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold text-park-gray-400 uppercase">Estado</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-park-gray-400 uppercase">Fecha</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold text-park-gray-400 uppercase">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {invoices.map((inv) => (
-                  <tr key={inv.id} className="border-b border-zinc-700/50 hover:bg-zinc-700/30">
-                    <td className="px-4 py-3 font-mono text-zinc-100">
+                  <tr key={inv.id} className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30">
+                    <td className="px-4 py-3 font-mono text-white">
                       {inv.series}-{inv.invoice_number}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                        inv.invoice_type === 'FACTURA' ? 'text-blue-400 bg-blue-400/10' : 'text-amber-400 bg-amber-400/10'
-                      }`}>
+                      <Badge variant={inv.invoice_type === 'FACTURA' ? 'info' : 'warning'}>
                         {inv.invoice_type}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-4 py-3 text-zinc-300">
+                    <td className="px-4 py-3 text-park-gray-300">
                       {inv.customer_doc_type ? `${inv.customer_doc_type}: ${inv.customer_doc}` : '-'}
                     </td>
-                    <td className="px-4 py-3 text-right font-bold text-zinc-100">
+                    <td className="px-4 py-3 text-right font-bold text-white">
                       {centsToSoles(inv.total_cents)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${statusColor[inv.status] ?? 'text-zinc-400'}`}>
+                      <Badge variant={STATUS_BADGE_MAP[inv.status] ?? 'neutral'}>
                         {inv.status}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-4 py-3 text-zinc-400 text-xs">
+                    <td className="px-4 py-3 text-park-gray-400 text-xs">
                       {new Date(inv.created_at).toLocaleDateString('es-PE')}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Link
                           href={`/admin/facturacion/${inv.id}`}
-                          className="p-1.5 hover:bg-zinc-600 rounded text-zinc-400 hover:text-zinc-100 transition-colors"
+                          className="p-1.5 hover:bg-park-gray-800 rounded text-park-gray-400 hover:text-white transition-colors"
                           title="Ver detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -260,7 +261,7 @@ function ComprobantesTab() {
                           href={`/api/admin/facturacion/${inv.id}/pdf`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 hover:bg-zinc-600 rounded text-zinc-400 hover:text-zinc-100 transition-colors"
+                          className="p-1.5 hover:bg-park-gray-800 rounded text-park-gray-400 hover:text-white transition-colors"
                           title="Descargar PDF"
                         >
                           <Download className="w-4 h-4" />
@@ -268,7 +269,7 @@ function ComprobantesTab() {
                         {inv.status === 'ISSUED' && (
                           <button
                             onClick={() => handleVoid(inv.id)}
-                            className="p-1.5 hover:bg-red-600/20 rounded text-zinc-400 hover:text-red-400 transition-colors"
+                            className="p-1.5 hover:bg-red-600/20 rounded text-park-gray-400 hover:text-red-400 transition-colors"
                             title="Anular"
                           >
                             <XCircle className="w-4 h-4" />
@@ -282,28 +283,30 @@ function ComprobantesTab() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Pagination */}
       {pagination && pagination.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page <= 1}
-            className="px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-sm text-zinc-300 disabled:opacity-50"
           >
             Anterior
-          </button>
-          <span className="text-sm text-zinc-400">
-            Página {page} de {pagination.pages}
+          </Button>
+          <span className="text-sm text-park-gray-400">
+            Pagina {page} de {pagination.pages}
           </span>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setPage(Math.min(pagination.pages, page + 1))}
             disabled={page >= pagination.pages}
-            className="px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-sm text-zinc-300 disabled:opacity-50"
           >
             Siguiente
-          </button>
+          </Button>
         </div>
       )}
     </div>

@@ -9,9 +9,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Check, X, Shield, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit2, Shield, Eye, EyeOff } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
+import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
 
 interface Employee {
   id: string;
@@ -38,18 +39,18 @@ const filters: FilterConfig[] = [
   { key: 'role', label: 'Rol', options: ROLE_OPTIONS },
 ];
 
-const ROLE_COLORS: Record<string, string> = {
-  OWNER:      'bg-amber-500/20 text-amber-400',
-  ADMIN:      'bg-purple-500/20 text-purple-400',
-  MANAGER:    'bg-blue-500/20 text-blue-400',
-  SUPERVISOR: 'bg-indigo-500/20 text-indigo-400',
-  CASHIER:    'bg-green-500/20 text-green-400',
-  WAITER:     'bg-cyan-500/20 text-cyan-400',
-  KITCHEN:    'bg-orange-500/20 text-orange-400',
-  COOK:       'bg-orange-400/20 text-orange-300',
-  PACKER:     'bg-yellow-500/20 text-yellow-400',
-  BAR:        'bg-teal-500/20 text-teal-400',
-  DRIVER:     'bg-pink-500/20 text-pink-400',
+const ROLE_BADGE_VARIANT: Record<string, 'success' | 'warning' | 'critical' | 'info' | 'neutral'> = {
+  OWNER:      'critical',
+  ADMIN:      'critical',
+  MANAGER:    'warning',
+  SUPERVISOR: 'warning',
+  CASHIER:    'info',
+  WAITER:     'success',
+  KITCHEN:    'neutral',
+  COOK:       'neutral',
+  PACKER:     'neutral',
+  BAR:        'neutral',
+  DRIVER:     'info',
 };
 
 export default function EmployeesPage() {
@@ -71,14 +72,12 @@ export default function EmployeesPage() {
       label: 'Rol',
       width: '150px',
       render: (e) => (
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-            ROLE_COLORS[e.role] || 'bg-zinc-500/20 text-zinc-400'
-          }`}
-        >
-          <Shield className="w-3 h-3" />
-          {ROLE_OPTIONS.find((r) => r.value === e.role)?.label || e.role}
-        </span>
+        <Badge variant={ROLE_BADGE_VARIANT[e.role] || 'neutral'}>
+          <span className="inline-flex items-center gap-1">
+            <Shield className="w-3 h-3" />
+            {ROLE_OPTIONS.find((r) => r.value === e.role)?.label || e.role}
+          </span>
+        </Badge>
       ),
     },
     {
@@ -86,16 +85,9 @@ export default function EmployeesPage() {
       label: 'Estado',
       width: '100px',
       render: (e) => (
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-            e.is_active
-              ? 'bg-green-500/20 text-green-400'
-              : 'bg-zinc-500/20 text-zinc-400'
-          }`}
-        >
-          {e.is_active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+        <Badge variant={e.is_active ? 'success' : 'neutral'} dot>
           {e.is_active ? 'Activo' : 'Inactivo'}
-        </span>
+        </Badge>
       ),
     },
     {
@@ -103,50 +95,60 @@ export default function EmployeesPage() {
       label: '',
       width: '80px',
       render: (e) => (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={(ev) => {
             ev.stopPropagation();
             router.push(`/admin/empleados/${e.id}`);
           }}
-          className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
-          title="Editar"
+          icon={<Edit2 className="w-4 h-4" />}
         >
-          <Edit2 className="w-4 h-4 text-zinc-400" />
-        </button>
+          Editar
+        </Button>
       ),
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Empleados</h1>
-          <p className="text-zinc-400 mt-1">Gestionar personal y accesos</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowInactive(!showInactive)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors min-h-[44px] text-sm ${
-              showInactive
-                ? 'bg-zinc-700/50 border-zinc-600 text-zinc-300'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300'
-            }`}
-            title={showInactive ? 'Ver activos' : 'Ver inactivos'}
-          >
-            {showInactive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showInactive ? 'Inactivos' : 'Activos'}
-          </button>
-          <button
-            onClick={() => router.push('/admin/empleados/nuevo')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-          >
-            <Plus className="w-4 h-4" />
-            Nuevo Empleado
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Empleados"
+        description="Gestionar personal y accesos"
+        actions={
+          <div className="flex items-center gap-3">
+            <Button
+              variant={showInactive ? 'secondary' : 'ghost'}
+              icon={showInactive ? <EyeOff size={16} /> : <Eye size={16} />}
+              onClick={() => setShowInactive(!showInactive)}
+            >
+              {showInactive ? 'Inactivos' : 'Activos'}
+            </Button>
+            <Button
+              variant="primary"
+              icon={<Plus size={16} />}
+              onClick={() => router.push('/admin/empleados/nuevo')}
+            >
+              Nuevo Empleado
+            </Button>
+          </div>
+        }
+      />
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -155,17 +157,19 @@ export default function EmployeesPage() {
       )}
 
       {/* Employees table */}
-      <DataTable
-        data={employees || []}
-        columns={columns}
-        filters={filters}
-        searchPlaceholder="Buscar por nombre..."
-        searchKeys={['name']}
-        loading={loading}
-        emptyMessage="No hay empleados"
-        onRowClick={(e) => router.push(`/admin/empleados/${e.id}`)}
-        rowTestId="employee-row"
-      />
+      <Card padding="none">
+        <DataTable
+          data={employees || []}
+          columns={columns}
+          filters={filters}
+          searchPlaceholder="Buscar por nombre..."
+          searchKeys={['name']}
+          loading={loading}
+          emptyMessage="No hay empleados"
+          onRowClick={(e) => router.push(`/admin/empleados/${e.id}`)}
+          rowTestId="employee-row"
+        />
+      </Card>
     </div>
   );
 }

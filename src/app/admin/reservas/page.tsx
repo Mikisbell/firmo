@@ -41,6 +41,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 // ============================================================================
 // Types
@@ -128,31 +129,31 @@ function shiftDate(dateStr: string, days: number): string {
 }
 
 /** Status display config */
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:   { label: 'Pendiente',  color: 'text-yellow-400', bg: 'bg-yellow-500/15' },
-  CONFIRMED: { label: 'Confirmada', color: 'text-emerald-400', bg: 'bg-emerald-500/15' },
-  REJECTED:  { label: 'Rechazada',  color: 'text-red-400', bg: 'bg-red-500/15' },
-  CANCELLED: { label: 'Cancelada',  color: 'text-zinc-400', bg: 'bg-zinc-500/15' },
-  ARRIVED:   { label: 'Llego',      color: 'text-blue-400', bg: 'bg-blue-500/15' },
-  SEATED:    { label: 'Sentada',    color: 'text-cyan-400', bg: 'bg-cyan-500/15' },
-  NO_SHOW:   { label: 'No-show',    color: 'text-red-400', bg: 'bg-red-500/15' },
-  COMPLETED: { label: 'Completada', color: 'text-zinc-400', bg: 'bg-zinc-500/15' },
+const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'critical' | 'info' | 'neutral'; label: string }> = {
+  PENDING:   { variant: 'warning', label: 'Pendiente' },
+  CONFIRMED: { variant: 'success', label: 'Confirmada' },
+  REJECTED:  { variant: 'critical', label: 'Rechazada' },
+  CANCELLED: { variant: 'neutral', label: 'Cancelada' },
+  ARRIVED:   { variant: 'info', label: 'Llego' },
+  SEATED:    { variant: 'info', label: 'Sentada' },
+  NO_SHOW:   { variant: 'critical', label: 'No-show' },
+  COMPLETED: { variant: 'neutral', label: 'Completada' },
 };
 
 /** Available actions per status */
-const ACTIONS_BY_STATUS: Record<string, { action: ReservationAction; label: string; icon: React.ElementType; color: string }[]> = {
+const ACTIONS_BY_STATUS: Record<string, { action: ReservationAction; label: string; icon: React.ElementType; variant: 'primary' | 'destructive' | 'secondary' }[]> = {
   PENDING: [
-    { action: 'confirm', label: 'Confirmar', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-700 text-white' },
-    { action: 'reject', label: 'Rechazar', icon: X, color: 'bg-red-600 hover:bg-red-700 text-white' },
-    { action: 'cancel', label: 'Cancelar', icon: Ban, color: 'bg-zinc-600 hover:bg-zinc-700 text-white' },
+    { action: 'confirm', label: 'Confirmar', icon: Check, variant: 'primary' },
+    { action: 'reject', label: 'Rechazar', icon: X, variant: 'destructive' },
+    { action: 'cancel', label: 'Cancelar', icon: Ban, variant: 'secondary' },
   ],
   CONFIRMED: [
-    { action: 'arrive', label: 'Llego', icon: UserCheck, color: 'bg-blue-600 hover:bg-blue-700 text-white' },
-    { action: 'no_show', label: 'No-show', icon: AlertTriangle, color: 'bg-orange-600 hover:bg-orange-700 text-white' },
-    { action: 'cancel', label: 'Cancelar', icon: Ban, color: 'bg-zinc-600 hover:bg-zinc-700 text-white' },
+    { action: 'arrive', label: 'Llego', icon: UserCheck, variant: 'primary' },
+    { action: 'no_show', label: 'No-show', icon: AlertTriangle, variant: 'destructive' },
+    { action: 'cancel', label: 'Cancelar', icon: Ban, variant: 'secondary' },
   ],
   ARRIVED: [
-    { action: 'seat', label: 'Sentar', icon: Armchair, color: 'bg-cyan-600 hover:bg-cyan-700 text-white' },
+    { action: 'seat', label: 'Sentar', icon: Armchair, variant: 'primary' },
   ],
   SEATED: [],
   REJECTED: [],
@@ -240,78 +241,77 @@ export default function AdminReservasPage() {
   const isToday = selectedDate === getTodayStr();
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Reservas</h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            Gestion de reservas de mesa del dia
-          </p>
-        </div>
-        <button
-          onClick={() => mutate()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors text-sm font-medium text-zinc-300 min-h-[44px]"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Actualizar
-        </button>
-      </div>
+      <PageHeader
+        title="Reservas"
+        description="Gestion de reservas de mesa del dia"
+        actions={
+          <Button
+            variant="secondary"
+            icon={<RefreshCw className="w-4 h-4" />}
+            onClick={() => mutate()}
+          >
+            Actualizar
+          </Button>
+        }
+      />
 
       {/* ── Date Navigator ── */}
-      <div className="flex items-center gap-3 bg-zinc-900 rounded-xl border border-zinc-800 p-3">
-        <button
-          onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
-          className="p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-200"
-          aria-label="Dia anterior"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
-        <div className="flex-1 text-center">
-          <div className="flex items-center justify-center gap-2">
-            <CalendarDays className="w-4 h-4 text-orange-400" />
-            <span className="text-sm font-medium text-zinc-200">
-              {formatDateDisplay(selectedDate)}
-            </span>
-            {isToday && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/15 text-orange-400 uppercase">
-                Hoy
-              </span>
-            )}
-          </div>
-        </div>
-
-        <button
-          onClick={() => setSelectedDate(shiftDate(selectedDate, 1))}
-          className="p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-200"
-          aria-label="Dia siguiente"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-
-        {!isToday && (
+      <Card padding="sm">
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => setSelectedDate(getTodayStr())}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500/15 text-orange-400 hover:bg-orange-500/25 transition-colors"
+            onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
+            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors text-park-gray-400 hover:text-park-gray-200"
+            aria-label="Dia anterior"
           >
-            Hoy
+            <ChevronLeft className="w-5 h-5" />
           </button>
-        )}
-      </div>
+
+          <div className="flex-1 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <CalendarDays className="w-4 h-4 text-orange-400" />
+              <span className="text-sm font-medium text-park-gray-200">
+                {formatDateDisplay(selectedDate)}
+              </span>
+              {isToday && (
+                <Badge variant="warning">Hoy</Badge>
+              )}
+            </div>
+          </div>
+
+          <button
+            onClick={() => setSelectedDate(shiftDate(selectedDate, 1))}
+            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors text-park-gray-400 hover:text-park-gray-200"
+            aria-label="Dia siguiente"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {!isToday && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedDate(getTodayStr())}
+            >
+              Hoy
+            </Button>
+          )}
+        </div>
+      </Card>
 
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <SummaryCard label="Total" value={summary.total} color="text-zinc-100" />
-        <SummaryCard label="Pendientes" value={summary.pending} color="text-yellow-400" />
-        <SummaryCard label="Confirmadas" value={summary.confirmed} color="text-emerald-400" />
-        <SummaryCard label="No-show" value={summary.no_show} color="text-red-400" />
-        <SummaryCard label="Canceladas" value={summary.cancelled} color="text-zinc-400" />
+        <MetricCard label="Total" value={summary.total} />
+        <MetricCard label="Pendientes" value={summary.pending} />
+        <MetricCard label="Confirmadas" value={summary.confirmed} />
+        <MetricCard label="No-show" value={summary.no_show} />
+        <MetricCard label="Canceladas" value={summary.cancelled} />
       </div>
 
       {/* ── Status Filter ── */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <Filter className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+        <Filter className="w-4 h-4 text-park-gray-600 flex-shrink-0" />
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -319,8 +319,8 @@ export default function AdminReservasPage() {
             className={cn(
               'px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border',
               statusFilter === f.value
-                ? 'bg-orange-500/15 text-orange-400 border-orange-500/30'
-                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-300',
+                ? 'bg-park-brand-600/15 text-park-brand-400 border-park-brand-600/30'
+                : 'bg-park-gray-900 text-park-gray-400 border-park-gray-800 hover:border-park-gray-700 hover:text-park-gray-300',
             )}
           >
             {f.label}
@@ -331,62 +331,59 @@ export default function AdminReservasPage() {
       {/* ── Reservation List ── */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 text-zinc-500 animate-spin" />
-          <span className="ml-3 text-sm text-zinc-500">Cargando reservas...</span>
+          <Loader2 className="w-8 h-8 text-park-gray-600 animate-spin" />
+          <span className="ml-3 text-sm text-park-gray-400">Cargando reservas...</span>
         </div>
       ) : error ? (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-          {error instanceof Error ? error.message : 'Error al cargar reservas'}
-        </div>
-      ) : reservations.length === 0 ? (
-        <div className="text-center py-16">
-          <CalendarDays className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-          <p className="text-zinc-500 text-sm">
-            {statusFilter
-              ? 'No hay reservas con ese filtro para este dia'
-              : 'No hay reservas para este dia'}
+        <Card padding="sm">
+          <p className="text-red-400 text-sm">
+            {error instanceof Error ? error.message : 'Error al cargar reservas'}
           </p>
-        </div>
+        </Card>
+      ) : reservations.length === 0 ? (
+        <Card padding="none">
+          <EmptyState
+            icon={<CalendarDays />}
+            title="Sin reservas"
+            description={
+              statusFilter
+                ? 'No hay reservas con ese filtro para este dia'
+                : 'No hay reservas para este dia'
+            }
+          />
+        </Card>
       ) : (
         <div className="space-y-3">
           {reservations.map((res) => {
-            const statusCfg = STATUS_CONFIG[res.status] || STATUS_CONFIG.PENDING;
+            const badgeCfg = STATUS_BADGE[res.status] || { variant: 'neutral' as const, label: res.status };
             const actions = ACTIONS_BY_STATUS[res.status] || [];
             const isExpanded = expandedId === res.id;
             const isActionLoading = actionLoading === res.id;
 
             return (
-              <div
-                key={res.id}
-                className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden"
-              >
+              <Card key={res.id} padding="none">
                 {/* Main row */}
                 <div
-                  className="flex items-center gap-3 p-4 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+                  className="flex items-center gap-3 p-4 cursor-pointer hover:bg-park-gray-800/50 transition-colors"
                   onClick={() => setExpandedId(isExpanded ? null : res.id)}
                 >
                   {/* Time */}
                   <div className="text-center min-w-[56px]">
-                    <span className="text-lg font-bold text-zinc-100">{res.time}</span>
+                    <span className="text-lg font-bold text-white">{res.time}</span>
                   </div>
 
                   {/* Divider */}
-                  <div className="w-px h-10 bg-zinc-800" />
+                  <div className="w-px h-10 bg-park-gray-800" />
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-zinc-200 truncate">
+                      <span className="text-sm font-medium text-park-gray-200 truncate">
                         {res.customer_name}
                       </span>
-                      <span className={cn(
-                        'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase',
-                        statusCfg.bg, statusCfg.color,
-                      )}>
-                        {statusCfg.label}
-                      </span>
+                      <Badge variant={badgeCfg.variant}>{badgeCfg.label}</Badge>
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-xs text-zinc-500">
+                    <div className="flex items-center gap-3 mt-0.5 text-xs text-park-gray-400">
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {res.party_size}
@@ -404,14 +401,14 @@ export default function AdminReservasPage() {
 
                   {/* Expand indicator */}
                   <Eye className={cn(
-                    'w-4 h-4 text-zinc-600 flex-shrink-0 transition-transform',
-                    isExpanded && 'text-zinc-400',
+                    'w-4 h-4 text-park-gray-600 flex-shrink-0 transition-transform',
+                    isExpanded && 'text-park-gray-400',
                   )} />
                 </div>
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 border-t border-zinc-800">
+                  <div className="px-4 pb-4 border-t border-park-gray-800">
                     {/* Details grid */}
                     <div className="grid grid-cols-2 gap-3 py-3 text-sm">
                       <DetailItem icon={Phone} label="Telefono" value={res.customer_phone} />
@@ -433,36 +430,30 @@ export default function AdminReservasPage() {
 
                     {/* Actions */}
                     {actions.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-3 border-t border-zinc-800">
+                      <div className="flex flex-wrap gap-2 pt-3 border-t border-park-gray-800">
                         {actions.map((act) => {
                           const ActionIcon = act.icon;
                           return (
-                            <button
+                            <Button
                               key={act.action}
+                              variant={act.variant}
+                              size="sm"
+                              icon={<ActionIcon className="w-3.5 h-3.5" />}
+                              loading={isActionLoading}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAction(res.id, act.action);
                               }}
-                              disabled={isActionLoading}
-                              className={cn(
-                                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[36px]',
-                                isActionLoading ? 'opacity-50 cursor-not-allowed' : act.color,
-                              )}
                             >
-                              {isActionLoading ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <ActionIcon className="w-3.5 h-3.5" />
-                              )}
                               {act.label}
-                            </button>
+                            </Button>
                           );
                         })}
                       </div>
                     )}
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })}
         </div>
@@ -475,23 +466,6 @@ export default function AdminReservasPage() {
 // Sub-components
 // ============================================================================
 
-function SummaryCard({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
-  return (
-    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-      <p className="text-xs text-zinc-500 mb-1">{label}</p>
-      <p className={cn('text-2xl font-bold', color)}>{value}</p>
-    </div>
-  );
-}
-
 function DetailItem({
   icon: Icon,
   label,
@@ -503,10 +477,10 @@ function DetailItem({
 }) {
   return (
     <div className="flex items-start gap-2">
-      <Icon className="w-3.5 h-3.5 text-zinc-600 mt-0.5 flex-shrink-0" />
+      <Icon className="w-3.5 h-3.5 text-park-gray-600 mt-0.5 flex-shrink-0" />
       <div className="min-w-0">
-        <p className="text-[10px] text-zinc-600 uppercase tracking-wide">{label}</p>
-        <p className="text-zinc-300 text-sm truncate">{value}</p>
+        <p className="text-[10px] text-park-gray-600 uppercase tracking-wide">{label}</p>
+        <p className="text-park-gray-300 text-sm truncate">{value}</p>
       </div>
     </div>
   );

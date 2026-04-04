@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Search, User, Phone, Mail, FileText, ShoppingBag, X } from 'lucide-react';
 import useSWR from 'swr';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -361,28 +362,19 @@ export default function ClientesPage() {
 
   return (
     <div className="space-y-6">
-      {/* ------------------------------------------------------------------ */}
-      {/* Page header                                                          */}
-      {/* ------------------------------------------------------------------ */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Clientes</h1>
-          <p className="text-zinc-400 mt-1">
-            {isLoading ? (
-              <span className="inline-block w-16 h-4 bg-zinc-700 rounded animate-pulse" />
-            ) : (
-              `${total} cliente${total !== 1 ? 's' : ''} registrado${total !== 1 ? 's' : ''}`
-            )}
-          </p>
-        </div>
-        <button
-          onClick={handleNew}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Cliente
-        </button>
-      </div>
+      <PageHeader
+        title="Clientes"
+        description={isLoading ? 'Cargando...' : `${total} cliente${total !== 1 ? 's' : ''} registrado${total !== 1 ? 's' : ''}`}
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={handleNew}
+          >
+            Nuevo Cliente
+          </Button>
+        }
+      />
 
       {/* ------------------------------------------------------------------ */}
       {/* Search bar                                                           */}
@@ -419,81 +411,63 @@ export default function ClientesPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Table                                                                */}
       {/* ------------------------------------------------------------------ */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Cliente
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Documento
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Pedidos
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Total Gastado
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Loading skeleton */}
-              {isLoading &&
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="border-b border-zinc-800">
-                    {Array.from({ length: 6 }).map((__, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-zinc-800 rounded animate-pulse" />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+      <Card padding="none">
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="space-y-4 p-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        )}
 
-              {/* Empty state */}
-              {!isLoading && customers.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-16 text-center text-zinc-500"
-                  >
-                    <User className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    {debouncedSearch
-                      ? `No se encontraron clientes para "${debouncedSearch}"`
-                      : 'No hay clientes registrados'}
-                  </td>
+        {/* Empty state */}
+        {!isLoading && customers.length === 0 && (
+          <EmptyState
+            icon={<User />}
+            title={debouncedSearch
+              ? `No se encontraron clientes para "${debouncedSearch}"`
+              : 'No hay clientes registrados'}
+            description="Agrega tu primer cliente para gestionar datos fiscales y fidelización"
+            action={!debouncedSearch ? { label: 'Nuevo Cliente', onClick: handleNew } : undefined}
+          />
+        )}
+
+        {/* Data rows */}
+        {!isLoading && customers.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Cliente</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Documento</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Email</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Pedidos</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Total Gastado</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Acciones</th>
                 </tr>
-              )}
-
-              {/* Data rows */}
-              {!isLoading &&
-                customers.map((customer) => (
+              </thead>
+              <tbody>
+                {customers.map((customer) => (
                   <tr
                     key={customer.id}
-                    className="border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors"
+                    className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors"
                   >
                     {/* Cliente: nombre + teléfono */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center flex-shrink-0">
-                          <User className="w-4 h-4 text-zinc-400" />
+                        <div className="w-8 h-8 rounded-full bg-park-gray-800 flex items-center justify-center flex-shrink-0">
+                          <User className="w-4 h-4 text-park-gray-400" />
                         </div>
                         <div>
                           <div className="font-medium text-white text-sm">
                             {customer.name || (
-                              <span className="text-zinc-500 italic">
+                              <span className="text-park-gray-600 italic">
                                 Sin nombre
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-zinc-400 mt-0.5">
+                          <div className="flex items-center gap-1 text-xs text-park-gray-400 mt-0.5">
                             <Phone className="w-3 h-3" />
                             {customer.phone}
                           </div>
@@ -505,16 +479,15 @@ export default function ClientesPage() {
                     <td className="px-4 py-3">
                       {customer.doc_type && customer.doc_number ? (
                         <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-xs font-medium">
-                            {DOC_TYPE_LABELS[customer.doc_type] ??
-                              customer.doc_type}
-                          </span>
-                          <span className="text-sm text-zinc-300 font-mono">
+                          <Badge variant="info">
+                            {DOC_TYPE_LABELS[customer.doc_type] ?? customer.doc_type}
+                          </Badge>
+                          <span className="text-sm text-park-gray-300 font-mono">
                             {customer.doc_number}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-zinc-600 text-sm flex items-center gap-1">
+                        <span className="text-park-gray-600 text-sm flex items-center gap-1">
                           <FileText className="w-3 h-3" />
                           Sin documento
                         </span>
@@ -524,22 +497,22 @@ export default function ClientesPage() {
                     {/* Email */}
                     <td className="px-4 py-3">
                       {customer.email ? (
-                        <div className="flex items-center gap-1 text-sm text-zinc-300">
-                          <Mail className="w-3 h-3 text-zinc-500" />
+                        <div className="flex items-center gap-1 text-sm text-park-gray-300">
+                          <Mail className="w-3 h-3 text-park-gray-500" />
                           <span className="truncate max-w-[180px]">
                             {customer.email}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-zinc-600 text-sm">—</span>
+                        <span className="text-park-gray-600 text-sm">—</span>
                       )}
                     </td>
 
                     {/* Pedidos */}
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <ShoppingBag className="w-3 h-3 text-zinc-500" />
-                        <span className="text-sm text-zinc-300">
+                        <ShoppingBag className="w-3 h-3 text-park-gray-500" />
+                        <span className="text-sm text-park-gray-300">
                           {customer.total_orders}
                         </span>
                       </div>
@@ -551,7 +524,7 @@ export default function ClientesPage() {
                         className={`text-sm font-medium ${
                           customer.total_spent > 0
                             ? 'text-amber-400'
-                            : 'text-zinc-600'
+                            : 'text-park-gray-600'
                         }`}
                       >
                         {customer.total_spent > 0
@@ -563,28 +536,31 @@ export default function ClientesPage() {
                     {/* Acciones */}
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleEdit(customer)}
-                          className="p-2 rounded-lg hover:bg-zinc-700 transition-colors"
-                          title="Editar cliente"
+                          icon={<Edit2 className="w-4 h-4" />}
                         >
-                          <Edit2 className="w-4 h-4 text-zinc-400" />
-                        </button>
-                        <button
+                          Editar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
                           onClick={() => handleDelete(customer)}
-                          className="p-2 rounded-lg hover:bg-zinc-700 transition-colors"
-                          title="Eliminar cliente"
+                          icon={<Trash2 className="w-4 h-4" />}
                         >
-                          <Trash2 className="w-4 h-4 text-red-400" />
-                        </button>
+                          Eliminar
+                        </Button>
                       </div>
                     </td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
       {/* ------------------------------------------------------------------ */}
       {/* Modal                                                                */}

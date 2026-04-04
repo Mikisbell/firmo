@@ -10,12 +10,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Check, X, Package } from 'lucide-react';
+import { Plus, Edit2, Package } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { ProductImage } from '@/src/core/types/product-images';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import { CSVImportExport } from './components/CSVImportExport';
+import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
 
 interface Product {
   id: string;
@@ -150,23 +151,36 @@ export default function ProductsPage() {
       width: '100px',
       render: (p) => formatPrice(p.price_cents),
     },
-    { key: 'category', label: 'Categoría', width: '120px' },
-    { key: 'station', label: 'Estación', width: '100px' },
+    {
+      key: 'category',
+      label: 'Categoría',
+      width: '120px',
+      render: (p) => <Badge variant="neutral">{p.category}</Badge>,
+    },
+    {
+      key: 'station',
+      label: 'Estación',
+      width: '100px',
+      render: (p) => (
+        <Badge variant={
+          p.station === 'PARRILLA' ? 'critical' :
+          p.station === 'COCINA' ? 'warning' :
+          p.station === 'BAR' ? 'info' :
+          p.station === 'HORNO' ? 'warning' :
+          'neutral'
+        }>
+          {p.station}
+        </Badge>
+      ),
+    },
     {
       key: 'is_active',
       label: 'Estado',
       width: '80px',
       render: (p) => (
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-            p.is_active
-              ? 'bg-green-500/20 text-green-400'
-              : 'bg-zinc-500/20 text-zinc-400'
-          }`}
-        >
-          {p.is_active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+        <Badge variant={p.is_active ? 'success' : 'neutral'} dot>
           {p.is_active ? 'Activo' : 'Inactivo'}
-        </span>
+        </Badge>
       ),
     },
     {
@@ -175,41 +189,55 @@ export default function ProductsPage() {
       width: '80px',
       render: (p) => (
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
               router.push(`/admin/productos/${p.id}`);
             }}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
-            title="Editar"
+            icon={<Edit2 className="w-4 h-4" />}
           >
-            <Edit2 className="w-4 h-4 text-zinc-400" />
-          </button>
+            Editar
+          </Button>
         </div>
       ),
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Productos</h1>
-          <p className="text-zinc-400 mt-1">Gestionar catálogo de productos</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <CSVImportExport onImportComplete={refetch} />
-          <button
-            onClick={() => router.push('/admin/productos/nuevo')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nuevo Producto</span>
-            <span className="sm:hidden">Nuevo</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Productos"
+        description="Gestionar catálogo de productos"
+        actions={
+          <div className="flex items-center gap-2">
+            <CSVImportExport onImportComplete={refetch} />
+            <Button
+              variant="primary"
+              icon={<Plus size={16} />}
+              onClick={() => router.push('/admin/productos/nuevo')}
+            >
+              Nuevo Producto
+            </Button>
+          </div>
+        }
+      />
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -218,6 +246,7 @@ export default function ProductsPage() {
       )}
 
       {/* Products table */}
+      <Card padding="none">
       <DataTable
         data={products || []}
         columns={columns}
@@ -229,6 +258,7 @@ export default function ProductsPage() {
         onRowClick={(p) => router.push(`/admin/productos/${p.id}`)}
         rowTestId="product-row"
       />
+      </Card>
 
       {/* Bulk Actions Toolbar */}
       <BulkActionsToolbar
