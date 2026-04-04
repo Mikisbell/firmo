@@ -72,6 +72,9 @@ export { Tooltip } from './Tooltip';
 // Command Palette
 export { CommandPalette } from './CommandPalette';
 
+// Keyboard Shortcuts
+export { KeyboardShortcuts } from './KeyboardShortcuts';
+
 // Design System Phase 1
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';

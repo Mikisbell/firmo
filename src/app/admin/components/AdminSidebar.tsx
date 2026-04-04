@@ -314,10 +314,11 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
     return null;
   };
 
+  // Si no hay permisos (rol sin acceso o no autenticado), ocultar todo por defecto
   const hasPermission = (item: NavItem) => {
     if (!item.permission) return true;
-    if (!permissions) return true;
-    return permissions[item.permission];
+    if (!permissions) return false;
+    return !!permissions[item.permission as keyof typeof permissions];
   };
 
   const filteredGroups = NAV_GROUPS.map(group => ({

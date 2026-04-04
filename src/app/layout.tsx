@@ -6,7 +6,7 @@ import { PWAProvider } from "@/src/components/pwa/PWAProvider";
 import { SWRProvider } from "@/src/components/providers/SWRProvider";
 import { ErrorBoundary } from "@/src/components/ErrorBoundary";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 export const viewport: Viewport = {
     themeColor: "#10b981",
@@ -49,7 +49,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="es" className="dark" suppressHydrationWarning>
+        <html lang="es" className={`dark ${inter.variable}`} suppressHydrationWarning>
             <head>
                 {/* Preconnect to external domains for faster resource loading */}
                 <link rel="preconnect" href="https://fonts.googleapis.com" />

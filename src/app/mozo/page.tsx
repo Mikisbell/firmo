@@ -139,10 +139,10 @@ export default function WaiterPage() {
     // Mostrar loading mientras verifica autenticación
     if (isLoading || !isAuthenticated || zonesLoading) {
         return (
-            <div className="min-h-screen bg-zinc-950 flex items-center justify-center" data-testid="tables-loading">
+            <div className="min-h-screen bg-park-gray-950 flex items-center justify-center" data-testid="tables-loading">
                 <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-zinc-700 border-t-violet-500 rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-zinc-400">Verificando sesión...</p>
+                    <div className="w-12 h-12 border-4 border-park-gray-700 border-t-violet-500 rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-park-gray-400">Verificando sesión...</p>
                 </div>
             </div>
         );
@@ -167,7 +167,7 @@ export default function WaiterPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/30 via-zinc-950 to-zinc-950">
+        <div className="min-h-screen bg-park-gray-950 text-park-gray-100 font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/30 via-park-gray-950 to-park-gray-950">
             {/* Mobile Header */}
             {isMobile ? (
                 <>
@@ -298,7 +298,7 @@ export default function WaiterPage() {
                         {/* Home Button */}
                         <button
                             onClick={handleHome}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors border border-zinc-700"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-park-gray-800/50 hover:bg-park-gray-700 text-park-gray-400 hover:text-white transition-colors border border-park-gray-700"
                             title="Ir al inicio"
                         >
                             <Home size={18} />
@@ -309,7 +309,7 @@ export default function WaiterPage() {
 
             <div className="p-3 md:p-4 space-y-4 md:space-y-6 pb-20 md:pb-6">
                 {/* Zone Selector - Horizontal scroll on mobile */}
-                <div className="flex bg-zinc-900/50 p-1 md:p-1.5 rounded-xl md:rounded-2xl overflow-x-auto gap-1 md:gap-2 border border-violet-500/20 scrollbar-hide">
+                <div className="flex bg-park-gray-900/50 p-1 md:p-1.5 rounded-xl md:rounded-2xl overflow-x-auto gap-1 md:gap-2 border border-violet-500/20 scrollbar-hide">
                     {/* "Todas" option */}
                     <button
                         onClick={() => setSelectedZoneId("all")}
@@ -318,12 +318,12 @@ export default function WaiterPage() {
                         {selectedZoneId === "all" && (
                             <motion.div
                                 layoutId="zone-bg"
-                                className="absolute inset-0 bg-gradient-to-r from-zinc-600 to-zinc-700 rounded-lg md:rounded-xl shadow-lg shadow-zinc-900/40"
+                                className="absolute inset-0 bg-gradient-to-r from-park-gray-600 to-park-gray-700 rounded-lg md:rounded-xl shadow-lg shadow-park-gray-900/40"
                                 initial={false}
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                         )}
-                        <span className={`relative z-10 ${selectedZoneId === "all" ? "text-white" : "text-zinc-400"}`}>
+                        <span className={`relative z-10 ${selectedZoneId === "all" ? "text-white" : "text-park-gray-400"}`}>
                             Todas
                         </span>
                     </button>
@@ -341,7 +341,7 @@ export default function WaiterPage() {
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
-                            <span className={`relative z-10 ${selectedZoneId === zone.id ? "text-white" : "text-zinc-400"}`}>
+                            <span className={`relative z-10 ${selectedZoneId === zone.id ? "text-white" : "text-park-gray-400"}`}>
                                 {zone.name}
                             </span>
                         </button>
@@ -460,7 +460,7 @@ export default function WaiterPage() {
                 </motion.div>
 
                 {/* Legend - Hidden on mobile, shown on tablet+ */}
-                <div className="hidden md:flex flex-wrap gap-4 justify-center text-xs text-zinc-500 pt-4 border-t border-zinc-800">
+                <div className="hidden md:flex flex-wrap gap-4 justify-center text-xs text-park-gray-500 pt-4 border-t border-park-gray-800">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-emerald-500" />
                         <span>Disponible</span>

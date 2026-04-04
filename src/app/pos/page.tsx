@@ -365,7 +365,7 @@ export default function POSPage() {
     };
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-950/20 via-zinc-950 to-zinc-950" data-testid="pos-page">
+        <div className="flex h-screen w-screen overflow-hidden bg-park-gray-950 text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-950/20 via-park-gray-950 to-park-gray-950" data-testid="pos-page">
             <Toaster position="top-center" richColors />
             
             {/* Mobile Warning - POS is optimized for tablet/desktop */}
@@ -411,13 +411,13 @@ export default function POSPage() {
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.8, opacity: 0 }}
                             transition={{ type: "spring", damping: 15 }}
-                            className="bg-zinc-900 p-8 rounded-3xl shadow-2xl flex flex-col items-center border border-zinc-800"
+                            className="bg-park-gray-900 p-8 rounded-3xl shadow-2xl flex flex-col items-center border border-park-gray-800"
                         >
                             <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mb-4">
                                 <span className="text-emerald-500 text-5xl">✓</span>
                             </div>
                             <h2 className="text-3xl font-bold text-white tracking-tight">Venta Exitosa</h2>
-                            <p className="text-zinc-400 mt-2">Ticket procesado correctamente</p>
+                            <p className="text-park-gray-400 mt-2">Ticket procesado correctamente</p>
                         </motion.div>
                     </motion.div>
                 )}
@@ -425,7 +425,7 @@ export default function POSPage() {
 
             {/* Left: Catalog */}
             <div className="flex-1 flex flex-col relative z-0">
-                <header className="h-20 px-6 bg-gradient-to-r from-emerald-950/90 to-zinc-950 backdrop-blur-sm border-b-4 border-emerald-500 flex justify-between items-center z-10 sticky top-0 shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+                <header className="h-20 px-6 bg-gradient-to-r from-emerald-950/90 to-park-gray-950 backdrop-blur-sm border-b-4 border-emerald-500 flex justify-between items-center z-10 sticky top-0 shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
                     <div className="flex items-center gap-3">
                         <ParkLogo size={40} className="rounded-xl shadow-lg" />
                         <div>
@@ -465,7 +465,7 @@ export default function POSPage() {
                         {activeSale && activeCheck && activeCheck.payment.status !== "PAID" && (
                             <button
                                 onClick={handleUndo}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors text-sm font-medium border border-zinc-700"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 text-park-gray-300 hover:text-white transition-colors text-sm font-medium border border-park-gray-700"
                                 title="Deshacer último item (UNDO)"
                             >
                                 <Undo2 size={16} />
@@ -489,7 +489,7 @@ export default function POSPage() {
                             }`}>
                             {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
                             <span>{isOnline ? "ONLINE" : "OFFLINE"}</span>
-                            <span className="w-px h-3 bg-zinc-700"></span>
+                            <span className="w-px h-3 bg-park-gray-700"></span>
                             <span>T:{terminal?.terminal_id?.slice(-4) ?? "---"}</span>
                         </div>
                     </div>
@@ -497,13 +497,13 @@ export default function POSPage() {
 
                 <main className="flex-1 overflow-y-auto">
                     {/* View Tabs */}
-                    <div className="flex gap-2 p-4 border-b border-zinc-800 bg-zinc-900/50">
+                    <div className="flex gap-2 p-4 border-b border-park-gray-800 bg-park-gray-900/50">
                         <button
                             onClick={() => setCashierView("PENDING")}
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                                 cashierView === "PENDING"
                                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                                    : "bg-park-gray-800 text-park-gray-400 hover:bg-park-gray-700 hover:text-white"
                             }`}
                         >
                             <Receipt size={18} />
@@ -523,7 +523,7 @@ export default function POSPage() {
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                                 cashierView === "DELIVERY"
                                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                                    : "bg-park-gray-800 text-park-gray-400 hover:bg-park-gray-700 hover:text-white"
                             }`}
                         >
                             <Truck size={18} />
@@ -542,21 +542,21 @@ export default function POSPage() {
                         ) : (
                             <div className="flex flex-col h-full">
                                 {/* New Order Button */}
-                                <div className="p-4 border-b border-zinc-800">
+                                <div className="p-4 border-b border-park-gray-800">
                                     <button
                                         onClick={() => setNewOrderModalOpen(true)}
                                         disabled={!shiftIsOpen}
                                         className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all ${
                                             shiftIsOpen
                                                 ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20"
-                                                : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
+                                                : "bg-park-gray-700 text-park-gray-500 cursor-not-allowed"
                                         }`}
                                     >
                                         <Plus size={20} />
                                         Nuevo Pedido Delivery / Para Llevar
                                     </button>
                                     {!shiftIsOpen && (
-                                        <p className="text-xs text-zinc-500 text-center mt-2">
+                                        <p className="text-xs text-park-gray-500 text-center mt-2">
                                             Abre un turno para crear pedidos
                                         </p>
                                     )}
@@ -578,7 +578,7 @@ export default function POSPage() {
                                                         <span className="text-sm font-medium text-white">
                                                             {pendingNewOrder.customer_name}
                                                         </span>
-                                                        <span className="text-xs text-zinc-400">
+                                                        <span className="text-xs text-park-gray-400">
                                                             {pendingNewOrder.customer_phone}
                                                         </span>
                                                     </div>
@@ -591,7 +591,7 @@ export default function POSPage() {
                                                     </span>
                                                 </div>
                                                 {pendingNewOrder.delivery_address && (
-                                                    <p className="text-xs text-zinc-400 mt-1 truncate">
+                                                    <p className="text-xs text-park-gray-400 mt-1 truncate">
                                                         📍 {pendingNewOrder.delivery_address}
                                                     </p>
                                                 )}
@@ -604,13 +604,13 @@ export default function POSPage() {
                                         </>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center h-full text-center">
-                                            <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
-                                                <Truck className="text-zinc-600 w-8 h-8" />
+                                            <div className="w-16 h-16 bg-park-gray-800 rounded-full flex items-center justify-center mb-4">
+                                                <Truck className="text-park-gray-600 w-8 h-8" />
                                             </div>
-                                            <p className="text-zinc-400 text-sm mb-2">
+                                            <p className="text-park-gray-400 text-sm mb-2">
                                                 Crea un pedido para agregar productos
                                             </p>
-                                            <p className="text-zinc-600 text-xs">
+                                            <p className="text-park-gray-600 text-xs">
                                                 Usa el botón "Nuevo Pedido" arriba
                                             </p>
                                         </div>
@@ -643,12 +643,12 @@ export default function POSPage() {
                         onSelectCheck={setSelectedCheckId}
                     />
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-zinc-900">
-                        <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                            <ShoppingCart className="text-zinc-600 w-10 h-10" />
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-park-gray-900">
+                        <div className="w-20 h-20 bg-park-gray-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                            <ShoppingCart className="text-park-gray-600 w-10 h-10" />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">Punto de Venta</h3>
-                        <p className="text-zinc-500 text-sm mb-8 max-w-[200px]">
+                        <p className="text-park-gray-500 text-sm mb-8 max-w-[200px]">
                             {shiftIsOpen
                                 ? "Selecciona un producto del catálogo"
                                 : "Abre un turno para comenzar a vender"}

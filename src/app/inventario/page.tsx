@@ -296,7 +296,7 @@ export default function InventarioPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-park-gray-950 flex items-center justify-center">
         <PinModal
           isOpen={showPinModal}
           onClose={() => window.history.back()}
@@ -309,21 +309,21 @@ export default function InventarioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-park-gray-950 text-white">
       {/* Header */}
-      <header className="bg-zinc-900 border-b border-zinc-800 px-4 sm:px-6 py-4">
+      <header className="bg-park-gray-900 border-b border-park-gray-800 px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
             <Link 
               href="/"
-              className="p-3 rounded-lg hover:bg-zinc-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-3 rounded-lg hover:bg-park-gray-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Volver al inicio"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
               <h1 className="text-lg sm:text-xl font-bold">Gestión de Inventario</h1>
-              <p className="text-xs sm:text-sm text-zinc-400">
+              <p className="text-xs sm:text-sm text-park-gray-400">
                 {employee?.name} ({employee?.role})
               </p>
             </div>
@@ -338,7 +338,7 @@ export default function InventarioPage() {
                 setRefreshKey(k => k + 1);
                 addToast('info', 'Actualizando datos...');
               }}
-              className="p-3 rounded-lg hover:bg-zinc-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-3 rounded-lg hover:bg-park-gray-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Actualizar"
             >
               <RefreshCw className="w-5 h-5" />
@@ -346,7 +346,7 @@ export default function InventarioPage() {
             {/* Home Button */}
             <button
               onClick={handleHome}
-              className="p-3 rounded-lg hover:bg-zinc-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center border border-zinc-700"
+              className="p-3 rounded-lg hover:bg-park-gray-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center border border-park-gray-700"
               aria-label="Ir al inicio"
             >
               <Home className="w-5 h-5" />
@@ -365,7 +365,7 @@ export default function InventarioPage() {
       </header>
 
       {/* Tabs - Responsive (Task 14.3) */}
-      <nav className="bg-zinc-900/50 border-b border-zinc-800 px-4 sm:px-6">
+      <nav className="bg-park-gray-900/50 border-b border-park-gray-800 px-4 sm:px-6">
         <div className="flex gap-1 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           {tabs.map((tab) => (
             <button
@@ -374,7 +374,7 @@ export default function InventarioPage() {
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap min-h-[48px] ${
                 activeTab === tab.id
                   ? 'text-amber-400 border-b-2 border-amber-400'
-                  : 'text-zinc-400 hover:text-white active:bg-zinc-800'
+                  : 'text-park-gray-400 hover:text-white active:bg-park-gray-800'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -481,13 +481,13 @@ function DashboardStats({ stats }: { stats: { lowStockCount: number; pendingRece
           key={card.label}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-zinc-900 rounded-xl p-4 border border-zinc-800"
+          className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800"
         >
           <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center mb-3`}>
             <card.icon className={`w-5 h-5 ${card.color}`} />
           </div>
           <p className="text-2xl font-bold">{card.value}</p>
-          <p className="text-sm text-zinc-400">{card.label}</p>
+          <p className="text-sm text-park-gray-400">{card.label}</p>
         </motion.div>
       ))}
     </div>
@@ -508,9 +508,9 @@ function RecepcionTab({
 }) {
   return (
     <div className="space-y-4">
-      <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+      <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
         <h2 className="text-lg font-semibold mb-2">Recepción de Mercadería</h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-park-gray-400">
           Selecciona un insumo y haz clic en [+] para registrar una entrada.
         </p>
       </div>
@@ -527,13 +527,13 @@ function RecepcionTab({
 // Conteo Tab (placeholder - future implementation)
 function ConteoTab({ employeeId }: { employeeId: string }) {
   return (
-    <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
+    <div className="bg-park-gray-900 rounded-xl p-6 border border-park-gray-800">
       <h2 className="text-lg font-semibold mb-4">Conteo de Inventario</h2>
-      <p className="text-zinc-400">
+      <p className="text-park-gray-400">
         Inicia un nuevo conteo físico o continúa uno existente.
       </p>
-      <div className="mt-4 p-4 bg-zinc-800/50 rounded-lg">
-        <p className="text-sm text-zinc-500">
+      <div className="mt-4 p-4 bg-park-gray-800/50 rounded-lg">
+        <p className="text-sm text-park-gray-500">
           Empleado autorizado: {employeeId}
         </p>
         <p className="text-xs text-amber-400 mt-2">
@@ -558,9 +558,9 @@ function MermaTab({
 }) {
   return (
     <div className="space-y-4">
-      <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+      <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
         <h2 className="text-lg font-semibold mb-2">Registro de Merma</h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-park-gray-400">
           Selecciona un insumo y haz clic en [-] para registrar una merma.
         </p>
       </div>
@@ -578,9 +578,9 @@ function MermaTab({
 function AlertasTab({ tenantId }: { tenantId: string }) {
   return (
     <div className="space-y-4">
-      <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+      <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
         <h2 className="text-lg font-semibold mb-2">Alertas de Stock</h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-park-gray-400">
           Productos con stock bajo o próximos a vencer.
         </p>
       </div>

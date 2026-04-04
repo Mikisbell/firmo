@@ -83,6 +83,21 @@
   }
 }
 
+/* Professional typography */
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+/* Tabular numbers for financial data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Apply tabular-nums to all table cells and metric values */
+td, .metric-value, [data-tabular] {
+  font-variant-numeric: tabular-nums;
+}
+
 :root {
   --foreground-rgb: 228, 228, 231;
   /* Zinc 200 */

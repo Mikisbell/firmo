@@ -85,9 +85,9 @@ function statusColors(status: DeliveryStatus) {
     switch (status) {
         case "PENDING":
             return {
-                border: "border-zinc-600",
-                badge: "bg-zinc-700 text-zinc-300",
-                dot: "bg-zinc-400",
+                border: "border-park-gray-600",
+                badge: "bg-park-gray-700 text-park-gray-300",
+                dot: "bg-park-gray-400",
             };
         case "ASSIGNED":
             return {
@@ -103,9 +103,9 @@ function statusColors(status: DeliveryStatus) {
             };
         default:
             return {
-                border: "border-zinc-700",
-                badge: "bg-zinc-800 text-zinc-400",
-                dot: "bg-zinc-500",
+                border: "border-park-gray-700",
+                badge: "bg-park-gray-800 text-park-gray-400",
+                dot: "bg-park-gray-500",
             };
     }
 }
@@ -138,7 +138,7 @@ function DriverSelector({ onSelect }: DriverSelectorProps) {
     }, []);
 
     return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-park-gray-950 flex flex-col items-center justify-center p-6">
             {/* Logo / Brand */}
             <div className="mb-8 text-center">
                 <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-900/40">
@@ -147,17 +147,17 @@ function DriverSelector({ onSelect }: DriverSelectorProps) {
                 <h1 className="text-2xl font-black tracking-wider text-white">
                     PARK <span className="text-amber-400">DELIVERY</span>
                 </h1>
-                <p className="text-zinc-400 text-sm mt-1">¿Quién eres?</p>
+                <p className="text-park-gray-400 text-sm mt-1">¿Quién eres?</p>
             </div>
 
             {/* Driver list */}
             <div className="w-full max-w-sm space-y-3">
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
-                        <div className="w-8 h-8 border-4 border-zinc-700 border-t-amber-500 rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-4 border-park-gray-700 border-t-amber-500 rounded-full animate-spin" />
                     </div>
                 ) : drivers.length === 0 ? (
-                    <div className="text-center py-12 text-zinc-500">
+                    <div className="text-center py-12 text-park-gray-500">
                         <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-50" />
                         <p className="text-sm">No hay motorizados activos</p>
                     </div>
@@ -166,16 +166,16 @@ function DriverSelector({ onSelect }: DriverSelectorProps) {
                         <button
                             key={driver.id}
                             onClick={() => onSelect(driver)}
-                            className="w-full flex items-center gap-4 p-4 bg-zinc-900 border border-zinc-700 hover:border-amber-500/60 hover:bg-zinc-800 rounded-2xl transition-all group min-h-[4rem]"
+                            className="w-full flex items-center gap-4 p-4 bg-park-gray-900 border border-park-gray-700 hover:border-amber-500/60 hover:bg-park-gray-800 rounded-2xl transition-all group min-h-[4rem]"
                         >
                             <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/30 transition-colors">
                                 <User className="w-6 h-6 text-amber-400" />
                             </div>
                             <div className="flex-1 text-left">
                                 <p className="font-semibold text-white">{driver.name}</p>
-                                <p className="text-zinc-400 text-sm">{driver.phone}</p>
+                                <p className="text-park-gray-400 text-sm">{driver.phone}</p>
                             </div>
-                            <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-amber-400 transition-colors" />
+                            <ChevronRight className="w-5 h-5 text-park-gray-600 group-hover:text-amber-400 transition-colors" />
                         </button>
                     ))
                 )}
@@ -236,18 +236,18 @@ function DeliveryCard({ delivery, driverId, onAction }: DeliveryCardProps) {
     }
 
     return (
-        <div className={`bg-zinc-900 border-2 ${colors.border} rounded-2xl overflow-hidden`}>
+        <div className={`bg-park-gray-900 border-2 ${colors.border} rounded-2xl overflow-hidden`}>
             {/* Card header */}
             <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Package className="w-5 h-5 text-zinc-400" />
+                    <div className="w-10 h-10 bg-park-gray-800 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Package className="w-5 h-5 text-park-gray-400" />
                     </div>
                     <div>
                         <p className="font-bold text-white text-sm tracking-wider">
                             #{shortId(delivery.id)}
                         </p>
-                        <p className="text-zinc-500 text-xs mt-0.5 flex items-center gap-1">
+                        <p className="text-park-gray-500 text-xs mt-0.5 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {elapsedLabel(delivery.created_at)}
                         </p>
@@ -268,7 +268,7 @@ function DeliveryCard({ delivery, driverId, onAction }: DeliveryCardProps) {
                     <div>
                         <p className="text-white font-medium leading-tight">{delivery.address_text}</p>
                         {delivery.address_reference && (
-                            <p className="text-zinc-400 text-xs mt-0.5">{delivery.address_reference}</p>
+                            <p className="text-park-gray-400 text-xs mt-0.5">{delivery.address_reference}</p>
                         )}
                     </div>
                 </div>
@@ -285,8 +285,8 @@ function DeliveryCard({ delivery, driverId, onAction }: DeliveryCardProps) {
 
             {/* Footer: fee + action buttons */}
             <div className="px-4 pb-4 flex items-center justify-between gap-3">
-                <div className="bg-zinc-800 px-3 py-1.5 rounded-xl">
-                    <p className="text-[10px] uppercase tracking-widest text-zinc-500 leading-none mb-0.5">Delivery</p>
+                <div className="bg-park-gray-800 px-3 py-1.5 rounded-xl">
+                    <p className="text-[10px] uppercase tracking-widest text-park-gray-500 leading-none mb-0.5">Delivery</p>
                     <p className="text-amber-400 font-bold text-sm">{formatCents(delivery.delivery_fee)}</p>
                 </div>
 
@@ -438,8 +438,8 @@ export default function DriverPage() {
     // ── Render: not hydrated yet ───────────────────────────────────────────────
     if (!hydrated) {
         return (
-            <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-zinc-700 border-t-amber-500 rounded-full animate-spin" />
+            <div className="min-h-screen bg-park-gray-950 flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-park-gray-700 border-t-amber-500 rounded-full animate-spin" />
             </div>
         );
     }
@@ -456,7 +456,7 @@ export default function DriverPage() {
     const pendingOrders = allDeliveries.filter((d) => d.status === "PENDING");
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/20 via-zinc-950 to-zinc-950">
+        <div className="min-h-screen bg-park-gray-950 text-park-gray-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/20 via-park-gray-950 to-park-gray-950">
             {/* ── Header ── */}
             <header className="sticky top-0 z-30 bg-gradient-to-r from-amber-950/95 to-orange-950/80 backdrop-blur-md border-b-2 border-amber-500/60 shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
                 <div className="px-4 py-3 flex items-center justify-between gap-3">
@@ -487,19 +487,19 @@ export default function DriverPage() {
                         <button
                             onClick={() => void fetchDeliveries()}
                             disabled={loadingData}
-                            className="p-2.5 bg-zinc-800/60 hover:bg-zinc-700 disabled:opacity-40 rounded-xl border border-zinc-700 transition-colors"
+                            className="p-2.5 bg-park-gray-800/60 hover:bg-park-gray-700 disabled:opacity-40 rounded-xl border border-park-gray-700 transition-colors"
                             title="Actualizar"
                         >
-                            <RefreshCw className={`w-4 h-4 text-zinc-400 ${loadingData ? "animate-spin" : ""}`} />
+                            <RefreshCw className={`w-4 h-4 text-park-gray-400 ${loadingData ? "animate-spin" : ""}`} />
                         </button>
 
                         {/* Change driver */}
                         <button
                             onClick={handleChangeDriver}
-                            className="p-2.5 bg-zinc-800/60 hover:bg-red-900/40 rounded-xl border border-zinc-700 hover:border-red-500/40 transition-colors"
+                            className="p-2.5 bg-park-gray-800/60 hover:bg-red-900/40 rounded-xl border border-park-gray-700 hover:border-red-500/40 transition-colors"
                             title="Cambiar motorizado"
                         >
-                            <LogOut className="w-4 h-4 text-zinc-400 hover:text-red-400" />
+                            <LogOut className="w-4 h-4 text-park-gray-400 hover:text-red-400" />
                         </button>
                     </div>
                 </div>
@@ -519,14 +519,14 @@ export default function DriverPage() {
                 {loadingData && allDeliveries.length === 0 && (
                     <div className="space-y-3">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-36 bg-zinc-900 border border-zinc-800 rounded-2xl animate-pulse" />
+                            <div key={i} className="h-36 bg-park-gray-900 border border-park-gray-800 rounded-2xl animate-pulse" />
                         ))}
                     </div>
                 )}
 
                 {/* Empty state */}
                 {!loadingData && allDeliveries.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-zinc-600">
+                    <div className="flex flex-col items-center justify-center py-20 text-park-gray-600">
                         <Bike className="w-14 h-14 mb-4 opacity-30" />
                         <p className="text-base font-semibold">Sin pedidos activos</p>
                         <p className="text-sm mt-1 opacity-70">Los pedidos nuevos aparecerán aquí</p>
@@ -539,7 +539,7 @@ export default function DriverPage() {
                         <h2 className="text-xs font-bold uppercase tracking-widest text-amber-400/80 mb-3 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                             Mis pedidos activos
-                            <span className="text-zinc-500 font-normal normal-case tracking-normal">
+                            <span className="text-park-gray-500 font-normal normal-case tracking-normal">
                                 ({myOrders.length})
                             </span>
                         </h2>
@@ -559,10 +559,10 @@ export default function DriverPage() {
                 {/* ── Pending orders ── */}
                 {pendingOrders.length > 0 && (
                     <section>
-                        <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-400/80 mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-zinc-500" />
+                        <h2 className="text-xs font-bold uppercase tracking-widest text-park-gray-400/80 mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-park-gray-500" />
                             Pedidos pendientes
-                            <span className="text-zinc-600 font-normal normal-case tracking-normal">
+                            <span className="text-park-gray-600 font-normal normal-case tracking-normal">
                                 ({pendingOrders.length})
                             </span>
                         </h2>

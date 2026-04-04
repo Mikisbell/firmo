@@ -97,25 +97,25 @@ export default function ShiftPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-zinc-700 border-t-emerald-500 rounded-full animate-spin" />
+      <div className="min-h-screen bg-park-gray-950 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-park-gray-700 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6" data-testid="shift-page">
+    <div className="min-h-screen bg-park-gray-950 text-white p-6" data-testid="shift-page">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold" data-testid="shift-page-title">Gestión de Turnos</h1>
-            <p className="text-zinc-400 text-sm">Terminal: {terminalId}</p>
+            <p className="text-park-gray-400 text-sm">Terminal: {terminalId}</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={fetchData}
-              className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+              className="p-2 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
               title="Actualizar"
               data-testid="shift-refresh-btn"
             >
@@ -133,16 +133,16 @@ export default function ShiftPage() {
 
         {/* Active Shift Status */}
         <div className={`rounded-xl border p-6 ${
-          activeShift ? "bg-emerald-950/30 border-emerald-800" : "bg-zinc-900 border-zinc-800"
+          activeShift ? "bg-emerald-950/30 border-emerald-800" : "bg-park-gray-900 border-park-gray-800"
         }`}>
           <div className="flex items-center gap-3 mb-4">
-            <Clock className={`w-6 h-6 ${activeShift ? "text-emerald-400" : "text-zinc-500"}`} />
+            <Clock className={`w-6 h-6 ${activeShift ? "text-emerald-400" : "text-park-gray-500"}`} />
             <div>
               <h2 className="font-semibold text-lg" data-testid="shift-active-label">
                 {activeShift ? "Turno Abierto" : "Sin Turno Activo"}
               </h2>
               {activeShift && (
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-park-gray-400">
                   Desde {formatTime(activeShift.opened_at)} — Apertura: {formatCents(activeShift.cash_opening_cents)}
                 </p>
               )}
@@ -151,26 +151,26 @@ export default function ShiftPage() {
 
           {summary && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-              <div className="bg-zinc-800/50 rounded-lg p-4">
-                <div className="text-zinc-400 text-xs uppercase mb-1">Ventas</div>
+              <div className="bg-park-gray-800/50 rounded-lg p-4">
+                <div className="text-park-gray-400 text-xs uppercase mb-1">Ventas</div>
                 <div className="text-xl font-bold text-emerald-400" data-testid="shift-summary-sales">
                   {formatCents(summary.totalSalesCents)}
                 </div>
               </div>
-              <div className="bg-zinc-800/50 rounded-lg p-4">
-                <div className="text-zinc-400 text-xs uppercase mb-1">Órdenes</div>
+              <div className="bg-park-gray-800/50 rounded-lg p-4">
+                <div className="text-park-gray-400 text-xs uppercase mb-1">Órdenes</div>
                 <div className="text-xl font-bold" data-testid="shift-summary-orders">{summary.ordersCount}</div>
               </div>
-              <div className="bg-zinc-800/50 rounded-lg p-4">
-                <div className="text-zinc-400 text-xs uppercase mb-1">Ticket Prom.</div>
+              <div className="bg-park-gray-800/50 rounded-lg p-4">
+                <div className="text-park-gray-400 text-xs uppercase mb-1">Ticket Prom.</div>
                 <div className="text-xl font-bold" data-testid="shift-summary-avg">
                   {summary.ordersCount > 0
                     ? formatCents(Math.round(summary.totalSalesCents / summary.ordersCount))
                     : "S/ 0.00"}
                 </div>
               </div>
-              <div className="bg-zinc-800/50 rounded-lg p-4">
-                <div className="text-zinc-400 text-xs uppercase mb-1">Apertura Caja</div>
+              <div className="bg-park-gray-800/50 rounded-lg p-4">
+                <div className="text-park-gray-400 text-xs uppercase mb-1">Apertura Caja</div>
                 <div className="text-xl font-bold" data-testid="shift-summary-opening">{formatCents(summary.cashOpeningCents)}</div>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function ShiftPage() {
 
         {/* Payment Breakdown */}
         {summary && Object.keys(summary.paymentBreakdown).length > 0 && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+          <div className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-blue-400" />
               Desglose por Método
@@ -189,12 +189,12 @@ export default function ShiftPage() {
                 <div key={method} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span>{method}</span>
-                    <span className="text-zinc-500 text-sm">({data.count})</span>
+                    <span className="text-park-gray-500 text-sm">({data.count})</span>
                   </div>
                   <span className="font-mono font-medium">{formatCents(data.totalCents)}</span>
                 </div>
               ))}
-              <div className="border-t border-zinc-700 pt-3 flex items-center justify-between font-bold">
+              <div className="border-t border-park-gray-700 pt-3 flex items-center justify-between font-bold">
                 <span>Total</span>
                 <span className="text-emerald-400">{formatCents(summary.totalSalesCents)}</span>
               </div>
@@ -203,19 +203,19 @@ export default function ShiftPage() {
         )}
 
         {/* Shift History */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6" data-testid="shift-history-section">
+        <div className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6" data-testid="shift-history-section">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <History className="w-5 h-5 text-amber-400" />
             Historial de Turnos
           </h3>
           {history.length === 0 ? (
-            <p className="text-zinc-500 text-center py-4">Sin turnos registrados</p>
+            <p className="text-park-gray-500 text-center py-4">Sin turnos registrados</p>
           ) : (
             <div className="space-y-2">
               {history.map((shift) => (
                 <div
                   key={shift.id}
-                  className="flex items-center justify-between bg-zinc-800/50 rounded-lg p-3"
+                  className="flex items-center justify-between bg-park-gray-800/50 rounded-lg p-3"
                   data-testid={`shift-history-item-${shift.id}`}
                 >
                   <div>
@@ -225,13 +225,13 @@ export default function ShiftPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-zinc-400">
+                    <span className="text-sm text-park-gray-400">
                       Apertura: {formatCents(shift.cash_opening_cents)}
                     </span>
                     {shift.status === "CLOSED" && (
                       <Link
                         href={`/pos/shift/z-report?shiftId=${shift.id}`}
-                        className="p-1.5 rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
+                        className="p-1.5 rounded bg-park-gray-700 hover:bg-park-gray-600 transition-colors"
                         title="Ver Reporte Z"
                         data-testid={`shift-z-report-link-${shift.id}`}
                       >
@@ -241,7 +241,7 @@ export default function ShiftPage() {
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       shift.status === "OPEN"
                         ? "bg-emerald-900 text-emerald-300"
-                        : "bg-zinc-700 text-zinc-300"
+                        : "bg-park-gray-700 text-park-gray-300"
                     }`}>
                       {shift.status === "OPEN" ? "Abierto" : "Cerrado"}
                     </span>

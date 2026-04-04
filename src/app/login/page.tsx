@@ -57,11 +57,11 @@ export default function LoginPage() {
 
   if (view === 'checking') {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-park-gray-950 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-12 h-12 border-[3px] border-zinc-800 border-t-emerald-500 rounded-full"
+          className="w-12 h-12 border-[3px] border-park-gray-800 border-t-emerald-500 rounded-full"
         />
       </div>
     );

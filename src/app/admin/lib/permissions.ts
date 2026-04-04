@@ -1,16 +1,19 @@
 /**
  * Admin Panel Permissions
  * Define permisos por rol para el panel de administración
- * 
- * Jerarquía: OWNER > ADMIN > MANAGER
- * 
+ * Cubre los 11 roles de EMPLOYEE_ROLES (src/core/constants/roles.ts)
+ *
+ * Jerarquía: OWNER > ADMIN > MANAGER > SUPERVISOR > CASHIER/WAITER > (sin acceso admin)
+ *
  * Requirements: 1.4
  */
+
+import type { EmployeeRole } from '@/src/core/constants/roles';
 
 export interface AdminPermissions {
   // Dashboard
   view_dashboard: boolean;
-  
+
   // Gestión
   manage_products: boolean;
   manage_employees: boolean;
@@ -18,18 +21,42 @@ export interface AdminPermissions {
   manage_promotions: boolean;
   manage_stations: boolean;
   manage_config: boolean;
-  manage_fiscal: boolean;  // Solo OWNER
-  
+  manage_fiscal: boolean; // Solo OWNER
+
   // Reportes
   view_reports: boolean;
   view_audit: boolean;
 }
 
-export type AdminRole = 'OWNER' | 'ADMIN' | 'MANAGER';
+export type AdminRole = EmployeeRole;
+
+/** Permisos nulos — rol sin acceso al panel admin */
+const NO_ACCESS: AdminPermissions = {
+  view_dashboard: false,
+  manage_products: false,
+  manage_employees: false,
+  manage_terminals: false,
+  manage_promotions: false,
+  manage_stations: false,
+  manage_config: false,
+  manage_fiscal: false,
+  view_reports: false,
+  view_audit: false,
+};
+
+/** Solo dashboard — acceso mínimo al panel */
+const DASHBOARD_ONLY: AdminPermissions = {
+  ...NO_ACCESS,
+  view_dashboard: true,
+};
 
 /**
- * Permisos por rol
- * Property 1: Los permisos de cada rol son un subconjunto de los roles superiores
+ * Permisos por rol — cubre los 11 EmployeeRole
+ * OWNER/ADMIN: acceso total
+ * MANAGER: gestión operativa (productos, promos, reportes, config operativa)
+ * SUPERVISOR: equipo + reportes
+ * CASHIER/WAITER: solo dashboard
+ * KITCHEN/COOK/PACKER/BAR/DRIVER: sin acceso al panel admin
  */
 export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermissions> = {
   OWNER: {
@@ -52,22 +79,41 @@ export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermissions> = {
     manage_promotions: true,
     manage_stations: true,
     manage_config: true,
-    manage_fiscal: false,  // No puede configurar fiscal
+    manage_fiscal: false,
     view_reports: true,
     view_audit: true,
   },
   MANAGER: {
     view_dashboard: true,
     manage_products: true,
-    manage_employees: false,  // No puede gestionar empleados
-    manage_terminals: false,  // No puede gestionar terminales
+    manage_employees: true,
+    manage_terminals: false,
     manage_promotions: true,
+    manage_stations: true,
+    manage_config: true,
+    manage_fiscal: false,
+    view_reports: true,
+    view_audit: false,
+  },
+  SUPERVISOR: {
+    view_dashboard: true,
+    manage_products: true,
+    manage_employees: true,
+    manage_terminals: false,
+    manage_promotions: false,
     manage_stations: false,
     manage_config: false,
     manage_fiscal: false,
     view_reports: true,
     view_audit: false,
   },
+  CASHIER: DASHBOARD_ONLY,
+  WAITER: DASHBOARD_ONLY,
+  KITCHEN: NO_ACCESS,
+  COOK: NO_ACCESS,
+  PACKER: NO_ACCESS,
+  BAR: NO_ACCESS,
+  DRIVER: NO_ACCESS,
 };
 
 /**
@@ -76,9 +122,9 @@ export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermissions> = {
 export function hasPermission(role: string | null | undefined, permission: keyof AdminPermissions): boolean {
   if (!role) return false;
   const normalizedRole = role.toUpperCase() as AdminRole;
-  const permissions = ROLE_PERMISSIONS[normalizedRole];
-  if (!permissions) return false;
-  return permissions[permission];
+  const perms = ROLE_PERMISSIONS[normalizedRole];
+  if (!perms) return false;
+  return perms[permission];
 }
 
 /**
@@ -86,7 +132,7 @@ export function hasPermission(role: string | null | undefined, permission: keyof
  */
 export function canAccessRoute(role: string | null | undefined, route: string): boolean {
   if (!role) return false;
-  
+
   const routePermissions: Record<string, keyof AdminPermissions> = {
     '/admin': 'view_dashboard',
     '/admin/productos': 'manage_products',
@@ -101,7 +147,7 @@ export function canAccessRoute(role: string | null | undefined, route: string): 
 
   const permission = routePermissions[route];
   if (!permission) return true; // Ruta no protegida
-  
+
   return hasPermission(role, permission);
 }
 
@@ -115,12 +161,13 @@ export function getPermissionsForRole(role: string | null | undefined): AdminPer
 }
 
 /**
- * Verifica si un rol es válido para el panel de admin
+ * Verifica si un rol tiene al menos view_dashboard (acceso mínimo al panel)
  */
-export function isAdminRole(role: string | null | undefined): role is AdminRole {
+export function isAdminRole(role: string | null | undefined): boolean {
   if (!role) return false;
-  const normalizedRole = role.toUpperCase();
-  return normalizedRole === 'OWNER' || normalizedRole === 'ADMIN' || normalizedRole === 'MANAGER';
+  const normalizedRole = role.toUpperCase() as AdminRole;
+  const perms = ROLE_PERMISSIONS[normalizedRole];
+  return !!perms?.view_dashboard;
 }
 
 /**
@@ -130,9 +177,12 @@ export function getRoleHierarchy(role: string | null | undefined): number {
   if (!role) return 0;
   const normalizedRole = role.toUpperCase();
   switch (normalizedRole) {
-    case 'OWNER': return 3;
-    case 'ADMIN': return 2;
-    case 'MANAGER': return 1;
+    case 'OWNER': return 5;
+    case 'ADMIN': return 4;
+    case 'MANAGER': return 3;
+    case 'SUPERVISOR': return 2;
+    case 'CASHIER':
+    case 'WAITER': return 1;
     default: return 0;
   }
 }
