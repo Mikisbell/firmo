@@ -193,6 +193,7 @@ const NAV_GROUPS: NavGroup[] = [
     icon: Users,
     items: [
       { href: '/admin/empleados', label: 'Empleados', description: 'Altas, bajas y roles del personal', icon: Users, permission: 'manage_employees' },
+      { href: '/admin/drivers', label: 'Motorizados', description: 'Repartidores de delivery', icon: Bike, permission: 'manage_employees' },
       { href: '/admin/hr', label: 'Recursos Humanos', description: 'Asistencia, planillas y vacaciones', icon: Briefcase, permission: 'manage_employees' },
       { href: '/admin/ranking-meseros', label: 'Ranking Meseros', description: 'Desempeño y ventas por mesero', icon: Award, permission: 'view_reports' },
     ],
