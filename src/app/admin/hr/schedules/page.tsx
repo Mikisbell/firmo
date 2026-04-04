@@ -12,6 +12,7 @@ import { Calendar, Plus, Clock, X, Check, Users, ChevronLeft, ChevronRight } fro
 import { motion } from 'framer-motion';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { toast } from 'sonner';
+import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -180,21 +181,20 @@ export default function SchedulesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Horarios</h1>
-          <p className="text-zinc-400 mt-1">Plantillas de horarios y asignaciones</p>
-        </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Crear Horario
-        </button>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Horarios"
+        description="Plantillas de horarios y asignaciones"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={() => setShowCreateModal(true)}
+          >
+            Crear Horario
+          </Button>
+        }
+      />
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -204,15 +204,15 @@ export default function SchedulesPage() {
 
       {/* Schedule Templates Grid */}
       {loading ? (
-        <div className="text-center py-12 text-zinc-500">
-          <div className="w-6 h-6 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin mx-auto mb-3" />
+        <div className="text-center py-12 text-park-gray-500">
+          <div className="w-6 h-6 border-2 border-park-gray-600 border-t-park-gray-400 rounded-full animate-spin mx-auto mb-3" />
           <p>Cargando...</p>
         </div>
       ) : templates.length === 0 ? (
-        <div className="text-center py-12 text-zinc-500">
+        <div className="text-center py-12 text-park-gray-500">
           <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>No hay plantillas de horario creadas</p>
-          <p className="text-xs text-zinc-600 mt-1">Cree una plantilla para empezar a asignar horarios</p>
+          <p className="text-xs text-park-gray-600 mt-1">Cree una plantilla para empezar a asignar horarios</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -221,12 +221,12 @@ export default function SchedulesPage() {
               key={template.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 hover:border-zinc-700 transition-colors"
+              className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-4 hover:border-park-gray-700 transition-colors"
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="font-semibold">{template.name}</h3>
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-park-gray-500">
                     {SCHEDULE_TYPE_LABELS[template.schedule_type] || template.schedule_type}
                   </span>
                 </div>
@@ -234,7 +234,7 @@ export default function SchedulesPage() {
                   className={`text-xs px-2 py-1 rounded-full ${
                     template.is_active
                       ? 'bg-green-500/20 text-green-400'
-                      : 'bg-zinc-500/20 text-zinc-400'
+                      : 'bg-park-gray-500/20 text-park-gray-400'
                   }`}
                 >
                   {template.is_active ? 'Activo' : 'Inactivo'}
@@ -243,12 +243,12 @@ export default function SchedulesPage() {
 
               {/* Time display */}
               <div className="flex items-center gap-2 mb-3">
-                <Clock className="w-4 h-4 text-zinc-500" />
+                <Clock className="w-4 h-4 text-park-gray-500" />
                 <span className="text-sm font-mono">
                   {template.start_time} - {template.end_time}
                 </span>
                 {template.break_minutes > 0 && (
-                  <span className="text-xs text-zinc-500">({template.break_minutes} min break)</span>
+                  <span className="text-xs text-park-gray-500">({template.break_minutes} min break)</span>
                 )}
               </div>
 
@@ -260,7 +260,7 @@ export default function SchedulesPage() {
                     className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium ${
                       template.days_of_week.includes(day)
                         ? 'bg-blue-500/20 text-blue-400'
-                        : 'bg-zinc-800 text-zinc-600'
+                        : 'bg-park-gray-800 text-park-gray-600'
                     }`}
                   >
                     {DAY_NAMES[day]}
@@ -274,7 +274,7 @@ export default function SchedulesPage() {
                   setSelectedTemplate(template);
                   setShowAssignModal(true);
                 }}
-                className="w-full px-3 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 text-sm bg-park-gray-800 hover:bg-park-gray-700 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Users className="w-4 h-4" />
                 Asignar a Empleado
@@ -290,13 +290,13 @@ export default function SchedulesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Crear Plantilla de Horario</h2>
               <button
                 onClick={() => { setShowCreateModal(false); resetForm(); }}
-                className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -304,22 +304,22 @@ export default function SchedulesPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Nombre</label>
+                <label className="block text-sm text-park-gray-400 mb-1">Nombre</label>
                 <input
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Ej: Turno Manana"
-                  className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-zinc-600"
+                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Tipo</label>
+                <label className="block text-sm text-park-gray-400 mb-1">Tipo</label>
                 <select
                   value={formType}
                   onChange={(e) => setFormType(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-zinc-600"
+                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
                 >
                   <option value="FIXED">Fijo</option>
                   <option value="ROTATING">Rotativo</option>
@@ -327,7 +327,7 @@ export default function SchedulesPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Dias de la Semana</label>
+                <label className="block text-sm text-park-gray-400 mb-2">Dias de la Semana</label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5, 6, 7].map((day) => (
                     <button
@@ -336,7 +336,7 @@ export default function SchedulesPage() {
                       className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-medium transition-colors ${
                         formDays.includes(day)
                           ? 'bg-blue-500 text-white'
-                          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                          : 'bg-park-gray-800 text-park-gray-400 hover:bg-park-gray-700'
                       }`}
                     >
                       {DAY_NAMES[day]}
@@ -347,41 +347,41 @@ export default function SchedulesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-1">Hora Inicio</label>
+                  <label className="block text-sm text-park-gray-400 mb-1">Hora Inicio</label>
                   <input
                     type="time"
                     value={formStartTime}
                     onChange={(e) => setFormStartTime(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-zinc-600"
+                    className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-1">Hora Fin</label>
+                  <label className="block text-sm text-park-gray-400 mb-1">Hora Fin</label>
                   <input
                     type="time"
                     value={formEndTime}
                     onChange={(e) => setFormEndTime(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-zinc-600"
+                    className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Minutos de Descanso</label>
+                <label className="block text-sm text-park-gray-400 mb-1">Minutos de Descanso</label>
                 <input
                   type="number"
                   value={formBreakMinutes}
                   onChange={(e) => setFormBreakMinutes(parseInt(e.target.value) || 0)}
                   min={0}
                   max={120}
-                  className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-zinc-600"
+                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
                 />
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => { setShowCreateModal(false); resetForm(); }}
-                  className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-park-gray-800 hover:bg-park-gray-700 rounded-lg transition-colors"
                 >
                   Cancelar
                 </button>
@@ -414,33 +414,33 @@ export default function SchedulesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 w-full max-w-md"
+            className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6 w-full max-w-md"
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Asignar Horario</h2>
               <button
                 onClick={() => { setShowAssignModal(false); setSelectedTemplate(null); setAssignEmployeeId(''); }}
-                className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="p-3 bg-zinc-800 rounded-lg">
+              <div className="p-3 bg-park-gray-800 rounded-lg">
                 <p className="font-medium">{selectedTemplate.name}</p>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-park-gray-400">
                   {selectedTemplate.start_time} - {selectedTemplate.end_time} |{' '}
                   {selectedTemplate.days_of_week.map((d) => DAY_NAMES[d]).join(', ')}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Empleado</label>
+                <label className="block text-sm text-park-gray-400 mb-2">Empleado</label>
                 <select
                   value={assignEmployeeId}
                   onChange={(e) => setAssignEmployeeId(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-zinc-600"
+                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
                 >
                   <option value="">Seleccionar empleado...</option>
                   {employees.map((emp) => (
@@ -454,7 +454,7 @@ export default function SchedulesPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => { setShowAssignModal(false); setSelectedTemplate(null); setAssignEmployeeId(''); }}
-                  className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-park-gray-800 hover:bg-park-gray-700 rounded-lg transition-colors"
                 >
                   Cancelar
                 </button>

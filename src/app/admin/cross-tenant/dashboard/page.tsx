@@ -35,6 +35,7 @@ import {
   ShoppingCart,
   Zap,
 } from 'lucide-react';
+import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
@@ -177,7 +178,7 @@ export default function CrossTenantAdminDashboardPage() {
       case 'critical':
         return 'bg-red-500/10 border-red-500/30 text-red-400';
       default:
-        return 'bg-zinc-800/50 border-zinc-700';
+        return 'bg-park-gray-800/50 border-park-gray-700';
     }
   };
 
@@ -190,29 +191,26 @@ export default function CrossTenantAdminDashboardPage() {
       case 'critical':
         return 'bg-red-500/20 text-red-300 border-red-500/30';
       default:
-        return 'bg-zinc-700 text-zinc-300 border-zinc-600';
+        return 'bg-park-gray-700 text-park-gray-300 border-park-gray-600';
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Panel de administración multi-local</h1>
-          <p className="text-zinc-400 mt-1">
-            Gestión de múltiples tenants, salud del sistema y controles de acceso
-          </p>
-        </div>
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Panel de administración multi-local"
+        description="Gestión de múltiples tenants, salud del sistema y controles de acceso"
+        actions={
+          <Button
+            variant="secondary"
+            icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+            onClick={fetchData}
+            disabled={loading}
+          >
+            Actualizar
+          </Button>
+        }
+      />
 
       {error && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm">
@@ -224,13 +222,13 @@ export default function CrossTenantAdminDashboardPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-zinc-800">
+      <div className="flex gap-2 border-b border-park-gray-800">
         <button
           onClick={() => setActiveTab('tenants')}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === 'tenants'
               ? 'text-blue-400 border-b-2 border-blue-400'
-              : 'text-zinc-400 hover:text-zinc-300'
+              : 'text-park-gray-400 hover:text-park-gray-300'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -243,7 +241,7 @@ export default function CrossTenantAdminDashboardPage() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === 'admins'
               ? 'text-blue-400 border-b-2 border-blue-400'
-              : 'text-zinc-400 hover:text-zinc-300'
+              : 'text-park-gray-400 hover:text-park-gray-300'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -256,7 +254,7 @@ export default function CrossTenantAdminDashboardPage() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === 'audit'
               ? 'text-blue-400 border-b-2 border-blue-400'
-              : 'text-zinc-400 hover:text-zinc-300'
+              : 'text-park-gray-400 hover:text-park-gray-300'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -286,7 +284,7 @@ export default function CrossTenantAdminDashboardPage() {
                         <div>
                           <h3 className="font-semibold">{tenant.legal_name}</h3>
                           {tenant.ruc && (
-                            <p className="text-xs text-zinc-400">RUC: {tenant.ruc}</p>
+                            <p className="text-xs text-park-gray-400">RUC: {tenant.ruc}</p>
                           )}
                         </div>
                       </div>
@@ -311,21 +309,21 @@ export default function CrossTenantAdminDashboardPage() {
                         <div className="flex items-center gap-2">
                           <Zap className="w-4 h-4 text-blue-400" />
                           <div>
-                            <p className="text-xs text-zinc-400">Terminales</p>
+                            <p className="text-xs text-park-gray-400">Terminales</p>
                             <p className="font-semibold">{tenant.active_terminals}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <ShoppingCart className="w-4 h-4 text-green-400" />
                           <div>
-                            <p className="text-xs text-zinc-400">Órdenes (24h)</p>
+                            <p className="text-xs text-park-gray-400">Órdenes (24h)</p>
                             <p className="font-semibold">{tenant.recent_orders}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <AlertCircle className="w-4 h-4 text-red-400" />
                           <div>
-                            <p className="text-xs text-zinc-400">Errores Sync</p>
+                            <p className="text-xs text-park-gray-400">Errores Sync</p>
                             <p className="font-semibold">{tenant.sync_errors}</p>
                           </div>
                         </div>
@@ -336,7 +334,7 @@ export default function CrossTenantAdminDashboardPage() {
                         {tenant.checks.map((check) => (
                           <div key={check.type} className="flex items-center gap-2 text-sm">
                             {getHealthStatusIcon(check.status)}
-                            <span className="text-zinc-300">{check.message}</span>
+                            <span className="text-park-gray-300">{check.message}</span>
                           </div>
                         ))}
                       </div>
@@ -357,7 +355,7 @@ export default function CrossTenantAdminDashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-zinc-500">
+            <div className="text-center py-12 text-park-gray-500">
               <Building2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="text-sm">No se encontraron locales</p>
             </div>
@@ -369,35 +367,35 @@ export default function CrossTenantAdminDashboardPage() {
       {activeTab === 'admins' && (
         <div className="space-y-4">
           {admins.length > 0 ? (
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+            <div className="bg-park-gray-900 rounded-xl border border-park-gray-800 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-zinc-800 bg-zinc-800/50">
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase">
+                    <tr className="border-b border-park-gray-800 bg-park-gray-800/50">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-park-gray-400 uppercase">
                         Admin
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-park-gray-400 uppercase">
                         Permisos
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-park-gray-400 uppercase">
                         Estado
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-park-gray-400 uppercase">
                         Expira
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-park-gray-400 uppercase">
                         Acciones
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {admins.map((admin) => (
-                      <tr key={admin.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
+                      <tr key={admin.id} className="border-b border-park-gray-800 hover:bg-park-gray-800/50">
                         <td className="px-6 py-4">
                           <div>
                             <p className="font-medium">{admin.employee?.name || 'Desconocido'}</p>
-                            <p className="text-xs text-zinc-500">{admin.employee?.email}</p>
+                            <p className="text-xs text-park-gray-500">{admin.employee?.email}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -449,7 +447,7 @@ export default function CrossTenantAdminDashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-zinc-500">
+            <div className="text-center py-12 text-park-gray-500">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="text-sm">No se encontraron administradores cross-tenant</p>
             </div>
@@ -467,24 +465,24 @@ export default function CrossTenantAdminDashboardPage() {
                   key={log.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 hover:border-zinc-700 transition-colors"
+                  className="bg-park-gray-900 rounded-lg border border-park-gray-800 p-4 hover:border-park-gray-700 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-zinc-500" />
+                        <Clock className="w-4 h-4 text-park-gray-500" />
                         <p className="font-medium">{log.action}</p>
                         {log.resource_type && (
-                          <span className="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400">
+                          <span className="text-xs bg-park-gray-800 px-2 py-1 rounded text-park-gray-400">
                             {log.resource_type}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-park-gray-500">
                         Tenant: {log.tenant_id} • {new Date(log.created_at).toLocaleString()}
                       </p>
                       {log.details && (
-                        <p className="text-xs text-zinc-400 mt-2">
+                        <p className="text-xs text-park-gray-400 mt-2">
                           {typeof log.details === 'string'
                             ? log.details
                             : JSON.stringify(log.details).substring(0, 100)}
@@ -496,7 +494,7 @@ export default function CrossTenantAdminDashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-zinc-500">
+            <div className="text-center py-12 text-park-gray-500">
               <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="text-sm">No se encontraron registros de auditoría</p>
             </div>
@@ -506,7 +504,7 @@ export default function CrossTenantAdminDashboardPage() {
 
       {/* Footer */}
       {lastUpdated && (
-        <p className="text-xs text-zinc-500 text-right">
+        <p className="text-xs text-park-gray-500 text-right">
           Última actualización: {lastUpdated.toLocaleTimeString()}
         </p>
       )}

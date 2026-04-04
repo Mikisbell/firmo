@@ -13,6 +13,7 @@ import { Plus, Edit2, Check, X, Shield, UserX, Eye, Search } from 'lucide-react'
 import { DataTable, Column, FilterConfig } from '../../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { toast } from 'sonner';
+import { Button, Badge, PageHeader } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -127,7 +128,7 @@ export default function HREmployeesPage() {
       render: (e) => (
         <div>
           <span className="font-medium">{e.name}</span>
-          {e.dni && <p className="text-xs text-zinc-500">DNI: {e.dni}</p>}
+          {e.dni && <p className="text-xs text-park-gray-500">DNI: {e.dni}</p>}
         </div>
       ),
     },
@@ -138,7 +139,7 @@ export default function HREmployeesPage() {
       render: (e) => (
         <span
           className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-            ROLE_COLORS[e.role] || 'bg-zinc-500/20 text-zinc-400'
+            ROLE_COLORS[e.role] || 'bg-park-gray-500/20 text-park-gray-400'
           }`}
         >
           <Shield className="w-3 h-3" />
@@ -153,7 +154,7 @@ export default function HREmployeesPage() {
       render: (e) => (
         <div>
           <span className="text-sm">{e.position}</span>
-          <p className="text-xs text-zinc-500">{CONTRACT_LABELS[e.contract_type] || e.contract_type}</p>
+          <p className="text-xs text-park-gray-500">{CONTRACT_LABELS[e.contract_type] || e.contract_type}</p>
         </div>
       ),
     },
@@ -174,7 +175,7 @@ export default function HREmployeesPage() {
           className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
             e.is_active
               ? 'bg-green-500/20 text-green-400'
-              : 'bg-zinc-500/20 text-zinc-400'
+              : 'bg-park-gray-500/20 text-park-gray-400'
           }`}
         >
           {e.is_active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
@@ -193,20 +194,20 @@ export default function HREmployeesPage() {
               ev.stopPropagation();
               router.push(`/admin/hr/employees/${e.id}`);
             }}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors"
             title="Ver detalle"
           >
-            <Eye className="w-4 h-4 text-zinc-400" />
+            <Eye className="w-4 h-4 text-park-gray-400" />
           </button>
           <button
             onClick={(ev) => {
               ev.stopPropagation();
               router.push(`/admin/hr/employees/${e.id}/edit`);
             }}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors"
             title="Editar"
           >
-            <Edit2 className="w-4 h-4 text-zinc-400" />
+            <Edit2 className="w-4 h-4 text-park-gray-400" />
           </button>
           <button
             onClick={(ev) => {
@@ -214,7 +215,7 @@ export default function HREmployeesPage() {
               handleDeactivate(e);
             }}
             disabled={deactivating === e.id}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors disabled:opacity-50"
             title={e.is_active ? 'Desactivar' : 'Reactivar'}
           >
             <UserX className={`w-4 h-4 ${e.is_active ? 'text-red-400' : 'text-green-400'}`} />
@@ -225,21 +226,20 @@ export default function HREmployeesPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Empleados HR</h1>
-          <p className="text-zinc-400 mt-1">Gestion completa del personal</p>
-        </div>
-        <button
-          onClick={() => router.push('/admin/hr/employees/new')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Empleado
-        </button>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Empleados HR"
+        description="Gestion completa del personal"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={() => router.push('/admin/hr/employees/new')}
+          >
+            Nuevo Empleado
+          </Button>
+        }
+      />
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">

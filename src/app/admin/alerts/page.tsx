@@ -19,6 +19,7 @@ import { AlertConfigList } from './components/AlertConfigList';
 import { AlertConfigForm } from './components/AlertConfigForm';
 import { AlertHistory } from './components/AlertHistory';
 import { MaintenanceWindows } from './components/MaintenanceWindows';
+import { Button, Card, PageHeader } from '@/src/components/ui';
 
 type TabType = 'configurations' | 'history' | 'maintenance';
 
@@ -28,25 +29,21 @@ export default function AlertsPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Configuración de Alertas
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Gestiona umbrales de alertas, canales de notificación e historial
-        </p>
-      </div>
+      <PageHeader
+        title="Alertas"
+        description="Gestiona umbrales de alertas, canales de notificación e historial"
+      />
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-park-gray-800 mb-6">
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('configurations')}
             className={`
               py-4 px-1 border-b-2 font-medium text-sm
               ${activeTab === 'configurations'
-                ? 'border-amber-500 text-amber-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-amber-500 text-amber-400'
+                : 'border-transparent text-park-gray-500 hover:text-park-gray-300 hover:border-park-gray-700'
               }
             `}
           >
@@ -57,8 +54,8 @@ export default function AlertsPage() {
             className={`
               py-4 px-1 border-b-2 font-medium text-sm
               ${activeTab === 'history'
-                ? 'border-amber-500 text-amber-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-amber-500 text-amber-400'
+                : 'border-transparent text-park-gray-500 hover:text-park-gray-300 hover:border-park-gray-700'
               }
             `}
           >
@@ -69,8 +66,8 @@ export default function AlertsPage() {
             className={`
               py-4 px-1 border-b-2 font-medium text-sm
               ${activeTab === 'maintenance'
-                ? 'border-amber-500 text-amber-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-amber-500 text-amber-400'
+                : 'border-transparent text-park-gray-500 hover:text-park-gray-300 hover:border-park-gray-700'
               }
             `}
           >
@@ -83,12 +80,9 @@ export default function AlertsPage() {
       {activeTab === 'configurations' && (
         <div>
           <div className="mb-4 flex justify-end">
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-            >
+            <Button variant="primary" onClick={() => setShowCreateForm(true)}>
               + Nueva Configuración
-            </button>
+            </Button>
           </div>
           
           {showCreateForm && (

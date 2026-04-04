@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTableStatus } from '@/src/hooks/useSWRHooks';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 const STATUS_COLORS: Record<string, string> = {
   AVAILABLE: 'border-emerald-500/50 bg-emerald-500/10',
@@ -149,74 +150,58 @@ export default function OperacionesMesaPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <LayoutGrid className="w-7 h-7 text-cyan-400" />
-            Operaciones Mesa
-          </h1>
-          <p className="text-zinc-400 mt-1">Estado en vivo de las mesas del local</p>
-        </div>
-        <div className="flex gap-2">
-          {mergeMode ? (
-            <>
-              <button
-                onClick={handleMerge}
-                disabled={selectedForMerge.length < 2}
-                className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-sm font-medium min-h-[40px] disabled:opacity-50"
-              >
-                <Merge className="w-4 h-4" />
-                Unir ({selectedForMerge.length})
-              </button>
-              <button
-                onClick={() => {
-                  setMergeMode(false);
-                  setSelectedForMerge([]);
-                }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm min-h-[40px]"
-              >
-                Cancelar
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setMergeMode(true)}
-                className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm min-h-[40px]"
-              >
-                <Merge className="w-4 h-4" /> Unir Mesas
-              </button>
-              <button
-                onClick={() => mutate()}
-                className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm min-h-[40px]"
-              >
-                <RefreshCw className="w-4 h-4" /> Actualizar
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Operaciones de Mesa"
+        description="Estado en vivo de las mesas del local"
+        actions={
+          <div className="flex gap-2">
+            {mergeMode ? (
+              <>
+                <Button
+                  variant="primary"
+                  icon={<Merge className="w-4 h-4" />}
+                  onClick={handleMerge}
+                  disabled={selectedForMerge.length < 2}
+                >
+                  Unir ({selectedForMerge.length})
+                </Button>
+                <Button variant="secondary" onClick={() => { setMergeMode(false); setSelectedForMerge([]); }}>
+                  Cancelar
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="secondary" icon={<Merge className="w-4 h-4" />} onClick={() => setMergeMode(true)}>
+                  Unir Mesas
+                </Button>
+                <Button variant="secondary" icon={<RefreshCw className="w-4 h-4" />} onClick={() => mutate()}>
+                  Actualizar
+                </Button>
+              </>
+            )}
+          </div>
+        }
+      />
 
       {/* Summary Cards */}
       {data && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-xs text-zinc-500">Total Mesas</p>
-            <p className="text-2xl font-bold">{data.total}</p>
-          </div>
-          <div className="bg-zinc-900 border border-emerald-500/30 rounded-lg p-4">
+          <Card className="!p-4">
+            <p className="text-xs text-park-gray-500">Total Mesas</p>
+            <p className="text-2xl font-bold text-white">{data.total}</p>
+          </Card>
+          <Card className="!p-4 border-emerald-500/30">
             <p className="text-xs text-emerald-400">Disponibles</p>
             <p className="text-2xl font-bold text-emerald-400">{data.available}</p>
-          </div>
-          <div className="bg-zinc-900 border border-red-500/30 rounded-lg p-4">
+          </Card>
+          <Card className="!p-4 border-red-500/30">
             <p className="text-xs text-red-400">Ocupadas</p>
             <p className="text-2xl font-bold text-red-400">{data.occupied}</p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-xs text-zinc-500">Estancia Promedio</p>
-            <p className="text-2xl font-bold">{formatDuration(data.averageStayMinutes)}</p>
-          </div>
+          </Card>
+          <Card className="!p-4">
+            <p className="text-xs text-park-gray-500">Estancia Promedio</p>
+            <p className="text-2xl font-bold text-white">{formatDuration(data.averageStayMinutes)}</p>
+          </Card>
         </div>
       )}
 
@@ -342,11 +327,13 @@ export default function OperacionesMesaPage() {
       </div>
 
       {!isLoading && visibleTables.length === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <LayoutGrid className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No hay mesas configuradas</p>
-          <p className="text-zinc-500 text-sm mt-1">Configura mesas en la sección de Mesas</p>
-        </div>
+        <Card padding="none">
+          <EmptyState
+            icon={<LayoutGrid />}
+            title="No hay mesas configuradas"
+            description="Configura mesas en la sección de Mesas"
+          />
+        </Card>
       )}
     </div>
   );

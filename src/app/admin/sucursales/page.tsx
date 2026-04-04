@@ -20,6 +20,7 @@ import {
   AlertCircle,
   BarChart3,
 } from 'lucide-react';
+import { Button, Card, PageHeader, MetricCard } from '@/src/components/ui';
 
 type Period = 'today' | 'week' | 'month';
 
@@ -95,36 +96,26 @@ export default function SucursalesPage() {
     const singleName = data.locations[0]?.locationName || 'Sin sede';
     return (
       <div className="p-6 max-w-3xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <Building2 className="w-7 h-7 text-cyan-400" />
-          <h1 className="text-2xl font-bold text-zinc-100">Sucursales</h1>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center">
-          <MapPin className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-zinc-300 mb-2">Solo una sede registrada</h2>
-          <p className="text-zinc-500 text-sm">
-            Actualmente solo existe <span className="text-zinc-300 font-medium">{singleName}</span>.
+        <PageHeader title="Sucursales" description="Comparativa de metricas por sede" />
+        <Card className="text-center !p-8">
+          <MapPin className="w-12 h-12 text-park-gray-600 mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-white mb-2">Solo una sede registrada</h2>
+          <p className="text-park-gray-500 text-sm">
+            Actualmente solo existe <span className="text-white font-medium">{singleName}</span>.
             Cuando registres mas sedes, podras comparar metricas entre ellas.
           </p>
-        </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Building2 className="w-7 h-7 text-cyan-400" />
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-100">Sucursales</h1>
-            <p className="text-sm text-zinc-500">Comparativa de metricas por sede</p>
-          </div>
-        </div>
-
-        {/* Period selector */}
-        <div className="flex bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
+      <PageHeader
+        title="Sucursales"
+        description="Comparativa de metricas por sede"
+        actions={
+          <div className="flex bg-park-gray-900 border border-park-gray-800 rounded-lg p-0.5">
           {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
             <button
               key={p}
@@ -132,20 +123,21 @@ export default function SucursalesPage() {
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 period === p
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                  : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                  : 'text-park-gray-500 hover:text-park-gray-300 border border-transparent'
               }`}
             >
               {PERIOD_LABELS[p]}
             </button>
           ))}
         </div>
-      </div>
+        }
+      />
 
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
-          <span className="ml-3 text-zinc-400">Cargando metricas...</span>
+          <span className="ml-3 text-park-gray-400">Cargando metricas...</span>
         </div>
       )}
 
@@ -162,23 +154,20 @@ export default function SucursalesPage() {
         <>
           {/* Consolidated KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <KPICard
-              icon={ShoppingCart}
+            <MetricCard
               label="Ordenes totales"
               value={data.consolidated.metrics.totalOrders.toString()}
-              color="text-blue-400"
+              icon={<ShoppingCart className="w-5 h-5" />}
             />
-            <KPICard
-              icon={DollarSign}
+            <MetricCard
               label="Ventas totales"
               value={formatCurrency(data.consolidated.metrics.totalSales)}
-              color="text-emerald-400"
+              icon={<DollarSign className="w-5 h-5" />}
             />
-            <KPICard
-              icon={TrendingUp}
+            <MetricCard
               label="Ticket promedio"
               value={formatCurrency(data.consolidated.metrics.avgTicket)}
-              color="text-amber-400"
+              icon={<TrendingUp className="w-5 h-5" />}
             />
           </div>
 
@@ -191,15 +180,15 @@ export default function SucursalesPage() {
 
           {/* Comparison table */}
           {data.locations.length > 1 && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-zinc-800 flex items-center gap-2">
+            <div className="bg-park-gray-900 border border-park-gray-800 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-park-gray-800 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-cyan-400" />
-                <h2 className="text-sm font-semibold text-zinc-200">Tabla comparativa</h2>
+                <h2 className="text-sm font-semibold text-white">Tabla comparativa</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
+                    <tr className="border-b border-park-gray-800 text-park-gray-500 text-xs uppercase tracking-wider">
                       <th className="text-left px-5 py-3 font-medium">Sede</th>
                       <th className="text-right px-5 py-3 font-medium">Ordenes</th>
                       <th className="text-right px-5 py-3 font-medium">Ventas</th>
@@ -219,19 +208,19 @@ export default function SucursalesPage() {
                       return (
                         <tr
                           key={loc.locationId ?? 'unassigned'}
-                          className="hover:bg-zinc-800/30 transition-colors"
+                          className="hover:bg-park-gray-800/30 transition-colors"
                         >
-                          <td className="px-5 py-3 text-zinc-200 font-medium flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-zinc-600 flex-shrink-0" />
+                          <td className="px-5 py-3 text-white font-medium flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-park-gray-600 flex-shrink-0" />
                             {loc.locationName}
                           </td>
-                          <td className="px-5 py-3 text-right text-zinc-300">
+                          <td className="px-5 py-3 text-right text-park-gray-300">
                             {loc.metrics.totalOrders}
                           </td>
-                          <td className="px-5 py-3 text-right text-zinc-300">
+                          <td className="px-5 py-3 text-right text-park-gray-300">
                             {formatCurrency(loc.metrics.totalSales)}
                           </td>
-                          <td className="px-5 py-3 text-right text-zinc-300">
+                          <td className="px-5 py-3 text-right text-park-gray-300">
                             {formatCurrency(loc.metrics.avgTicket)}
                           </td>
                           <td className="px-5 py-3 text-right">
@@ -245,19 +234,19 @@ export default function SucursalesPage() {
                   </tbody>
                   {/* Footer total */}
                   <tfoot>
-                    <tr className="border-t border-zinc-700 bg-zinc-800/30">
-                      <td className="px-5 py-3 text-zinc-300 font-semibold">Total</td>
-                      <td className="px-5 py-3 text-right text-zinc-200 font-semibold">
+                    <tr className="border-t border-zinc-700 bg-park-gray-800/30">
+                      <td className="px-5 py-3 text-park-gray-300 font-semibold">Total</td>
+                      <td className="px-5 py-3 text-right text-white font-semibold">
                         {data.consolidated.metrics.totalOrders}
                       </td>
-                      <td className="px-5 py-3 text-right text-zinc-200 font-semibold">
+                      <td className="px-5 py-3 text-right text-white font-semibold">
                         {formatCurrency(data.consolidated.metrics.totalSales)}
                       </td>
-                      <td className="px-5 py-3 text-right text-zinc-200 font-semibold">
+                      <td className="px-5 py-3 text-right text-white font-semibold">
                         {formatCurrency(data.consolidated.metrics.avgTicket)}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700 text-zinc-300">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700 text-park-gray-300">
                           100%
                         </span>
                       </td>
@@ -277,54 +266,30 @@ export default function SucursalesPage() {
 /* Sub-components                                         */
 /* ────────────────────────────────────────────────────── */
 
-function KPICard({
-  icon: Icon,
-  label,
-  value,
-  color,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  color: string;
-}) {
-  return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex items-center gap-4">
-      <div className={`p-2.5 rounded-lg bg-zinc-800 ${color}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <div>
-        <p className="text-xs text-zinc-500 uppercase tracking-wide font-medium">{label}</p>
-        <p className="text-xl font-bold text-zinc-100 mt-0.5">{value}</p>
-      </div>
-    </div>
-  );
-}
-
 function LocationCard({ location }: { location: LocationMetrics }) {
   const { locationName, metrics } = location;
   const orderTypes = Object.entries(metrics.ordersByType);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+    <div className="bg-park-gray-900 border border-park-gray-800 rounded-xl p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2">
         <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-        <h3 className="text-sm font-semibold text-zinc-200 truncate">{locationName}</h3>
+        <h3 className="text-sm font-semibold text-white truncate">{locationName}</h3>
       </div>
 
       {/* Key metrics */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <p className="text-[11px] text-zinc-500 uppercase tracking-wide">Ordenes</p>
-          <p className="text-lg font-bold text-zinc-100">{metrics.totalOrders}</p>
+          <p className="text-[11px] text-park-gray-500 uppercase tracking-wide">Ordenes</p>
+          <p className="text-lg font-bold text-white">{metrics.totalOrders}</p>
         </div>
         <div>
-          <p className="text-[11px] text-zinc-500 uppercase tracking-wide">Ventas</p>
+          <p className="text-[11px] text-park-gray-500 uppercase tracking-wide">Ventas</p>
           <p className="text-lg font-bold text-emerald-400">{formatCurrency(metrics.totalSales)}</p>
         </div>
         <div>
-          <p className="text-[11px] text-zinc-500 uppercase tracking-wide">Ticket</p>
+          <p className="text-[11px] text-park-gray-500 uppercase tracking-wide">Ticket</p>
           <p className="text-lg font-bold text-amber-400">{formatCurrency(metrics.avgTicket)}</p>
         </div>
       </div>
@@ -332,12 +297,12 @@ function LocationCard({ location }: { location: LocationMetrics }) {
       {/* Order type breakdown */}
       {orderTypes.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-[11px] text-zinc-500 uppercase tracking-wide">Por tipo</p>
+          <p className="text-[11px] text-park-gray-500 uppercase tracking-wide">Por tipo</p>
           <div className="flex flex-wrap gap-1.5">
             {orderTypes.map(([type, count]) => (
               <span
                 key={type}
-                className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-400"
+                className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-park-gray-800 text-park-gray-400"
               >
                 {ORDER_TYPE_LABELS[type] || type}: {count}
               </span>
@@ -349,12 +314,12 @@ function LocationCard({ location }: { location: LocationMetrics }) {
       {/* Top products */}
       {metrics.topProducts.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-[11px] text-zinc-500 uppercase tracking-wide">Top productos</p>
+          <p className="text-[11px] text-park-gray-500 uppercase tracking-wide">Top productos</p>
           <div className="space-y-1">
             {metrics.topProducts.slice(0, 3).map((p, i) => (
               <div key={i} className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400 truncate mr-2">{p.name}</span>
-                <span className="text-zinc-500 flex-shrink-0">
+                <span className="text-park-gray-400 truncate mr-2">{p.name}</span>
+                <span className="text-park-gray-500 flex-shrink-0">
                   {p.qty}u &middot; {formatCurrency(p.revenueCents)}
                 </span>
               </div>

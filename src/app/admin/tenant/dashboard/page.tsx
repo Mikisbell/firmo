@@ -35,6 +35,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { cachedFetch } from '../../../../lib/fetch-cache';
+import { Button, Card, PageHeader, MetricCard as DSMetricCard } from '@/src/components/ui';
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
@@ -178,29 +179,26 @@ export default function TenantAdminDashboardPage() {
       case 'critical':
         return 'bg-red-500/10 border-red-500/30 text-red-400';
       default:
-        return 'bg-zinc-800/50 border-zinc-700';
+        return 'bg-park-gray-800/50 border-park-gray-700';
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Tenant Dashboard</h1>
-          <p className="text-zinc-400 mt-1">
-            Configuración, cuotas y salud del sistema
-          </p>
-        </div>
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Tenant Dashboard"
+        description="Configuración, cuotas y salud del sistema"
+        actions={
+          <Button
+            variant="secondary"
+            icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+            onClick={fetchData}
+            disabled={loading}
+          >
+            Actualizar
+          </Button>
+        }
+      />
 
       {error && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm">
@@ -215,7 +213,7 @@ export default function TenantAdminDashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-zinc-900 rounded-xl border border-zinc-800 p-6"
+        className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6"
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Building2 className="w-5 h-5 text-blue-400" />
@@ -227,7 +225,7 @@ export default function TenantAdminDashboardPage() {
             {/* Logo */}
             {configuration.logo_url && (
               <div className="md:col-span-2">
-                <p className="text-xs text-zinc-500 uppercase mb-2">Logo</p>
+                <p className="text-xs text-park-gray-500 uppercase mb-2">Logo</p>
                 <img
                   src={configuration.logo_url}
                   alt="Tenant Logo"
@@ -238,14 +236,14 @@ export default function TenantAdminDashboardPage() {
 
             {/* Legal Name */}
             <div>
-              <p className="text-xs text-zinc-500 uppercase mb-1">Nombre Legal</p>
+              <p className="text-xs text-park-gray-500 uppercase mb-1">Nombre Legal</p>
               <p className="text-sm font-medium">{configuration.legal_name}</p>
             </div>
 
             {/* RUC */}
             {configuration.ruc && (
               <div>
-                <p className="text-xs text-zinc-500 uppercase mb-1">RUC</p>
+                <p className="text-xs text-park-gray-500 uppercase mb-1">RUC</p>
                 <p className="text-sm font-medium">{configuration.ruc}</p>
               </div>
             )}
@@ -253,26 +251,26 @@ export default function TenantAdminDashboardPage() {
             {/* Address */}
             {configuration.address_text && (
               <div className="md:col-span-2">
-                <p className="text-xs text-zinc-500 uppercase mb-1">Dirección</p>
+                <p className="text-xs text-park-gray-500 uppercase mb-1">Dirección</p>
                 <p className="text-sm font-medium">{configuration.address_text}</p>
               </div>
             )}
 
             {/* Timezone */}
             <div>
-              <p className="text-xs text-zinc-500 uppercase mb-1">Zona Horaria</p>
+              <p className="text-xs text-park-gray-500 uppercase mb-1">Zona Horaria</p>
               <p className="text-sm font-medium">{configuration.timezone}</p>
             </div>
 
             {/* Currency */}
             <div>
-              <p className="text-xs text-zinc-500 uppercase mb-1">Moneda</p>
+              <p className="text-xs text-park-gray-500 uppercase mb-1">Moneda</p>
               <p className="text-sm font-medium">{configuration.currency}</p>
             </div>
 
             {/* KDS Audio */}
             <div>
-              <p className="text-xs text-zinc-500 uppercase mb-1">Audio KDS</p>
+              <p className="text-xs text-park-gray-500 uppercase mb-1">Audio KDS</p>
               <p className="text-sm font-medium">
                 {configuration.kds_audio_enabled ? 'Habilitado' : 'Deshabilitado'}
                 {configuration.kds_audio_enabled && ` (Volumen: ${configuration.kds_audio_volume}%)`}
@@ -281,14 +279,14 @@ export default function TenantAdminDashboardPage() {
 
             {/* Tips */}
             <div>
-              <p className="text-xs text-zinc-500 uppercase mb-1">Propinas</p>
+              <p className="text-xs text-park-gray-500 uppercase mb-1">Propinas</p>
               <p className="text-sm font-medium">
                 {configuration.enable_tips ? 'Habilitadas' : 'Deshabilitadas'}
               </p>
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-zinc-500">
+          <div className="text-center py-8 text-park-gray-500">
             <Building2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">Cargando configuración...</p>
           </div>
@@ -313,14 +311,14 @@ export default function TenantAdminDashboardPage() {
                 {getHealthStatusIcon(check.status)}
                 <div className="flex-1">
                   <p className="text-sm font-medium capitalize">{check.type.replace(/_/g, ' ')}</p>
-                  <p className="text-xs text-zinc-400 mt-1">{check.message}</p>
+                  <p className="text-xs text-park-gray-400 mt-1">{check.message}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {lastUpdated && (
-            <p className="text-xs text-zinc-500 mt-4">
+            <p className="text-xs text-park-gray-500 mt-4">
               Última verificación: {new Date(health.last_checked).toLocaleTimeString()}
             </p>
           )}
@@ -373,7 +371,7 @@ export default function TenantAdminDashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-zinc-900 rounded-xl border border-zinc-800 p-6"
+        className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6"
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Database className="w-5 h-5 text-cyan-400" />
@@ -392,7 +390,7 @@ export default function TenantAdminDashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-zinc-900 rounded-xl border border-zinc-800 p-6"
+        className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6"
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5 text-amber-400" />
@@ -404,24 +402,24 @@ export default function TenantAdminDashboardPage() {
             {recentActivity.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-start gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+                className="flex items-start gap-3 p-3 rounded-lg bg-park-gray-800/50 hover:bg-park-gray-800 transition-colors"
               >
-                <Clock className="w-4 h-4 text-zinc-500 flex-shrink-0 mt-0.5" />
+                <Clock className="w-4 h-4 text-park-gray-500 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{activity.action}</p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-park-gray-500">
                     {activity.resource_type}
                     {activity.resource_id && ` • ${activity.resource_id}`}
                   </p>
                 </div>
-                <p className="text-xs text-zinc-500 flex-shrink-0">
+                <p className="text-xs text-park-gray-500 flex-shrink-0">
                   {new Date(activity.created_at).toLocaleTimeString()}
                 </p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-zinc-500">
+          <div className="text-center py-8 text-park-gray-500">
             <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">Sin actividad reciente</p>
           </div>
@@ -430,7 +428,7 @@ export default function TenantAdminDashboardPage() {
 
       {/* Footer */}
       {lastUpdated && (
-        <p className="text-xs text-zinc-500 text-right">
+        <p className="text-xs text-park-gray-500 text-right">
           Última actualización: {lastUpdated.toLocaleTimeString()}
         </p>
       )}
@@ -465,13 +463,13 @@ function MetricCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-zinc-900 rounded-xl p-4 border border-zinc-800"
+      className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800"
     >
       <div className={`w-10 h-10 rounded-lg ${colorClasses[color]} flex items-center justify-center mb-3`}>
         <Icon className="w-5 h-5" />
       </div>
       <p className="text-2xl font-bold">{value}</p>
-      <p className="text-xs text-zinc-500 mt-1">{label}</p>
+      <p className="text-xs text-park-gray-500 mt-1">{label}</p>
     </motion.div>
   );
 }
@@ -498,11 +496,11 @@ function QuotaBar({
     <div>
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm font-medium">{label}</p>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-park-gray-500">
           {current} / {max} ({percent.toFixed(0)}%)
         </p>
       </div>
-      <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-park-gray-800 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percent}%` }}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ClipboardList, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Bike, AlertCircle } from 'lucide-react';
 import { formatCents } from '@/src/core/domain/money';
+import { Badge, Button, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 interface DeliveryOrder {
   id: string;
@@ -25,23 +26,17 @@ interface Driver {
   name: string;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; badge: string; icon: React.ElementType }> = {
-  PENDING:    { label: 'Pendiente',   badge: 'bg-amber-500/20 text-amber-300',    icon: Clock },
-  ASSIGNED:   { label: 'Asignado',    badge: 'bg-blue-500/20 text-blue-300',      icon: Bike },
-  DISPATCHED: { label: 'En camino',   badge: 'bg-violet-500/20 text-violet-300',  icon: Bike },
-  DELIVERED:  { label: 'Entregado',   badge: 'bg-emerald-500/20 text-emerald-300',icon: CheckCircle },
-  FAILED:     { label: 'Fallido',     badge: 'bg-red-500/20 text-red-300',        icon: XCircle },
+const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'critical' | 'info' | 'neutral'; label: string }> = {
+  PENDING:    { variant: 'warning',  label: 'Pendiente' },
+  ASSIGNED:   { variant: 'info',     label: 'Asignado' },
+  DISPATCHED: { variant: 'info',     label: 'En camino' },
+  DELIVERED:  { variant: 'success',  label: 'Entregado' },
+  FAILED:     { variant: 'critical', label: 'Fallido' },
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] ?? { label: status, badge: 'bg-zinc-700 text-zinc-400', icon: AlertCircle };
-  const Icon = cfg.icon;
-  return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.badge}`}>
-      <Icon className="w-3 h-3" />
-      {cfg.label}
-    </span>
-  );
+  const cfg = STATUS_BADGE[status] ?? { variant: 'neutral' as const, label: status };
+  return <Badge variant={cfg.variant} dot>{cfg.label}</Badge>;
 }
 
 const LIMIT = 20;
@@ -90,33 +85,22 @@ export default function DeliveryHistoryPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void fetchHistory(); }, [dateFrom, dateTo, status, driverId, offset]);
 
-  const inputClass = 'bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500';
+  const inputClass = 'bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500';
   const labelClass = 'block text-[10px] uppercase tracking-wider text-zinc-500 mb-1';
 
   return (
     <div className="space-y-5 p-4 md:p-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-orange-500/20 rounded-xl border border-orange-500/30">
-          <ClipboardList className="w-5 h-5 text-orange-400" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-white">Historial de Entregas</h1>
-          <p className="text-[10px] text-zinc-500 mt-0.5">{total} registro{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}</p>
-        </div>
-        <a
-          href="/admin/delivery"
-          className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" /> Panel en vivo
-        </a>
-      </div>
+      <PageHeader
+        title="Historial Delivery"
+        description={`${total} registro${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}`}
+        backHref="/admin/delivery"
+      />
 
       {/* Filters */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
+      <Card>
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-3.5 h-3.5 text-zinc-500" />
-          <span className="text-[10px] uppercase tracking-widest text-zinc-500">Filtros</span>
+          <Filter className="w-3.5 h-3.5 text-park-gray-500" />
+          <span className="text-[10px] uppercase tracking-widest text-park-gray-500">Filtros</span>
         </div>
         <div className="flex flex-wrap gap-4 items-end">
           <div>
@@ -145,40 +129,34 @@ export default function DeliveryHistoryPage() {
               {drivers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
-          <button
-            onClick={() => { setOffset(0); fetchHistory(); }}
-            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors"
-          >
+          <Button variant="primary" size="sm" onClick={() => { setOffset(0); fetchHistory(); }}>
             Aplicar
-          </button>
+          </Button>
           {(dateFrom || dateTo || status || driverId) && (
-            <button
-              onClick={() => { setDateFrom(''); setDateTo(''); setStatus(''); setDriverId(''); setOffset(0); }}
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-sm rounded-lg border border-zinc-700 transition-colors"
-            >
+            <Button variant="secondary" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); setStatus(''); setDriverId(''); setOffset(0); }}>
               Limpiar
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Table */}
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
+      <Card padding="none">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/80">
-              <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Pedido</th>
-              <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Dirección</th>
-              <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Motorizado</th>
-              <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Estado</th>
-              <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Tarifa</th>
-              <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Tiempo</th>
-              <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Fecha</th>
+            <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+              <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Pedido</th>
+              <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Dirección</th>
+              <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Motorizado</th>
+              <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Estado</th>
+              <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Tarifa</th>
+              <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Tiempo</th>
+              <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Fecha</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/60">
+          <tbody className="divide-y divide-park-gray-800/60">
             {deliveries.map(d => (
-              <tr key={d.id} className="hover:bg-zinc-800/30 transition-colors">
+              <tr key={d.id} className="hover:bg-park-gray-800/30 transition-colors">
                 <td className="px-4 py-3 font-mono text-xs text-zinc-300 font-semibold">
                   #{d.order_id.slice(-6).toUpperCase()}
                 </td>
@@ -222,13 +200,13 @@ export default function DeliveryHistoryPage() {
         )}
 
         {!loading && deliveries.length === 0 && (
-          <div className="p-12 text-center">
-            <ClipboardList className="w-10 h-10 mx-auto mb-3 text-zinc-700" />
-            <p className="text-zinc-500 text-sm">No se encontraron entregas</p>
-            <p className="text-zinc-700 text-xs mt-1">Prueba cambiando los filtros</p>
-          </div>
+          <EmptyState
+            icon={<ClipboardList />}
+            title="No se encontraron entregas"
+            description="Prueba cambiando los filtros"
+          />
         )}
-      </div>
+      </Card>
 
       {/* Pagination */}
       {total > LIMIT && (

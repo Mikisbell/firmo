@@ -27,6 +27,7 @@ import { formatCents } from '@/src/core/domain/money';
 import { TrendingUp, DollarSign, Percent, Package } from 'lucide-react';
 import ProductsTable from './components/ProductsTable';
 import ReportFilters from './components/ReportFilters';
+import { Button, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 // Lazy loading de gráficos para optimizar bundle inicial
 const MarginChart = lazy(() => import('./components/MarginChart'));
@@ -75,12 +76,9 @@ interface ProfitabilityResponse {
 function TableSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
-      {/* Header */}
-      <div className="h-12 bg-gray-200 rounded"></div>
-      
-      {/* Rows */}
+      <div className="h-12 bg-park-gray-800 rounded"></div>
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-16 bg-gray-100 rounded"></div>
+        <div key={i} className="h-16 bg-park-gray-800 rounded"></div>
       ))}
     </div>
   );
@@ -89,20 +87,20 @@ function TableSkeleton() {
 function CardSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="h-32 bg-gray-200 rounded-lg"></div>
+      <div className="h-32 bg-park-gray-800 rounded-xl"></div>
     </div>
   );
 }
 
 function ChartSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <Card>
       <div className="animate-pulse space-y-4">
-        <div className="h-6 bg-gray-200 rounded w-48"></div>
-        <div className="h-4 bg-gray-100 rounded w-64"></div>
-        <div className="h-80 bg-gray-100 rounded"></div>
+        <div className="h-6 bg-park-gray-800 rounded w-48"></div>
+        <div className="h-4 bg-park-gray-800 rounded w-64"></div>
+        <div className="h-80 bg-park-gray-800 rounded"></div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -110,34 +108,7 @@ function ChartSkeleton() {
 // Summary Cards
 // ============================================================================
 
-interface SummaryCardProps {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  trend?: string;
-  trendUp?: boolean;
-}
-
-function SummaryCard({ title, value, icon, trend, trendUp }: SummaryCardProps) {
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-          {trend && (
-            <p className={`text-sm mt-2 ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
-              {trend}
-            </p>
-          )}
-        </div>
-        <div className="p-3 bg-blue-50 rounded-full">
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-}
+// SummaryCard replaced by MetricCard from Design System
 
 // ============================================================================
 // Main Component
@@ -277,17 +248,14 @@ export default function ProfitabilityDashboard() {
   if (error) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h3 className="text-red-800 font-semibold mb-2">Error al cargar datos</h3>
-          <p className="text-red-600 text-sm">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+          <h3 className="text-red-400 font-semibold mb-2">Error al cargar datos</h3>
+          <p className="text-red-400/80 text-sm">
             {error.message || 'Ocurrió un error al obtener el reporte de rentabilidad'}
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
+          <Button variant="destructive" onClick={() => window.location.reload()} className="mt-4">
             Reintentar
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -300,30 +268,15 @@ export default function ProfitabilityDashboard() {
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
-        {/* Header Skeleton */}
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-          <div className="h-4 bg-gray-100 rounded w-96"></div>
-        </div>
-        
-        {/* Summary Cards Skeleton */}
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
             <CardSkeleton key={i} />
           ))}
         </div>
-        
-        {/* Filters Skeleton */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-10 bg-gray-200 rounded w-full"></div>
-          </div>
-        </div>
-        
-        {/* Table Skeleton */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <Card>
           <TableSkeleton />
-        </div>
+        </Card>
       </div>
     );
   }
@@ -335,23 +288,15 @@ export default function ProfitabilityDashboard() {
   if (!products.length) {
     return (
       <div className="p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
-          <Package className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
-          <h3 className="text-yellow-800 font-semibold text-lg mb-2">
-            No hay datos de rentabilidad
-          </h3>
-          <p className="text-yellow-600 text-sm mb-4">
-            No se encontraron productos con ventas en el período seleccionado.
-          </p>
-          {(startDate || endDate || selectedCategory) && (
-            <button
-              onClick={handleClearFilters}
-              className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-            >
-              Limpiar Filtros
-            </button>
-          )}
-        </div>
+        <PageHeader title="Rentabilidad" description="Análisis completo de ganancias, márgenes y COGS por producto" />
+        <Card padding="none">
+          <EmptyState
+            icon={<Package />}
+            title="No hay datos de rentabilidad"
+            description="No se encontraron productos con ventas en el período seleccionado."
+            action={(startDate || endDate || selectedCategory) ? { label: 'Limpiar Filtros', onClick: handleClearFilters } : undefined}
+          />
+        </Card>
       </div>
     );
   }
@@ -362,37 +307,34 @@ export default function ProfitabilityDashboard() {
   
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard de Rentabilidad</h1>
-        <p className="text-gray-600 mt-2">
-          Análisis completo de ganancias, márgenes y COGS por producto
-        </p>
-      </div>
-      
+      <PageHeader
+        title="Rentabilidad"
+        description="Análisis completo de ganancias, márgenes y COGS por producto"
+      />
+
       {/* Summary Cards */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <SummaryCard
-            title="Ingresos Totales"
+          <MetricCard
+            label="Ingresos Totales"
             value={formatCents(summary.totalRevenueCents)}
-            icon={<DollarSign className="w-6 h-6 text-blue-600" />}
+            icon={<DollarSign className="w-5 h-5" />}
           />
-          <SummaryCard
-            title="COGS Total"
+          <MetricCard
+            label="COGS Total"
             value={formatCents(summary.totalCogsCents)}
-            icon={<Package className="w-6 h-6 text-orange-600" />}
+            icon={<Package className="w-5 h-5" />}
           />
-          <SummaryCard
-            title="Ganancia Total"
+          <MetricCard
+            label="Ganancia Total"
             value={formatCents(summary.totalProfitCents)}
-            icon={<TrendingUp className="w-6 h-6 text-green-600" />}
-            trendUp={summary.totalProfitCents > 0}
+            icon={<TrendingUp className="w-5 h-5" />}
+            trend={summary.totalProfitCents > 0 ? { value: summary.averageMargin, isPositive: true } : undefined}
           />
-          <SummaryCard
-            title="Margen Promedio"
+          <MetricCard
+            label="Margen Promedio"
             value={`${summary.averageMargin.toFixed(2)}%`}
-            icon={<Percent className="w-6 h-6 text-purple-600" />}
+            icon={<Percent className="w-5 h-5" />}
           />
         </div>
       )}
@@ -430,7 +372,7 @@ export default function ProfitabilityDashboard() {
       </div>
       
       {/* Auto-refresh indicator */}
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center text-sm text-park-gray-500">
         Los datos se actualizan automáticamente cada 30 segundos
       </div>
     </div>

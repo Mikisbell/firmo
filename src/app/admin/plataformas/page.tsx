@@ -13,6 +13,7 @@ import { useState, useCallback } from 'react';
 import { Globe, ToggleLeft, ToggleRight, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlatformConfigs } from '@/src/hooks/useSWRHooks';
+import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
 
 interface PlatformInfo {
   key: string;
@@ -99,22 +100,20 @@ export default function PlataformasPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Globe className="w-7 h-7 text-cyan-400" />
-          Plataformas Externas
-        </h1>
-        <p className="text-zinc-400 mt-1">Configurar integraciones con apps de delivery</p>
-      </div>
+      <PageHeader
+        title="Plataformas"
+        description="Configurar integraciones con apps de delivery"
+      />
 
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
+        <div className="p-4 space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-48 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
         </div>
       )}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400">
           Error al cargar configuración.
         </div>
       )}
@@ -127,19 +126,15 @@ export default function PlataformasPage() {
           const hasEdits = !!editValues[p.key];
 
           return (
-            <div key={p.key} className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+            <Card key={p.key}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${p.color}`} />
                   <h2 className="text-lg font-bold">{p.name}</h2>
                   {cfg && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      cfg.isActive
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'bg-zinc-700 text-zinc-400'
-                    }`}>
+                    <Badge variant={cfg.isActive ? 'success' : 'neutral'} dot>
                       {cfg.isActive ? 'Activo' : 'Inactivo'}
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 <button
@@ -156,37 +151,37 @@ export default function PlataformasPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-500 block mb-1">Clave API</label>
+                  <label className="text-xs text-park-gray-500 block mb-1">Clave API</label>
                   <input
                     type="password"
                     placeholder="••••••••"
                     value={getEditValue(p.key, 'apiKey', '')}
                     onChange={(e) => setEditField(p.key, 'apiKey', e.target.value)}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+                    className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 block mb-1">ID de Tienda</label>
+                  <label className="text-xs text-park-gray-500 block mb-1">ID de Tienda</label>
                   <input
                     type="text"
                     placeholder={cfg?.storeId || 'ID de tienda'}
                     value={getEditValue(p.key, 'storeId', cfg?.storeId ?? '')}
                     onChange={(e) => setEditField(p.key, 'storeId', e.target.value)}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+                    className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 block mb-1">Clave Webhook</label>
+                  <label className="text-xs text-park-gray-500 block mb-1">Clave Webhook</label>
                   <input
                     type="password"
                     placeholder="••••••••"
                     value={getEditValue(p.key, 'webhookSecret', '')}
                     onChange={(e) => setEditField(p.key, 'webhookSecret', e.target.value)}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+                    className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 block mb-1">Comisión (%)</label>
+                  <label className="text-xs text-park-gray-500 block mb-1">Comisión (%)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -194,11 +189,11 @@ export default function PlataformasPage() {
                     max="100"
                     value={getEditValue(p.key, 'commissionRate', cfg?.commissionRate ?? p.defaultCommission) * 100}
                     onChange={(e) => setEditField(p.key, 'commissionRate', parseFloat(e.target.value) / 100)}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+                    className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 block mb-1">Recargo (%)</label>
+                  <label className="text-xs text-park-gray-500 block mb-1">Recargo (%)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -206,7 +201,7 @@ export default function PlataformasPage() {
                     max="100"
                     value={getEditValue(p.key, 'markupRate', cfg?.markupRate ?? 0.20) * 100}
                     onChange={(e) => setEditField(p.key, 'markupRate', parseFloat(e.target.value) / 100)}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+                    className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
                   />
                 </div>
                 <div className="flex items-end gap-3">
@@ -224,17 +219,18 @@ export default function PlataformasPage() {
 
               {hasEdits && (
                 <div className="mt-4 flex justify-end">
-                  <button
+                  <Button
+                    variant="primary"
+                    icon={<Save className="w-4 h-4" />}
                     onClick={() => handleSave(p.key)}
-                    disabled={saving === p.key}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-sm font-medium min-h-[40px] disabled:opacity-50"
+                    loading={saving === p.key}
+                    size="sm"
                   >
-                    <Save className="w-4 h-4" />
                     {saving === p.key ? 'Guardando...' : 'Guardar'}
-                  </button>
+                  </Button>
                 </div>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>

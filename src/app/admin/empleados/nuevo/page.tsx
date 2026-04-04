@@ -11,7 +11,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Shield, Lock, CreditCard } from 'lucide-react';
+import { Shield, Lock, CreditCard } from 'lucide-react';
+import { Button, Card, CardContent, CardFooter, PageHeader } from '@/src/components/ui';
 
 const ROLE_OPTIONS = [
   { value: 'OWNER',      label: 'Propietario' },
@@ -72,23 +73,14 @@ export default function NewEmployeePage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold">Nuevo Empleado</h1>
-          <p className="text-zinc-400 mt-1">Crear nuevo usuario del sistema</p>
-        </div>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Nuevo Empleado"
+        description="Crear nuevo usuario del sistema"
+        backHref="/admin/empleados"
+      />
 
-      {/* Form */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+      <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -98,14 +90,14 @@ export default function NewEmployeePage() {
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-park-gray-300 mb-2">
               Nombre completo *
             </label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
               placeholder="Ej: Juan Pérez"
               required
               maxLength={100}
@@ -114,10 +106,10 @@ export default function NewEmployeePage() {
 
           {/* DNI */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-park-gray-300 mb-2">
               <CreditCard className="w-4 h-4 inline mr-1" />
               DNI
-              <span className="text-zinc-500 font-normal ml-1">(para login)</span>
+              <span className="text-park-gray-500 font-normal ml-1">(para login)</span>
             </label>
             <input
               type="text"
@@ -127,26 +119,26 @@ export default function NewEmployeePage() {
                 const val = e.target.value.replace(/\D/g, '').slice(0, 8);
                 setForm({ ...form, dni: val });
               }}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono tracking-widest"
+              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono tracking-widest"
               placeholder="12345678"
               maxLength={8}
               pattern="\d{8}"
             />
-            <p className="text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-park-gray-500 mt-1">
               8 dígitos. El empleado lo usará junto a su PIN para ingresar.
             </p>
           </div>
 
           {/* Role */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-park-gray-300 mb-2">
               <Shield className="w-4 h-4 inline mr-1" />
               Rol *
             </label>
             <select
               value={form.role}
               onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
               required
             >
               {ROLE_OPTIONS.map((option) => (
@@ -155,14 +147,14 @@ export default function NewEmployeePage() {
                 </option>
               ))}
             </select>
-            <p className="text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-park-gray-500 mt-1">
               Define los permisos y accesos del empleado
             </p>
           </div>
 
           {/* PIN */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-park-gray-300 mb-2">
               <Lock className="w-4 h-4 inline mr-1" />
               PIN de acceso *
             </label>
@@ -175,50 +167,51 @@ export default function NewEmployeePage() {
                   setForm({ ...form, pin: value });
                 }
               }}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono text-lg tracking-widest"
+              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono text-lg tracking-widest"
               placeholder="••••"
               required
               pattern="\d{4,6}"
               maxLength={6}
             />
-            <p className="text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-park-gray-500 mt-1">
               4-6 dígitos numéricos. Debe ser único en el sistema.
             </p>
           </div>
 
           {/* Active status */}
-          <div className="flex items-center gap-3 p-4 bg-zinc-800/50 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-park-gray-800/50 rounded-lg">
             <input
               type="checkbox"
               id="is_active"
               checked={form.is_active}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500"
+              className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800 text-amber-500 focus:ring-amber-500"
             />
             <label htmlFor="is_active" className="text-sm cursor-pointer">
               Empleado activo (puede iniciar sesión)
             </label>
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-zinc-800">
-            <button
+          <CardFooter>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => router.back()}
-              className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors font-medium"
+              className="flex-1"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              loading={saving}
+              className="flex-1"
             >
               {saving ? 'Creando...' : 'Crear Empleado'}
-            </button>
-          </div>
+            </Button>
+          </CardFooter>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

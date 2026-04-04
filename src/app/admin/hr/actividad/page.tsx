@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Activity, Clock, ShoppingBag, DollarSign, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -122,46 +123,40 @@ export default function DailyActivityPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-            <Activity className="w-5 h-5 text-emerald-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Actividad Diaria</h1>
-            <p className="text-zinc-400 text-sm capitalize">{formatDisplayDate(selectedDate)}</p>
-          </div>
-        </div>
-        <button
-          onClick={() => mutate()}
-          disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 text-sm"
-        >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Actividad Diaria"
+        description={formatDisplayDate(selectedDate)}
+        actions={
+          <Button
+            variant="secondary"
+            icon={<RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />}
+            onClick={() => mutate()}
+            disabled={isLoading}
+          >
+            Actualizar
+          </Button>
+        }
+      />
 
       {/* Date Picker */}
       <div className="flex items-center gap-3 flex-wrap">
         <button
           onClick={() => setSelectedDate(yesterdayStr())}
-          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${selectedDate === yesterdayStr() ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'}`}
+          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${selectedDate === yesterdayStr() ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-park-gray-800 hover:bg-park-gray-700 text-park-gray-300'}`}
         >
           Ayer
         </button>
         <button
           onClick={() => setSelectedDate(todayStr())}
-          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${selectedDate === todayStr() ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'}`}
+          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${selectedDate === todayStr() ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-park-gray-800 hover:bg-park-gray-700 text-park-gray-300'}`}
         >
           Hoy
         </button>
         <div className="flex items-center gap-1">
           <button
             onClick={() => shiftDate(-1)}
-            className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            className="p-1.5 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -169,11 +164,11 @@ export default function DailyActivityPage() {
             type="date"
             value={selectedDate}
             onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
-            className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500"
+            className="px-3 py-1.5 rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm text-park-gray-200 focus:outline-none focus:border-emerald-500"
           />
           <button
             onClick={() => shiftDate(1)}
-            className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            className="p-1.5 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -217,24 +212,24 @@ export default function DailyActivityPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="bg-park-gray-900 rounded-xl border border-park-gray-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Empleado</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Rol</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Entrada</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Salida</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium">Horas</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium">Pedidos</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium">Ventas</th>
+              <tr className="border-b border-park-gray-800">
+                <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Empleado</th>
+                <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Rol</th>
+                <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Entrada</th>
+                <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Salida</th>
+                <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Horas</th>
+                <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Pedidos</th>
+                <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Ventas</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-zinc-500">
+                  <td colSpan={7} className="px-4 py-12 text-center text-park-gray-500">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
                     Cargando...
                   </td>
@@ -249,23 +244,23 @@ export default function DailyActivityPage() {
               )}
               {!isLoading && !error && rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-zinc-500">
+                  <td colSpan={7} className="px-4 py-12 text-center text-park-gray-500">
                     Sin registros de asistencia para este día
                   </td>
                 </tr>
               )}
               {rows.map((row) => (
-                <tr key={row.employee_id} className="border-b border-zinc-800 last:border-0 hover:bg-zinc-800/50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-zinc-100">{row.employee_name}</td>
+                <tr key={row.employee_id} className="border-b border-park-gray-800 last:border-0 hover:bg-park-gray-800/50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-white">{row.employee_name}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGE[row.role] ?? 'bg-zinc-700 text-zinc-300'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGE[row.role] ?? 'bg-park-gray-700 text-park-gray-300'}`}>
                       {ROLE_LABEL[row.role] ?? row.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-300">{formatTime(row.clock_in)}</td>
+                  <td className="px-4 py-3 text-park-gray-300">{formatTime(row.clock_in)}</td>
                   <td className="px-4 py-3">
                     {row.clock_out ? (
-                      <span className="text-zinc-300">{formatTime(row.clock_out)}</span>
+                      <span className="text-park-gray-300">{formatTime(row.clock_out)}</span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -273,19 +268,19 @@ export default function DailyActivityPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right text-zinc-300">{formatMinutes(row.worked_minutes)}</td>
-                  <td className="px-4 py-3 text-right text-zinc-300">{row.orders_count}</td>
-                  <td className="px-4 py-3 text-right text-zinc-300">{formatSoles(row.revenue_cents)}</td>
+                  <td className="px-4 py-3 text-right text-park-gray-300">{formatMinutes(row.worked_minutes)}</td>
+                  <td className="px-4 py-3 text-right text-park-gray-300">{row.orders_count}</td>
+                  <td className="px-4 py-3 text-right text-park-gray-300">{formatSoles(row.revenue_cents)}</td>
                 </tr>
               ))}
             </tbody>
             {rows.length > 0 && (
               <tfoot>
-                <tr className="border-t border-zinc-700 bg-zinc-800/50">
-                  <td colSpan={4} className="px-4 py-3 text-zinc-400 font-medium">Totales</td>
-                  <td className="px-4 py-3 text-right font-semibold text-zinc-200">{formatMinutes(totalWorkedMin)}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-zinc-200">{totalOrders}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-zinc-200">{formatSoles(totalRevenue)}</td>
+                <tr className="border-t border-park-gray-700 bg-park-gray-800/50">
+                  <td colSpan={4} className="px-4 py-3 text-park-gray-400 font-medium">Totales</td>
+                  <td className="px-4 py-3 text-right font-semibold text-park-gray-200">{formatMinutes(totalWorkedMin)}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-park-gray-200">{totalOrders}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-park-gray-200">{formatSoles(totalRevenue)}</td>
                 </tr>
               </tfoot>
             )}
@@ -316,13 +311,13 @@ function SummaryCard({
   bg: string;
 }) {
   return (
-    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+    <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
       <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center mb-3`}>
         <Icon className={`w-5 h-5 ${color}`} />
       </div>
       <p className="text-2xl font-bold">{value}</p>
-      <p className="text-xs text-zinc-400 mt-1">{label}</p>
-      <p className="text-xs text-zinc-600">{sub}</p>
+      <p className="text-xs text-park-gray-400 mt-1">{label}</p>
+      <p className="text-xs text-park-gray-600">{sub}</p>
     </div>
   );
 }

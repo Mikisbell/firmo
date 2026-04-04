@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { useTableQRs } from '@/src/hooks/useTableQRs';
 import useSWR from 'swr';
 import { fetcher } from '@/src/lib/swr-config';
+import { Button, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 interface Location {
   id: string;
@@ -62,39 +63,32 @@ export default function TableQRPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
-            <QrCode className="w-6 h-6 text-amber-400" />
-            Códigos QR de Mesas
-          </h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Genere e imprima QR para que los clientes vean el menú digital
-          </p>
-        </div>
+      <PageHeader
+        title="QR Mesas"
+        description="Genere e imprima QR para que los clientes vean el menú digital"
+        actions={
+          qrItems.length > 0 ? (
+            <Button
+              variant="primary"
+              icon={<Download className="w-4 h-4" />}
+              onClick={handleDownloadAll}
+            >
+              Descargar Todos
+            </Button>
+          ) : undefined
+        }
+      />
 
-        {qrItems.length > 0 && (
-          <button
-            onClick={handleDownloadAll}
-            className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-2 rounded-lg transition-colors text-sm"
-          >
-            <Download className="w-4 h-4" />
-            Descargar Todos
-          </button>
-        )}
-      </div>
-
-      {/* Location selector — only shown when tenant has multiple locations */}
+      {/* Location selector */}
       {locations.length > 1 && (
-        <div className="bg-zinc-800 rounded-xl border border-zinc-700 p-4">
-          <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">
+        <Card>
+          <label className="block text-xs font-bold text-park-gray-400 uppercase mb-2">
             Sucursal
           </label>
           <select
             value={selectedLocation ?? ''}
             onChange={(e) => setSelectedLocation(e.target.value || null)}
-            className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-600 rounded-lg text-zinc-100 text-sm outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white text-sm outline-none focus:ring-2 focus:ring-amber-500"
           >
             {locations.map((loc) => (
               <option key={loc.id} value={loc.id}>
@@ -102,55 +96,60 @@ export default function TableQRPage() {
               </option>
             ))}
           </select>
-        </div>
+        </Card>
       )}
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="w-8 h-8 text-zinc-500 animate-spin" />
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-48 bg-park-gray-800 rounded-xl animate-pulse" />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* API error (e.g. slug not configured) */}
+      {/* API error */}
       {!isLoading && qrError && (
         <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 text-sm">
           {qrError.message?.includes('slug') || String(qrError).includes('slug')
-            ? 'El restaurante no tiene slug configurado. Ve a Configuración → Perfil del restaurante y define el identificador URL.'
+            ? 'El restaurante no tiene slug configurado. Ve a Configuración -> Perfil del restaurante y define el identificador URL.'
             : 'Error al generar los códigos QR. Intenta de nuevo.'}
         </div>
       )}
 
       {/* No tables */}
       {!isLoading && !qrError && selectedLocation && qrItems.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-48 text-zinc-500">
-          <Grid3X3 className="w-12 h-12 mb-3 opacity-50" />
-          <p className="text-sm">No hay mesas activas en esta sucursal</p>
-        </div>
+        <Card padding="none">
+          <EmptyState
+            icon={<Grid3X3 />}
+            title="No hay mesas activas en esta sucursal"
+          />
+        </Card>
       )}
 
       {/* QR Grid */}
       {qrItems.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {qrItems.map((item) => (
-            <div
-              key={item.tableId}
-              className="bg-zinc-800 rounded-xl border border-zinc-700 p-4 flex flex-col items-center gap-3"
-            >
+            <Card key={item.tableId} className="flex flex-col items-center gap-3 !p-4">
               <img
                 src={item.qrDataUrl}
                 alt={`QR ${item.displayName}`}
                 className="w-full aspect-square rounded-lg bg-white p-2"
               />
-              <p className="text-sm font-bold text-zinc-100 text-center">{item.displayName}</p>
-              <button
+              <p className="text-sm font-bold text-white text-center">{item.displayName}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Download className="w-3 h-3" />}
                 onClick={() => handleDownload(item.qrDataUrl, item.displayName)}
-                className="w-full flex items-center justify-center gap-1 text-xs font-medium text-amber-400 hover:text-amber-300 py-1.5 border border-zinc-600 rounded-lg hover:border-zinc-500 transition-colors"
+                className="w-full text-amber-400"
               >
-                <Download className="w-3 h-3" />
                 Descargar
-              </button>
-            </div>
+              </Button>
+            </Card>
           ))}
         </div>
       )}

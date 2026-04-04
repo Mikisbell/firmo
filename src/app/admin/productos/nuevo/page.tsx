@@ -9,8 +9,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Package, DollarSign } from 'lucide-react';
+import { Package, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button, Card, CardFooter, PageHeader } from '@/src/components/ui';
 import { ImageUpload } from '../components/ImageUpload';
 import type { ProductImage } from '@/src/core/types/product-images';
 import { useStations } from '@/src/hooks/useSWRHooks';
@@ -135,23 +136,14 @@ export default function NewProductPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold">Nuevo Producto</h1>
-          <p className="text-zinc-400 mt-1">Agregar producto al catálogo</p>
-        </div>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Nuevo Producto"
+        description="Agregar producto al catálogo"
+        backHref="/admin/productos"
+      />
 
-      {/* Form */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+      <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -162,7 +154,7 @@ export default function NewProductPage() {
           {/* SKU and Name */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-park-gray-300 mb-2">
                 <Package className="w-4 h-4 inline mr-1" />
                 SKU *
               </label>
@@ -170,25 +162,25 @@ export default function NewProductPage() {
                 type="text"
                 value={form.sku}
                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
                 placeholder="Ej: POLLO-1/4"
                 required
                 maxLength={50}
               />
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-xs text-park-gray-500 mt-1">
                 Código único del producto
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-park-gray-300 mb-2">
                 Nombre completo *
               </label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
                 placeholder="Ej: 1/4 Pollo a la Brasa"
                 required
                 maxLength={100}
@@ -199,24 +191,24 @@ export default function NewProductPage() {
           {/* Short name and Price */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-park-gray-300 mb-2">
                 Nombre corto (opcional)
               </label>
               <input
                 type="text"
                 value={form.short_name}
                 onChange={(e) => setForm({ ...form, short_name: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
                 placeholder="Ej: 1/4 Pollo"
                 maxLength={30}
               />
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-xs text-park-gray-500 mt-1">
                 Para mostrar en pantallas pequeñas
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-park-gray-300 mb-2">
                 <DollarSign className="w-4 h-4 inline mr-1" />
                 Precio (S/) *
               </label>
@@ -226,11 +218,11 @@ export default function NewProductPage() {
                 min="0"
                 value={form.price_soles}
                 onChange={(e) => setForm({ ...form, price_soles: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
                 placeholder="0.00"
                 required
               />
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-xs text-park-gray-500 mt-1">
                 Se almacena en centavos (entero)
               </p>
             </div>
@@ -239,13 +231,13 @@ export default function NewProductPage() {
           {/* Category and Station */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-park-gray-300 mb-2">
                 Categoría *
               </label>
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
                 required
               >
                 {CATEGORY_OPTIONS.map((option) => (
@@ -257,13 +249,13 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-park-gray-300 mb-2">
                 Estación de preparación *
               </label>
               <select
                 value={form.station}
                 onChange={(e) => setForm({ ...form, station: e.target.value })}
-                className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors disabled:opacity-50"
+                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors disabled:opacity-50"
                 required
                 disabled={loadingStations}
               >
@@ -279,13 +271,13 @@ export default function NewProductPage() {
 
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-park-gray-300 mb-2">
               Tipo de producto *
             </label>
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
               required
             >
               {TYPE_OPTIONS.map((option) => (
@@ -297,13 +289,13 @@ export default function NewProductPage() {
           </div>
 
           {/* Active status */}
-          <div className="flex items-center gap-3 p-4 bg-zinc-800/50 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-park-gray-800/50 rounded-lg">
             <input
               type="checkbox"
               id="is_active"
               checked={form.is_active}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500"
+              className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800 text-amber-500 focus:ring-amber-500"
             />
             <label htmlFor="is_active" className="text-sm cursor-pointer">
               Producto activo (visible en el catálogo)
@@ -312,37 +304,38 @@ export default function NewProductPage() {
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-3">
+            <label className="block text-sm font-medium text-park-gray-300 mb-3">
               Imágenes del producto (opcional)
             </label>
             <ImageUpload
               onImagesChange={setImages}
               disabled={saving}
             />
-            <p className="text-xs text-zinc-500 mt-2">
+            <p className="text-xs text-park-gray-500 mt-2">
               La primera imagen será la imagen principal del producto
             </p>
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-zinc-800">
-            <button
+          <CardFooter>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => router.back()}
-              className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors font-medium"
+              className="flex-1"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              loading={saving}
+              className="flex-1"
             >
               {saving ? 'Creando...' : 'Crear Producto'}
-            </button>
-          </div>
+            </Button>
+          </CardFooter>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

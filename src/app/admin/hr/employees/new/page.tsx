@@ -7,9 +7,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
+import { Button, Card, CardFooter, PageHeader } from '@/src/components/ui';
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Propietario', ADMIN: 'Administrador', MANAGER: 'Gerente',
@@ -53,8 +53,8 @@ const EMPTY_FORM = {
   pension_system: '',
 };
 
-const inputCls = 'w-full px-3 py-2 bg-zinc-800 border border-zinc-700 text-white rounded-lg text-sm focus:outline-none focus:border-amber-500';
-const labelCls = 'block text-zinc-400 text-xs mb-1';
+const inputCls = 'w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-amber-500';
+const labelCls = 'block text-park-gray-400 text-xs mb-1';
 
 export default function NewHREmployeePage() {
   const router = useRouter();
@@ -105,18 +105,14 @@ export default function NewHREmployeePage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-zinc-800 transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Nuevo Empleado HR</h1>
-          <p className="text-zinc-400 text-sm">Crear ficha de empleado con datos de planilla</p>
-        </div>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Nuevo Empleado HR"
+        description="Crear ficha de empleado con datos de planilla"
+        backHref="/admin/hr/employees"
+      />
 
-      <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-5 max-w-2xl">
+      <form onSubmit={handleSubmit}><Card className="space-y-5 max-w-2xl">
         {/* Name + Role */}
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -200,17 +196,15 @@ export default function NewHREmployeePage() {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-2 border-t border-zinc-800">
-          <button type="button" onClick={() => router.back()}
-            className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors">
+        <CardFooter>
+          <Button type="button" variant="secondary" onClick={() => router.back()} className="flex-1">
             Cancelar
-          </button>
-          <button type="submit" disabled={saving}
-            className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
+          </Button>
+          <Button type="submit" variant="primary" loading={saving} className="flex-1">
             {saving ? 'Creando...' : 'Crear Empleado'}
-          </button>
-        </div>
-      </form>
+          </Button>
+        </CardFooter>
+      </Card></form>
     </div>
   );
 }

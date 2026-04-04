@@ -12,6 +12,7 @@
 
 import { useState, useEffect } from 'react';
 import { Activity, Database, Clock, HardDrive, TrendingUp, RefreshCw } from 'lucide-react';
+import { Button, Card, PageHeader, MetricCard as DSMetricCard } from '@/src/components/ui';
 
 interface PerformanceMetrics {
   cacheHitRate: number;
@@ -82,15 +83,20 @@ export default function PerformancePage() {
 
   if (loading && !metrics) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" />
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
         {error}
       </div>
     );
@@ -98,83 +104,62 @@ export default function PerformancePage() {
 
   if (!metrics) {
     return (
-      <div className="p-4 bg-zinc-800 rounded-lg text-zinc-400">
-        No hay métricas disponibles
-      </div>
+      <Card>
+        <p className="text-park-gray-400">No hay métricas disponibles</p>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Panel de rendimiento</h1>
-          <p className="text-zinc-400 mt-1">
-            Métricas de caché y performance del sistema
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={fetchMetrics}
-            className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors min-h-[44px]"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Actualizar
-          </button>
-          <button
-            onClick={resetMetrics}
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors min-h-[44px]"
-          >
-            Reiniciar
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Performance"
+        description="Métricas de caché y performance del sistema"
+        actions={
+          <div className="flex gap-2">
+            <Button variant="secondary" icon={<RefreshCw className="w-4 h-4" />} onClick={fetchMetrics}>
+              Actualizar
+            </Button>
+            <Button variant="destructive" onClick={resetMetrics}>
+              Reiniciar
+            </Button>
+          </div>
+        }
+      />
 
       {/* Last Updated */}
-      <div className="text-sm text-zinc-500">
+      <div className="text-sm text-park-gray-500">
         Última actualización: {lastUpdated.toLocaleTimeString('es-PE')}
       </div>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          icon={TrendingUp}
+        <DSMetricCard
           label="Tasa de aciertos de caché"
           value={`${metrics.cacheHitRate.toFixed(1)}%`}
-          color={metrics.cacheHitRate >= 70 ? 'text-green-400' : 'text-red-400'}
-          subtitle={`${metrics.cacheHits} aciertos / ${metrics.totalRequests} solicitudes`}
+          icon={<TrendingUp className="w-5 h-5" />}
         />
-        
-        <MetricCard
-          icon={Clock}
+        <DSMetricCard
           label="Tiempo promedio de respuesta"
           value={`${metrics.avgResponseTime.toFixed(0)}ms`}
-          color={metrics.avgResponseTime <= 200 ? 'text-green-400' : 'text-amber-400'}
-          subtitle={`P95: ${metrics.p95ResponseTime.toFixed(0)}ms, P99: ${metrics.p99ResponseTime.toFixed(0)}ms`}
+          icon={<Clock className="w-5 h-5" />}
         />
-        
-        <MetricCard
-          icon={Database}
+        <DSMetricCard
           label="Tamaño de caché"
           value={metrics.cacheSize.toString()}
-          color={metrics.cacheSize <= 1000 ? 'text-green-400' : 'text-amber-400'}
-          subtitle="entradas"
+          icon={<Database className="w-5 h-5" />}
         />
-        
-        <MetricCard
-          icon={HardDrive}
+        <DSMetricCard
           label="Uso de memoria"
           value={`${(metrics.memoryUsage / 1024 / 1024).toFixed(1)} MB`}
-          color={metrics.memoryUsage <= 100 * 1024 * 1024 ? 'text-green-400' : 'text-red-400'}
-          subtitle="estimado"
+          icon={<HardDrive className="w-5 h-5" />}
         />
       </div>
 
       {/* Detailed Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Cache Performance */}
-        <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+        <div className="p-4 bg-park-gray-900 rounded-xl border border-park-gray-800">
           <h2 className="font-medium mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-amber-400" />
             Rendimiento de caché
@@ -188,7 +173,7 @@ export default function PerformancePage() {
         </div>
 
         {/* Response Times */}
-        <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+        <div className="p-4 bg-park-gray-900 rounded-xl border border-park-gray-800">
           <h2 className="font-medium mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5 text-blue-400" />
             Tiempos de respuesta
@@ -202,7 +187,7 @@ export default function PerformancePage() {
       </div>
 
       {/* Health Indicators */}
-      <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+      <div className="p-4 bg-park-gray-900 rounded-xl border border-park-gray-800">
         <h2 className="font-medium mb-4">Indicadores de salud</h2>
         <div className="space-y-3">
           <HealthIndicator
@@ -256,18 +241,18 @@ function MetricCard({
   subtitle?: string;
 }) {
   return (
-    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+    <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
       <div className="flex items-center gap-3 mb-2">
-        <div className={`w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center ${color}`}>
+        <div className={`w-10 h-10 rounded-lg bg-park-gray-800 flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1">
-          <p className="text-xs text-zinc-500">{label}</p>
+          <p className="text-xs text-park-gray-500">{label}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
         </div>
       </div>
       {subtitle && (
-        <p className="text-xs text-zinc-500 mt-2">{subtitle}</p>
+        <p className="text-xs text-park-gray-500 mt-2">{subtitle}</p>
       )}
     </div>
   );
@@ -283,8 +268,8 @@ function StatRow({
   color?: string;
 }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-zinc-800 last:border-0">
-      <span className="text-zinc-400">{label}</span>
+    <div className="flex justify-between items-center py-2 border-b border-park-gray-800 last:border-0">
+      <span className="text-park-gray-400">{label}</span>
       <span className={`font-medium ${color}`}>{value}</span>
     </div>
   );
@@ -313,12 +298,12 @@ function HealthIndicator({
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <span className="text-sm text-zinc-400">{label}</span>
+        <span className="text-sm text-park-gray-400">{label}</span>
         <span className={`text-sm font-medium ${isHealthy ? 'text-green-400' : 'text-red-400'}`}>
           {value.toFixed(1)} {unit}
         </span>
       </div>
-      <div className="w-full bg-zinc-800 rounded-full h-2">
+      <div className="w-full bg-park-gray-800 rounded-full h-2">
         <div
           className={`h-2 rounded-full transition-all ${
             isHealthy ? 'bg-green-400' : 'bg-red-400'
@@ -326,7 +311,7 @@ function HealthIndicator({
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <p className="text-xs text-zinc-500">{description}</p>
+      <p className="text-xs text-park-gray-500">{description}</p>
     </div>
   );
 }

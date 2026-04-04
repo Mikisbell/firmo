@@ -12,8 +12,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, AlertCircle, Loader, X } from 'lucide-react';
-import Link from 'next/link';
+import { Save, AlertCircle, Loader, X } from 'lucide-react';
+import { Button, Card, PageHeader } from '@/src/components/ui';
 
 const TYPE_OPTIONS = [
   { value: 'PERCENT', label: 'Porcentaje (%)' },
@@ -99,19 +99,12 @@ export default function NewPromotionPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/admin/promociones"
-          className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">Nueva Promoción</h1>
-          <p className="text-zinc-400 mt-1">Crear una nueva oferta o descuento</p>
-        </div>
-      </div>
+    <div className="p-4 space-y-6 max-w-2xl">
+      <PageHeader
+        title="Nueva Promoción"
+        description="Crear una nueva oferta o descuento"
+        backHref="/admin/promociones"
+      />
 
       {error && (
         <div data-testid="error-toast" className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-start gap-3">
@@ -159,7 +152,7 @@ export default function NewPromotionPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="p-6 bg-zinc-900 rounded-lg border border-zinc-800 space-y-4">
+        <Card className="space-y-4">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -171,7 +164,7 @@ export default function NewPromotionPage() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
               maxLength={100}
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
               placeholder="Ej: Descuento 20% en pollos"
             />
           </div>
@@ -185,7 +178,7 @@ export default function NewPromotionPage() {
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
               required
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
             >
               {TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -207,10 +200,10 @@ export default function NewPromotionPage() {
               required
               min={0}
               step={form.type === 'PERCENT' ? 1 : 0.01}
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
               placeholder={form.type === 'PERCENT' ? '20' : '10.00'}
             />
-            <p className="text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-park-gray-500 mt-1">
               {form.type === 'PERCENT' ? 'Porcentaje de descuento (0-100)' : 'Monto en soles'}
             </p>
           </div>
@@ -226,7 +219,7 @@ export default function NewPromotionPage() {
                 value={form.starts_at}
                 onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
                 required
-                className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
               />
             </div>
             <div>
@@ -238,7 +231,7 @@ export default function NewPromotionPage() {
                 value={form.ends_at}
                 onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
                 required
-                className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
               />
             </div>
           </div>
@@ -252,10 +245,10 @@ export default function NewPromotionPage() {
               value={form.rules}
               onChange={(e) => setForm({ ...form, rules: e.target.value })}
               rows={4}
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg font-mono text-sm"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg font-mono text-sm"
               placeholder='{"min_amount": 50, "products": ["PROD-001"]}'
             />
-            <p className="text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-park-gray-500 mt-1">
               Reglas adicionales en formato JSON (opcional)
             </p>
           </div>
@@ -273,24 +266,25 @@ export default function NewPromotionPage() {
               Promoción activa
             </label>
           </div>
-        </div>
+        </Card>
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button
+          <Button
             type="submit"
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="primary"
+            loading={saving}
+            icon={<Save className="w-4 h-4" />}
           >
-            <Save className="w-4 h-4" />
             {saving ? 'Guardando...' : 'Crear Promoción'}
-          </button>
-          <Link
-            href="/admin/promociones"
-            className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors min-h-[44px] flex items-center"
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => router.push('/admin/promociones')}
           >
             Cancelar
-          </Link>
+          </Button>
         </div>
       </form>
     </div>

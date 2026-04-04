@@ -47,6 +47,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { useAdminStats, type DashboardStats } from '@/src/hooks/useSWRHooks';
+import { Button, Card, PageHeader, MetricCard } from '@/src/components/ui';
 
 const NAV_CARDS = [
   {
@@ -140,32 +141,28 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome section */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-zinc-400 mt-1">Bienvenido al panel de administración</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Sync Status */}
-          {stats?.syncStatus && (
-            <div className="flex items-center gap-2 text-sm px-3 py-2 bg-zinc-900 rounded-lg border border-zinc-800">
-              <div className={`w-2 h-2 rounded-full ${stats.syncStatus.synced ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
-              <span className="text-zinc-400">
-                {stats.syncStatus.synced ? 'Sincronizado' : `${stats.syncStatus.pendingEvents} pendientes`}
-              </span>
-            </div>
-          )}
-          <button
-            onClick={() => mutate()}
-            disabled={isLoading}
-            className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
-            title="Actualizar métricas"
-          >
-            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Bienvenido al panel de administración"
+        actions={
+          <div className="flex items-center gap-3">
+            {stats?.syncStatus && (
+              <div className="flex items-center gap-2 text-sm px-3 py-2 bg-park-gray-900 rounded-lg border border-park-gray-800">
+                <div className={`w-2 h-2 rounded-full ${stats.syncStatus.synced ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
+                <span className="text-park-gray-400">
+                  {stats.syncStatus.synced ? 'Sincronizado' : `${stats.syncStatus.pendingEvents} pendientes`}
+                </span>
+              </div>
+            )}
+            <Button
+              variant="secondary"
+              icon={<RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />}
+              onClick={() => mutate()}
+              disabled={isLoading}
+            />
+          </div>
+        }
+      />
 
       {/* Link to Premium Analytics */}
       <Link 
@@ -178,7 +175,7 @@ export default function AdminDashboardPage() {
               <Zap className="w-5 h-5 text-blue-400" />
               Analytics Premium
             </h3>
-            <p className="text-sm text-zinc-400 mt-1">Ver métricas detalladas en tiempo real con gráficos y comparaciones</p>
+            <p className="text-sm text-park-gray-400 mt-1">Ver métricas detalladas en tiempo real con gráficos y comparaciones</p>
           </div>
           <BarChart3 className="w-8 h-8 text-blue-400 group-hover:scale-110 transition-transform" />
         </div>
@@ -237,13 +234,13 @@ export default function AdminDashboardPage() {
 
       {/* Payment Breakdown - E4 */}
       {stats?.paymentBreakdown && Object.keys(stats.paymentBreakdown).length > 0 && (
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase mb-3">Métodos de Pago</h2>
+        <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
+          <h2 className="text-sm font-semibold text-park-gray-400 uppercase mb-3">Métodos de Pago</h2>
           <div className="flex flex-wrap gap-2">
             {Object.entries(stats.paymentBreakdown).map(([method, data]) => (
-              <div key={method} className="px-3 py-2 bg-zinc-800 rounded-lg flex items-center gap-2">
+              <div key={method} className="px-3 py-2 bg-park-gray-800 rounded-lg flex items-center gap-2">
                 <span className="text-sm font-medium">{method}</span>
-                <span className="text-xs text-zinc-500">({data.count})</span>
+                <span className="text-xs text-park-gray-500">({data.count})</span>
                 <span className="text-sm font-mono text-emerald-400">{formatCurrency(data.totalCents)}</span>
               </div>
             ))}
@@ -253,8 +250,8 @@ export default function AdminDashboardPage() {
 
       {/* Hourly Sales Chart - E4 */}
       {stats?.hourlySales && stats.hourlySales.some(v => v > 0) && (
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase mb-3">Ventas por Hora</h2>
+        <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
+          <h2 className="text-sm font-semibold text-park-gray-400 uppercase mb-3">Ventas por Hora</h2>
           <div className="flex items-end gap-1 h-24">
             {stats.hourlySales.map((val, hour) => {
               const maxVal = Math.max(...(stats.hourlySales || [0]));
@@ -262,7 +259,7 @@ export default function AdminDashboardPage() {
               return (
                 <div key={hour} className="flex-1 flex flex-col items-center gap-1">
                   <div
-                    className={`w-full rounded-t transition-all ${val > 0 ? 'bg-emerald-500/60' : 'bg-zinc-800'}`}
+                    className={`w-full rounded-t transition-all ${val > 0 ? 'bg-emerald-500/60' : 'bg-park-gray-800'}`}
                     style={{ height: `${Math.max(height, 2)}%` }}
                     title={`${hour}:00 — ${formatCurrency(val)}`}
                   />
@@ -276,13 +273,13 @@ export default function AdminDashboardPage() {
 
       {/* Recent Activity - E4 */}
       {stats?.recentActivity && stats.recentActivity.length > 0 && (
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase mb-3">Actividad Reciente</h2>
+        <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
+          <h2 className="text-sm font-semibold text-park-gray-400 uppercase mb-3">Actividad Reciente</h2>
           <div className="space-y-2">
             {stats.recentActivity.map((activity: any) => (
               <div key={activity.id} className="flex items-center justify-between py-1.5">
                 <span className="text-sm">{activity.message}</span>
-                <span className="text-xs text-zinc-500 ml-2 shrink-0">
+                <span className="text-xs text-park-gray-500 ml-2 shrink-0">
                   {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
@@ -300,11 +297,11 @@ export default function AdminDashboardPage() {
 
       {/* Alerts Panel */}
       {stats?.alerts && stats.alerts.length > 0 && (
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+        <div className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-400" />
             Alertas
-            <span className="ml-auto text-sm font-normal text-zinc-500">{stats.alerts.length}</span>
+            <span className="ml-auto text-sm font-normal text-park-gray-500">{stats.alerts.length}</span>
           </h2>
           <div className="space-y-2">
             {stats.alerts.map((alert) => (
@@ -382,11 +379,11 @@ export default function AdminDashboardPage() {
                 href={card.href}
                 className={`block p-4 bg-gradient-to-br ${card.color} rounded-xl border ${card.borderColor} transition-all group min-h-[120px]`}
               >
-                <div className={`w-10 h-10 rounded-lg bg-zinc-800/50 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all`}>
+                <div className={`w-10 h-10 rounded-lg bg-park-gray-800/50 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all`}>
                   <card.icon className="w-5 h-5" />
                 </div>
                 <h3 className="font-medium">{card.label}</h3>
-                <p className="text-sm text-zinc-500 mt-1">{card.description}</p>
+                <p className="text-sm text-park-gray-500 mt-1">{card.description}</p>
               </Link>
             </motion.div>
           ))}
@@ -395,7 +392,7 @@ export default function AdminDashboardPage() {
 
       {/* Last updated */}
       {stats?.lastUpdated && (
-        <p className="text-xs text-zinc-500 text-right flex items-center justify-end gap-2">
+        <p className="text-xs text-park-gray-500 text-right flex items-center justify-end gap-2">
           <Clock className="w-3 h-3" />
           Última actualización: {new Date(stats.lastUpdated).toLocaleTimeString()}
         </p>
@@ -426,10 +423,10 @@ function QuickStatCard({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-700 transition-all"
+      className="bg-park-gray-900 rounded-xl p-4 border border-park-gray-800 hover:border-zinc-700 transition-all"
     >
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center ${color}`}>
+        <div className={`w-10 h-10 rounded-lg bg-park-gray-800 flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1">
@@ -437,7 +434,7 @@ function QuickStatCard({
             {loading ? '...' : value}
           </p>
           <div className="flex items-center gap-2">
-            <p className="text-xs text-zinc-500">{label}</p>
+            <p className="text-xs text-park-gray-500">{label}</p>
             {delta !== undefined && !loading && (
               <span className={`flex items-center gap-0.5 text-xs font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                 <TrendIcon className="w-3 h-3" />
@@ -471,7 +468,7 @@ function QuickActionButton({
       onClick={onClick}
       className={`p-4 bg-gradient-to-br ${color} rounded-xl border ${borderColor} transition-all group min-h-[100px] flex flex-col items-center justify-center gap-2`}
     >
-      <div className="w-10 h-10 rounded-lg bg-zinc-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+      <div className="w-10 h-10 rounded-lg bg-park-gray-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
         <Icon className="w-5 h-5" />
       </div>
       <p className="text-sm font-medium text-center">{label}</p>

@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { Save, Building2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminMutation } from '@/src/hooks/useAdminData';
+import { Button, Card, PageHeader } from '@/src/components/ui';
 
 interface TenantSettings {
   tenant_id: string;
@@ -75,41 +76,56 @@ export default function ConfigurationPage() {
   const error = fetchError || saveError;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" /></div>;
+    return (
+      <div className="p-4 space-y-6 max-w-2xl">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold">Configuración</h1>
-        <p className="text-zinc-400 mt-1">Ajustes del negocio</p>
-      </div>
+      <PageHeader
+        title="Configuración General"
+        description="Ajustes del negocio"
+      />
 
       {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2"><AlertCircle className="w-4 h-4" />{error}</div>}
       {success && <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">Configuración guardada</div>}
 
-      <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
-        <h2 className="font-medium flex items-center gap-2 mb-4"><Building2 className="w-4 h-4" />Información del Negocio</h2>
+      <Card>
+        <h2 className="font-medium flex items-center gap-2 mb-4 text-white"><Building2 className="w-4 h-4" />Información del Negocio</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Razón Social</label>
-            <input type="text" value={form?.legal_name || ''} onChange={(e) => setForm((s) => s ? { ...s, legal_name: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" data-testid="tenant-name" />
+            <label className="block text-sm text-park-gray-400 mb-1">Razón Social</label>
+            <input type="text" value={form?.legal_name || ''} onChange={(e) => setForm((s) => s ? { ...s, legal_name: e.target.value } : s)} className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px] text-white" data-testid="tenant-name" />
           </div>
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">RUC (11 dígitos)</label>
-            <input type="text" value={form?.ruc || ''} onChange={(e) => setForm((s) => s ? { ...s, ruc: e.target.value } : s)} maxLength={11} pattern="\d{11}" className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px] font-mono" />
+            <label className="block text-sm text-park-gray-400 mb-1">RUC (11 dígitos)</label>
+            <input type="text" value={form?.ruc || ''} onChange={(e) => setForm((s) => s ? { ...s, ruc: e.target.value } : s)} maxLength={11} pattern="\d{11}" className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px] font-mono text-white" />
           </div>
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Dirección</label>
-            <input type="text" value={form?.address_text || ''} onChange={(e) => setForm((s) => s ? { ...s, address_text: e.target.value } : s)} className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]" />
+            <label className="block text-sm text-park-gray-400 mb-1">Dirección</label>
+            <input type="text" value={form?.address_text || ''} onChange={(e) => setForm((s) => s ? { ...s, address_text: e.target.value } : s)} className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px] text-white" />
           </div>
         </div>
-      </div>
+      </Card>
 
-      <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px] disabled:opacity-50">
-        <Save className="w-4 h-4" />
+      <Button
+        variant="primary"
+        icon={<Save className="w-4 h-4" />}
+        onClick={handleSave}
+        loading={saving}
+      >
         {saving ? 'Guardando...' : 'Guardar Cambios'}
-      </button>
+      </Button>
     </div>
   );
 }

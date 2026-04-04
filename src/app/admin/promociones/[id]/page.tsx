@@ -7,9 +7,9 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Save, AlertCircle, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { Save, AlertCircle, Trash2 } from 'lucide-react';
 import { usePromotion } from '@/src/hooks/useSWRHooks';
+import { Button, Card, CardFooter, PageHeader } from '@/src/components/ui';
 
 const TYPE_OPTIONS = [
   { value: 'PERCENT', label: 'Porcentaje (%)' },
@@ -129,26 +129,26 @@ export default function EditPromotionPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" />
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/admin/promociones"
-          className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">Editar Promoción</h1>
-          <p className="text-zinc-400 mt-1">Modificar oferta o descuento</p>
-        </div>
-      </div>
+    <div className="p-4 space-y-6 max-w-2xl">
+      <PageHeader
+        title="Editar Promoción"
+        description="Modificar oferta o descuento"
+        backHref="/admin/promociones"
+      />
 
       {formError && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
@@ -158,7 +158,7 @@ export default function EditPromotionPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="p-6 bg-zinc-900 rounded-lg border border-zinc-800 space-y-4">
+        <Card className="space-y-4">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -170,7 +170,7 @@ export default function EditPromotionPage() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
               maxLength={100}
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
             />
           </div>
 
@@ -183,7 +183,7 @@ export default function EditPromotionPage() {
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
               required
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
             >
               {TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -205,9 +205,9 @@ export default function EditPromotionPage() {
               required
               min={0}
               step={form.type === 'PERCENT' ? 1 : 0.01}
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
             />
-            <p className="text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-park-gray-500 mt-1">
               {form.type === 'PERCENT' ? 'Porcentaje de descuento (0-100)' : 'Monto en soles'}
             </p>
           </div>
@@ -223,7 +223,7 @@ export default function EditPromotionPage() {
                 value={form.starts_at}
                 onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
                 required
-                className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
               />
             </div>
             <div>
@@ -235,7 +235,7 @@ export default function EditPromotionPage() {
                 value={form.ends_at}
                 onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
                 required
-                className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg min-h-[44px]"
+                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
               />
             </div>
           </div>
@@ -249,9 +249,9 @@ export default function EditPromotionPage() {
               value={form.rules}
               onChange={(e) => setForm({ ...form, rules: e.target.value })}
               rows={4}
-              className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg font-mono text-sm"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg font-mono text-sm"
             />
-            <p className="text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-park-gray-500 mt-1">
               Reglas adicionales en formato JSON (opcional)
             </p>
           </div>
@@ -269,35 +269,36 @@ export default function EditPromotionPage() {
               Promoción activa
             </label>
           </div>
-        </div>
+        </Card>
 
         {/* Actions */}
         <div className="flex gap-3 justify-between">
           <div className="flex gap-3">
-            <button
+            <Button
               type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px] disabled:opacity-50"
+              variant="primary"
+              loading={saving}
+              icon={<Save className="w-4 h-4" />}
             >
-              <Save className="w-4 h-4" />
               {saving ? 'Guardando...' : 'Guardar Cambios'}
-            </button>
-            <Link
-              href="/admin/promociones"
-              className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors min-h-[44px] flex items-center"
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push('/admin/promociones')}
             >
               Cancelar
-            </Link>
+            </Button>
           </div>
-          <button
+          <Button
             type="button"
+            variant="destructive"
+            loading={deleting}
+            icon={<Trash2 className="w-4 h-4" />}
             onClick={handleDelete}
-            disabled={deleting}
-            className="flex items-center gap-2 px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors min-h-[44px] disabled:opacity-50"
           >
-            <Trash2 className="w-4 h-4" />
             {deleting ? 'Desactivando...' : 'Desactivar'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

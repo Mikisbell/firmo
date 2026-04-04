@@ -25,6 +25,7 @@ import {
   DollarSign,
   FileText,
 } from 'lucide-react';
+import { Button, Card, PageHeader } from '@/src/components/ui';
 
 interface ProvisioningFormData {
   legal_name: string;
@@ -169,14 +170,11 @@ export default function TenantProvisioningPage() {
 
   if (result) {
     return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold">Aprovisionamiento de Tenant Completo</h1>
-          <p className="text-zinc-400 mt-1">
-            Tu nuevo tenant ha sido aprovisionado exitosamente
-          </p>
-        </div>
+      <div className="p-4 space-y-6">
+        <PageHeader
+          title="Aprovisionamiento de Tenant Completo"
+          description="Tu nuevo tenant ha sido aprovisionado exitosamente"
+        />
 
         {/* Success Message */}
         <motion.div
@@ -199,7 +197,7 @@ export default function TenantProvisioningPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-zinc-900 rounded-xl border border-zinc-800 p-6"
+          className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6"
         >
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Lock className="w-5 h-5 text-amber-400" />
@@ -209,7 +207,7 @@ export default function TenantProvisioningPage() {
           <div className="space-y-4">
             {/* Tenant ID */}
             <div>
-              <label className="text-xs text-zinc-500 uppercase mb-2 block">
+              <label className="text-xs text-park-gray-500 uppercase mb-2 block">
                 ID del Tenant
               </label>
               <div className="flex items-center gap-2">
@@ -217,16 +215,16 @@ export default function TenantProvisioningPage() {
                   type="text"
                   value={result.tenant_id}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm font-mono text-zinc-300"
+                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300"
                 />
                 <button
                   onClick={() => copyToClipboard(result.tenant_id, 'tenant_id')}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-park-gray-800 rounded-lg transition-colors"
                 >
                   {copiedField === 'tenant_id' ? (
                     <CheckCircle className="w-5 h-5 text-green-400" />
                   ) : (
-                    <Copy className="w-5 h-5 text-zinc-400" />
+                    <Copy className="w-5 h-5 text-park-gray-400" />
                   )}
                 </button>
               </div>
@@ -234,7 +232,7 @@ export default function TenantProvisioningPage() {
 
             {/* Admin Employee ID */}
             <div>
-              <label className="text-xs text-zinc-500 uppercase mb-2 block">
+              <label className="text-xs text-park-gray-500 uppercase mb-2 block">
                 ID del Empleado Admin
               </label>
               <div className="flex items-center gap-2">
@@ -242,16 +240,16 @@ export default function TenantProvisioningPage() {
                   type="text"
                   value={result.admin_employee_id}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm font-mono text-zinc-300"
+                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300"
                 />
                 <button
                   onClick={() => copyToClipboard(result.admin_employee_id, 'admin_employee_id')}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-park-gray-800 rounded-lg transition-colors"
                 >
                   {copiedField === 'admin_employee_id' ? (
                     <CheckCircle className="w-5 h-5 text-green-400" />
                   ) : (
-                    <Copy className="w-5 h-5 text-zinc-400" />
+                    <Copy className="w-5 h-5 text-park-gray-400" />
                   )}
                 </button>
               </div>
@@ -259,7 +257,7 @@ export default function TenantProvisioningPage() {
 
             {/* Activation Code */}
             <div>
-              <label className="text-xs text-zinc-500 uppercase mb-2 block">
+              <label className="text-xs text-park-gray-500 uppercase mb-2 block">
                 Codigo de Activacion
               </label>
               <div className="flex items-center gap-2">
@@ -267,16 +265,16 @@ export default function TenantProvisioningPage() {
                   type="text"
                   value={result.activation_code}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm font-mono text-zinc-300 text-center text-lg font-bold"
+                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300 text-center text-lg font-bold"
                 />
                 <button
                   onClick={() => copyToClipboard(result.activation_code, 'activation_code')}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-park-gray-800 rounded-lg transition-colors"
                 >
                   {copiedField === 'activation_code' ? (
                     <CheckCircle className="w-5 h-5 text-green-400" />
                   ) : (
-                    <Copy className="w-5 h-5 text-zinc-400" />
+                    <Copy className="w-5 h-5 text-park-gray-400" />
                   )}
                 </button>
               </div>
@@ -284,7 +282,7 @@ export default function TenantProvisioningPage() {
 
             {/* Admin PIN */}
             <div>
-              <label className="text-xs text-zinc-500 uppercase mb-2 block">
+              <label className="text-xs text-park-gray-500 uppercase mb-2 block">
                 PIN del Admin
               </label>
               <div className="flex items-center gap-2">
@@ -292,26 +290,26 @@ export default function TenantProvisioningPage() {
                   type={showPin ? 'text' : 'password'}
                   value={result.credentials.admin_pin}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm font-mono text-zinc-300"
+                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300"
                 />
                 <button
                   onClick={() => setShowPin(!showPin)}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-park-gray-800 rounded-lg transition-colors"
                 >
                   {showPin ? (
-                    <EyeOff className="w-5 h-5 text-zinc-400" />
+                    <EyeOff className="w-5 h-5 text-park-gray-400" />
                   ) : (
-                    <Eye className="w-5 h-5 text-zinc-400" />
+                    <Eye className="w-5 h-5 text-park-gray-400" />
                   )}
                 </button>
                 <button
                   onClick={() => copyToClipboard(result.credentials.admin_pin, 'admin_pin')}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-park-gray-800 rounded-lg transition-colors"
                 >
                   {copiedField === 'admin_pin' ? (
                     <CheckCircle className="w-5 h-5 text-green-400" />
                   ) : (
-                    <Copy className="w-5 h-5 text-zinc-400" />
+                    <Copy className="w-5 h-5 text-park-gray-400" />
                   )}
                 </button>
               </div>
@@ -323,7 +321,7 @@ export default function TenantProvisioningPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-zinc-900 rounded-xl border border-zinc-800 p-6"
+          className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6"
         >
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-400" />
@@ -334,16 +332,16 @@ export default function TenantProvisioningPage() {
             {result.onboarding_checklist.map((step) => (
               <div
                 key={step.id}
-                className="flex items-start gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+                className="flex items-start gap-3 p-3 rounded-lg bg-park-gray-800/50 hover:bg-park-gray-800 transition-colors"
               >
-                <div className="w-6 h-6 rounded-full border-2 border-zinc-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-semibold text-zinc-400">
+                <div className="w-6 h-6 rounded-full border-2 border-park-gray-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-semibold text-park-gray-400">
                     {step.step_number}
                   </span>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium">{step.title}</p>
-                  <p className="text-xs text-zinc-500 mt-1">{step.description}</p>
+                  <p className="text-xs text-park-gray-500 mt-1">{step.description}</p>
                 </div>
               </div>
             ))}
@@ -352,32 +350,31 @@ export default function TenantProvisioningPage() {
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <button
+          <Button
+            variant="secondary"
+            className="flex-1"
             onClick={() => setResult(null)}
-            className="flex-1 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors font-medium"
           >
             Provisionar Otro Tenant
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            className="flex-1"
             onClick={() => window.location.href = '/admin/tenant/dashboard'}
-            className="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors font-medium"
           >
             Ir al Dashboard
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Provisionar Nuevo Tenant</h1>
-        <p className="text-zinc-400 mt-1">
-          Crear un nuevo tenant con toda la configuracion requerida
-        </p>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Provisionar Nuevo Tenant"
+        description="Crear un nuevo tenant con toda la configuracion requerida"
+      />
 
       {error && (
         <motion.div
@@ -397,7 +394,7 @@ export default function TenantProvisioningPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         onSubmit={handleSubmit}
-        className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-6"
+        className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-6 space-y-6"
       >
         {/* Business Information */}
         <div>
@@ -419,7 +416,7 @@ export default function TenantProvisioningPage() {
                 onChange={handleInputChange}
                 placeholder="Pollería El Buen Sabor"
                 required
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -431,7 +428,7 @@ export default function TenantProvisioningPage() {
                 value={formData.ruc || ''}
                 onChange={handleInputChange}
                 placeholder="20123456789"
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -443,7 +440,7 @@ export default function TenantProvisioningPage() {
                 onChange={handleInputChange}
                 placeholder="Av. Principal 123, Lima"
                 rows={2}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -469,7 +466,7 @@ export default function TenantProvisioningPage() {
                 onChange={handleInputChange}
                 placeholder="Juan Pérez"
                 required
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -486,7 +483,7 @@ export default function TenantProvisioningPage() {
                 placeholder="1234"
                 pattern="\d{4}"
                 required
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -506,7 +503,7 @@ export default function TenantProvisioningPage() {
                 name="timezone"
                 value={formData.timezone}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               >
                 {TIMEZONES.map((tz) => (
                   <option key={tz} value={tz}>
@@ -522,7 +519,7 @@ export default function TenantProvisioningPage() {
                 name="currency"
                 value={formData.currency}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               >
                 {CURRENCIES.map((curr) => (
                   <option key={curr} value={curr}>
@@ -552,7 +549,7 @@ export default function TenantProvisioningPage() {
                 onChange={handleInputChange}
                 placeholder="Gracias por su compra!"
                 rows={2}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -567,7 +564,7 @@ export default function TenantProvisioningPage() {
                   value={formData.default_delivery_fee_cents}
                   onChange={handleInputChange}
                   min="0"
-                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -581,7 +578,7 @@ export default function TenantProvisioningPage() {
                   value={formData.max_offline_coupons_per_order}
                   onChange={handleInputChange}
                   min="1"
-                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -593,7 +590,7 @@ export default function TenantProvisioningPage() {
                   name="enable_tips"
                   checked={formData.enable_tips}
                   onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
+                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
                 />
                 <span className="text-sm font-medium">Habilitar Propinas</span>
               </label>
@@ -604,7 +601,7 @@ export default function TenantProvisioningPage() {
                   name="tips_on_invoice"
                   checked={formData.tips_on_invoice}
                   onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
+                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
                 />
                 <span className="text-sm font-medium">Mostrar Propinas en Factura</span>
               </label>
@@ -615,7 +612,7 @@ export default function TenantProvisioningPage() {
                   name="allow_offline_coupon"
                   checked={formData.allow_offline_coupon}
                   onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
+                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
                 />
                 <span className="text-sm font-medium">Permitir Cupones Offline</span>
               </label>
@@ -626,7 +623,7 @@ export default function TenantProvisioningPage() {
                   name="require_manager_for_offline"
                   checked={formData.require_manager_for_offline}
                   onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
+                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
                 />
                 <span className="text-sm font-medium">Requerir Gerente para Offline</span>
               </label>
@@ -636,23 +633,15 @@ export default function TenantProvisioningPage() {
 
         {/* Submit Button */}
         <div className="flex gap-3 pt-4">
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+            variant="primary"
+            loading={loading}
+            icon={!loading ? <CheckCircle className="w-4 h-4" /> : undefined}
+            className="flex-1"
           >
-            {loading ? (
-              <>
-                <Loader className="w-4 h-4 animate-spin" />
-                Aprovisionando...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                Provisionar Tenant
-              </>
-            )}
-          </button>
+            {loading ? 'Aprovisionando...' : 'Provisionar Tenant'}
+          </Button>
         </div>
       </motion.form>
     </div>

@@ -14,6 +14,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import OnboardingWizard from '../components/onboarding/OnboardingWizard';
+import { Button, Card, PageHeader } from '@/src/components/ui';
 import type { OnboardingStep } from '@/src/core/tenant/onboarding';
 
 interface OnboardingApiResponse {
@@ -87,13 +88,15 @@ export default function AdminOnboardingPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto" />
-          <p className="text-zinc-400 text-sm">
-            Cargando configuracion inicial...
-          </p>
-        </div>
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
@@ -105,18 +108,18 @@ export default function AdminOnboardingPage() {
         <div className="text-center space-y-4 max-w-md">
           <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
           <div>
-            <h2 className="text-lg font-semibold text-zinc-200 mb-2">
+            <h2 className="text-lg font-semibold text-white mb-2">
               Error al cargar onboarding
             </h2>
-            <p className="text-zinc-400 text-sm">{error}</p>
+            <p className="text-park-gray-400 text-sm">{error}</p>
           </div>
-          <button
+          <Button
+            variant="secondary"
+            icon={<RefreshCw className="w-4 h-4" />}
             onClick={fetchOnboarding}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors"
           >
-            <RefreshCw className="w-4 h-4" />
             Reintentar
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -129,10 +132,10 @@ export default function AdminOnboardingPage() {
         <div className="text-center space-y-4">
           <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
           <div>
-            <h2 className="text-lg font-semibold text-zinc-200 mb-2">
+            <h2 className="text-lg font-semibold text-white mb-2">
               Sin datos de onboarding
             </h2>
-            <p className="text-zinc-400 text-sm">
+            <p className="text-park-gray-400 text-sm">
               No se encontro lista de configuracion para este tenant.
             </p>
           </div>

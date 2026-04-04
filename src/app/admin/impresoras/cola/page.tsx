@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Loader2,
 } from 'lucide-react';
+import { Button, Badge, Card, CardHeader, PageHeader, EmptyState } from '@/src/components/ui';
 
 // ============================================================================
 // Types
@@ -102,32 +103,30 @@ export default function PrintQueuePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ClipboardList className="h-7 w-7" />
-          Cola de Impresion
-        </h1>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">
-            Ultima actualizacion: {lastUpdate.toLocaleTimeString('es-PE')}
-          </span>
-          <button
-            onClick={fetchData}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-            title="Actualizar"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Cola de Impresion"
+        description={`Ultima actualizacion: ${lastUpdate.toLocaleTimeString('es-PE')}`}
+        actions={
+          <Button variant="secondary" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchData}>
+            Actualizar
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -158,56 +157,52 @@ export default function PrintQueuePage() {
       </div>
 
       {/* Jobs Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <Card padding="none">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Tipo</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Impresora</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Orden #</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Intentos</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Creado</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Tipo</th>
+                <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Impresora</th>
+                <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Orden #</th>
+                <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Estado</th>
+                <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Intentos</th>
+                <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Creado</th>
+                <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {jobs.map((job) => (
-                <tr key={job.id}>
+                <tr key={job.id} className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors">
                   <td className="px-4 py-3">
                     <JobTypeBadge type={job.jobType} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-park-gray-400">
                     {job.printerName || job.printerId?.slice(0, 8) || '-'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 font-mono">
+                  <td className="px-4 py-3 text-park-gray-400 font-mono">
                     {job.orderId ? job.orderId.slice(0, 8) : '-'}
                   </td>
                   <td className="px-4 py-3">
                     <JobStatusBadge status={job.status} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 text-center">
+                  <td className="px-4 py-3 text-park-gray-400 text-center">
                     {job.attempts}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-park-gray-500">
                     {formatDate(job.createdAt)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {job.status === 'FAILED' && (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={retryingId === job.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
                         onClick={() => handleRetry(job)}
                         disabled={retryingId === job.id}
-                        className="inline-flex items-center gap-1 px-3 py-1 text-sm text-orange-600 hover:bg-orange-50 rounded disabled:opacity-40"
-                        title="Reintentar"
                       >
-                        {retryingId === job.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <RotateCcw className="h-3.5 w-3.5" />
-                        )}
                         Reintentar
-                      </button>
+                      </Button>
                     )}
                   </td>
                 </tr>
@@ -216,11 +211,12 @@ export default function PrintQueuePage() {
           </table>
         </div>
         {jobs.length === 0 && (
-          <p className="p-8 text-center text-gray-500">
-            No hay trabajos de impresion
-          </p>
+          <EmptyState
+            icon={<ClipboardList />}
+            title="No hay trabajos de impresion"
+          />
         )}
-      </div>
+      </Card>
     </div>
   );
 }
@@ -241,38 +237,31 @@ function StatCard({
   color: 'yellow' | 'blue' | 'green' | 'red';
 }) {
   const colorMap = {
-    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    green: 'bg-green-50 text-green-700 border-green-200',
-    red: 'bg-red-50 text-red-700 border-red-200',
-  };
-
-  const iconColorMap = {
-    yellow: 'text-yellow-500',
-    blue: 'text-blue-500',
-    green: 'text-green-500',
-    red: 'text-red-500',
+    yellow: 'text-amber-400',
+    blue: 'text-blue-400',
+    green: 'text-green-400',
+    red: 'text-red-400',
   };
 
   return (
-    <div className={`rounded-lg border p-4 ${colorMap[color]}`}>
+    <div className="bg-park-gray-900 rounded-xl border border-park-gray-800 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium opacity-80">{label}</p>
-          <p className="text-2xl font-bold">{count}</p>
+          <p className="text-sm font-medium text-park-gray-400">{label}</p>
+          <p className="text-2xl font-bold text-white">{count}</p>
         </div>
-        <Icon className={`h-8 w-8 ${iconColorMap[color]} opacity-60`} />
+        <Icon className={`h-8 w-8 ${colorMap[color]} opacity-60`} />
       </div>
     </div>
   );
 }
 
 function JobStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    QUEUED: 'bg-yellow-100 text-yellow-700',
-    SENT: 'bg-blue-100 text-blue-700',
-    PRINTED: 'bg-green-100 text-green-700',
-    FAILED: 'bg-red-100 text-red-700',
+  const variants: Record<string, 'warning' | 'info' | 'success' | 'critical' | 'neutral'> = {
+    QUEUED: 'warning',
+    SENT: 'info',
+    PRINTED: 'success',
+    FAILED: 'critical',
   };
 
   const labels: Record<string, string> = {
@@ -283,32 +272,28 @@ function JobStatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`text-xs px-2 py-1 rounded ${styles[status] || 'bg-gray-100'}`}>
+    <Badge variant={variants[status] || 'neutral'} dot>
       {labels[status] || status}
-    </span>
+    </Badge>
   );
 }
 
 function JobTypeBadge({ type }: { type: string }) {
-  const config: Record<string, { bg: string; icon: typeof Receipt; label: string }> = {
-    RECEIPT: { bg: 'bg-emerald-100 text-emerald-700', icon: Receipt, label: 'Recibo' },
-    KITCHEN_TICKET: { bg: 'bg-orange-100 text-orange-700', icon: ChefHat, label: 'Cocina' },
-    PRE_CHECK: { bg: 'bg-indigo-100 text-indigo-700', icon: FileText, label: 'Pre-cuenta' },
-    INVOICE: { bg: 'bg-cyan-100 text-cyan-700', icon: FileText, label: 'Factura' },
-    TEST: { bg: 'bg-purple-100 text-purple-700', icon: FileText, label: 'Prueba' },
+  const config: Record<string, { variant: 'success' | 'warning' | 'info' | 'neutral'; icon: typeof Receipt; label: string }> = {
+    RECEIPT: { variant: 'success', icon: Receipt, label: 'Recibo' },
+    KITCHEN_TICKET: { variant: 'warning', icon: ChefHat, label: 'Cocina' },
+    PRE_CHECK: { variant: 'info', icon: FileText, label: 'Pre-cuenta' },
+    INVOICE: { variant: 'info', icon: FileText, label: 'Factura' },
+    TEST: { variant: 'neutral', icon: FileText, label: 'Prueba' },
   };
 
-  const { bg, icon: Icon, label } = config[type] || {
-    bg: 'bg-gray-100 text-gray-700',
-    icon: FileText,
+  const { variant, label } = config[type] || {
+    variant: 'neutral' as const,
     label: type,
   };
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${bg}`}>
-      <Icon className="h-3 w-3" />
-      {label}
-    </span>
+    <Badge variant={variant}>{label}</Badge>
   );
 }
 

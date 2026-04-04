@@ -48,6 +48,7 @@ import {
   Download,
 } from 'lucide-react';
 import { useMetrics } from '@/src/hooks/useSWRHooks';
+import { Button, Badge, Card, PageHeader, MetricCard as DSMetricCard } from '@/src/components/ui';
 
 // Tipos de datos
 interface MetricsSummary {
@@ -354,11 +355,15 @@ export default function MonitoringDashboard() {
 
   if (loading && !metricsData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin text-amber-500 mx-auto mb-4" />
-          <p className="text-zinc-400">Cargando métricas...</p>
-        </div>
+      <div className="p-6 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-16 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
@@ -369,13 +374,10 @@ export default function MonitoringDashboard() {
         <div className="text-center max-w-md">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Error al cargar métricas</h2>
-          <p className="text-zinc-400 mb-4">{error.message || 'Error desconocido'}</p>
-          <button
-            onClick={() => mutate()}
-            className="px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-600 transition-colors"
-          >
+          <p className="text-park-gray-400 mb-4">{error.message || 'Error desconocido'}</p>
+          <Button variant="primary" onClick={() => mutate()}>
             Reintentar
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -389,27 +391,44 @@ export default function MonitoringDashboard() {
   const requestStatusData = getRequestStatusData();
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Dashboard de Monitoreo</h1>
-        <p className="text-zinc-400">
-          Métricas en tiempo real del sistema PARK POS
-        </p>
-      </div>
+    <div className="min-h-screen text-white p-6">
+      <PageHeader
+        title="Monitoreo"
+        description="Métricas en tiempo real del sistema PARK POS"
+        actions={
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-park-gray-400">Auto-refresh: 30s</span>
+            <Button
+              variant="primary"
+              icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+              onClick={() => mutate()}
+              disabled={loading}
+            >
+              Actualizar
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<Download className="w-4 h-4" />}
+              onClick={exportToCSV}
+              disabled={!metricsData || loading}
+            >
+              Exportar CSV
+            </Button>
+          </div>
+        }
+      />
 
       {/* Filtros */}
-      <div className="bg-zinc-900 rounded-lg p-6 mb-6 border border-zinc-800">
+      <Card className="mb-6">
         <div className="flex flex-wrap gap-4 items-end">
-          {/* Período */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-zinc-400 mb-2">
+            <label className="block text-sm font-medium text-park-gray-400 mb-2">
               Período de tiempo
             </label>
             <select
               value={period}
               onChange={(e) => setPeriod(e.target.value as typeof period)}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="1h">Última hora</option>
               <option value="24h">Últimas 24 horas</option>
@@ -417,10 +436,8 @@ export default function MonitoringDashboard() {
               <option value="30d">Últimos 30 días</option>
             </select>
           </div>
-
-          {/* Tenant ID */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-zinc-400 mb-2">
+            <label className="block text-sm font-medium text-park-gray-400 mb-2">
               Tenant ID (opcional)
             </label>
             <input
@@ -428,13 +445,11 @@ export default function MonitoringDashboard() {
               value={tenantId}
               onChange={(e) => setTenantId(e.target.value)}
               placeholder="Filtrar por tenant"
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
-
-          {/* Terminal ID */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-zinc-400 mb-2">
+            <label className="block text-sm font-medium text-park-gray-400 mb-2">
               Terminal ID (opcional)
             </label>
             <input
@@ -442,124 +457,43 @@ export default function MonitoringDashboard() {
               value={terminalId}
               onChange={(e) => setTerminalId(e.target.value)}
               placeholder="Filtrar por terminal"
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
-
-          {/* Auto-refresh - Ahora controlado por SWR */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-zinc-400">
-              Auto-refresh: 30s
-            </span>
-          </div>
-
-          {/* Botón de refresh manual */}
-          <button
-            onClick={() => mutate()}
-            disabled={loading}
-            className="px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
-          </button>
-
-          {/* Botón de exportación CSV */}
-          <button
-            onClick={exportToCSV}
-            disabled={!metricsData || loading}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            title="Exportar métricas a CSV"
-          >
-            <Download className="w-4 h-4" />
-            Exportar CSV
-          </button>
         </div>
-      </div>
+      </Card>
 
       {/* Métricas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {/* Error Rate */}
-        <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              <h3 className="text-sm font-medium text-zinc-400">Tasa de errores</h3>
-            </div>
-            {errorRate < 1 ? (
-              <CheckCircle className="w-5 h-5 text-green-500" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-red-500" />
-            )}
-          </div>
-          <div className="text-3xl font-bold text-white mb-1">
-            {errorRate.toFixed(2)}%
-          </div>
-          <div className="text-xs text-zinc-500">
-            {metricsData?.counters['api_errors_total'] || 0} errores de{' '}
-            {metricsData?.counters['http_requests_total'] || 0} solicitudes
-          </div>
-        </div>
-
-        {/* Cache Hit Rate */}
-        <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500" />
-              <h3 className="text-sm font-medium text-zinc-400">Tasa de aciertos de caché</h3>
-            </div>
-            {cacheHitRate > 80 ? (
-              <CheckCircle className="w-5 h-5 text-green-500" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-orange-500" />
-            )}
-          </div>
-          <div className="text-3xl font-bold text-white mb-1">
-            {cacheHitRate.toFixed(1)}%
-          </div>
-          <div className="text-xs text-zinc-500">
-            {metricsData?.counters['cache_hits_total'] || 0} aciertos /{' '}
-            {metricsData?.counters['cache_misses_total'] || 0} fallos
-          </div>
-        </div>
-
-        {/* Total Requests */}
-        <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-blue-500" />
-            <h3 className="text-sm font-medium text-zinc-400">Total de solicitudes</h3>
-          </div>
-          <div className="text-3xl font-bold text-white mb-1">
-            {(metricsData?.counters['http_requests_total'] || 0).toLocaleString()}
-          </div>
-          <div className="text-xs text-zinc-500">
-            En el período seleccionado
-          </div>
-        </div>
-
-        {/* Avg Response Time */}
-        <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-5 h-5 text-purple-500" />
-            <h3 className="text-sm font-medium text-zinc-400">Tiempo promedio de respuesta</h3>
-          </div>
-          <div className="text-3xl font-bold text-white mb-1">
-            {metricsData?.histograms['http_request_duration_ms']?.avg
-              ? Math.round(metricsData.histograms['http_request_duration_ms'].avg)
-              : 0}
-            <span className="text-lg text-zinc-500">ms</span>
-          </div>
-          <div className="text-xs text-zinc-500">
-            P95: {metricsData?.histograms['http_request_duration_ms']?.p95
-              ? Math.round(metricsData.histograms['http_request_duration_ms'].p95)
-              : 0}ms
-          </div>
-        </div>
+        <DSMetricCard
+          label="Tasa de errores"
+          value={`${errorRate.toFixed(2)}%`}
+          icon={<AlertCircle className="w-5 h-5" />}
+          className={errorRate < 1 ? '' : 'border-red-500/30'}
+        />
+        <DSMetricCard
+          label="Tasa de aciertos de caché"
+          value={`${cacheHitRate.toFixed(1)}%`}
+          icon={<Zap className="w-5 h-5" />}
+        />
+        <DSMetricCard
+          label="Total de solicitudes"
+          value={(metricsData?.counters['http_requests_total'] || 0).toLocaleString()}
+          icon={<Activity className="w-5 h-5" />}
+        />
+        <DSMetricCard
+          label="Tiempo promedio de respuesta"
+          value={`${metricsData?.histograms['http_request_duration_ms']?.avg
+            ? Math.round(metricsData.histograms['http_request_duration_ms'].avg)
+            : 0}ms`}
+          icon={<Clock className="w-5 h-5" />}
+        />
       </div>
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Tiempos de respuesta por endpoint */}
-        <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
+        <div className="bg-park-gray-900 rounded-xl p-6 border border-park-gray-800">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-amber-500" />
             Tiempos de Respuesta por Endpoint
@@ -591,14 +525,14 @@ export default function MonitoringDashboard() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-zinc-500">
+            <div className="h-[300px] flex items-center justify-center text-park-gray-500">
               No hay datos disponibles
             </div>
           )}
         </div>
 
         {/* Distribución de requests por status */}
-        <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
+        <div className="bg-park-gray-900 rounded-xl p-6 border border-park-gray-800">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-blue-500" />
             Distribución de Requests por Status
@@ -630,7 +564,7 @@ export default function MonitoringDashboard() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-zinc-500">
+            <div className="h-[300px] flex items-center justify-center text-park-gray-500">
               No hay datos disponibles
             </div>
           )}
@@ -638,7 +572,7 @@ export default function MonitoringDashboard() {
       </div>
 
       {/* Web Vitals */}
-      <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800 mb-6">
+      <div className="bg-park-gray-900 rounded-xl p-6 border border-park-gray-800 mb-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Zap className="w-5 h-5 text-amber-500" />
           Rendimiento Web Vitals
@@ -662,14 +596,14 @@ export default function MonitoringDashboard() {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-[300px] flex items-center justify-center text-zinc-500">
+          <div className="h-[300px] flex items-center justify-center text-park-gray-500">
             No hay datos de Web Vitals disponibles
           </div>
         )}
       </div>
 
       {/* Queries de base de datos */}
-      <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
+      <div className="bg-park-gray-900 rounded-xl p-6 border border-park-gray-800">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Database className="w-5 h-5 text-green-500" />
           Queries Lentas de Base de Datos
@@ -678,18 +612,18 @@ export default function MonitoringDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Consulta</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-zinc-400">Cantidad</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-zinc-400">Tiempo prom. (ms)</th>
+                <tr className="border-b border-park-gray-800">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-park-gray-400">Consulta</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-park-gray-400">Cantidad</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-park-gray-400">Tiempo prom. (ms)</th>
                 </tr>
               </thead>
               <tbody>
                 {databaseQueryData.map((query, index) => (
-                  <tr key={index} className="border-b border-zinc-800 hover:bg-zinc-800/50">
+                  <tr key={index} className="border-b border-park-gray-800 hover:bg-zinc-800/50">
                     <td className="py-3 px-4 text-sm text-white font-mono">{query.query}</td>
-                    <td className="py-3 px-4 text-sm text-zinc-400 text-right">{query.count}</td>
-                    <td className="py-3 px-4 text-sm text-zinc-400 text-right">
+                    <td className="py-3 px-4 text-sm text-park-gray-400 text-right">{query.count}</td>
+                    <td className="py-3 px-4 text-sm text-park-gray-400 text-right">
                       <span className={query.avgTime > 1000 ? 'text-red-500' : 'text-green-500'}>
                         {query.avgTime}
                       </span>
@@ -700,14 +634,14 @@ export default function MonitoringDashboard() {
             </table>
           </div>
         ) : (
-          <div className="py-8 text-center text-zinc-500">
+          <div className="py-8 text-center text-park-gray-500">
             No hay queries lentas registradas
           </div>
         )}
       </div>
 
       {/* Footer con información del período */}
-      <div className="mt-6 text-center text-sm text-zinc-500">
+      <div className="mt-6 text-center text-sm text-park-gray-500">
         Última actualización: {new Date().toLocaleString('es-PE')}
         {metricsData?.summary && (
           <span className="ml-4">

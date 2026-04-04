@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import type { EmployeeSubscriptionStatus } from '@/src/core/notifications/types';
 import { useNotificationStatus } from '@/src/hooks/useSWRHooks';
+import { Button, Badge, Card, PageHeader, MetricCard } from '@/src/components/ui';
 
 export default function NotificacionesAdminPage() {
   // Migrado a SWR - Tarea 9.3 Lote 2
@@ -72,46 +73,37 @@ export default function NotificacionesAdminPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Bell className="w-6 h-6 text-blue-400" />
-            Notificaciones Push
-          </h1>
-          <p className="text-zinc-400 mt-1">
-            Gestionar suscripciones y enviar notificaciones de prueba
-          </p>
-        </div>
-        <button
-          onClick={fetchStatus}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
-      </div>
+      <PageHeader
+        title="Notificaciones"
+        description="Gestionar suscripciones y enviar notificaciones de prueba"
+        actions={
+          <Button
+            variant="secondary"
+            icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+            onClick={fetchStatus}
+            disabled={loading}
+          >
+            Actualizar
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <SummaryCard
+        <MetricCard
           label="Total Empleados"
           value={employees.length}
-          icon={User}
-          color="text-zinc-400"
+          icon={<User className="w-5 h-5" />}
         />
-        <SummaryCard
+        <MetricCard
           label="Con Suscripción"
           value={subscribedCount}
-          icon={Bell}
-          color="text-green-400"
+          icon={<Bell className="w-5 h-5" />}
         />
-        <SummaryCard
+        <MetricCard
           label="Inactivos (+7 días)"
           value={inactiveCount}
-          icon={AlertTriangle}
-          color={inactiveCount > 0 ? 'text-amber-400' : 'text-zinc-400'}
+          icon={<AlertTriangle className="w-5 h-5" />}
         />
       </div>
 
@@ -135,22 +127,22 @@ export default function NotificacionesAdminPage() {
       )}
 
       {/* Employee List */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-        <div className="p-4 border-b border-zinc-800">
-          <h2 className="font-semibold">Estado de Suscripciones</h2>
+      <Card padding="none">
+        <div className="p-4 border-b border-park-gray-800">
+          <h2 className="font-semibold text-white">Estado de Suscripciones</h2>
         </div>
-        
+
         {loading ? (
-          <div className="p-8 text-center text-zinc-500">
+          <div className="p-8 text-center text-park-gray-500">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
             Cargando...
           </div>
         ) : employees.length === 0 ? (
-          <div className="p-8 text-center text-zinc-500">
+          <div className="p-8 text-center text-park-gray-500">
             No hay empleados registrados
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-park-gray-800">
             {employees.map((employee) => (
               <EmployeeRow
                 key={employee.employee_id}
@@ -161,39 +153,13 @@ export default function NotificacionesAdminPage() {
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
 
 
 // ============ COMPONENTS ============
-
-function SummaryCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  color: string;
-}) {
-  return (
-    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center ${color}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-zinc-500">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function EmployeeRow({
   employee,
@@ -249,25 +215,20 @@ function EmployeeRow({
       {/* Actions */}
       <div className="flex items-center gap-2">
         {isInactive && (
-          <span className="px-2 py-1 text-xs bg-amber-500/20 text-amber-400 rounded-full flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3" />
-            Inactivo
-          </span>
+          <Badge variant="warning" dot>Inactivo</Badge>
         )}
         
         {hasSubscription && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onSendTest}
             disabled={isSending}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+            icon={isSending ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+            className="text-blue-400"
           >
-            {isSending ? (
-              <RefreshCw className="w-3 h-3 animate-spin" />
-            ) : (
-              <Send className="w-3 h-3" />
-            )}
             Probar
-          </button>
+          </Button>
         )}
       </div>
     </div>

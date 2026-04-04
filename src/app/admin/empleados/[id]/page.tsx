@@ -9,13 +9,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Shield, Trash2, CheckCircle2, KeyRound, CreditCard,
+  Shield, Trash2, CheckCircle2, KeyRound, CreditCard,
   User, DollarSign, Calendar, Star, BookOpen, Check, X, Clock,
   AlertCircle, Plus, Truck, Link2, Unlink,
 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
 import useSWR from 'swr';
+import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -108,8 +109,8 @@ function StatusBadge({ status }: { status: string }) {
     APPROVED:  'bg-green-500/20 text-green-400',
     REJECTED:  'bg-red-500/20 text-red-400',
     PAID:      'bg-blue-500/20 text-blue-400',
-    CANCELLED: 'bg-zinc-500/20 text-zinc-400',
-    DRAFT:     'bg-zinc-500/20 text-zinc-400',
+    CANCELLED: 'bg-park-gray-500/20 text-park-gray-400',
+    DRAFT:     'bg-park-gray-500/20 text-park-gray-400',
     COMPLETED: 'bg-green-500/20 text-green-400',
     IN_PROGRESS:'bg-blue-500/20 text-blue-400',
   };
@@ -119,7 +120,7 @@ function StatusBadge({ status }: { status: string }) {
     COMPLETED: 'Completado', IN_PROGRESS: 'En curso',
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[status] ?? 'bg-zinc-500/20 text-zinc-400'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[status] ?? 'bg-park-gray-500/20 text-park-gray-400'}`}>
       {labels[status] ?? status}
     </span>
   );
@@ -127,7 +128,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="text-center py-12 text-zinc-500">
+    <div className="text-center py-12 text-park-gray-500">
       <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
       <p className="text-sm">{message}</p>
     </div>
@@ -191,7 +192,7 @@ function AdelantosTab({ employeeId }: { employeeId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-zinc-400">Adelantos de sueldo</h3>
+        <h3 className="text-sm font-medium text-park-gray-400">Adelantos de sueldo</h3>
         <button
           onClick={() => setShowForm(!showForm)}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black text-sm font-medium rounded-lg transition-colors"
@@ -202,29 +203,29 @@ function AdelantosTab({ employeeId }: { employeeId: string }) {
       </div>
 
       {showForm && (
-        <div className="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4">
+        <div className="bg-park-gray-800/50 rounded-lg border border-park-gray-700 p-4">
           <form onSubmit={handleCreate} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Monto (S/)</label>
+                <label className="block text-xs font-medium text-park-gray-400 mb-1">Monto (S/)</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={form.amount}
                   onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:border-amber-500 outline-none"
+                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:border-amber-500 outline-none"
                   placeholder="0.00"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Motivo</label>
+                <label className="block text-xs font-medium text-park-gray-400 mb-1">Motivo</label>
                 <input
                   type="text"
                   value={form.reason}
                   onChange={(e) => setForm({ ...form, reason: e.target.value })}
-                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:border-amber-500 outline-none"
+                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:border-amber-500 outline-none"
                   placeholder="Motivo del adelanto"
                   required
                 />
@@ -234,7 +235,7 @@ function AdelantosTab({ employeeId }: { employeeId: string }) {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="flex-1 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm transition-colors"
+                className="flex-1 px-3 py-1.5 bg-park-gray-700 hover:bg-park-gray-600 rounded-lg text-sm transition-colors"
               >
                 Cancelar
               </button>
@@ -255,11 +256,11 @@ function AdelantosTab({ employeeId }: { employeeId: string }) {
       ) : (
         <div className="space-y-2">
           {data.map((advance) => (
-            <div key={advance.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-800">
+            <div key={advance.id} className="flex items-center justify-between p-3 bg-park-gray-800/50 rounded-lg border border-park-gray-800">
               <div>
                 <p className="text-sm font-medium">{formatMoney(advance.amount_cents)}</p>
-                <p className="text-xs text-zinc-500 mt-0.5">{advance.reason}</p>
-                <p className="text-xs text-zinc-600 mt-0.5">{formatDate(advance.created_at)}</p>
+                <p className="text-xs text-park-gray-500 mt-0.5">{advance.reason}</p>
+                <p className="text-xs text-park-gray-600 mt-0.5">{formatDate(advance.created_at)}</p>
               </div>
               <div className="flex items-center gap-2">
                 <StatusBadge status={advance.status} />
@@ -324,13 +325,13 @@ function PermisosTab({ employeeId }: { employeeId: string }) {
   return (
     <div className="space-y-2">
       {data.map((req) => (
-        <div key={req.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-800">
+        <div key={req.id} className="flex items-center justify-between p-3 bg-park-gray-800/50 rounded-lg border border-park-gray-800">
           <div>
             <p className="text-sm font-medium">{leaveTypeLabel[req.leave_type] ?? req.leave_type}</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-park-gray-500 mt-0.5">
               {formatDate(req.start_date)} — {formatDate(req.end_date)}
             </p>
-            {req.reason && <p className="text-xs text-zinc-600 mt-0.5">{req.reason}</p>}
+            {req.reason && <p className="text-xs text-park-gray-600 mt-0.5">{req.reason}</p>}
           </div>
           <div className="flex items-center gap-2">
             <StatusBadge status={req.status} />
@@ -379,14 +380,14 @@ function EvaluacionesTab({ employeeId }: { employeeId: string }) {
           ? scores.reduce((s, [, v]) => s + v, 0) / scores.length
           : 0;
         return (
-          <div key={ev.id} className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-800">
+          <div key={ev.id} className="p-4 bg-park-gray-800/50 rounded-lg border border-park-gray-800">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="text-sm font-medium">
                   {formatDate(ev.period_start)} — {formatDate(ev.period_end)}
                 </p>
                 {ev.comments && (
-                  <p className="text-xs text-zinc-500 mt-1">{ev.comments}</p>
+                  <p className="text-xs text-park-gray-500 mt-1">{ev.comments}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -399,15 +400,15 @@ function EvaluacionesTab({ employeeId }: { employeeId: string }) {
               <div className="grid grid-cols-2 gap-2">
                 {scores.map(([key, val]) => (
                   <div key={key} className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400 capitalize">{key.replace(/_/g, ' ')}</span>
+                    <span className="text-park-gray-400 capitalize">{key.replace(/_/g, ' ')}</span>
                     <div className="flex items-center gap-1.5">
-                      <div className="w-16 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                      <div className="w-16 h-1.5 bg-park-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-amber-500 rounded-full"
                           style={{ width: `${(val / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="text-zinc-300 w-5 text-right">{val}</span>
+                      <span className="text-park-gray-300 w-5 text-right">{val}</span>
                     </div>
                   </div>
                 ))}
@@ -435,12 +436,12 @@ function CapacitacionTab({ employeeId }: { employeeId: string }) {
   return (
     <div className="space-y-2">
       {data.map((t) => (
-        <div key={t.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-800">
+        <div key={t.id} className="flex items-center justify-between p-3 bg-park-gray-800/50 rounded-lg border border-park-gray-800">
           <div>
             <p className="text-sm font-medium">{t.title}</p>
-            <p className="text-xs text-zinc-500 mt-0.5">{t.training_type}</p>
+            <p className="text-xs text-park-gray-500 mt-0.5">{t.training_type}</p>
             {t.completed_at && (
-              <p className="text-xs text-zinc-600 mt-0.5">
+              <p className="text-xs text-park-gray-600 mt-0.5">
                 Completado: {formatDate(t.completed_at)}
               </p>
             )}
@@ -530,7 +531,7 @@ function DeliveryTab({ employeeId }: { employeeId: string }) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-zinc-400">Motorizado vinculado</h3>
+          <h3 className="text-sm font-medium text-park-gray-400">Motorizado vinculado</h3>
           <button
             onClick={handleUnlink}
             disabled={unlinking}
@@ -541,17 +542,17 @@ function DeliveryTab({ employeeId }: { employeeId: string }) {
           </button>
         </div>
 
-        <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-800">
+        <div className="p-4 bg-park-gray-800/50 rounded-lg border border-park-gray-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
               <Truck className="w-5 h-5 text-amber-400" />
             </div>
             <div>
               <p className="text-sm font-medium">{linkedDriver.name}</p>
-              <p className="text-xs text-zinc-500">{linkedDriver.phone ?? 'Sin telefono'}</p>
+              <p className="text-xs text-park-gray-500">{linkedDriver.phone ?? 'Sin telefono'}</p>
             </div>
             <span className={`ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              linkedDriver.is_active ? 'bg-green-500/20 text-green-400' : 'bg-zinc-500/20 text-zinc-400'
+              linkedDriver.is_active ? 'bg-green-500/20 text-green-400' : 'bg-park-gray-500/20 text-park-gray-400'
             }`}>
               {linkedDriver.is_active ? 'Activo' : 'Inactivo'}
             </span>
@@ -560,23 +561,23 @@ function DeliveryTab({ employeeId }: { employeeId: string }) {
 
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+            <div className="p-3 bg-park-gray-800/50 rounded-lg border border-park-gray-800 text-center">
               <p className="text-lg font-bold text-white">{stats.total}</p>
-              <p className="text-xs text-zinc-500">Total entregas</p>
+              <p className="text-xs text-park-gray-500">Total entregas</p>
             </div>
-            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+            <div className="p-3 bg-park-gray-800/50 rounded-lg border border-park-gray-800 text-center">
               <p className="text-lg font-bold text-green-400">{stats.delivered}</p>
-              <p className="text-xs text-zinc-500">Entregadas</p>
+              <p className="text-xs text-park-gray-500">Entregadas</p>
             </div>
-            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+            <div className="p-3 bg-park-gray-800/50 rounded-lg border border-park-gray-800 text-center">
               <p className="text-lg font-bold text-red-400">{stats.failed}</p>
-              <p className="text-xs text-zinc-500">Fallidas</p>
+              <p className="text-xs text-park-gray-500">Fallidas</p>
             </div>
-            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+            <div className="p-3 bg-park-gray-800/50 rounded-lg border border-park-gray-800 text-center">
               <p className="text-lg font-bold text-amber-400">
                 {stats.avgTimeMins != null ? `${stats.avgTimeMins} min` : '-'}
               </p>
-              <p className="text-xs text-zinc-500">Tiempo promedio</p>
+              <p className="text-xs text-park-gray-500">Tiempo promedio</p>
             </div>
           </div>
         )}
@@ -586,7 +587,7 @@ function DeliveryTab({ employeeId }: { employeeId: string }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-park-gray-500">
         Este empleado no esta vinculado a un motorizado de delivery.
       </p>
       {!showLinkForm ? (
@@ -632,14 +633,14 @@ function LinkDriverForm({
   );
 
   return (
-    <div className="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4 space-y-3">
-      <label className="block text-xs font-medium text-zinc-400 mb-1">
+    <div className="bg-park-gray-800/50 rounded-lg border border-park-gray-700 p-4 space-y-3">
+      <label className="block text-xs font-medium text-park-gray-400 mb-1">
         Seleccionar motorizado existente
       </label>
       <select
         value={selected}
         onChange={(e) => setSelected(e.target.value)}
-        className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:border-amber-500 outline-none"
+        className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:border-amber-500 outline-none"
       >
         <option value="">-- Seleccionar --</option>
         {availableDrivers.map(d => (
@@ -650,7 +651,7 @@ function LinkDriverForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm transition-colors"
+          className="flex-1 px-3 py-1.5 bg-park-gray-700 hover:bg-park-gray-600 rounded-lg text-sm transition-colors"
         >
           Cancelar
         </button>
@@ -738,12 +739,12 @@ function PerfilTab({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-2">Nombre completo *</label>
+        <label className="block text-sm font-medium text-park-gray-300 mb-2">Nombre completo *</label>
         <input
           type="text"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+          className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
           placeholder="Ej: Juan Pérez"
           required
           maxLength={100}
@@ -751,9 +752,9 @@ function PerfilTab({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-2">
+        <label className="block text-sm font-medium text-park-gray-300 mb-2">
           <CreditCard className="w-4 h-4 inline mr-1" />
-          DNI <span className="text-zinc-500 font-normal">(para login)</span>
+          DNI <span className="text-park-gray-500 font-normal">(para login)</span>
         </label>
         <input
           type="text"
@@ -763,21 +764,21 @@ function PerfilTab({
             const val = e.target.value.replace(/\D/g, '').slice(0, 8);
             setForm({ ...form, dni: val });
           }}
-          className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono tracking-widest"
+          className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono tracking-widest"
           placeholder="12345678"
           maxLength={8}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-2">
+        <label className="block text-sm font-medium text-park-gray-300 mb-2">
           <Shield className="w-4 h-4 inline mr-1" />
           Rol *
         </label>
         <select
           value={form.role}
           onChange={(e) => setForm({ ...form, role: e.target.value })}
-          className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+          className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
           required
         >
           {ROLE_OPTIONS.map((o) => (
@@ -787,7 +788,7 @@ function PerfilTab({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-2">
+        <label className="block text-sm font-medium text-park-gray-300 mb-2">
           <KeyRound className="w-4 h-4 inline mr-1" />
           Cambiar PIN
         </label>
@@ -799,20 +800,20 @@ function PerfilTab({
             const val = e.target.value.replace(/\D/g, '').slice(0, 6);
             setNewPin(val);
           }}
-          className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
+          className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
           placeholder="Dejar vacío para no cambiar"
           autoComplete="off"
         />
-        <p className="text-xs text-zinc-500 mt-1">4-6 dígitos. Solo se actualiza si ingresás un nuevo PIN.</p>
+        <p className="text-xs text-park-gray-500 mt-1">4-6 dígitos. Solo se actualiza si ingresás un nuevo PIN.</p>
       </div>
 
-      <div className="flex items-center gap-3 p-4 bg-zinc-800/50 rounded-lg">
+      <div className="flex items-center gap-3 p-4 bg-park-gray-800/50 rounded-lg">
         <input
           type="checkbox"
           id="is_active"
           checked={form.is_active}
           onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-          className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500"
+          className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800 text-amber-500 focus:ring-amber-500"
         />
         <label htmlFor="is_active" className="text-sm cursor-pointer">
           Empleado activo (puede iniciar sesión)
@@ -866,21 +867,23 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Clock className="w-5 h-5 animate-spin text-zinc-400" />
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   if (fetchError || !employee) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-zinc-800 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-2xl font-bold">Error</h1>
-        </div>
+      <div className="p-4 space-y-6">
+        <PageHeader title="Error" backHref="/admin/empleados" />
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
           {fetchError?.message ?? 'Empleado no encontrado'}
         </div>
@@ -891,51 +894,41 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
   const roleLabel = ROLE_OPTIONS.find((r) => r.value === employee.role)?.label ?? employee.role;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-zinc-800 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold">{employee.name}</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-800 rounded-full text-xs text-zinc-400">
-                <Shield className="w-3 h-3" />
-                {roleLabel}
-              </span>
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
-                employee.is_active ? 'bg-green-500/20 text-green-400' : 'bg-zinc-500/20 text-zinc-400'
-              }`}>
-                {employee.is_active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-                {employee.is_active ? 'Activo' : 'Inactivo'}
-              </span>
-              {employee.dni && (
-                <span className="text-xs text-zinc-600 font-mono">DNI {employee.dni}</span>
-              )}
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={handleDelete}
-          className="flex items-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors text-sm"
-        >
-          <Trash2 className="w-4 h-4" />
-          Desactivar
-        </button>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title={employee.name}
+        backHref="/admin/empleados"
+        actions={
+          <Button
+            variant="destructive"
+            size="sm"
+            icon={<Trash2 className="w-4 h-4" />}
+            onClick={handleDelete}
+          >
+            Desactivar
+          </Button>
+        }
+      />
+      <div className="flex items-center gap-2 -mt-4 mb-2">
+        <Badge variant="neutral"><Shield className="w-3 h-3" /> {roleLabel}</Badge>
+        <Badge variant={employee.is_active ? 'success' : 'neutral'} dot>
+          {employee.is_active ? 'Activo' : 'Inactivo'}
+        </Badge>
+        {employee.dni && (
+          <span className="text-xs text-park-gray-600 font-mono">DNI {employee.dni}</span>
+        )}
       </div>
 
       {/* Tabs nav */}
-      <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-xl p-1 w-fit">
+      <div className="flex items-center gap-1 bg-park-gray-900 border border-park-gray-800 rounded-xl p-1 w-fit">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === key
-                ? 'bg-zinc-800 text-white'
-                : 'text-zinc-500 hover:text-zinc-300'
+                ? 'bg-park-gray-800 text-white'
+                : 'text-park-gray-500 hover:text-park-gray-300'
             }`}
           >
             <Icon className="w-3.5 h-3.5" />
@@ -945,7 +938,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Tab content */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+      <Card>
         {activeTab === 'perfil' && (
           <PerfilTab
             employee={employee}
@@ -967,7 +960,7 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
         {activeTab === 'capacitacion' && employeeId && (
           <CapacitacionTab employeeId={employeeId} />
         )}
-      </div>
+      </Card>
     </div>
   );
 }

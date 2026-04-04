@@ -14,16 +14,17 @@ import { Smartphone, CheckCircle, XCircle, Clock, RefreshCw, ExternalLink } from
 import { toast } from 'sonner';
 import { usePlatformOrders } from '@/src/hooks/useSWRHooks';
 import type { PlatformOrderStatus } from '@/src/core/types/platform';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  RECEIVED: { label: 'Recibido', color: 'bg-amber-500/20 text-amber-400' },
-  ACCEPTED: { label: 'Aceptado', color: 'bg-emerald-500/20 text-emerald-400' },
-  REJECTED: { label: 'Rechazado', color: 'bg-red-500/20 text-red-400' },
-  PREPARING: { label: 'Preparando', color: 'bg-blue-500/20 text-blue-400' },
-  READY: { label: 'Listo', color: 'bg-cyan-500/20 text-cyan-400' },
-  DISPATCHED: { label: 'Despachado', color: 'bg-purple-500/20 text-purple-400' },
-  DELIVERED: { label: 'Entregado', color: 'bg-emerald-500/20 text-emerald-400' },
-  CANCELLED: { label: 'Cancelado', color: 'bg-zinc-500/20 text-zinc-400' },
+const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'critical' | 'info' | 'neutral'; label: string }> = {
+  RECEIVED: { variant: 'warning', label: 'Recibido' },
+  ACCEPTED: { variant: 'success', label: 'Aceptado' },
+  REJECTED: { variant: 'critical', label: 'Rechazado' },
+  PREPARING: { variant: 'info', label: 'Preparando' },
+  READY: { variant: 'info', label: 'Listo' },
+  DISPATCHED: { variant: 'info', label: 'Despachado' },
+  DELIVERED: { variant: 'success', label: 'Entregado' },
+  CANCELLED: { variant: 'neutral', label: 'Cancelado' },
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -101,34 +102,31 @@ export default function PedidosPlataformaPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Smartphone className="w-7 h-7 text-cyan-400" />
-            Pedidos de Apps
+      <PageHeader
+        title="Pedidos App"
+        description="Pedidos de PedidosYa, LlamaFood, Rappi"
+        actions={
+          <div className="flex items-center gap-2">
             {receivedCount > 0 && (
-              <span className="bg-amber-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
-                {receivedCount} nuevo{receivedCount > 1 ? 's' : ''}
-              </span>
+              <Badge variant="warning" dot>{receivedCount} nuevo{receivedCount > 1 ? 's' : ''}</Badge>
             )}
-          </h1>
-          <p className="text-zinc-400 mt-1">Pedidos de PedidosYa, LlamaFood, Rappi</p>
-        </div>
-        <button
-          onClick={() => mutate()}
-          className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm min-h-[40px]"
-        >
-          <RefreshCw className="w-4 h-4" /> Actualizar
-        </button>
-      </div>
+            <Button
+              variant="secondary"
+              icon={<RefreshCw className="w-4 h-4" />}
+              onClick={() => mutate()}
+            >
+              Actualizar
+            </Button>
+          </div>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <select
           value={platformFilter}
           onChange={(e) => setPlatformFilter(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+          className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
         >
           <option value="">Todas las apps</option>
           <option value="PEDIDOSYA">PedidosYa</option>
@@ -138,7 +136,7 @@ export default function PedidosPlataformaPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as any)}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+          className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
         >
           <option value="">Todos los estados</option>
           <option value="RECEIVED">Recibido</option>
@@ -151,12 +149,14 @@ export default function PedidosPlataformaPage() {
 
       {/* Loading / Error */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
+        <div className="p-4 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
         </div>
       )}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400">
           Error al cargar pedidos.
         </div>
       )}
@@ -164,20 +164,18 @@ export default function PedidosPlataformaPage() {
       {/* Orders List */}
       <div className="space-y-3">
         {orders.map((order) => {
-          const statusCfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.RECEIVED;
+          const statusCfg = STATUS_BADGE[order.status] || STATUS_BADGE.RECEIVED;
           const platformColor = PLATFORM_COLORS[order.platform] || 'bg-zinc-500';
 
           return (
-            <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <Card key={order.id}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-2.5 h-2.5 rounded-full ${platformColor}`} />
                     <span className="text-sm font-bold">{order.platform}</span>
                     <span className="text-xs text-zinc-500">#{order.platformOrderId}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusCfg.color}`}>
-                      {statusCfg.label}
-                    </span>
+                    <Badge variant={statusCfg.variant} dot>{statusCfg.label}</Badge>
                   </div>
 
                   {order.customerName && (
@@ -218,21 +216,25 @@ export default function PedidosPlataformaPage() {
 
                   {order.status === 'RECEIVED' && (
                     <div className="mt-3 flex gap-2 justify-end">
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        icon={<CheckCircle className="w-3.5 h-3.5" />}
                         onClick={() => handleAccept(order.id)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded text-xs font-medium min-h-[32px]"
                       >
-                        <CheckCircle className="w-3.5 h-3.5" /> Aceptar
-                      </button>
-                      <button
+                        Aceptar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        icon={<XCircle className="w-3.5 h-3.5" />}
                         onClick={() => {
                           setRejectingId(order.id);
                           setRejectReason('');
                         }}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-500 rounded text-xs font-medium min-h-[32px]"
                       >
-                        <XCircle className="w-3.5 h-3.5" /> Rechazar
-                      </button>
+                        Rechazar
+                      </Button>
                     </div>
                   )}
 
@@ -246,48 +248,43 @@ export default function PedidosPlataformaPage() {
 
               {/* Rejection form */}
               {rejectingId === order.id && (
-                <div className="mt-3 flex items-center gap-2 border-t border-zinc-800 pt-3">
+                <div className="mt-3 flex items-center gap-2 border-t border-park-gray-800 pt-3">
                   <input
                     type="text"
                     placeholder="Razón del rechazo..."
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
-                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-3 py-1.5 text-sm min-h-[36px]"
+                    className="flex-1 bg-park-gray-800 border border-park-gray-700 rounded px-3 py-1.5 text-sm min-h-[36px] text-white"
                     autoFocus
                   />
-                  <button
-                    onClick={() => handleReject(order.id)}
-                    disabled={!rejectReason.trim()}
-                    className="px-3 py-1.5 bg-red-600 hover:bg-red-500 rounded text-xs font-medium min-h-[36px] disabled:opacity-50"
-                  >
+                  <Button variant="destructive" size="sm" onClick={() => handleReject(order.id)} disabled={!rejectReason.trim()}>
                     Confirmar
-                  </button>
-                  <button
-                    onClick={() => setRejectingId(null)}
-                    className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded text-xs min-h-[36px]"
-                  >
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => setRejectingId(null)}>
                     Cancelar
-                  </button>
+                  </Button>
                 </div>
               )}
 
               {/* Rejection reason shown */}
               {order.rejectionReason && (
-                <p className="text-xs text-red-400 mt-2 border-t border-zinc-800 pt-2">
+                <p className="text-xs text-red-400 mt-2 border-t border-park-gray-800 pt-2">
                   Rechazado: {order.rejectionReason}
                 </p>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>
 
       {!isLoading && orders.length === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <Smartphone className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No hay pedidos de plataformas</p>
-          <p className="text-zinc-500 text-sm mt-1">Los pedidos aparecerán aquí automáticamente</p>
-        </div>
+        <Card padding="none">
+          <EmptyState
+            icon={<Smartphone />}
+            title="No hay pedidos de plataformas"
+            description="Los pedidos aparecerán aquí automáticamente"
+          />
+        </Card>
       )}
     </div>
   );

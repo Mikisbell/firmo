@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { Smartphone, Save, Loader2, QrCode, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { useYapePlinSettings } from '@/src/hooks/useYapePlinSettings';
+import { Button, Card, PageHeader } from '@/src/components/ui';
 
 export default function YapePlinConfigPage() {
   const { settings, isLoading, mutate } = useYapePlinSettings();
@@ -95,37 +96,38 @@ export default function YapePlinConfigPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 text-zinc-500 animate-spin" />
+      <div className="max-w-2xl mx-auto p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card>
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
-          <Smartphone className="w-6 h-6 text-purple-400" />
-          Configuración Yape / Plin
-        </h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          Configure los datos del comercio para pagos con QR
-        </p>
-      </div>
+      <PageHeader
+        title="Yape / Plin"
+        description="Configure los datos del comercio para pagos con QR"
+      />
 
       {/* Yape Section */}
-      <div className="bg-zinc-800 rounded-xl border border-zinc-700 p-5 space-y-4">
+      <Card>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-purple-600/20 flex items-center justify-center">
             <Smartphone className="w-4 h-4 text-purple-400" />
           </div>
-          <h2 className="text-lg font-bold text-zinc-100">Yape</h2>
+          <h2 className="text-lg font-bold text-white">Yape</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
+            <label className="block text-xs font-bold text-park-gray-400 uppercase mb-1">
               Teléfono del Comercio
             </label>
             <input
@@ -134,12 +136,12 @@ export default function YapePlinConfigPage() {
               value={yapePhone}
               onChange={(e) => setYapePhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
               placeholder="987654321"
-              className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-600 rounded-lg text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
             />
-            <p className="text-xs text-zinc-500 mt-1">9 dígitos, empieza con 9</p>
+            <p className="text-xs text-park-gray-600 mt-1">9 dígitos, empieza con 9</p>
           </div>
           <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
+            <label className="block text-xs font-bold text-park-gray-400 uppercase mb-1">
               Nombre del Comercio
             </label>
             <input
@@ -147,33 +149,35 @@ export default function YapePlinConfigPage() {
               value={yapeName}
               onChange={(e) => setYapeName(e.target.value.slice(0, 100))}
               placeholder="Mi Pollería"
-              className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-600 rounded-lg text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
             />
           </div>
         </div>
 
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => handlePreview('YAPE')}
           disabled={!yapePhone || previewLoading}
-          className="flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 disabled:text-zinc-600 transition-colors"
+          icon={previewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+          className="text-purple-400 hover:text-purple-300"
         >
-          {previewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
           Ver QR de prueba
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       {/* Plin Section */}
-      <div className="bg-zinc-800 rounded-xl border border-zinc-700 p-5 space-y-4">
+      <Card>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-cyan-600/20 flex items-center justify-center">
             <Smartphone className="w-4 h-4 text-cyan-400" />
           </div>
-          <h2 className="text-lg font-bold text-zinc-100">Plin</h2>
+          <h2 className="text-lg font-bold text-white">Plin</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
+            <label className="block text-xs font-bold text-park-gray-400 uppercase mb-1">
               Teléfono del Comercio
             </label>
             <input
@@ -182,12 +186,12 @@ export default function YapePlinConfigPage() {
               value={plinPhone}
               onChange={(e) => setPlinPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
               placeholder="987654321"
-              className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-600 rounded-lg text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-sm"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-sm"
             />
-            <p className="text-xs text-zinc-500 mt-1">9 dígitos, empieza con 9</p>
+            <p className="text-xs text-park-gray-600 mt-1">9 dígitos, empieza con 9</p>
           </div>
           <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
+            <label className="block text-xs font-bold text-park-gray-400 uppercase mb-1">
               Nombre del Comercio
             </label>
             <input
@@ -195,25 +199,27 @@ export default function YapePlinConfigPage() {
               value={plinName}
               onChange={(e) => setPlinName(e.target.value.slice(0, 100))}
               placeholder="Mi Pollería"
-              className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-600 rounded-lg text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-sm"
+              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-sm"
             />
           </div>
         </div>
 
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => handlePreview('PLIN')}
           disabled={!plinPhone || previewLoading}
-          className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 disabled:text-zinc-600 transition-colors"
+          icon={previewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+          className="text-cyan-400 hover:text-cyan-300"
         >
-          {previewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
           Ver QR de prueba
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       {/* QR Preview */}
       {previewQR && (
-        <div className="bg-zinc-800 rounded-xl border border-zinc-700 p-5 flex flex-col items-center gap-3">
-          <div className="flex items-center gap-2 text-sm font-bold text-zinc-300">
+        <Card className="flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-park-gray-300">
             <QrCode className="w-4 h-4" />
             QR de Prueba (S/ 10.00)
           </div>
@@ -222,24 +228,27 @@ export default function YapePlinConfigPage() {
             alt="QR Preview"
             className="w-[200px] h-[200px] rounded-lg bg-white p-1"
           />
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setPreviewQR(null)}
-            className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
           >
             Cerrar preview
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
 
       {/* Save Button */}
-      <button
+      <Button
+        variant="primary"
+        size="lg"
+        icon={<Save className="w-5 h-5" />}
         onClick={handleSave}
-        disabled={saving}
-        className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 disabled:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-colors"
+        loading={saving}
+        className="w-full"
       >
-        {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
         {saving ? 'Guardando...' : 'Guardar Configuración'}
-      </button>
+      </Button>
     </div>
   );
 }
