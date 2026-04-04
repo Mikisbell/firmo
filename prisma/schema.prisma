@@ -306,12 +306,15 @@ model drivers {
   name             String
   phone            String?
   is_active        Boolean            @default(true)
+  employee_id      String?            @db.Uuid
   assignment_logs  assignment_logs[]
   delivery_orders  delivery_orders[]
+  employees        employees?         @relation(fields: [employee_id], references: [id])
   tenants          tenants            @relation(fields: [tenant_id], references: [id])
   location_history location_history[]
 
   @@index([tenant_id, is_active])
+  @@index([employee_id])
 }
 
 model employees {
@@ -353,6 +356,7 @@ model employees {
   station_alerts                     station_alerts[]
   tips                               tips[]
   training_records                   training_records[]
+  drivers                            drivers[]
 
   @@unique([tenant_id, dni])
   @@index([tenant_id, is_active])

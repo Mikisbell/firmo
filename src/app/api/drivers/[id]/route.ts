@@ -13,6 +13,7 @@ const UpdateDriverSchema = z.object({
   name: z.string().min(1).optional(),
   phone: z.string().min(9).optional().nullable(),
   is_active: z.boolean().optional(),
+  employeeId: z.string().uuid().optional().nullable(),
 });
 
 export async function GET(
@@ -75,11 +76,12 @@ export async function PATCH(
       }
     }
 
-    // Handle name/phone update
-    if (parsed.data.name || parsed.data.phone !== undefined) {
+    // Handle name/phone/employee update
+    if (parsed.data.name || parsed.data.phone !== undefined || parsed.data.employeeId !== undefined) {
       const driver = await DriverService.update(id, {
         name: parsed.data.name,
         phone: parsed.data.phone ?? undefined,
+        employeeId: parsed.data.employeeId,
       });
       return NextResponse.json(driver);
     }

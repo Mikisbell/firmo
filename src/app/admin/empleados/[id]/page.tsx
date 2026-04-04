@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Shield, Trash2, CheckCircle2, KeyRound, CreditCard,
   User, DollarSign, Calendar, Star, BookOpen, Check, X, Clock,
-  AlertCircle, Plus,
+  AlertCircle, Plus, Truck, Link2, Unlink,
 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
@@ -35,6 +35,7 @@ const ROLE_OPTIONS = [
 
 const TABS = [
   { key: 'perfil',       label: 'Perfil',        icon: User },
+  { key: 'delivery',     label: 'Delivery',       icon: Truck },
   { key: 'adelantos',    label: 'Adelantos',      icon: DollarSign },
   { key: 'permisos',     label: 'Permisos',       icon: Calendar },
   { key: 'evaluaciones', label: 'Evaluaciones',   icon: Star },
@@ -451,6 +452,221 @@ function CapacitacionTab({ employeeId }: { employeeId: string }) {
   );
 }
 
+// ─── Tab: Delivery ───────────────────────────────────────────────────────────
+
+interface DriverLink {
+  id: string;
+  name: string;
+  phone: string | null;
+  is_active: boolean;
+}
+
+interface DeliveryStats {
+  total: number;
+  delivered: number;
+  failed: number;
+  avgTimeMins: number | null;
+}
+
+function DeliveryTab({ employeeId }: { employeeId: string }) {
+  const { data: employee, mutate: mutateEmployee } = useSWR<{ drivers: DriverLink[] }>(
+    `/api/admin/employees/${employeeId}`,
+    fetcher,
+  );
+  const { data: stats } = useSWR<DeliveryStats>(
+    employee?.drivers?.[0]
+      ? `/api/delivery/stats/driver/${employee.drivers[0].id}`
+      : null,
+    fetcher,
+  );
+  const [linking, setLinking] = useState(false);
+  const [unlinking, setUnlinking] = useState(false);
+  const [showLinkForm, setShowLinkForm] = useState(false);
+
+  const linkedDriver = employee?.drivers?.[0] ?? null;
+
+  const handleUnlink = async () => {
+    if (!linkedDriver) return;
+    if (!confirm('Desvincular este empleado del motorizado?')) return;
+    setUnlinking(true);
+    try {
+      const res = await fetch(`/api/drivers/${linkedDriver.id}/link-employee`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ employeeId: null }),
+      });
+      if (!res.ok) throw new Error('Error al desvincular');
+      toast.success('Empleado desvinculado del motorizado');
+      mutateEmployee();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error');
+    } finally {
+      setUnlinking(false);
+    }
+  };
+
+  const handleLink = async (driverId: string) => {
+    setLinking(true);
+    try {
+      const res = await fetch(`/api/drivers/${driverId}/link-employee`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ employeeId }),
+      });
+      if (!res.ok) throw new Error('Error al vincular');
+      toast.success('Empleado vinculado como motorizado');
+      setShowLinkForm(false);
+      mutateEmployee();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error');
+    } finally {
+      setLinking(false);
+    }
+  };
+
+  if (linkedDriver) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-zinc-400">Motorizado vinculado</h3>
+          <button
+            onClick={handleUnlink}
+            disabled={unlinking}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
+          >
+            <Unlink className="w-3.5 h-3.5" />
+            {unlinking ? 'Desvinculando...' : 'Desvincular'}
+          </button>
+        </div>
+
+        <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
+              <Truck className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">{linkedDriver.name}</p>
+              <p className="text-xs text-zinc-500">{linkedDriver.phone ?? 'Sin telefono'}</p>
+            </div>
+            <span className={`ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              linkedDriver.is_active ? 'bg-green-500/20 text-green-400' : 'bg-zinc-500/20 text-zinc-400'
+            }`}>
+              {linkedDriver.is_active ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+        </div>
+
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+              <p className="text-lg font-bold text-white">{stats.total}</p>
+              <p className="text-xs text-zinc-500">Total entregas</p>
+            </div>
+            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+              <p className="text-lg font-bold text-green-400">{stats.delivered}</p>
+              <p className="text-xs text-zinc-500">Entregadas</p>
+            </div>
+            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+              <p className="text-lg font-bold text-red-400">{stats.failed}</p>
+              <p className="text-xs text-zinc-500">Fallidas</p>
+            </div>
+            <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-800 text-center">
+              <p className="text-lg font-bold text-amber-400">
+                {stats.avgTimeMins != null ? `${stats.avgTimeMins} min` : '-'}
+              </p>
+              <p className="text-xs text-zinc-500">Tiempo promedio</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-zinc-500">
+        Este empleado no esta vinculado a un motorizado de delivery.
+      </p>
+      {!showLinkForm ? (
+        <button
+          onClick={() => setShowLinkForm(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black text-sm font-medium rounded-lg transition-colors"
+        >
+          <Link2 className="w-3.5 h-3.5" />
+          Vincular como motorizado
+        </button>
+      ) : (
+        <LinkDriverForm
+          employeeId={employeeId}
+          onLink={handleLink}
+          onCancel={() => setShowLinkForm(false)}
+          linking={linking}
+        />
+      )}
+    </div>
+  );
+}
+
+function LinkDriverForm({
+  employeeId,
+  onLink,
+  onCancel,
+  linking,
+}: {
+  employeeId: string;
+  onLink: (driverId: string) => void;
+  onCancel: () => void;
+  linking: boolean;
+}) {
+  const { data: driversData } = useSWR<{ drivers: Array<{ id: string; name: string; employee_id: string | null }> }>(
+    '/api/drivers?pageSize=100',
+    (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json()),
+  );
+  const [selected, setSelected] = useState('');
+
+  // Filter drivers that are not already linked to another employee
+  const availableDrivers = (driversData?.drivers ?? []).filter(
+    d => !d.employee_id || d.employee_id === employeeId
+  );
+
+  return (
+    <div className="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4 space-y-3">
+      <label className="block text-xs font-medium text-zinc-400 mb-1">
+        Seleccionar motorizado existente
+      </label>
+      <select
+        value={selected}
+        onChange={(e) => setSelected(e.target.value)}
+        className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:border-amber-500 outline-none"
+      >
+        <option value="">-- Seleccionar --</option>
+        {availableDrivers.map(d => (
+          <option key={d.id} value={d.id}>{d.name}</option>
+        ))}
+      </select>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          disabled={!selected || linking}
+          onClick={() => onLink(selected)}
+          className="flex-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg text-sm disabled:opacity-50 transition-colors"
+        >
+          {linking ? 'Vinculando...' : 'Vincular'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab: Perfil (edit form) ──────────────────────────────────────────────────
 
 function PerfilTab({
@@ -735,6 +951,9 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
             employee={employee}
             onSaved={() => { mutate(); setTimeout(() => router.push('/admin/empleados'), 1500); }}
           />
+        )}
+        {activeTab === 'delivery' && employeeId && (
+          <DeliveryTab employeeId={employeeId} />
         )}
         {activeTab === 'adelantos' && employeeId && (
           <AdelantosTab employeeId={employeeId} />

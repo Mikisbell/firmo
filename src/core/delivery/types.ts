@@ -38,12 +38,22 @@ export interface DeliveryOrder {
   created_at: Date;
 }
 
+export interface DriverEmployee {
+  id: string;
+  role: string;
+  dni: string | null;
+  hire_date: Date | null;
+  base_salary_cents: number | null;
+}
+
 export interface Driver {
   id: string;
   tenant_id: string;
   name: string;
   phone: string | null;
   is_active: boolean;
+  employee_id: string | null;
+  employee: DriverEmployee | null;
 }
 
 export interface DriverWithStatus extends Driver {

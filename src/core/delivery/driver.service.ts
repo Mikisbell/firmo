@@ -27,7 +27,8 @@ export const DriverService = {
   async create(
     tenantId: string,
     name: string,
-    phone?: string
+    phone?: string,
+    employeeId?: string
   ): Promise<Driver> {
     if (!name || name.trim().length === 0) {
       throw new DriverServiceError('Name is required', 'VALIDATION_ERROR');
@@ -45,6 +46,10 @@ export const DriverService = {
           name: name.trim(),
           phone: phone?.trim() || null,
           is_active: true,
+          employee_id: employeeId || null,
+        },
+        include: {
+          employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
         },
       });
 
@@ -72,7 +77,7 @@ export const DriverService = {
    */
   async update(
     driverId: string,
-    data: { name?: string; phone?: string }
+    data: { name?: string; phone?: string; employeeId?: string | null }
   ): Promise<Driver> {
     // Validate name if provided
     if (data.name !== undefined && data.name.trim().length === 0) {
@@ -96,6 +101,10 @@ export const DriverService = {
         data: {
           ...(data.name && { name: data.name.trim() }),
           ...(data.phone !== undefined && { phone: data.phone?.trim() || null }),
+          ...(data.employeeId !== undefined && { employee_id: data.employeeId }),
+        },
+        include: {
+          employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
         },
       });
 
@@ -140,6 +149,9 @@ export const DriverService = {
       const updatedDriver = await tx.drivers.update({
         where: { id: driverId },
         data: { is_active: false },
+        include: {
+          employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+        },
       });
 
       // Log audit trail
@@ -176,6 +188,9 @@ export const DriverService = {
     const updated = await prisma.drivers.update({
       where: { id: driverId },
       data: { is_active: true },
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
     });
 
     return mapToDriver(updated);
@@ -207,6 +222,9 @@ export const DriverService = {
         id: { notIn: busyDriverIds },
       },
       orderBy: { name: 'asc' },
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
     });
 
     return drivers.map(mapToDriver);
@@ -222,6 +240,9 @@ export const DriverService = {
   }> {
     const driver = await prisma.drivers.findUnique({
       where: { id: driverId },
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
     });
 
     if (!driver) {
@@ -259,6 +280,9 @@ export const DriverService = {
     const drivers = await prisma.drivers.findMany({
       where: { tenant_id: tenantId },
       orderBy: [{ is_active: 'desc' }, { name: 'asc' }],
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
     });
 
     // Obtener entregas activas
@@ -304,6 +328,9 @@ export const DriverService = {
   async getById(driverId: string): Promise<Driver | null> {
     const driver = await prisma.drivers.findUnique({
       where: { id: driverId },
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
     });
 
     return driver ? mapToDriver(driver) : null;
@@ -312,10 +339,75 @@ export const DriverService = {
   /**
    * Listar todos los drivers de un tenant
    */
+  /**
+   * Vincular un driver a un empleado existente
+   */
+  async linkToEmployee(driverId: string, employeeId: string): Promise<Driver> {
+    const driver = await prisma.drivers.findUnique({ where: { id: driverId } });
+    if (!driver) {
+      throw new DriverServiceError('Driver not found', 'NOT_FOUND', 404);
+    }
+
+    // Verify employee exists and belongs to same tenant
+    const employee = await prisma.employees.findFirst({
+      where: { id: employeeId, tenant_id: driver.tenant_id },
+    });
+    if (!employee) {
+      throw new DriverServiceError('Employee not found in this tenant', 'NOT_FOUND', 404);
+    }
+
+    const updated = await prisma.drivers.update({
+      where: { id: driverId },
+      data: { employee_id: employeeId },
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
+    });
+
+    return mapToDriver(updated);
+  },
+
+  /**
+   * Desvincular un driver de un empleado
+   */
+  async unlinkEmployee(driverId: string): Promise<Driver> {
+    const driver = await prisma.drivers.findUnique({ where: { id: driverId } });
+    if (!driver) {
+      throw new DriverServiceError('Driver not found', 'NOT_FOUND', 404);
+    }
+
+    const updated = await prisma.drivers.update({
+      where: { id: driverId },
+      data: { employee_id: null },
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
+    });
+
+    return mapToDriver(updated);
+  },
+
+  /**
+   * Obtener driver vinculado a un empleado
+   */
+  async getByEmployeeId(employeeId: string): Promise<Driver | null> {
+    const driver = await prisma.drivers.findFirst({
+      where: { employee_id: employeeId },
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
+    });
+
+    return driver ? mapToDriver(driver) : null;
+  },
+
   async list(tenantId: string): Promise<Driver[]> {
     const drivers = await prisma.drivers.findMany({
       where: { tenant_id: tenantId },
       orderBy: [{ is_active: 'desc' }, { name: 'asc' }],
+      include: {
+        employees: { select: { id: true, role: true, dni: true, hire_date: true, base_salary_cents: true } },
+      },
     });
 
     return drivers.map(mapToDriver);
@@ -328,6 +420,8 @@ function mapToDriver(record: {
   name: string;
   phone: string | null;
   is_active: boolean;
+  employee_id?: string | null;
+  employees?: { id: string; role: string; dni: string | null; hire_date: Date | null; base_salary_cents: number | null } | null;
 }): Driver {
   return {
     id: record.id,
@@ -335,6 +429,14 @@ function mapToDriver(record: {
     name: record.name,
     phone: record.phone,
     is_active: record.is_active,
+    employee_id: record.employee_id ?? null,
+    employee: record.employees ? {
+      id: record.employees.id,
+      role: record.employees.role,
+      dni: record.employees.dni,
+      hire_date: record.employees.hire_date,
+      base_salary_cents: record.employees.base_salary_cents,
+    } : null,
   };
 }
 

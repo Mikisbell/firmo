@@ -21,6 +21,7 @@ import { logger } from '@/src/core/observability/structured-logger';
 const CreateDriverSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
   phone: z.string().min(9, 'El teléfono debe tener al menos 9 caracteres').optional(),
+  employeeId: z.string().uuid('ID de empleado inválido').optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -49,6 +50,10 @@ export async function GET(request: NextRequest) {
         name: true,
         phone: true,
         is_active: true,
+        employee_id: true,
+        employees: {
+          select: { id: true, name: true, role: true, dni: true },
+        },
       }
     });
     
@@ -108,7 +113,8 @@ export async function POST(request: NextRequest) {
     const driver = await DriverService.create(
       authResult.user.tenantId,
       parsed.data.name,
-      parsed.data.phone
+      parsed.data.phone,
+      parsed.data.employeeId
     );
 
     return NextResponse.json(driver, { status: 201 });

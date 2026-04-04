@@ -15,6 +15,8 @@ interface Driver {
   name: string;
   phone: string | null;
   is_active: boolean;
+  employee_id: string | null;
+  employees: { id: string; name: string; role: string; dni: string | null } | null;
   status: 'available' | 'on_delivery' | 'inactive';
   currentDelivery: { id: string; address_text: string } | null;
 }
@@ -74,7 +76,7 @@ export default function DriversPage() {
     }
   };
 
-  const handleSave = async (data: { name: string; phone?: string }) => {
+  const handleSave = async (data: { name: string; phone?: string; employeeId?: string }) => {
     try {
       let res;
       if (editingDriver) {
@@ -157,7 +159,8 @@ export default function DriversPage() {
               <thead>
                 <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
                   <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Nombre</th>
-                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Teléfono</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Telefono</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Empleado</th>
                   <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Estado</th>
                   <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Entrega Actual</th>
                   <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Acciones</th>
@@ -173,6 +176,13 @@ export default function DriversPage() {
                     >
                       <td className="px-4 py-3 font-medium text-white">{driver.name}</td>
                       <td className="px-4 py-3 text-park-gray-400">{driver.phone || '-'}</td>
+                      <td className="px-4 py-3 text-park-gray-400">
+                        {driver.employees ? (
+                          <span className="text-xs text-amber-400">{driver.employees.name}</span>
+                        ) : (
+                          <span className="text-xs text-park-gray-600">Sin vincular</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <Badge variant={badge.variant} dot>{badge.label}</Badge>
                       </td>

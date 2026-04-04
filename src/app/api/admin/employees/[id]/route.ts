@@ -66,6 +66,16 @@ export async function GET(
         id,
         tenant_id: tenantId,
       },
+      include: {
+        drivers: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            is_active: true,
+          },
+        },
+      },
     });
 
     if (!employee) {
