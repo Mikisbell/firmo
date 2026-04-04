@@ -19,6 +19,7 @@ import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
 import AdminLoginScreen from './components/AdminLoginScreen';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
+import { CommandPalette } from '@/src/components/ui/CommandPalette';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TenantBrandingProvider } from '@/src/core/tenant/branding-context';
 import { swrGlobalConfig } from '@/src/lib/swr-config';
@@ -96,6 +97,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-zinc-950 text-white flex">
+        {/* Command Palette (Cmd+K / Ctrl+K) */}
+        <CommandPalette />
+
         {/* Toast Notifications */}
         <Toaster 
           position="top-right"

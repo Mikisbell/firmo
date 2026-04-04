@@ -29,7 +29,7 @@ export { MobileWarning } from './MobileWarning';
 export type { default as MobileWarningProps } from './MobileWarning';
 
 // Skeleton Loading
-export { 
+export {
   Skeleton,
   ProductCardSkeleton,
   CatalogGridSkeleton,
@@ -40,7 +40,20 @@ export {
   KDSTicketSkeleton,
   KDSGridSkeleton,
   PageSkeleton,
+  SkeletonText,
+  SkeletonCard,
+  SkeletonTable,
+  SkeletonMetricCard,
+  SkeletonPageHeader,
+  SkeletonPage,
 } from './Skeleton';
+
+// Skeleton Delay (anti-flash/anti-flicker wrapper)
+export { SkeletonDelay } from './SkeletonDelay';
+
+// Detail Drawer (Stripe ContextView pattern)
+export { DetailDrawer } from './DetailDrawer';
+export type { DetailDrawerProps } from './DetailDrawer';
 
 // Optimized Image
 export { OptimizedImage, ProductImage } from './OptimizedImage';
@@ -55,6 +68,9 @@ export type { OrientationHintProps } from './OrientationHint';
 
 // Tooltip
 export { Tooltip } from './Tooltip';
+
+// Command Palette
+export { CommandPalette } from './CommandPalette';
 
 // Design System Phase 1
 export { Button } from './Button';
