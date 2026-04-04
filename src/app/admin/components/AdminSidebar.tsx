@@ -58,6 +58,7 @@ import {
   LineChart,
   Rocket,
   UserCheck,
+  Building2,
 } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 import { useSidebarBadges } from '../hooks/useSidebarBadges';
@@ -232,6 +233,7 @@ const NAV_GROUPS: NavGroup[] = [
     icon: BarChart3,
     items: [
       { href: '/admin/dashboard', label: 'Analytics', description: 'KPIs, ventas por hora, top productos', icon: LineChart, permission: 'view_reports' },
+      { href: '/admin/sucursales', label: 'Sucursales', description: 'Comparativa de metricas por sede', icon: Building2, permission: 'view_reports' },
       { href: '/admin/reportes', label: 'Reportes', description: 'Reportes exportables por período', icon: BarChart3, permission: 'view_reports' },
       { href: '/admin/reports/profitability', label: 'Rentabilidad', description: 'Margen por producto y categoría', icon: TrendingUp, permission: 'view_reports' },
       { href: '/admin/monitoring', label: 'Monitoreo', description: 'Salud del sistema y performance', icon: Activity, permission: 'view_dashboard' },

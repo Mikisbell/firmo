@@ -22,3 +22,4 @@ export {
   checkAllItemsReady,
 } from './pos-integration';
 export type { CreateDeliveryFromOrderInput } from './pos-integration';
+export { generateTrackingCode } from './tracking-code';

@@ -8,7 +8,6 @@ export default defineConfig({
         testTimeout: 30000, // 30 seconds for async property tests with DB operations
         retry: 2, // Retry flaky property tests (delivery assignment under high concurrency)
         pool: 'forks', // Use forks instead of threads to reduce resource contention
-        poolOptions: { forks: { maxForks: 4 } }, // Limit parallel workers
         env: {
             // Variables de entorno necesarias para tests
             JWT_SECRET: "test-jwt-secret-for-vitest-only-not-for-production",

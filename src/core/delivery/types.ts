@@ -34,6 +34,7 @@ export interface DeliveryOrder {
   delivery_time_mins: number | null;
   signature_url: string | null;
   status: DeliveryStatus;
+  tracking_code: string | null;
   created_at: Date;
 }
 

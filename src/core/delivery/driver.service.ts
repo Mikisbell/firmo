@@ -378,6 +378,7 @@ function mapToDeliveryOrder(record: {
     delivery_time_mins: record.delivery_time_mins,
     signature_url: record.signature_url,
     status: record.status as 'PENDING' | 'ASSIGNED' | 'DISPATCHED' | 'DELIVERED' | 'FAILED',
+    tracking_code: (record as any).tracking_code ?? null,
     created_at: record.created_at,
   };
 }

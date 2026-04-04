@@ -62,7 +62,11 @@ export async function POST(request: NextRequest) {
     // Invalidar caché Redis de delivery metrics/history
     await cache.invalidatePattern('delivery:*');
 
-    return NextResponse.json(delivery, { status: 201 });
+    return NextResponse.json({
+      ...delivery,
+      trackingCode: delivery.tracking_code,
+      trackingUrl: `/track/${delivery.tracking_code}`,
+    }, { status: 201 });
   } catch (error) {
     if (error instanceof DeliveryServiceError) {
       return NextResponse.json(

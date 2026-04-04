@@ -262,6 +262,7 @@ model delivery_orders {
   delivery_time_mins    Int?
   signature_url         String?
   status                String              @default("PENDING")
+  tracking_code         String?             @unique
   created_at            DateTime            @default(now()) @db.Timestamptz(6)
   assignment_logs       assignment_logs[]
   delivery_addresses    delivery_addresses? @relation(fields: [address_id], references: [id])

@@ -14,6 +14,7 @@ import {
 import { notifyDeliveryAssigned } from './notification-handlers';
 import { asCentavos } from '@/src/core/types/shared';
 import { v4 as uuidv4 } from 'uuid';
+import { generateTrackingCode } from './tracking-code';
 
 export class DeliveryServiceError extends Error {
   constructor(
@@ -30,9 +31,10 @@ export const DeliveryService = {
   /**
    * Crear un nuevo delivery order
    */
-  async createDeliveryOrder(input: CreateDeliveryInput): Promise<DeliveryOrder> {
+  async createDeliveryOrder(input: CreateDeliveryInput): Promise<DeliveryOrder & { tracking_code: string }> {
     const id = uuidv4();
-    
+    const trackingCode = generateTrackingCode();
+
     const delivery = await prisma.delivery_orders.create({
       data: {
         id,
@@ -45,10 +47,11 @@ export const DeliveryService = {
         estimated_delivery_at: input.estimatedDeliveryAt || null,
         address_id: input.addressId || null,
         status: 'PENDING',
+        tracking_code: trackingCode,
       },
     });
 
-    return mapToDeliveryOrder(delivery);
+    return { ...mapToDeliveryOrder(delivery), tracking_code: trackingCode };
   },
 
   /**
@@ -425,6 +428,7 @@ function mapToDeliveryOrder(record: {
   delivery_time_mins: number | null;
   signature_url: string | null;
   status: string;
+  tracking_code: string | null;
   created_at: Date;
 }): DeliveryOrder {
   return {
@@ -446,6 +450,7 @@ function mapToDeliveryOrder(record: {
     delivery_time_mins: record.delivery_time_mins,
     signature_url: record.signature_url,
     status: record.status as DeliveryStatus,
+    tracking_code: record.tracking_code,
     created_at: record.created_at,
   };
 }
