@@ -5,8 +5,10 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Plus, Truck } from 'lucide-react';
 import { DriverForm } from './components/DriverForm';
 import { toast } from 'sonner';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 interface Driver {
   id: string;
@@ -16,6 +18,12 @@ interface Driver {
   status: 'available' | 'on_delivery' | 'inactive';
   currentDelivery: { id: string; address_text: string } | null;
 }
+
+const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'neutral'; label: string }> = {
+  available: { variant: 'success', label: 'Disponible' },
+  on_delivery: { variant: 'warning', label: 'En entrega' },
+  inactive: { variant: 'neutral', label: 'Inactivo' },
+};
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -82,12 +90,12 @@ export default function DriversPage() {
           body: JSON.stringify(data),
         });
       }
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Error al guardar');
       }
-      
+
       toast.success(
         editingDriver ? 'Motorizado actualizado' : 'Motorizado creado',
         {
@@ -106,73 +114,100 @@ export default function DriversPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">🛵 Motorizados</h1>
-        <button
-          onClick={() => { setEditingDriver(null); setShowForm(true); }}
-          className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-        >
-          + Nuevo Motorizado
-        </button>
-      </div>
+      <PageHeader
+        title="Motorizados"
+        description="Gestión de repartidores"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={() => { setEditingDriver(null); setShowForm(true); }}
+          >
+            Nuevo Motorizado
+          </Button>
+        }
+      />
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Nombre</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Teléfono</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Entrega Actual</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {drivers.map(driver => (
-              <tr key={driver.id} className={!driver.is_active ? 'bg-gray-50' : ''}>
-                <td className="px-4 py-3 font-medium text-gray-900">{driver.name}</td>
-                <td className="px-4 py-3 text-gray-600">{driver.phone || '-'}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={driver.status} />
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {driver.currentDelivery 
-                    ? `📍 ${driver.currentDelivery.address_text.slice(0, 30)}...`
-                    : '-'
-                  }
-                </td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  <button
-                    onClick={() => { setEditingDriver(driver); setShowForm(true); }}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleToggleActive(driver)}
-                    className={`text-sm ${driver.is_active ? 'text-red-600' : 'text-green-600'} hover:underline`}
-                  >
-                    {driver.is_active ? 'Desactivar' : 'Activar'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {drivers.length === 0 && (
-          <p className="p-8 text-center text-gray-500">
-            No hay motorizados registrados
-          </p>
+      <Card padding="none">
+        {drivers.length === 0 ? (
+          <EmptyState
+            icon={<Truck />}
+            title="Sin motorizados"
+            description="Agrega tu primer repartidor para gestionar entregas"
+            action={{ label: 'Nuevo Motorizado', onClick: () => setShowForm(true) }}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Nombre</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Teléfono</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Estado</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Entrega Actual</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {drivers.map(driver => {
+                  const badge = STATUS_BADGE[driver.status] || { variant: 'neutral' as const, label: driver.status };
+                  return (
+                    <tr
+                      key={driver.id}
+                      className={`border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors ${!driver.is_active ? 'opacity-60' : ''}`}
+                    >
+                      <td className="px-4 py-3 font-medium text-white">{driver.name}</td>
+                      <td className="px-4 py-3 text-park-gray-400">{driver.phone || '-'}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={badge.variant} dot>{badge.label}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-park-gray-400">
+                        {driver.currentDelivery
+                          ? driver.currentDelivery.address_text.slice(0, 30) + '...'
+                          : '-'
+                        }
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => { setEditingDriver(driver); setShowForm(true); }}
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            variant={driver.is_active ? 'destructive' : 'primary'}
+                            size="sm"
+                            onClick={() => handleToggleActive(driver)}
+                          >
+                            {driver.is_active ? 'Desactivar' : 'Activar'}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
 
       {showForm && (
         <DriverForm
@@ -182,25 +217,5 @@ export default function DriversPage() {
         />
       )}
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    available: 'bg-green-100 text-green-700',
-    on_delivery: 'bg-purple-100 text-purple-700',
-    inactive: 'bg-gray-100 text-gray-600',
-  };
-
-  const labels: Record<string, string> = {
-    available: 'Disponible',
-    on_delivery: 'En entrega',
-    inactive: 'Inactivo',
-  };
-
-  return (
-    <span className={`text-xs px-2 py-1 rounded ${styles[status] || 'bg-gray-100'}`}>
-      {labels[status] || status}
-    </span>
   );
 }

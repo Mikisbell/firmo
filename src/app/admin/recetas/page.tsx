@@ -7,11 +7,12 @@
  */
 
 import { useState } from 'react';
-import { BookOpen, Plus, Edit2, Trash2, Calculator, ChefHat } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calculator, ChefHat } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRecipes } from '@/src/hooks/useRecipes';
 import { motion, AnimatePresence } from 'framer-motion';
 import RecipeModal from './components/RecipeModal';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 interface Recipe {
   id: string;
@@ -49,12 +50,12 @@ const STATION_OPTIONS = [
   { value: 'EMPAQUE', label: 'Empaque' },
 ];
 
-const STATION_COLORS: Record<string, string> = {
-  PARRILLA: 'bg-orange-900/30 text-orange-300 border-orange-700',
-  HORNO: 'bg-red-900/30 text-red-300 border-red-700',
-  COCINA: 'bg-amber-900/30 text-amber-300 border-amber-700',
-  BAR: 'bg-sky-900/30 text-sky-300 border-sky-700',
-  EMPAQUE: 'bg-violet-900/30 text-violet-300 border-violet-700',
+const STATION_BADGE_VARIANT: Record<string, 'warning' | 'critical' | 'info' | 'neutral'> = {
+  PARRILLA: 'warning',
+  HORNO: 'critical',
+  COCINA: 'warning',
+  BAR: 'info',
+  EMPAQUE: 'neutral',
 };
 
 export default function RecetasPage() {
@@ -107,32 +108,26 @@ export default function RecetasPage() {
   return (
     <>
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-900/30 rounded-lg">
-            <BookOpen className="w-6 h-6 text-amber-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-100">Recetas / Fichas Técnicas</h1>
-            <p className="text-sm text-zinc-400">{total} recetas registradas</p>
-          </div>
-        </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors min-h-[44px]"
-          onClick={() => { setEditingRecipe(null); setShowModal(true); }}
-        >
-          <Plus className="w-4 h-4" />
-          Nueva Receta
-        </button>
-      </div>
+      <PageHeader
+        title="Recetas / Fichas Técnicas"
+        description={`${total} recetas registradas`}
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={() => { setEditingRecipe(null); setShowModal(true); }}
+          >
+            Nueva Receta
+          </Button>
+        }
+      />
 
       {/* Filtros */}
       <div className="flex gap-3 flex-wrap">
         <select
           value={station}
           onChange={(e) => { setStation(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 min-h-[44px]"
+          className="px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-park-gray-200 min-h-[44px]"
         >
           {STATION_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -141,7 +136,7 @@ export default function RecetasPage() {
         <select
           value={category}
           onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 min-h-[44px]"
+          className="px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-park-gray-200 min-h-[44px]"
         >
           {CATEGORY_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -151,39 +146,47 @@ export default function RecetasPage() {
 
       {/* Error */}
       {error && (
-        <div className="p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-300">
+        <div className="p-4 bg-park-critical-subtle border border-red-700 rounded-lg text-red-400">
           Error al cargar recetas: {error.message}
         </div>
       )}
 
       {/* Tabla */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <Card padding="none">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                <th className="text-left py-3 px-4 text-zinc-400 font-medium">Producto</th>
-                <th className="text-left py-3 px-4 text-zinc-400 font-medium">Receta</th>
-                <th className="text-left py-3 px-4 text-zinc-400 font-medium">Área</th>
-                <th className="text-left py-3 px-4 text-zinc-400 font-medium">Categoría</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Ingredientes</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Rendimiento</th>
-                <th className="text-right py-3 px-4 text-zinc-400 font-medium">Costo</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Acciones</th>
+              <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                <th className="text-left py-3 px-4 text-park-gray-400 font-medium">Producto</th>
+                <th className="text-left py-3 px-4 text-park-gray-400 font-medium">Receta</th>
+                <th className="text-left py-3 px-4 text-park-gray-400 font-medium">Área</th>
+                <th className="text-left py-3 px-4 text-park-gray-400 font-medium">Categoría</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Ingredientes</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Rendimiento</th>
+                <th className="text-right py-3 px-4 text-park-gray-400 font-medium">Costo</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && !recipes.length ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-zinc-500">
-                    Cargando recetas...
+                  <td colSpan={8} className="py-4 px-4">
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-10 bg-park-gray-800 rounded animate-pulse" />
+                      ))}
+                    </div>
                   </td>
                 </tr>
               ) : recipes.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-zinc-500">
-                    <ChefHat className="w-12 h-12 mx-auto mb-3 text-zinc-700" />
-                    No hay recetas registradas
+                  <td colSpan={8}>
+                    <EmptyState
+                      icon={<ChefHat />}
+                      title="Sin recetas"
+                      description="Agrega tu primera receta o ficha técnica"
+                      action={{ label: 'Nueva Receta', onClick: () => setShowModal(true) }}
+                    />
                   </td>
                 </tr>
               ) : (
@@ -194,56 +197,61 @@ export default function RecetasPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+                      className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors"
                     >
-                      <td className="py-3 px-4 text-zinc-200 font-medium">
+                      <td className="py-3 px-4 text-white font-medium">
                         {recipe.product_name ?? '—'}
                       </td>
-                      <td className="py-3 px-4 text-zinc-300">
+                      <td className="py-3 px-4 text-park-gray-300">
                         {recipe.name ?? recipe.product_name ?? '—'}
                       </td>
                       <td className="py-3 px-4">
                         {recipe.product_station && (
-                          <span className={`px-2 py-1 text-xs rounded border ${STATION_COLORS[recipe.product_station] ?? 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
+                          <Badge variant={STATION_BADGE_VARIANT[recipe.product_station] ?? 'neutral'}>
                             {recipe.product_station}
-                          </span>
+                          </Badge>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-zinc-400">
-                        {recipe.category ?? '—'}
+                      <td className="py-3 px-4">
+                        {recipe.category ? (
+                          <Badge variant="neutral">{recipe.category}</Badge>
+                        ) : (
+                          <span className="text-park-gray-500">—</span>
+                        )}
                       </td>
-                      <td className="py-3 px-4 text-center text-zinc-300">
-                        {recipe.ingredients.length}
+                      <td className="py-3 px-4 text-center">
+                        <Badge variant="neutral">{recipe.ingredients.length}</Badge>
                       </td>
-                      <td className="py-3 px-4 text-center text-zinc-300">
+                      <td className="py-3 px-4 text-center text-park-gray-300">
                         {recipe.yield_qty} {recipe.yield_unit}
                       </td>
-                      <td className="py-3 px-4 text-right font-mono text-zinc-200">
+                      <td className="py-3 px-4 text-right font-mono text-park-gray-200">
                         {formatCost(recipe.cost_cents)}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center gap-1">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<Calculator className="w-4 h-4 text-emerald-400" />}
                             onClick={() => handleCalculateCost(recipe.id)}
-                            className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
                             title="Recalcular costo"
-                          >
-                            <Calculator className="w-4 h-4 text-emerald-400" />
-                          </button>
-                          <button
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<Edit2 className="w-4 h-4" />}
                             onClick={() => { setEditingRecipe(recipe); setShowModal(true); }}
-                            className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
                             title="Editar"
-                          >
-                            <Edit2 className="w-4 h-4 text-zinc-400" />
-                          </button>
-                          <button
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<Trash2 className="w-4 h-4 text-red-400" />}
                             onClick={() => handleDeactivate(recipe.id)}
-                            className="p-2 hover:bg-red-900/30 rounded-lg transition-colors"
                             title="Desactivar"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-400" />
-                          </button>
+                            className="hover:bg-red-900/30"
+                          />
                         </div>
                       </td>
                     </motion.tr>
@@ -256,29 +264,31 @@ export default function RecetasPage() {
 
         {/* Paginación */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800">
-            <span className="text-sm text-zinc-500">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-park-gray-800">
+            <span className="text-sm text-park-gray-500">
               Página {page} de {totalPages}
             </span>
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 rounded text-sm text-zinc-300 min-h-[36px]"
               >
                 Anterior
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 rounded text-sm text-zinc-300 min-h-[36px]"
               >
                 Siguiente
-              </button>
+              </Button>
             </div>
           </div>
         )}
-      </div>
+      </Card>
     </div>
 
     {/* Recipe Create / Edit Modal */}

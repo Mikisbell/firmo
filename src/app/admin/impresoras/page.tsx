@@ -16,8 +16,8 @@ import {
   Wifi,
   Globe,
   Usb,
-  Loader2,
 } from 'lucide-react';
+import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
 
 // ============================================================================
 // Types
@@ -50,6 +50,12 @@ interface PrinterFormData {
   address: string;
   paperWidth: 58 | 80;
 }
+
+const CONNECTION_BADGE: Record<string, { variant: 'info' | 'warning' | 'neutral'; icon: typeof Wifi }> = {
+  TCP: { variant: 'info', icon: Wifi },
+  HTTP: { variant: 'warning', icon: Globe },
+  USB: { variant: 'neutral', icon: Usb },
+};
 
 // ============================================================================
 // Page
@@ -188,100 +194,120 @@ export default function PrintersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-72 bg-park-gray-800 rounded-lg animate-pulse" />
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Printer className="h-7 w-7" />
-          Impresoras
-        </h1>
-        <button
-          onClick={() => { setEditingPrinter(null); setShowForm(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-        >
-          <Plus className="h-4 w-4" />
-          Nueva Impresora
-        </button>
-      </div>
+      <PageHeader
+        title="Impresoras"
+        description="Impresoras térmicas y cola de impresión"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={() => { setEditingPrinter(null); setShowForm(true); }}
+          >
+            Nueva Impresora
+          </Button>
+        }
+      />
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Nombre</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estacion</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Tipo Conexion</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Direccion</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Ancho Papel</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {printers.map((printer) => (
-                <tr key={printer.id} className={!printer.isActive ? 'bg-gray-50 opacity-60' : ''}>
-                  <td className="px-4 py-3 font-medium text-gray-900">{printer.name}</td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {printer.stationName || printer.stationCode}
-                  </td>
-                  <td className="px-4 py-3">
-                    <ConnectionBadge type={printer.connectionType} />
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 font-mono">
-                    {(printer.connection as any)?.address || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{printer.paperWidth}mm</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge active={printer.isActive} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => { setEditingPrinter(printer); setShowForm(true); }}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleTestPrint(printer)}
-                        disabled={!printer.isActive || testingId === printer.id}
-                        className="p-1.5 text-purple-600 hover:bg-purple-50 rounded disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Prueba de impresion"
-                      >
-                        {testingId === printer.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <TestTube2 className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleToggleActive(printer)}
-                        className={`p-1.5 rounded ${printer.isActive ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}`}
-                        title={printer.isActive ? 'Desactivar' : 'Activar'}
-                      >
-                        {printer.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </td>
+      <Card padding="none">
+        {printers.length === 0 ? (
+          <EmptyState
+            icon={<Printer />}
+            title="Sin impresoras"
+            description="Agrega tu primera impresora térmica"
+            action={{ label: 'Nueva Impresora', onClick: () => setShowForm(true) }}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Nombre</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Estacion</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Tipo Conexion</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Direccion</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Ancho Papel</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Estado</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {printers.length === 0 && (
-          <p className="p-8 text-center text-gray-500">
-            No hay impresoras registradas
-          </p>
+              </thead>
+              <tbody>
+                {printers.map((printer) => {
+                  const conn = CONNECTION_BADGE[printer.connectionType] || CONNECTION_BADGE.TCP;
+                  const ConnIcon = conn.icon;
+                  return (
+                    <tr key={printer.id} className={`border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors ${!printer.isActive ? 'opacity-60' : ''}`}>
+                      <td className="px-4 py-3 font-medium text-white">{printer.name}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant="neutral">
+                          {printer.stationName || printer.stationCode}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant={conn.variant}>
+                          <ConnIcon className="h-3 w-3" />
+                          {printer.connectionType}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-park-gray-400 font-mono">
+                        {(printer.connection as any)?.address || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-park-gray-400">{printer.paperWidth}mm</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={printer.isActive ? 'success' : 'neutral'} dot>
+                          {printer.isActive ? 'Activa' : 'Inactiva'}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<Pencil className="h-4 w-4" />}
+                            onClick={() => { setEditingPrinter(printer); setShowForm(true); }}
+                            title="Editar"
+                          />
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            icon={<TestTube2 className="h-4 w-4" />}
+                            loading={testingId === printer.id}
+                            disabled={!printer.isActive}
+                            onClick={() => handleTestPrint(printer)}
+                            title="Prueba de impresion"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={printer.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                            onClick={() => handleToggleActive(printer)}
+                            title={printer.isActive ? 'Desactivar' : 'Activar'}
+                            className={printer.isActive ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
 
       {showForm && (
         <PrinterFormModal
@@ -296,37 +322,8 @@ export default function PrintersPage() {
 }
 
 // ============================================================================
-// Sub-components
+// Printer Form Modal
 // ============================================================================
-
-function StatusBadge({ active }: { active: boolean }) {
-  return (
-    <span
-      className={`text-xs px-2 py-1 rounded ${
-        active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-      }`}
-    >
-      {active ? 'Activa' : 'Inactiva'}
-    </span>
-  );
-}
-
-function ConnectionBadge({ type }: { type: string }) {
-  const config: Record<string, { bg: string; icon: typeof Wifi }> = {
-    TCP: { bg: 'bg-blue-100 text-blue-700', icon: Wifi },
-    HTTP: { bg: 'bg-yellow-100 text-yellow-700', icon: Globe },
-    USB: { bg: 'bg-purple-100 text-purple-700', icon: Usb },
-  };
-
-  const { bg, icon: Icon } = config[type] || config.TCP;
-
-  return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${bg}`}>
-      <Icon className="h-3 w-3" />
-      {type}
-    </span>
-  );
-}
 
 function PrinterFormModal({
   printer,
@@ -367,15 +364,15 @@ function PrinterFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">
+      <Card className="w-full max-w-md mx-4" padding="none">
+        <div className="px-6 py-4 border-b border-park-gray-800">
+          <h2 className="text-lg font-semibold text-white">
             {printer ? 'Editar Impresora' : 'Nueva Impresora'}
           </h2>
         </div>
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-park-gray-300 mb-1">
               Nombre *
             </label>
             <input
@@ -384,18 +381,18 @@ function PrinterFormModal({
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="Cocina Principal"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-500 focus:ring-2 focus:ring-park-brand-500 focus:border-park-brand-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-park-gray-300 mb-1">
               Estacion
             </label>
             <select
               value={stationId}
               onChange={(e) => setStationId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white focus:ring-2 focus:ring-park-brand-500 focus:border-park-brand-500 outline-none"
             >
               <option value="">Seleccionar estacion...</option>
               {stations.map((s) => (
@@ -407,13 +404,13 @@ function PrinterFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-park-gray-300 mb-1">
               Tipo de Conexion
             </label>
             <select
               value={connectionType}
               onChange={(e) => setConnectionType(e.target.value as 'TCP' | 'HTTP' | 'USB')}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white focus:ring-2 focus:ring-park-brand-500 focus:border-park-brand-500 outline-none"
             >
               <option value="TCP">TCP (Red local)</option>
               <option value="HTTP">HTTP (Web)</option>
@@ -423,7 +420,7 @@ function PrinterFormModal({
 
           {connectionType !== 'USB' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-park-gray-300 mb-1">
                 Direccion IP:Puerto
               </label>
               <input
@@ -432,13 +429,13 @@ function PrinterFormModal({
                 onChange={(e) => setAddress(e.target.value)}
                 required
                 placeholder="192.168.1.100:9100"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none font-mono"
+                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-500 font-mono focus:ring-2 focus:ring-park-brand-500 focus:border-park-brand-500 outline-none"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-park-gray-300 mb-1">
               Ancho de Papel
             </label>
             <div className="flex gap-4">
@@ -449,9 +446,9 @@ function PrinterFormModal({
                   value={58}
                   checked={paperWidth === 58}
                   onChange={() => setPaperWidth(58)}
-                  className="accent-orange-500"
+                  className="accent-park-brand-500"
                 />
-                <span className="text-sm">58mm</span>
+                <span className="text-sm text-park-gray-300">58mm</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -460,30 +457,23 @@ function PrinterFormModal({
                   value={80}
                   checked={paperWidth === 80}
                   onChange={() => setPaperWidth(80)}
-                  className="accent-orange-500"
+                  className="accent-park-brand-500"
                 />
-                <span className="text-sm">80mm (estandar)</span>
+                <span className="text-sm text-park-gray-300">80mm (estandar)</span>
               </label>
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
+            <Button variant="ghost" type="button" onClick={onCancel}>
               Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-            >
+            </Button>
+            <Button variant="primary" type="submit">
               {printer ? 'Guardar Cambios' : 'Crear Impresora'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

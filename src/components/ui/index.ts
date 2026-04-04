@@ -55,3 +55,22 @@ export type { OrientationHintProps } from './OrientationHint';
 
 // Tooltip
 export { Tooltip } from './Tooltip';
+
+// Design System Phase 1
+export { Button } from './Button';
+export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
+
+export { Badge } from './Badge';
+export type { BadgeProps, BadgeVariant, BadgeSize } from './Badge';
+
+export { Card, CardHeader, CardContent, CardFooter } from './Card';
+export type { CardProps, CardPadding, CardSectionProps } from './Card';
+
+export { PageHeader } from './PageHeader';
+export type { PageHeaderProps } from './PageHeader';
+
+export { MetricCard } from './MetricCard';
+export type { MetricCardProps } from './MetricCard';
+
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';

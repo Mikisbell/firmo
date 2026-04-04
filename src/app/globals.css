@@ -15,6 +15,29 @@
   --color-park-brand-900: #064e3b;
   --color-park-brand-glow: rgba(16, 185, 129, 0.5);
 
+  /* Admin Gray Scale (Vercel-inspired, pure neutral) */
+  --color-park-gray-50: #fafafa;
+  --color-park-gray-100: #f4f4f5;
+  --color-park-gray-200: #e4e4e7;
+  --color-park-gray-300: #d4d4d8;
+  --color-park-gray-400: #a1a1aa;
+  --color-park-gray-500: #71717a;
+  --color-park-gray-600: #52525b;
+  --color-park-gray-700: #3f3f46;
+  --color-park-gray-800: #27272a;
+  --color-park-gray-900: #18181b;
+  --color-park-gray-950: #09090b;
+
+  /* Semantic Status Colors */
+  --color-park-success: #22c55e;
+  --color-park-success-subtle: rgba(34, 197, 94, 0.15);
+  --color-park-warning: #f59e0b;
+  --color-park-warning-subtle: rgba(245, 158, 11, 0.15);
+  --color-park-critical: #ef4444;
+  --color-park-critical-subtle: rgba(239, 68, 68, 0.15);
+  --color-park-info: #3b82f6;
+  --color-park-info-subtle: rgba(59, 130, 246, 0.15);
+
   /* Animations */
   --animate-in: fadeIn 0.2s ease-out;
   --animate-out: fadeOut 0.2s ease-in;
