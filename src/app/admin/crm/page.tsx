@@ -6,8 +6,9 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Users2, Target, Send, FileText, Plus, Loader2, Play, X, Eye, RefreshCw, BarChart3 } from 'lucide-react';
+import { Users2, Target, Send, FileText, Plus, Loader2, Play, X, Eye, BarChart3 } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,25 +59,16 @@ const fetcher = (url: string) => fetch(url).then((r) => {
 });
 
 // ---------------------------------------------------------------------------
-// Status Badge
+// Status Badge mapping
 // ---------------------------------------------------------------------------
 
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-700',
-  SCHEDULED: 'bg-blue-100 text-blue-700',
-  ACTIVE: 'bg-green-100 text-green-700',
-  COMPLETED: 'bg-purple-100 text-purple-700',
-  CANCELLED: 'bg-red-100 text-red-700',
+const STATUS_VARIANT: Record<string, 'neutral' | 'info' | 'success' | 'warning' | 'critical'> = {
+  DRAFT: 'neutral',
+  SCHEDULED: 'info',
+  ACTIVE: 'success',
+  COMPLETED: 'warning',
+  CANCELLED: 'critical',
 };
-
-function StatusBadge({ status }: { status: string }) {
-  const color = STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-700';
-  return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
-      {status}
-    </span>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Segments Tab
@@ -128,113 +120,128 @@ function SegmentsTab() {
     mutate('/api/admin/crm/segments');
   }, []);
 
-  if (isLoading) return <div className="p-8 text-center text-gray-400">Cargando...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   const segments = data?.data ?? [];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Segmentos de Clientes</h3>
-        <button
+        <h3 className="font-medium text-white">Segmentos de Clientes</h3>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={<Plus className="h-4 w-4" />}
           onClick={() => setCreating(!creating)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
-          <Plus className="h-4 w-4" />
           Nuevo Segmento
-        </button>
+        </Button>
       </div>
 
       {creating && (
-        <div className="rounded-lg border bg-gray-50 p-4 space-y-3">
-          <input
-            type="text"
-            placeholder="Nombre del segmento"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-md border-gray-300 text-sm"
-          />
-          <div className="grid grid-cols-3 gap-2">
-            <select value={filterField} onChange={(e) => setFilterField(e.target.value)} className="rounded-md border-gray-300 text-sm">
-              <option value="rfm_segment">Segmento RFM</option>
-              <option value="loyalty_tier">Tier Lealtad</option>
-              <option value="monetary_30d">Gasto 30d (centavos)</option>
-              <option value="frequency_30d">Frecuencia 30d</option>
-              <option value="recency_days">Recencia (días)</option>
-              <option value="orders_count">Total Pedidos</option>
-            </select>
-            <select value={filterOp} onChange={(e) => setFilterOp(e.target.value)} className="rounded-md border-gray-300 text-sm">
-              <option value="eq">Igual a</option>
-              <option value="gt">Mayor que</option>
-              <option value="gte">Mayor o igual</option>
-              <option value="lt">Menor que</option>
-              <option value="lte">Menor o igual</option>
-            </select>
+        <Card>
+          <div className="space-y-3">
             <input
               type="text"
-              placeholder="Valor"
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
-              className="rounded-md border-gray-300 text-sm"
+              placeholder="Nombre del segmento"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="block w-full rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2"
             />
+            <div className="grid grid-cols-3 gap-2">
+              <select value={filterField} onChange={(e) => setFilterField(e.target.value)} className="rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2">
+                <option value="rfm_segment">Segmento RFM</option>
+                <option value="loyalty_tier">Tier Lealtad</option>
+                <option value="monetary_30d">Gasto 30d (centavos)</option>
+                <option value="frequency_30d">Frecuencia 30d</option>
+                <option value="recency_days">Recencia (dias)</option>
+                <option value="orders_count">Total Pedidos</option>
+              </select>
+              <select value={filterOp} onChange={(e) => setFilterOp(e.target.value)} className="rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2">
+                <option value="eq">Igual a</option>
+                <option value="gt">Mayor que</option>
+                <option value="gte">Mayor o igual</option>
+                <option value="lt">Menor que</option>
+                <option value="lte">Menor o igual</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Valor"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+                className="rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2"
+              />
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleCreate}
+              disabled={saving || !name || !filterValue}
+              loading={saving}
+            >
+              Crear Segmento
+            </Button>
           </div>
-          <button
-            onClick={handleCreate}
-            disabled={saving || !name || !filterValue}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Crear Segmento
-          </button>
-        </div>
+        </Card>
       )}
 
-      <div className="divide-y divide-gray-100 rounded-lg border">
-        {segments.map((seg) => (
-          <div key={seg.id} className="flex items-center justify-between px-4 py-3">
-            <div>
-              <p className="text-sm font-medium">{seg.name}</p>
-              <p className="text-xs text-gray-500">
-                {seg.definition.type} — {seg.definition.filters.length} filtro(s)
-              </p>
+      <Card padding="none">
+        <div className="divide-y divide-park-gray-800">
+          {segments.map((seg) => (
+            <div key={seg.id} className="flex items-center justify-between px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-white">{seg.name}</p>
+                <p className="text-xs text-park-gray-500">
+                  {seg.definition.type} — {seg.definition.filters.length} filtro(s)
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPreviewId(previewId === seg.id ? null : seg.id)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(seg.id)}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPreviewId(previewId === seg.id ? null : seg.id)}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                title="Preview"
-              >
-                <Eye className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => handleDelete(seg.id)}
-                className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                title="Eliminar"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-        {segments.length === 0 && (
-          <p className="p-4 text-center text-sm text-gray-400">Sin segmentos creados</p>
-        )}
-      </div>
+          ))}
+          {segments.length === 0 && (
+            <div className="p-4 text-center text-sm text-park-gray-500">Sin segmentos creados</div>
+          )}
+        </div>
+      </Card>
 
       {previewId && previewData && (
-        <div className="rounded-lg border bg-blue-50 p-4">
-          <p className="mb-2 text-sm font-medium">
+        <Card className="border-blue-500/20">
+          <p className="mb-2 text-sm font-medium text-white">
             {previewData.count ?? 0} clientes en este segmento
           </p>
           <div className="max-h-40 overflow-y-auto text-sm">
             {(previewData.customers ?? []).slice(0, 10).map((c: any) => (
               <div key={c.id} className="flex justify-between py-1">
-                <span>{c.name ?? c.phone}</span>
-                <span className="text-gray-500">{c.rfm_segment ?? '-'} / {c.loyalty_tier ?? '-'}</span>
+                <span className="text-park-gray-200">{c.name ?? c.phone}</span>
+                <span className="text-park-gray-500">{c.rfm_segment ?? '-'} / {c.loyalty_tier ?? '-'}</span>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );
@@ -277,86 +284,103 @@ function TemplatesTab() {
     mutate('/api/admin/crm/templates');
   }, []);
 
-  // Extract variables from content for live preview
   const vars = content.match(/\{\{(\w+)\}\}/g)?.map((v) => v.replace(/[{}]/g, '')) ?? [];
 
-  if (isLoading) return <div className="p-8 text-center text-gray-400">Cargando...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   const templates = data?.data ?? [];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Plantillas de Mensaje</h3>
-        <button
+        <h3 className="font-medium text-white">Plantillas de Mensaje</h3>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={<Plus className="h-4 w-4" />}
           onClick={() => setCreating(!creating)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
-          <Plus className="h-4 w-4" />
           Nueva Plantilla
-        </button>
+        </Button>
       </div>
 
       {creating && (
-        <div className="rounded-lg border bg-gray-50 p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              placeholder="Nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="rounded-md border-gray-300 text-sm"
+        <Card>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                placeholder="Nombre"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2"
+              />
+              <select value={channel} onChange={(e) => setChannel(e.target.value)} className="rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2">
+                <option value="WHATSAPP">WhatsApp</option>
+                <option value="SMS">SMS</option>
+              </select>
+            </div>
+            <textarea
+              placeholder="Contenido del mensaje. Usa {{nombre}}, {{puntos}}, {{tier}} como variables."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={4}
+              className="block w-full rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2"
             />
-            <select value={channel} onChange={(e) => setChannel(e.target.value)} className="rounded-md border-gray-300 text-sm">
-              <option value="WHATSAPP">WhatsApp</option>
-              <option value="SMS">SMS</option>
-            </select>
+            {vars.length > 0 && (
+              <p className="text-xs text-blue-400">
+                Variables detectadas: {vars.map((v) => `{{${v}}}`).join(', ')}
+              </p>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleCreate}
+              disabled={saving || !name || !content}
+              loading={saving}
+            >
+              Crear Plantilla
+            </Button>
           </div>
-          <textarea
-            placeholder="Contenido del mensaje. Usa {{nombre}}, {{puntos}}, {{tier}} como variables."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={4}
-            className="block w-full rounded-md border-gray-300 text-sm"
-          />
-          {vars.length > 0 && (
-            <p className="text-xs text-blue-600">
-              Variables detectadas: {vars.map((v) => `{{${v}}}`).join(', ')}
-            </p>
-          )}
-          <button
-            onClick={handleCreate}
-            disabled={saving || !name || !content}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Crear Plantilla
-          </button>
-        </div>
+        </Card>
       )}
 
-      <div className="divide-y divide-gray-100 rounded-lg border">
-        {templates.map((tpl) => (
-          <div key={tpl.id} className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{tpl.name}</p>
-                <p className="text-xs text-gray-500">{tpl.channel} — {tpl.is_active ? 'Activa' : 'Inactiva'}</p>
+      <Card padding="none">
+        <div className="divide-y divide-park-gray-800">
+          {templates.map((tpl) => (
+            <div key={tpl.id} className="px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-white">{tpl.name}</p>
+                  <p className="text-xs text-park-gray-500">
+                    {tpl.channel} — <Badge variant={tpl.is_active ? 'success' : 'neutral'} size="sm">{tpl.is_active ? 'Activa' : 'Inactiva'}</Badge>
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(tpl.id)}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <button
-                onClick={() => handleDelete(tpl.id)}
-                className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <p className="mt-1 text-xs text-park-gray-400 line-clamp-2">{tpl.content}</p>
             </div>
-            <p className="mt-1 text-xs text-gray-600 line-clamp-2">{tpl.content}</p>
-          </div>
-        ))}
-        {templates.length === 0 && (
-          <p className="p-4 text-center text-sm text-gray-400">Sin plantillas creadas</p>
-        )}
-      </div>
+          ))}
+          {templates.length === 0 && (
+            <div className="p-4 text-center text-sm text-park-gray-500">Sin plantillas creadas</div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }
@@ -403,7 +427,7 @@ function CampaignsTab() {
     const res = await fetch(`/api/admin/crm/campaigns/${id}/launch`, { method: 'POST' });
     if (res.ok) {
       const data = await res.json();
-      alert(`Campaña lanzada: ${data.messagesQueued} mensajes en cola`);
+      alert(`Campana lanzada: ${data.messagesQueued} mensajes en cola`);
       mutate('/api/admin/crm/campaigns');
     }
   }, []);
@@ -413,7 +437,15 @@ function CampaignsTab() {
     mutate('/api/admin/crm/campaigns');
   }, []);
 
-  if (isLoading) return <div className="p-8 text-center text-gray-400">Cargando...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   const campaigns = data?.data ?? [];
   const segments = segData?.data ?? [];
@@ -422,114 +454,110 @@ function CampaignsTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Campañas de Marketing</h3>
-        <button
+        <h3 className="font-medium text-white">Campanas de Marketing</h3>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={<Plus className="h-4 w-4" />}
           onClick={() => setCreating(!creating)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
-          <Plus className="h-4 w-4" />
-          Nueva Campaña
-        </button>
+          Nueva Campana
+        </Button>
       </div>
 
       {creating && (
-        <div className="rounded-lg border bg-gray-50 p-4 space-y-3">
-          <input
-            type="text"
-            placeholder="Nombre de la campaña"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-md border-gray-300 text-sm"
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <select value={segmentId} onChange={(e) => setSegmentId(e.target.value)} className="rounded-md border-gray-300 text-sm">
-              <option value="">Seleccionar segmento...</option>
-              {segments.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-            <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="rounded-md border-gray-300 text-sm">
-              <option value="">Seleccionar plantilla...</option>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>{t.name} ({t.channel})</option>
-              ))}
-            </select>
+        <Card>
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="Nombre de la campana"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="block w-full rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <select value={segmentId} onChange={(e) => setSegmentId(e.target.value)} className="rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2">
+                <option value="">Seleccionar segmento...</option>
+                {segments.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="rounded-lg bg-park-gray-800 border border-park-gray-700 text-sm px-3 py-2">
+                <option value="">Seleccionar plantilla...</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name} ({t.channel})</option>
+                ))}
+              </select>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleCreate}
+              disabled={saving || !name || !segmentId || !templateId}
+              loading={saving}
+            >
+              Crear Campana
+            </Button>
           </div>
-          <button
-            onClick={handleCreate}
-            disabled={saving || !name || !segmentId || !templateId}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Crear Campaña
-          </button>
-        </div>
+        </Card>
       )}
 
-      <div className="divide-y divide-gray-100 rounded-lg border">
-        {campaigns.map((c) => (
-          <div key={c.id} className="flex items-center justify-between px-4 py-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">{c.name}</p>
-                <StatusBadge status={c.status} />
+      <Card padding="none">
+        <div className="divide-y divide-park-gray-800">
+          {campaigns.map((c) => (
+            <div key={c.id} className="flex items-center justify-between px-4 py-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-white">{c.name}</p>
+                  <Badge variant={STATUS_VARIANT[c.status] ?? 'neutral'}>{c.status}</Badge>
+                </div>
+                <p className="text-xs text-park-gray-500">
+                  {c.marketing_segments?.name ?? '\u2014'} → {c.channel}
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                {c.marketing_segments?.name ?? '—'} → {c.channel}
-              </p>
-            </div>
-            <div className="flex items-center gap-1">
-              {(c.status === 'DRAFT' || c.status === 'SCHEDULED') && (
-                <button
-                  onClick={() => handleLaunch(c.id)}
-                  className="rounded p-1.5 text-green-600 hover:bg-green-50"
-                  title="Lanzar"
+              <div className="flex items-center gap-1">
+                {(c.status === 'DRAFT' || c.status === 'SCHEDULED') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleLaunch(c.id)}
+                    className="text-green-400"
+                  >
+                    <Play className="h-4 w-4" />
+                  </Button>
+                )}
+                {c.status === 'ACTIVE' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCancel(c.id)}
+                    className="text-red-400"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStatsId(statsId === c.id ? null : c.id)}
                 >
-                  <Play className="h-4 w-4" />
-                </button>
-              )}
-              {c.status === 'ACTIVE' && (
-                <button
-                  onClick={() => handleCancel(c.id)}
-                  className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                  title="Cancelar"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-              <button
-                onClick={() => setStatsId(statsId === c.id ? null : c.id)}
-                className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                title="Stats"
-              >
-                <BarChart3 className="h-4 w-4" />
-              </button>
+                  <BarChart3 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
-        {campaigns.length === 0 && (
-          <p className="p-4 text-center text-sm text-gray-400">Sin campañas creadas</p>
-        )}
-      </div>
+          ))}
+          {campaigns.length === 0 && (
+            <div className="p-4 text-center text-sm text-park-gray-500">Sin campanas creadas</div>
+          )}
+        </div>
+      </Card>
 
       {statsId && statsData?.stats && (
-        <div className="grid grid-cols-4 gap-3 rounded-lg border bg-purple-50 p-4">
-          <div className="text-center">
-            <p className="text-lg font-bold">{statsData.stats.total}</p>
-            <p className="text-xs text-gray-500">Total</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold text-blue-600">{statsData.stats.queued}</p>
-            <p className="text-xs text-gray-500">En Cola</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold text-green-600">{statsData.stats.sent}</p>
-            <p className="text-xs text-gray-500">Enviados</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold text-red-600">{statsData.stats.failed}</p>
-            <p className="text-xs text-gray-500">Fallidos</p>
-          </div>
+        <div className="grid grid-cols-4 gap-3">
+          <MetricCard label="Total" value={statsData.stats.total} />
+          <MetricCard label="En Cola" value={statsData.stats.queued} />
+          <MetricCard label="Enviados" value={statsData.stats.sent} />
+          <MetricCard label="Fallidos" value={statsData.stats.failed} />
         </div>
       )}
     </div>
@@ -546,43 +574,44 @@ export default function CrmPage() {
   const [tab, setTab] = useState<Tab>('segments');
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div className="flex items-center gap-3">
-        <Users2 className="h-6 w-6 text-pink-500" />
-        <h1 className="text-xl font-semibold">CRM — Marketing</h1>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="CRM"
+        description="Marketing: segmentos, campanas y plantillas"
+      />
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-        <button
+      <div className="flex gap-1 rounded-lg bg-park-gray-900 p-1 border border-park-gray-800">
+        <Button
+          variant={tab === 'segments' ? 'primary' : 'ghost'}
+          size="sm"
+          icon={<Target className="h-4 w-4" />}
           onClick={() => setTab('segments')}
-          className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition ${tab === 'segments' ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
         >
-          <Target className="h-4 w-4" />
           Segmentos
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={tab === 'campaigns' ? 'primary' : 'ghost'}
+          size="sm"
+          icon={<Send className="h-4 w-4" />}
           onClick={() => setTab('campaigns')}
-          className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition ${tab === 'campaigns' ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
         >
-          <Send className="h-4 w-4" />
-          Campañas
-        </button>
-        <button
+          Campanas
+        </Button>
+        <Button
+          variant={tab === 'templates' ? 'primary' : 'ghost'}
+          size="sm"
+          icon={<FileText className="h-4 w-4" />}
           onClick={() => setTab('templates')}
-          className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition ${tab === 'templates' ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
         >
-          <FileText className="h-4 w-4" />
           Plantillas
-        </button>
+        </Button>
       </div>
 
       {/* Tab Content */}
-      <div className="rounded-xl border bg-white p-6">
-        {tab === 'segments' && <SegmentsTab />}
-        {tab === 'campaigns' && <CampaignsTab />}
-        {tab === 'templates' && <TemplatesTab />}
-      </div>
+      {tab === 'segments' && <SegmentsTab />}
+      {tab === 'campaigns' && <CampaignsTab />}
+      {tab === 'templates' && <TemplatesTab />}
     </div>
   );
 }

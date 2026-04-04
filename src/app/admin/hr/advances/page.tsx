@@ -9,6 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Briefcase, Check, X, DollarSign, AlertTriangle, Filter } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 interface Advance {
   id: string;
@@ -22,11 +23,11 @@ interface Advance {
   paid_at?: string;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Pendiente', color: 'text-yellow-400 bg-yellow-500/20' },
-  APPROVED: { label: 'Aprobado', color: 'text-green-400 bg-green-500/20' },
-  REJECTED: { label: 'Rechazado', color: 'text-red-400 bg-red-500/20' },
-  PAID: { label: 'Pagado', color: 'text-blue-400 bg-blue-500/20' },
+const STATUS_BADGE: Record<string, { label: string; variant: 'warning' | 'success' | 'critical' | 'info' }> = {
+  PENDING: { label: 'Pendiente', variant: 'warning' },
+  APPROVED: { label: 'Aprobado', variant: 'success' },
+  REJECTED: { label: 'Rechazado', variant: 'critical' },
+  PAID: { label: 'Pagado', variant: 'info' },
 };
 
 function formatCurrency(cents: number): string {
@@ -73,124 +74,147 @@ export default function AdvancesPage() {
 
   const totalPending = advances.reduce((sum, a) => sum + a.amount_cents, 0);
 
-  return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Adelantos</h1>
-          <p className="text-zinc-400 text-sm">Solicitudes y aprobación de adelantos de sueldo</p>
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-28 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
         </div>
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Adelantos"
+        description="Solicitudes y aprobación de adelantos de sueldo"
+      />
 
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Solicitudes ({STATUS_CONFIG[statusFilter]?.label})</p>
-          <p className="text-2xl font-bold text-white">{advances.length}</p>
-        </div>
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Monto Total</p>
-          <p className="text-2xl font-bold text-amber-400">{formatCurrency(totalPending)}</p>
-        </div>
+        <MetricCard
+          label={`Solicitudes (${STATUS_BADGE[statusFilter]?.label})`}
+          value={advances.length}
+          icon={<Briefcase className="w-5 h-5" />}
+        />
+        <MetricCard
+          label="Monto Total"
+          value={totalPending}
+          format="currency"
+          icon={<DollarSign className="w-5 h-5" />}
+        />
       </div>
 
       {/* Status Filter */}
       <div className="flex items-center gap-2">
-        <Filter className="w-4 h-4 text-zinc-500" />
-        {Object.entries(STATUS_CONFIG).map(([key, { label }]) => (
-          <button
+        <Filter className="w-4 h-4 text-park-gray-500" />
+        {Object.entries(STATUS_BADGE).map(([key, { label }]) => (
+          <Button
             key={key}
+            variant={statusFilter === key ? 'primary' : 'secondary'}
+            size="sm"
             onClick={() => setStatusFilter(key)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              statusFilter === key
-                ? 'bg-blue-600 text-white'
-                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-            }`}
           >
             {label}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Table */}
-      {isLoading ? (
-        <div className="text-zinc-400 text-center py-12">Cargando...</div>
-      ) : error ? (
-        <div className="text-red-400 text-center py-12 flex items-center justify-center gap-2">
-          <AlertTriangle className="w-5 h-5" /> Error al cargar adelantos
-        </div>
-      ) : !advances.length ? (
-        <div className="text-zinc-500 text-center py-12">
-          No hay adelantos {STATUS_CONFIG[statusFilter]?.label.toLowerCase()} para mostrar.
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-zinc-700 text-zinc-400 text-left">
-                <th className="py-3 px-4">Empleado</th>
-                <th className="py-3 px-4 text-right">Monto</th>
-                <th className="py-3 px-4">Motivo</th>
-                <th className="py-3 px-4">Fecha Solicitud</th>
-                <th className="py-3 px-4">Estado</th>
-                <th className="py-3 px-4 text-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {advances.map((a) => {
-                const status = STATUS_CONFIG[a.status] ?? STATUS_CONFIG.PENDING;
-                return (
-                  <tr key={a.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
-                    <td className="py-3 px-4 text-white">{a.employee_name ?? a.employee_id.slice(0, 8)}</td>
-                    <td className="py-3 px-4 text-right text-amber-400 font-medium">{formatCurrency(a.amount_cents)}</td>
-                    <td className="py-3 px-4 text-zinc-400 max-w-[200px] truncate">{a.reason}</td>
-                    <td className="py-3 px-4 text-zinc-300">{a.requested_at?.slice(0, 10)}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
-                        {status.label}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {a.status === 'PENDING' && (
-                          <>
-                            <button
-                              onClick={() => handleAction(a.id, 'approve')}
-                              className="p-1.5 rounded-lg bg-green-600/20 text-green-400 hover:bg-green-600/40 transition-colors"
-                              title="Aprobar"
+      <Card padding="none">
+        {error ? (
+          <EmptyState
+            icon={<AlertTriangle />}
+            title="Error al cargar adelantos"
+            description="No se pudieron cargar los datos. Intente nuevamente."
+          />
+        ) : !advances.length ? (
+          <EmptyState
+            icon={<Briefcase />}
+            title="Sin adelantos"
+            description={`No hay adelantos ${STATUS_BADGE[statusFilter]?.label.toLowerCase()} para mostrar.`}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Empleado</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Monto</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Motivo</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Fecha Solicitud</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Estado</th>
+                  <th className="px-4 py-3 text-center text-park-gray-400 font-medium">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {advances.map((a) => {
+                  const badge = STATUS_BADGE[a.status] ?? STATUS_BADGE.PENDING;
+                  return (
+                    <tr key={a.id} className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors">
+                      <td className="px-4 py-3 text-white">{a.employee_name ?? a.employee_id.slice(0, 8)}</td>
+                      <td className="px-4 py-3 text-right text-amber-400 font-medium">{formatCurrency(a.amount_cents)}</td>
+                      <td className="px-4 py-3 text-park-gray-400 max-w-[200px] truncate">{a.reason}</td>
+                      <td className="px-4 py-3 text-park-gray-300">{a.requested_at?.slice(0, 10)}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={badge.variant} dot>{badge.label}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-1">
+                          {a.status === 'PENDING' && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleAction(a.id, 'approve')}
+                                icon={<Check className="w-4 h-4 text-green-400" />}
+                              >
+                                Aprobar
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleAction(a.id, 'reject')}
+                                icon={<X className="w-4 h-4 text-red-400" />}
+                              >
+                                Rechazar
+                              </Button>
+                            </>
+                          )}
+                          {a.status === 'APPROVED' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleAction(a.id, 'mark-paid')}
+                              icon={<DollarSign className="w-4 h-4 text-blue-400" />}
                             >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleAction(a.id, 'reject')}
-                              className="p-1.5 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/40 transition-colors"
-                              title="Rechazar"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                        {a.status === 'APPROVED' && (
-                          <button
-                            onClick={() => handleAction(a.id, 'mark-paid')}
-                            className="p-1.5 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition-colors"
-                            title="Marcar como pagado"
-                          >
-                            <DollarSign className="w-4 h-4" />
-                          </button>
-                        )}
-                        {(a.status === 'REJECTED' || a.status === 'PAID') && (
-                          <span className="text-zinc-600 text-xs">—</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                              Marcar Pagado
+                            </Button>
+                          )}
+                          {(a.status === 'REJECTED' || a.status === 'PAID') && (
+                            <span className="text-park-gray-600 text-xs">—</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

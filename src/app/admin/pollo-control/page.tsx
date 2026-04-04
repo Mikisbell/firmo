@@ -3,9 +3,9 @@
 /**
  * Control de Pollo - Dashboard en tiempo real
  *
- * 4 tarjetas métricas: Crudo | Cocinando | Cocido | Vendido
- * Formulario de producción, medidor de rendimiento, alertas de merma,
- * historial de lotes con botón "Completar".
+ * 4 tarjetas metricas: Crudo | Cocinando | Cocido | Vendido
+ * Formulario de produccion, medidor de rendimiento, alertas de merma,
+ * historial de lotes con boton "Completar".
  */
 
 import { useState } from 'react';
@@ -13,6 +13,7 @@ import { Egg, Flame, ChefHat, ShoppingCart, AlertTriangle, Plus, CheckCircle2 } 
 import { toast } from 'sonner';
 import { usePolloDashboard, usePolloHistory } from '@/src/hooks/usePolloControl';
 import { motion } from 'framer-motion';
+import { Button, Badge, Card, PageHeader, MetricCard } from '@/src/components/ui';
 
 // TODO: Obtener de config/context del tenant
 const DEFAULT_LOCATION_ID = '00000000-0000-0000-0000-000000000001';
@@ -31,38 +32,9 @@ interface ProductionLog {
   notes: string | null;
 }
 
-function MetricCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-  subtitle,
-}: {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  color: string;
-  subtitle?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`p-5 rounded-xl border ${color}`}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-zinc-400">{label}</span>
-        <Icon className="w-5 h-5 text-zinc-500" />
-      </div>
-      <div className="text-3xl font-bold text-zinc-100">{value}</div>
-      {subtitle && <div className="text-xs text-zinc-500 mt-1">{subtitle}</div>}
-    </motion.div>
-  );
-}
-
 function YieldGauge({ percent }: { percent: number }) {
   const color = percent === 0
-    ? 'text-zinc-500'
+    ? 'text-park-gray-500'
     : percent >= 68 && percent <= 76
       ? 'text-emerald-400'
       : percent < 60 || percent > 85
@@ -70,7 +42,7 @@ function YieldGauge({ percent }: { percent: number }) {
         : 'text-amber-400';
 
   const bgColor = percent === 0
-    ? 'bg-zinc-700'
+    ? 'bg-park-gray-700'
     : percent >= 68 && percent <= 76
       ? 'bg-emerald-500'
       : percent < 60 || percent > 85
@@ -78,23 +50,23 @@ function YieldGauge({ percent }: { percent: number }) {
         : 'bg-amber-500';
 
   return (
-    <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-xl">
-      <div className="text-sm text-zinc-400 mb-3">Rendimiento Promedio</div>
+    <Card>
+      <div className="text-sm text-park-gray-400 mb-3">Rendimiento Promedio</div>
       <div className={`text-4xl font-bold ${color}`}>
-        {percent > 0 ? `${percent}%` : '—'}
+        {percent > 0 ? `${percent}%` : '\u2014'}
       </div>
-      <div className="mt-3 h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="mt-3 h-2 bg-park-gray-800 rounded-full overflow-hidden">
         <div
           className={`h-full ${bgColor} rounded-full transition-all duration-500`}
           style={{ width: `${Math.min(percent, 100)}%` }}
         />
       </div>
-      <div className="flex justify-between text-xs text-zinc-600 mt-1">
+      <div className="flex justify-between text-xs text-park-gray-600 mt-1">
         <span>60%</span>
-        <span className="text-zinc-500">72% objetivo</span>
+        <span className="text-park-gray-500">72% objetivo</span>
         <span>85%</span>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -146,7 +118,7 @@ export default function PolloControlPage() {
         toast.error(data.error || 'Error al registrar');
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error('Error de conexion');
     } finally {
       setSubmitting(false);
     }
@@ -188,7 +160,7 @@ export default function PolloControlPage() {
         toast.error(data.error || 'Error al completar');
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error('Error de conexion');
     }
   };
 
@@ -199,124 +171,117 @@ export default function PolloControlPage() {
     SERVIDO: 'Servido',
   };
 
-  const STATUS_COLORS: Record<string, string> = {
-    CRUDO: 'bg-sky-900/30 text-sky-300',
-    COCINANDO: 'bg-amber-900/30 text-amber-300',
-    COCIDO: 'bg-emerald-900/30 text-emerald-300',
-    SERVIDO: 'bg-violet-900/30 text-violet-300',
+  const STATUS_BADGE: Record<string, 'info' | 'warning' | 'success' | 'neutral'> = {
+    CRUDO: 'info',
+    COCINANDO: 'warning',
+    COCIDO: 'success',
+    SERVIDO: 'neutral',
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-900/30 rounded-lg">
-            <Egg className="w-6 h-6 text-orange-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-100">Control de Pollo</h1>
-            <p className="text-sm text-zinc-400">Producción en tiempo real · Actualiza cada 15s</p>
-          </div>
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}><div className="h-20 bg-park-gray-800 rounded animate-pulse" /></Card>
+          ))}
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Registrar Lote
-        </button>
       </div>
+    );
+  }
 
-      {/* Formulario de producción */}
+  return (
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Control Pollo"
+        description="Produccion en tiempo real - Actualiza cada 15s"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus size={16} />}
+            onClick={() => setShowForm(!showForm)}
+          >
+            Registrar Lote
+          </Button>
+        }
+      />
+
+      {/* Formulario de produccion */}
       {showForm && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="p-5 bg-zinc-900 border border-zinc-800 rounded-xl"
         >
-          <h3 className="text-lg font-semibold text-zinc-200 mb-4">Nuevo Lote de Pollos Crudos</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Unidades crudas</label>
-              <input
-                type="number"
-                value={rawUnits}
-                onChange={(e) => setRawUnits(e.target.value)}
-                placeholder="20"
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 min-h-[44px]"
-              />
+          <Card>
+            <h3 className="text-lg font-semibold text-park-gray-200 mb-4">Nuevo Lote de Pollos Crudos</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm text-park-gray-400 mb-1">Unidades crudas</label>
+                <input
+                  type="number"
+                  value={rawUnits}
+                  onChange={(e) => setRawUnits(e.target.value)}
+                  placeholder="20"
+                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-park-gray-200 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-park-gray-400 mb-1">Peso total (kg)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={rawWeightKg}
+                  onChange={(e) => setRawWeightKg(e.target.value)}
+                  placeholder="50.0"
+                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-park-gray-200 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-park-gray-400 mb-1">Notas (opcional)</label>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Lote manana"
+                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-park-gray-200 min-h-[44px]"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Peso total (kg)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={rawWeightKg}
-                onChange={(e) => setRawWeightKg(e.target.value)}
-                placeholder="50.0"
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 min-h-[44px]"
-              />
+            <div className="flex justify-end gap-3 mt-4">
+              <Button variant="secondary" onClick={() => setShowForm(false)}>
+                Cancelar
+              </Button>
+              <Button variant="primary" onClick={handleLogProduction} loading={submitting}>
+                {submitting ? 'Registrando...' : 'Registrar'}
+              </Button>
             </div>
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Notas (opcional)</label>
-              <input
-                type="text"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Lote mañana"
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 min-h-[44px]"
-              />
-            </div>
-          </div>
-          <div className="flex justify-end gap-3 mt-4">
-            <button
-              onClick={() => setShowForm(false)}
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg min-h-[44px]"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleLogProduction}
-              disabled={submitting}
-              className="px-4 py-2 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white rounded-lg min-h-[44px]"
-            >
-              {submitting ? 'Registrando...' : 'Registrar'}
-            </button>
-          </div>
+          </Card>
         </motion.div>
       )}
 
-      {/* 4 Tarjetas Métricas */}
+      {/* 4 Tarjetas Metricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Crudo en Stock"
           value={equivalents?.raw_in_stock ?? 0}
-          icon={Egg}
-          color="bg-sky-950/30 border-sky-800"
-          subtitle="pollos enteros"
+          icon={<Egg className="w-5 h-5 text-sky-400" />}
         />
         <MetricCard
           label="Cocinando"
           value={equivalents?.cooking ?? 0}
-          icon={Flame}
-          color="bg-amber-950/30 border-amber-800"
-          subtitle="en horno"
+          icon={<Flame className="w-5 h-5 text-amber-400" />}
         />
         <MetricCard
           label="Cocido Disponible"
           value={equivalents?.cooked_available ?? 0}
-          icon={ChefHat}
-          color="bg-emerald-950/30 border-emerald-800"
-          subtitle="listo para servir"
+          icon={<ChefHat className="w-5 h-5 text-emerald-400" />}
         />
         <MetricCard
           label="Vendido Hoy"
           value={equivalents?.sold_today ?? 0}
-          icon={ShoppingCart}
-          color="bg-violet-950/30 border-violet-800"
-          subtitle="equivalentes"
+          icon={<ShoppingCart className="w-5 h-5 text-violet-400" />}
         />
       </div>
 
@@ -325,8 +290,8 @@ export default function PolloControlPage() {
         <YieldGauge percent={summary?.avg_yield_percent ?? 0} />
 
         {/* Alertas */}
-        <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-xl">
-          <div className="text-sm text-zinc-400 mb-3">Alertas del Día</div>
+        <Card>
+          <div className="text-sm text-park-gray-400 mb-3">Alertas del Dia</div>
           {summary?.anomalies && summary.anomalies.length > 0 ? (
             <div className="space-y-2">
               {summary.anomalies.map((a: any, i: number) => (
@@ -352,69 +317,69 @@ export default function PolloControlPage() {
           ) : (
             <div className="flex items-center gap-2 text-emerald-400">
               <CheckCircle2 className="w-5 h-5" />
-              <span className="text-sm">Sin anomalías detectadas</span>
+              <span className="text-sm">Sin anomalias detectadas</span>
             </div>
           )}
 
-          {/* Resumen numérico */}
+          {/* Resumen numerico */}
           {summary && (
-            <div className="mt-4 pt-4 border-t border-zinc-800 grid grid-cols-2 gap-3 text-sm">
+            <div className="mt-4 pt-4 border-t border-park-gray-800 grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="text-zinc-500">Ingresados:</span>
-                <span className="ml-2 text-zinc-200">{summary.total_raw_units}</span>
+                <span className="text-park-gray-500">Ingresados:</span>
+                <span className="ml-2 text-park-gray-200">{summary.total_raw_units}</span>
               </div>
               <div>
-                <span className="text-zinc-500">Cocidos:</span>
-                <span className="ml-2 text-zinc-200">{summary.total_cooked_units}</span>
+                <span className="text-park-gray-500">Cocidos:</span>
+                <span className="ml-2 text-park-gray-200">{summary.total_cooked_units}</span>
               </div>
               <div>
-                <span className="text-zinc-500">Merma:</span>
-                <span className="ml-2 text-zinc-200">{summary.total_waste_units}</span>
+                <span className="text-park-gray-500">Merma:</span>
+                <span className="ml-2 text-park-gray-200">{summary.total_waste_units}</span>
               </div>
               <div>
-                <span className="text-zinc-500">Sin contabilizar:</span>
-                <span className={`ml-2 ${summary.unaccounted_units > 0 ? 'text-red-400' : 'text-zinc-200'}`}>
+                <span className="text-park-gray-500">Sin contabilizar:</span>
+                <span className={`ml-2 ${summary.unaccounted_units > 0 ? 'text-red-400' : 'text-park-gray-200'}`}>
                   {summary.unaccounted_units}
                 </span>
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* Historial de Lotes */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-800">
-          <h3 className="text-lg font-semibold text-zinc-200">Lotes del Día</h3>
+      <Card padding="none">
+        <div className="px-5 py-4 border-b border-park-gray-800">
+          <h3 className="text-lg font-semibold text-park-gray-200">Lotes del Dia</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                <th className="text-left py-3 px-4 text-zinc-400 font-medium">Lote</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Crudos</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Peso (kg)</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Cocidos</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Rendimiento</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Merma</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Estado</th>
-                <th className="text-center py-3 px-4 text-zinc-400 font-medium">Acción</th>
+              <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                <th className="text-left py-3 px-4 text-park-gray-400 font-medium">Lote</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Crudos</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Peso (kg)</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Cocidos</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Rendimiento</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Merma</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Estado</th>
+                <th className="text-center py-3 px-4 text-park-gray-400 font-medium">Accion</th>
               </tr>
             </thead>
             <tbody>
               {(history as ProductionLog[]).length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-zinc-500">
+                  <td colSpan={8} className="py-8 text-center text-park-gray-500">
                     No hay lotes registrados hoy
                   </td>
                 </tr>
               ) : (
                 (history as ProductionLog[]).map((log) => (
-                  <tr key={log.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                    <td className="py-3 px-4 text-zinc-200 font-mono">#{log.batch_number}</td>
-                    <td className="py-3 px-4 text-center text-zinc-300">{log.raw_units}</td>
-                    <td className="py-3 px-4 text-center text-zinc-300">{log.raw_weight_kg}</td>
-                    <td className="py-3 px-4 text-center text-zinc-300">{log.cooked_units ?? '—'}</td>
+                  <tr key={log.id} className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors">
+                    <td className="py-3 px-4 text-park-gray-200 font-mono">#{log.batch_number}</td>
+                    <td className="py-3 px-4 text-center text-park-gray-300">{log.raw_units}</td>
+                    <td className="py-3 px-4 text-center text-park-gray-300">{log.raw_weight_kg}</td>
+                    <td className="py-3 px-4 text-center text-park-gray-300">{log.cooked_units ?? '\u2014'}</td>
                     <td className="py-3 px-4 text-center">
                       {log.yield_percent != null ? (
                         <span className={
@@ -426,13 +391,13 @@ export default function PolloControlPage() {
                         }>
                           {log.yield_percent}%
                         </span>
-                      ) : '—'}
+                      ) : '\u2014'}
                     </td>
-                    <td className="py-3 px-4 text-center text-zinc-300">{log.waste_units ?? '—'}</td>
+                    <td className="py-3 px-4 text-center text-park-gray-300">{log.waste_units ?? '\u2014'}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className={`px-2 py-1 text-xs rounded ${STATUS_COLORS[log.status] ?? ''}`}>
+                      <Badge variant={STATUS_BADGE[log.status] ?? 'neutral'}>
                         {STATUS_LABELS[log.status] ?? log.status}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="py-3 px-4 text-center">
                       {log.status === 'CRUDO' || log.status === 'COCINANDO' ? (
@@ -443,7 +408,7 @@ export default function PolloControlPage() {
                               placeholder="Uds"
                               value={cookedUnits}
                               onChange={(e) => setCookedUnits(e.target.value)}
-                              className="w-16 px-2 py-1 bg-zinc-800 border border-zinc-700 rounded text-sm text-zinc-200"
+                              className="w-16 px-2 py-1 bg-park-gray-800 border border-park-gray-700 rounded text-sm text-park-gray-200"
                             />
                             <input
                               type="number"
@@ -451,32 +416,34 @@ export default function PolloControlPage() {
                               placeholder="Kg"
                               value={cookedWeightKg}
                               onChange={(e) => setCookedWeightKg(e.target.value)}
-                              className="w-16 px-2 py-1 bg-zinc-800 border border-zinc-700 rounded text-sm text-zinc-200"
+                              className="w-16 px-2 py-1 bg-park-gray-800 border border-park-gray-700 rounded text-sm text-park-gray-200"
                             />
                             <input
                               type="number"
                               placeholder="Merma"
                               value={wasteUnits}
                               onChange={(e) => setWasteUnits(e.target.value)}
-                              className="w-16 px-2 py-1 bg-zinc-800 border border-zinc-700 rounded text-sm text-zinc-200"
+                              className="w-16 px-2 py-1 bg-park-gray-800 border border-park-gray-700 rounded text-sm text-park-gray-200"
                             />
-                            <button
+                            <Button
+                              variant="primary"
+                              size="sm"
                               onClick={() => handleComplete(log.id)}
-                              className="p-1 bg-emerald-600 hover:bg-emerald-500 rounded text-white"
                             >
                               <CheckCircle2 className="w-4 h-4" />
-                            </button>
+                            </Button>
                           </div>
                         ) : (
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setCompletingId(log.id)}
-                            className="px-3 py-1 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-300 rounded text-sm min-h-[32px]"
                           >
                             Completar
-                          </button>
+                          </Button>
                         )
                       ) : (
-                        <span className="text-zinc-600 text-xs">Completado</span>
+                        <span className="text-park-gray-600 text-xs">Completado</span>
                       )}
                     </td>
                   </tr>
@@ -485,7 +452,7 @@ export default function PolloControlPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

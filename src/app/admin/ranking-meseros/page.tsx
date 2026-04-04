@@ -10,10 +10,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Award, Download, Calendar, ArrowUpDown, FileSpreadsheet, FileText, FileDown } from 'lucide-react';
+import { Award, Calendar, ArrowUpDown, FileSpreadsheet, FileText, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWaiterRanking } from '@/src/hooks/useSWRHooks';
 import type { RankingSortField } from '@/src/core/types/waiter-ranking';
+import { Button, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 import {
   BarChart,
   Bar,
@@ -27,7 +28,7 @@ import {
 
 const SORT_OPTIONS: { value: RankingSortField; label: string }[] = [
   { value: 'sales', label: 'Ventas' },
-  { value: 'orders', label: 'Órdenes' },
+  { value: 'orders', label: 'Ordenes' },
   { value: 'tips', label: 'Propinas' },
   { value: 'avg_ticket', label: 'Ticket Promedio' },
   { value: 'avg_time', label: 'Tiempo Promedio' },
@@ -109,113 +110,114 @@ export default function RankingMeserosPage() {
     ordenes: r.totalOrders,
   })) ?? [];
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Award className="w-7 h-7 text-amber-400" />
-            Ranking Meseros
-          </h1>
-          <p className="text-zinc-400 mt-1">Rendimiento de meseros por período</p>
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}><div className="h-16 bg-park-gray-800 rounded animate-pulse" /></Card>
+          ))}
         </div>
-
-        {/* Export buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleExport('xlsx')}
-            disabled={exporting || !data}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors text-sm min-h-[40px] disabled:opacity-50"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            Excel
-          </button>
-          <button
-            onClick={() => handleExport('csv')}
-            disabled={exporting || !data}
-            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg transition-colors text-sm min-h-[40px] disabled:opacity-50"
-          >
-            <FileDown className="w-4 h-4" />
-            CSV
-          </button>
-          <button
-            onClick={() => handleExport('pdf')}
-            disabled={exporting || !data}
-            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg transition-colors text-sm min-h-[40px] disabled:opacity-50"
-          >
-            <FileText className="w-4 h-4" />
-            PDF
-          </button>
-        </div>
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Ranking Meseros"
+        description="Rendimiento de meseros por periodo"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="primary"
+              icon={<FileSpreadsheet size={16} />}
+              onClick={() => handleExport('xlsx')}
+              disabled={exporting || !data}
+            >
+              Excel
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<FileDown size={16} />}
+              onClick={() => handleExport('csv')}
+              disabled={exporting || !data}
+            >
+              CSV
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<FileText size={16} />}
+              onClick={() => handleExport('pdf')}
+              disabled={exporting || !data}
+            >
+              PDF
+            </Button>
+          </div>
+        }
+      />
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-zinc-400" />
-          <label className="text-sm text-zinc-400">Desde</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
-          />
+      <Card>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-park-gray-400" />
+            <label className="text-sm text-park-gray-400">Desde</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-park-gray-400">Hasta</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="w-4 h-4 text-park-gray-400" />
+            <label className="text-sm text-park-gray-400">Ordenar por</label>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as RankingSortField)}
+              className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-zinc-400">Hasta</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="w-4 h-4 text-zinc-400" />
-          <label className="text-sm text-zinc-400">Ordenar por</label>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as RankingSortField)}
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      </Card>
 
       {/* Summary Cards */}
       {data?.summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-xs text-zinc-500 uppercase">Meseros</p>
-            <p className="text-2xl font-bold mt-1">{data.summary.totalWaiters}</p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-xs text-zinc-500 uppercase">Total Órdenes</p>
-            <p className="text-2xl font-bold mt-1">{data.summary.totalOrdersAll}</p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-xs text-zinc-500 uppercase">Total Ventas</p>
-            <p className="text-2xl font-bold mt-1 text-emerald-400">
-              {formatCurrency(data.summary.totalSalesAllCents)}
-            </p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <p className="text-xs text-zinc-500 uppercase">Mejor Mesero</p>
-            <p className="text-2xl font-bold mt-1 text-amber-400 truncate">
-              {data.summary.bestPerformerName || '—'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Loading / Error */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400" />
+          <MetricCard label="Meseros" value={data.summary.totalWaiters} />
+          <MetricCard label="Total Ordenes" value={data.summary.totalOrdersAll} />
+          <MetricCard
+            label="Total Ventas"
+            value={data.summary.totalSalesAllCents}
+            format="currency"
+          />
+          <MetricCard
+            label="Mejor Mesero"
+            value={data.summary.bestPerformerName || '\u2014'}
+            icon={<Award className="w-5 h-5 text-amber-400" />}
+          />
         </div>
       )}
 
@@ -227,7 +229,7 @@ export default function RankingMeserosPage() {
 
       {/* Chart - Top 10 */}
       {data && chartData.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <Card>
           <h2 className="text-lg font-semibold mb-4">Top 10 Meseros por Ventas</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
@@ -246,33 +248,33 @@ export default function RankingMeserosPage() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
 
       {/* Table */}
       {data && data.rankings.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <Card padding="none">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left px-4 py-3 text-zinc-400 font-medium">#</th>
-                  <th className="text-left px-4 py-3 text-zinc-400 font-medium">Mesero</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Órdenes</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Ventas</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Ticket Prom.</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Propinas</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Tiempo Prom.</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Salón</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Llevar</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Delivery</th>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">#</th>
+                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Mesero</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Ordenes</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Ventas</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Ticket Prom.</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Propinas</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Tiempo Prom.</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Salon</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Llevar</th>
+                  <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Delivery</th>
                 </tr>
               </thead>
               <tbody>
                 {data.rankings.map((r, i) => (
                   <tr
                     key={r.employeeId}
-                    className={`border-b border-zinc-800/50 hover:bg-zinc-800/50 transition-colors ${
+                    className={`border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors ${
                       i === 0 ? 'bg-amber-500/5' : ''
                     }`}
                   >
@@ -283,7 +285,7 @@ export default function RankingMeserosPage() {
                         i + 1
                       )}
                     </td>
-                    <td className="px-4 py-3 font-medium">{r.employeeName}</td>
+                    <td className="px-4 py-3 font-medium text-white">{r.employeeName}</td>
                     <td className="px-4 py-3 text-right">{r.totalOrders}</td>
                     <td className="px-4 py-3 text-right text-emerald-400 font-medium">
                       {formatCurrency(r.totalSalesCents)}
@@ -303,16 +305,18 @@ export default function RankingMeserosPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Empty state */}
       {data && data.rankings.length === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <Award className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No hay datos para el período seleccionado</p>
-          <p className="text-zinc-500 text-sm mt-1">Ajusta las fechas o verifica que haya órdenes con mesero asignado</p>
-        </div>
+        <Card padding="none">
+          <EmptyState
+            icon={<Award />}
+            title="No hay datos para el periodo seleccionado"
+            description="Ajusta las fechas o verifica que haya ordenes con mesero asignado"
+          />
+        </Card>
       )}
     </div>
   );

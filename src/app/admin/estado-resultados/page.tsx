@@ -9,9 +9,10 @@
  */
 
 import { useState, useCallback } from 'react';
-import { PieChart, Calendar, Download, TrendingUp, TrendingDown } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePnLReport } from '@/src/hooks/useSWRHooks';
+import { Button, Card, PageHeader, MetricCard } from '@/src/components/ui';
 
 function formatCurrency(cents: number) {
   const abs = Math.abs(cents);
@@ -61,50 +62,69 @@ export default function EstadoResultadosPage() {
     }
   }, [startDate, endDate]);
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <PieChart className="w-7 h-7 text-violet-400" />
-            Estado de Resultados
-          </h1>
-          <p className="text-zinc-400 mt-1">Reporte de Pérdidas y Ganancias (P&L)</p>
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}><div className="h-16 bg-park-gray-800 rounded animate-pulse" /></Card>
+          ))}
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => handleExport('xlsx')} disabled={!data}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm min-h-[40px] disabled:opacity-50">
-            <Download className="w-4 h-4" /> Excel
-          </button>
-          <button onClick={() => handleExport('pdf')} disabled={!data}
-            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm min-h-[40px] disabled:opacity-50">
-            PDF
-          </button>
-        </div>
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-8 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Estado de Resultados (P&L)"
+        description="Reporte de Perdidas y Ganancias"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="primary"
+              icon={<Download size={16} />}
+              onClick={() => handleExport('xlsx')}
+              disabled={!data}
+            >
+              Excel
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => handleExport('pdf')}
+              disabled={!data}
+            >
+              PDF
+            </Button>
+          </div>
+        }
+      />
 
       {/* Date Filter */}
-      <div className="flex flex-wrap items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-        <Calendar className="w-4 h-4 text-zinc-400" />
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-zinc-400">Desde</label>
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]" />
+      <Card>
+        <div className="flex flex-wrap items-center gap-4">
+          <Calendar className="w-4 h-4 text-park-gray-400" />
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-park-gray-400">Desde</label>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+              className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-park-gray-400">Hasta</label>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+              className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px]" />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-zinc-400">Hasta</label>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[40px]" />
-        </div>
-      </div>
+      </Card>
 
-      {/* Loading / Error */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-400" />
-        </div>
-      )}
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400">
           Error al generar reporte.
@@ -115,106 +135,97 @@ export default function EstadoResultadosPage() {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <p className="text-xs text-zinc-500 uppercase">Ventas Netas</p>
-              <p className="text-2xl font-bold mt-1 text-emerald-400">
-                {formatCurrency(data.revenue.netSalesCents)}
-              </p>
-            </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <p className="text-xs text-zinc-500 uppercase">Utilidad Bruta</p>
-              <p className="text-2xl font-bold mt-1">
-                {formatCurrency(data.grossProfit.grossProfitCents)}
-              </p>
-              <p className="text-xs text-zinc-500 mt-1">{data.grossProfit.grossMarginPercent}% margen</p>
-            </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <p className="text-xs text-zinc-500 uppercase">Gastos Operativos</p>
-              <p className="text-2xl font-bold mt-1 text-red-400">
-                {formatCurrency(data.operatingExpenses.totalExpensesCents)}
-              </p>
-            </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <p className="text-xs text-zinc-500 uppercase">Utilidad Neta</p>
-              <p className={`text-2xl font-bold mt-1 flex items-center gap-1 ${
-                data.netIncome.netIncomeCents >= 0 ? 'text-emerald-400' : 'text-red-400'
-              }`}>
-                {data.netIncome.netIncomeCents >= 0
-                  ? <TrendingUp className="w-5 h-5" />
-                  : <TrendingDown className="w-5 h-5" />}
-                {formatCurrency(data.netIncome.netIncomeCents)}
-              </p>
-              <p className="text-xs text-zinc-500 mt-1">{data.netIncome.netMarginPercent}% margen</p>
-            </div>
+            <MetricCard
+              label="Ventas Netas"
+              value={formatCurrency(data.revenue.netSalesCents)}
+              icon={<TrendingUp className="w-5 h-5 text-emerald-400" />}
+            />
+            <MetricCard
+              label="Utilidad Bruta"
+              value={`${formatCurrency(data.grossProfit.grossProfitCents)} (${data.grossProfit.grossMarginPercent}%)`}
+            />
+            <MetricCard
+              label="Gastos Operativos"
+              value={formatCurrency(data.operatingExpenses.totalExpensesCents)}
+              className="[&_p:last-child]:text-red-400"
+            />
+            <MetricCard
+              label="Utilidad Neta"
+              value={`${formatCurrency(data.netIncome.netIncomeCents)} (${data.netIncome.netMarginPercent}%)`}
+              icon={data.netIncome.netIncomeCents >= 0
+                ? <TrendingUp className="w-5 h-5 text-emerald-400" />
+                : <TrendingDown className="w-5 h-5 text-red-400" />}
+              className={data.netIncome.netIncomeCents >= 0 ? '[&_p:last-child]:text-emerald-400' : '[&_p:last-child]:text-red-400'}
+            />
           </div>
 
           {/* Detailed Breakdown */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <Card padding="none">
             <table className="w-full text-sm">
               <tbody>
                 {/* Revenue */}
-                <tr className="bg-zinc-800/50">
+                <tr className="bg-park-gray-800/50">
                   <td className="px-4 py-3 font-bold" colSpan={2}>INGRESOS</td>
                 </tr>
-                <tr className="border-b border-zinc-800/50">
-                  <td className="px-4 py-2 pl-8 text-zinc-400">Ventas Brutas</td>
+                <tr className="border-b border-park-gray-800/50">
+                  <td className="px-4 py-2 pl-8 text-park-gray-400">Ventas Brutas</td>
                   <td className="px-4 py-2 text-right">{formatCurrency(data.revenue.grossSalesCents)}</td>
                 </tr>
-                <tr className="border-b border-zinc-800/50">
-                  <td className="px-4 py-2 pl-8 text-zinc-400">(-) Descuentos</td>
+                <tr className="border-b border-park-gray-800/50">
+                  <td className="px-4 py-2 pl-8 text-park-gray-400">(-) Descuentos</td>
                   <td className="px-4 py-2 text-right text-red-400">{formatCurrency(-data.revenue.discountsCents)}</td>
                 </tr>
-                <tr className="border-b border-zinc-800/50">
-                  <td className="px-4 py-2 pl-8 text-zinc-400">(-) Devoluciones</td>
+                <tr className="border-b border-park-gray-800/50">
+                  <td className="px-4 py-2 pl-8 text-park-gray-400">(-) Devoluciones</td>
                   <td className="px-4 py-2 text-right text-red-400">{formatCurrency(-data.revenue.refundsCents)}</td>
                 </tr>
-                <tr className="border-b border-zinc-800/50">
-                  <td className="px-4 py-2 pl-8 text-zinc-400">(+) Tarifa Delivery</td>
+                <tr className="border-b border-park-gray-800/50">
+                  <td className="px-4 py-2 pl-8 text-park-gray-400">(+) Tarifa Delivery</td>
                   <td className="px-4 py-2 text-right">{formatCurrency(data.revenue.deliveryFeesCents)}</td>
                 </tr>
-                <tr className="border-b border-zinc-800 bg-zinc-800/30">
+                <tr className="border-b border-park-gray-800 bg-park-gray-800/30">
                   <td className="px-4 py-2 font-semibold">Ventas Netas</td>
                   <td className="px-4 py-2 text-right font-bold text-emerald-400">{formatCurrency(data.revenue.netSalesCents)}</td>
                 </tr>
 
                 {/* COGS */}
-                <tr className="bg-zinc-800/50">
+                <tr className="bg-park-gray-800/50">
                   <td className="px-4 py-3 font-bold" colSpan={2}>COSTO DE VENTAS</td>
                 </tr>
-                <tr className="border-b border-zinc-800/50">
-                  <td className="px-4 py-2 pl-8 text-zinc-400">Compras Recibidas</td>
+                <tr className="border-b border-park-gray-800/50">
+                  <td className="px-4 py-2 pl-8 text-park-gray-400">Compras Recibidas</td>
                   <td className="px-4 py-2 text-right">{formatCurrency(data.cogs.purchasesCents)}</td>
                 </tr>
-                <tr className="border-b border-zinc-800 bg-zinc-800/30">
+                <tr className="border-b border-park-gray-800 bg-park-gray-800/30">
                   <td className="px-4 py-2 font-semibold">UTILIDAD BRUTA ({data.grossProfit.grossMarginPercent}%)</td>
                   <td className="px-4 py-2 text-right font-bold">{formatCurrency(data.grossProfit.grossProfitCents)}</td>
                 </tr>
 
                 {/* Operating Expenses */}
-                <tr className="bg-zinc-800/50">
+                <tr className="bg-park-gray-800/50">
                   <td className="px-4 py-3 font-bold" colSpan={2}>GASTOS OPERATIVOS</td>
                 </tr>
-                <tr className="border-b border-zinc-800/50">
-                  <td className="px-4 py-2 pl-8 text-zinc-400">Nómina</td>
+                <tr className="border-b border-park-gray-800/50">
+                  <td className="px-4 py-2 pl-8 text-park-gray-400">Nomina</td>
                   <td className="px-4 py-2 text-right">{formatCurrency(data.operatingExpenses.payrollCents)}</td>
                 </tr>
-                <tr className="border-b border-zinc-800/50">
-                  <td className="px-4 py-2 pl-8 text-zinc-400">Caja Chica</td>
+                <tr className="border-b border-park-gray-800/50">
+                  <td className="px-4 py-2 pl-8 text-park-gray-400">Caja Chica</td>
                   <td className="px-4 py-2 text-right">{formatCurrency(data.operatingExpenses.pettyCashExpensesCents)}</td>
                 </tr>
                 {data.operatingExpenses.byCategory.map((cat) => (
-                  <tr key={cat.category} className="border-b border-zinc-800/50">
-                    <td className="px-4 py-2 pl-12 text-zinc-500">{cat.category}</td>
-                    <td className="px-4 py-2 text-right text-zinc-500">{formatCurrency(cat.amountCents)}</td>
+                  <tr key={cat.category} className="border-b border-park-gray-800/50">
+                    <td className="px-4 py-2 pl-12 text-park-gray-500">{cat.category}</td>
+                    <td className="px-4 py-2 text-right text-park-gray-500">{formatCurrency(cat.amountCents)}</td>
                   </tr>
                 ))}
-                <tr className="border-b border-zinc-800 bg-zinc-800/30">
+                <tr className="border-b border-park-gray-800 bg-park-gray-800/30">
                   <td className="px-4 py-2 font-semibold">Total Gastos</td>
                   <td className="px-4 py-2 text-right font-bold text-red-400">{formatCurrency(data.operatingExpenses.totalExpensesCents)}</td>
                 </tr>
 
                 {/* Net Income */}
-                <tr className="bg-zinc-800">
+                <tr className="bg-park-gray-800">
                   <td className="px-4 py-3 font-bold text-lg">UTILIDAD NETA ({data.netIncome.netMarginPercent}%)</td>
                   <td className={`px-4 py-3 text-right font-bold text-lg ${
                     data.netIncome.netIncomeCents >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -224,11 +235,11 @@ export default function EstadoResultadosPage() {
                 </tr>
               </tbody>
             </table>
-          </div>
+          </Card>
 
           {/* Order Count */}
-          <div className="text-sm text-zinc-500 text-center">
-            Basado en {data.revenue.ordersCount} órdenes · Período: {data.period.start} a {data.period.end}
+          <div className="text-sm text-park-gray-500 text-center">
+            Basado en {data.revenue.ordersCount} ordenes - Periodo: {data.period.start} a {data.period.end}
           </div>
         </>
       )}

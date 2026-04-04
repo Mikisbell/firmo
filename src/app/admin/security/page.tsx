@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { AlertCircle, Lock, Shield, Smartphone } from 'lucide-react';
+import { useMemo } from 'react';
+import { AlertCircle, Shield, Smartphone } from 'lucide-react';
 import { useSecurityData } from '@/src/hooks/useSWRHooks';
+import { Button, Badge, Card, CardHeader, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 interface Session {
   id: string;
@@ -50,14 +50,17 @@ interface Alert {
   created_at: string;
 }
 
+const TRUST_BADGE: Record<string, { variant: 'success' | 'warning' | 'critical'; label: string }> = {
+  TRUSTED: { variant: 'success', label: 'TRUSTED' },
+  UNKNOWN: { variant: 'warning', label: 'UNKNOWN' },
+  BLOCKED: { variant: 'critical', label: 'BLOCKED' },
+};
+
 export default function SecurityDashboard() {
-  const router = useRouter();
-  
   // Usar SWR para fetch con deduplicación y revalidación automática
   const { sessions, devices, alerts, error, isLoading, mutate } = useSecurityData();
 
   // Optimización: Memoizar sesiones activas para evitar filtrar dos veces
-  // Reduce complejidad de O(2n) a O(n)
   const activeSessions = useMemo(() => {
     return sessions.filter(s => s.is_active);
   }, [sessions]);
@@ -74,7 +77,7 @@ export default function SecurityDashboard() {
 
       if (res.ok) {
         alert('Device blocked successfully');
-        mutate(); // Revalidar datos con SWR
+        mutate();
       } else {
         alert('Error blocking device');
       }
@@ -94,7 +97,7 @@ export default function SecurityDashboard() {
 
       if (res.ok) {
         alert('Session revoked successfully');
-        mutate(); // Revalidar datos con SWR
+        mutate();
       } else {
         alert('Error revoking session');
       }
@@ -106,176 +109,218 @@ export default function SecurityDashboard() {
 
   if (isLoading && sessions.length === 0) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <Shield className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">Loading security dashboard...</p>
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-28 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
         </div>
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Security Dashboard</h1>
-        <p className="text-gray-600 mt-2">Monitor active sessions, devices, and security alerts</p>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Seguridad"
+        description="Monitor active sessions, devices, and security alerts"
+      />
 
       {error && (
-        <div className="border border-red-200 bg-red-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-red-800">
-            <AlertCircle className="w-5 h-5" />
-            {error}
-          </div>
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
+          <AlertCircle className="w-5 h-5" />
+          {error}
         </div>
       )}
 
+      {/* Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <MetricCard
+          label="Active Sessions"
+          value={activeSessions.length}
+          icon={<Shield className="w-5 h-5" />}
+        />
+        <MetricCard
+          label="Registered Devices"
+          value={devices.length}
+          icon={<Smartphone className="w-5 h-5" />}
+        />
+        <MetricCard
+          label="Unresolved Alerts"
+          value={alerts.filter(a => !a.is_resolved).length}
+          icon={<AlertCircle className="w-5 h-5" />}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-6">
-        {/* Active Sessions Tab */}
-        <div className="border rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Active Sessions ({activeSessions.length})</h2>
+        {/* Active Sessions */}
+        <Card padding="none">
+          <CardHeader className="px-6 pt-6">
+            <h2 className="text-xl font-bold">Active Sessions ({activeSessions.length})</h2>
+          </CardHeader>
           {activeSessions.length === 0 ? (
-            <p className="text-gray-500">No active sessions</p>
+            <EmptyState
+              icon={<Shield />}
+              title="No active sessions"
+              description="There are no active sessions at this time"
+            />
           ) : (
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               {activeSessions.map((session) => (
-                <div key={session.id} className="border rounded-lg p-4 space-y-2">
+                <Card key={session.id} padding="sm" className="space-y-2">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold">{session.employee.name}</p>
-                      <p className="text-sm text-gray-600">{session.employee.email}</p>
+                      <p className="font-semibold text-white">{session.employee.name}</p>
+                      <p className="text-sm text-park-gray-400">{session.employee.email}</p>
                     </div>
-                    <button
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       onClick={() => handleRevokeSession(session.id)}
-                      className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
                     >
                       Revoke
-                    </button>
+                    </Button>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="text-gray-600">Terminal:</span>
-                      <p className="font-mono">{session.terminal_id}</p>
+                      <span className="text-park-gray-400">Terminal:</span>
+                      <p className="font-mono text-park-gray-200">{session.terminal_id}</p>
                     </div>
                     <div>
-                      <span className="text-gray-600">MAC Address:</span>
-                      <p className="font-mono">{session.mac_address}</p>
+                      <span className="text-park-gray-400">MAC Address:</span>
+                      <p className="font-mono text-park-gray-200">{session.mac_address}</p>
                     </div>
                     <div>
-                      <span className="text-gray-600">Started:</span>
-                      <p>{new Date(session.started_at).toLocaleString()}</p>
+                      <span className="text-park-gray-400">Started:</span>
+                      <p className="text-park-gray-200">{new Date(session.started_at).toLocaleString()}</p>
                     </div>
                     <div>
-                      <span className="text-gray-600">Last Activity:</span>
-                      <p>{new Date(session.last_activity_at).toLocaleString()}</p>
+                      <span className="text-park-gray-400">Last Activity:</span>
+                      <p className="text-park-gray-200">{new Date(session.last_activity_at).toLocaleString()}</p>
                     </div>
                   </div>
                   {session.is_suspicious && (
-                    <div className="flex items-center gap-2 text-yellow-700 bg-yellow-50 p-2 rounded">
+                    <div className="flex items-center gap-2 text-yellow-400 bg-yellow-500/10 p-2 rounded-lg">
                       <AlertCircle className="w-4 h-4" />
                       <span className="text-sm">Suspicious activity detected</span>
                     </div>
                   )}
-                </div>
+                </Card>
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* Devices Tab */}
-        <div className="border rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Registered Devices ({devices.length})</h2>
+        {/* Devices */}
+        <Card padding="none">
+          <CardHeader className="px-6 pt-6">
+            <h2 className="text-xl font-bold">Registered Devices ({devices.length})</h2>
+          </CardHeader>
           {devices.length === 0 ? (
-            <p className="text-gray-500">No devices registered</p>
+            <EmptyState
+              icon={<Smartphone />}
+              title="No devices registered"
+              description="No devices have been registered yet"
+            />
           ) : (
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               {devices.map((device) => (
-                <div key={device.mac_address} className="border rounded-lg p-4 space-y-2">
+                <Card key={device.mac_address} padding="sm" className="space-y-2">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold flex items-center gap-2">
+                      <p className="font-semibold text-white flex items-center gap-2">
                         <Smartphone className="w-4 h-4" />
                         {device.mac_address}
                       </p>
-                      <p className="text-sm text-gray-600">{device.employee.name}</p>
+                      <p className="text-sm text-park-gray-400">{device.employee.name}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <span className={`px-2 py-1 text-xs rounded font-semibold ${
-                        device.trust_level === 'TRUSTED' ? 'bg-green-100 text-green-700' :
-                        device.trust_level === 'BLOCKED' ? 'bg-red-100 text-red-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
+                    <div className="flex gap-2 items-center">
+                      <Badge variant={TRUST_BADGE[device.trust_level]?.variant ?? 'neutral'} dot>
                         {device.trust_level}
-                      </span>
+                      </Badge>
                       {device.trust_level !== 'BLOCKED' && (
-                        <button
+                        <Button
+                          variant="destructive"
+                          size="sm"
                           onClick={() => handleBlockDevice(device.mac_address)}
-                          className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                         >
                           Block
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="text-gray-600">Terminal:</span>
-                      <p className="font-mono">{device.terminal_id}</p>
+                      <span className="text-park-gray-400">Terminal:</span>
+                      <p className="font-mono text-park-gray-200">{device.terminal_id}</p>
                     </div>
                     <div>
-                      <span className="text-gray-600">Access Count:</span>
-                      <p>{device.access_count}</p>
+                      <span className="text-park-gray-400">Access Count:</span>
+                      <p className="text-park-gray-200">{device.access_count}</p>
                     </div>
                     <div>
-                      <span className="text-gray-600">First Seen:</span>
-                      <p>{new Date(device.first_seen).toLocaleString()}</p>
+                      <span className="text-park-gray-400">First Seen:</span>
+                      <p className="text-park-gray-200">{new Date(device.first_seen).toLocaleString()}</p>
                     </div>
                     <div>
-                      <span className="text-gray-600">Last Seen:</span>
-                      <p>{new Date(device.last_seen).toLocaleString()}</p>
+                      <span className="text-park-gray-400">Last Seen:</span>
+                      <p className="text-park-gray-200">{new Date(device.last_seen).toLocaleString()}</p>
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* Alerts Tab */}
-        <div className="border rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Security Alerts ({alerts.filter(a => !a.is_resolved).length})</h2>
+        {/* Alerts */}
+        <Card padding="none">
+          <CardHeader className="px-6 pt-6">
+            <h2 className="text-xl font-bold">Security Alerts ({alerts.filter(a => !a.is_resolved).length})</h2>
+          </CardHeader>
           {alerts.length === 0 ? (
-            <p className="text-gray-500">No alerts</p>
+            <EmptyState
+              icon={<AlertCircle />}
+              title="No alerts"
+              description="No security alerts have been triggered"
+            />
           ) : (
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               {alerts.map((alert) => (
-                <div key={alert.id} className={`border rounded-lg p-4 space-y-2 ${
-                  alert.is_resolved ? 'bg-gray-50' : 'bg-red-50 border-red-200'
-                }`}>
+                <Card
+                  key={alert.id}
+                  padding="sm"
+                  className={`space-y-2 ${!alert.is_resolved ? 'border-red-500/30' : ''}`}
+                >
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold flex items-center gap-2">
-                        <AlertCircle className={`w-4 h-4 ${alert.is_resolved ? 'text-gray-400' : 'text-red-600'}`} />
+                      <p className="font-semibold text-white flex items-center gap-2">
+                        <AlertCircle className={`w-4 h-4 ${alert.is_resolved ? 'text-park-gray-400' : 'text-red-400'}`} />
                         {alert.alert_type}
                       </p>
-                      <p className="text-sm text-gray-600">{alert.reason}</p>
+                      <p className="text-sm text-park-gray-400">{alert.reason}</p>
                     </div>
-                    <span className={`px-2 py-1 text-xs rounded font-semibold ${
-                      alert.is_resolved ? 'bg-gray-200 text-gray-700' : 'bg-red-200 text-red-700'
-                    }`}>
+                    <Badge variant={alert.is_resolved ? 'neutral' : 'critical'} dot>
                       {alert.is_resolved ? 'Resolved' : 'Active'}
-                    </span>
+                    </Badge>
                   </div>
                   {alert.mac_address && (
-                    <p className="text-sm text-gray-600">MAC: <span className="font-mono">{alert.mac_address}</span></p>
+                    <p className="text-sm text-park-gray-400">MAC: <span className="font-mono">{alert.mac_address}</span></p>
                   )}
-                  <p className="text-xs text-gray-500">{new Date(alert.created_at).toLocaleString()}</p>
-                </div>
+                  <p className="text-xs text-park-gray-500">{new Date(alert.created_at).toLocaleString()}</p>
+                </Card>
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

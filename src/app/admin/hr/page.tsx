@@ -19,7 +19,6 @@ import {
   GraduationCap,
   Briefcase,
   TrendingUp,
-  Plus,
   ClipboardCheck,
   AlertTriangle,
   RefreshCw,
@@ -29,6 +28,7 @@ import {
   BarChart3,
   Activity,
 } from 'lucide-react';
+import { Button, Card, MetricCard, PageHeader } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -171,23 +171,42 @@ export default function HRDashboardPage() {
     fetchMetrics();
   }, [fetchMetrics]);
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Recursos Humanos</h1>
-          <p className="text-zinc-400 mt-1">Panel de administracion de personal</p>
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-28 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
         </div>
-        <button
-          onClick={fetchMetrics}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
+        <Card>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Recursos Humanos"
+        description="Panel de administracion de personal"
+        actions={
+          <Button
+            variant="secondary"
+            icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+            onClick={fetchMetrics}
+            disabled={loading}
+          >
+            Actualizar
+          </Button>
+        }
+      />
 
       {error && (
         <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-300 text-sm flex items-start gap-3">
@@ -200,100 +219,85 @@ export default function HRDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard
           label="Empleados Activos"
-          value={metrics.activeEmployees.toString()}
-          subtitle={`${metrics.totalEmployees} total`}
-          icon={Users}
-          loading={loading}
-          color="text-blue-400"
+          value={metrics.activeEmployees}
+          icon={<Users className="w-5 h-5" />}
         />
         <MetricCard
           label="Asistencia Hoy"
           value={`${metrics.attendanceTodayPercent}%`}
-          subtitle={`${metrics.attendanceToday} presentes`}
-          icon={Clock}
-          loading={loading}
-          color="text-green-400"
+          icon={<Clock className="w-5 h-5" />}
         />
         <MetricCard
           label="Permisos Pendientes"
-          value={metrics.pendingLeaveRequests.toString()}
-          subtitle="por aprobar"
-          icon={FileText}
-          loading={loading}
-          color="text-yellow-400"
+          value={metrics.pendingLeaveRequests}
+          icon={<FileText className="w-5 h-5" />}
         />
         <MetricCard
           label="Adelantos Pendientes"
-          value={metrics.pendingAdvances.toString()}
-          subtitle="por aprobar"
-          icon={Briefcase}
-          loading={loading}
-          color="text-pink-400"
+          value={metrics.pendingAdvances}
+          icon={<Briefcase className="w-5 h-5" />}
         />
         <MetricCard
           label="Planilla del Mes"
           value="--"
-          subtitle="por calcular"
-          icon={DollarSign}
-          loading={loading}
-          color="text-amber-400"
+          icon={<DollarSign className="w-5 h-5" />}
         />
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">Acciones Rapidas</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Link
             href="/admin/hr/employees?action=new"
-            className="flex items-center gap-3 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <UserPlus className="w-5 h-5 text-blue-400" />
             </div>
             <div>
               <p className="font-medium text-sm">Nuevo Empleado</p>
-              <p className="text-xs text-zinc-500">Registrar personal</p>
+              <p className="text-xs text-park-gray-500">Registrar personal</p>
             </div>
           </Link>
           <Link
             href="/admin/hr/attendance?action=clockin"
-            className="flex items-center gap-3 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
               <ClipboardCheck className="w-5 h-5 text-green-400" />
             </div>
             <div>
               <p className="font-medium text-sm">Marcar Asistencia</p>
-              <p className="text-xs text-zinc-500">Registrar entrada</p>
+              <p className="text-xs text-park-gray-500">Registrar entrada</p>
             </div>
           </Link>
           <Link
             href="/admin/hr/payroll"
-            className="flex items-center gap-3 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
               <Calculator className="w-5 h-5 text-amber-400" />
             </div>
             <div>
               <p className="font-medium text-sm">Calcular Planilla</p>
-              <p className="text-xs text-zinc-500">Procesar sueldos</p>
+              <p className="text-xs text-park-gray-500">Procesar sueldos</p>
             </div>
           </Link>
           <Link
             href="/admin/hr/attendance?view=report"
-            className="flex items-center gap-3 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-purple-400" />
             </div>
             <div>
               <p className="font-medium text-sm">Ver Reportes</p>
-              <p className="text-xs text-zinc-500">Informes del mes</p>
+              <p className="text-xs text-park-gray-500">Informes del mes</p>
             </div>
           </Link>
         </div>
-      </div>
+      </Card>
 
       {/* Navigation Cards */}
       <div>
@@ -306,62 +310,22 @@ export default function HRDashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Link
-                href={section.href}
-                className="block p-4 bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-all group"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${section.color}`}>
-                    <section.icon className="w-5 h-5" />
+              <Link href={section.href}>
+                <Card hover className="h-full">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${section.color}`}>
+                      <section.icon className="w-5 h-5" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-park-gray-600 group-hover:text-park-gray-400 transition-colors" />
                   </div>
-                  <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-                </div>
-                <h3 className="font-semibold mb-1">{section.title}</h3>
-                <p className="text-sm text-zinc-500">{section.description}</p>
+                  <h3 className="font-semibold mb-1">{section.title}</h3>
+                  <p className="text-sm text-park-gray-500">{section.description}</p>
+                </Card>
               </Link>
             </motion.div>
           ))}
         </div>
       </div>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function MetricCard({
-  label,
-  value,
-  subtitle,
-  icon: Icon,
-  loading,
-  color,
-}: {
-  label: string;
-  value: string;
-  subtitle: string;
-  icon: React.ElementType;
-  loading: boolean;
-  color: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-zinc-900 rounded-xl p-4 border border-zinc-800"
-    >
-      <div className="flex items-start justify-between">
-        <div className={`w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center ${color}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-      <p className={`text-2xl font-bold mt-3 ${loading ? 'animate-pulse' : ''}`}>
-        {loading ? '...' : value}
-      </p>
-      <p className="text-xs text-zinc-500 mt-1">{label}</p>
-      <p className="text-xs text-zinc-600">{subtitle}</p>
-    </motion.div>
   );
 }

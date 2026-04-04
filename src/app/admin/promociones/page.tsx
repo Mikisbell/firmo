@@ -6,12 +6,13 @@
  */
 
 import { useCallback } from 'react';
-import { Plus, Check, X, Calendar, Percent, Edit, Trash2 } from 'lucide-react';
+import { Plus, Check, X, Calendar, Percent, Edit, Trash2, Tag } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { usePromotions } from '@/src/hooks/useSWRHooks';
+import { Badge, Card, PageHeader, EmptyState, Button } from '@/src/components/ui';
 
 interface Promotion {
   id: string;
@@ -49,7 +50,7 @@ export default function PromotionsPage() {
   const isExpired = (endsAt: string) => new Date(endsAt) < new Date();
 
   const handleDelete = useCallback(async (id: string) => {
-    if (!confirm('¿Desactivar esta promoción?')) return;
+    if (!confirm('Desactivar esta promocion?')) return;
 
     try {
       const res = await fetch(`/api/admin/promotions/${id}`, {
@@ -59,13 +60,13 @@ export default function PromotionsPage() {
         const data = await res.json();
         throw new Error(data.error || 'Error al desactivar');
       }
-      toast.success('Promoción desactivada', {
-        description: 'La promoción ha sido desactivada exitosamente',
+      toast.success('Promocion desactivada', {
+        description: 'La promocion ha sido desactivada exitosamente',
       });
       mutate(); // Revalidar con SWR
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al eliminar';
-      toast.error('Error al desactivar promoción', {
+      toast.error('Error al desactivar promocion', {
         description: errorMessage,
       });
     }
@@ -78,10 +79,12 @@ export default function PromotionsPage() {
       label: 'Tipo',
       width: '120px',
       render: (p) => (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-purple-500/20 text-purple-400">
-          <Percent className="w-3 h-3" />
-          {TYPE_OPTIONS.find((t) => t.value === p.type)?.label || p.type}
-        </span>
+        <Badge variant="info">
+          <span className="inline-flex items-center gap-1">
+            <Percent className="w-3 h-3" />
+            {TYPE_OPTIONS.find((t) => t.value === p.type)?.label || p.type}
+          </span>
+        </Badge>
       ),
     },
     { key: 'value', label: 'Valor', width: '80px' },
@@ -89,7 +92,7 @@ export default function PromotionsPage() {
       key: 'dates',
       label: 'Vigencia',
       render: (p) => (
-        <span className={`text-xs ${isExpired(p.ends_at) ? 'text-red-400' : 'text-zinc-400'}`}>
+        <span className={`text-xs ${isExpired(p.ends_at) ? 'text-red-400' : 'text-park-gray-400'}`}>
           <Calendar className="w-3 h-3 inline mr-1" />
           {new Date(p.starts_at).toLocaleDateString()} - {new Date(p.ends_at).toLocaleDateString()}
         </span>
@@ -99,16 +102,12 @@ export default function PromotionsPage() {
       key: 'is_active',
       label: 'Estado',
       width: '100px',
-      render: (p) => (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-          p.is_active && !isExpired(p.ends_at)
-            ? 'bg-green-500/20 text-green-400'
-            : 'bg-zinc-500/20 text-zinc-400'
-        }`}>
-          {p.is_active && !isExpired(p.ends_at) ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-          {isExpired(p.ends_at) ? 'Expirada' : p.is_active ? 'Activa' : 'Inactiva'}
-        </span>
-      ),
+      render: (p) => {
+        const expired = isExpired(p.ends_at);
+        const variant = p.is_active && !expired ? 'success' : expired ? 'critical' : 'neutral';
+        const label = expired ? 'Expirada' : p.is_active ? 'Activa' : 'Inactiva';
+        return <Badge variant={variant} dot>{label}</Badge>;
+      },
     },
     {
       key: 'actions',
@@ -119,8 +118,8 @@ export default function PromotionsPage() {
           <Link
             href={`/admin/promociones/${p.id}`}
             data-testid={`edit-promotion-${p.id}`}
-            aria-label={`Editar promoción ${p.name}`}
-            className="p-1.5 hover:bg-zinc-800 rounded transition-colors"
+            aria-label={`Editar promocion ${p.name}`}
+            className="p-1.5 hover:bg-park-gray-800 rounded transition-colors"
             title="Editar"
           >
             <Edit className="w-4 h-4" />
@@ -128,7 +127,7 @@ export default function PromotionsPage() {
           <button
             onClick={() => handleDelete(p.id)}
             data-testid={`delete-promotion-${p.id}`}
-            aria-label={`Desactivar promoción ${p.name}`}
+            aria-label={`Desactivar promocion ${p.name}`}
             className="p-1.5 hover:bg-red-500/10 text-red-400 rounded transition-colors"
             title="Desactivar"
           >
@@ -140,22 +139,23 @@ export default function PromotionsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Promociones</h1>
-          <p className="text-zinc-400 mt-1">Gestionar ofertas y descuentos</p>
-        </div>
-        <Link 
-          href="/admin/promociones/nuevo" 
-          data-testid="create-promotion-btn"
-          aria-label="Crear nueva promoción"
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          Nueva Promoción
-        </Link>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Promociones"
+        description="Gestionar ofertas y descuentos"
+        actions={
+          <Link
+            href="/admin/promociones/nuevo"
+            data-testid="create-promotion-btn"
+            aria-label="Crear nueva promocion"
+          >
+            <Button variant="primary" icon={<Plus size={16} />}>
+              Nueva Promocion
+            </Button>
+          </Link>
+        }
+      />
+
       {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">{error}</div>}
       <DataTable data={promotions || []} columns={columns} filters={filters} searchPlaceholder="Buscar..." searchKeys={['name']} loading={loading} emptyMessage="No hay promociones" />
     </div>

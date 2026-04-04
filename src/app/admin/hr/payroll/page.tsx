@@ -7,8 +7,9 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { DollarSign, Calculator, Download, AlertTriangle } from 'lucide-react';
+import { DollarSign, Calculator, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 interface PayrollRecord {
   id: string;
@@ -75,94 +76,121 @@ export default function PayrollPage() {
   const totalGross = records?.reduce((sum, r) => sum + r.gross_salary_cents, 0) ?? 0;
   const totalNet = records?.reduce((sum, r) => sum + r.net_salary_cents, 0) ?? 0;
 
-  return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Planilla</h1>
-          <p className="text-zinc-400 text-sm">Cálculo y gestión de planilla mensual</p>
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-28 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
         </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="month"
-            value={periodMonth}
-            onChange={(e) => setPeriodMonth(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm"
-          />
-          <button
-            onClick={handleCalculate}
-            disabled={calculating}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Calculator className="w-4 h-4" />
-            {calculating ? 'Calculando...' : 'Calcular Planilla'}
-          </button>
-        </div>
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Planilla"
+        description="Cálculo y gestión de planilla mensual"
+        actions={
+          <div className="flex items-center gap-3">
+            <input
+              type="month"
+              value={periodMonth}
+              onChange={(e) => setPeriodMonth(e.target.value)}
+              className="bg-park-gray-800 border border-park-gray-700 text-white rounded-lg px-3 py-2 text-sm"
+            />
+            <Button
+              variant="primary"
+              icon={<Calculator className="w-4 h-4" />}
+              onClick={handleCalculate}
+              loading={calculating}
+              disabled={calculating}
+            >
+              {calculating ? 'Calculando...' : 'Calcular Planilla'}
+            </Button>
+          </div>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Total Empleados</p>
-          <p className="text-2xl font-bold text-white">{records?.length ?? 0}</p>
-        </div>
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Total Bruto</p>
-          <p className="text-2xl font-bold text-emerald-400">{formatCurrency(totalGross)}</p>
-        </div>
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Total Neto</p>
-          <p className="text-2xl font-bold text-blue-400">{formatCurrency(totalNet)}</p>
-        </div>
+        <MetricCard
+          label="Total Empleados"
+          value={records?.length ?? 0}
+        />
+        <MetricCard
+          label="Total Bruto"
+          value={totalGross}
+          format="currency"
+        />
+        <MetricCard
+          label="Total Neto"
+          value={totalNet}
+          format="currency"
+        />
       </div>
 
       {/* Payroll Table */}
-      {isLoading ? (
-        <div className="text-zinc-400 text-center py-12">Cargando...</div>
-      ) : error ? (
-        <div className="text-red-400 text-center py-12 flex items-center justify-center gap-2">
-          <AlertTriangle className="w-5 h-5" /> Error al cargar planilla
-        </div>
-      ) : !records?.length ? (
-        <div className="text-zinc-500 text-center py-12">
-          No hay registros de planilla para este período. Haz clic en &quot;Calcular Planilla&quot; para generar.
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-zinc-700 text-zinc-400 text-left">
-                <th className="py-3 px-4">Empleado</th>
-                <th className="py-3 px-4 text-right">Base</th>
-                <th className="py-3 px-4 text-right">Comisión</th>
-                <th className="py-3 px-4 text-right">Propinas</th>
-                <th className="py-3 px-4 text-right">H.Extra</th>
-                <th className="py-3 px-4 text-right">Bruto</th>
-                <th className="py-3 px-4 text-right">EsSalud</th>
-                <th className="py-3 px-4 text-right">Pensión</th>
-                <th className="py-3 px-4 text-right">Adelantos</th>
-                <th className="py-3 px-4 text-right font-bold">Neto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((r) => (
-                <tr key={r.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
-                  <td className="py-3 px-4 text-white">{r.employee_id.slice(0, 8)}...</td>
-                  <td className="py-3 px-4 text-right text-zinc-300">{formatCurrency(r.base_salary_cents)}</td>
-                  <td className="py-3 px-4 text-right text-zinc-300">{formatCurrency(r.commission_cents)}</td>
-                  <td className="py-3 px-4 text-right text-zinc-300">{formatCurrency(r.tips_cents)}</td>
-                  <td className="py-3 px-4 text-right text-zinc-300">{formatCurrency(r.overtime_cents)}</td>
-                  <td className="py-3 px-4 text-right text-emerald-400">{formatCurrency(r.gross_salary_cents)}</td>
-                  <td className="py-3 px-4 text-right text-orange-400">{formatCurrency(r.essalud_cents)}</td>
-                  <td className="py-3 px-4 text-right text-orange-400">{formatCurrency(r.pension_cents)}</td>
-                  <td className="py-3 px-4 text-right text-red-400">{formatCurrency(r.advances_cents)}</td>
-                  <td className="py-3 px-4 text-right text-blue-400 font-bold">{formatCurrency(r.net_salary_cents)}</td>
+      <Card padding="none">
+        {error ? (
+          <EmptyState
+            icon={<AlertTriangle />}
+            title="Error al cargar planilla"
+            description="No se pudieron cargar los datos. Intente nuevamente."
+          />
+        ) : !records?.length ? (
+          <EmptyState
+            icon={<DollarSign />}
+            title="Sin registros de planilla"
+            description='No hay registros de planilla para este período. Haz clic en "Calcular Planilla" para generar.'
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Empleado</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Base</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Comisión</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Propinas</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">H.Extra</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Bruto</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">EsSalud</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Pensión</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Adelantos</th>
+                  <th className="px-4 py-3 text-right text-park-gray-400 font-medium font-bold">Neto</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {records.map((r) => (
+                  <tr key={r.id} className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors">
+                    <td className="px-4 py-3 text-white">{r.employee_id.slice(0, 8)}...</td>
+                    <td className="px-4 py-3 text-right text-park-gray-300">{formatCurrency(r.base_salary_cents)}</td>
+                    <td className="px-4 py-3 text-right text-park-gray-300">{formatCurrency(r.commission_cents)}</td>
+                    <td className="px-4 py-3 text-right text-park-gray-300">{formatCurrency(r.tips_cents)}</td>
+                    <td className="px-4 py-3 text-right text-park-gray-300">{formatCurrency(r.overtime_cents)}</td>
+                    <td className="px-4 py-3 text-right text-emerald-400">{formatCurrency(r.gross_salary_cents)}</td>
+                    <td className="px-4 py-3 text-right text-orange-400">{formatCurrency(r.essalud_cents)}</td>
+                    <td className="px-4 py-3 text-right text-orange-400">{formatCurrency(r.pension_cents)}</td>
+                    <td className="px-4 py-3 text-right text-red-400">{formatCurrency(r.advances_cents)}</td>
+                    <td className="px-4 py-3 text-right text-blue-400 font-bold">{formatCurrency(r.net_salary_cents)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

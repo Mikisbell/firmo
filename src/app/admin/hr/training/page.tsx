@@ -9,6 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { GraduationCap, Plus, AlertTriangle, Search, Award, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
 
 interface Training {
   id: string;
@@ -30,14 +31,14 @@ interface EmployeeOption {
   name: string;
 }
 
-const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  SAFETY: { label: 'Seguridad', color: 'text-red-400 bg-red-500/20' },
-  FOOD_HANDLING: { label: 'Manipulación Alimentos', color: 'text-orange-400 bg-orange-500/20' },
-  CUSTOMER_SERVICE: { label: 'Atención al Cliente', color: 'text-blue-400 bg-blue-500/20' },
-  TECHNICAL: { label: 'Técnico', color: 'text-purple-400 bg-purple-500/20' },
-  MANAGEMENT: { label: 'Gestión', color: 'text-teal-400 bg-teal-500/20' },
-  COMPLIANCE: { label: 'Cumplimiento', color: 'text-yellow-400 bg-yellow-500/20' },
-  OTHER: { label: 'Otro', color: 'text-zinc-400 bg-zinc-500/20' },
+const TYPE_BADGE: Record<string, { label: string; variant: 'critical' | 'warning' | 'info' | 'success' | 'neutral' }> = {
+  SAFETY: { label: 'Seguridad', variant: 'critical' },
+  FOOD_HANDLING: { label: 'Manipulación Alimentos', variant: 'warning' },
+  CUSTOMER_SERVICE: { label: 'Atención al Cliente', variant: 'info' },
+  TECHNICAL: { label: 'Técnico', variant: 'info' },
+  MANAGEMENT: { label: 'Gestión', variant: 'success' },
+  COMPLIANCE: { label: 'Cumplimiento', variant: 'warning' },
+  OTHER: { label: 'Otro', variant: 'neutral' },
 };
 
 const fetcher = (url: string) => fetch(url).then(r => {
@@ -135,152 +136,172 @@ export default function TrainingPage() {
 
   const field = (label: string, children: React.ReactNode) => (
     <div>
-      <label className="block text-zinc-400 text-xs mb-1">{label}</label>
+      <label className="block text-park-gray-400 text-xs mb-1">{label}</label>
       {children}
     </div>
   );
 
-  const inputCls = 'w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500';
+  const inputCls = 'w-full bg-park-gray-900 border border-park-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500';
+
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="h-10 w-64 bg-park-gray-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-28 bg-park-gray-800 rounded-xl animate-pulse" />
+          ))}
+        </div>
+        <Card padding="none">
+          <div className="space-y-4 p-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-park-gray-800 rounded animate-pulse" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Capacitaciones</h1>
-          <p className="text-zinc-400 text-sm">Registro de entrenamientos y certificaciones</p>
-        </div>
-        <button
-          onClick={handleOpen}
-          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Registrar Capacitación
-        </button>
-      </div>
+    <div className="p-4 space-y-6">
+      <PageHeader
+        title="Capacitación"
+        description="Registro de entrenamientos y certificaciones"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={handleOpen}
+          >
+            Registrar Capacitación
+          </Button>
+        }
+      />
 
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Total Registros</p>
-          <p className="text-2xl font-bold text-white">{trainings.length}</p>
-        </div>
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Horas Totales</p>
-          <p className="text-2xl font-bold text-teal-400">{totalHours}h</p>
-        </div>
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Por Vencer (30d)</p>
-          <p className={`text-2xl font-bold ${expiringSoon.length > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
-            {expiringSoon.length}
-          </p>
-        </div>
-        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-          <p className="text-zinc-400 text-sm">Tipos Distintos</p>
-          <p className="text-2xl font-bold text-purple-400">
-            {new Set(trainings.map(t => t.training_type)).size}
-          </p>
-        </div>
+        <MetricCard
+          label="Total Registros"
+          value={trainings.length}
+          icon={<GraduationCap className="w-5 h-5" />}
+        />
+        <MetricCard
+          label="Horas Totales"
+          value={`${totalHours}h`}
+        />
+        <MetricCard
+          label="Por Vencer (30d)"
+          value={expiringSoon.length}
+        />
+        <MetricCard
+          label="Tipos Distintos"
+          value={new Set(trainings.map(t => t.training_type)).size}
+        />
       </div>
 
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-park-gray-500" />
           <input
             type="text"
             placeholder="Buscar por empleado o título..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg pl-10 pr-3 py-2 text-sm"
+            className="w-full bg-park-gray-800 border border-park-gray-700 text-white rounded-lg pl-10 pr-3 py-2 text-sm"
           />
         </div>
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm"
+          className="bg-park-gray-800 border border-park-gray-700 text-white rounded-lg px-3 py-2 text-sm"
         >
           <option value="">Todos los tipos</option>
-          {Object.entries(TYPE_LABELS).map(([key, { label }]) => (
+          {Object.entries(TYPE_BADGE).map(([key, { label }]) => (
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
       </div>
 
       {/* Table */}
-      {isLoading ? (
-        <div className="text-zinc-400 text-center py-12">Cargando...</div>
-      ) : error ? (
-        <div className="text-red-400 text-center py-12 flex items-center justify-center gap-2">
-          <AlertTriangle className="w-5 h-5" /> Error al cargar capacitaciones
-        </div>
-      ) : !filtered.length ? (
-        <div className="text-zinc-500 text-center py-12">
-          No hay capacitaciones registradas.
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-zinc-700 text-zinc-400 text-left">
-                <th className="py-3 px-4">Empleado</th>
-                <th className="py-3 px-4">Título</th>
-                <th className="py-3 px-4">Tipo</th>
-                <th className="py-3 px-4">Proveedor</th>
-                <th className="py-3 px-4 text-center">Horas</th>
-                <th className="py-3 px-4">Completado</th>
-                <th className="py-3 px-4">Vencimiento</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((t) => {
-                const typeConfig = TYPE_LABELS[t.training_type] ?? TYPE_LABELS.OTHER;
-                const isExpiring = t.expires_at ? new Date(t.expires_at) <= new Date(Date.now() + 30 * 86400000) : false;
-                const isExpired = t.expires_at && new Date(t.expires_at) < new Date();
-                return (
-                  <tr key={t.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
-                    <td className="py-3 px-4 text-white">{t.employee_name ?? t.employee_id.slice(0, 8)}</td>
-                    <td className="py-3 px-4 text-zinc-300">
-                      <div className="flex items-center gap-2">
-                        {t.title}
-                        {t.certificate_url && <span title="Certificado"><Award className="w-3.5 h-3.5 text-yellow-400" /></span>}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeConfig.color}`}>
-                        {typeConfig.label}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-zinc-400">{t.provider ?? '—'}</td>
-                    <td className="py-3 px-4 text-center text-zinc-300">{t.hours}h</td>
-                    <td className="py-3 px-4 text-zinc-300">{t.completed_at?.slice(0, 10)}</td>
-                    <td className="py-3 px-4">
-                      {t.expires_at ? (
-                        <span className={`text-sm ${isExpired ? 'text-red-400' : isExpiring ? 'text-yellow-400' : 'text-zinc-300'}`}>
-                          {t.expires_at.slice(0, 10)}
-                          {isExpired && ' (Vencido)'}
-                        </span>
-                      ) : (
-                        <span className="text-zinc-600">—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <Card padding="none">
+        {error ? (
+          <EmptyState
+            icon={<AlertTriangle />}
+            title="Error al cargar capacitaciones"
+            description="No se pudieron cargar los datos. Intente nuevamente."
+          />
+        ) : !filtered.length ? (
+          <EmptyState
+            icon={<GraduationCap />}
+            title="Sin capacitaciones"
+            description="No hay capacitaciones registradas."
+            action={{ label: 'Registrar Capacitación', onClick: handleOpen }}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Empleado</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Título</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Tipo</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Proveedor</th>
+                  <th className="px-4 py-3 text-center text-park-gray-400 font-medium">Horas</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Completado</th>
+                  <th className="px-4 py-3 text-left text-park-gray-400 font-medium">Vencimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((t) => {
+                  const typeConfig = TYPE_BADGE[t.training_type] ?? TYPE_BADGE.OTHER;
+                  const isExpiring = t.expires_at ? new Date(t.expires_at) <= new Date(Date.now() + 30 * 86400000) : false;
+                  const isExpired = t.expires_at && new Date(t.expires_at) < new Date();
+                  return (
+                    <tr key={t.id} className="border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors">
+                      <td className="px-4 py-3 text-white">{t.employee_name ?? t.employee_id.slice(0, 8)}</td>
+                      <td className="px-4 py-3 text-park-gray-300">
+                        <div className="flex items-center gap-2">
+                          {t.title}
+                          {t.certificate_url && <span title="Certificado"><Award className="w-3.5 h-3.5 text-yellow-400" /></span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant={typeConfig.variant} dot>{typeConfig.label}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-park-gray-400">{t.provider ?? '—'}</td>
+                      <td className="px-4 py-3 text-center text-park-gray-300">{t.hours}h</td>
+                      <td className="px-4 py-3 text-park-gray-300">{t.completed_at?.slice(0, 10)}</td>
+                      <td className="px-4 py-3">
+                        {t.expires_at ? (
+                          <span className={`text-sm ${isExpired ? 'text-red-400' : isExpiring ? 'text-yellow-400' : 'text-park-gray-300'}`}>
+                            {t.expires_at.slice(0, 10)}
+                            {isExpired && ' (Vencido)'}
+                          </span>
+                        ) : (
+                          <span className="text-park-gray-600">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
       {/* Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg shadow-xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-700">
+          <div className="bg-park-gray-900 border border-park-gray-700 rounded-xl w-full max-w-lg shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-park-gray-700">
               <div className="flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-teal-400" />
                 <h2 className="text-white font-semibold">Registrar Capacitación</h2>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
+              <button onClick={() => setShowModal(false)} className="text-park-gray-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -311,7 +332,7 @@ export default function TrainingPage() {
                     onChange={e => setForm(f => ({ ...f, training_type: e.target.value }))}
                     className={inputCls}
                   >
-                    {Object.entries(TYPE_LABELS).map(([k, { label }]) => (
+                    {Object.entries(TYPE_BADGE).map(([k, { label }]) => (
                       <option key={k} value={k}>{label}</option>
                     ))}
                   </select>
@@ -363,20 +384,21 @@ export default function TrainingPage() {
                 />
               )}
             </div>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-zinc-700">
-              <button
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-park-gray-700">
+              <Button
+                variant="ghost"
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleSave}
+                loading={saving}
                 disabled={saving}
-                className="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
               >
                 {saving ? 'Guardando...' : 'Registrar'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
