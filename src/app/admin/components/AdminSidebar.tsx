@@ -52,6 +52,7 @@ import {
   LayoutGrid,
   MessageSquare,
   Printer,
+  Palette,
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
@@ -255,6 +256,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/configuracion', label: 'General', description: 'Nombre, RUC, logo y preferencias', icon: Settings, permission: 'manage_config' },
       { href: '/admin/configuracion/yape-plin', label: 'Yape / Plin', description: 'Configurar pagos móviles', icon: Smartphone, permission: 'manage_config' },
+      { href: '/admin/design-system', label: 'Sistema de Diseño', description: 'Catálogo visual de componentes UI', icon: Palette, permission: 'manage_config' },
     ],
   },
 ];
