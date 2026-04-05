@@ -8,7 +8,7 @@
 import { useState, useCallback } from 'react';
 import { Award, Settings, Users, Star, Save, Loader2, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
-import { Button, Badge, Card, CardHeader, PageHeader, MetricCard, Tabs, TabsContent } from '@/src/components/ui';
+import { Button, Badge, Card, CardHeader, PageHeader, MetricCard, Tabs, TabsContent, Progress } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -356,6 +356,20 @@ function CustomersTab() {
                 />
               )}
             </div>
+
+            {balance.nextTier && (
+              <Card padding="sm">
+                <p className="text-xs text-park-gray-400 mb-2">
+                  Progreso a {balance.nextTier.name}
+                </p>
+                <Progress
+                  value={balance.balance}
+                  max={balance.nextTier.minPoints}
+                  variant="default"
+                  showLabel
+                />
+              </Card>
+            )}
 
             {/* History */}
             <h4 className="font-medium text-white">Historial de Puntos</h4>

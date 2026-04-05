@@ -9,7 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/src/lib/swr-config';
 import { MessageSquare, ThumbsUp, Lightbulb, AlertCircle, Star } from 'lucide-react';
-import { Badge, Card, PageHeader, EmptyState, Button } from '@/src/components/ui';
+import { Badge, Card, PageHeader, EmptyState, Button, Pagination } from '@/src/components/ui';
 import { useQueryState } from '@/src/hooks/useQueryState';
 
 interface FeedbackItem {
@@ -180,25 +180,11 @@ export default function FeedbackPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Anterior
-          </Button>
-          <span className="text-sm text-park-gray-400">{page} / {totalPages}</span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Siguiente
-          </Button>
-        </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       )}
     </div>
   );

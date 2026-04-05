@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ClipboardList, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Bike, AlertCircle } from 'lucide-react';
+import { ClipboardList, Filter, Clock, CheckCircle, XCircle, Bike, AlertCircle } from 'lucide-react';
 import { formatCents } from '@/src/core/domain/money';
-import { Badge, Button, Card, PageHeader, EmptyState, Breadcrumbs } from '@/src/components/ui';
+import { Badge, Button, Card, PageHeader, EmptyState, Breadcrumbs, Pagination } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface DeliveryOrder {
@@ -224,27 +224,14 @@ export default function DeliveryHistoryPage() {
 
       {/* Pagination */}
       {total > LIMIT && (
-        <div className="flex justify-between items-center pt-1">
-          <span className="text-xs text-zinc-500">
-            {offset + 1}–{Math.min(offset + LIMIT, total)} de {total}
-          </span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setOffset(Math.max(0, offset - LIMIT))}
-              disabled={offset === 0}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-lg disabled:opacity-40 hover:bg-zinc-700 transition-colors text-zinc-300"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" /> Anterior
-            </button>
-            <button
-              onClick={() => setOffset(offset + LIMIT)}
-              disabled={offset + LIMIT >= total}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-lg disabled:opacity-40 hover:bg-zinc-700 transition-colors text-zinc-300"
-            >
-              Siguiente <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          page={Math.floor(offset / LIMIT) + 1}
+          totalPages={Math.ceil(total / LIMIT)}
+          pageSize={LIMIT}
+          totalItems={total}
+          showInfo
+          onPageChange={(p) => setOffset((p - 1) * LIMIT)}
+        />
       )}
     </div>
   );

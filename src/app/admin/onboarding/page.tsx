@@ -14,7 +14,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import OnboardingWizard from '../components/onboarding/OnboardingWizard';
-import { Button, Card, PageHeader } from '@/src/components/ui';
+import { Button, Card, PageHeader, Progress } from '@/src/components/ui';
 import type { OnboardingStep } from '@/src/core/tenant/onboarding';
 
 interface OnboardingApiResponse {
@@ -145,11 +145,26 @@ export default function AdminOnboardingPage() {
   }
 
   return (
-    <OnboardingWizard
-      tenant_id={data.tenant_id}
-      steps={data.steps}
-      onStepComplete={handleStepComplete}
-      onOnboardingComplete={handleOnboardingComplete}
-    />
+    <div className="space-y-4">
+      <Card padding="sm">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-medium text-white">Progreso del Asistente</p>
+          <span className="text-xs text-park-gray-400 tabular-nums">
+            Paso {data.progress.completed} de {data.progress.total}
+          </span>
+        </div>
+        <Progress
+          value={data.progress.completed}
+          max={data.progress.total}
+          variant={data.progress.completed === data.progress.total ? 'success' : 'default'}
+        />
+      </Card>
+      <OnboardingWizard
+        tenant_id={data.tenant_id}
+        steps={data.steps}
+        onStepComplete={handleStepComplete}
+        onOnboardingComplete={handleOnboardingComplete}
+      />
+    </div>
   );
 }

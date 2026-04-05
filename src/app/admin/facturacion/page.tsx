@@ -25,11 +25,11 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useInvoices, useInvoiceStats } from '@/src/hooks/useFacturacion';
+import { useInvoices, useInvoiceStats, useSunatContingency } from '@/src/hooks/useFacturacion';
 import ConfiguracionTab from './configuracion-tab';
 import ResumenesTab from './resumenes-tab';
 import ContingenciaTab from './contingencia-tab';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Select, Input, Tabs, TabsContent } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Select, Input, Tabs, TabsContent, Alert, Pagination } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 function centsToSoles(cents: number): string {
@@ -49,6 +49,7 @@ export default function FacturacionPage() {
   const [queryFilters, setQueryFilters] = useQueryStates({ tab: 'comprobantes', status: '' });
   const activeTab = queryFilters.tab as Tab;
   const setActiveTab = (t: Tab) => setQueryFilters({ tab: t });
+  const { contingency } = useSunatContingency();
 
   return (
     <div className="p-4 space-y-6">
@@ -57,6 +58,20 @@ export default function FacturacionPage() {
         title="Facturacion"
         description="Boletas, facturas y notas SUNAT"
       />
+
+      {/* Modo contingencia activo */}
+      {contingency?.active && (
+        <Alert
+          variant="info"
+          title="Modo contingencia activo"
+          description={`Los comprobantes se estan emitiendo en modo contingencia (${contingency.state?.pendingCount ?? 0} pendientes). Revisa la pestana Contingencia para mas detalles.`}
+          action={
+            <Button variant="secondary" size="sm" onClick={() => setActiveTab('contingencia')}>
+              Ver contingencia
+            </Button>
+          }
+        />
+      )}
 
       {/* Tab Navigation */}
       <Tabs
@@ -282,27 +297,11 @@ function ComprobantesTab() {
 
       {/* Pagination */}
       {pagination && pagination.pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page <= 1}
-          >
-            Anterior
-          </Button>
-          <span className="text-sm text-park-gray-400">
-            Pagina {page} de {pagination.pages}
-          </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setPage(Math.min(pagination.pages, page + 1))}
-            disabled={page >= pagination.pages}
-          >
-            Siguiente
-          </Button>
-        </div>
+        <Pagination
+          page={page}
+          totalPages={pagination.pages}
+          onPageChange={setPage}
+        />
       )}
     </div>
   );

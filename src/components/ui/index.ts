@@ -154,3 +154,15 @@ export type { AlertProps, AlertVariant } from './Alert';
 // Pagination (Design System)
 export { Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
+
+// Dropdown (context menu)
+export { Dropdown } from './Dropdown';
+export type { DropdownProps, DropdownItem } from './Dropdown';
+
+// DatePicker (native date input)
+export { DatePicker } from './DatePicker';
+export type { DatePickerProps } from './DatePicker';
+
+// FileUpload (drag-and-drop + click to select)
+export { FileUpload } from './FileUpload';
+export type { FileUploadProps } from './FileUpload';

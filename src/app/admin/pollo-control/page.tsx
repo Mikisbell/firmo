@@ -13,7 +13,7 @@ import { Egg, Flame, ChefHat, ShoppingCart, AlertTriangle, Plus, CheckCircle2 } 
 import { toast } from 'sonner';
 import { usePolloDashboard, usePolloHistory } from '@/src/hooks/usePolloControl';
 import { motion } from 'framer-motion';
-import { Button, Badge, Card, PageHeader, MetricCard } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, Alert } from '@/src/components/ui';
 
 // TODO: Obtener de config/context del tenant
 const DEFAULT_LOCATION_ID = '00000000-0000-0000-0000-000000000001';
@@ -260,6 +260,16 @@ export default function PolloControlPage() {
           </Card>
         </motion.div>
       )}
+
+      {/* Alerta de merma excesiva */}
+      {summary && summary.total_raw_units > 0 &&
+        (summary.total_waste_units / summary.total_raw_units) > 0.1 && (
+          <Alert
+            variant="warning"
+            title="Merma excesiva"
+            description={`La merma del dia (${summary.total_waste_units} uds) supera el 10% del total ingresado (${summary.total_raw_units} uds). Revisa el proceso de coccion.`}
+          />
+        )}
 
       {/* 4 Tarjetas Metricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

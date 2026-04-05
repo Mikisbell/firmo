@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Truck } from 'lucide-react';
 import { DriverForm } from './components/DriverForm';
 import { toast } from 'sonner';
-import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Avatar } from '@/src/components/ui';
 
 interface Driver {
   id: string;
@@ -174,7 +174,12 @@ export default function DriversPage() {
                       key={driver.id}
                       className={`border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors ${!driver.is_active ? 'opacity-60' : ''}`}
                     >
-                      <td className="px-4 py-3 font-medium text-white">{driver.name}</td>
+                      <td className="px-4 py-3 font-medium text-white">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={driver.name} size="sm" status={driver.is_active ? 'online' : undefined} />
+                          <span>{driver.name}</span>
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-park-gray-400">{driver.phone || '-'}</td>
                       <td className="px-4 py-3 text-park-gray-400">
                         {driver.employees ? (

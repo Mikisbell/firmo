@@ -13,7 +13,7 @@ import { Wallet, Plus, Minus, RefreshCw, CheckCircle, Clock } from 'lucide-react
 import { toast } from 'sonner';
 import { usePettyCash, useLocations } from '@/src/hooks/useSWRHooks';
 import type { PettyCashCategory } from '@/src/core/services/petty-cash.service';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Alert } from '@/src/components/ui';
 
 const CATEGORIES: { value: PettyCashCategory; label: string }[] = [
   { value: 'SUPPLIES', label: 'Insumos' },
@@ -181,6 +181,15 @@ export default function CajaChicaPage() {
           </div>
         }
       />
+
+      {/* Saldo negativo alert */}
+      {data?.balance && data.balance.currentBalance < 0 && (
+        <Alert
+          variant="critical"
+          title="Saldo negativo"
+          description={`La caja chica tiene un saldo negativo de ${formatCurrency(data.balance.currentBalance)}. Se requiere reposicion inmediata.`}
+        />
+      )}
 
       {/* Balance Card */}
       {data?.balance && (

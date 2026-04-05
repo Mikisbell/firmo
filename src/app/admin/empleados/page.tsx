@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Shield, Eye, EyeOff } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
-import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, Avatar } from '@/src/components/ui';
 import { useQueryState, useQueryStates } from '@/src/hooks/useQueryState';
 
 interface Employee {
@@ -67,7 +67,10 @@ export default function EmployeesPage() {
       label: 'Nombre',
       sortable: true,
       render: (e) => (
-        <span data-testid="employee-name">{e.name}</span>
+        <div className="flex items-center gap-2">
+          <Avatar name={e.name} size="sm" status={e.is_active ? 'online' : undefined} />
+          <span data-testid="employee-name">{e.name}</span>
+        </div>
       ),
     },
     {

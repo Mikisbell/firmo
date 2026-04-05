@@ -13,7 +13,7 @@ import { Plus, Edit2, Check, X, Shield, UserX, Eye, Search } from 'lucide-react'
 import { DataTable, Column, FilterConfig } from '../../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { toast } from 'sonner';
-import { Button, Badge, PageHeader, Tooltip, Breadcrumbs } from '@/src/components/ui';
+import { Button, Badge, PageHeader, Tooltip, Breadcrumbs, Avatar } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -126,9 +126,12 @@ export default function HREmployeesPage() {
       key: 'name',
       label: 'Nombre',
       render: (e) => (
-        <div>
-          <span className="font-medium">{e.name}</span>
-          {e.dni && <p className="text-xs text-park-gray-500">DNI: {e.dni}</p>}
+        <div className="flex items-center gap-2">
+          <Avatar name={e.name} size="sm" status={e.is_active ? 'online' : undefined} />
+          <div>
+            <span className="font-medium">{e.name}</span>
+            {e.dni && <p className="text-xs text-park-gray-500">DNI: {e.dni}</p>}
+          </div>
         </div>
       ),
     },

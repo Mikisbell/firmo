@@ -24,6 +24,11 @@ import {
   SkeletonTable,
   SkeletonMetricCard,
   SkeletonPageHeader,
+  Progress,
+  Avatar,
+  AvatarGroup,
+  Alert,
+  Pagination,
 } from '@/src/components/ui';
 import {
   Plus,
@@ -98,6 +103,10 @@ export default function DesignSystemPage() {
   const [switchDemo2, setSwitchDemo2] = useState(false);
   const [checkboxDemo, setCheckboxDemo] = useState(true);
   const [checkboxDemo2, setCheckboxDemo2] = useState(false);
+
+  // Pagination demo state
+  const [demoPage, setDemoPage] = useState<number>(3);
+  const [alertDismissed, setAlertDismissed] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -677,6 +686,165 @@ export default function DesignSystemPage() {
         <Row label="Brand">
           <Swatch color="bg-park-brand-500" label="brand-500" />
           <Swatch color="bg-park-brand-600" label="brand-600" />
+        </Row>
+      </Section>
+
+      {/* ── 13. Progress ── */}
+      <Section title="Barras de Progreso">
+        <Row label="Variantes (tamano md, con label)">
+          <div className="flex flex-col gap-3 w-full max-w-md">
+            <Progress value={45} variant="default" showLabel />
+            <Progress value={80} variant="success" showLabel />
+            <Progress value={60} variant="warning" showLabel />
+            <Progress value={25} variant="critical" showLabel />
+          </div>
+        </Row>
+
+        <Row label="Tamanos (sm, md, lg)">
+          <div className="flex flex-col gap-3 w-full max-w-md">
+            <Progress value={60} size="sm" showLabel />
+            <Progress value={60} size="md" showLabel />
+            <Progress value={60} size="lg" showLabel />
+          </div>
+        </Row>
+
+        <Row label="Sin label">
+          <div className="flex flex-col gap-3 w-full max-w-md">
+            <Progress value={30} variant="default" />
+            <Progress value={70} variant="success" />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── 14. Avatar ── */}
+      <Section title="Avatar">
+        <Row label="Tamanos (xs, sm, md, lg, xl)">
+          <Avatar name="Ana García" size="xs" />
+          <Avatar name="Carlos López" size="sm" />
+          <Avatar name="María Torres" size="md" />
+          <Avatar name="José Flores" size="lg" />
+          <Avatar name="Pedro Ruiz" size="xl" />
+        </Row>
+
+        <Row label="Con indicador de estado">
+          <Avatar name="Ana García" status="online" />
+          <Avatar name="Carlos López" status="busy" />
+          <Avatar name="María Torres" status="away" />
+          <Avatar name="José Flores" status="offline" />
+        </Row>
+
+        <Row label="Con anillo (ring)">
+          <Avatar name="Pedro Ruiz" ring />
+          <Avatar name="Ana García" ring status="online" />
+        </Row>
+
+        <Row label="AvatarGroup (max=3 de 5)">
+          <AvatarGroup
+            avatars={[
+              { name: 'Ana García' },
+              { name: 'Carlos López' },
+              { name: 'María Torres' },
+              { name: 'José Flores' },
+              { name: 'Pedro Ruiz' },
+            ]}
+            max={3}
+            size="md"
+          />
+        </Row>
+      </Section>
+
+      {/* ── 15. Alert ── */}
+      <Section title="Alertas / Banners">
+        <Row label="Variantes con titulo + descripcion">
+          <div className="flex flex-col gap-3 w-full">
+            <Alert
+              variant="info"
+              title="Informacion"
+              description="Tu reporte mensual estara disponible en unos minutos."
+            />
+            <Alert
+              variant="success"
+              title="Operacion exitosa"
+              description="Los cambios se guardaron correctamente."
+            />
+            <Alert
+              variant="warning"
+              title="Atencion"
+              description="Tu turno esta por cerrar en 15 minutos."
+            />
+            <Alert
+              variant="critical"
+              title="Error critico"
+              description="No se pudo conectar con el servidor de pagos."
+            />
+          </div>
+        </Row>
+
+        <Row label="Dismissible">
+          <div className="w-full">
+            {!alertDismissed ? (
+              <Alert
+                variant="info"
+                title="Alerta que se puede cerrar"
+                description="Clickea la X en la esquina superior derecha."
+                dismissible
+                onDismiss={() => setAlertDismissed(true)}
+              />
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setAlertDismissed(false)}
+              >
+                Restaurar alerta
+              </Button>
+            )}
+          </div>
+        </Row>
+
+        <Row label="Con accion">
+          <div className="w-full">
+            <Alert
+              variant="warning"
+              title="Stock bajo"
+              description="3 productos estan por debajo del stock minimo."
+              action={
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={notify('Ver inventario')}
+                >
+                  Ver inventario
+                </Button>
+              }
+            />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── 16. Pagination ── */}
+      <Section title="Paginacion">
+        <Row label="Pagina actual 3 de 10">
+          <div className="w-full">
+            <Pagination
+              page={demoPage}
+              totalPages={10}
+              onPageChange={setDemoPage}
+            />
+          </div>
+        </Row>
+
+        <Row label="Con info de rango (showInfo)">
+          <div className="w-full">
+            <Pagination
+              page={demoPage}
+              totalPages={10}
+              pageSize={20}
+              totalItems={200}
+              showInfo
+              onPageChange={setDemoPage}
+            />
+          </div>
         </Row>
       </Section>
     </div>
