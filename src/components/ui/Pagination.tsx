@@ -1,177 +1,167 @@
+'use client';
+
 /**
- * Pagination Component
- * UI component for displaying pagination controls
- * 
- * Features:
- * - First, Previous, Next, Last buttons
- * - Current page indicator
- * - Results count display
- * - Responsive design
- * - Touch-friendly (min 44x44px buttons)
- * 
- * Requirements: FASE1 DÍA 3 - Paginación
+ * Controles de paginacion del Design System.
+ * Muestra prev/next, numeros de pagina con elipsis y contador opcional.
+ * Logica siblingCount: muestra primera, ultima, actual y N paginas alrededor.
  */
 
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from './Button';
+import { cn } from '@/src/lib/utils';
 
 export interface PaginationProps {
   page: number;
   totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-  startIndex: number;
-  endIndex: number;
-  total: number;
-  onFirstPage: () => void;
-  onPrevPage: () => void;
-  onNextPage: () => void;
-  onLastPage: () => void;
-  loading?: boolean;
+  onPageChange: (page: number) => void;
+  pageSize?: number;
+  totalItems?: number;
+  /** Muestra "Mostrando X-Y de Z" */
+  showInfo?: boolean;
+  /** Cantidad de numeros a mostrar a cada lado de la pagina actual */
+  siblingCount?: number;
+  className?: string;
 }
 
+const DOTS = '...' as const;
+
 /**
- * Pagination component with navigation controls
- * 
- * @example
- * <Pagination
- *   page={pagination.page}
- *   totalPages={pagination.totalPages}
- *   hasNext={pagination.hasNext}
- *   hasPrev={pagination.hasPrev}
- *   startIndex={pagination.startIndex}
- *   endIndex={pagination.endIndex}
- *   total={pagination.total}
- *   onFirstPage={pagination.firstPage}
- *   onPrevPage={pagination.prevPage}
- *   onNextPage={pagination.nextPage}
- *   onLastPage={pagination.lastPage}
- *   loading={pagination.loading}
- * />
+ * Genera el rango de paginas a mostrar con elipsis donde hay gaps.
+ * Ej: [1, '...', 4, 5, 6, '...', 20]
  */
+function getPageRange(
+  current: number,
+  total: number,
+  siblingCount: number,
+): Array<number | typeof DOTS> {
+  // Total slots = siblings + firstPage + lastPage + current + 2 dots = siblings*2 + 5
+  const totalSlots = siblingCount * 2 + 5;
+
+  if (totalSlots >= total) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const leftSibling = Math.max(current - siblingCount, 1);
+  const rightSibling = Math.min(current + siblingCount, total);
+
+  const showLeftDots = leftSibling > 2;
+  const showRightDots = rightSibling < total - 1;
+
+  const firstPage = 1;
+  const lastPage = total;
+
+  if (!showLeftDots && showRightDots) {
+    const leftCount = 3 + siblingCount * 2;
+    const leftRange = Array.from({ length: leftCount }, (_, i) => i + 1);
+    return [...leftRange, DOTS, lastPage];
+  }
+
+  if (showLeftDots && !showRightDots) {
+    const rightCount = 3 + siblingCount * 2;
+    const rightRange = Array.from(
+      { length: rightCount },
+      (_, i) => total - rightCount + 1 + i,
+    );
+    return [firstPage, DOTS, ...rightRange];
+  }
+
+  // both dots
+  const middleRange = Array.from(
+    { length: rightSibling - leftSibling + 1 },
+    (_, i) => leftSibling + i,
+  );
+  return [firstPage, DOTS, ...middleRange, DOTS, lastPage];
+}
+
 export function Pagination({
   page,
   totalPages,
-  hasNext,
-  hasPrev,
-  startIndex,
-  endIndex,
-  total,
-  onFirstPage,
-  onPrevPage,
-  onNextPage,
-  onLastPage,
-  loading = false,
+  onPageChange,
+  pageSize,
+  totalItems,
+  showInfo = false,
+  siblingCount = 1,
+  className,
 }: PaginationProps) {
-  // Don't render if no data
-  if (total === 0) {
-    return null;
-  }
+  if (totalPages <= 0) return null;
+
+  const safePage = Math.max(1, Math.min(page, totalPages));
+  const pages = getPageRange(safePage, totalPages, siblingCount);
+
+  const startIndex =
+    pageSize && totalItems ? (safePage - 1) * pageSize + 1 : 0;
+  const endIndex =
+    pageSize && totalItems
+      ? Math.min(safePage * pageSize, totalItems)
+      : 0;
+
+  const canPrev = safePage > 1;
+  const canNext = safePage < totalPages;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-zinc-900/50 border-t border-zinc-800">
-      {/* Results info */}
-      <div className="text-sm text-zinc-400">
-        Mostrando <span className="font-medium text-white">{startIndex}</span> a{' '}
-        <span className="font-medium text-white">{endIndex}</span> de{' '}
-        <span className="font-medium text-white">{total}</span> resultados
-      </div>
+    <div
+      className={cn(
+        'flex items-center justify-between gap-4',
+        className,
+      )}
+    >
+      {showInfo && pageSize && totalItems ? (
+        <div className="text-sm text-park-gray-400 tabular-nums">
+          Mostrando {startIndex}-{endIndex} de {totalItems}
+        </div>
+      ) : (
+        <div />
+      )}
 
-      {/* Navigation controls */}
-      <div className="flex items-center gap-2">
-        {/* First page button */}
-        <button
-          onClick={onFirstPage}
-          disabled={!hasPrev || loading}
-          className="min-w-[44px] min-h-[44px] p-2 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800 disabled:hover:text-zinc-400 transition-colors"
-          aria-label="Primera página"
-          title="Primera página"
+      <div className="flex items-center gap-1">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => onPageChange(safePage - 1)}
+          disabled={!canPrev}
+          aria-label="Pagina anterior"
+          icon={<ChevronLeft className="h-4 w-4" />}
         >
-          <ChevronsLeft className="w-5 h-5" />
-        </button>
+          Anterior
+        </Button>
 
-        {/* Previous page button */}
-        <button
-          onClick={onPrevPage}
-          disabled={!hasPrev || loading}
-          className="min-w-[44px] min-h-[44px] p-2 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800 disabled:hover:text-zinc-400 transition-colors"
-          aria-label="Página anterior"
-          title="Página anterior"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
-        {/* Page indicator */}
-        <div className="px-4 py-2 text-sm text-zinc-300">
-          Página <span className="font-medium text-white">{page}</span> de{' '}
-          <span className="font-medium text-white">{totalPages}</span>
+        <div className="flex items-center gap-1 mx-1">
+          {pages.map((p, idx) =>
+            p === DOTS ? (
+              <span
+                key={`dots-${idx}`}
+                className="px-2 text-sm text-park-gray-500 tabular-nums"
+                aria-hidden="true"
+              >
+                ...
+              </span>
+            ) : (
+              <Button
+                key={p}
+                variant={p === safePage ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => onPageChange(p)}
+                aria-label={`Pagina ${p}`}
+                aria-current={p === safePage ? 'page' : undefined}
+                className="min-w-[2rem] tabular-nums"
+              >
+                {p}
+              </Button>
+            ),
+          )}
         </div>
 
-        {/* Next page button */}
-        <button
-          onClick={onNextPage}
-          disabled={!hasNext || loading}
-          className="min-w-[44px] min-h-[44px] p-2 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800 disabled:hover:text-zinc-400 transition-colors"
-          aria-label="Página siguiente"
-          title="Página siguiente"
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => onPageChange(safePage + 1)}
+          disabled={!canNext}
+          aria-label="Pagina siguiente"
+          iconRight={<ChevronRight className="h-4 w-4" />}
         >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-
-        {/* Last page button */}
-        <button
-          onClick={onLastPage}
-          disabled={!hasNext || loading}
-          className="min-w-[44px] min-h-[44px] p-2 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800 disabled:hover:text-zinc-400 transition-colors"
-          aria-label="Última página"
-          title="Última página"
-        >
-          <ChevronsRight className="w-5 h-5" />
-        </button>
+          Siguiente
+        </Button>
       </div>
     </div>
   );
 }
-
-/**
- * Compact pagination component for mobile/small spaces
- */
-export function PaginationCompact({
-  page,
-  totalPages,
-  hasNext,
-  hasPrev,
-  onPrevPage,
-  onNextPage,
-  loading = false,
-}: Pick<PaginationProps, 'page' | 'totalPages' | 'hasNext' | 'hasPrev' | 'onPrevPage' | 'onNextPage' | 'loading'>) {
-  if (totalPages === 0) {
-    return null;
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-2 px-4 py-2">
-      <button
-        onClick={onPrevPage}
-        disabled={!hasPrev || loading}
-        className="min-w-[44px] min-h-[44px] p-2 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        aria-label="Anterior"
-      >
-        <ChevronLeft className="w-5 h-5" />
-      </button>
-
-      <div className="px-3 py-1 text-sm text-zinc-300">
-        {page} / {totalPages}
-      </div>
-
-      <button
-        onClick={onNextPage}
-        disabled={!hasNext || loading}
-        className="min-w-[44px] min-h-[44px] p-2 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        aria-label="Siguiente"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
-    </div>
-  );
-}
-

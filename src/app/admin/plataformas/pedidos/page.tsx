@@ -14,7 +14,7 @@ import { Smartphone, CheckCircle, XCircle, Clock, RefreshCw, ExternalLink } from
 import { toast } from 'sonner';
 import { usePlatformOrders } from '@/src/hooks/useSWRHooks';
 import type { PlatformOrderStatus } from '@/src/core/types/platform';
-import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'critical' | 'info' | 'neutral'; label: string }> = {
   RECEIVED: { variant: 'warning', label: 'Recibido' },
@@ -102,6 +102,9 @@ export default function PedidosPlataformaPage() {
 
   return (
     <div className="space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Plataformas', href: '/admin/plataformas' }, { label: 'Pedidos' }]} />
+      </div>
       <PageHeader
         title="Pedidos App"
         description="Pedidos de PedidosYa, LlamaFood, Rappi"

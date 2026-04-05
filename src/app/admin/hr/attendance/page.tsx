@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Clock, UserCheck, AlertTriangle, Calendar, X, Check, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -195,6 +195,9 @@ export default function AttendancePage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Recursos Humanos', href: '/admin/hr' }, { label: 'Asistencia' }]} />
+      </div>
       <PageHeader
         title="Asistencia"
         description="Control de marcaciones y reportes"

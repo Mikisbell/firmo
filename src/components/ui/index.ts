@@ -128,3 +128,29 @@ export type { ModalProps, ModalSize } from './Modal';
 
 // Toast (sonner wrapper with PARK styling)
 export { toast } from './Toast';
+
+// Progress bar
+export { Progress } from './Progress';
+export type {
+  ProgressProps,
+  ProgressVariant,
+  ProgressSize,
+} from './Progress';
+
+// Avatar + AvatarGroup
+export { Avatar, AvatarGroup } from './Avatar';
+export type {
+  AvatarProps,
+  AvatarSize,
+  AvatarStatus,
+  AvatarGroupProps,
+  AvatarGroupSize,
+} from './Avatar';
+
+// Alert / banner
+export { Alert } from './Alert';
+export type { AlertProps, AlertVariant } from './Alert';
+
+// Pagination (Design System)
+export { Pagination } from './Pagination';
+export type { PaginationProps } from './Pagination';

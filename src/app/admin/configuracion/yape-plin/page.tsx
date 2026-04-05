@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { Smartphone, Save, Loader2, QrCode, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { useYapePlinSettings } from '@/src/hooks/useYapePlinSettings';
-import { Button, Card, PageHeader } from '@/src/components/ui';
+import { Button, Card, PageHeader, Breadcrumbs } from '@/src/components/ui';
 
 export default function YapePlinConfigPage() {
   const { settings, isLoading, mutate } = useYapePlinSettings();
@@ -111,6 +111,9 @@ export default function YapePlinConfigPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Configuración', href: '/admin/configuracion' }, { label: 'Yape / Plin' }]} />
+      </div>
       <PageHeader
         title="Yape / Plin"
         description="Configure los datos del comercio para pagos con QR"

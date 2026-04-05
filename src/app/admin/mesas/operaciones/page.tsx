@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTableStatus } from '@/src/hooks/useSWRHooks';
-import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 const STATUS_COLORS: Record<string, string> = {
   AVAILABLE: 'border-emerald-500/50 bg-emerald-500/10',
@@ -150,6 +150,9 @@ export default function OperacionesMesaPage() {
 
   return (
     <div className="space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Mesas', href: '/admin/mesas' }, { label: 'Operaciones' }]} />
+      </div>
       <PageHeader
         title="Operaciones de Mesa"
         description="Estado en vivo de las mesas del local"

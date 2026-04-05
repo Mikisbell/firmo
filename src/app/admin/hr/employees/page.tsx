@@ -13,7 +13,7 @@ import { Plus, Edit2, Check, X, Shield, UserX, Eye, Search } from 'lucide-react'
 import { DataTable, Column, FilterConfig } from '../../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { toast } from 'sonner';
-import { Button, Badge, PageHeader } from '@/src/components/ui';
+import { Button, Badge, PageHeader, Tooltip, Breadcrumbs } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -189,37 +189,43 @@ export default function HREmployeesPage() {
       width: '120px',
       render: (e) => (
         <div className="flex items-center gap-1">
-          <button
-            onClick={(ev) => {
-              ev.stopPropagation();
-              router.push(`/admin/hr/employees/${e.id}`);
-            }}
-            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors"
-            title="Ver detalle"
-          >
-            <Eye className="w-4 h-4 text-park-gray-400" />
-          </button>
-          <button
-            onClick={(ev) => {
-              ev.stopPropagation();
-              router.push(`/admin/hr/employees/${e.id}/edit`);
-            }}
-            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors"
-            title="Editar"
-          >
-            <Edit2 className="w-4 h-4 text-park-gray-400" />
-          </button>
-          <button
-            onClick={(ev) => {
-              ev.stopPropagation();
-              handleDeactivate(e);
-            }}
-            disabled={deactivating === e.id}
-            className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors disabled:opacity-50"
-            title={e.is_active ? 'Desactivar' : 'Reactivar'}
-          >
-            <UserX className={`w-4 h-4 ${e.is_active ? 'text-red-400' : 'text-green-400'}`} />
-          </button>
+          <Tooltip content="Ver detalles">
+            <button
+              onClick={(ev) => {
+                ev.stopPropagation();
+                router.push(`/admin/hr/employees/${e.id}`);
+              }}
+              className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors inline-flex"
+              aria-label="Ver detalles"
+            >
+              <Eye className="w-4 h-4 text-park-gray-400" />
+            </button>
+          </Tooltip>
+          <Tooltip content="Editar">
+            <button
+              onClick={(ev) => {
+                ev.stopPropagation();
+                router.push(`/admin/hr/employees/${e.id}/edit`);
+              }}
+              className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors inline-flex"
+              aria-label="Editar"
+            >
+              <Edit2 className="w-4 h-4 text-park-gray-400" />
+            </button>
+          </Tooltip>
+          <Tooltip content={e.is_active ? 'Desactivar' : 'Reactivar'}>
+            <button
+              onClick={(ev) => {
+                ev.stopPropagation();
+                handleDeactivate(e);
+              }}
+              disabled={deactivating === e.id}
+              className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors disabled:opacity-50 inline-flex"
+              aria-label={e.is_active ? 'Desactivar' : 'Reactivar'}
+            >
+              <UserX className={`w-4 h-4 ${e.is_active ? 'text-red-400' : 'text-green-400'}`} />
+            </button>
+          </Tooltip>
         </div>
       ),
     },
@@ -227,6 +233,9 @@ export default function HREmployeesPage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Recursos Humanos', href: '/admin/hr' }, { label: 'Empleados HR' }]} />
+      </div>
       <PageHeader
         title="Empleados HR"
         description="Gestion completa del personal"

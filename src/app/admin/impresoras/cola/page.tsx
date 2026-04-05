@@ -19,7 +19,7 @@ import {
   ClipboardList,
   Loader2,
 } from 'lucide-react';
-import { Button, Badge, Card, CardHeader, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, CardHeader, PageHeader, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 // ============================================================================
 // Types
@@ -118,6 +118,9 @@ export default function PrintQueuePage() {
 
   return (
     <div className="p-4">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Impresoras', href: '/admin/impresoras' }, { label: 'Cola' }]} />
+      </div>
       <PageHeader
         title="Cola de Impresion"
         description={`Ultima actualizacion: ${lastUpdate.toLocaleTimeString('es-PE')}`}

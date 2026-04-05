@@ -1,9 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertCircle, Shield, Smartphone } from 'lucide-react';
 import { useSecurityData } from '@/src/hooks/useSWRHooks';
-import { Button, Badge, Card, CardHeader, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, CardHeader, PageHeader, MetricCard, EmptyState, Tabs, TabsContent } from '@/src/components/ui';
+
+type SecurityTab = 'sessions' | 'devices' | 'alerts';
 
 interface Session {
   id: string;
@@ -59,6 +61,7 @@ const TRUST_BADGE: Record<string, { variant: 'success' | 'warning' | 'critical';
 export default function SecurityDashboard() {
   // Usar SWR para fetch con deduplicación y revalidación automática
   const { sessions, devices, alerts, error, isLoading, mutate } = useSecurityData();
+  const [activeTab, setActiveTab] = useState<SecurityTab>('sessions');
 
   // Optimización: Memoizar sesiones activas para evitar filtrar dos veces
   const activeSessions = useMemo(() => {
@@ -160,7 +163,17 @@ export default function SecurityDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <Tabs
+        value={activeTab}
+        onChange={(v) => setActiveTab(v as SecurityTab)}
+        tabs={[
+          { value: 'sessions', label: 'Sesiones', icon: <Shield size={16} />, badge: <Badge variant="neutral" size="sm">{activeSessions.length}</Badge> },
+          { value: 'devices', label: 'Dispositivos', icon: <Smartphone size={16} />, badge: <Badge variant="neutral" size="sm">{devices.length}</Badge> },
+          { value: 'alerts', label: 'Alertas', icon: <AlertCircle size={16} />, badge: <Badge variant={alerts.filter((a) => !a.is_resolved).length > 0 ? 'critical' : 'neutral'} size="sm">{alerts.filter((a) => !a.is_resolved).length}</Badge> },
+        ]}
+      />
+
+      <TabsContent value="sessions" activeValue={activeTab}>
         {/* Active Sessions */}
         <Card padding="none">
           <CardHeader className="px-6 pt-6">
@@ -218,7 +231,9 @@ export default function SecurityDashboard() {
             </div>
           )}
         </Card>
+      </TabsContent>
 
+      <TabsContent value="devices" activeValue={activeTab}>
         {/* Devices */}
         <Card padding="none">
           <CardHeader className="px-6 pt-6">
@@ -280,7 +295,9 @@ export default function SecurityDashboard() {
             </div>
           )}
         </Card>
+      </TabsContent>
 
+      <TabsContent value="alerts" activeValue={activeTab}>
         {/* Alerts */}
         <Card padding="none">
           <CardHeader className="px-6 pt-6">
@@ -321,7 +338,7 @@ export default function SecurityDashboard() {
             </div>
           )}
         </Card>
-      </div>
+      </TabsContent>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { FileText, Check, X, AlertTriangle, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 interface LeaveRequest {
   id: string;
@@ -97,6 +97,9 @@ export default function LeaveRequestsPage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Recursos Humanos', href: '/admin/hr' }, { label: 'Permisos y Vacaciones' }]} />
+      </div>
       <PageHeader
         title="Solicitudes de Permiso"
         description="Gestión de solicitudes de licencia"

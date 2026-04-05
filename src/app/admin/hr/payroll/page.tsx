@@ -9,7 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { DollarSign, Calculator, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Card, PageHeader, MetricCard, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 interface PayrollRecord {
   id: string;
@@ -98,6 +98,9 @@ export default function PayrollPage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Recursos Humanos', href: '/admin/hr' }, { label: 'Planilla' }]} />
+      </div>
       <PageHeader
         title="Planilla"
         description="Cálculo y gestión de planilla mensual"

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ClipboardList, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Bike, AlertCircle } from 'lucide-react';
 import { formatCents } from '@/src/core/domain/money';
-import { Badge, Button, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Badge, Button, Card, PageHeader, EmptyState, Breadcrumbs } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface DeliveryOrder {
@@ -101,6 +101,9 @@ export default function DeliveryHistoryPage() {
 
   return (
     <div className="space-y-5 p-4 md:p-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Delivery', href: '/admin/delivery' }, { label: 'Historial' }]} />
+      </div>
       <PageHeader
         title="Historial Delivery"
         description={`${total} registro${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}`}

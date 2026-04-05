@@ -9,7 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Briefcase, Check, X, DollarSign, AlertTriangle, Filter } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 interface Advance {
   id: string;
@@ -96,6 +96,9 @@ export default function AdvancesPage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Recursos Humanos', href: '/admin/hr' }, { label: 'Adelantos' }]} />
+      </div>
       <PageHeader
         title="Adelantos"
         description="Solicitudes y aprobación de adelantos de sueldo"

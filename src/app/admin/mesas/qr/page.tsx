@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { useTableQRs } from '@/src/hooks/useTableQRs';
 import useSWR from 'swr';
 import { fetcher } from '@/src/lib/swr-config';
-import { Button, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Card, PageHeader, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
 interface Location {
   id: string;
@@ -63,6 +63,9 @@ export default function TableQRPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs items={[{ label: 'Mesas', href: '/admin/mesas' }, { label: 'QR' }]} />
+      </div>
       <PageHeader
         title="QR Mesas"
         description="Genere e imprima QR para que los clientes vean el menú digital"

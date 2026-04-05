@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { usePromotions } from '@/src/hooks/useSWRHooks';
-import { Badge, Card, PageHeader, EmptyState, Button } from '@/src/components/ui';
+import { Badge, Card, PageHeader, EmptyState, Button, Tooltip } from '@/src/components/ui';
 
 interface Promotion {
   id: string;
@@ -115,24 +115,26 @@ export default function PromotionsPage() {
       width: '120px',
       render: (p) => (
         <div className="flex items-center gap-2">
-          <Link
-            href={`/admin/promociones/${p.id}`}
-            data-testid={`edit-promotion-${p.id}`}
-            aria-label={`Editar promocion ${p.name}`}
-            className="p-1.5 hover:bg-park-gray-800 rounded transition-colors"
-            title="Editar"
-          >
-            <Edit className="w-4 h-4" />
-          </Link>
-          <button
-            onClick={() => handleDelete(p.id)}
-            data-testid={`delete-promotion-${p.id}`}
-            aria-label={`Desactivar promocion ${p.name}`}
-            className="p-1.5 hover:bg-red-500/10 text-red-400 rounded transition-colors"
-            title="Desactivar"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <Tooltip content="Editar">
+            <Link
+              href={`/admin/promociones/${p.id}`}
+              data-testid={`edit-promotion-${p.id}`}
+              aria-label={`Editar promocion ${p.name}`}
+              className="p-1.5 hover:bg-park-gray-800 rounded transition-colors inline-flex"
+            >
+              <Edit className="w-4 h-4" />
+            </Link>
+          </Tooltip>
+          <Tooltip content="Desactivar">
+            <button
+              onClick={() => handleDelete(p.id)}
+              data-testid={`delete-promotion-${p.id}`}
+              aria-label={`Desactivar promocion ${p.name}`}
+              className="p-1.5 hover:bg-red-500/10 text-red-400 rounded transition-colors inline-flex"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </Tooltip>
         </div>
       ),
     },
