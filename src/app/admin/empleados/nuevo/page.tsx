@@ -21,6 +21,7 @@ import {
   Select,
   Checkbox,
   FormField,
+  Breadcrumbs,
 } from '@/src/components/ui';
 
 const ROLE_OPTIONS = [
@@ -83,10 +84,17 @@ export default function NewEmployeePage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Empleados', href: '/admin/empleados' },
+            { label: 'Nuevo' },
+          ]}
+        />
+      </div>
       <PageHeader
         title="Nuevo Empleado"
         description="Crear nuevo usuario del sistema"
-        backHref="/admin/empleados"
       />
 
       <Card>

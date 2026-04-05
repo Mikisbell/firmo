@@ -9,7 +9,7 @@ import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Edit2, Shield, AlertTriangle } from 'lucide-react';
-import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, Breadcrumbs } from '@/src/components/ui';
 
 interface HREmployee {
   id: string;
@@ -89,7 +89,10 @@ export default function HREmployeeDetailPage({ params }: { params: Promise<{ id:
   if (error || !employee) {
     return (
       <div className="p-4 space-y-6">
-        <PageHeader title="Error" backHref="/admin/hr/employees" />
+        <div className="mb-4">
+          <Breadcrumbs items={[{ label: 'Empleados HR', href: '/admin/hr/employees' }, { label: 'Error' }]} />
+        </div>
+        <PageHeader title="Error" />
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 flex items-center gap-2">
           <AlertTriangle className="w-5 h-5" /> Error al cargar empleado
         </div>
@@ -99,9 +102,16 @@ export default function HREmployeeDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Empleados HR', href: '/admin/hr/employees' },
+            { label: employee.name },
+          ]}
+        />
+      </div>
       <PageHeader
         title={employee.name}
-        backHref="/admin/hr/employees"
         actions={
           <Button
             variant="secondary"

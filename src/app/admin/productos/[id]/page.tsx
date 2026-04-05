@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, DollarSign, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, CardFooter, PageHeader, Input, Select, Checkbox } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select, Checkbox, Breadcrumbs } from '@/src/components/ui';
 import { ImageUpload } from '../components/ImageUpload';
 import type { ProductImage } from '@/src/core/types/product-images';
 import { useProduct, useStations } from '@/src/hooks/useSWRHooks';
@@ -235,7 +235,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if ((fetchError || error) && !product) {
     return (
       <div className="p-4 space-y-6">
-        <PageHeader title="Error" backHref="/admin/productos" />
+        <div className="mb-4">
+          <Breadcrumbs items={[{ label: 'Productos', href: '/admin/productos' }, { label: 'Error' }]} />
+        </div>
+        <PageHeader title="Error" />
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
           {fetchError?.message || error}
         </div>
@@ -245,10 +248,17 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Productos', href: '/admin/productos' },
+            { label: product?.name ?? 'Producto' },
+          ]}
+        />
+      </div>
       <PageHeader
         title="Editar Producto"
         description={product?.name}
-        backHref="/admin/productos"
         actions={
           <Button
             variant="destructive"

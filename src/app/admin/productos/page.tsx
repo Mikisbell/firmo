@@ -139,10 +139,11 @@ export default function ProductsPage() {
         );
       },
     },
-    { key: 'sku', label: 'SKU', width: '100px' },
-    { 
-      key: 'name', 
+    { key: 'sku', label: 'SKU', width: '100px', sortable: true },
+    {
+      key: 'name',
       label: 'Nombre',
+      sortable: true,
       render: (p) => (
         <span data-testid="product-name">{p.name}</span>
       ),
@@ -151,6 +152,8 @@ export default function ProductsPage() {
       key: 'price_cents',
       label: 'Precio',
       width: '100px',
+      sortable: true,
+      numeric: true,
       render: (p) => formatPrice(p.price_cents),
     },
     {
@@ -259,6 +262,8 @@ export default function ProductsPage() {
         emptyMessage="No hay productos"
         onRowClick={(p) => router.push(`/admin/productos/${p.id}`)}
         rowTestId="product-row"
+        exportable={true}
+        exportFileName="productos"
         activeFilters={productFilters}
         onFiltersChange={(f) => setProductFilters({
           category: f.category || '',

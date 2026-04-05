@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, AlertCircle, Trash2 } from 'lucide-react';
 import { usePromotion } from '@/src/hooks/useSWRHooks';
-import { Button, Card, CardFooter, PageHeader, Input, Select, Textarea, Checkbox } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select, Textarea, Checkbox, Breadcrumbs } from '@/src/components/ui';
 
 const TYPE_OPTIONS = [
   { value: 'PERCENT', label: 'Porcentaje (%)' },
@@ -144,10 +144,17 @@ export default function EditPromotionPage() {
 
   return (
     <div className="p-4 space-y-6 max-w-2xl">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Promociones', href: '/admin/promociones' },
+            { label: form.name || data?.name || 'Promoción' },
+          ]}
+        />
+      </div>
       <PageHeader
         title="Editar Promoción"
         description="Modificar oferta o descuento"
-        backHref="/admin/promociones"
       />
 
       {formError && (

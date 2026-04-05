@@ -62,9 +62,10 @@ export default function EmployeesPage() {
   const { data: employees, loading, error } = useAdminData<Employee>(endpoint);
 
   const columns: Column<Employee>[] = [
-    { 
-      key: 'name', 
+    {
+      key: 'name',
       label: 'Nombre',
+      sortable: true,
       render: (e) => (
         <span data-testid="employee-name">{e.name}</span>
       ),
@@ -170,6 +171,8 @@ export default function EmployeesPage() {
           emptyMessage="No hay empleados"
           onRowClick={(e) => router.push(`/admin/empleados/${e.id}`)}
           rowTestId="employee-row"
+          exportable={true}
+          exportFileName="empleados"
           activeFilters={employeeFilters}
           onFiltersChange={(f) => setEmployeeFilters({ role: f.role || '' })}
         />

@@ -16,7 +16,7 @@
  * - Cierra con Escape y click en backdrop (ambos opcionales)
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useId } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 
@@ -62,6 +62,10 @@ export function Modal({
   closeOnEscape = true,
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const baseId = useId();
+  const titleId = `${baseId}-title`;
+  const descId = `${baseId}-desc`;
 
   // --- Escape key ---
   const handleKeyDown = useCallback(
@@ -77,13 +81,17 @@ export function Modal({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, handleKeyDown]);
 
-  // --- Focus trap (foco en el primer elemento focusable) ---
+  // --- Focus management: guarda trigger, focus al panel, restaura al cerrar ---
   useEffect(() => {
     if (!open || !panelRef.current) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
     const focusable = panelRef.current.querySelector<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     focusable?.focus();
+    return () => {
+      previousFocusRef.current?.focus?.();
+    };
   }, [open]);
 
   // --- Lock body scroll ---
@@ -126,7 +134,8 @@ export function Modal({
           ref={panelRef}
           role="dialog"
           aria-modal="true"
-          aria-label={title}
+          aria-labelledby={titleId}
+          aria-describedby={description ? descId : undefined}
           className={cn(
             'pointer-events-auto w-full flex flex-col max-h-[90vh]',
             'bg-park-gray-900 border border-park-gray-800 rounded-xl shadow-2xl',
@@ -138,11 +147,11 @@ export function Modal({
           {/* Header */}
           <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-park-gray-800 flex-shrink-0">
             <div className="min-w-0">
-              <h2 className="text-lg font-semibold text-white truncate">
+              <h2 id={titleId} className="text-lg font-semibold text-white truncate">
                 {title}
               </h2>
               {description && (
-                <p className="text-sm text-park-gray-400 mt-0.5">
+                <p id={descId} className="text-sm text-park-gray-400 mt-0.5">
                   {description}
                 </p>
               )}

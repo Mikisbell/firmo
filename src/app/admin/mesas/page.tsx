@@ -95,8 +95,8 @@ export default function TablesPage() {
   ];
 
   const columns: Column<Table>[] = [
-    { key: 'number', label: 'Número', width: '80px' },
-    { key: 'display_name', label: 'Nombre', render: (t) => t.display_name || `Mesa ${t.number}` },
+    { key: 'number', label: 'Número', width: '80px', sortable: true },
+    { key: 'display_name', label: 'Nombre', sortable: true, render: (t) => t.display_name || `Mesa ${t.number}` },
     {
       key: 'zone',
       label: 'Zona',
@@ -111,7 +111,7 @@ export default function TablesPage() {
         </span>
       ) : <span className="text-zinc-500">Sin zona</span>,
     },
-    { key: 'capacity', label: 'Capacidad', width: '90px', render: (t) => `${t.capacity} pers.` },
+    { key: 'capacity', label: 'Capacidad', width: '90px', sortable: true, numeric: true, render: (t) => `${t.capacity} pers.` },
     {
       key: 'shape',
       label: 'Forma',
@@ -254,6 +254,8 @@ export default function TablesPage() {
             searchKeys={['number', 'display_name']}
             loading={loading}
             emptyMessage="No hay mesas"
+            exportable={true}
+            exportFileName="mesas"
             activeFilters={tableFilters}
             onFiltersChange={(f) => setTableFilters({
               zone_id: f.zone_id || '',

@@ -18,6 +18,7 @@ import {
   Input,
   Select,
   Checkbox,
+  Breadcrumbs,
 } from '@/src/components/ui';
 import { ImageUpload } from '../components/ImageUpload';
 import type { ProductImage } from '@/src/core/types/product-images';
@@ -146,10 +147,17 @@ export default function NewProductPage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Productos', href: '/admin/productos' },
+            { label: 'Nuevo' },
+          ]}
+        />
+      </div>
       <PageHeader
         title="Nuevo Producto"
         description="Agregar producto al catálogo"
-        backHref="/admin/productos"
       />
 
       <Card>

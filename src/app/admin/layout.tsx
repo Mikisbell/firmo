@@ -97,6 +97,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   // Authenticated - show full layout
   return (
     <ErrorBoundary>
+      {/* Skip link para navegacion por teclado (a11y) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-park-brand-600 text-white px-4 py-2 rounded z-50"
+      >
+        Saltar al contenido
+      </a>
+
       <div className="min-h-screen bg-zinc-950 text-white flex">
         {/* Command Palette (Cmd+K / Ctrl+K) */}
         <CommandPalette />
@@ -104,13 +112,25 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Keyboard Shortcuts (? key) */}
         <KeyboardShortcuts />
 
-        {/* Toast Notifications */}
-        <Toaster 
+        {/* Toast Notifications - PARK styling */}
+        <Toaster
           position="top-right"
           theme="dark"
-          richColors
           closeButton
           duration={5000}
+          toastOptions={{
+            style: {
+              background: 'rgb(24, 24, 27)',
+              border: '1px solid rgb(39, 39, 42)',
+              color: 'rgb(228, 228, 231)',
+            },
+            classNames: {
+              success: '!border-l-4 !border-l-green-500',
+              error: '!border-l-4 !border-l-red-500',
+              warning: '!border-l-4 !border-l-amber-500',
+              info: '!border-l-4 !border-l-blue-500',
+            },
+          }}
         />
 
         {/* Sidebar */}
@@ -137,7 +157,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           />
 
           {/* Page content */}
-          <main className="flex-1 p-4 lg:p-6 overflow-auto">
+          <main id="main-content" className="flex-1 p-4 lg:p-6 overflow-auto">
             {children}
           </main>
 

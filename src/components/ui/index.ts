@@ -125,3 +125,6 @@ export type { FormFieldProps } from './FormField';
 // Modal (centered dialog — different from DetailDrawer which slides from right)
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';
+
+// Toast (sonner wrapper with PARK styling)
+export { toast } from './Toast';

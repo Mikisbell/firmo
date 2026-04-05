@@ -16,6 +16,7 @@ import { useStationOrders } from './hooks/useStationOrders';
 import { useStationAlerts } from './hooks/useStationAlerts';
 import { useStations } from '@/src/hooks/useSWRHooks';
 import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Tooltip } from '@/src/components/ui/Tooltip';
 
 interface Station {
   id: string;
@@ -99,6 +100,7 @@ export default function StationsPage() {
       key: 'code',
       label: 'Estacion',
       width: '180px',
+      sortable: true,
       render: (s) => (
         <div className="flex items-center gap-2">
           <span className="text-2xl">{STATION_ICONS[s.code] || '📺'}</span>
@@ -113,6 +115,8 @@ export default function StationsPage() {
       key: 'terminals_count',
       label: 'Terminales',
       width: '120px',
+      sortable: true,
+      numeric: true,
       render: (s) => (
         <Badge variant="info">
           <span className="inline-flex items-center gap-1">
@@ -148,20 +152,24 @@ export default function StationsPage() {
       width: '100px',
       render: (s) => (
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => { e.stopPropagation(); setEditingStation(s); setShowModal(true); }}
-          >
-            <Edit2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
-          >
-            <Trash2 className="w-4 h-4 text-red-400" />
-          </Button>
+          <Tooltip content="Editar">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); setEditingStation(s); setShowModal(true); }}
+            >
+              <Edit2 className="w-4 h-4" />
+            </Button>
+          </Tooltip>
+          <Tooltip content="Eliminar">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
+            >
+              <Trash2 className="w-4 h-4 text-red-400" />
+            </Button>
+          </Tooltip>
         </div>
       ),
     },

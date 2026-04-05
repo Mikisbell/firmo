@@ -21,6 +21,7 @@ import {
   Select,
   Textarea,
   Switch,
+  Breadcrumbs,
 } from '@/src/components/ui';
 
 const TYPE_OPTIONS = [
@@ -108,10 +109,17 @@ export default function NewPromotionPage() {
 
   return (
     <div className="p-4 space-y-6 max-w-2xl">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Promociones', href: '/admin/promociones' },
+            { label: 'Nueva' },
+          ]}
+        />
+      </div>
       <PageHeader
         title="Nueva Promoción"
         description="Crear una nueva oferta o descuento"
-        backHref="/admin/promociones"
       />
 
       {error && (

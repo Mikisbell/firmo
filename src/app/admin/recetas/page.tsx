@@ -13,6 +13,7 @@ import { useRecipes } from '@/src/hooks/useRecipes';
 import { motion, AnimatePresence } from 'framer-motion';
 import RecipeModal from './components/RecipeModal';
 import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Tooltip } from '@/src/components/ui/Tooltip';
 
 interface Recipe {
   id: string;
@@ -230,28 +231,34 @@ export default function RecetasPage() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={<Calculator className="w-4 h-4 text-emerald-400" />}
-                            onClick={() => handleCalculateCost(recipe.id)}
-                            title="Recalcular costo"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={<Edit2 className="w-4 h-4" />}
-                            onClick={() => { setEditingRecipe(recipe); setShowModal(true); }}
-                            title="Editar"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={<Trash2 className="w-4 h-4 text-red-400" />}
-                            onClick={() => handleDeactivate(recipe.id)}
-                            title="Desactivar"
-                            className="hover:bg-red-900/30"
-                          />
+                          <Tooltip content="Recalcular costo">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Calculator className="w-4 h-4 text-emerald-400" />}
+                              onClick={() => handleCalculateCost(recipe.id)}
+                              title="Recalcular costo"
+                            />
+                          </Tooltip>
+                          <Tooltip content="Editar">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Edit2 className="w-4 h-4" />}
+                              onClick={() => { setEditingRecipe(recipe); setShowModal(true); }}
+                              title="Editar"
+                            />
+                          </Tooltip>
+                          <Tooltip content="Desactivar">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Trash2 className="w-4 h-4 text-red-400" />}
+                              onClick={() => handleDeactivate(recipe.id)}
+                              title="Desactivar"
+                              className="hover:bg-red-900/30"
+                            />
+                          </Tooltip>
                         </div>
                       </td>
                     </motion.tr>

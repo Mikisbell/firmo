@@ -29,7 +29,7 @@ import { useInvoices, useInvoiceStats } from '@/src/hooks/useFacturacion';
 import ConfiguracionTab from './configuracion-tab';
 import ResumenesTab from './resumenes-tab';
 import ContingenciaTab from './contingencia-tab';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Select, Input } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Select, Input, Tabs, TabsContent } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 function centsToSoles(cents: number): string {
@@ -59,31 +59,24 @@ export default function FacturacionPage() {
       />
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 border-b border-park-gray-800 overflow-x-auto">
-        {tabs.map((tab) => {
+      <Tabs
+        value={activeTab}
+        onChange={(v) => setActiveTab(v as Tab)}
+        tabs={tabs.map((tab) => {
           const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-park-brand-500 text-park-brand-400'
-                  : 'border-transparent text-park-gray-400 hover:text-park-gray-200'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
+          return {
+            value: tab.id,
+            label: tab.label,
+            icon: <Icon className="w-4 h-4" />,
+          };
         })}
-      </div>
+      />
 
       {/* Tab Content */}
-      {activeTab === 'comprobantes' && <ComprobantesTab />}
-      {activeTab === 'configuracion' && <ConfiguracionTab />}
-      {activeTab === 'resumenes' && <ResumenesTab />}
-      {activeTab === 'contingencia' && <ContingenciaTab />}
+      <TabsContent value="comprobantes" activeValue={activeTab}><ComprobantesTab /></TabsContent>
+      <TabsContent value="configuracion" activeValue={activeTab}><ConfiguracionTab /></TabsContent>
+      <TabsContent value="resumenes" activeValue={activeTab}><ResumenesTab /></TabsContent>
+      <TabsContent value="contingencia" activeValue={activeTab}><ContingenciaTab /></TabsContent>
     </div>
   );
 }

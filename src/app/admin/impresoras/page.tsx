@@ -18,6 +18,7 @@ import {
   Usb,
 } from 'lucide-react';
 import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Tooltip } from '@/src/components/ui/Tooltip';
 
 // ============================================================================
 // Types
@@ -274,30 +275,36 @@ export default function PrintersPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={<Pencil className="h-4 w-4" />}
-                            onClick={() => { setEditingPrinter(printer); setShowForm(true); }}
-                            title="Editar"
-                          />
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={<TestTube2 className="h-4 w-4" />}
-                            loading={testingId === printer.id}
-                            disabled={!printer.isActive}
-                            onClick={() => handleTestPrint(printer)}
-                            title="Prueba de impresion"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={printer.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                            onClick={() => handleToggleActive(printer)}
-                            title={printer.isActive ? 'Desactivar' : 'Activar'}
-                            className={printer.isActive ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'}
-                          />
+                          <Tooltip content="Editar">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Pencil className="h-4 w-4" />}
+                              onClick={() => { setEditingPrinter(printer); setShowForm(true); }}
+                              title="Editar"
+                            />
+                          </Tooltip>
+                          <Tooltip content="Probar">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              icon={<TestTube2 className="h-4 w-4" />}
+                              loading={testingId === printer.id}
+                              disabled={!printer.isActive}
+                              onClick={() => handleTestPrint(printer)}
+                              title="Prueba de impresion"
+                            />
+                          </Tooltip>
+                          <Tooltip content={printer.isActive ? 'Desactivar' : 'Activar'}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={printer.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                              onClick={() => handleToggleActive(printer)}
+                              title={printer.isActive ? 'Desactivar' : 'Activar'}
+                              className={printer.isActive ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'}
+                            />
+                          </Tooltip>
                         </div>
                       </td>
                     </tr>

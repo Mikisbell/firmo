@@ -19,7 +19,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    { label, error, hint, leftIcon, rightIcon, className, id, disabled, ...props },
+    { label, error, hint, leftIcon, rightIcon, className, id, disabled, required, ...props },
     ref,
   ) => {
     const autoId = useId();
@@ -33,6 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className="text-sm font-medium text-park-gray-300"
           >
             {label}
+            {required && <span aria-hidden="true" className="text-red-400 ml-0.5">*</span>}
           </label>
         )}
         <div className="relative">
@@ -45,6 +46,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             disabled={disabled}
+            required={required}
+            aria-required={required || undefined}
             aria-invalid={error ? 'true' : undefined}
             aria-describedby={
               error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined

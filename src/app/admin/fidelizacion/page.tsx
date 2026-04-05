@@ -8,7 +8,7 @@
 import { useState, useCallback } from 'react';
 import { Award, Settings, Users, Star, Save, Loader2, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
-import { Button, Badge, Card, CardHeader, PageHeader, MetricCard } from '@/src/components/ui';
+import { Button, Badge, Card, CardHeader, PageHeader, MetricCard, Tabs, TabsContent } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -415,27 +415,18 @@ export default function FidelizacionPage() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-park-gray-900 p-1 border border-park-gray-800">
-        <Button
-          variant={tab === 'config' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={<Settings className="h-4 w-4" />}
-          onClick={() => setTab('config')}
-        >
-          Configuracion
-        </Button>
-        <Button
-          variant={tab === 'customers' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={<Users className="h-4 w-4" />}
-          onClick={() => setTab('customers')}
-        >
-          Clientes
-        </Button>
-      </div>
+      <Tabs
+        value={tab}
+        onChange={(v) => setTab(v as Tab)}
+        tabs={[
+          { value: 'config', label: 'Configuracion', icon: <Settings className="h-4 w-4" /> },
+          { value: 'customers', label: 'Clientes', icon: <Users className="h-4 w-4" /> },
+        ]}
+      />
 
       {/* Tab Content */}
-      {tab === 'config' ? <ConfigTab /> : <CustomersTab />}
+      <TabsContent value="config" activeValue={tab}><ConfigTab /></TabsContent>
+      <TabsContent value="customers" activeValue={tab}><CustomersTab /></TabsContent>
     </div>
   );
 }

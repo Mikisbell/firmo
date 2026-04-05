@@ -11,7 +11,7 @@ import useSWR from 'swr';
 import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
-import { Button, Card, CardFooter, PageHeader, Input, Select } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select, Breadcrumbs } from '@/src/components/ui';
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Propietario', ADMIN: 'Administrador', MANAGER: 'Gerente',
@@ -164,7 +164,10 @@ export default function EditHREmployeePage({ params }: { params: Promise<{ id: s
   if (error || !employee) {
     return (
       <div className="p-4 space-y-6">
-        <PageHeader title="Error" backHref="/admin/hr/employees" />
+        <div className="mb-4">
+          <Breadcrumbs items={[{ label: 'Empleados HR', href: '/admin/hr/employees' }, { label: 'Error' }]} />
+        </div>
+        <PageHeader title="Error" />
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 flex items-center gap-2">
           <AlertTriangle className="w-5 h-5" /> Error al cargar empleado
         </div>
@@ -174,10 +177,18 @@ export default function EditHREmployeePage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Empleados HR', href: '/admin/hr/employees' },
+            { label: employee.name, href: `/admin/hr/employees/${id}` },
+            { label: 'Editar' },
+          ]}
+        />
+      </div>
       <PageHeader
         title="Editar Empleado"
         description={employee.name}
-        backHref={`/admin/hr/employees/${id}`}
       />
 
       <form onSubmit={handleSubmit}><Card className="space-y-5 max-w-2xl">

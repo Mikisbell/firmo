@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { FileText, Download, XCircle, Loader2, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInvoice } from '@/src/hooks/useFacturacion';
-import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, Breadcrumbs } from '@/src/components/ui';
 
 function centsToSoles(cents: number): string {
   return `S/ ${(cents / 100).toFixed(2)}`;
@@ -90,9 +90,16 @@ export default function InvoiceDetailPage({ params }: { params: Promise<PagePara
 
   return (
     <div className="p-4 max-w-3xl mx-auto space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Facturación', href: '/admin/facturacion' },
+            { label: `${invoice.series}-${invoice.invoice_number}` },
+          ]}
+        />
+      </div>
       <PageHeader
         title={`${invoice.series}-${invoice.invoice_number}`}
-        backHref="/admin/facturacion"
       />
 
       {/* Header Card */}

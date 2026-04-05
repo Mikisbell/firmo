@@ -19,7 +19,7 @@ import { AlertConfigList } from './components/AlertConfigList';
 import { AlertConfigForm } from './components/AlertConfigForm';
 import { AlertHistory } from './components/AlertHistory';
 import { MaintenanceWindows } from './components/MaintenanceWindows';
-import { Button, Card, PageHeader } from '@/src/components/ui';
+import { Button, Card, PageHeader, Tabs, TabsContent } from '@/src/components/ui';
 
 type TabType = 'configurations' | 'history' | 'maintenance';
 
@@ -35,56 +35,26 @@ export default function AlertsPage() {
       />
 
       {/* Tabs */}
-      <div className="border-b border-park-gray-800 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('configurations')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'configurations'
-                ? 'border-amber-500 text-amber-400'
-                : 'border-transparent text-park-gray-500 hover:text-park-gray-300 hover:border-park-gray-700'
-              }
-            `}
-          >
-            Configuraciones
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'history'
-                ? 'border-amber-500 text-amber-400'
-                : 'border-transparent text-park-gray-500 hover:text-park-gray-300 hover:border-park-gray-700'
-              }
-            `}
-          >
-            Historial de Alertas
-          </button>
-          <button
-            onClick={() => setActiveTab('maintenance')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'maintenance'
-                ? 'border-amber-500 text-amber-400'
-                : 'border-transparent text-park-gray-500 hover:text-park-gray-300 hover:border-park-gray-700'
-              }
-            `}
-          >
-            Ventanas de Mantenimiento
-          </button>
-        </nav>
-      </div>
+      <Tabs
+        className="mb-6"
+        value={activeTab}
+        onChange={(v) => setActiveTab(v as TabType)}
+        tabs={[
+          { value: 'configurations', label: 'Configuraciones' },
+          { value: 'history', label: 'Historial de Alertas' },
+          { value: 'maintenance', label: 'Ventanas de Mantenimiento' },
+        ]}
+      />
 
       {/* Tab Content */}
-      {activeTab === 'configurations' && (
+      <TabsContent value="configurations" activeValue={activeTab}>
         <div>
           <div className="mb-4 flex justify-end">
             <Button variant="primary" onClick={() => setShowCreateForm(true)}>
               + Nueva Configuración
             </Button>
           </div>
-          
+
           {showCreateForm && (
             <AlertConfigForm
               onClose={() => setShowCreateForm(false)}
@@ -94,13 +64,13 @@ export default function AlertsPage() {
               }}
             />
           )}
-          
+
           <AlertConfigList />
         </div>
-      )}
+      </TabsContent>
 
-      {activeTab === 'history' && <AlertHistory />}
-      {activeTab === 'maintenance' && <MaintenanceWindows />}
+      <TabsContent value="history" activeValue={activeTab}><AlertHistory /></TabsContent>
+      <TabsContent value="maintenance" activeValue={activeTab}><MaintenanceWindows /></TabsContent>
     </div>
   );
 }

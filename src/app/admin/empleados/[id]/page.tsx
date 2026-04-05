@@ -16,7 +16,7 @@ import {
 import { useSWRConfig } from 'swr';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
 import useSWR from 'swr';
-import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, Breadcrumbs, Tabs, TabsContent } from '@/src/components/ui';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -883,7 +883,10 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
   if (fetchError || !employee) {
     return (
       <div className="p-4 space-y-6">
-        <PageHeader title="Error" backHref="/admin/empleados" />
+        <div className="mb-4">
+          <Breadcrumbs items={[{ label: 'Empleados', href: '/admin/empleados' }, { label: 'Error' }]} />
+        </div>
+        <PageHeader title="Error" />
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
           {fetchError?.message ?? 'Empleado no encontrado'}
         </div>
@@ -895,9 +898,16 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Empleados', href: '/admin/empleados' },
+            { label: employee.name },
+          ]}
+        />
+      </div>
       <PageHeader
         title={employee.name}
-        backHref="/admin/empleados"
         actions={
           <Button
             variant="destructive"
@@ -920,45 +930,42 @@ export default function EditEmployeePage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Tabs nav */}
-      <div className="flex items-center gap-1 bg-park-gray-900 border border-park-gray-800 rounded-xl p-1 w-fit">
-        {TABS.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === key
-                ? 'bg-park-gray-800 text-white'
-                : 'text-park-gray-500 hover:text-park-gray-300'
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{label}</span>
-          </button>
-        ))}
-      </div>
+      <Tabs
+        value={activeTab}
+        onChange={(v) => setActiveTab(v as TabKey)}
+        tabs={TABS.map(({ key, label, icon: Icon }) => ({
+          value: key,
+          label,
+          icon: <Icon size={16} />,
+        }))}
+      />
 
       {/* Tab content */}
       <Card>
-        {activeTab === 'perfil' && (
+        <TabsContent value="perfil" activeValue={activeTab}>
           <PerfilTab
             employee={employee}
             onSaved={() => { mutate(); setTimeout(() => router.push('/admin/empleados'), 1500); }}
           />
-        )}
-        {activeTab === 'delivery' && employeeId && (
-          <DeliveryTab employeeId={employeeId} />
-        )}
-        {activeTab === 'adelantos' && employeeId && (
-          <AdelantosTab employeeId={employeeId} />
-        )}
-        {activeTab === 'permisos' && employeeId && (
-          <PermisosTab employeeId={employeeId} />
-        )}
-        {activeTab === 'evaluaciones' && employeeId && (
-          <EvaluacionesTab employeeId={employeeId} />
-        )}
-        {activeTab === 'capacitacion' && employeeId && (
-          <CapacitacionTab employeeId={employeeId} />
+        </TabsContent>
+        {employeeId && (
+          <>
+            <TabsContent value="delivery" activeValue={activeTab}>
+              <DeliveryTab employeeId={employeeId} />
+            </TabsContent>
+            <TabsContent value="adelantos" activeValue={activeTab}>
+              <AdelantosTab employeeId={employeeId} />
+            </TabsContent>
+            <TabsContent value="permisos" activeValue={activeTab}>
+              <PermisosTab employeeId={employeeId} />
+            </TabsContent>
+            <TabsContent value="evaluaciones" activeValue={activeTab}>
+              <EvaluacionesTab employeeId={employeeId} />
+            </TabsContent>
+            <TabsContent value="capacitacion" activeValue={activeTab}>
+              <CapacitacionTab employeeId={employeeId} />
+            </TabsContent>
+          </>
         )}
       </Card>
     </div>

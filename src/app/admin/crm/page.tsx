@@ -8,7 +8,7 @@
 import { useState, useCallback } from 'react';
 import { Users2, Target, Send, FileText, Plus, Loader2, Play, X, Eye, BarChart3 } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Tabs, TabsContent } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -581,37 +581,20 @@ export default function CrmPage() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-park-gray-900 p-1 border border-park-gray-800">
-        <Button
-          variant={tab === 'segments' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={<Target className="h-4 w-4" />}
-          onClick={() => setTab('segments')}
-        >
-          Segmentos
-        </Button>
-        <Button
-          variant={tab === 'campaigns' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={<Send className="h-4 w-4" />}
-          onClick={() => setTab('campaigns')}
-        >
-          Campanas
-        </Button>
-        <Button
-          variant={tab === 'templates' ? 'primary' : 'ghost'}
-          size="sm"
-          icon={<FileText className="h-4 w-4" />}
-          onClick={() => setTab('templates')}
-        >
-          Plantillas
-        </Button>
-      </div>
+      <Tabs
+        value={tab}
+        onChange={(v) => setTab(v as Tab)}
+        tabs={[
+          { value: 'segments', label: 'Segmentos', icon: <Target className="h-4 w-4" /> },
+          { value: 'campaigns', label: 'Campanas', icon: <Send className="h-4 w-4" /> },
+          { value: 'templates', label: 'Plantillas', icon: <FileText className="h-4 w-4" /> },
+        ]}
+      />
 
       {/* Tab Content */}
-      {tab === 'segments' && <SegmentsTab />}
-      {tab === 'campaigns' && <CampaignsTab />}
-      {tab === 'templates' && <TemplatesTab />}
+      <TabsContent value="segments" activeValue={tab}><SegmentsTab /></TabsContent>
+      <TabsContent value="campaigns" activeValue={tab}><CampaignsTab /></TabsContent>
+      <TabsContent value="templates" activeValue={tab}><TemplatesTab /></TabsContent>
     </div>
   );
 }

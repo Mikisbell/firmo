@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
-import { Button, Card, CardFooter, PageHeader, Input, Select } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select, Breadcrumbs } from '@/src/components/ui';
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Propietario', ADMIN: 'Administrador', MANAGER: 'Gerente',
@@ -105,10 +105,17 @@ export default function NewHREmployeePage() {
 
   return (
     <div className="p-4 space-y-6">
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Empleados HR', href: '/admin/hr/employees' },
+            { label: 'Nuevo' },
+          ]}
+        />
+      </div>
       <PageHeader
         title="Nuevo Empleado HR"
         description="Crear ficha de empleado con datos de planilla"
-        backHref="/admin/hr/employees"
       />
 
       <form onSubmit={handleSubmit}><Card className="space-y-5 max-w-2xl">

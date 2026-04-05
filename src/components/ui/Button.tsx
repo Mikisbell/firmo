@@ -44,16 +44,35 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       className,
       children,
+      type,
+      'aria-label': ariaLabel,
       ...props
     },
     ref,
   ) => {
     const isDisabled = disabled || loading;
 
+    // a11y: botones solo-icono (sin texto) requieren aria-label.
+    // En desarrollo, advertimos si no se provee.
+    if (process.env.NODE_ENV !== 'production') {
+      const hasTextContent = typeof children === 'string' ||
+        (Array.isArray(children) && children.some((c) => typeof c === 'string'));
+      if (!hasTextContent && !ariaLabel && !props['aria-labelledby']) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[Button] Boton sin texto detectado: agrega aria-label para accesibilidad.',
+        );
+      }
+    }
+
     return (
       <button
         ref={ref}
+        type={type ?? 'button'}
         disabled={isDisabled}
+        aria-busy={loading || undefined}
+        aria-disabled={isDisabled || undefined}
+        aria-label={ariaLabel}
         className={cn(
           'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-park-brand-500',
