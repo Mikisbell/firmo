@@ -1,72 +1,97 @@
 'use client';
 
 /**
- * Tooltip Component
- * Tooltip simple con Tailwind CSS
- * Solo visible en desktop (≥1024px)
- * 
- * Requirements: P0 - Sidebar Improvements
+ * Tooltip CSS-only con delay configurable.
+ * Aparece al hacer hover sobre el elemento hijo.
+ * No usa portal ni librerias de posicionamiento.
  */
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { cn } from '@/src/lib/utils';
 
-interface TooltipProps {
+export interface TooltipProps {
   content: string;
   children: ReactNode;
-  side?: 'top' | 'right' | 'bottom' | 'left';
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  delay?: number;
+  /** Deshabilita el tooltip (compat con uso previo) */
   disabled?: boolean;
 }
 
-export function Tooltip({ content, children, side = 'right', disabled = false }: TooltipProps) {
+const sideClasses: Record<NonNullable<TooltipProps['side']>, string> = {
+  top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+  right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+  bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+  left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+};
+
+const arrowClasses: Record<NonNullable<TooltipProps['side']>, string> = {
+  top: 'top-full left-1/2 -translate-x-1/2 border-t-park-gray-800 border-l-transparent border-r-transparent border-b-transparent',
+  right:
+    'right-full top-1/2 -translate-y-1/2 border-r-park-gray-800 border-t-transparent border-b-transparent border-l-transparent',
+  bottom:
+    'bottom-full left-1/2 -translate-x-1/2 border-b-park-gray-800 border-l-transparent border-r-transparent border-t-transparent',
+  left: 'left-full top-1/2 -translate-y-1/2 border-l-park-gray-800 border-t-transparent border-b-transparent border-r-transparent',
+};
+
+export function Tooltip({
+  content,
+  children,
+  side = 'top',
+  delay = 300,
+  disabled = false,
+}: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   if (disabled) {
     return <>{children}</>;
   }
 
-  const sideClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+  const handleEnter = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setIsVisible(true), delay);
   };
 
-  const arrowClasses = {
-    top: 'top-full left-1/2 -translate-x-1/2 border-t-zinc-800',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-zinc-800',
-    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-zinc-800',
-    left: 'left-full top-1/2 -translate-y-1/2 border-l-zinc-800',
+  const handleLeave = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setIsVisible(false);
   };
 
   return (
     <div
       className="relative inline-block"
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
     >
       {children}
-      {isVisible && (
-        <div
-          className={`
-            hidden lg:block
-            absolute z-50 px-2 py-1 text-xs font-medium text-white
-            bg-zinc-800 border border-zinc-700 rounded shadow-lg
-            whitespace-nowrap pointer-events-none
-            ${sideClasses[side]}
-          `}
-          role="tooltip"
-        >
-          {content}
-          {/* Arrow */}
-          <div
-            className={`
-              absolute w-0 h-0
-              border-4 border-transparent
-              ${arrowClasses[side]}
-            `}
-          />
-        </div>
-      )}
+      <div
+        className={cn(
+          'absolute z-50 px-2 py-1 text-xs text-park-gray-200',
+          'bg-park-gray-800 border border-park-gray-700 rounded',
+          'whitespace-nowrap pointer-events-none shadow-lg',
+          'transition-opacity duration-150',
+          sideClasses[side],
+          isVisible ? 'opacity-100' : 'opacity-0 invisible',
+        )}
+        role="tooltip"
+        aria-hidden={!isVisible}
+      >
+        {content}
+        <span
+          className={cn(
+            'absolute w-0 h-0 border-4',
+            arrowClasses[side],
+          )}
+          aria-hidden="true"
+        />
+      </div>
     </div>
   );
 }

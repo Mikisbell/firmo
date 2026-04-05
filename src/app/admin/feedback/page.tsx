@@ -10,6 +10,7 @@ import useSWR from 'swr';
 import { fetcher } from '@/src/lib/swr-config';
 import { MessageSquare, ThumbsUp, Lightbulb, AlertCircle, Star } from 'lucide-react';
 import { Badge, Card, PageHeader, EmptyState, Button } from '@/src/components/ui';
+import { useQueryState } from '@/src/hooks/useQueryState';
 
 interface FeedbackItem {
   id: string;
@@ -41,7 +42,7 @@ const TYPE_BORDER = {
 };
 
 export default function FeedbackPage() {
-  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useQueryState<string>('type', '');
   const [page, setPage] = useState(1);
 
   const params = new URLSearchParams({ page: String(page), pageSize: '20' });

@@ -12,7 +12,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight, Filter, Inbox } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Filter, Inbox, ArrowUpDown, ArrowUp, ArrowDown, Download } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { Card } from '@/src/components/ui/Card';
 import { Button } from '@/src/components/ui/Button';
@@ -71,7 +71,15 @@ interface DataTableProps<T> {
   activeFilters?: Record<string, string>;
   /** Callback cuando cambian los filtros (modo controlado) */
   onFiltersChange?: (filters: Record<string, string>) => void;
+  /** Callback emitido cuando cambia el orden de una columna sortable */
+  onSort?: (column: string, direction: SortDirection) => void;
+  /** Si es true, muestra el boton "Exportar CSV" en la barra de filtros */
+  exportable?: boolean;
+  /** Nombre base del archivo CSV exportado (sin extension) */
+  exportFileName?: string;
 }
+
+export type SortDirection = 'asc' | 'desc' | null;
 
 export function DataTable<T extends { id: string }>({
   data,
@@ -88,6 +96,9 @@ export function DataTable<T extends { id: string }>({
   bulkActions = [],
   activeFilters: controlledFilters,
   onFiltersChange,
+  onSort,
+  exportable = false,
+  exportFileName = 'export',
 }: DataTableProps<T>) {
   const [search, setSearch] = useState('');
   const [uncontrolledFilters, setUncontrolledFilters] = useState<Record<string, string>>({});
@@ -96,6 +107,8 @@ export function DataTable<T extends { id: string }>({
   const [page, setPage] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDirection>(null);
 
   // Filter and search data
   const filteredData = useMemo(() => {
@@ -122,8 +135,24 @@ export function DataTable<T extends { id: string }>({
       }
     });
 
+    if (sortKey && sortDir) {
+      result = [...result].sort((a, b) => {
+        const av = (a as Record<string, unknown>)[sortKey];
+        const bv = (b as Record<string, unknown>)[sortKey];
+        if (av == null && bv == null) return 0;
+        if (av == null) return sortDir === 'asc' ? -1 : 1;
+        if (bv == null) return sortDir === 'asc' ? 1 : -1;
+        if (typeof av === 'number' && typeof bv === 'number') {
+          return sortDir === 'asc' ? av - bv : bv - av;
+        }
+        const as = String(av);
+        const bs = String(bv);
+        return sortDir === 'asc' ? as.localeCompare(bs) : bs.localeCompare(as);
+      });
+    }
+
     return result;
-  }, [data, search, searchKeys, activeFilters]);
+  }, [data, search, searchKeys, activeFilters, sortKey, sortDir]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -189,6 +218,56 @@ export function DataTable<T extends { id: string }>({
 
   const clearSelection = () => setSelectedIds(new Set());
 
+  // --- Sort handler ---
+  const handleSort = (columnKey: string) => {
+    let nextDir: SortDirection;
+    if (sortKey !== columnKey) {
+      nextDir = 'asc';
+    } else if (sortDir === 'asc') {
+      nextDir = 'desc';
+    } else if (sortDir === 'desc') {
+      nextDir = null;
+    } else {
+      nextDir = 'asc';
+    }
+    setSortKey(nextDir === null ? null : columnKey);
+    setSortDir(nextDir);
+    setPage(0);
+    onSort?.(columnKey, nextDir);
+  };
+
+  // --- CSV export ---
+  const handleExportCsv = () => {
+    const escape = (val: unknown): string => {
+      if (val == null) return '';
+      const s = String(val);
+      if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+    const headers = columns
+      .map((c) => (typeof c.label === 'string' ? c.label : String(c.key)))
+      .map(escape)
+      .join(',');
+    const rows = filteredData.map((item) =>
+      columns
+        .map((c) => (item as Record<string, unknown>)[c.key as string])
+        .map(escape)
+        .join(','),
+    );
+    const csv = [headers, ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${exportFileName}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Count extra columns (for colspan)
   const totalCols = columns.length + (selectable ? 1 : 0);
 
@@ -234,6 +313,19 @@ export function DataTable<T extends { id: string }>({
               </Badge>
             )}
           </button>
+        )}
+
+        {exportable && (
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={handleExportCsv}
+            icon={<Download className="w-4 h-4" />}
+            data-testid="export-csv-btn"
+            aria-label="Exportar CSV"
+          >
+            Exportar CSV
+          </Button>
         )}
       </div>
 
@@ -387,25 +479,63 @@ export function DataTable<T extends { id: string }>({
                       />
                     </th>
                   )}
-                  {columns.map((col, colIndex) => (
-                    <th
-                      key={String(col.key)}
-                      className={cn(
-                        'px-4 py-3 text-xs font-medium text-park-gray-400 uppercase tracking-wider',
-                        col.numeric ? 'text-right tabular-nums' : 'text-left',
-                      )}
-                      style={{ width: col.width }}
-                      role="columnheader"
-                      data-testid={
-                        isTestEnv
-                          ? `column-header-${colIndex}-${String(col.key)}`
-                          : undefined
-                      }
-                      aria-label={`Column: ${col.label}`}
-                    >
-                      {col.label}
-                    </th>
-                  ))}
+                  {columns.map((col, colIndex) => {
+                    const colKey = String(col.key);
+                    const isSortActive = sortKey === colKey && sortDir !== null;
+                    const SortIcon =
+                      isSortActive
+                        ? sortDir === 'asc'
+                          ? ArrowUp
+                          : ArrowDown
+                        : ArrowUpDown;
+                    return (
+                      <th
+                        key={colKey}
+                        className={cn(
+                          'px-4 py-3 text-xs font-medium text-park-gray-400 uppercase tracking-wider',
+                          col.numeric ? 'text-right tabular-nums' : 'text-left',
+                        )}
+                        style={{ width: col.width }}
+                        role="columnheader"
+                        aria-sort={
+                          isSortActive
+                            ? sortDir === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : col.sortable
+                              ? 'none'
+                              : undefined
+                        }
+                        data-testid={
+                          isTestEnv
+                            ? `column-header-${colIndex}-${colKey}`
+                            : undefined
+                        }
+                        aria-label={`Column: ${col.label}`}
+                      >
+                        {col.sortable ? (
+                          <button
+                            type="button"
+                            onClick={() => handleSort(colKey)}
+                            className={cn(
+                              'inline-flex items-center gap-1.5 hover:text-park-gray-200 transition-colors uppercase tracking-wider font-medium',
+                              isSortActive && 'text-park-gray-200',
+                              col.numeric && 'flex-row-reverse',
+                            )}
+                            data-testid={
+                              isTestEnv ? `sort-btn-${colKey}` : undefined
+                            }
+                            aria-label={`Ordenar por ${typeof col.label === 'string' ? col.label : colKey}`}
+                          >
+                            <span>{col.label}</span>
+                            <SortIcon className="w-3 h-3" aria-hidden="true" />
+                          </button>
+                        ) : (
+                          col.label
+                        )}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody data-testid="table-body">

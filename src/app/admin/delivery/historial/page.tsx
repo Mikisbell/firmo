@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ClipboardList, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Bike, AlertCircle } from 'lucide-react';
 import { formatCents } from '@/src/core/domain/money';
 import { Badge, Button, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface DeliveryOrder {
   id: string;
@@ -47,10 +48,20 @@ export default function DeliveryHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
 
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [status, setStatus] = useState('');
-  const [driverId, setDriverId] = useState('');
+  const [queryFilters, setQueryFilters] = useQueryStates({
+    date_from: '',
+    date_to: '',
+    status: '',
+    driver: '',
+  });
+  const dateFrom = queryFilters.date_from;
+  const dateTo = queryFilters.date_to;
+  const status = queryFilters.status;
+  const driverId = queryFilters.driver;
+  const setDateFrom = (v: string) => setQueryFilters({ date_from: v });
+  const setDateTo = (v: string) => setQueryFilters({ date_to: v });
+  const setStatus = (v: string) => setQueryFilters({ status: v });
+  const setDriverId = (v: string) => setQueryFilters({ driver: v });
   const [offset, setOffset] = useState(0);
 
   async function fetchHistory() {

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, AlertCircle, Trash2 } from 'lucide-react';
 import { usePromotion } from '@/src/hooks/useSWRHooks';
-import { Button, Card, CardFooter, PageHeader } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select, Textarea, Checkbox } from '@/src/components/ui';
 
 const TYPE_OPTIONS = [
   { value: 'PERCENT', label: 'Porcentaje (%)' },
@@ -159,116 +159,66 @@ export default function EditPromotionPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Nombre <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              maxLength={100}
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-            />
-          </div>
+          <Input
+            label="Nombre *"
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+            maxLength={100}
+          />
 
-          {/* Type */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Tipo <span className="text-red-400">*</span>
-            </label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-              required
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-            >
-              {TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Tipo *"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            required
+            options={TYPE_OPTIONS}
+          />
 
-          {/* Value */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Valor <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="number"
-              value={form.value}
-              onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
-              required
-              min={0}
-              step={form.type === 'PERCENT' ? 1 : 0.01}
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-            />
-            <p className="text-xs text-park-gray-500 mt-1">
-              {form.type === 'PERCENT' ? 'Porcentaje de descuento (0-100)' : 'Monto en soles'}
-            </p>
-          </div>
+          <Input
+            label="Valor *"
+            type="number"
+            value={form.value}
+            onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
+            required
+            min={0}
+            step={form.type === 'PERCENT' ? 1 : 0.01}
+            hint={form.type === 'PERCENT' ? 'Porcentaje de descuento (0-100)' : 'Monto en soles'}
+          />
 
-          {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Fecha Inicio <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                value={form.starts_at}
-                onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
-                required
-                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Fecha Fin <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                value={form.ends_at}
-                onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
-                required
-                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-              />
-            </div>
+            <Input
+              label="Fecha Inicio *"
+              type="datetime-local"
+              value={form.starts_at}
+              onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
+              required
+            />
+            <Input
+              label="Fecha Fin *"
+              type="datetime-local"
+              value={form.ends_at}
+              onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
+              required
+            />
           </div>
 
-          {/* Rules (JSON) */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Reglas (JSON)
-            </label>
-            <textarea
-              value={form.rules}
-              onChange={(e) => setForm({ ...form, rules: e.target.value })}
-              rows={4}
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg font-mono text-sm"
-            />
-            <p className="text-xs text-park-gray-500 mt-1">
-              Reglas adicionales en formato JSON (opcional)
-            </p>
-          </div>
+          <Textarea
+            label="Reglas (JSON)"
+            value={form.rules}
+            onChange={(e) => setForm({ ...form, rules: e.target.value })}
+            rows={4}
+            className="font-mono text-sm"
+            hint="Reglas adicionales en formato JSON (opcional)"
+          />
 
-          {/* Active */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is_active"
-              checked={form.is_active}
-              onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="is_active" className="text-sm">
-              Promoción activa
-            </label>
-          </div>
+          <Checkbox
+            label="Promoción activa"
+            id="is_active"
+            checked={form.is_active}
+            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+          />
         </Card>
 
         {/* Actions */}

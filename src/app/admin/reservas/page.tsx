@@ -20,6 +20,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { useQueryStates } from '@/src/hooks/useQueryState';
 import { toast } from 'sonner';
 import {
   CalendarDays,
@@ -178,8 +179,12 @@ const STATUS_FILTERS = [
 // ============================================================================
 
 export default function AdminReservasPage() {
-  const [selectedDate, setSelectedDate] = useState(getTodayStr());
-  const [statusFilter, setStatusFilter] = useState('');
+  const today = getTodayStr();
+  const [filters, setFilters] = useQueryStates({ date: today, status: '' });
+  const selectedDate = filters.date;
+  const statusFilter = filters.status;
+  const setSelectedDate = (d: string) => setFilters({ date: d });
+  const setStatusFilter = (s: string) => setFilters({ status: s });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

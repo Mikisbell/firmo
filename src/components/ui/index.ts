@@ -68,6 +68,15 @@ export type { OrientationHintProps } from './OrientationHint';
 
 // Tooltip
 export { Tooltip } from './Tooltip';
+export type { TooltipProps } from './Tooltip';
+
+// Tabs
+export { Tabs, TabsContent } from './Tabs';
+export type { TabsProps, TabsContentProps, TabItem } from './Tabs';
+
+// Breadcrumbs
+export { Breadcrumbs } from './Breadcrumbs';
+export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
 
 // Command Palette
 export { CommandPalette } from './CommandPalette';

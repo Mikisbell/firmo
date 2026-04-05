@@ -17,6 +17,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface AuditEvent {
   id: string;
@@ -43,7 +44,7 @@ export default function AuditoriaPage() {
     login_failed: 0,
     alerts: 0
   });
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useQueryStates({
     startDate: '',
     endDate: '',
     terminal: '',

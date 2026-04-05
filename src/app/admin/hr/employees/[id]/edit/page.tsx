@@ -11,7 +11,7 @@ import useSWR from 'swr';
 import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
-import { Button, Card, CardFooter, PageHeader } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select } from '@/src/components/ui';
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Propietario', ADMIN: 'Administrador', MANAGER: 'Gerente',
@@ -60,8 +60,7 @@ const fetcher = (url: string) => fetch(url).then(r => {
   return r.json();
 });
 
-const inputCls = 'w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-amber-500';
-const labelCls = 'block text-park-gray-400 text-xs mb-1';
+const ROLE_OPTIONS = EMPLOYEE_ROLES.map(r => ({ value: r, label: ROLE_LABELS[r] ?? r }));
 
 export default function EditHREmployeePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -183,76 +182,40 @@ export default function EditHREmployeePage({ params }: { params: Promise<{ id: s
 
       <form onSubmit={handleSubmit}><Card className="space-y-5 max-w-2xl">
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Nombre completo *</label>
-            <input type="text" value={form.name} onChange={e => set('name', e.target.value)}
-              className={inputCls} required />
-          </div>
-          <div>
-            <label className={labelCls}>Rol *</label>
-            <select value={form.role} onChange={e => set('role', e.target.value)} className={inputCls}>
-              {EMPLOYEE_ROLES.map(r => (
-                <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>
-              ))}
-            </select>
-          </div>
+          <Input label="Nombre completo *" type="text" value={form.name}
+            onChange={e => set('name', e.target.value)} required />
+          <Select label="Rol *" value={form.role}
+            onChange={e => set('role', e.target.value)} options={ROLE_OPTIONS} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Puesto *</label>
-            <input type="text" value={form.position} onChange={e => set('position', e.target.value)}
-              className={inputCls} required />
-          </div>
-          <div>
-            <label className={labelCls}>Salario base (S/) *</label>
-            <input type="number" min={0} step={0.01} value={form.base_salary_cents_display}
-              onChange={e => set('base_salary_cents_display', e.target.value)}
-              className={inputCls} required />
-          </div>
+          <Input label="Puesto *" type="text" value={form.position}
+            onChange={e => set('position', e.target.value)} required />
+          <Input label="Salario base (S/) *" type="number" min={0} step={0.01}
+            value={form.base_salary_cents_display}
+            onChange={e => set('base_salary_cents_display', e.target.value)} required />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Tipo de contrato *</label>
-            <select value={form.contract_type} onChange={e => set('contract_type', e.target.value)} className={inputCls}>
-              {CONTRACT_TYPES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Horario *</label>
-            <select value={form.work_schedule_type} onChange={e => set('work_schedule_type', e.target.value)} className={inputCls}>
-              {SCHEDULE_TYPES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-          </div>
+          <Select label="Tipo de contrato *" value={form.contract_type}
+            onChange={e => set('contract_type', e.target.value)} options={CONTRACT_TYPES} />
+          <Select label="Horario *" value={form.work_schedule_type}
+            onChange={e => set('work_schedule_type', e.target.value)} options={SCHEDULE_TYPES} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Sistema de pensión</label>
-            <select value={form.pension_system} onChange={e => set('pension_system', e.target.value)} className={inputCls}>
-              {PENSION_SYSTEMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>DNI</label>
-            <input type="text" inputMode="numeric" value={form.dni}
-              onChange={e => set('dni', e.target.value.replace(/\D/g, '').slice(0, 8))}
-              className={inputCls} maxLength={8} />
-          </div>
+          <Select label="Sistema de pensión" value={form.pension_system}
+            onChange={e => set('pension_system', e.target.value)} options={PENSION_SYSTEMS} />
+          <Input label="DNI" type="text" inputMode="numeric" value={form.dni}
+            onChange={e => set('dni', e.target.value.replace(/\D/g, '').slice(0, 8))}
+            maxLength={8} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Email</label>
-            <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
-              className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Teléfono</label>
-            <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)}
-              className={inputCls} />
-          </div>
+          <Input label="Email" type="email" value={form.email}
+            onChange={e => set('email', e.target.value)} />
+          <Input label="Teléfono" type="tel" value={form.phone}
+            onChange={e => set('phone', e.target.value)} />
         </div>
 
         <CardFooter>

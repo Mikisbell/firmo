@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSunatConfig } from '@/src/hooks/useFacturacion';
+import { Input } from '@/src/components/ui';
 
 type Provider = 'SUNAT_DIRECT' | 'NUBEFACT' | 'NONE';
 type Mode = 'PRODUCTION' | 'BETA' | 'DISABLED';
@@ -199,33 +200,21 @@ export default function ConfiguracionTab() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* SOL User */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
-                Usuario SOL
-              </label>
-              <input
-                type="text"
-                value={solUser}
-                onChange={(e) => setSolUser(e.target.value)}
-                placeholder="MODDATOS"
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-amber-500"
-              />
-            </div>
+            <Input
+              label="Usuario SOL"
+              type="text"
+              value={solUser}
+              onChange={(e) => setSolUser(e.target.value)}
+              placeholder="MODDATOS"
+            />
 
-            {/* SOL Password */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
-                Clave SOL {config?.has_sol_password && <span className="text-green-400">(guardada)</span>}
-              </label>
-              <input
-                type="password"
-                value={solPassword}
-                onChange={(e) => setSolPassword(e.target.value)}
-                placeholder={config?.has_sol_password ? '••••••••' : 'Ingrese clave SOL'}
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-amber-500"
-              />
-            </div>
+            <Input
+              label={`Clave SOL${config?.has_sol_password ? ' (guardada)' : ''}`}
+              type="password"
+              value={solPassword}
+              onChange={(e) => setSolPassword(e.target.value)}
+              placeholder={config?.has_sol_password ? '••••••••' : 'Ingrese clave SOL'}
+            />
           </div>
 
           {/* Certificate Upload */}
@@ -304,30 +293,20 @@ export default function ConfiguracionTab() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
-                Token de Autorización {config?.has_nubefact_token && <span className="text-green-400">(guardado)</span>}
-              </label>
-              <input
-                type="password"
-                value={nubefactToken}
-                onChange={(e) => setNubefactToken(e.target.value)}
-                placeholder={config?.has_nubefact_token ? '••••••••' : 'Ingrese token'}
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-amber-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
-                URL de API
-              </label>
-              <input
-                type="url"
-                value={nubefactUrl}
-                onChange={(e) => setNubefactUrl(e.target.value)}
-                placeholder="https://api.nubefact.com/api/v1/..."
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-amber-500"
-              />
-            </div>
+            <Input
+              label={`Token de Autorización${config?.has_nubefact_token ? ' (guardado)' : ''}`}
+              type="password"
+              value={nubefactToken}
+              onChange={(e) => setNubefactToken(e.target.value)}
+              placeholder={config?.has_nubefact_token ? '••••••••' : 'Ingrese token'}
+            />
+            <Input
+              label="URL de API"
+              type="url"
+              value={nubefactUrl}
+              onChange={(e) => setNubefactUrl(e.target.value)}
+              placeholder="https://api.nubefact.com/api/v1/..."
+            />
           </div>
         </div>
       )}

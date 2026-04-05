@@ -29,7 +29,8 @@ import { useInvoices, useInvoiceStats } from '@/src/hooks/useFacturacion';
 import ConfiguracionTab from './configuracion-tab';
 import ResumenesTab from './resumenes-tab';
 import ContingenciaTab from './contingencia-tab';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Select, Input } from '@/src/components/ui';
+import { useQueryStates } from '@/src/hooks/useQueryState';
 
 function centsToSoles(cents: number): string {
   return `S/ ${(cents / 100).toFixed(2)}`;
@@ -45,7 +46,9 @@ const tabs: { id: Tab; label: string; icon: typeof FileText }[] = [
 ];
 
 export default function FacturacionPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('comprobantes');
+  const [queryFilters, setQueryFilters] = useQueryStates({ tab: 'comprobantes', status: '' });
+  const activeTab = queryFilters.tab as Tab;
+  const setActiveTab = (t: Tab) => setQueryFilters({ tab: t });
 
   return (
     <div className="p-4 space-y-6">
@@ -164,35 +167,34 @@ function ComprobantesTab() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <select
+      <div className="flex flex-wrap gap-3 items-end">
+        <Select
           value={filterType}
           onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm text-park-gray-200 outline-none"
-        >
-          <option value="">Todos los tipos</option>
-          <option value="BOLETA">Boleta</option>
-          <option value="FACTURA">Factura</option>
-        </select>
+          options={[
+            { value: '', label: 'Todos los tipos' },
+            { value: 'BOLETA', label: 'Boleta' },
+            { value: 'FACTURA', label: 'Factura' },
+          ]}
+        />
 
-        <select
+        <Select
           value={filterStatus}
           onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm text-park-gray-200 outline-none"
-        >
-          <option value="">Todos los estados</option>
-          <option value="ISSUED">Emitida</option>
-          <option value="VOIDED">Anulada</option>
-        </select>
+          options={[
+            { value: '', label: 'Todos los estados' },
+            { value: 'ISSUED', label: 'Emitida' },
+            { value: 'VOIDED', label: 'Anulada' },
+          ]}
+        />
 
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-park-gray-400" />
-          <input
+        <div className="flex-1 min-w-[200px]">
+          <Input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar por documento, serie..."
-            className="w-full pl-9 pr-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm text-park-gray-200 placeholder-park-gray-400 outline-none focus:ring-1 focus:ring-park-brand-500"
+            leftIcon={<Search className="w-4 h-4" />}
           />
         </div>
       </div>

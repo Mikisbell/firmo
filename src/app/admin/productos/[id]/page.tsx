@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, DollarSign, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, CardFooter, PageHeader } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select, Checkbox } from '@/src/components/ui';
 import { ImageUpload } from '../components/ImageUpload';
 import type { ProductImage } from '@/src/core/types/product-images';
 import { useProduct, useStations } from '@/src/hooks/useSWRHooks';
@@ -270,156 +270,97 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
           {/* SKU and Name */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-park-gray-300 mb-2">
-                <Package className="w-4 h-4 inline mr-1" />
-                SKU *
-              </label>
-              <input
-                type="text"
-                value={form.sku}
-                onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-                placeholder="Ej: POLLO-1/4"
-                required
-                maxLength={50}
-              />
-              <p className="text-xs text-park-gray-500 mt-1">
-                Código único del producto
-              </p>
-            </div>
+            <Input
+              label="SKU *"
+              type="text"
+              value={form.sku}
+              onChange={(e) => setForm({ ...form, sku: e.target.value })}
+              placeholder="Ej: POLLO-1/4"
+              required
+              maxLength={50}
+              leftIcon={<Package className="w-4 h-4" />}
+              hint="Código único del producto"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-park-gray-300 mb-2">
-                Nombre completo *
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-                placeholder="Ej: 1/4 Pollo a la Brasa"
-                required
-                maxLength={100}
-              />
-            </div>
+            <Input
+              label="Nombre completo *"
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Ej: 1/4 Pollo a la Brasa"
+              required
+              maxLength={100}
+            />
           </div>
 
           {/* Short name and Price */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-park-gray-300 mb-2">
-                Nombre corto (opcional)
-              </label>
-              <input
-                type="text"
-                value={form.short_name}
-                onChange={(e) => setForm({ ...form, short_name: e.target.value })}
-                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-                placeholder="Ej: 1/4 Pollo"
-                maxLength={30}
-              />
-              <p className="text-xs text-park-gray-500 mt-1">
-                Para mostrar en pantallas pequeñas
-              </p>
-            </div>
+            <Input
+              label="Nombre corto (opcional)"
+              type="text"
+              value={form.short_name}
+              onChange={(e) => setForm({ ...form, short_name: e.target.value })}
+              placeholder="Ej: 1/4 Pollo"
+              maxLength={30}
+              hint="Para mostrar en pantallas pequeñas"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-park-gray-300 mb-2">
-                <DollarSign className="w-4 h-4 inline mr-1" />
-                Precio (S/) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.price_soles}
-                onChange={(e) => setForm({ ...form, price_soles: e.target.value })}
-                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-                placeholder="0.00"
-                required
-              />
-              <p className="text-xs text-park-gray-500 mt-1">
-                Se almacena en centavos (entero)
-              </p>
-            </div>
+            <Input
+              label="Precio (S/) *"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.price_soles}
+              onChange={(e) => setForm({ ...form, price_soles: e.target.value })}
+              placeholder="0.00"
+              required
+              leftIcon={<DollarSign className="w-4 h-4" />}
+              hint="Se almacena en centavos (entero)"
+            />
           </div>
 
           {/* Category and Station */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-park-gray-300 mb-2">
-                Categoría *
-              </label>
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-                required
-              >
-                {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Categoría *"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              options={CATEGORY_OPTIONS}
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-park-gray-300 mb-2">
-                Estación de preparación *
-              </label>
-              <select
-                value={form.station}
-                onChange={(e) => setForm({ ...form, station: e.target.value })}
-                className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors disabled:opacity-50"
-                required
-                disabled={loadingStations}
-              >
-                {/* Fallback: si el producto tiene una estación que ya no existe en BD */}
-                {form.station && !stations.find(s => s.code === form.station) && (
-                  <option value={form.station}>{form.station} (inactiva)</option>
-                )}
-                {stations.map((s) => (
-                  <option key={s.id} value={s.code}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Estación de preparación *"
+              value={form.station}
+              onChange={(e) => setForm({ ...form, station: e.target.value })}
+              required
+              disabled={loadingStations}
+              options={[
+                ...(form.station && !stations.find(s => s.code === form.station)
+                  ? [{ value: form.station, label: `${form.station} (inactiva)` }]
+                  : []),
+                ...stations.map((s) => ({ value: s.code, label: s.name })),
+              ]}
+            />
           </div>
 
           {/* Type */}
-          <div>
-            <label className="block text-sm font-medium text-park-gray-300 mb-2">
-              Tipo de producto *
-            </label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-              required
-            >
-              {TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Tipo de producto *"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            options={TYPE_OPTIONS}
+            required
+          />
 
           {/* Active status */}
-          <div className="flex items-center gap-3 p-4 bg-park-gray-800/50 rounded-lg">
-            <input
-              type="checkbox"
+          <div className="p-4 bg-park-gray-800/50 rounded-lg">
+            <Checkbox
+              label="Producto activo (visible en el catálogo)"
               id="is_active"
               checked={form.is_active}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800 text-amber-500 focus:ring-amber-500"
             />
-            <label htmlFor="is_active" className="text-sm cursor-pointer">
-              Producto activo (visible en el catálogo)
-            </label>
           </div>
 
           {/* Image Upload */}
