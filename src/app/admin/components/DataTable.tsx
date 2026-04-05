@@ -67,6 +67,10 @@ interface DataTableProps<T> {
   selectable?: boolean;
   /** Acciones masivas mostradas cuando hay filas seleccionadas */
   bulkActions?: BulkAction<T>[];
+  /** Filtros controlados (para sincronizar con URL query params) */
+  activeFilters?: Record<string, string>;
+  /** Callback cuando cambian los filtros (modo controlado) */
+  onFiltersChange?: (filters: Record<string, string>) => void;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -82,9 +86,13 @@ export function DataTable<T extends { id: string }>({
   rowTestId,
   selectable = false,
   bulkActions = [],
+  activeFilters: controlledFilters,
+  onFiltersChange,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState('');
-  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [uncontrolledFilters, setUncontrolledFilters] = useState<Record<string, string>>({});
+  const isControlled = controlledFilters !== undefined;
+  const activeFilters = isControlled ? controlledFilters : uncontrolledFilters;
   const [page, setPage] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -122,12 +130,21 @@ export function DataTable<T extends { id: string }>({
   const paginatedData = filteredData.slice(page * pageSize, (page + 1) * pageSize);
 
   const handleFilterChange = (key: string, value: string) => {
-    setActiveFilters((prev) => ({ ...prev, [key]: value }));
+    const next = { ...activeFilters, [key]: value };
+    if (isControlled) {
+      onFiltersChange?.(next);
+    } else {
+      setUncontrolledFilters(next);
+    }
     setPage(0);
   };
 
   const clearFilters = () => {
-    setActiveFilters({});
+    if (isControlled) {
+      onFiltersChange?.({});
+    } else {
+      setUncontrolledFilters({});
+    }
     setSearch('');
     setPage(0);
   };

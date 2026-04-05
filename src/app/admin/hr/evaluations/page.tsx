@@ -7,10 +7,10 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { TrendingUp, Plus, Star, AlertTriangle, Search, X } from 'lucide-react';
+import { TrendingUp, Plus, Star, AlertTriangle, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Modal } from '@/src/components/ui';
 
 interface EmployeeOption {
   id: string;
@@ -275,19 +275,28 @@ export default function EvaluationsPage() {
       </Card>
 
       {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-park-gray-900 border border-park-gray-700 rounded-xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-park-gray-700">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-purple-400" />
-                <h2 className="text-white font-semibold">Nueva Evaluación</h2>
-              </div>
-              <button onClick={() => setShowCreateModal(false)} className="text-park-gray-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="px-6 py-4 space-y-4">
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Nueva Evaluación"
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowCreateModal(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              loading={saving}
+              disabled={saving}
+            >
+              {saving ? 'Guardando...' : 'Crear Evaluación'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
               <div>
                 <label className="block text-park-gray-400 text-xs mb-1">Empleado *</label>
                 <select
@@ -347,26 +356,8 @@ export default function EvaluationsPage() {
                   className={inputCls}
                 />
               </div>
-            </div>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-park-gray-700">
-              <Button
-                variant="ghost"
-                onClick={() => setShowCreateModal(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSave}
-                loading={saving}
-                disabled={saving}
-              >
-                {saving ? 'Guardando...' : 'Crear Evaluación'}
-              </Button>
-            </div>
-          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

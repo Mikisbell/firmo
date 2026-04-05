@@ -8,12 +8,13 @@
  * @module app/admin/compras/page
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { ShoppingCart, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePurchaseOrders, useLocations } from '@/src/hooks/useSWRHooks';
 import type { PurchaseOrderStatus } from '@/src/core/services/purchases.service';
 import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { useQueryState } from '@/src/hooks/useQueryState';
 
 const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'info' | 'critical' | 'neutral'; label: string }> = {
   DRAFT: { variant: 'neutral', label: 'Borrador' },
@@ -29,7 +30,7 @@ function formatCurrency(cents: number) {
 export default function ComprasPage() {
   const { data: locationsData } = useLocations();
   const locationId = locationsData?.locations[0]?.id ?? null;
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useQueryState<string>('status', '');
   const { data, error, isLoading, mutate } = usePurchaseOrders(
     locationId ? { locationId, status: statusFilter || undefined } : null,
   );

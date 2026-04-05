@@ -3,7 +3,7 @@
 /**
  * Create Employee Page
  * Form to create new employee with name, role, PIN, and active status
- * 
+ *
  * Requirements: 1.1, 1.2, 1.5, 1.7, 6.1, 6.2, 6.3, 6.4, 6.5
  * UX Improvements: Toast notifications (P0)
  */
@@ -11,8 +11,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Shield, Lock, CreditCard } from 'lucide-react';
-import { Button, Card, CardContent, CardFooter, PageHeader } from '@/src/components/ui';
+import { CreditCard } from 'lucide-react';
+import {
+  Button,
+  Card,
+  CardFooter,
+  PageHeader,
+  Input,
+  Select,
+  Checkbox,
+  FormField,
+} from '@/src/components/ui';
 
 const ROLE_OPTIONS = [
   { value: 'OWNER',      label: 'Propietario' },
@@ -89,29 +98,22 @@ export default function NewEmployeePage() {
           )}
 
           {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-park-gray-300 mb-2">
-              Nombre completo *
-            </label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-              placeholder="Ej: Juan Pérez"
-              required
-              maxLength={100}
-            />
-          </div>
+          <Input
+            label="Nombre completo *"
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Ej: Juan Pérez"
+            required
+            maxLength={100}
+          />
 
           {/* DNI */}
-          <div>
-            <label className="block text-sm font-medium text-park-gray-300 mb-2">
-              <CreditCard className="w-4 h-4 inline mr-1" />
-              DNI
-              <span className="text-park-gray-500 font-normal ml-1">(para login)</span>
-            </label>
-            <input
+          <FormField
+            label="DNI (para login)"
+            hint="8 dígitos. El empleado lo usará junto a su PIN para ingresar."
+          >
+            <Input
               type="text"
               inputMode="numeric"
               value={form.dni}
@@ -119,77 +121,50 @@ export default function NewEmployeePage() {
                 const val = e.target.value.replace(/\D/g, '').slice(0, 8);
                 setForm({ ...form, dni: val });
               }}
-              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono tracking-widest"
+              leftIcon={<CreditCard className="h-4 w-4" />}
+              className="font-mono tracking-widest"
               placeholder="12345678"
               maxLength={8}
               pattern="\d{8}"
             />
-            <p className="text-xs text-park-gray-500 mt-1">
-              8 dígitos. El empleado lo usará junto a su PIN para ingresar.
-            </p>
-          </div>
+          </FormField>
 
           {/* Role */}
-          <div>
-            <label className="block text-sm font-medium text-park-gray-300 mb-2">
-              <Shield className="w-4 h-4 inline mr-1" />
-              Rol *
-            </label>
-            <select
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors"
-              required
-            >
-              {ROLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-park-gray-500 mt-1">
-              Define los permisos y accesos del empleado
-            </p>
-          </div>
+          <Select
+            label="Rol *"
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
+            options={ROLE_OPTIONS}
+            hint="Define los permisos y accesos del empleado"
+            required
+          />
 
           {/* PIN */}
-          <div>
-            <label className="block text-sm font-medium text-park-gray-300 mb-2">
-              <Lock className="w-4 h-4 inline mr-1" />
-              PIN de acceso *
-            </label>
-            <input
-              type="text"
-              value={form.pin}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                if (value.length <= 6) {
-                  setForm({ ...form, pin: value });
-                }
-              }}
-              className="w-full px-4 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors font-mono text-lg tracking-widest"
-              placeholder="••••"
-              required
-              pattern="\d{4,6}"
-              maxLength={6}
-            />
-            <p className="text-xs text-park-gray-500 mt-1">
-              4-6 dígitos numéricos. Debe ser único en el sistema.
-            </p>
-          </div>
+          <Input
+            label="PIN de acceso *"
+            type="text"
+            value={form.pin}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '');
+              if (value.length <= 6) {
+                setForm({ ...form, pin: value });
+              }
+            }}
+            className="font-mono text-lg tracking-widest"
+            placeholder="••••"
+            required
+            pattern="\d{4,6}"
+            maxLength={6}
+            hint="4-6 dígitos numéricos. Debe ser único en el sistema."
+          />
 
           {/* Active status */}
-          <div className="flex items-center gap-3 p-4 bg-park-gray-800/50 rounded-lg">
-            <input
-              type="checkbox"
-              id="is_active"
+          <div className="p-4 bg-park-gray-800/50 rounded-lg">
+            <Checkbox
+              label="Empleado activo (puede iniciar sesión)"
               checked={form.is_active}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800 text-amber-500 focus:ring-amber-500"
             />
-            <label htmlFor="is_active" className="text-sm cursor-pointer">
-              Empleado activo (puede iniciar sesión)
-            </label>
           </div>
 
           <CardFooter>

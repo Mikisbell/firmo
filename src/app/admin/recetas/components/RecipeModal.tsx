@@ -7,9 +7,10 @@
  */
 
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/src/lib/utils';
+import { Modal } from '@/src/components/ui';
 
 interface RecipeIngredient {
   inventory_code: string;
@@ -205,26 +206,36 @@ export default function RecipeModal({ recipe, onClose, onSuccess }: RecipeModalP
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-zinc-900 rounded-xl w-full max-w-2xl border border-zinc-800 my-8">
-        {/* Header */}
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-zinc-900 rounded-t-xl z-10">
-          <h2 className="text-lg font-bold text-zinc-100">
-            {isEditing ? 'Editar Receta' : 'Nueva Receta'}
-          </h2>
+    <Modal
+      open={true}
+      onClose={onClose}
+      title={isEditing ? 'Editar Receta' : 'Nueva Receta'}
+      size="lg"
+      closeOnBackdrop={!saving}
+      closeOnEscape={!saving}
+      footer={
+        <>
           <button
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-zinc-400" />
+            Cancelar
           </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-5">
-          {formError && (
+          <button
+            type="submit"
+            form="recipe-form"
+            disabled={saving}
+            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {saving ? 'Guardando...' : isEditing ? 'Actualizar Receta' : 'Crear Receta'}
+          </button>
+        </>
+      }
+    >
+      <form id="recipe-form" onSubmit={handleSubmit} className="space-y-5">
+        {formError && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
               {formError}
             </div>
@@ -459,26 +470,7 @@ export default function RecipeModal({ recipe, onClose, onSuccess }: RecipeModalP
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-2 border-t border-zinc-800">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Guardando...' : isEditing ? 'Actualizar Receta' : 'Crear Receta'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 }

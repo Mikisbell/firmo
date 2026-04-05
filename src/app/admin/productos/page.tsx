@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Package } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
+import { useQueryStates } from '@/src/hooks/useQueryState';
 import { ProductImage } from '@/src/core/types/product-images';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import { CSVImportExport } from './components/CSVImportExport';
@@ -69,6 +70,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const { data: products, loading, error, refetch } = useAdminData<Product>('/api/admin/products?pageSize=100');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [productFilters, setProductFilters] = useQueryStates({ category: '', station: '', is_active: '' });
 
   // Clear selection when products change
   useEffect(() => {
@@ -257,6 +259,12 @@ export default function ProductsPage() {
         emptyMessage="No hay productos"
         onRowClick={(p) => router.push(`/admin/productos/${p.id}`)}
         rowTestId="product-row"
+        activeFilters={productFilters}
+        onFiltersChange={(f) => setProductFilters({
+          category: f.category || '',
+          station: f.station || '',
+          is_active: f.is_active || '',
+        })}
       />
       </Card>
 

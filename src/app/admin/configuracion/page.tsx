@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { Save, Building2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminMutation } from '@/src/hooks/useAdminData';
-import { Button, Card, PageHeader } from '@/src/components/ui';
+import { Button, Card, PageHeader, Input, FormField } from '@/src/components/ui';
 
 interface TenantSettings {
   tenant_id: string;
@@ -103,18 +103,29 @@ export default function ConfigurationPage() {
       <Card>
         <h2 className="font-medium flex items-center gap-2 mb-4 text-white"><Building2 className="w-4 h-4" />Información del Negocio</h2>
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm text-park-gray-400 mb-1">Razón Social</label>
-            <input type="text" value={form?.legal_name || ''} onChange={(e) => setForm((s) => s ? { ...s, legal_name: e.target.value } : s)} className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px] text-white" data-testid="tenant-name" />
-          </div>
-          <div>
-            <label className="block text-sm text-park-gray-400 mb-1">RUC (11 dígitos)</label>
-            <input type="text" value={form?.ruc || ''} onChange={(e) => setForm((s) => s ? { ...s, ruc: e.target.value } : s)} maxLength={11} pattern="\d{11}" className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px] font-mono text-white" />
-          </div>
-          <div>
-            <label className="block text-sm text-park-gray-400 mb-1">Dirección</label>
-            <input type="text" value={form?.address_text || ''} onChange={(e) => setForm((s) => s ? { ...s, address_text: e.target.value } : s)} className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px] text-white" />
-          </div>
+          <FormField label="Razón Social">
+            <Input
+              type="text"
+              value={form?.legal_name || ''}
+              onChange={(e) => setForm((s) => s ? { ...s, legal_name: e.target.value } : s)}
+              data-testid="tenant-name"
+            />
+          </FormField>
+          <Input
+            label="RUC (11 dígitos)"
+            type="text"
+            value={form?.ruc || ''}
+            onChange={(e) => setForm((s) => s ? { ...s, ruc: e.target.value } : s)}
+            maxLength={11}
+            pattern="\d{11}"
+            className="font-mono"
+          />
+          <Input
+            label="Dirección"
+            type="text"
+            value={form?.address_text || ''}
+            onChange={(e) => setForm((s) => s ? { ...s, address_text: e.target.value } : s)}
+          />
         </div>
       </Card>
 

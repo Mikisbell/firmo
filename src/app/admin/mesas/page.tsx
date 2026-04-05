@@ -11,7 +11,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Check, X, MapPin, LayoutGrid } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useTables } from '@/src/hooks/useSWRHooks';
-import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Modal } from '@/src/components/ui';
+import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface Zone {
   id: string;
@@ -42,6 +43,7 @@ export default function TablesPage() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
+  const [tableFilters, setTableFilters] = useQueryStates({ zone_id: '', is_active: '', shape: '' });
 
   const fetchData = useCallback(async () => {
     try {
@@ -252,6 +254,12 @@ export default function TablesPage() {
             searchKeys={['number', 'display_name']}
             loading={loading}
             emptyMessage="No hay mesas"
+            activeFilters={tableFilters}
+            onFiltersChange={(f) => setTableFilters({
+              zone_id: f.zone_id || '',
+              is_active: f.is_active || '',
+              shape: f.shape || '',
+            })}
           />
         )}
       </Card>
@@ -323,19 +331,38 @@ function TableModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 rounded-xl w-full max-w-md border border-zinc-800">
-        <div className="p-4 border-b border-zinc-800">
-          <h2 className="text-lg font-bold">{table ? 'Editar Mesa' : 'Nueva Mesa'}</h2>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {error && (
-            <div className="p-2 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-          
+    <Modal
+      open={true}
+      onClose={onClose}
+      title={table ? 'Editar Mesa' : 'Nueva Mesa'}
+      size="sm"
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="table-form"
+            disabled={saving}
+            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {saving ? 'Guardando...' : 'Guardar'}
+          </button>
+        </>
+      }
+    >
+      <form id="table-form" onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="p-2 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-zinc-400 mb-1">Número *</label>
@@ -409,24 +436,7 @@ function TableModal({
             <span className="text-sm">Mesa activa</span>
           </label>
           
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Guardando...' : 'Guardar'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 }

@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Search, User, Phone, Mail, FileText, ShoppingBag, X } from 'lucide-react';
 import useSWR from 'swr';
-import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Modal } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -143,29 +143,37 @@ function CustomerModal({
   const docHint = form.doc_type ? getDocHint(form.doc_type) : null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 rounded-xl w-full max-w-md border border-zinc-800">
-        {/* Modal header */}
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-          <h2 className="text-lg font-bold">
-            {customer ? 'Editar Cliente' : 'Nuevo Cliente'}
-          </h2>
+    <Modal
+      open={true}
+      onClose={onClose}
+      title={customer ? 'Editar Cliente' : 'Nuevo Cliente'}
+      size="sm"
+      footer={
+        <>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
-            aria-label="Cerrar"
+            className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-zinc-400" />
+            Cancelar
           </button>
-        </div>
-
-        {/* Modal body */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-              {error}
-            </div>
-          )}
+          <button
+            type="submit"
+            form="customer-form"
+            disabled={saving}
+            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {saving ? 'Guardando...' : 'Guardar'}
+          </button>
+        </>
+      }
+    >
+      <form id="customer-form" onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
 
           {/* Phone */}
           <div>
@@ -255,26 +263,8 @@ function CustomerModal({
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Guardando...' : 'Guardar'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 }
 

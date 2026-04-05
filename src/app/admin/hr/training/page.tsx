@@ -7,9 +7,9 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { GraduationCap, Plus, AlertTriangle, Search, Award, X } from 'lucide-react';
+import { GraduationCap, Plus, AlertTriangle, Search, Award } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Modal } from '@/src/components/ui';
 
 interface Training {
   id: string;
@@ -293,19 +293,28 @@ export default function TrainingPage() {
       </Card>
 
       {/* Create Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-park-gray-900 border border-park-gray-700 rounded-xl w-full max-w-lg shadow-xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-park-gray-700">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-teal-400" />
-                <h2 className="text-white font-semibold">Registrar Capacitación</h2>
-              </div>
-              <button onClick={() => setShowModal(false)} className="text-park-gray-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="px-6 py-4 space-y-4">
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title="Registrar Capacitación"
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              loading={saving}
+              disabled={saving}
+            >
+              {saving ? 'Guardando...' : 'Registrar'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
               {field('Empleado *',
                 <select
                   value={form.employee_id}
@@ -383,26 +392,8 @@ export default function TrainingPage() {
                   className={inputCls}
                 />
               )}
-            </div>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-park-gray-700">
-              <Button
-                variant="ghost"
-                onClick={() => setShowModal(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSave}
-                loading={saving}
-                disabled={saving}
-              >
-                {saving ? 'Guardando...' : 'Registrar'}
-              </Button>
-            </div>
-          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

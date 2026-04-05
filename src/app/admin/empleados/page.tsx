@@ -7,12 +7,12 @@
  * Requirements: 4.1, 4.2
  */
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Shield, Eye, EyeOff } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
+import { useQueryState, useQueryStates } from '@/src/hooks/useQueryState';
 
 interface Employee {
   id: string;
@@ -55,7 +55,9 @@ const ROLE_BADGE_VARIANT: Record<string, 'success' | 'warning' | 'critical' | 'i
 
 export default function EmployeesPage() {
   const router = useRouter();
-  const [showInactive, setShowInactive] = useState(false);
+  const [status, setStatus] = useQueryState<'active' | 'inactive'>('status', 'active');
+  const showInactive = status === 'inactive';
+  const [employeeFilters, setEmployeeFilters] = useQueryStates({ role: '' });
   const endpoint = showInactive ? '/api/admin/employees?is_active=false&pageSize=100' : '/api/admin/employees?pageSize=100';
   const { data: employees, loading, error } = useAdminData<Employee>(endpoint);
 
@@ -135,7 +137,7 @@ export default function EmployeesPage() {
             <Button
               variant={showInactive ? 'secondary' : 'ghost'}
               icon={showInactive ? <EyeOff size={16} /> : <Eye size={16} />}
-              onClick={() => setShowInactive(!showInactive)}
+              onClick={() => setStatus(showInactive ? 'active' : 'inactive')}
             >
               {showInactive ? 'Inactivos' : 'Activos'}
             </Button>
@@ -168,6 +170,8 @@ export default function EmployeesPage() {
           emptyMessage="No hay empleados"
           onRowClick={(e) => router.push(`/admin/empleados/${e.id}`)}
           rowTestId="employee-row"
+          activeFilters={employeeFilters}
+          onFiltersChange={(f) => setEmployeeFilters({ role: f.role || '' })}
         />
       </Card>
     </div>

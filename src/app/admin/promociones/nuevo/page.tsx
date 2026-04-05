@@ -3,7 +3,7 @@
 /**
  * Create Promotion Page
  * Requirements: 3.1, 3.2, 3.3, 3.7, 3.9
- * 
+ *
  * Phase 1 Critical Review - Issue #1: Loading State Validation
  * - Added loading spinner during network requests
  * - Added error toast with retry button
@@ -13,7 +13,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, AlertCircle, Loader, X } from 'lucide-react';
-import { Button, Card, PageHeader } from '@/src/components/ui';
+import {
+  Button,
+  Card,
+  PageHeader,
+  Input,
+  Select,
+  Textarea,
+  Switch,
+} from '@/src/components/ui';
 
 const TYPE_OPTIONS = [
   { value: 'PERCENT', label: 'Porcentaje (%)' },
@@ -154,118 +162,73 @@ export default function NewPromotionPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="space-y-4">
           {/* Name */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Nombre <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              maxLength={100}
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-              placeholder="Ej: Descuento 20% en pollos"
-            />
-          </div>
+          <Input
+            label="Nombre *"
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+            maxLength={100}
+            placeholder="Ej: Descuento 20% en pollos"
+          />
 
           {/* Type */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Tipo <span className="text-red-400">*</span>
-            </label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-              required
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-            >
-              {TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Tipo *"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            options={TYPE_OPTIONS}
+            required
+          />
 
           {/* Value */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Valor <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="number"
-              value={form.value}
-              onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
-              required
-              min={0}
-              step={form.type === 'PERCENT' ? 1 : 0.01}
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-              placeholder={form.type === 'PERCENT' ? '20' : '10.00'}
-            />
-            <p className="text-xs text-park-gray-500 mt-1">
-              {form.type === 'PERCENT' ? 'Porcentaje de descuento (0-100)' : 'Monto en soles'}
-            </p>
-          </div>
+          <Input
+            label="Valor *"
+            type="number"
+            value={form.value}
+            onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
+            required
+            min={0}
+            step={form.type === 'PERCENT' ? 1 : 0.01}
+            placeholder={form.type === 'PERCENT' ? '20' : '10.00'}
+            hint={form.type === 'PERCENT' ? 'Porcentaje de descuento (0-100)' : 'Monto en soles'}
+          />
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Fecha Inicio <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                value={form.starts_at}
-                onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
-                required
-                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Fecha Fin <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                value={form.ends_at}
-                onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
-                required
-                className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg min-h-[44px]"
-              />
-            </div>
+            <Input
+              label="Fecha Inicio *"
+              type="datetime-local"
+              value={form.starts_at}
+              onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
+              required
+            />
+            <Input
+              label="Fecha Fin *"
+              type="datetime-local"
+              value={form.ends_at}
+              onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
+              required
+            />
           </div>
 
           {/* Rules (JSON) */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Reglas (JSON)
-            </label>
-            <textarea
-              value={form.rules}
-              onChange={(e) => setForm({ ...form, rules: e.target.value })}
-              rows={4}
-              className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg font-mono text-sm"
-              placeholder='{"min_amount": 50, "products": ["PROD-001"]}'
-            />
-            <p className="text-xs text-park-gray-500 mt-1">
-              Reglas adicionales en formato JSON (opcional)
-            </p>
-          </div>
+          <Textarea
+            label="Reglas (JSON)"
+            value={form.rules}
+            onChange={(e) => setForm({ ...form, rules: e.target.value })}
+            rows={4}
+            className="font-mono text-sm"
+            placeholder='{"min_amount": 50, "products": ["PROD-001"]}'
+            hint="Reglas adicionales en formato JSON (opcional)"
+          />
 
           {/* Active */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is_active"
-              checked={form.is_active}
-              onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="is_active" className="text-sm">
-              Promoción activa
-            </label>
-          </div>
+          <Switch
+            label="Promoción activa"
+            checked={form.is_active}
+            onCheckedChange={(checked) => setForm({ ...form, is_active: checked })}
+          />
         </Card>
 
         {/* Actions */}
