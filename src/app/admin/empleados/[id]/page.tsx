@@ -16,7 +16,7 @@ import {
 import { useSWRConfig } from 'swr';
 import { useEmployee } from '@/src/hooks/useSWRHooks';
 import useSWR from 'swr';
-import { Button, Badge, Card, PageHeader, Breadcrumbs, Tabs, TabsContent } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, Breadcrumbs, Tabs, TabsContent, FileUpload } from '@/src/components/ui';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -687,6 +687,11 @@ function PerfilTab({
   const [newPin, setNewPin] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const handlePhotoUpload = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -737,6 +742,14 @@ function PerfilTab({
           Cambios guardados correctamente
         </div>
       )}
+
+      <FileUpload
+        label="Foto de perfil (opcional)"
+        accept="image/*"
+        maxSize={5 * 1024 * 1024}
+        preview={photoPreview}
+        onUpload={handlePhotoUpload}
+      />
 
       <div>
         <label className="block text-sm font-medium text-park-gray-300 mb-2">Nombre completo *</label>

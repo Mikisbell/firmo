@@ -22,6 +22,7 @@ import {
   Checkbox,
   FormField,
   Breadcrumbs,
+  FileUpload,
 } from '@/src/components/ui';
 
 const ROLE_OPTIONS = [
@@ -49,6 +50,13 @@ export default function NewEmployeePage() {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  const handlePhotoUpload = (file: File) => {
+    // Preview local — subida se conectara en integracion futura
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +112,15 @@ export default function NewEmployeePage() {
               {error}
             </div>
           )}
+
+          {/* Profile photo (opcional) */}
+          <FileUpload
+            label="Foto de perfil (opcional)"
+            accept="image/*"
+            maxSize={5 * 1024 * 1024}
+            preview={photoPreview}
+            onUpload={handlePhotoUpload}
+          />
 
           {/* Name */}
           <Input

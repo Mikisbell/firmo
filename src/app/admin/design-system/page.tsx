@@ -29,6 +29,9 @@ import {
   AvatarGroup,
   Alert,
   Pagination,
+  Dropdown,
+  DatePicker,
+  FileUpload,
 } from '@/src/components/ui';
 import {
   Plus,
@@ -41,6 +44,13 @@ import {
   Search,
   Mail,
   User,
+  MoreVertical,
+  Pencil,
+  Copy,
+  Trash2,
+  Eye,
+  Download,
+  Share2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -107,6 +117,20 @@ export default function DesignSystemPage() {
   // Pagination demo state
   const [demoPage, setDemoPage] = useState<number>(3);
   const [alertDismissed, setAlertDismissed] = useState(false);
+
+  // DatePicker demo state
+  const [dateBasic, setDateBasic] = useState<string>('');
+  const [dateWithHint, setDateWithHint] = useState<string>('');
+  const [dateWithError, setDateWithError] = useState<string>('');
+
+  // FileUpload demo state
+  const [fakeUploading, setFakeUploading] = useState(false);
+  const simulateUpload = async (_file: File) => {
+    setFakeUploading(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setFakeUploading(false);
+    toast.success('Archivo subido (simulacion)');
+  };
 
   return (
     <div className="space-y-6">
@@ -844,6 +868,155 @@ export default function DesignSystemPage() {
               showInfo
               onPageChange={setDemoPage}
             />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── 17. Dropdown ── */}
+      <Section title="Menu Contextual (Dropdown)">
+        <Row label="Menu simple (Editar / Duplicar / Eliminar)">
+          <Dropdown
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<MoreVertical size={16} />}
+                aria-label="Mas opciones"
+              />
+            }
+            items={[
+              {
+                label: 'Editar',
+                icon: <Pencil size={14} />,
+                onClick: notify('Editar'),
+              },
+              {
+                label: 'Duplicar',
+                icon: <Copy size={14} />,
+                onClick: notify('Duplicar'),
+              },
+              { separator: true, label: '' },
+              {
+                label: 'Eliminar',
+                icon: <Trash2 size={14} />,
+                variant: 'destructive',
+                onClick: notify('Eliminar'),
+              },
+            ]}
+          />
+        </Row>
+
+        <Row label="Menu con separadores y multiples grupos">
+          <Dropdown
+            align="end"
+            trigger={
+              <Button variant="secondary" size="sm" icon={<MoreVertical size={16} />}>
+                Acciones
+              </Button>
+            }
+            items={[
+              {
+                label: 'Ver detalles',
+                icon: <Eye size={14} />,
+                onClick: notify('Ver detalles'),
+              },
+              {
+                label: 'Editar',
+                icon: <Pencil size={14} />,
+                onClick: notify('Editar'),
+              },
+              { separator: true, label: '' },
+              {
+                label: 'Descargar',
+                icon: <Download size={14} />,
+                onClick: notify('Descargar'),
+              },
+              {
+                label: 'Compartir',
+                icon: <Share2 size={14} />,
+                onClick: notify('Compartir'),
+              },
+              { separator: true, label: '' },
+              {
+                label: 'Archivar',
+                icon: <Trash2 size={14} />,
+                variant: 'destructive',
+                onClick: notify('Archivar'),
+              },
+            ]}
+          />
+        </Row>
+      </Section>
+
+      {/* ── 18. DatePicker ── */}
+      <Section title="Selector de Fecha">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <DatePicker
+            label="Fecha del evento"
+            value={dateBasic}
+            onChange={setDateBasic}
+          />
+          <div className="flex flex-col gap-1.5">
+            <DatePicker
+              label="Fecha de vencimiento"
+              value={dateWithHint}
+              onChange={setDateWithHint}
+            />
+            <p className="text-xs text-park-gray-500">
+              Debe ser posterior a hoy
+            </p>
+          </div>
+          <DatePicker
+            label="Fecha de inicio"
+            value={dateWithError}
+            onChange={setDateWithError}
+            error="Esta fecha es obligatoria"
+          />
+          <DatePicker
+            label="Fecha bloqueada"
+            value="2026-01-15"
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+      </Section>
+
+      {/* ── 19. FileUpload ── */}
+      <Section title="Subir Archivo">
+        <Row label="Con preview de imagen (URL existente)">
+          <div className="w-full max-w-md">
+            <FileUpload
+              accept="image/*"
+              maxSize={5 * 1024 * 1024}
+              preview="https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=300&fit=crop"
+              onUpload={simulateUpload}
+              label="Foto del producto"
+            />
+          </div>
+        </Row>
+
+        <Row label="Sin preview (drop zone vacia)">
+          <div className="w-full max-w-md">
+            <FileUpload
+              accept="image/*"
+              maxSize={2 * 1024 * 1024}
+              onUpload={simulateUpload}
+              label="Imagen de portada"
+            />
+          </div>
+        </Row>
+
+        <Row label="Demo de estado de carga">
+          <div className="w-full max-w-md flex flex-col gap-3">
+            <FileUpload
+              accept="image/*"
+              maxSize={5 * 1024 * 1024}
+              onUpload={simulateUpload}
+              label="Arrastra una imagen para ver el spinner"
+            />
+            <p className="text-xs text-park-gray-500">
+              Estado simulado: {fakeUploading ? 'subiendo...' : 'en espera'}
+            </p>
           </div>
         </Row>
       </Section>

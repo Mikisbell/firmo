@@ -166,3 +166,15 @@ export type { DatePickerProps } from './DatePicker';
 // FileUpload (drag-and-drop + click to select)
 export { FileUpload } from './FileUpload';
 export type { FileUploadProps } from './FileUpload';
+
+// Stepper (multi-step wizard indicator)
+export { Stepper } from './Stepper';
+export type { StepperProps, Step } from './Stepper';
+
+// ConfirmDialog (confirmation modal wrapping Modal)
+export { ConfirmDialog } from './ConfirmDialog';
+export type { ConfirmDialogProps } from './ConfirmDialog';
+
+// RadioGroup (accessible radio button group)
+export { RadioGroup } from './RadioGroup';
+export type { RadioGroupProps, RadioOption } from './RadioGroup';

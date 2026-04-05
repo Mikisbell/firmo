@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
-import { Button, Card, CardFooter, PageHeader, Input, Select, Breadcrumbs } from '@/src/components/ui';
+import { Button, Card, CardFooter, PageHeader, Input, Select, Breadcrumbs, FileUpload } from '@/src/components/ui';
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Propietario', ADMIN: 'Administrador', MANAGER: 'Gerente',
@@ -59,6 +59,11 @@ export default function NewHREmployeePage() {
   const router = useRouter();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const handlePhotoUpload = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+  };
 
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
 
@@ -119,6 +124,15 @@ export default function NewHREmployeePage() {
       />
 
       <form onSubmit={handleSubmit}><Card className="space-y-5 max-w-2xl">
+        {/* Profile photo (opcional) */}
+        <FileUpload
+          label="Foto de perfil (opcional)"
+          accept="image/*"
+          maxSize={5 * 1024 * 1024}
+          preview={photoPreview}
+          onUpload={handlePhotoUpload}
+        />
+
         {/* Name + Role */}
         <div className="grid grid-cols-2 gap-4">
           <Input label="Nombre completo *" type="text" value={form.name}

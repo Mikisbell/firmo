@@ -16,7 +16,7 @@ import {
   Fingerprint,
   Globe,
 } from 'lucide-react';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, DatePicker } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface AuditEvent {
@@ -188,31 +188,19 @@ export default function AuditoriaPage() {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label htmlFor="start-date" className="block text-xs text-park-gray-500 mb-1.5">
-              <Calendar className="w-3 h-3 inline mr-1" />
-              Fecha Inicio
-            </label>
-            <input
+            <DatePicker
               id="start-date"
-              type="date"
-              aria-label="Fecha Inicio"
+              label="Fecha Inicio"
               value={filters.startDate}
-              onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-              className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-park-gray-200 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+              onChange={(v) => setFilters({ ...filters, startDate: v })}
             />
           </div>
           <div>
-            <label htmlFor="end-date" className="block text-xs text-park-gray-500 mb-1.5">
-              <Calendar className="w-3 h-3 inline mr-1" />
-              Fecha Fin
-            </label>
-            <input
+            <DatePicker
               id="end-date"
-              type="date"
-              aria-label="Fecha Fin"
+              label="Fecha Fin"
               value={filters.endDate}
-              onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-              className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-park-gray-200 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+              onChange={(v) => setFilters({ ...filters, endDate: v })}
             />
           </div>
           <div>

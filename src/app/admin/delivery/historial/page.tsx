@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ClipboardList, Filter, Clock, CheckCircle, XCircle, Bike, AlertCircle } from 'lucide-react';
 import { formatCents } from '@/src/core/domain/money';
-import { Badge, Button, Card, PageHeader, EmptyState, Breadcrumbs, Pagination } from '@/src/components/ui';
+import { Badge, Button, Card, PageHeader, EmptyState, Breadcrumbs, Pagination, DatePicker } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface DeliveryOrder {
@@ -117,13 +117,11 @@ export default function DeliveryHistoryPage() {
           <span className="text-[10px] uppercase tracking-widest text-park-gray-500">Filtros</span>
         </div>
         <div className="flex flex-wrap gap-4 items-end">
-          <div>
-            <label className={labelClass}>Desde</label>
-            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={inputClass} />
+          <div className="min-w-[160px]">
+            <DatePicker label="Desde" value={dateFrom} onChange={setDateFrom} />
           </div>
-          <div>
-            <label className={labelClass}>Hasta</label>
-            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={inputClass} />
+          <div className="min-w-[160px]">
+            <DatePicker label="Hasta" value={dateTo} onChange={setDateTo} />
           </div>
           <div>
             <label className={labelClass}>Estado</label>
