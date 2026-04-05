@@ -178,3 +178,24 @@ export type { ConfirmDialogProps } from './ConfirmDialog';
 // RadioGroup (accessible radio button group)
 export { RadioGroup } from './RadioGroup';
 export type { RadioGroupProps, RadioOption } from './RadioGroup';
+
+// Popover (rich tooltip with arbitrary JSX content)
+export { Popover } from './Popover';
+export type {
+  PopoverProps,
+  PopoverSide,
+  PopoverAlign,
+  PopoverTriggerMode,
+} from './Popover';
+
+// ToggleGroup (exclusive button group — radio-like)
+export { ToggleGroup } from './ToggleGroup';
+export type {
+  ToggleGroupProps,
+  ToggleOption,
+  ToggleGroupSize,
+} from './ToggleGroup';
+
+// Accordion (expandable/collapsible sections)
+export { Accordion } from './Accordion';
+export type { AccordionProps, AccordionItem } from './Accordion';

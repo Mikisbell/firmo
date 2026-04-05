@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Search, User, Phone, Mail, FileText, ShoppingBag, X } from 'lucide-react';
 import useSWR from 'swr';
-import { Button, Badge, Card, PageHeader, EmptyState, Modal } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Modal, ConfirmDialog } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -277,6 +277,7 @@ export default function ClientesPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
   // Debounce search input (300 ms)
   useEffect(() => {
@@ -316,39 +317,32 @@ export default function ClientesPage() {
     mutate();
   }, [mutate]);
 
-  const handleDelete = useCallback(
-    async (customer: Customer) => {
-      const displayName =
-        customer.name || customer.phone || 'este cliente';
-      if (
-        !confirm(
-          `¿Eliminar a ${displayName}? Esta acción no se puede deshacer.`
-        )
-      )
-        return;
+  const handleDeleteClick = useCallback((customer: Customer) => {
+    setCustomerToDelete(customer);
+  }, []);
 
-      try {
-        const res = await fetch(`/api/admin/customers/${customer.id}`, {
-          method: 'DELETE',
-        });
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!customerToDelete) return;
+    try {
+      const res = await fetch(`/api/admin/customers/${customerToDelete.id}`, {
+        method: 'DELETE',
+      });
 
-        if (!res.ok) {
-          const body = await res.json();
-          if (res.status === 409) {
-            alert('Cliente tiene pedidos activos y no puede eliminarse.');
-          } else {
-            alert(body.error || 'Error al eliminar cliente');
-          }
-          return;
+      if (!res.ok) {
+        const body = await res.json();
+        if (res.status === 409) {
+          alert('Cliente tiene pedidos activos y no puede eliminarse.');
+        } else {
+          alert(body.error || 'Error al eliminar cliente');
         }
-
-        mutate();
-      } catch {
-        alert('Error de conexión al eliminar cliente');
+        return;
       }
-    },
-    [mutate]
-  );
+
+      mutate();
+    } catch {
+      alert('Error de conexión al eliminar cliente');
+    }
+  }, [customerToDelete, mutate]);
 
   return (
     <div className="space-y-6">
@@ -537,7 +531,7 @@ export default function ClientesPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDelete(customer)}
+                          onClick={() => handleDeleteClick(customer)}
                           icon={<Trash2 className="w-4 h-4" />}
                         >
                           Eliminar
@@ -562,6 +556,16 @@ export default function ClientesPage() {
           onSave={handleModalSave}
         />
       )}
+
+      <ConfirmDialog
+        open={customerToDelete !== null}
+        onClose={() => setCustomerToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title={`¿Eliminar a ${customerToDelete?.name || customerToDelete?.phone || 'este cliente'}?`}
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        variant="destructive"
+      />
     </div>
   );
 }

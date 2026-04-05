@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 import { OnboardingStep } from '@/src/core/tenant/onboarding';
 import OnboardingStepProgress from './OnboardingStepProgress';
 import OnboardingStepForm from './OnboardingStepForm';
+import { Stepper } from '@/src/components/ui';
 
 interface OnboardingWizardProps {
   tenant_id: string;
@@ -136,6 +137,17 @@ export default function OnboardingWizard({
           <p className="text-sm text-slate-600 mt-2">
             {completedRequired} de {requiredSteps.length} pasos requeridos completados
           </p>
+        </div>
+
+        {/* Stepper Overview */}
+        <div className="mb-8 bg-white rounded-lg shadow p-6 overflow-x-auto">
+          <Stepper
+            currentStep={currentStepIndex}
+            steps={steps.map((s) => ({
+              label: s.title,
+              description: s.is_required ? 'Requerido' : 'Opcional',
+            }))}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

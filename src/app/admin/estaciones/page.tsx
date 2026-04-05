@@ -15,7 +15,7 @@ import { useStationMetrics } from './hooks/useStationMetrics';
 import { useStationOrders } from './hooks/useStationOrders';
 import { useStationAlerts } from './hooks/useStationAlerts';
 import { useStations } from '@/src/hooks/useSWRHooks';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, ConfirmDialog } from '@/src/components/ui';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 
 interface Station {
@@ -62,6 +62,7 @@ export default function StationsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingStation, setEditingStation] = useState<Station | null>(null);
   const [showOrdersModal, setShowOrdersModal] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Fetch alerts for all stations
   const { alerts, dismissAlert } = useStationAlerts({});
@@ -80,11 +81,10 @@ export default function StationsPage() {
     };
   }, [stations]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Desactivar esta estacion?')) return;
-
+  const handleDeleteConfirm = async () => {
+    if (!confirmDeleteId) return;
     try {
-      const res = await fetch(`/api/admin/stations/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/stations/${confirmDeleteId}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || 'Failed to delete');
@@ -165,7 +165,7 @@ export default function StationsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
+              onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(s.id); }}
             >
               <Trash2 className="w-4 h-4 text-red-400" />
             </Button>
@@ -303,6 +303,16 @@ export default function StationsPage() {
           onClose={() => setShowOrdersModal(null)}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="¿Desactivar estacion?"
+        description="La estacion dejara de recibir nuevas ordenes en el KDS. Se puede reactivar mas tarde."
+        confirmLabel="Desactivar"
+        variant="destructive"
+      />
     </div>
   );
 }

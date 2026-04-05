@@ -5,14 +5,14 @@
  * Requirements: 6.1, 6.2, 6.3
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Plus, Check, X, Calendar, Percent, Edit, Trash2, Tag } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { usePromotions } from '@/src/hooks/useSWRHooks';
-import { Badge, Card, PageHeader, EmptyState, Button, Tooltip } from '@/src/components/ui';
+import { Badge, Card, PageHeader, EmptyState, Button, Tooltip, ConfirmDialog } from '@/src/components/ui';
 
 interface Promotion {
   id: string;
@@ -49,11 +49,16 @@ export default function PromotionsPage() {
 
   const isExpired = (endsAt: string) => new Date(endsAt) < new Date();
 
-  const handleDelete = useCallback(async (id: string) => {
-    if (!confirm('Desactivar esta promocion?')) return;
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  const handleDeleteClick = useCallback((id: string) => {
+    setConfirmDeleteId(id);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!confirmDeleteId) return;
     try {
-      const res = await fetch(`/api/admin/promotions/${id}`, {
+      const res = await fetch(`/api/admin/promotions/${confirmDeleteId}`, {
         method: 'DELETE',
       });
       if (!res.ok) {
@@ -70,7 +75,7 @@ export default function PromotionsPage() {
         description: errorMessage,
       });
     }
-  }, [mutate]);
+  }, [confirmDeleteId, mutate]);
 
   const columns: Column<Promotion>[] = [
     { key: 'name', label: 'Nombre' },
@@ -127,7 +132,7 @@ export default function PromotionsPage() {
           </Tooltip>
           <Tooltip content="Desactivar">
             <button
-              onClick={() => handleDelete(p.id)}
+              onClick={() => handleDeleteClick(p.id)}
               data-testid={`delete-promotion-${p.id}`}
               aria-label={`Desactivar promocion ${p.name}`}
               className="p-1.5 hover:bg-red-500/10 text-red-400 rounded transition-colors inline-flex"
@@ -160,6 +165,16 @@ export default function PromotionsPage() {
 
       {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">{error}</div>}
       <DataTable data={promotions || []} columns={columns} filters={filters} searchPlaceholder="Buscar..." searchKeys={['name']} loading={loading} emptyMessage="No hay promociones" />
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="¿Desactivar promocion?"
+        description="La promocion dejara de aplicarse a nuevas ordenes. Esta accion se puede revertir reactivandola."
+        confirmLabel="Desactivar"
+        variant="destructive"
+      />
     </div>
   );
 }

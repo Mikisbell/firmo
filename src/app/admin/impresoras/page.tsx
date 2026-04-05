@@ -17,7 +17,7 @@ import {
   Globe,
   Usb,
 } from 'lucide-react';
-import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, RadioGroup } from '@/src/components/ui';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 
 // ============================================================================
@@ -441,35 +441,17 @@ function PrinterFormModal({
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-park-gray-300 mb-1">
-              Ancho de Papel
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="paperWidth"
-                  value={58}
-                  checked={paperWidth === 58}
-                  onChange={() => setPaperWidth(58)}
-                  className="accent-park-brand-500"
-                />
-                <span className="text-sm text-park-gray-300">58mm</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="paperWidth"
-                  value={80}
-                  checked={paperWidth === 80}
-                  onChange={() => setPaperWidth(80)}
-                  className="accent-park-brand-500"
-                />
-                <span className="text-sm text-park-gray-300">80mm (estandar)</span>
-              </label>
-            </div>
-          </div>
+          <RadioGroup
+            name="paperWidth"
+            label="Ancho de Papel"
+            value={String(paperWidth)}
+            onChange={(value) => setPaperWidth(Number(value) as 58 | 80)}
+            orientation="horizontal"
+            options={[
+              { value: '58', label: '58mm' },
+              { value: '80', label: '80mm (estandar)' },
+            ]}
+          />
 
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" type="button" onClick={onCancel}>
