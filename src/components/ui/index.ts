@@ -93,3 +93,26 @@ export type { MetricCardProps } from './MetricCard';
 
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
+
+// Design System — Form Components
+export { Input } from './Input';
+export type { InputProps } from './Input';
+
+export { Select } from './Select';
+export type { SelectProps, SelectOption } from './Select';
+
+export { Textarea } from './Textarea';
+export type { TextareaProps } from './Textarea';
+
+export { Checkbox } from './Checkbox';
+export type { CheckboxProps } from './Checkbox';
+
+export { Switch } from './Switch';
+export type { SwitchProps } from './Switch';
+
+export { FormField } from './FormField';
+export type { FormFieldProps } from './FormField';
+
+// Modal (centered dialog — different from DetailDrawer which slides from right)
+export { Modal } from './Modal';
+export type { ModalProps, ModalSize } from './Modal';

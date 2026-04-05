@@ -1,22 +1,29 @@
 'use client';
 
 /**
- * Reusable DataTable Component
- * Touch-friendly table with search, filters, and pagination
- * 
- * Requirements: 3.1
- * 
+ * Reusable DataTable Component — Design System Phase 2
+ *
+ * Tabla touch-friendly con busqueda, filtros y paginacion.
+ * Refactorizada para usar primitivas del Design System (Card, Button, Badge,
+ * Checkbox, EmptyState, SkeletonTable). Mantiene compatibilidad con la API previa.
+ *
  * Phase 1 Critical Review - Issue #2: DOM Weight Optimization
  * - Conditional data-testid (test env only)
- * - Prevents 30KB DOM overhead in production
- * - Maintains test functionality
  */
 
 import { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Filter, Inbox } from 'lucide-react';
+import { cn } from '@/src/lib/utils';
+import { Card } from '@/src/components/ui/Card';
+import { Button } from '@/src/components/ui/Button';
+import { Badge } from '@/src/components/ui/Badge';
+import { Checkbox } from '@/src/components/ui/Checkbox';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import { SkeletonTable } from '@/src/components/ui/Skeleton';
 
 // Determine if we're in test environment
-const isTestEnv = process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST === 'true';
+const isTestEnv =
+  process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST === 'true';
 
 export interface Column<T> {
   key: keyof T | string;
@@ -24,6 +31,8 @@ export interface Column<T> {
   render?: (item: T) => React.ReactNode;
   sortable?: boolean;
   width?: string;
+  /** Si es true, aplica tabular-nums y alinea a la derecha */
+  numeric?: boolean;
 }
 
 export interface FilterOption {
@@ -37,6 +46,12 @@ export interface FilterConfig {
   options: FilterOption[];
 }
 
+export interface BulkAction<T> {
+  label: string;
+  onClick: (selected: T[]) => void;
+  variant?: 'primary' | 'secondary' | 'destructive';
+}
+
 interface DataTableProps<T> {
   data: T[];
   columns: Column<T>[];
@@ -47,7 +62,11 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
   loading?: boolean;
   emptyMessage?: string;
-  rowTestId?: string; // Custom test ID for rows (e.g., "employee-row")
+  rowTestId?: string;
+  /** Habilita checkboxes de seleccion por fila */
+  selectable?: boolean;
+  /** Acciones masivas mostradas cuando hay filas seleccionadas */
+  bulkActions?: BulkAction<T>[];
 }
 
 export function DataTable<T extends { id: string }>({
@@ -61,33 +80,31 @@ export function DataTable<T extends { id: string }>({
   loading = false,
   emptyMessage = 'No hay datos',
   rowTestId,
+  selectable = false,
+  bulkActions = [],
 }: DataTableProps<T>) {
   const [search, setSearch] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Filter and search data
   const filteredData = useMemo(() => {
-    // Defensive: ensure data is an array
-    if (!data || !Array.isArray(data)) {
-      return [];
-    }
-    
+    if (!data || !Array.isArray(data)) return [];
+
     let result = [...data];
 
-    // Apply search
     if (search && searchKeys.length > 0) {
       const searchLower = search.toLowerCase();
       result = result.filter((item) =>
         searchKeys.some((key) => {
           const value = item[key];
           return value && String(value).toLowerCase().includes(searchLower);
-        })
+        }),
       );
     }
 
-    // Apply filters
     Object.entries(activeFilters).forEach(([key, value]) => {
       if (value) {
         result = result.filter((item) => {
@@ -115,14 +132,55 @@ export function DataTable<T extends { id: string }>({
     setPage(0);
   };
 
-  const hasActiveFilters = search || Object.values(activeFilters).some(Boolean);
+  const hasActiveFilters = Boolean(
+    search || Object.values(activeFilters).some(Boolean),
+  );
+
+  // --- Selection helpers ---
+  const selectedItems = useMemo(
+    () => data.filter((item) => selectedIds.has(item.id)),
+    [data, selectedIds],
+  );
+
+  const allVisibleSelected =
+    paginatedData.length > 0 &&
+    paginatedData.every((item) => selectedIds.has(item.id));
+  const someVisibleSelected =
+    !allVisibleSelected &&
+    paginatedData.some((item) => selectedIds.has(item.id));
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        paginatedData.forEach((item) => next.delete(item.id));
+      } else {
+        paginatedData.forEach((item) => next.add(item.id));
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  // Count extra columns (for colspan)
+  const totalCols = columns.length + (selectable ? 1 : 0);
 
   return (
     <div className="space-y-4">
       {/* Search and filter bar */}
       <div className="flex flex-col sm:flex-row gap-3" data-testid="search-filter-bar">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-park-gray-500" />
           <input
             type="text"
             value={search}
@@ -133,165 +191,339 @@ export function DataTable<T extends { id: string }>({
             placeholder={searchPlaceholder}
             data-testid="search-input"
             aria-label="Search"
-            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-zinc-700"
+            className="w-full pl-10 pr-4 py-2.5 bg-park-gray-900 border border-park-gray-800 rounded-lg text-sm text-park-gray-200 placeholder:text-park-gray-500 focus:outline-none focus:border-park-gray-700 focus-visible:ring-2 focus-visible:ring-park-brand-500"
           />
         </div>
-        
+
         {filters.length > 0 && (
           <button
             onClick={() => setShowFilters(!showFilters)}
             data-testid="filters-toggle-btn"
             aria-label={`${showFilters ? 'Hide' : 'Show'} filters`}
             aria-expanded={showFilters}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors min-h-[44px] ${
+            className={cn(
+              'flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors min-h-[44px]',
               hasActiveFilters
-                ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
-                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
-            }`}
+                ? 'bg-park-warning-subtle border-amber-500/40 text-amber-400'
+                : 'bg-park-gray-900 border-park-gray-800 text-park-gray-200 hover:border-park-gray-700',
+            )}
           >
             <Filter className="w-4 h-4" />
             <span className="text-sm">Filtros</span>
+            {hasActiveFilters && (
+              <Badge variant="warning" size="sm">
+                {Object.values(activeFilters).filter(Boolean).length +
+                  (search ? 1 : 0)}
+              </Badge>
+            )}
           </button>
         )}
       </div>
 
-      {/* Filter dropdowns */}
+      {/* Filter panel */}
       {showFilters && filters.length > 0 && (
-        <div className="flex flex-wrap gap-3 p-4 bg-zinc-900 rounded-lg border border-zinc-800" data-testid="filters-panel">
-          {filters.map((filter) => (
-            <div key={filter.key} className="flex flex-col gap-1">
-              <label className="text-xs text-zinc-500" htmlFor={`filter-${filter.key}`}>{filter.label}</label>
-              <select
-                id={`filter-${filter.key}`}
-                value={activeFilters[filter.key] || ''}
-                onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                data-testid={`filter-select-${filter.key}`}
-                aria-label={`Filter by ${filter.label}`}
-                className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm min-h-[44px]"
+        <Card padding="sm" data-testid="filters-panel">
+          <div className="flex flex-wrap gap-3 items-end">
+            {filters.map((filter) => (
+              <div key={filter.key} className="flex flex-col gap-1">
+                <label
+                  className="text-xs text-park-gray-500"
+                  htmlFor={`filter-${filter.key}`}
+                >
+                  {filter.label}
+                </label>
+                <select
+                  id={`filter-${filter.key}`}
+                  value={activeFilters[filter.key] || ''}
+                  onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                  data-testid={`filter-select-${filter.key}`}
+                  aria-label={`Filter by ${filter.label}`}
+                  className="px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm text-park-gray-200 min-h-[40px] focus:outline-none focus:border-park-gray-600"
+                >
+                  <option value="">Todos</option>
+                  {filter.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                data-testid="clear-filters-btn"
+                aria-label="Clear all filters"
               >
-                <option value="">Todos</option>
-                {filter.options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
-          
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              data-testid="clear-filters-btn"
-              aria-label="Clear all filters"
-              className="self-end px-3 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Limpiar filtros
-            </button>
+                Limpiar filtros
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Active filter chips */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap gap-2">
+          {search && (
+            <Badge variant="info" size="sm">
+              Buscar: {search}
+            </Badge>
           )}
+          {Object.entries(activeFilters)
+            .filter(([, v]) => v)
+            .map(([key, value]) => {
+              const config = filters.find((f) => f.key === key);
+              const label =
+                config?.options.find((o) => o.value === value)?.label || value;
+              return (
+                <Badge key={key} variant="info" size="sm">
+                  {config?.label}: {label}
+                </Badge>
+              );
+            })}
         </div>
       )}
 
+      {/* Bulk action bar */}
+      {selectable && selectedIds.size > 0 && (
+        <Card padding="sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-park-gray-200">
+                <span className="font-semibold tabular-nums">
+                  {selectedIds.size}
+                </span>{' '}
+                seleccionado{selectedIds.size === 1 ? '' : 's'}
+              </span>
+              <Button variant="ghost" size="sm" onClick={clearSelection}>
+                Limpiar seleccion
+              </Button>
+            </div>
+            {bulkActions.length > 0 && (
+              <div className="flex items-center gap-2">
+                {bulkActions.map((action) => (
+                  <Button
+                    key={action.label}
+                    variant={action.variant || 'secondary'}
+                    size="sm"
+                    onClick={() => action.onClick(selectedItems)}
+                  >
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-zinc-800" data-testid="data-table-container">
-        <table 
-          className="w-full"
-          data-testid="data-table"
-          role="table"
-        >
-          <thead className="bg-zinc-900" data-testid="table-header">
-            <tr role="row">
-              {columns.map((col, colIndex) => (
-                <th
-                  key={String(col.key)}
-                  className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider"
-                  style={{ width: col.width }}
-                  role="columnheader"
-                  data-testid={isTestEnv ? `column-header-${colIndex}-${String(col.key)}` : undefined}
-                  aria-label={`Column: ${col.label}`}
-                >
-                  {col.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-800" data-testid="table-body">
-            {loading ? (
-              <tr data-testid="loading-row">
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-zinc-500">
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" />
-                    Cargando...
-                  </div>
-                </td>
-              </tr>
-            ) : paginatedData.length === 0 ? (
-              <tr data-testid="empty-row">
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-zinc-500">
-                  {emptyMessage}
-                </td>
-              </tr>
-            ) : (
-              paginatedData.map((item, rowIndex) => (
-                <tr
-                  key={item.id}
-                  data-testid={rowTestId ? rowTestId : (isTestEnv ? `table-row-${rowIndex}-${item.id}` : undefined)}
-                  onClick={() => onRowClick?.(item)}
-                  className={`bg-zinc-950 hover:bg-zinc-900 transition-colors ${
-                    onRowClick ? 'cursor-pointer' : ''
-                  }`}
-                  role="row"
-                  aria-label={`Row ${rowIndex + 1}`}
-                >
-                  {columns.map((col, colIndex) => (
-                    <td 
-                      key={String(col.key)} 
-                      className="px-4 py-3 text-sm"
-                      role="cell"
-                      data-testid={isTestEnv ? `cell-${rowIndex}-${colIndex}-${item.id}-${String(col.key)}` : undefined}
-                      aria-label={`${col.label}: ${col.render ? 'rendered' : String((item as Record<string, unknown>)[col.key as string] ?? '')}`}
+      <Card padding="none" className="overflow-hidden">
+        {loading ? (
+          <SkeletonTable rows={pageSize} columns={totalCols} />
+        ) : paginatedData.length === 0 ? (
+          <EmptyState
+            icon={<Inbox />}
+            title={emptyMessage}
+            description={
+              hasActiveFilters
+                ? 'Intenta ajustar los filtros o la busqueda.'
+                : undefined
+            }
+            action={
+              hasActiveFilters
+                ? { label: 'Limpiar filtros', onClick: clearFilters }
+                : undefined
+            }
+          />
+        ) : (
+          <div className="overflow-x-auto" data-testid="data-table-container">
+            <table
+              className="w-full"
+              data-testid="data-table"
+              role="table"
+            >
+              <thead
+                className="bg-park-gray-900/50 border-b border-park-gray-800"
+                data-testid="table-header"
+              >
+                <tr role="row">
+                  {selectable && (
+                    <th
+                      className="px-4 py-3 w-10"
+                      role="columnheader"
+                      aria-label="Select all"
                     >
-                      {col.render
-                        ? col.render(item)
-                        : String((item as Record<string, unknown>)[col.key as string] ?? '')}
-                    </td>
+                      <Checkbox
+                        label=""
+                        checked={allVisibleSelected || someVisibleSelected}
+                        onChange={toggleSelectAllVisible}
+                        aria-label={
+                          allVisibleSelected
+                            ? 'Deseleccionar todo'
+                            : 'Seleccionar todo'
+                        }
+                      />
+                    </th>
+                  )}
+                  {columns.map((col, colIndex) => (
+                    <th
+                      key={String(col.key)}
+                      className={cn(
+                        'px-4 py-3 text-xs font-medium text-park-gray-400 uppercase tracking-wider',
+                        col.numeric ? 'text-right tabular-nums' : 'text-left',
+                      )}
+                      style={{ width: col.width }}
+                      role="columnheader"
+                      data-testid={
+                        isTestEnv
+                          ? `column-header-${colIndex}-${String(col.key)}`
+                          : undefined
+                      }
+                      aria-label={`Column: ${col.label}`}
+                    >
+                      {col.label}
+                    </th>
                   ))}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody data-testid="table-body">
+                {paginatedData.map((item, rowIndex) => {
+                  const isSelected = selectedIds.has(item.id);
+                  return (
+                    <tr
+                      key={item.id}
+                      data-testid={
+                        rowTestId
+                          ? rowTestId
+                          : isTestEnv
+                            ? `table-row-${rowIndex}-${item.id}`
+                            : undefined
+                      }
+                      onClick={(e) => {
+                        // Don't trigger row click when clicking on checkbox cell
+                        if (
+                          selectable &&
+                          (e.target as HTMLElement).closest(
+                            '[data-checkbox-cell]',
+                          )
+                        ) {
+                          return;
+                        }
+                        onRowClick?.(item);
+                      }}
+                      className={cn(
+                        'border-b border-park-gray-800/50 transition-colors',
+                        'hover:bg-park-gray-800/30',
+                        isSelected && 'bg-park-brand-600/5',
+                        onRowClick ? 'cursor-pointer' : '',
+                      )}
+                      role="row"
+                      aria-label={`Row ${rowIndex + 1}`}
+                      aria-selected={selectable ? isSelected : undefined}
+                    >
+                      {selectable && (
+                        <td
+                          className="px-4 py-3 w-10"
+                          data-checkbox-cell
+                          role="cell"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            label=""
+                            checked={isSelected}
+                            onChange={() => toggleSelectOne(item.id)}
+                          />
+                        </td>
+                      )}
+                      {columns.map((col, colIndex) => (
+                        <td
+                          key={String(col.key)}
+                          className={cn(
+                            'px-4 py-3 text-sm text-park-gray-200',
+                            col.numeric && 'text-right tabular-nums',
+                          )}
+                          role="cell"
+                          data-testid={
+                            isTestEnv
+                              ? `cell-${rowIndex}-${colIndex}-${item.id}-${String(col.key)}`
+                              : undefined
+                          }
+                          aria-label={`${col.label}: ${
+                            col.render
+                              ? 'rendered'
+                              : String(
+                                  (item as Record<string, unknown>)[
+                                    col.key as string
+                                  ] ?? '',
+                                )
+                          }`}
+                        >
+                          {col.render
+                            ? col.render(item)
+                            : String(
+                                (item as Record<string, unknown>)[
+                                  col.key as string
+                                ] ?? '',
+                              )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between" data-testid="pagination-controls">
-          <p className="text-sm text-zinc-500" data-testid="pagination-info">
-            Mostrando {page * pageSize + 1}-{Math.min((page + 1) * pageSize, filteredData.length)} de{' '}
+      {totalPages > 1 && !loading && (
+        <div
+          className="flex items-center justify-between"
+          data-testid="pagination-controls"
+        >
+          <p
+            className="text-sm text-park-gray-400 tabular-nums"
+            data-testid="pagination-info"
+          >
+            Mostrando {page * pageSize + 1}-
+            {Math.min((page + 1) * pageSize, filteredData.length)} de{' '}
             {filteredData.length}
           </p>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
               data-testid="pagination-prev-btn"
               aria-label="Previous page"
-              className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px]"
+              icon={<ChevronLeft className="w-4 h-4" />}
             >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-sm text-zinc-400" data-testid="pagination-current">
+              <span className="sr-only">Anterior</span>
+            </Button>
+            <span
+              className="text-sm text-park-gray-400 tabular-nums px-2"
+              data-testid="pagination-current"
+            >
               {page + 1} / {totalPages}
             </span>
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               data-testid="pagination-next-btn"
               aria-label="Next page"
-              className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px]"
+              icon={<ChevronRight className="w-4 h-4" />}
             >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+              <span className="sr-only">Siguiente</span>
+            </Button>
           </div>
         </div>
       )}
