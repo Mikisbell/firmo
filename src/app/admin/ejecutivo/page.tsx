@@ -23,7 +23,7 @@ import type {
   OperationalAlert,
   DataSourceStatus,
 } from '@/src/core/types/executive-dashboard';
-import { Button, Card, MetricCard, PageHeader } from '@/src/components/ui';
+import { Button, Card, MetricCard, PageHeader, ToggleGroup } from '@/src/components/ui';
 
 const LazyHourlySalesChart = lazy(() => import('./components/HourlySalesChart'));
 const LazyPaymentDonut = lazy(() => import('./components/PaymentDonut'));
@@ -67,26 +67,18 @@ function PeriodSelector({
   value: PeriodRange;
   onChange: (p: PeriodRange) => void;
 }) {
-  const presets: { key: PeriodPreset; label: string }[] = [
-    { key: 'today', label: 'Hoy' },
-    { key: 'week', label: 'Semana' },
-    { key: 'month', label: 'Mes' },
-  ];
-
   return (
     <div className="flex items-center gap-2">
-      {presets.map((p) => (
-        <Button
-          key={p.key}
-          variant={value.preset === p.key ? 'primary' : 'secondary'}
-          size="sm"
-          onClick={() =>
-            onChange({ preset: p.key, ...getPeriodDates(p.key) })
-          }
-        >
-          {p.label}
-        </Button>
-      ))}
+      <ToggleGroup
+        value={value.preset ?? 'custom'}
+        onChange={(v) => onChange({ preset: v as PeriodPreset, ...getPeriodDates(v as PeriodPreset) })}
+        options={[
+          { value: 'today', label: 'Hoy' },
+          { value: 'week', label: 'Semana' },
+          { value: 'month', label: 'Mes' },
+        ]}
+        size="sm"
+      />
       <div className="flex items-center gap-1 ml-2">
         <input
           type="date"
@@ -97,7 +89,7 @@ function PeriodSelector({
           }
           className="bg-park-gray-800 border border-park-gray-700 rounded-lg px-2 py-1.5 text-sm text-park-gray-300"
         />
-        <span className="text-park-gray-400 text-sm">—</span>
+        <span className="text-park-gray-400 text-sm">&mdash;</span>
         <input
           type="date"
           value={value.end}

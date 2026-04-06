@@ -32,6 +32,12 @@ import {
   Dropdown,
   DatePicker,
   FileUpload,
+  ToggleGroup,
+  Accordion,
+  Popover,
+  Stepper,
+  ConfirmDialog,
+  RadioGroup,
 } from '@/src/components/ui';
 import {
   Plus,
@@ -51,6 +57,13 @@ import {
   Eye,
   Download,
   Share2,
+  CalendarDays,
+  BarChart3,
+  Info,
+  Settings,
+  Bell,
+  Shield,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -122,6 +135,20 @@ export default function DesignSystemPage() {
   const [dateBasic, setDateBasic] = useState<string>('');
   const [dateWithHint, setDateWithHint] = useState<string>('');
   const [dateWithError, setDateWithError] = useState<string>('');
+
+  // ToggleGroup demo state
+  const [togglePeriod, setTogglePeriod] = useState('today');
+  const [toggleView, setToggleView] = useState('list');
+
+  // ConfirmDialog demo state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmDestructiveOpen, setConfirmDestructiveOpen] = useState(false);
+
+  // RadioGroup demo state
+  const [radioValue, setRadioValue] = useState('CASHIER');
+
+  // Stepper demo state
+  const [stepperCurrent, setStepperCurrent] = useState(1);
 
   // FileUpload demo state
   const [fakeUploading, setFakeUploading] = useState(false);
@@ -1017,6 +1044,322 @@ export default function DesignSystemPage() {
             <p className="text-xs text-park-gray-500">
               Estado simulado: {fakeUploading ? 'subiendo...' : 'en espera'}
             </p>
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── 20. Grupo de Opciones (ToggleGroup) ── */}
+      <Section title="Grupo de Opciones (ToggleGroup)">
+        <Row label="Selector de periodo">
+          <ToggleGroup
+            value={togglePeriod}
+            onChange={setTogglePeriod}
+            options={[
+              { value: 'today', label: 'Hoy' },
+              { value: 'week', label: 'Semana' },
+              { value: 'month', label: 'Mes' },
+            ]}
+          />
+          <span className="text-xs text-park-gray-500">
+            Seleccionado: <code className="text-park-brand-500">{togglePeriod}</code>
+          </span>
+        </Row>
+
+        <Row label="Con iconos y tamano sm">
+          <ToggleGroup
+            value={toggleView}
+            onChange={setToggleView}
+            size="sm"
+            options={[
+              { value: 'list', label: 'Lista', icon: <BarChart3 className="h-4 w-4" /> },
+              { value: 'grid', label: 'Cuadricula', icon: <Package className="h-4 w-4" /> },
+              { value: 'calendar', label: 'Calendario', icon: <CalendarDays className="h-4 w-4" /> },
+            ]}
+          />
+          <span className="text-xs text-park-gray-500">
+            Seleccionado: <code className="text-park-brand-500">{toggleView}</code>
+          </span>
+        </Row>
+      </Section>
+
+      {/* ── 21. Acordeon ── */}
+      <Section title="Acordeon">
+        <Row label="Modo exclusivo (solo un item abierto)">
+          <div className="w-full">
+            <Accordion
+              items={[
+                {
+                  id: 'general',
+                  title: 'Configuracion General',
+                  icon: <Settings className="h-4 w-4" />,
+                  content: (
+                    <p>Ajustes basicos del sistema: nombre del negocio, zona horaria, moneda y formato de fecha.</p>
+                  ),
+                },
+                {
+                  id: 'notifications',
+                  title: 'Notificaciones',
+                  icon: <Bell className="h-4 w-4" />,
+                  content: (
+                    <p>Configura alertas por email, push o SMS para eventos criticos como stock bajo o cierre de turno.</p>
+                  ),
+                },
+                {
+                  id: 'security',
+                  title: 'Seguridad',
+                  icon: <Shield className="h-4 w-4" />,
+                  content: (
+                    <p>Politicas de contrasenas, sesiones activas, 2FA y logs de auditoria.</p>
+                  ),
+                },
+              ]}
+              defaultOpen={['general']}
+            />
+          </div>
+        </Row>
+
+        <Row label="Modo multiple (varios abiertos a la vez)">
+          <div className="w-full">
+            <Accordion
+              allowMultiple
+              items={[
+                {
+                  id: 'faq1',
+                  title: 'Como agrego un producto?',
+                  content: (
+                    <p>Ve a Productos, clickea &quot;Nuevo Producto&quot;, completa nombre, precio y categoria.</p>
+                  ),
+                },
+                {
+                  id: 'faq2',
+                  title: 'Como configuro las impresoras?',
+                  content: (
+                    <p>En Impresoras, agrega una nueva impresora termica con su IP, puerto y ancho de papel.</p>
+                  ),
+                },
+                {
+                  id: 'faq3',
+                  title: 'Como exporto reportes?',
+                  content: (
+                    <p>Desde cualquier reporte, usa los botones Excel, CSV o PDF en la barra de acciones.</p>
+                  ),
+                },
+              ]}
+              defaultOpen={['faq1', 'faq2']}
+            />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── 22. Popover ── */}
+      <Section title="Popover">
+        <Row label="Modo click (por defecto)">
+          <Popover
+            trigger={
+              <Button variant="secondary" icon={<Info className="h-4 w-4" />}>
+                Ver detalles
+              </Button>
+            }
+            side="bottom"
+            align="start"
+          >
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-white">Informacion adicional</p>
+              <p className="text-xs text-park-gray-400">
+                Este popover se abre al hacer click y se cierra con click fuera o Escape.
+              </p>
+              <div className="flex justify-between text-xs">
+                <span className="text-park-gray-400">Ventas hoy</span>
+                <span className="text-white tabular-nums">S/ 1,250.00</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-park-gray-400">Ordenes</span>
+                <span className="text-white tabular-nums">47</span>
+              </div>
+            </div>
+          </Popover>
+        </Row>
+
+        <Row label="Modo hover">
+          <Popover
+            trigger={
+              <span className="text-sm text-park-brand-500 underline decoration-dotted underline-offset-4 cursor-help">
+                Pasa el mouse aqui
+              </span>
+            }
+            triggerMode="hover"
+            side="right"
+            align="center"
+          >
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-white">Tooltip enriquecido</p>
+              <p className="text-xs text-park-gray-400">
+                A diferencia de Tooltip, Popover acepta JSX completo: listas, botones, tablas, etc.
+              </p>
+              <Button variant="ghost" size="sm" onClick={notify('Accion dentro del popover')}>
+                Accion interna
+              </Button>
+            </div>
+          </Popover>
+        </Row>
+
+        <Row label="Posiciones">
+          <div className="flex gap-4 items-center">
+            <Popover trigger={<Button variant="ghost" size="sm">Arriba</Button>} side="top" align="center">
+              <p className="text-xs text-park-gray-300">side=&quot;top&quot;</p>
+            </Popover>
+            <Popover trigger={<Button variant="ghost" size="sm">Abajo</Button>} side="bottom" align="center">
+              <p className="text-xs text-park-gray-300">side=&quot;bottom&quot;</p>
+            </Popover>
+            <Popover trigger={<Button variant="ghost" size="sm">Izquierda</Button>} side="left" align="center">
+              <p className="text-xs text-park-gray-300">side=&quot;left&quot;</p>
+            </Popover>
+            <Popover trigger={<Button variant="ghost" size="sm">Derecha</Button>} side="right" align="center">
+              <p className="text-xs text-park-gray-300">side=&quot;right&quot;</p>
+            </Popover>
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── 23. Stepper ── */}
+      <Section title="Stepper (Indicador de Pasos)">
+        <Row label="Horizontal (por defecto)">
+          <div className="w-full">
+            <Stepper
+              currentStep={stepperCurrent}
+              steps={[
+                { label: 'Datos basicos', description: 'Nombre y categoria' },
+                { label: 'Precio y stock', description: 'Costos e inventario' },
+                { label: 'Estaciones', description: 'KDS y preparacion' },
+                { label: 'Confirmacion', description: 'Revisar y guardar' },
+              ]}
+            />
+            <div className="flex gap-2 mt-4">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={stepperCurrent === 0}
+                onClick={() => setStepperCurrent((s) => Math.max(0, s - 1))}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={stepperCurrent === 3}
+                onClick={() => setStepperCurrent((s) => Math.min(3, s + 1))}
+              >
+                Siguiente
+              </Button>
+              <span className="text-xs text-park-gray-500 self-center ml-2">
+                Paso {stepperCurrent + 1} de 4
+              </span>
+            </div>
+          </div>
+        </Row>
+
+        <Row label="Vertical">
+          <div className="w-full max-w-sm">
+            <Stepper
+              orientation="vertical"
+              currentStep={2}
+              steps={[
+                { label: 'Pedido recibido', description: 'Orden #1234' },
+                { label: 'En preparacion', description: 'Cocina y parrilla' },
+                { label: 'Listo para servir', description: 'Esperando mesero' },
+                { label: 'Entregado', description: 'Confirmacion del cliente' },
+              ]}
+            />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── 24. Confirmar Accion (ConfirmDialog) ── */}
+      <Section title="Confirmar Accion (ConfirmDialog)">
+        <Row label="Variantes">
+          <Button variant="primary" onClick={() => setConfirmOpen(true)}>
+            Confirmar accion
+          </Button>
+          <Button variant="destructive" onClick={() => setConfirmDestructiveOpen(true)}>
+            Eliminar registro
+          </Button>
+        </Row>
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={async () => {
+            await new Promise((r) => setTimeout(r, 800));
+            toast.success('Accion confirmada');
+          }}
+          title="Confirmar operacion"
+          description="Estas seguro de que deseas continuar con esta operacion? Los cambios se aplicaran inmediatamente."
+        />
+
+        <ConfirmDialog
+          open={confirmDestructiveOpen}
+          onClose={() => setConfirmDestructiveOpen(false)}
+          onConfirm={async () => {
+            await new Promise((r) => setTimeout(r, 800));
+            toast.success('Registro eliminado');
+          }}
+          title="Eliminar registro"
+          description="Esta accion no se puede deshacer. Se eliminaran todos los datos asociados permanentemente."
+          variant="destructive"
+          confirmLabel="Eliminar"
+        />
+      </Section>
+
+      {/* ── 25. Radio Group ── */}
+      <Section title="Radio Group">
+        <Row label="Vertical (por defecto)">
+          <div className="w-full max-w-sm">
+            <RadioGroup
+              name="role-demo"
+              label="Rol del empleado"
+              value={radioValue}
+              onChange={setRadioValue}
+              options={[
+                { value: 'ADMIN', label: 'Administrador', description: 'Acceso total al sistema' },
+                { value: 'CASHIER', label: 'Cajero', description: 'Acceso al POS y caja' },
+                { value: 'WAITER', label: 'Mesero', description: 'Tomar ordenes y servir' },
+                { value: 'KITCHEN', label: 'Cocina', description: 'Solo pantalla KDS' },
+              ]}
+            />
+          </div>
+        </Row>
+
+        <Row label="Horizontal">
+          <div className="w-full">
+            <RadioGroup
+              name="paper-demo"
+              label="Ancho de papel"
+              value="80"
+              onChange={() => {}}
+              orientation="horizontal"
+              options={[
+                { value: '58', label: '58mm' },
+                { value: '80', label: '80mm (estandar)' },
+              ]}
+            />
+          </div>
+        </Row>
+
+        <Row label="Con error y opcion deshabilitada">
+          <div className="w-full max-w-sm">
+            <RadioGroup
+              name="method-demo"
+              label="Metodo de pago"
+              value=""
+              onChange={() => {}}
+              error="Selecciona un metodo de pago"
+              options={[
+                { value: 'CASH', label: 'Efectivo' },
+                { value: 'YAPE', label: 'Yape' },
+                { value: 'PLIN', label: 'Plin' },
+                { value: 'CARD', label: 'Tarjeta', disabled: true },
+              ]}
+            />
           </div>
         </Row>
       </Section>

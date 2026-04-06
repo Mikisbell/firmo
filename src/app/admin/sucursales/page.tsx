@@ -20,7 +20,7 @@ import {
   AlertCircle,
   BarChart3,
 } from 'lucide-react';
-import { Button, Card, PageHeader, MetricCard } from '@/src/components/ui';
+import { Button, Card, PageHeader, MetricCard, ToggleGroup } from '@/src/components/ui';
 
 type Period = 'today' | 'week' | 'month';
 
@@ -115,21 +115,16 @@ export default function SucursalesPage() {
         title="Sucursales"
         description="Comparativa de metricas por sede"
         actions={
-          <div className="flex bg-park-gray-900 border border-park-gray-800 rounded-lg p-0.5">
-          {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                period === p
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                  : 'text-park-gray-500 hover:text-park-gray-300 border border-transparent'
-              }`}
-            >
-              {PERIOD_LABELS[p]}
-            </button>
-          ))}
-        </div>
+          <ToggleGroup
+            value={period}
+            onChange={(v) => setPeriod(v as Period)}
+            options={[
+              { value: 'today', label: 'Hoy' },
+              { value: 'week', label: 'Ultima semana' },
+              { value: 'month', label: 'Ultimo mes' },
+            ]}
+            size="sm"
+          />
         }
       />
 

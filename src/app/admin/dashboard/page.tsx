@@ -45,6 +45,8 @@ import {
   PageHeader,
   EmptyState,
   SkeletonPage,
+  ToggleGroup,
+  Popover,
 } from '@/src/components/ui';
 import { useQueryState } from '@/src/hooks/useQueryState';
 
@@ -315,19 +317,16 @@ export default function AnalyticsDashboardPage() {
         }
       />
 
-      {/* Period Selector (tabs) */}
-      <div className="flex items-center gap-2">
-        {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
-          <Button
-            key={p}
-            variant={period === p ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={() => setPeriod(p)}
-          >
-            {PERIOD_LABELS[p]}
-          </Button>
-        ))}
-      </div>
+      {/* Period Selector */}
+      <ToggleGroup
+        value={period}
+        onChange={(v) => setPeriod(v as Period)}
+        options={[
+          { value: 'today', label: 'Hoy' },
+          { value: 'week', label: 'Ultima semana' },
+          { value: 'month', label: 'Ultimo mes' },
+        ]}
+      />
 
       {error && (
         <Card padding="sm">
@@ -345,32 +344,74 @@ export default function AnalyticsDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          label={period === 'today' ? 'Ventas del Turno' : 'Ventas del Periodo'}
-          value={metrics ? formatCurrency(metrics.total_sales_cents) : 'S/ 0.00'}
-          trend={
-            comparison?.delta_percent.total_sales != null
-              ? {
-                  value: Number(comparison.delta_percent.total_sales.toFixed(1)),
-                  isPositive: comparison.delta_percent.total_sales >= 0,
+        <Popover
+          trigger={
+            <div className="cursor-pointer">
+              <MetricCard
+                label={period === 'today' ? 'Ventas del Turno' : 'Ventas del Periodo'}
+                value={metrics ? formatCurrency(metrics.total_sales_cents) : 'S/ 0.00'}
+                trend={
+                  comparison?.delta_percent.total_sales != null
+                    ? {
+                        value: Number(comparison.delta_percent.total_sales.toFixed(1)),
+                        isPositive: comparison.delta_percent.total_sales >= 0,
+                      }
+                    : undefined
                 }
-              : undefined
+                icon={<DollarSign className="w-5 h-5" />}
+              />
+            </div>
           }
-          icon={<DollarSign className="w-5 h-5" />}
-        />
-        <MetricCard
-          label="Órdenes"
-          value={metrics?.orders_count?.toString() || '0'}
-          trend={
-            comparison?.delta_percent.orders_count != null
-              ? {
-                  value: Number(comparison.delta_percent.orders_count.toFixed(1)),
-                  isPositive: comparison.delta_percent.orders_count >= 0,
+          side="bottom"
+          align="start"
+        >
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-white">Desglose por metodo de pago</p>
+            {metrics?.sales_by_payment_method && Object.entries(metrics.sales_by_payment_method).map(([method, cents]) => (
+              <div key={method} className="flex justify-between text-xs">
+                <span className="text-park-gray-400">{method}</span>
+                <span className="text-white tabular-nums">{formatCurrency(cents)}</span>
+              </div>
+            ))}
+          </div>
+        </Popover>
+        <Popover
+          trigger={
+            <div className="cursor-pointer">
+              <MetricCard
+                label="Ordenes"
+                value={metrics?.orders_count?.toString() || '0'}
+                trend={
+                  comparison?.delta_percent.orders_count != null
+                    ? {
+                        value: Number(comparison.delta_percent.orders_count.toFixed(1)),
+                        isPositive: comparison.delta_percent.orders_count >= 0,
+                      }
+                    : undefined
                 }
-              : undefined
+                icon={<ShoppingCart className="w-5 h-5" />}
+              />
+            </div>
           }
-          icon={<ShoppingCart className="w-5 h-5" />}
-        />
+          side="bottom"
+          align="start"
+        >
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-white">Detalle de ordenes</p>
+            <div className="flex justify-between text-xs">
+              <span className="text-park-gray-400">Mesas ocupadas</span>
+              <span className="text-white tabular-nums">{metrics?.tables_occupied ?? 0}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-park-gray-400">Mesas libres</span>
+              <span className="text-white tabular-nums">{metrics?.tables_free ?? 0}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-park-gray-400">Rotacion de mesas</span>
+              <span className="text-white tabular-nums">{metrics?.table_turnover?.toFixed(1) ?? '0.0'}</span>
+            </div>
+          </div>
+        </Popover>
         <MetricCard
           label="Ticket Promedio"
           value={metrics ? formatCurrency(metrics.avg_ticket_cents) : 'S/ 0.00'}
@@ -385,7 +426,7 @@ export default function AnalyticsDashboardPage() {
           icon={<TrendingUp className="w-5 h-5" />}
         />
         <MetricCard
-          label="Órdenes/Hora"
+          label="Ordenes/Hora"
           value={metrics?.orders_per_hour?.toFixed(1) || '0.0'}
           icon={<Percent className="w-5 h-5" />}
         />

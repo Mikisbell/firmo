@@ -21,7 +21,7 @@ const nextConfig = {
     // Code Splitting Optimization
     experimental: {
         // Enable optimized package imports for better code splitting
-        optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-icons', 'framer-motion'],
+        optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-icons', 'framer-motion', 'sonner'],
     },
     
     // Webpack configuration for code splitting

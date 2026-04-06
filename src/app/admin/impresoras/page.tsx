@@ -17,7 +17,7 @@ import {
   Globe,
   Usb,
 } from 'lucide-react';
-import { Button, Badge, Card, PageHeader, EmptyState, RadioGroup } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, RadioGroup, Popover } from '@/src/components/ui';
 import { Tooltip } from '@/src/components/ui/Tooltip';
 
 // ============================================================================
@@ -252,7 +252,41 @@ export default function PrintersPage() {
                   const ConnIcon = conn.icon;
                   return (
                     <tr key={printer.id} className={`border-b border-park-gray-800/50 hover:bg-park-gray-800/30 transition-colors ${!printer.isActive ? 'opacity-60' : ''}`}>
-                      <td className="px-4 py-3 font-medium text-white">{printer.name}</td>
+                      <td className="px-4 py-3 font-medium text-white">
+                        <Popover
+                          trigger={
+                            <button type="button" className="text-left hover:text-park-brand-400 transition-colors underline decoration-dotted underline-offset-4">
+                              {printer.name}
+                            </button>
+                          }
+                          side="right"
+                          align="start"
+                        >
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-white">{printer.name}</p>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-park-gray-400">Conexion</span>
+                              <span className="text-white">{printer.connectionType}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-park-gray-400">Direccion</span>
+                              <span className="text-white font-mono">{(printer.connection as any)?.address || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-park-gray-400">Ancho papel</span>
+                              <span className="text-white">{printer.paperWidth}mm</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-park-gray-400">Estacion</span>
+                              <span className="text-white">{printer.stationName || printer.stationCode}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-park-gray-400">Trabajos pendientes</span>
+                              <span className="text-white tabular-nums">{printer.pendingJobs}</span>
+                            </div>
+                          </div>
+                        </Popover>
+                      </td>
                       <td className="px-4 py-3">
                         <Badge variant="neutral">
                           {printer.stationName || printer.stationCode}

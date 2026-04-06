@@ -19,8 +19,16 @@ import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
 import AdminLoginScreen from './components/AdminLoginScreen';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
-import { CommandPalette } from '@/src/components/ui/CommandPalette';
-import { KeyboardShortcuts } from '@/src/components/ui/KeyboardShortcuts';
+import dynamic from 'next/dynamic';
+
+const CommandPalette = dynamic(
+  () => import('@/src/components/ui/CommandPalette').then(m => ({ default: m.CommandPalette })),
+  { ssr: false }
+);
+const KeyboardShortcuts = dynamic(
+  () => import('@/src/components/ui/KeyboardShortcuts').then(m => ({ default: m.KeyboardShortcuts })),
+  { ssr: false }
+);
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TenantBrandingProvider } from '@/src/core/tenant/branding-context';
 import { swrGlobalConfig } from '@/src/lib/swr-config';
