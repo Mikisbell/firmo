@@ -7,13 +7,13 @@
  */
 
 import { useState } from 'react';
-import { Plus, Edit2, Trash2, Calculator, ChefHat } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calculator, ChefHat, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRecipes } from '@/src/hooks/useRecipes';
 import { motion, AnimatePresence } from 'framer-motion';
 import RecipeModal from './components/RecipeModal';
 import { Button, Badge, Card, PageHeader, EmptyState } from '@/src/components/ui';
-import { Tooltip } from '@/src/components/ui/Tooltip';
+import { Dropdown } from '@/src/components/ui/Dropdown';
 
 interface Recipe {
   id: string;
@@ -230,35 +230,17 @@ export default function RecetasPage() {
                         {formatCost(recipe.cost_cents)}
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center justify-center gap-1">
-                          <Tooltip content="Recalcular costo">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              icon={<Calculator className="w-4 h-4 text-emerald-400" />}
-                              onClick={() => handleCalculateCost(recipe.id)}
-                              title="Recalcular costo"
-                            />
-                          </Tooltip>
-                          <Tooltip content="Editar">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              icon={<Edit2 className="w-4 h-4" />}
-                              onClick={() => { setEditingRecipe(recipe); setShowModal(true); }}
-                              title="Editar"
-                            />
-                          </Tooltip>
-                          <Tooltip content="Desactivar">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              icon={<Trash2 className="w-4 h-4 text-red-400" />}
-                              onClick={() => handleDeactivate(recipe.id)}
-                              title="Desactivar"
-                              className="hover:bg-red-900/30"
-                            />
-                          </Tooltip>
+                        <div className="flex items-center justify-center">
+                          <Dropdown
+                            align="end"
+                            trigger={<Button variant="ghost" size="sm" icon={<MoreVertical size={16} />} aria-label="Acciones" />}
+                            items={[
+                              { label: 'Recalcular costo', icon: <Calculator size={14} />, onClick: () => handleCalculateCost(recipe.id) },
+                              { label: 'Editar', icon: <Edit2 size={14} />, onClick: () => { setEditingRecipe(recipe); setShowModal(true); } },
+                              { separator: true, label: '' },
+                              { label: 'Desactivar', icon: <Trash2 size={14} />, variant: 'destructive', onClick: () => handleDeactivate(recipe.id) },
+                            ]}
+                          />
                         </div>
                       </td>
                     </motion.tr>

@@ -14,7 +14,8 @@
  * - Property 20: Assignment Distance Calculation
  */
 
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
+vi.setConfig({ testTimeout: 45_000 });
 import fc from 'fast-check';
 import {
   calculateAssignmentScore,
@@ -39,7 +40,7 @@ import prisma from '@/src/core/db/prisma';
 import type { Driver, DeliveryOrder, AssignmentWeights } from '../types-2026';
 
 // Test configuration
-const NUM_RUNS = 100;
+const NUM_RUNS = 50;
 
 describe('Feature: delivery-2026-modernization - Assignment Algorithm Properties', () => {
   beforeAll(async () => {

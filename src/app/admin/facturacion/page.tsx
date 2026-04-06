@@ -10,7 +10,7 @@
  */
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   FileText,
   Search,
@@ -23,6 +23,7 @@ import {
   Settings,
   CalendarDays,
   ShieldAlert,
+  MoreVertical,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInvoices, useInvoiceStats, useSunatContingency } from '@/src/hooks/useFacturacion';
@@ -30,6 +31,7 @@ import ConfiguracionTab from './configuracion-tab';
 import ResumenesTab from './resumenes-tab';
 import ContingenciaTab from './contingencia-tab';
 import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Select, Input, Tabs, TabsContent, Alert, Pagination } from '@/src/components/ui';
+import { Dropdown, DropdownItem } from '@/src/components/ui/Dropdown';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 function centsToSoles(cents: number): string {
@@ -107,6 +109,7 @@ const STATUS_BADGE_MAP: Record<string, 'success' | 'critical' | 'warning' | 'neu
 };
 
 function ComprobantesTab() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -259,32 +262,19 @@ function ComprobantesTab() {
                       {new Date(inv.created_at).toLocaleDateString('es-PE')}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Link
-                          href={`/admin/facturacion/${inv.id}`}
-                          className="p-1.5 hover:bg-park-gray-800 rounded text-park-gray-400 hover:text-white transition-colors"
-                          title="Ver detalle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <a
-                          href={`/api/admin/facturacion/${inv.id}/pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 hover:bg-park-gray-800 rounded text-park-gray-400 hover:text-white transition-colors"
-                          title="Descargar PDF"
-                        >
-                          <Download className="w-4 h-4" />
-                        </a>
-                        {inv.status === 'ISSUED' && (
-                          <button
-                            onClick={() => handleVoid(inv.id)}
-                            className="p-1.5 hover:bg-red-600/20 rounded text-park-gray-400 hover:text-red-400 transition-colors"
-                            title="Anular"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                        )}
+                      <div className="flex items-center justify-center">
+                        <Dropdown
+                          align="end"
+                          trigger={<Button variant="ghost" size="sm" icon={<MoreVertical size={16} />} aria-label="Acciones" />}
+                          items={[
+                            { label: 'Ver detalle', icon: <Eye size={14} />, onClick: () => router.push(`/admin/facturacion/${inv.id}`) },
+                            { label: 'Descargar PDF', icon: <Download size={14} />, onClick: () => window.open(`/api/admin/facturacion/${inv.id}/pdf`, '_blank') },
+                            ...(inv.status === 'ISSUED' ? [
+                              { separator: true, label: '' } as DropdownItem,
+                              { label: 'Anular', icon: <XCircle size={14} />, variant: 'destructive' as const, onClick: () => handleVoid(inv.id) },
+                            ] : []),
+                          ]}
+                        />
                       </div>
                     </td>
                   </tr>

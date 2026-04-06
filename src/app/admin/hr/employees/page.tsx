@@ -9,11 +9,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Check, X, Shield, UserX, Eye, Search } from 'lucide-react';
+import { Plus, Edit2, Check, X, Shield, UserX, Eye, Search, MoreVertical } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../../components/DataTable';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { toast } from 'sonner';
-import { Button, Badge, PageHeader, Tooltip, Breadcrumbs, Avatar } from '@/src/components/ui';
+import { Button, Badge, PageHeader, Breadcrumbs, Avatar } from '@/src/components/ui';
+import { Dropdown } from '@/src/components/ui/Dropdown';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -189,46 +190,19 @@ export default function HREmployeesPage() {
     {
       key: 'actions',
       label: '',
-      width: '120px',
+      width: '60px',
       render: (e) => (
-        <div className="flex items-center gap-1">
-          <Tooltip content="Ver detalles">
-            <button
-              onClick={(ev) => {
-                ev.stopPropagation();
-                router.push(`/admin/hr/employees/${e.id}`);
-              }}
-              className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors inline-flex"
-              aria-label="Ver detalles"
-            >
-              <Eye className="w-4 h-4 text-park-gray-400" />
-            </button>
-          </Tooltip>
-          <Tooltip content="Editar">
-            <button
-              onClick={(ev) => {
-                ev.stopPropagation();
-                router.push(`/admin/hr/employees/${e.id}/edit`);
-              }}
-              className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors inline-flex"
-              aria-label="Editar"
-            >
-              <Edit2 className="w-4 h-4 text-park-gray-400" />
-            </button>
-          </Tooltip>
-          <Tooltip content={e.is_active ? 'Desactivar' : 'Reactivar'}>
-            <button
-              onClick={(ev) => {
-                ev.stopPropagation();
-                handleDeactivate(e);
-              }}
-              disabled={deactivating === e.id}
-              className="p-2 rounded-lg hover:bg-park-gray-800 transition-colors disabled:opacity-50 inline-flex"
-              aria-label={e.is_active ? 'Desactivar' : 'Reactivar'}
-            >
-              <UserX className={`w-4 h-4 ${e.is_active ? 'text-red-400' : 'text-green-400'}`} />
-            </button>
-          </Tooltip>
+        <div onClick={(ev) => ev.stopPropagation()}>
+          <Dropdown
+            align="end"
+            trigger={<Button variant="ghost" size="sm" icon={<MoreVertical size={16} />} aria-label="Acciones" />}
+            items={[
+              { label: 'Ver detalles', icon: <Eye size={14} />, onClick: () => router.push(`/admin/hr/employees/${e.id}`) },
+              { label: 'Editar', icon: <Edit2 size={14} />, onClick: () => router.push(`/admin/hr/employees/${e.id}/edit`) },
+              { separator: true, label: '' },
+              { label: e.is_active ? 'Desactivar' : 'Reactivar', icon: <UserX size={14} />, variant: e.is_active ? 'destructive' : 'default', onClick: () => handleDeactivate(e), disabled: deactivating === e.id },
+            ]}
+          />
         </div>
       ),
     },

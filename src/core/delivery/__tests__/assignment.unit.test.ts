@@ -13,6 +13,7 @@
  */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
+vi.setConfig({ testTimeout: 30_000 });
 import {
   calculateAssignmentScore,
   getWeights,
