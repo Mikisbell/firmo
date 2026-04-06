@@ -8,11 +8,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Rate limiting configuration
+// Rate limiting configuration (per IP per minute)
 const RATE_LIMIT = {
   windowMs: 60 * 1000, // 1 minute
-  maxRequests: 100, // Max 100 requests per minute
-  maxAuthRequests: 30, // Max 30 auth requests per minute
+  maxRequests: 100, // Max 100 requests per minute (general API)
+  maxAuthRequests: 10, // Max 10 auth requests per minute (login, check-dni — brute force protection)
+  maxSearchRequests: 30, // Max 30 search requests per minute (Cmd+K — scraping protection)
 };
 
 // In-memory storage for development (use Redis in production)
@@ -29,12 +30,28 @@ function getClientIdentifier(request: NextRequest): string {
   return ip;
 }
 
-function isRateLimited(identifier: string, isAuthRoute = false): boolean {
+type RouteCategory = 'auth' | 'search' | 'api';
+
+function getRouteCategory(pathname: string): RouteCategory {
+  if (pathname.startsWith('/api/auth')) return 'auth';
+  if (pathname.startsWith('/api/admin/search')) return 'search';
+  return 'api';
+}
+
+function getMaxRequests(category: RouteCategory): number {
+  switch (category) {
+    case 'auth': return RATE_LIMIT.maxAuthRequests;
+    case 'search': return RATE_LIMIT.maxSearchRequests;
+    case 'api': return RATE_LIMIT.maxRequests;
+  }
+}
+
+function isRateLimited(identifier: string, category: RouteCategory): boolean {
   const now = Date.now();
-  const key = `${identifier}:${isAuthRoute ? 'auth' : 'api'}`;
-  
+  const key = `${identifier}:${category}`;
+
   const record = rateLimitStore.get(key);
-  const maxRequests = isAuthRoute ? RATE_LIMIT.maxAuthRequests : RATE_LIMIT.maxRequests;
+  const maxRequests = getMaxRequests(category);
   
   if (!record || now > record.resetTime) {
     // New window or expired window
@@ -53,10 +70,10 @@ function isRateLimited(identifier: string, isAuthRoute = false): boolean {
   return false;
 }
 
-function getRateLimitHeaders(identifier: string, isAuthRoute = false): Record<string, string> {
-  const key = `${identifier}:${isAuthRoute ? 'auth' : 'api'}`;
+function getRateLimitHeaders(identifier: string, category: RouteCategory): Record<string, string> {
+  const key = `${identifier}:${category}`;
   const record = rateLimitStore.get(key);
-  const maxRequests = isAuthRoute ? RATE_LIMIT.maxAuthRequests : RATE_LIMIT.maxRequests;
+  const maxRequests = getMaxRequests(category);
   
   if (!record) {
     return {
@@ -80,17 +97,17 @@ export async function rateLimitMiddleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const identifier = getClientIdentifier(request);
   
-  // Check if this is an API route
-  const isApiRoute = pathname.startsWith('/api/');
-  const isAuthRoute = pathname.startsWith('/api/auth');
-  
-  if (!isApiRoute) {
-    return null; // Skip rate limiting for non-API routes
+  // Skip rate limiting for non-API routes
+  if (!pathname.startsWith('/api/')) {
+    return null;
   }
-  
+
+  // Categorize route for appropriate rate limit tier
+  const category = getRouteCategory(pathname);
+
   // Check rate limit
-  const limited = isRateLimited(identifier, isAuthRoute);
-  const headers = getRateLimitHeaders(identifier, isAuthRoute);
+  const limited = isRateLimited(identifier, category);
+  const headers = getRateLimitHeaders(identifier, category);
   
   if (limited) {
     return NextResponse.json(

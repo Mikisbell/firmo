@@ -8,8 +8,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import prisma from '@/src/core/db/prisma';
+import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
+
+// Rate limit: 30 searches per minute per IP (prevents search abuse / scraping)
+const SEARCH_RATE_LIMIT = { maxRequests: 30, windowMs: 60000 };
 
 export async function GET(request: NextRequest) {
+  // Rate limit before auth to protect against unauthenticated abuse
+  const rl = await rateLimit(request, SEARCH_RATE_LIMIT);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Demasiadas búsquedas. Intenta de nuevo más tarde.' },
+      { status: 429, headers: { 'Retry-After': String(getRetryAfterSeconds(rl.resetAt)) } }
+    );
+  }
+
   const authResult = await requireAdminAuth(request);
   if (!authResult.authorized) return authResult.response;
 

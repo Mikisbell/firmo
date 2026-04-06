@@ -84,6 +84,33 @@ const nextConfig = {
                 ],
             },
             {
+                // Prevent caching of sensitive API responses (auth, admin)
+                source: '/api/auth/:path*',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    },
+                    {
+                        key: 'Pragma',
+                        value: 'no-cache',
+                    },
+                ],
+            },
+            {
+                source: '/api/admin/:path*',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-store, no-cache, must-revalidate',
+                    },
+                    {
+                        key: 'Pragma',
+                        value: 'no-cache',
+                    },
+                ],
+            },
+            {
                 // Apply CORS headers to all API routes
                 source: '/api/:path*',
                 headers: [
@@ -135,7 +162,9 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; img-src 'self' data: https: blob:; font-src 'self' data: https://vercel.live https://*.vercel.app; connect-src 'self' https://api.push.apple.com https://updates.push.services.mozilla.com https://vercel.live https://*.vercel.app wss://*.vercel.app; frame-src 'self' https://vercel.live https://*.vercel.app; frame-ancestors 'none'; media-src 'self' blob:;",
+                        // 'unsafe-eval' removed — Next.js 16 with Turbopack does not require it in production.
+                        // 'unsafe-inline' kept because Next.js injects inline scripts for hydration/routing.
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; img-src 'self' data: https: blob:; font-src 'self' data: https://vercel.live https://*.vercel.app; connect-src 'self' https://api.push.apple.com https://updates.push.services.mozilla.com https://vercel.live https://*.vercel.app wss://*.vercel.app; frame-src 'self' https://vercel.live https://*.vercel.app; frame-ancestors 'none'; media-src 'self' blob:;",
                     },
                 ],
             },
