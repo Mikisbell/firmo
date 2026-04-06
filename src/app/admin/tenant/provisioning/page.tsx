@@ -25,7 +25,7 @@ import {
   DollarSign,
   FileText,
 } from 'lucide-react';
-import { Button, Card, PageHeader } from '@/src/components/ui';
+import { Button, Card, PageHeader, Input, Select, Textarea, Checkbox } from '@/src/components/ui';
 
 interface ProvisioningFormData {
   legal_name: string;
@@ -211,11 +211,11 @@ export default function TenantProvisioningPage() {
                 ID del Tenant
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   type="text"
                   value={result.tenant_id}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300"
+                  className="flex-1 font-mono"
                 />
                 <button
                   onClick={() => copyToClipboard(result.tenant_id, 'tenant_id')}
@@ -236,11 +236,11 @@ export default function TenantProvisioningPage() {
                 ID del Empleado Admin
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   type="text"
                   value={result.admin_employee_id}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300"
+                  className="flex-1 font-mono"
                 />
                 <button
                   onClick={() => copyToClipboard(result.admin_employee_id, 'admin_employee_id')}
@@ -261,11 +261,11 @@ export default function TenantProvisioningPage() {
                 Codigo de Activacion
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   type="text"
                   value={result.activation_code}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300 text-center text-lg font-bold"
+                  className="flex-1 font-mono text-center text-lg font-bold"
                 />
                 <button
                   onClick={() => copyToClipboard(result.activation_code, 'activation_code')}
@@ -286,11 +286,11 @@ export default function TenantProvisioningPage() {
                 PIN del Admin
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   type={showPin ? 'text' : 'password'}
                   value={result.credentials.admin_pin}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm font-mono text-park-gray-300"
+                  className="flex-1 font-mono"
                 />
                 <button
                   onClick={() => setShowPin(!showPin)}
@@ -404,43 +404,34 @@ export default function TenantProvisioningPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Nombre Legal *
-              </label>
-              <input
-                data-testid="legal-name-input"
-                type="text"
-                name="legal_name"
-                value={formData.legal_name}
-                onChange={handleInputChange}
-                placeholder="Pollería El Buen Sabor"
-                required
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
+            <Input
+              data-testid="legal-name-input"
+              label="Nombre Legal"
+              type="text"
+              name="legal_name"
+              value={formData.legal_name}
+              onChange={handleInputChange}
+              placeholder="Pollería El Buen Sabor"
+              required
+            />
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">RUC</label>
-              <input
-                type="text"
-                name="ruc"
-                value={formData.ruc || ''}
-                onChange={handleInputChange}
-                placeholder="20123456789"
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
+            <Input
+              label="RUC"
+              type="text"
+              name="ruc"
+              value={formData.ruc || ''}
+              onChange={handleInputChange}
+              placeholder="20123456789"
+            />
 
             <div className="md:col-span-2">
-              <label className="text-sm font-medium mb-2 block">Direccion</label>
-              <textarea
+              <Textarea
+                label="Direccion"
                 name="address_text"
                 value={formData.address_text || ''}
                 onChange={handleInputChange}
                 placeholder="Av. Principal 123, Lima"
                 rows={2}
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -454,38 +445,28 @@ export default function TenantProvisioningPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Nombre del Admin *
-              </label>
-              <input
-                data-testid="admin-name-input"
-                type="text"
-                name="admin_name"
-                value={formData.admin_name}
-                onChange={handleInputChange}
-                placeholder="Juan Pérez"
-                required
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
+            <Input
+              data-testid="admin-name-input"
+              label="Nombre del Admin"
+              type="text"
+              name="admin_name"
+              value={formData.admin_name}
+              onChange={handleInputChange}
+              placeholder="Juan Pérez"
+              required
+            />
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                PIN del Admin (4 digitos) *
-              </label>
-              <input
-                data-testid="admin-pin-input"
-                type="password"
-                name="admin_pin"
-                value={formData.admin_pin}
-                onChange={handleInputChange}
-                placeholder="1234"
-                pattern="\d{4}"
-                required
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
+            <Input
+              data-testid="admin-pin-input"
+              label="PIN del Admin (4 digitos)"
+              type="password"
+              name="admin_pin"
+              value={formData.admin_pin}
+              onChange={handleInputChange}
+              placeholder="1234"
+              pattern="\d{4}"
+              required
+            />
           </div>
         </div>
 
@@ -497,37 +478,21 @@ export default function TenantProvisioningPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Zona Horaria</label>
-              <select
-                name="timezone"
-                value={formData.timezone}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-              >
-                {TIMEZONES.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Zona Horaria"
+              name="timezone"
+              value={formData.timezone}
+              onChange={handleInputChange}
+              options={TIMEZONES.map((tz) => ({ value: tz, label: tz }))}
+            />
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Moneda</label>
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-              >
-                {CURRENCIES.map((curr) => (
-                  <option key={curr} value={curr}>
-                    {curr}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Moneda"
+              name="currency"
+              value={formData.currency}
+              onChange={handleInputChange}
+              options={CURRENCIES.map((curr) => ({ value: curr, label: curr }))}
+            />
           </div>
         </div>
 
@@ -539,94 +504,63 @@ export default function TenantProvisioningPage() {
           </h2>
 
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Texto de Pie de Recibo
-              </label>
-              <textarea
-                name="receipt_footer_text"
-                value={formData.receipt_footer_text || ''}
+            <Textarea
+              label="Texto de Pie de Recibo"
+              name="receipt_footer_text"
+              value={formData.receipt_footer_text || ''}
+              onChange={handleInputChange}
+              placeholder="Gracias por su compra!"
+              rows={2}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Tarifa de Delivery por Defecto (centavos)"
+                type="number"
+                name="default_delivery_fee_cents"
+                value={formData.default_delivery_fee_cents}
                 onChange={handleInputChange}
-                placeholder="Gracias por su compra!"
-                rows={2}
-                className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                min="0"
+              />
+
+              <Input
+                label="Max Cupones Offline por Orden"
+                type="number"
+                name="max_offline_coupons_per_order"
+                value={formData.max_offline_coupons_per_order}
+                onChange={handleInputChange}
+                min="1"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Tarifa de Delivery por Defecto (centavos)
-                </label>
-                <input
-                  type="number"
-                  name="default_delivery_fee_cents"
-                  value={formData.default_delivery_fee_cents}
-                  onChange={handleInputChange}
-                  min="0"
-                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Max Cupones Offline por Orden
-                </label>
-                <input
-                  type="number"
-                  name="max_offline_coupons_per_order"
-                  value={formData.max_offline_coupons_per_order}
-                  onChange={handleInputChange}
-                  min="1"
-                  className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                />
-              </div>
-            </div>
-
             <div className="space-y-3">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="enable_tips"
-                  checked={formData.enable_tips}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
-                />
-                <span className="text-sm font-medium">Habilitar Propinas</span>
-              </label>
+              <Checkbox
+                label="Habilitar Propinas"
+                name="enable_tips"
+                checked={formData.enable_tips}
+                onChange={handleInputChange}
+              />
 
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="tips_on_invoice"
-                  checked={formData.tips_on_invoice}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
-                />
-                <span className="text-sm font-medium">Mostrar Propinas en Factura</span>
-              </label>
+              <Checkbox
+                label="Mostrar Propinas en Factura"
+                name="tips_on_invoice"
+                checked={formData.tips_on_invoice}
+                onChange={handleInputChange}
+              />
 
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="allow_offline_coupon"
-                  checked={formData.allow_offline_coupon}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
-                />
-                <span className="text-sm font-medium">Permitir Cupones Offline</span>
-              </label>
+              <Checkbox
+                label="Permitir Cupones Offline"
+                name="allow_offline_coupon"
+                checked={formData.allow_offline_coupon}
+                onChange={handleInputChange}
+              />
 
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="require_manager_for_offline"
-                  checked={formData.require_manager_for_offline}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 rounded border-park-gray-700 bg-park-gray-800"
-                />
-                <span className="text-sm font-medium">Requerir Gerente para Offline</span>
-              </label>
+              <Checkbox
+                label="Requerir Gerente para Offline"
+                name="require_manager_for_offline"
+                checked={formData.require_manager_for_offline}
+                onChange={handleInputChange}
+              />
             </div>
           </div>
         </div>

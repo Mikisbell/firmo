@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Search, User, Phone, Mail, FileText, ShoppingBag, X } from 'lucide-react';
 import useSWR from 'swr';
-import { Button, Badge, Card, PageHeader, EmptyState, Modal, ConfirmDialog } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Modal, ConfirmDialog, Input, Select } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -176,92 +176,66 @@ function CustomerModal({
         )}
 
           {/* Phone */}
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">
-              Teléfono <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 text-white rounded-lg focus:border-amber-500 focus:outline-none transition-colors"
-              placeholder="999 999 999"
-              required
-            />
-          </div>
+          <Input
+            label="Teléfono"
+            type="text"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            placeholder="999 999 999"
+            required
+          />
 
           {/* Name */}
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">
-              Nombre / Razón Social
-            </label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 text-white rounded-lg focus:border-amber-500 focus:outline-none transition-colors"
-              placeholder="Juan Pérez o Empresa S.A.C."
-            />
-          </div>
+          <Input
+            label="Nombre / Razón Social"
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Juan Pérez o Empresa S.A.C."
+          />
 
           {/* Email */}
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">
-              Email{' '}
-              <span className="text-zinc-500 text-xs">(opcional)</span>
-            </label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 text-white rounded-lg focus:border-amber-500 focus:outline-none transition-colors"
-              placeholder="cliente@correo.com"
-            />
-          </div>
+          <Input
+            label="Email"
+            hint="Opcional"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="cliente@correo.com"
+          />
 
           {/* Document type */}
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">
-              Tipo de Documento
-            </label>
-            <select
-              value={form.doc_type}
-              onChange={(e) =>
-                setForm({ ...form, doc_type: e.target.value, doc_number: '' })
-              }
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 text-white rounded-lg focus:border-amber-500 focus:outline-none transition-colors"
-            >
-              <option value="">— Sin documento —</option>
-              <option value="RUC">RUC</option>
-              <option value="DNI">DNI</option>
-              <option value="CE">CE (Carnet de extranjería)</option>
-              <option value="PASSPORT">Pasaporte</option>
-            </select>
-          </div>
+          <Select
+            label="Tipo de Documento"
+            value={form.doc_type}
+            onChange={(e) =>
+              setForm({ ...form, doc_type: e.target.value, doc_number: '' })
+            }
+            placeholder="— Sin documento —"
+            options={[
+              { value: 'RUC', label: 'RUC' },
+              { value: 'DNI', label: 'DNI' },
+              { value: 'CE', label: 'CE (Carnet de extranjería)' },
+              { value: 'PASSPORT', label: 'Pasaporte' },
+            ]}
+          />
 
           {/* Document number */}
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">
-              Número de Documento
-            </label>
-            <input
-              type="text"
-              value={form.doc_number}
-              onChange={(e) =>
-                setForm({ ...form, doc_number: e.target.value })
-              }
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 text-white rounded-lg focus:border-amber-500 focus:outline-none transition-colors disabled:opacity-40"
-              placeholder={
-                form.doc_type
-                  ? getDocPlaceholder(form.doc_type)
-                  : 'Seleccione tipo de documento primero'
-              }
-              disabled={!form.doc_type}
-            />
-            {docHint && (
-              <p className="text-xs text-zinc-500 mt-1">{docHint}</p>
-            )}
-          </div>
+          <Input
+            label="Número de Documento"
+            type="text"
+            value={form.doc_number}
+            onChange={(e) =>
+              setForm({ ...form, doc_number: e.target.value })
+            }
+            placeholder={
+              form.doc_type
+                ? getDocPlaceholder(form.doc_type)
+                : 'Seleccione tipo de documento primero'
+            }
+            disabled={!form.doc_type}
+            hint={docHint || undefined}
+          />
 
       </form>
     </Modal>
@@ -363,25 +337,22 @@ export default function ClientesPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Search bar                                                           */}
       {/* ------------------------------------------------------------------ */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre, teléfono o documento..."
-          className="w-full pl-10 pr-4 py-2.5 bg-zinc-800 border border-zinc-700 text-white rounded-lg focus:border-amber-500 focus:outline-none transition-colors placeholder:text-zinc-500"
-        />
-        {search && (
+      <Input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Buscar por nombre, teléfono o documento..."
+        leftIcon={<Search className="w-4 h-4" />}
+        rightIcon={search ? (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="text-zinc-500 hover:text-zinc-300 transition-colors"
             aria-label="Limpiar búsqueda"
           >
             <X className="w-4 h-4" />
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* ------------------------------------------------------------------ */}
       {/* Error state                                                          */}

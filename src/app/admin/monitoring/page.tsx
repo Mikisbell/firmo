@@ -48,7 +48,7 @@ import {
   Download,
 } from 'lucide-react';
 import { useMetrics } from '@/src/hooks/useSWRHooks';
-import { Button, Badge, Card, PageHeader, MetricCard as DSMetricCard } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard as DSMetricCard, Input, Select } from '@/src/components/ui';
 
 // Tipos de datos
 interface MetricsSummary {
@@ -422,42 +422,34 @@ export default function MonitoringDashboard() {
       <Card className="mb-6">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-park-gray-400 mb-2">
-              Período de tiempo
-            </label>
-            <select
+            <Select
+              label="Período de tiempo"
               value={period}
               onChange={(e) => setPeriod(e.target.value as typeof period)}
-              className="w-full px-4 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="1h">Última hora</option>
-              <option value="24h">Últimas 24 horas</option>
-              <option value="7d">Últimos 7 días</option>
-              <option value="30d">Últimos 30 días</option>
-            </select>
+              options={[
+                { value: '1h', label: 'Última hora' },
+                { value: '24h', label: 'Últimas 24 horas' },
+                { value: '7d', label: 'Últimos 7 días' },
+                { value: '30d', label: 'Últimos 30 días' },
+              ]}
+            />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-park-gray-400 mb-2">
-              Tenant ID (opcional)
-            </label>
-            <input
+            <Input
+              label="Tenant ID (opcional)"
               type="text"
               value={tenantId}
               onChange={(e) => setTenantId(e.target.value)}
               placeholder="Filtrar por tenant"
-              className="w-full px-4 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-park-gray-400 mb-2">
-              Terminal ID (opcional)
-            </label>
-            <input
+            <Input
+              label="Terminal ID (opcional)"
               type="text"
               value={terminalId}
               onChange={(e) => setTerminalId(e.target.value)}
               placeholder="Filtrar por terminal"
-              className="w-full px-4 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg text-white placeholder-park-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
         </div>

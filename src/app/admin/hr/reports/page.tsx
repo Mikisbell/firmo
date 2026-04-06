@@ -9,7 +9,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { BarChart3, Download, AlertTriangle, TrendingUp, Users, Clock, DollarSign, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, PageHeader } from '@/src/components/ui';
+import { Button, Card, PageHeader, Input } from '@/src/components/ui';
 
 interface Report {
   title: string;
@@ -60,11 +60,10 @@ export default function ReportsPage() {
         description="Analytics y reportes de Recursos Humanos"
         actions={
           <div className="flex items-center gap-3">
-            <input
+            <Input
               type="month"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
-              className="bg-park-gray-800 border border-park-gray-700 text-white rounded-lg px-3 py-2 text-sm"
             />
             <Button
               variant="secondary"

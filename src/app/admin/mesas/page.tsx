@@ -11,7 +11,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Check, X, MapPin, LayoutGrid } from 'lucide-react';
 import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useTables } from '@/src/hooks/useSWRHooks';
-import { Button, Badge, Card, PageHeader, EmptyState, Modal } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, EmptyState, Modal, Input, Select, Checkbox } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
 
 interface Zone {
@@ -366,77 +366,59 @@ function TableModal({
         )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Número *</label>
-              <input
-                type="text"
-                value={form.number}
-                onChange={(e) => setForm({ ...form, number: e.target.value })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Capacidad</label>
-              <input
-                type="number"
-                value={form.capacity}
-                onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 4 })}
-                min={1}
-                max={20}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">Nombre (opcional)</label>
-            <input
+            <Input
+              label="Número"
               type="text"
-              value={form.display_name}
-              onChange={(e) => setForm({ ...form, display_name: e.target.value })}
-              placeholder={`Mesa ${form.number}`}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none"
+              value={form.number}
+              onChange={(e) => setForm({ ...form, number: e.target.value })}
+              required
+            />
+            <Input
+              label="Capacidad"
+              type="number"
+              value={form.capacity}
+              onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 4 })}
+              min={1}
+              max={20}
             />
           </div>
-          
+
+          <Input
+            label="Nombre (opcional)"
+            type="text"
+            value={form.display_name}
+            onChange={(e) => setForm({ ...form, display_name: e.target.value })}
+            placeholder={`Mesa ${form.number}`}
+          />
+
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Zona</label>
-              <select
-                value={form.zone_id}
-                onChange={(e) => setForm({ ...form, zone_id: e.target.value })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none"
-              >
-                <option value="">Sin zona</option>
-                {zones.map(z => (
-                  <option key={z.id} value={z.id}>{z.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Forma</label>
-              <select
-                value={form.shape}
-                onChange={(e) => setForm({ ...form, shape: e.target.value })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-amber-500 outline-none"
-              >
-                <option value="SQUARE">Cuadrada</option>
-                <option value="ROUND">Redonda</option>
-                <option value="RECTANGLE">Rectangular</option>
-              </select>
-            </div>
-          </div>
-          
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.is_active}
-              onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500"
+            <Select
+              label="Zona"
+              value={form.zone_id}
+              onChange={(e) => setForm({ ...form, zone_id: e.target.value })}
+              placeholder="Sin zona"
+              options={zones.map(z => ({
+                value: z.id,
+                label: z.name,
+              }))}
             />
-            <span className="text-sm">Mesa activa</span>
-          </label>
+            <Select
+              label="Forma"
+              value={form.shape}
+              onChange={(e) => setForm({ ...form, shape: e.target.value })}
+              options={[
+                { value: 'SQUARE', label: 'Cuadrada' },
+                { value: 'ROUND', label: 'Redonda' },
+                { value: 'RECTANGLE', label: 'Rectangular' },
+              ]}
+            />
+          </div>
+
+          <Checkbox
+            label="Mesa activa"
+            checked={form.is_active}
+            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+          />
           
       </form>
     </Modal>

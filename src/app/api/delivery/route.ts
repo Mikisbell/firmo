@@ -19,6 +19,7 @@ import { parsePaginationParams, createPaginatedResponse } from '@/src/lib/pagina
 import prisma from '@/src/core/db/prisma';
 import { cache } from '@/src/core/cache/redis.service';
 import { logger } from '@/src/core/observability/structured-logger';
+import { sendDeliveryTrackingWhatsApp } from '@/src/core/delivery/whatsapp-tracking';
 
 
 const CreateDeliverySchema = z.object({
@@ -61,6 +62,14 @@ export async function POST(request: NextRequest) {
 
     // Invalidar caché Redis de delivery metrics/history
     await cache.invalidatePattern('delivery:*');
+
+    // Enviar notificación WhatsApp con URL de seguimiento (fire-and-forget)
+    sendDeliveryTrackingWhatsApp({
+      customerPhone: parsed.data.customerPhone,
+      trackingCode: delivery.tracking_code,
+    }).catch(() => {
+      // Error ya logueado dentro de sendDeliveryTrackingWhatsApp
+    });
 
     return NextResponse.json({
       ...delivery,

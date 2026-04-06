@@ -12,7 +12,7 @@ import { Calendar, Plus, Clock, X, Check, Users, ChevronLeft, ChevronRight } fro
 import { motion } from 'framer-motion';
 import { useAdminData } from '@/src/hooks/useAdminData';
 import { toast } from 'sonner';
-import { Button, Badge, Card, PageHeader } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, Input, Select } from '@/src/components/ui';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -303,28 +303,23 @@ export default function SchedulesPage() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-park-gray-400 mb-1">Nombre</label>
-                <input
-                  type="text"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  placeholder="Ej: Turno Manana"
-                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
-                />
-              </div>
+              <Input
+                label="Nombre"
+                type="text"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="Ej: Turno Manana"
+              />
 
-              <div>
-                <label className="block text-sm text-park-gray-400 mb-1">Tipo</label>
-                <select
-                  value={formType}
-                  onChange={(e) => setFormType(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
-                >
-                  <option value="FIXED">Fijo</option>
-                  <option value="ROTATING">Rotativo</option>
-                </select>
-              </div>
+              <Select
+                label="Tipo"
+                value={formType}
+                onChange={(e) => setFormType(e.target.value)}
+                options={[
+                  { value: 'FIXED', label: 'Fijo' },
+                  { value: 'ROTATING', label: 'Rotativo' },
+                ]}
+              />
 
               <div>
                 <label className="block text-sm text-park-gray-400 mb-2">Dias de la Semana</label>
@@ -346,37 +341,28 @@ export default function SchedulesPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-park-gray-400 mb-1">Hora Inicio</label>
-                  <input
-                    type="time"
-                    value={formStartTime}
-                    onChange={(e) => setFormStartTime(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-park-gray-400 mb-1">Hora Fin</label>
-                  <input
-                    type="time"
-                    value={formEndTime}
-                    onChange={(e) => setFormEndTime(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-park-gray-400 mb-1">Minutos de Descanso</label>
-                <input
-                  type="number"
-                  value={formBreakMinutes}
-                  onChange={(e) => setFormBreakMinutes(parseInt(e.target.value) || 0)}
-                  min={0}
-                  max={120}
-                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
+                <Input
+                  label="Hora Inicio"
+                  type="time"
+                  value={formStartTime}
+                  onChange={(e) => setFormStartTime(e.target.value)}
+                />
+                <Input
+                  label="Hora Fin"
+                  type="time"
+                  value={formEndTime}
+                  onChange={(e) => setFormEndTime(e.target.value)}
                 />
               </div>
+
+              <Input
+                label="Minutos de Descanso"
+                type="number"
+                value={formBreakMinutes}
+                onChange={(e) => setFormBreakMinutes(parseInt(e.target.value) || 0)}
+                min={0}
+                max={120}
+              />
 
               <div className="flex gap-3 pt-2">
                 <button
@@ -436,19 +422,16 @@ export default function SchedulesPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-park-gray-400 mb-2">Empleado</label>
-                <select
+                <Select
+                  label="Empleado"
                   value={assignEmployeeId}
                   onChange={(e) => setAssignEmployeeId(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-park-gray-800 border border-park-gray-700 rounded-lg text-sm focus:outline-none focus:border-park-gray-600"
-                >
-                  <option value="">Seleccionar empleado...</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.role})
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Seleccionar empleado..."
+                  options={employees.map((emp) => ({
+                    value: emp.id,
+                    label: `${emp.name} (${emp.role})`,
+                  }))}
+                />
               </div>
 
               <div className="flex gap-3 pt-2">

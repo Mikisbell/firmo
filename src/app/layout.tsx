@@ -9,7 +9,8 @@ import { ErrorBoundary } from "@/src/components/ErrorBoundary";
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 export const viewport: Viewport = {
-    themeColor: "#10b981",
+    themeColor: "#09090b",
+    viewportFit: "cover",
 };
 
 export const metadata: Metadata = {

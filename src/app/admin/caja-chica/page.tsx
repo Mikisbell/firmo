@@ -13,7 +13,7 @@ import { Wallet, Plus, Minus, RefreshCw, CheckCircle, Clock } from 'lucide-react
 import { toast } from 'sonner';
 import { usePettyCash, useLocations } from '@/src/hooks/useSWRHooks';
 import type { PettyCashCategory } from '@/src/core/services/petty-cash.service';
-import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Alert } from '@/src/components/ui';
+import { Button, Badge, Card, PageHeader, MetricCard, EmptyState, Alert, Input, Select } from '@/src/components/ui';
 
 const CATEGORIES: { value: PettyCashCategory; label: string }[] = [
   { value: 'SUPPLIES', label: 'Insumos' },
@@ -213,39 +213,40 @@ export default function CajaChicaPage() {
             {showForm === 'INCOME' ? 'Registrar Ingreso' : 'Registrar Egreso'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-park-gray-400">Monto (S/)</label>
-              <input type="number" step="0.01" min="0.01" value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-park-gray-400">Categoria</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value as PettyCashCategory)}
-                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
-              >
-                {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-            </div>
+            <Input
+              label="Monto (S/)"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <Select
+              label="Categoria"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as PettyCashCategory)}
+              options={CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
+            />
             <div className="md:col-span-2">
-              <label className="text-sm text-park-gray-400">Descripcion</label>
-              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
-                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
+              <Input
+                label="Descripcion"
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-sm text-park-gray-400">N Recibo (opcional)</label>
-              <input type="text" value={receiptNumber} onChange={(e) => setReceiptNumber(e.target.value)}
-                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-park-gray-400">Proveedor (opcional)</label>
-              <input type="text" value={supplierName} onChange={(e) => setSupplierName(e.target.value)}
-                className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
-              />
-            </div>
+            <Input
+              label="N Recibo (opcional)"
+              type="text"
+              value={receiptNumber}
+              onChange={(e) => setReceiptNumber(e.target.value)}
+            />
+            <Input
+              label="Proveedor (opcional)"
+              type="text"
+              value={supplierName}
+              onChange={(e) => setSupplierName(e.target.value)}
+            />
           </div>
           <div className="flex gap-2 mt-4">
             <Button
@@ -268,10 +269,13 @@ export default function CajaChicaPage() {
         <Card padding="md">
           <h2 className="text-lg font-semibold mb-4">Reconciliar Caja</h2>
           <div className="max-w-xs">
-            <label className="text-sm text-park-gray-400">Monto Contado (S/)</label>
-            <input type="number" step="0.01" min="0" value={countedAmount}
+            <Input
+              label="Monto Contado (S/)"
+              type="number"
+              step="0.01"
+              min="0"
+              value={countedAmount}
               onChange={(e) => setCountedAmount(e.target.value)}
-              className="w-full mt-1 bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 min-h-[40px]"
             />
           </div>
           <div className="flex gap-2 mt-4">
