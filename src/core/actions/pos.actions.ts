@@ -703,6 +703,43 @@ export const POSActions = {
     },
 
     /**
+     * Set discount for a check
+     */
+    async setDiscount(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        check_id: string,
+        discount_type: "PERCENTAGE" | "FIXED",
+        discount_value: number,
+        subtotal_cents: number,
+        reason?: string
+    ) {
+        const discount_cents = discount_type === "PERCENTAGE"
+            ? Math.round(subtotal_cents * discount_value / 100)
+            : discount_value;
+
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "CHECK_DISCOUNT_SET",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                check_id,
+                discount_type,
+                discount_value,
+                discount_cents,
+                reason,
+            },
+        });
+    },
+
+    /**
      * Set tip for a check
      */
     async setTip(

@@ -192,6 +192,24 @@ export default function POSPage() {
         await POSActions.setTip(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, activeCheck.check_id, tipCents);
     };
 
+    const handleDiscount = async (discountType: "PERCENTAGE" | "FIXED", discountValue: number) => {
+        if (!activeSale || !activeCheck) return;
+        if (!shiftIsOpen) {
+            toast.error("Turno cerrado. Abre un turno para aplicar descuentos.");
+            setShiftModalMode("open");
+            setShiftModalOpen(true);
+            return;
+        }
+        await POSActions.setDiscount(
+            TENANT_ID, TERM_ID, ACTOR_ID,
+            activeSale.order_id, activeCheck.check_id,
+            discountType, discountValue,
+            activeCheck.subtotal_cents,
+        );
+        const label = discountType === "PERCENTAGE" ? `${discountValue}%` : `S/ ${(discountValue / 100).toFixed(2)}`;
+        toast.success(`Descuento ${label} aplicado`);
+    };
+
     const handleRefund = async () => {
         // Refund is handled via RefundModal -> POSActions.issueRefund
         // This callback is for post-refund UI updates
@@ -651,6 +669,7 @@ export default function POSPage() {
                         onInvoice={handleInvoice}
                         onUpdateQty={handleUpdateQty}
                         onTipChange={handleTipChange}
+                        onDiscount={handleDiscount}
                         onRefund={handleRefund}
                         checks={activeSale.checks}
                         selectedCheckId={selectedCheckId}

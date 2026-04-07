@@ -282,6 +282,15 @@ const CheckMarkedPaidPayload = z.object({
     change_cents: positiveCentsSchema.default(0),
 });
 
+const CheckDiscountSetPayload = z.object({
+    order_id: uuidSchema,
+    check_id: z.string().min(1),
+    discount_type: z.enum(["PERCENTAGE", "FIXED"]),
+    discount_value: z.number().nonnegative(), // percentage (e.g., 10) or centavos (e.g., 500)
+    discount_cents: positiveCentsSchema, // calculated amount in cents
+    reason: z.string().optional(),
+});
+
 const CheckTipSetPayload = z.object({
     order_id: uuidSchema,
     check_id: z.string().min(1),
@@ -980,6 +989,11 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("CHECK_TIP_SET"),
         aggregate_type: z.literal("ORDER"),
         payload: CheckTipSetPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("CHECK_DISCOUNT_SET"),
+        aggregate_type: z.literal("ORDER"),
+        payload: CheckDiscountSetPayload,
     }),
     BaseEnvelopeSchema.extend({
         event_type: z.literal("CHECK_ITEMS_UPDATED"),

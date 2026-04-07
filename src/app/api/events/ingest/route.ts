@@ -67,7 +67,7 @@ async function checkDependencies(
         'ORDER_ITEM_VOIDED', 'ORDER_ITEM_NOTE', 'ORDER_TABLE_CHANGED',
         'ORDER_SUBMITTED', 'ORDER_CANCELLED',
         'CHECK_CREATED', 'CHECK_PAYMENT_ADDED', 'CHECK_MARKED_PAID',
-        'CHECK_TIP_SET', 'CHECK_ITEMS_UPDATED', 'CHECK_ITEMS_MOVED',
+        'CHECK_TIP_SET', 'CHECK_DISCOUNT_SET', 'CHECK_ITEMS_UPDATED', 'CHECK_ITEMS_MOVED',
         'REFUND_ISSUED', 'REQUEST_CHECK',
     ]);
 
@@ -576,6 +576,21 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                     },
                     update: { amount: p.tip_cents },
                 });
+                break;
+            }
+
+            case "CHECK_DISCOUNT_SET": {
+                const p = payload as any;
+                const discountOrder = await tx.orders.findUnique({ where: { id: p.order_id } });
+                if (discountOrder) {
+                    await tx.orders.update({
+                        where: { id: p.order_id },
+                        data: {
+                            discount_cents: p.discount_cents,
+                            total_cents: Math.max(0, discountOrder.subtotal_cents - p.discount_cents),
+                        },
+                    });
+                }
                 break;
             }
 

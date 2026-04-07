@@ -159,7 +159,9 @@ export function applySaleEvent(
                         }
                     }
                     defaultCheck.subtotal_cents = unsafeCentavos(checkSubtotal);
-                    defaultCheck.total_cents = unsafeCentavos(checkSubtotal);
+                    defaultCheck.total_cents = unsafeCentavos(
+                        checkSubtotal - defaultCheck.discount_cents + defaultCheck.tip_cents
+                    );
                 }
             }
 
@@ -211,7 +213,9 @@ export function applySaleEvent(
                         }
                     }
                     check.subtotal_cents = unsafeCentavos(checkSubtotal);
-                    check.total_cents = unsafeCentavos(checkSubtotal); // Simplified for MVP (no discounts/tips calc on void yet)
+                    check.total_cents = unsafeCentavos(
+                        checkSubtotal - check.discount_cents + check.tip_cents
+                    );
                 }
             }
 
@@ -270,9 +274,10 @@ export function applySaleEvent(
                     checkSubtotal += masterLine.unit_price_cents * l.qty;
                 }
             }
-            // Simple logic: total = subtotal (ignoring discount/tip structure for now as they are 0)
             sale.checks[checkIndex].subtotal_cents = unsafeCentavos(checkSubtotal);
-            sale.checks[checkIndex].total_cents = unsafeCentavos(checkSubtotal); // TODO: + tips - discounts
+            sale.checks[checkIndex].total_cents = unsafeCentavos(
+                checkSubtotal - sale.checks[checkIndex].discount_cents + sale.checks[checkIndex].tip_cents
+            );
 
             sale.last_event_sequence = e.terminal_sequence;
             return { state: sale, warnings };
@@ -326,7 +331,7 @@ export function applySaleEvent(
                     if (master) sub += master.unit_price_cents * l.qty;
                 }
                 c.subtotal_cents = unsafeCentavos(sub);
-                c.total_cents = unsafeCentavos(sub);
+                c.total_cents = unsafeCentavos(sub - c.discount_cents + c.tip_cents);
             });
 
             sale.last_event_sequence = e.terminal_sequence;
@@ -394,10 +399,29 @@ export function applySaleEvent(
             return { state: sale, warnings };
         }
 
+        case "CHECK_DISCOUNT_SET": {
+            const { check_id, discount_cents } = e.payload;
+            const checkIdx = sale.checks.findIndex(c => c.check_id === check_id);
+
+            if (checkIdx === -1) {
+                warnings.push(`CHECK_DISCOUNT_SET: check_id ${check_id} no existe; ignorado.`);
+                sale.last_event_sequence = e.terminal_sequence;
+                return { state: sale, warnings };
+            }
+
+            const check = sale.checks[checkIdx];
+            check.discount_cents = unsafeCentavos(discount_cents);
+            check.total_cents = unsafeCentavos(check.subtotal_cents - discount_cents + check.tip_cents);
+            sale.checks[checkIdx] = check;
+
+            sale.last_event_sequence = e.terminal_sequence;
+            return { state: sale, warnings };
+        }
+
         case "CHECK_TIP_SET": {
             const { check_id, tip_cents } = e.payload;
             const checkIdx = sale.checks.findIndex(c => c.check_id === check_id);
-            
+
             if (checkIdx === -1) {
                 warnings.push(`CHECK_TIP_SET: check_id ${check_id} no existe; ignorado.`);
                 sale.last_event_sequence = e.terminal_sequence;

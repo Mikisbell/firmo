@@ -4,12 +4,17 @@ import { PaymentModal } from "./PaymentModal";
 import { InvoiceModal } from "./InvoiceModal";
 import { SplitBillModal } from "./SplitBillModal";
 import { RefundModal } from "./RefundModal";
-import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, Plus, Minus, Trash2, Banknote, RotateCcw } from "lucide-react";
+import { ReceiptPreviewModal } from "./ReceiptPreviewModal";
+import { DiscountModal } from "./DiscountModal";
+import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, Plus, Minus, Trash2, Banknote, RotateCcw, MessageSquare, ArrowRightLeft, X, Percent, Eye } from "lucide-react";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint, OrderLineInput } from "@/src/core/printing/utils";
 import { AnimatePresence } from "framer-motion";
 import { asCentavos } from "@/src/core/types/shared";
 import { ParkLogo } from "@/src/components/icons";
+import { POSActions } from "@/src/core/actions/pos.actions";
+import { TableTransferModal } from "./TableTransferModal";
+import { toast } from "sonner";
 
 interface CheckDetailProps {
     check: CheckProjection;
@@ -22,6 +27,7 @@ interface CheckDetailProps {
     onInvoice: (type: "BOLETA" | "FACTURA") => void;
     onUpdateQty?: (lineId: string, newQty: number) => void;
     onTipChange?: (tipCents: number) => void;
+    onDiscount?: (discountType: "PERCENTAGE" | "FIXED", discountValue: number) => void;
     onRefund?: () => void;
     // New Props for Selector
     checks: CheckProjection[];
@@ -29,14 +35,69 @@ interface CheckDetailProps {
     onSelectCheck: (id: string) => void;
 }
 
-export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, onUpdateQty, onTipChange, onRefund, checks, selectedCheckId, onSelectCheck }: CheckDetailProps) {
+// Quick note presets for kitchen instructions
+const QUICK_NOTES = [
+    "Sin cebolla",
+    "Sin ensalada",
+    "Bien cocido",
+    "Punto medio",
+    "Extra ají",
+    "Extra papas",
+    "Para llevar",
+    "Sin sal",
+];
+
+export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, onUpdateQty, onTipChange, onDiscount, onRefund, checks, selectedCheckId, onSelectCheck }: CheckDetailProps) {
     const [showPayModal, setShowPayModal] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [showSplitModal, setShowSplitModal] = useState(false);
     const [showRefundModal, setShowRefundModal] = useState(false);
+    const [showTableTransferModal, setShowTableTransferModal] = useState(false);
+    const [showDiscountModal, setShowDiscountModal] = useState(false);
+    const [showReceiptPreview, setShowReceiptPreview] = useState(false);
+
+    // Item note state
+    const [editingNoteLineId, setEditingNoteLineId] = useState<string | null>(null);
+    const [noteText, setNoteText] = useState("");
 
     // Derived
     const allLines = order.lines;
+    const isDineIn = order.order_type === "DINE_IN";
+    const currentTable = order.fulfillment?.table_number;
+
+    // Open note editor for an item
+    const handleOpenNote = (lineId: string) => {
+        const existingNote = allLines[lineId]?.notes ?? "";
+        setNoteText(existingNote);
+        setEditingNoteLineId(lineId);
+    };
+
+    // Save note for an item
+    const handleSaveNote = async () => {
+        if (!editingNoteLineId) return;
+        await POSActions.addItemNote(tenantId, terminalId, actorId, order.order_id, editingNoteLineId, noteText.trim());
+        toast.success(noteText.trim() ? "Nota guardada" : "Nota eliminada");
+        setEditingNoteLineId(null);
+        setNoteText("");
+    };
+
+    // Add a quick note (append to existing)
+    const handleQuickNote = (quickNote: string) => {
+        setNoteText(prev => {
+            if (!prev.trim()) return quickNote;
+            // Avoid duplicates
+            if (prev.includes(quickNote)) return prev;
+            return `${prev}, ${quickNote}`;
+        });
+    };
+
+    // Handle table transfer
+    const handleTableTransfer = async (toTable: string) => {
+        const fromTable = currentTable || "";
+        await POSActions.transferTable(tenantId, terminalId, actorId, order.order_id, fromTable, toTable);
+        toast.success(`Mesa transferida: ${fromTable || "?"} → ${toTable}`);
+        setShowTableTransferModal(false);
+    };
 
     // Calc totals
     const paidCents = check.payment.payments.reduce((sum, p) => sum + p.amount_cents, 0);
@@ -84,7 +145,9 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         <ArrowLeft className="w-6 h-6" />
                     </button>
                     <div className="flex-1">
-                        <h2 className="font-bold text-lg text-gray-900 leading-tight">Mesa / {check.name || "Principal"}</h2>
+                        <h2 className="font-bold text-lg text-gray-900 leading-tight">
+                            {isDineIn && currentTable ? `Mesa ${currentTable}` : check.name || "Principal"}
+                        </h2>
                         <div className="flex items-center gap-2 text-xs font-medium">
                             <span className={`px-2 py-0.5 rounded-full ${isPaid ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
                                 {isPaid ? "PAGADO" : "PENDIENTE"}
@@ -92,11 +155,20 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             <span className="text-gray-400">#{check.check_id.slice(0, 4)}</span>
                         </div>
                     </div>
+                    {/* Transfer Table Button (Only for DINE_IN and unpaid) */}
+                    {isDineIn && !isPaid && (
+                        <button
+                            onClick={() => setShowTableTransferModal(true)}
+                            className="bg-amber-50 hover:bg-amber-100 text-amber-800 px-3 py-2 rounded-lg text-xs font-bold border border-amber-300 flex items-center gap-2 min-h-[44px] touch-manipulation"
+                        >
+                            <ArrowRightLeft size={14} /> TRANSFERIR
+                        </button>
+                    )}
                     {/* DIVIDIR Button (Only if > 1 check or order is unpaid) */}
                     {(!isPaid || checks.length > 1) && (
                         <button
                             onClick={() => setShowSplitModal(true)}
-                            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 px-3 py-2 rounded-lg text-xs font-bold border border-zinc-300 flex items-center gap-2"
+                            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 px-3 py-2 rounded-lg text-xs font-bold border border-zinc-300 flex items-center gap-2 min-h-[44px] touch-manipulation"
                         >
                             <Split size={14} /> DIVIDIR
                         </button>
@@ -162,38 +234,115 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             <p className="text-xs text-gray-500 font-mono mt-1">{new Date().toLocaleDateString()}</p>
                         </div>
 
-                        <div className="flex-1 space-y-3">
+                        <div className="flex-1 space-y-1">
                             {check.lines.map((l, idx) => {
                                 const lineDetail = allLines[l.line_id];
                                 const name = lineDetail?.name || `Item ${l.line_id.slice(0, 4)}`;
                                 const unitPrice = lineDetail?.unit_price_cents || 0;
                                 const total = unitPrice * l.qty;
+                                const itemNotes = lineDetail?.notes;
+                                const isEditingThis = editingNoteLineId === l.line_id;
 
                                 return (
-                                    <div key={l.line_id + idx} className="flex justify-between items-center group py-1">
-                                        <div className="flex items-center gap-2 text-sm text-gray-800">
-                                            {onUpdateQty && !isPaid && (
-                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div key={l.line_id + idx} className="group py-1.5">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-2 text-sm text-gray-800 flex-1 min-w-0">
+                                                {onUpdateQty && !isPaid && (
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => onUpdateQty(l.line_id, l.qty - 1)}
+                                                            className="w-7 h-7 rounded bg-gray-100 hover:bg-red-100 flex items-center justify-center text-gray-500 hover:text-red-600 min-h-[44px] min-w-[28px] touch-manipulation"
+                                                        >
+                                                            {l.qty === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => onUpdateQty(l.line_id, l.qty + 1)}
+                                                            className="w-7 h-7 rounded bg-gray-100 hover:bg-green-100 flex items-center justify-center text-gray-500 hover:text-green-600 min-h-[44px] min-w-[28px] touch-manipulation"
+                                                        >
+                                                            <Plus size={12} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <span className="font-mono font-bold w-6 text-right flex-shrink-0">{l.qty}</span>
+                                                <span className="font-medium group-hover:text-black truncate">{name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                {/* Note button */}
+                                                {!isPaid && (
                                                     <button
-                                                        onClick={() => onUpdateQty(l.line_id, l.qty - 1)}
-                                                        className="w-6 h-6 rounded bg-gray-100 hover:bg-red-100 flex items-center justify-center text-gray-500 hover:text-red-600"
+                                                        onClick={() => handleOpenNote(l.line_id)}
+                                                        className={`p-1.5 rounded transition-colors min-h-[44px] min-w-[32px] flex items-center justify-center touch-manipulation ${
+                                                            itemNotes
+                                                                ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
+                                                                : "text-gray-400 hover:text-gray-600 hover:bg-gray-100 opacity-0 group-hover:opacity-100"
+                                                        }`}
+                                                        title={itemNotes || "Agregar nota"}
                                                     >
-                                                        {l.qty === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
+                                                        <MessageSquare size={13} />
+                                                    </button>
+                                                )}
+                                                <span className="text-sm font-mono text-gray-600">
+                                                    S/ {(total / 100).toFixed(2)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Display existing note */}
+                                        {itemNotes && !isEditingThis && (
+                                            <div className="ml-8 mt-0.5">
+                                                <span className="text-xs text-amber-700 italic bg-amber-50 px-2 py-0.5 rounded-full">
+                                                    {itemNotes}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {/* Inline note editor */}
+                                        {isEditingThis && (
+                                            <div className="ml-8 mt-2 space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={noteText}
+                                                        onChange={(e) => setNoteText(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") handleSaveNote();
+                                                            if (e.key === "Escape") { setEditingNoteLineId(null); setNoteText(""); }
+                                                        }}
+                                                        placeholder="Ej: sin cebolla, bien cocido..."
+                                                        className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white text-gray-900 min-h-[44px]"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={handleSaveNote}
+                                                        className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold min-h-[44px] touch-manipulation"
+                                                    >
+                                                        OK
                                                     </button>
                                                     <button
-                                                        onClick={() => onUpdateQty(l.line_id, l.qty + 1)}
-                                                        className="w-6 h-6 rounded bg-gray-100 hover:bg-green-100 flex items-center justify-center text-gray-500 hover:text-green-600"
+                                                        onClick={() => { setEditingNoteLineId(null); setNoteText(""); }}
+                                                        className="p-2 text-gray-400 hover:text-gray-600 min-h-[44px] touch-manipulation"
                                                     >
-                                                        <Plus size={12} />
+                                                        <X size={16} />
                                                     </button>
                                                 </div>
-                                            )}
-                                            <span className="font-mono font-bold w-6 text-right">{l.qty}</span>
-                                            <span className="font-medium group-hover:text-black">{name}</span>
-                                        </div>
-                                        <div className="text-sm font-mono text-gray-600">
-                                            S/ {(total / 100).toFixed(2)}
-                                        </div>
+                                                {/* Quick note chips */}
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {QUICK_NOTES.map((qn) => (
+                                                        <button
+                                                            key={qn}
+                                                            onClick={() => handleQuickNote(qn)}
+                                                            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors min-h-[32px] touch-manipulation ${
+                                                                noteText.includes(qn)
+                                                                    ? "bg-amber-100 text-amber-800 border-amber-300"
+                                                                    : "bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:text-amber-700"
+                                                            }`}
+                                                        >
+                                                            {qn}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -266,22 +415,32 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                     <CreditCard className="w-4 h-4" />
                                 </button>
                             </div>
-                            {/* Full Payment Flow + Pre-Check */}
-                            <div className="grid grid-cols-2 gap-3">
+                            {/* Discount + Pre-Check + Pay */}
+                            <div className="grid grid-cols-3 gap-2">
+                                {onDiscount && (
+                                    <button
+                                        onClick={() => setShowDiscountModal(true)}
+                                        disabled={check.subtotal_cents <= 0}
+                                        className="bg-amber-50 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed text-amber-700 border border-amber-300 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[48px] touch-manipulation"
+                                    >
+                                        <Percent className="w-4 h-4" />
+                                        DCTO
+                                    </button>
+                                )}
                                 <button
                                     onClick={handlePrintPreCheck}
                                     disabled={check.total_cents <= 0}
-                                    className="col-span-1 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 border-2 border-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
+                                    className="bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 border-2 border-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[48px] touch-manipulation"
                                 >
-                                    <Printer className="w-5 h-5" />
+                                    <Printer className="w-4 h-4" />
                                     PRE-CUENTA
                                 </button>
                                 <button
                                     onClick={() => setShowPayModal(true)}
                                     disabled={check.total_cents <= 0}
-                                    className="col-span-1 bg-gray-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-xl shadow-gray-900/20 active:scale-95"
+                                    className="bg-gray-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex justify-center items-center gap-1.5 transition-all shadow-xl shadow-gray-900/20 active:scale-95 text-sm min-h-[48px] touch-manipulation"
                                 >
-                                    <CreditCard className="w-5 h-5" />
+                                    <CreditCard className="w-4 h-4" />
                                     COBRAR
                                 </button>
                             </div>
@@ -301,14 +460,23 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                     EMITIR DOC
                                 </button>
                             </div>
-                            {/* Refund button for paid orders */}
-                            <button
-                                onClick={() => onRefund ? onRefund() : setShowRefundModal(true)}
-                                className="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
-                            >
-                                <RotateCcw className="w-4 h-4" />
-                                Devolucion
-                            </button>
+                            {/* Receipt preview + Refund for paid orders */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowReceiptPreview(true)}
+                                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm min-h-[44px] touch-manipulation"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                    Ver Boleta
+                                </button>
+                                <button
+                                    onClick={() => onRefund ? onRefund() : setShowRefundModal(true)}
+                                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm min-h-[44px] touch-manipulation"
+                                >
+                                    <RotateCcw className="w-4 h-4" />
+                                    Devolucion
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -368,6 +536,36 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             }
                             setShowRefundModal(false);
                         }}
+                    />
+                )}
+
+                {showTableTransferModal && (
+                    <TableTransferModal
+                        currentTable={currentTable || ""}
+                        onClose={() => setShowTableTransferModal(false)}
+                        onConfirm={handleTableTransfer}
+                    />
+                )}
+
+                {showDiscountModal && onDiscount && (
+                    <DiscountModal
+                        subtotalCents={check.subtotal_cents}
+                        currentDiscountCents={check.discount_cents}
+                        onClose={() => setShowDiscountModal(false)}
+                        onApply={(type, value) => {
+                            onDiscount(type, value);
+                            setShowDiscountModal(false);
+                        }}
+                    />
+                )}
+
+                {showReceiptPreview && (
+                    <ReceiptPreviewModal
+                        open={showReceiptPreview}
+                        onClose={() => setShowReceiptPreview(false)}
+                        order={order}
+                        check={check}
+                        onPrint={handlePrintPreCheck}
                     />
                 )}
             </AnimatePresence>
