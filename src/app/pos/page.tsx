@@ -20,6 +20,7 @@ import { getDb } from "@/src/core/db/schema";
 import { useAuth } from "@/src/components/auth";
 import { useLiveOrders } from "./hooks/useLiveOrders";
 import { MobileWarning } from "@/src/components/ui";
+import { useCustomerDisplay } from "@/src/hooks/useCustomerDisplay";
 
 // Fallback counter for offline mode
 let offlineOrderCounter = Date.now();
@@ -93,6 +94,9 @@ export default function POSPage() {
         recommender.train().catch(console.error);
     }, []);
 
+    // Customer display broadcasting
+    const broadcastDisplay = useCustomerDisplay();
+
     // Derive recommendations from activeSale using useMemo (optimized)
     const recommendations = useMemo(() => {
         if (!activeSale || Object.keys(activeSale.lines).length === 0) {
@@ -105,6 +109,26 @@ export default function POSPage() {
 
     // Get active check
     const activeCheck = activeSale?.checks.find(c => c.check_id === selectedCheckId) ?? activeSale?.checks[0] ?? null;
+
+    // Broadcast cart state to customer display (/display)
+    useEffect(() => {
+        if (!activeSale || Object.keys(activeSale.lines).length === 0) {
+            broadcastDisplay({ items: [], total: 0, status: "idle" });
+            return;
+        }
+
+        const displayItems = Object.values(activeSale.lines)
+            .filter(l => l.status !== "VOIDED")
+            .map(l => ({ name: l.name, qty: l.qty, price: l.unit_price_cents }));
+        const total = activeCheck?.total_cents ?? displayItems.reduce((s, i) => s + i.price * i.qty, 0);
+
+        broadcastDisplay({
+            items: displayItems,
+            total,
+            status: "ordering",
+            orderNumber: activeSale.order_number,
+        });
+    }, [activeSale, activeCheck, broadcastDisplay]);
 
     const handlePayment = async (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number) => {
         if (!shiftIsOpen) {
@@ -179,6 +203,15 @@ export default function POSPage() {
         });
 
         if (allChecksPaid) {
+            // Broadcast "done" to customer display
+            broadcastDisplay({
+                items: [],
+                total: activeCheck.total_cents,
+                status: "done",
+                orderNumber: activeSale.order_number,
+            });
+            setTimeout(() => broadcastDisplay({ items: [], total: 0, status: "idle" }), 5000);
+
             // Reset for new sale
             setCurrentOrder(null);
             setSelectedCheckId("c1");

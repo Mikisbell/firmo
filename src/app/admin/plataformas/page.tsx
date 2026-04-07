@@ -204,16 +204,32 @@ export default function PlataformasPage() {
                     className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm min-h-[40px] text-white"
                   />
                 </div>
-                <div className="flex items-end gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={getEditValue(p.key, 'autoAccept', cfg?.autoAccept ?? false)}
-                      onChange={(e) => setEditField(p.key, 'autoAccept', e.target.checked)}
-                      className="rounded border-zinc-600"
-                    />
-                    <span className="text-sm text-zinc-300">Auto-aceptar</span>
-                  </label>
+                <div className="flex items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={getEditValue(p.key, 'autoAccept', cfg?.autoAccept ?? false)}
+                        onClick={() => setEditField(p.key, 'autoAccept', !getEditValue(p.key, 'autoAccept', cfg?.autoAccept ?? false))}
+                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                          getEditValue(p.key, 'autoAccept', cfg?.autoAccept ?? false)
+                            ? 'bg-emerald-500'
+                            : 'bg-zinc-700'
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${
+                            getEditValue(p.key, 'autoAccept', cfg?.autoAccept ?? false) ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                      <span className="text-sm font-medium text-zinc-300">Auto-aceptar pedidos</span>
+                    </label>
+                    <p className="text-xs text-park-gray-500 ml-14">
+                      Los pedidos de apps se aceptan automaticamente
+                    </p>
+                  </div>
                 </div>
               </div>
 

@@ -164,6 +164,37 @@ export default function AdminDashboardPage() {
         }
       />
 
+      {/* Low stock alert */}
+      {stats?.lowStockCount != null && stats.lowStockCount > 0 && (
+        <div
+          className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between cursor-pointer hover:border-amber-500/50 transition-all"
+          onClick={() => router.push('/inventario')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter') router.push('/inventario'); }}
+        >
+          <div className="flex items-center gap-3">
+            <Warehouse className="w-5 h-5 text-amber-400" />
+            <div>
+              <p className="font-semibold text-amber-300">Stock bajo</p>
+              <p className="text-sm text-park-gray-400">
+                {stats.lowStockCount} insumo{stats.lowStockCount > 1 ? 's' : ''} por debajo del minimo
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push('/inventario');
+            }}
+          >
+            Ver inventario
+          </Button>
+        </div>
+      )}
+
       {/* Link to Premium Analytics */}
       <Link 
         href="/admin/dashboard"

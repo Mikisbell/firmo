@@ -6,6 +6,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/src/core/observability/logger';
 import { ProductAvailabilityService } from '@/src/core/services/product-availability.service';
 import { eventBus } from '@/src/core/infra/event-bus';
+import { notifyLowStock } from '@/src/core/inventory/stock-alert-notifier';
 
 export interface DeductionIngredient {
   inventory_code: string;
@@ -213,6 +214,29 @@ export async function deductInventoryForOrder(
         }
       }
     });
+
+    // Send push notifications for stock alerts (best-effort, non-blocking)
+    if (alerts.length > 0) {
+      for (const alert of alerts) {
+        // Fetch inventory name+unit for notification
+        const inv = await prisma.inventory.findFirst({
+          where: { tenant_id: tenantId, code: alert.inventory_code },
+          select: { name: true, unit: true, min_stock: true },
+        }).catch(() => null);
+
+        notifyLowStock({
+          tenantId,
+          inventoryCode: alert.inventory_code,
+          inventoryName: inv?.name ?? alert.inventory_code,
+          currentStock: alert.current_stock,
+          minStock: alert.min_stock ?? (inv?.min_stock ? Number(inv.min_stock) : 0),
+          unit: inv?.unit ?? 'unidades',
+          alertType: alert.type === 'NEGATIVE_STOCK' ? 'OUT_OF_STOCK' : 'LOW_STOCK',
+        }).catch(() => {
+          // Best-effort: never fail the deduction over notifications
+        });
+      }
+    }
 
     // H4: Auto-86 — check product availability after deduction
     // If any ingredient stock hit zero, disable the product

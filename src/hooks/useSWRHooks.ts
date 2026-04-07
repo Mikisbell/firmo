@@ -225,6 +225,7 @@ interface DashboardStats {
   activeOrders: number;
   terminalsOnline: number;
   totalProducts: number;
+  lowStockCount?: number;
   alerts: DashboardAlert[];
   recentActivity: { id: string; type: string; message: string; timestamp: string }[];
   syncStatus: {

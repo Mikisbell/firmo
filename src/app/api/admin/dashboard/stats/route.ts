@@ -24,6 +24,7 @@ export interface DashboardStats {
   activeOrders: number;
   terminalsOnline: number;
   totalProducts: number;
+  lowStockCount: number;
   alerts: Alert[];
   recentActivity: Activity[];
   syncStatus: {
@@ -102,7 +103,7 @@ async function handleGET(request: NextRequest) {
     
     // Get all stats in parallel with tenantId from JWT
     const dbStart = Date.now();
-    const [salesResult, salesYesterday, activeOrders, terminalsOnline, terminalsOffline, totalProducts, outOfStockProducts, pendingEvents] = await Promise.all([
+    const [salesResult, salesYesterday, activeOrders, terminalsOnline, terminalsOffline, totalProducts, outOfStockProducts, pendingEvents, lowStockCount] = await Promise.all([
       // Today's sales
       prisma.orders.aggregate({
         where: {
@@ -176,6 +177,15 @@ async function handleGET(request: NextRequest) {
           published_at: null,
         },
       }).catch(() => 0),
+
+      // Low stock inventory items (stock < min_stock)
+      prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(*)::bigint AS count
+        FROM inventory
+        WHERE tenant_id = ${tenantId}::uuid
+          AND min_stock IS NOT NULL
+          AND stock < min_stock
+      `.then((rows) => Number(rows[0]?.count ?? 0)).catch(() => 0),
     ]);
     logPerformance('db_query_dashboard_stats', Date.now() - dbStart);
     
@@ -211,6 +221,16 @@ async function handleGET(request: NextRequest) {
       });
     });
     
+    // Low stock alert
+    if (lowStockCount > 0) {
+      alerts.push({
+        id: 'low-stock-summary',
+        type: 'warning',
+        message: `${lowStockCount} insumo${lowStockCount > 1 ? 's' : ''} por debajo del stock minimo`,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // Sync status alert
     if (pendingEvents > 10) {
       alerts.push({
@@ -255,6 +275,7 @@ async function handleGET(request: NextRequest) {
       activeOrders,
       terminalsOnline,
       totalProducts,
+      lowStockCount,
       alerts: alerts.slice(0, 5), // Max 5 alerts
       recentActivity,
       syncStatus: {
