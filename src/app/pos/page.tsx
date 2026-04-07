@@ -187,6 +187,18 @@ export default function POSPage() {
         }
     };
 
+    const handleTipChange = async (tipCents: number) => {
+        if (!activeSale || !activeCheck) return;
+        await POSActions.setTip(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, activeCheck.check_id, tipCents);
+    };
+
+    const handleRefund = async () => {
+        // Refund is handled via RefundModal -> POSActions.issueRefund
+        // This callback is for post-refund UI updates
+        if (!activeSale || !activeCheck) return;
+        toast.success("Devolucion registrada");
+    };
+
     const handleUpdateQty = async (lineId: string, newQty: number) => {
         if (!activeSale || !activeCheck) return;
 
@@ -638,6 +650,8 @@ export default function POSPage() {
                         onPayment={handlePayment}
                         onInvoice={handleInvoice}
                         onUpdateQty={handleUpdateQty}
+                        onTipChange={handleTipChange}
+                        onRefund={handleRefund}
                         checks={activeSale.checks}
                         selectedCheckId={selectedCheckId}
                         onSelectCheck={setSelectedCheckId}

@@ -3,7 +3,8 @@ import { CheckProjection, SaleProjection } from "@/src/core/projections/types";
 import { PaymentModal } from "./PaymentModal";
 import { InvoiceModal } from "./InvoiceModal";
 import { SplitBillModal } from "./SplitBillModal";
-import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, Plus, Minus, Trash2 } from "lucide-react";
+import { RefundModal } from "./RefundModal";
+import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, Plus, Minus, Trash2, Banknote, RotateCcw } from "lucide-react";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint, OrderLineInput } from "@/src/core/printing/utils";
 import { AnimatePresence } from "framer-motion";
@@ -20,16 +21,19 @@ interface CheckDetailProps {
     onPayment: (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number) => void;
     onInvoice: (type: "BOLETA" | "FACTURA") => void;
     onUpdateQty?: (lineId: string, newQty: number) => void;
+    onTipChange?: (tipCents: number) => void;
+    onRefund?: () => void;
     // New Props for Selector
     checks: CheckProjection[];
     selectedCheckId: string;
     onSelectCheck: (id: string) => void;
 }
 
-export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, onUpdateQty, checks, selectedCheckId, onSelectCheck }: CheckDetailProps) {
+export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, onUpdateQty, onTipChange, onRefund, checks, selectedCheckId, onSelectCheck }: CheckDetailProps) {
     const [showPayModal, setShowPayModal] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [showSplitModal, setShowSplitModal] = useState(false);
+    const [showRefundModal, setShowRefundModal] = useState(false);
 
     // Derived
     const allLines = order.lines;
@@ -212,9 +216,15 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             <span>- S/ {(check.discount_cents / 100).toFixed(2)}</span>
                         </div>
                     )}
+                    {check.tip_cents > 0 && (
+                        <div className="flex justify-between text-amber-600 font-mono text-sm">
+                            <span>PROPINA</span>
+                            <span>+ S/ {(check.tip_cents / 100).toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between items-baseline text-gray-900 border-t-2 border-gray-900 pt-4">
                         <span className="font-black text-2xl tracking-tighter">TOTAL</span>
-                        <span className="font-mono text-3xl font-bold">S/ {(check.total_cents / 100).toFixed(2)}</span>
+                        <span className="font-mono text-3xl font-bold tabular-nums">S/ {(check.total_cents / 100).toFixed(2)}</span>
                     </div>
 
                     {/* Payment Progress Bar */}
@@ -233,36 +243,71 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                 {/* Actions */}
                 <div className="space-y-3">
                     {!isPaid ? (
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                onClick={handlePrintPreCheck}
-                                disabled={check.total_cents <= 0}
-                                className="col-span-1 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 border-2 border-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
-                            >
-                                <Printer className="w-5 h-5" />
-                                PRE-CUENTA
-                            </button>
-                            <button
-                                onClick={() => setShowPayModal(true)}
-                                disabled={check.total_cents <= 0}
-                                className="col-span-1 bg-gray-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-xl shadow-gray-900/20 active:scale-95"
-                            >
-                                <CreditCard className="w-5 h-5" />
-                                COBRAR
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-3">
-                            <div className="flex-1 bg-green-50 text-green-700 border border-green-200 py-3 rounded-xl flex items-center justify-center gap-2 font-black uppercase tracking-wide">
-                                <CheckCircle className="w-5 h-5" />
-                                Pagado
+                        <>
+                            {/* Quick Pay Buttons */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => {
+                                        onPayment("CASH", remainingCents);
+                                    }}
+                                    disabled={check.total_cents <= 0}
+                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 touch-manipulation min-h-[48px]"
+                                >
+                                    <Banknote className="w-5 h-5" />
+                                    Efectivo S/ {(remainingCents / 100).toFixed(2)}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        onPayment("CARD", remainingCents);
+                                    }}
+                                    disabled={check.total_cents <= 0}
+                                    className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95 touch-manipulation min-h-[48px]"
+                                >
+                                    <CreditCard className="w-4 h-4" />
+                                </button>
                             </div>
+                            {/* Full Payment Flow + Pre-Check */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={handlePrintPreCheck}
+                                    disabled={check.total_cents <= 0}
+                                    className="col-span-1 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 border-2 border-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
+                                >
+                                    <Printer className="w-5 h-5" />
+                                    PRE-CUENTA
+                                </button>
+                                <button
+                                    onClick={() => setShowPayModal(true)}
+                                    disabled={check.total_cents <= 0}
+                                    className="col-span-1 bg-gray-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-xl shadow-gray-900/20 active:scale-95"
+                                >
+                                    <CreditCard className="w-5 h-5" />
+                                    COBRAR
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="flex gap-3">
+                                <div className="flex-1 bg-green-50 text-green-700 border border-green-200 py-3 rounded-xl flex items-center justify-center gap-2 font-black uppercase tracking-wide">
+                                    <CheckCircle className="w-5 h-5" />
+                                    Pagado
+                                </div>
+                                <button
+                                    onClick={() => setShowInvoiceModal(true)}
+                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-indigo-500/30 shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <FileText className="w-5 h-5" />
+                                    EMITIR DOC
+                                </button>
+                            </div>
+                            {/* Refund button for paid orders */}
                             <button
-                                onClick={() => setShowInvoiceModal(true)}
-                                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-indigo-500/30 shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                                onClick={() => onRefund ? onRefund() : setShowRefundModal(true)}
+                                className="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
                             >
-                                <FileText className="w-5 h-5" />
-                                EMITIR DOC
+                                <RotateCcw className="w-4 h-4" />
+                                Devolucion
                             </button>
                         </div>
                     )}
@@ -275,11 +320,15 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                     <PaymentModal
                         totalDueCents={check.total_cents}
                         remainingCents={remainingCents}
+                        subtotalCents={check.subtotal_cents}
+                        tipCents={check.tip_cents}
+                        orderNumber={order.order_number}
                         onClose={() => setShowPayModal(false)}
                         onConfirm={(method, amount) => {
                             onPayment(method, amount);
                             setShowPayModal(false);
                         }}
+                        onTipChange={onTipChange}
                     />
                 )}
 
@@ -304,6 +353,21 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         currentTerminalId={terminalId}
                         actorId={actorId}
                         onClose={() => setShowSplitModal(false)}
+                    />
+                )}
+
+                {showRefundModal && (
+                    <RefundModal
+                        check={check}
+                        order={order}
+                        onClose={() => setShowRefundModal(false)}
+                        onConfirm={(params) => {
+                            // onRefund callback handles the actual event dispatch from page.tsx
+                            if (onRefund) {
+                                onRefund();
+                            }
+                            setShowRefundModal(false);
+                        }}
                     />
                 )}
             </AnimatePresence>
