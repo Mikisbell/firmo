@@ -136,14 +136,16 @@ export default function ZReportPage() {
             </div>
           </div>
           {report && (
-            <button
-              onClick={() => window.print()}
-              className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
-              title="Imprimir"
-              data-testid="z-report-print-btn"
-            >
-              <Printer className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.open(`/admin/reports/z-report/print?shift_id=${shiftId}`, '_blank')}
+                className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+                title="Imprimir"
+                data-testid="z-report-print-btn"
+              >
+                <Printer className="w-5 h-5" />
+              </button>
+            </div>
           )}
         </div>
 

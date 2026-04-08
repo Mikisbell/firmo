@@ -19,6 +19,9 @@ import {
   Loader2,
   AlertCircle,
   BarChart3,
+  ArrowRightLeft,
+  X,
+  CheckCircle,
 } from 'lucide-react';
 import { Button, Card, PageHeader, MetricCard, ToggleGroup } from '@/src/components/ui';
 
@@ -66,6 +69,7 @@ export default function SucursalesPage() {
   const [data, setData] = useState<ByLocationResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const fetchData = useCallback(async (p: Period) => {
     setLoading(true);
@@ -115,18 +119,40 @@ export default function SucursalesPage() {
         title="Sucursales"
         description="Comparativa de metricas por sede"
         actions={
-          <ToggleGroup
-            value={period}
-            onChange={(v) => setPeriod(v as Period)}
-            options={[
-              { value: 'today', label: 'Hoy' },
-              { value: 'week', label: 'Ultima semana' },
-              { value: 'month', label: 'Ultimo mes' },
-            ]}
-            size="sm"
-          />
+          <div className="flex items-center gap-3">
+            {data && data.locations.length >= 2 && (
+              <Button
+                variant="secondary"
+                icon={<ArrowRightLeft className="w-4 h-4" />}
+                onClick={() => setTransferModalOpen(true)}
+              >
+                Transferir Stock
+              </Button>
+            )}
+            <ToggleGroup
+              value={period}
+              onChange={(v) => setPeriod(v as Period)}
+              options={[
+                { value: 'today', label: 'Hoy' },
+                { value: 'week', label: 'Ultima semana' },
+                { value: 'month', label: 'Ultimo mes' },
+              ]}
+              size="sm"
+            />
+          </div>
         }
       />
+
+      {/* Stock Transfer Modal */}
+      {transferModalOpen && data && data.locations.length >= 2 && (
+        <StockTransferModal
+          locations={data.locations.map((l) => ({
+            id: l.locationId ?? '',
+            name: l.locationName,
+          }))}
+          onClose={() => setTransferModalOpen(false)}
+        />
+      )}
 
       {/* Loading */}
       {loading && (
@@ -260,6 +286,173 @@ export default function SucursalesPage() {
 /* ────────────────────────────────────────────────────── */
 /* Sub-components                                         */
 /* ────────────────────────────────────────────────────── */
+
+function StockTransferModal({
+  locations,
+  onClose,
+}: {
+  locations: { id: string; name: string }[];
+  onClose: () => void;
+}) {
+  const [fromLocationId, setFromLocationId] = useState('');
+  const [toLocationId, setToLocationId] = useState('');
+  const [inventoryCode, setInventoryCode] = useState('');
+  const [qty, setQty] = useState('');
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; fromStock?: number; toStock?: number; error?: string } | null>(null);
+
+  const handleSubmit = async () => {
+    if (!fromLocationId || !toLocationId || !inventoryCode || !qty) return;
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/inventory/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          fromLocationId,
+          toLocationId,
+          inventoryCode,
+          qty: parseInt(qty, 10),
+          reason: reason || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setResult({ success: false, error: data.error || 'Error desconocido' });
+      } else {
+        setResult({ success: true, fromStock: data.fromStock, toStock: data.toStock });
+      }
+    } catch {
+      setResult({ success: false, error: 'Error de conexion' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const validLocations = locations.filter((l) => l.id);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-park-gray-900 border border-park-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <ArrowRightLeft className="w-5 h-5 text-cyan-400" />
+            Transferir Stock
+          </h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-park-gray-800 text-park-gray-400 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {result?.success ? (
+          <div className="text-center py-6">
+            <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+            <p className="text-white font-semibold mb-2">Transferencia exitosa</p>
+            <div className="text-sm text-park-gray-400 space-y-1">
+              <p>Stock origen: {result.fromStock}</p>
+              <p>Stock destino: {result.toStock}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="mt-4 px-6 py-2 bg-cyan-600 text-white rounded-lg text-sm font-medium hover:bg-cyan-500 transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-park-gray-400 uppercase tracking-wider block mb-1">Origen</label>
+              <select
+                value={fromLocationId}
+                onChange={(e) => setFromLocationId(e.target.value)}
+                className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+              >
+                <option value="">Seleccionar sede</option>
+                {validLocations.map((l) => (
+                  <option key={l.id} value={l.id} disabled={l.id === toLocationId}>{l.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-park-gray-400 uppercase tracking-wider block mb-1">Destino</label>
+              <select
+                value={toLocationId}
+                onChange={(e) => setToLocationId(e.target.value)}
+                className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+              >
+                <option value="">Seleccionar sede</option>
+                {validLocations.map((l) => (
+                  <option key={l.id} value={l.id} disabled={l.id === fromLocationId}>{l.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-park-gray-400 uppercase tracking-wider block mb-1">Codigo producto</label>
+              <input
+                type="text"
+                value={inventoryCode}
+                onChange={(e) => setInventoryCode(e.target.value)}
+                placeholder="Ej: POLLO-001"
+                className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-park-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-park-gray-400 uppercase tracking-wider block mb-1">Cantidad</label>
+              <input
+                type="number"
+                min="1"
+                value={qty}
+                onChange={(e) => setQty(e.target.value)}
+                placeholder="Ej: 10"
+                className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-park-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-park-gray-400 uppercase tracking-wider block mb-1">Razon (opcional)</label>
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Ej: Reposicion por alta demanda"
+                className="w-full bg-park-gray-800 border border-park-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-park-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+              />
+            </div>
+
+            {result?.error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-300 text-sm">
+                {result.error}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-park-gray-800 text-park-gray-300 hover:bg-park-gray-700 text-sm font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || !fromLocationId || !toLocationId || !inventoryCode || !qty}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 disabled:bg-park-gray-700 disabled:text-park-gray-500 transition-colors"
+              >
+                {submitting ? 'Transfiriendo...' : 'Transferir'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function LocationCard({ location }: { location: LocationMetrics }) {
   const { locationName, metrics } = location;

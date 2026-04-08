@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react';
+import { t } from '@/src/i18n';
 
 interface TrackingData {
   trackingCode: string;
@@ -137,7 +138,7 @@ export default function TrackingPage({ params }: { params: Promise<PageParams> }
           className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium"
         >
           <RefreshCw className="w-4 h-4" />
-          Reintentar
+          {t('common.retry')}
         </button>
       </div>
     );
@@ -263,7 +264,7 @@ export default function TrackingPage({ params }: { params: Promise<PageParams> }
                       )}
 
                       {isPending && !isFailed && step.key !== 'PENDING' && (
-                        <p className="text-xs text-gray-300 mt-0.5">Pendiente</p>
+                        <p className="text-xs text-gray-300 mt-0.5">{t('status.pending')}</p>
                       )}
                     </div>
                   </div>

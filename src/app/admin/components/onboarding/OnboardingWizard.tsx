@@ -9,7 +9,7 @@
  * Requirements: F2.2, F2.3
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OnboardingStep } from '@/src/core/tenant/onboarding';
 import OnboardingStepProgress from './OnboardingStepProgress';
 import OnboardingStepForm from './OnboardingStepForm';
@@ -34,6 +34,31 @@ export default function OnboardingWizard({
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(
     new Set(steps.filter((s) => s.is_completed).map((s) => s.step_key))
   );
+
+  // Auto-save progress to localStorage between steps
+  useEffect(() => {
+    localStorage.setItem('park-onboarding-progress', JSON.stringify({
+      currentStepIndex,
+      completedSteps: Array.from(completedSteps),
+      saved_at: new Date().toISOString(),
+    }));
+  }, [currentStepIndex, completedSteps]);
+
+  // Restore progress from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('park-onboarding-progress');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.currentStepIndex != null && parsed.currentStepIndex < steps.length) {
+          setCurrentStepIndex(parsed.currentStepIndex);
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentStep = steps[currentStepIndex];
   const requiredSteps = steps.filter((s) => s.is_required);

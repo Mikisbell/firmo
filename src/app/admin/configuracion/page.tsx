@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { Save, Building2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminMutation } from '@/src/hooks/useAdminData';
-import { Button, Card, PageHeader, Input, FormField } from '@/src/components/ui';
+import { Button, Card, CardHeader, CardContent, PageHeader, Input, FormField } from '@/src/components/ui';
 
 interface TenantSettings {
   tenant_id: string;
@@ -137,6 +137,21 @@ export default function ConfigurationPage() {
       >
         {saving ? 'Guardando...' : 'Guardar Cambios'}
       </Button>
+
+      <Card padding="md">
+        <CardHeader>
+          <h3 className="font-medium text-white">Respaldo de Datos</h3>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm text-park-gray-400">
+            <p>Backup automatico activo</p>
+            <p>Frecuencia: Diario a las 3:00 AM UTC (10:00 PM Lima)</p>
+            <p>Retencion: 30 dias</p>
+            <p>Destino: GitHub Artifacts</p>
+            <p>Base de datos: PostgreSQL (Supabase Cloud)</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

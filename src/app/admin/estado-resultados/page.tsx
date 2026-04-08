@@ -9,7 +9,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Download, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Calendar, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePnLReport } from '@/src/hooks/useSWRHooks';
 import { Button, Card, PageHeader, MetricCard } from '@/src/components/ui';
@@ -89,6 +89,17 @@ export default function EstadoResultadosPage() {
         description="Reporte de Perdidas y Ganancias"
         actions={
           <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              icon={<Printer size={16} />}
+              onClick={() => {
+                const month = startDate.slice(0, 7);
+                window.open(`/admin/reports/pnl/print?month=${month}`, '_blank');
+              }}
+              disabled={!data}
+            >
+              Imprimir
+            </Button>
             <Button
               variant="primary"
               icon={<Download size={16} />}

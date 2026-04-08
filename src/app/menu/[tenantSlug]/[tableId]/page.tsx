@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, use } from 'react';
+import { t } from '@/src/i18n';
 import {
   Loader2,
   Bell,
@@ -417,7 +418,7 @@ export default function PublicMenuPage({ params }: { params: Promise<PageParams>
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white">
         <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
-        <p className="mt-3 text-gray-500 text-sm">Cargando menu...</p>
+        <p className="mt-3 text-gray-500 text-sm">{t('common.loading')}</p>
       </div>
     );
   }
@@ -456,7 +457,7 @@ export default function PublicMenuPage({ params }: { params: Promise<PageParams>
             onClick={() => setOrderResult(null)}
             className="w-full py-2 mt-2 text-sm text-gray-500 underline"
           >
-            Volver al menu
+            {t('common.back')}
           </button>
         </div>
       </div>
@@ -736,14 +737,14 @@ export default function PublicMenuPage({ params }: { params: Promise<PageParams>
               className="flex items-center gap-1 text-xs text-gray-500 active:text-amber-600 py-1 px-2 rounded-lg"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${ordersLoading ? 'animate-spin' : ''}`} />
-              Actualizar
+              {t('common.refresh')}
             </button>
           </div>
 
           {ordersLoading && orders.length === 0 && (
             <div className="flex flex-col items-center py-12">
               <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-              <p className="mt-2 text-sm text-gray-500">Cargando pedidos...</p>
+              <p className="mt-2 text-sm text-gray-500">{t('common.loading')}</p>
             </div>
           )}
 

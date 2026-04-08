@@ -374,10 +374,12 @@ export default function WaiterPage() {
                                 onClick={() => router.push(`/mozo/mesa/${t.number}`)}
                                 whileTap={{ scale: 0.97 }}
                                 className={`
-                                    relative rounded-xl md:rounded-2xl flex flex-col items-center justify-center 
-                                    border-2 transition-all overflow-hidden group 
-                                    min-h-[100px] md:min-h-[140px] aspect-[4/3]
+                                    relative rounded-xl md:rounded-2xl flex flex-col items-center justify-center
+                                    border-2 transition-all overflow-hidden group
+                                    min-h-[80px] md:min-h-[140px] aspect-[4/3]
                                     ${colors.bg} ${colors.border} shadow-xl ${colors.shadow}
+                                    ${t.readyItemsCount && t.readyItemsCount > 0 ? 'border-emerald-400 animate-pulse' : ''}
+                                    ${t.status === 'OCCUPIED' && !(t.readyItemsCount && t.readyItemsCount > 0) ? 'border-amber-500/60' : ''}
                                 `}
                             >
                                 {/* Active State Background Gradient */}
@@ -440,8 +442,15 @@ export default function WaiterPage() {
                                     </div>
                                 </div>
 
+                                {/* Order Count Badge */}
+                                {t.status !== 'FREE' && (
+                                    <div className="absolute top-1 right-1 md:top-2 md:right-2 w-5 h-5 md:w-6 md:h-6 bg-park-gray-800/90 border border-park-gray-600 rounded-full flex items-center justify-center">
+                                        <span className="text-[9px] md:text-[10px] font-bold text-white tabular-nums">1</span>
+                                    </div>
+                                )}
+
                                 {/* Status Light */}
-                                <div className={`absolute top-2 right-2 md:top-3 md:right-3 w-2 h-2 md:w-3 md:h-3 rounded-full ${colors.light}`} />
+                                <div className={`absolute ${t.status !== 'FREE' ? 'top-1 right-7 md:top-2 md:right-9' : 'top-2 right-2 md:top-3 md:right-3'} w-2 h-2 md:w-3 md:h-3 rounded-full ${colors.light}`} />
                             </motion.button>
                             );
                         })}

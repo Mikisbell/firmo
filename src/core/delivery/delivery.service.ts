@@ -12,6 +12,7 @@ import {
   isValidTransition 
 } from './types';
 import { notifyDeliveryAssigned } from './notification-handlers';
+import { sendDriverAssignedWhatsApp, sendDeliveredWhatsApp } from './whatsapp-tracking';
 import { asCentavos } from '@/src/core/types/shared';
 import { v4 as uuidv4 } from 'uuid';
 import { generateTrackingCode } from './tracking-code';
@@ -120,6 +121,17 @@ export const DeliveryService = {
       // Silently ignore notification errors
     });
 
+    // Enviar WhatsApp al cliente con info del motorizado (async, no bloquea)
+    if (delivery.customer_phone && delivery.tracking_code && driver.name) {
+      sendDriverAssignedWhatsApp(
+        delivery.customer_phone,
+        driver.name,
+        delivery.tracking_code,
+      ).catch(() => {
+        // Silently ignore WhatsApp errors
+      });
+    }
+
     return mapToDeliveryOrder(updated);
   },
 
@@ -192,6 +204,16 @@ export const DeliveryService = {
         signature_url: signatureUrl || null,
       },
     });
+
+    // Enviar WhatsApp al cliente notificando entrega (async, no bloquea)
+    if (delivery.customer_phone && delivery.tracking_code) {
+      sendDeliveredWhatsApp(
+        delivery.customer_phone,
+        delivery.tracking_code,
+      ).catch(() => {
+        // Silently ignore WhatsApp errors
+      });
+    }
 
     return mapToDeliveryOrder(updated);
   },

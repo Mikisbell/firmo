@@ -515,13 +515,17 @@ export default function AnalyticsDashboardPage() {
               <h2 className="text-lg font-semibold mb-4">Top 5 Productos</h2>
               <div className="space-y-2">
                 {topProducts.length > 0 ? (
-                  topProducts.map((product, index) => (
-                    <TopProductRow
-                      key={product.product_id}
-                      product={product}
-                      rank={index + 1}
-                    />
-                  ))
+                  (() => {
+                    const maxRevenue = Math.max(...topProducts.map(p => p.revenue_cents), 1);
+                    return topProducts.map((product, index) => (
+                      <TopProductRow
+                        key={product.product_id}
+                        product={product}
+                        rank={index + 1}
+                        maxRevenue={maxRevenue}
+                      />
+                    ));
+                  })()
                 ) : (
                   <EmptyState
                     icon={<ShoppingCart />}
@@ -551,6 +555,17 @@ export default function AnalyticsDashboardPage() {
                   ),
                 )}
               </div>
+            </Card>
+          )}
+
+          {/* Peak Hours Heat Grid */}
+          {period === 'today' && hourlySales.length > 0 && (
+            <Card padding="md">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Flame className="w-5 h-5 text-orange-400" />
+                Horas Pico
+              </h2>
+              <PeakHoursGrid data={hourlySales} />
             </Card>
           )}
 
@@ -699,24 +714,20 @@ function StationCard({
   );
 }
 
-function TopProductRow({ product, rank }: { product: TopProduct; rank: number }) {
+function TopProductRow({ product, rank, maxRevenue }: { product: TopProduct; rank: number; maxRevenue: number }) {
   const formatCurrency = (cents: number) => `S/ ${(cents / 100).toFixed(2)}`;
+  const percentage = maxRevenue > 0 ? (product.revenue_cents / maxRevenue) * 100 : 0;
 
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-park-gray-800/50 transition-colors">
-      <div className="w-6 h-6 rounded-full bg-park-gray-800 flex items-center justify-center text-xs font-bold tabular-nums">
+      <div className="w-6 h-6 rounded-full bg-park-gray-800 flex items-center justify-center text-xs font-bold tabular-nums flex-shrink-0">
         {rank}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{product.name}</p>
-        <p className="text-xs text-park-gray-400">{product.sku}</p>
+      <span className="w-32 text-sm truncate flex-shrink-0">{product.name}</span>
+      <div className="flex-1 bg-park-gray-800 rounded-full h-3">
+        <div className="bg-park-brand-500 h-3 rounded-full transition-all" style={{ width: `${percentage}%` }} />
       </div>
-      <div className="text-right">
-        <p className="font-bold tabular-nums">{product.qty_sold}</p>
-        <p className="text-xs text-park-gray-400 tabular-nums">
-          {formatCurrency(product.revenue_cents)}
-        </p>
-      </div>
+      <span className="text-sm tabular-nums flex-shrink-0">S/ {(product.revenue_cents / 100).toFixed(2)}</span>
     </div>
   );
 }
@@ -792,6 +803,63 @@ function HourlySalesChart({
       <div className="flex justify-between text-xs text-park-gray-400 pt-2 border-t border-park-gray-800 tabular-nums">
         <span>Total: {formatCurrency(totals.totalSales)}</span>
         <span>{totals.totalOrders} órdenes</span>
+      </div>
+    </div>
+  );
+}
+
+function PeakHoursGrid({ data }: { data: HourlySales[] }) {
+  // Build full 24-hour map
+  const hourMap = new Map<number, number>();
+  data.forEach((d) => hourMap.set(d.hour, d.orders_count));
+  const maxOrders = Math.max(...data.map((d) => d.orders_count), 1);
+
+  const getIntensityClass = (count: number) => {
+    if (count === 0) return 'bg-park-gray-800';
+    const ratio = count / maxOrders;
+    if (ratio >= 0.8) return 'bg-red-500';
+    if (ratio >= 0.6) return 'bg-orange-500';
+    if (ratio >= 0.4) return 'bg-amber-500';
+    if (ratio >= 0.2) return 'bg-yellow-500/60';
+    return 'bg-yellow-500/30';
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-24 gap-1">
+        {Array.from({ length: 24 }, (_, h) => {
+          const count = hourMap.get(h) ?? 0;
+          return (
+            <div
+              key={h}
+              className={`aspect-square rounded-sm ${getIntensityClass(count)} transition-colors group relative`}
+              title={`${h.toString().padStart(2, '0')}:00 — ${count} órdenes`}
+            >
+              <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-park-gray-700 text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap z-10 pointer-events-none">
+                {count}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between text-[10px] text-park-gray-500 tabular-nums">
+        <span>00:00</span>
+        <span>06:00</span>
+        <span>12:00</span>
+        <span>18:00</span>
+        <span>23:00</span>
+      </div>
+      <div className="flex items-center gap-3 text-[10px] text-park-gray-500">
+        <span>Menos</span>
+        <div className="flex gap-0.5">
+          <div className="w-3 h-3 rounded-sm bg-park-gray-800" />
+          <div className="w-3 h-3 rounded-sm bg-yellow-500/30" />
+          <div className="w-3 h-3 rounded-sm bg-yellow-500/60" />
+          <div className="w-3 h-3 rounded-sm bg-amber-500" />
+          <div className="w-3 h-3 rounded-sm bg-orange-500" />
+          <div className="w-3 h-3 rounded-sm bg-red-500" />
+        </div>
+        <span>Mas</span>
       </div>
     </div>
   );

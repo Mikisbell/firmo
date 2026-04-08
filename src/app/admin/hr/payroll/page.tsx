@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { DollarSign, Calculator, AlertTriangle } from 'lucide-react';
+import { DollarSign, Calculator, AlertTriangle, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, PageHeader, MetricCard, EmptyState, Breadcrumbs } from '@/src/components/ui';
 
@@ -172,6 +172,7 @@ export default function PayrollPage() {
                   <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Pensión</th>
                   <th className="px-4 py-3 text-right text-park-gray-400 font-medium">Adelantos</th>
                   <th className="px-4 py-3 text-right text-park-gray-400 font-medium font-bold">Neto</th>
+                  <th className="px-4 py-3 text-center text-park-gray-400 font-medium">Boleta</th>
                 </tr>
               </thead>
               <tbody>
@@ -187,6 +188,15 @@ export default function PayrollPage() {
                     <td className="px-4 py-3 text-right text-orange-400">{formatCurrency(r.pension_cents)}</td>
                     <td className="px-4 py-3 text-right text-red-400">{formatCurrency(r.advances_cents)}</td>
                     <td className="px-4 py-3 text-right text-blue-400 font-bold">{formatCurrency(r.net_salary_cents)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => window.open(`/admin/hr/payroll/print?employee_id=${r.employee_id}&month=${periodMonth}`, '_blank')}
+                        className="p-1.5 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 transition-colors"
+                        title="Imprimir boleta"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-park-gray-400" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

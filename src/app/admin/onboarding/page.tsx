@@ -13,6 +13,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import OnboardingWizard from '../components/onboarding/OnboardingWizard';
 import { Button, Card, PageHeader, Progress } from '@/src/components/ui';
 import type { OnboardingStep } from '@/src/core/tenant/onboarding';
@@ -82,6 +83,24 @@ export default function AdminOnboardingPage() {
   };
 
   const handleOnboardingComplete = async () => {
+    localStorage.removeItem('park-onboarding-progress');
+    toast.success('Configuracion completada', {
+      description: 'Tu sistema PARK POS esta listo para usar.',
+    });
+    router.push('/admin');
+  };
+
+  const handleCompleteLater = () => {
+    if (data) {
+      localStorage.setItem('park-onboarding-progress', JSON.stringify({
+        completion_percentage: data.completion_percentage,
+        completed_steps: data.steps.filter((s) => s.is_completed).map((s) => s.step_key),
+        saved_at: new Date().toISOString(),
+      }));
+    }
+    toast.info('Progreso guardado', {
+      description: 'Podes continuar la configuracion en cualquier momento.',
+    });
     router.push('/admin');
   };
 
@@ -149,9 +168,18 @@ export default function AdminOnboardingPage() {
       <Card padding="sm">
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-white">Progreso del Asistente</p>
-          <span className="text-xs text-park-gray-400 tabular-nums">
-            Paso {data.progress.completed} de {data.progress.total}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-park-gray-400 tabular-nums">
+              Paso {data.progress.completed} de {data.progress.total}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCompleteLater}
+            >
+              Completar despues
+            </Button>
+          </div>
         </div>
         <Progress
           value={data.progress.completed}
