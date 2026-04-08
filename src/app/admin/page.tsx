@@ -46,8 +46,8 @@ import {
   Zap,
   Briefcase,
 } from 'lucide-react';
-import { useAdminStats, type DashboardStats } from '@/src/hooks/useSWRHooks';
-import { Button, Card, PageHeader, MetricCard } from '@/src/components/ui';
+import { useAdminStats } from '@/src/hooks/useSWRHooks';
+import { Button, PageHeader } from '@/src/components/ui';
 
 const NAV_CARDS = [
   {
@@ -132,11 +132,6 @@ export default function AdminDashboardPage() {
 
   const formatCurrency = (cents: number) => {
     return `S/ ${(cents / 100).toFixed(2)}`;
-  };
-
-  const formatDelta = (delta: number) => {
-    const sign = delta >= 0 ? '+' : '';
-    return `${sign}${delta.toFixed(1)}%`;
   };
 
   return (

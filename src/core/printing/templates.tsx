@@ -90,6 +90,7 @@ interface TicketProps {
     invoiceType?: "BOLETA" | "FACTURA" | "PRE-CUENTA";
     invoiceSeries?: string;
     invoiceNumber?: string;
+    tableKey?: string;
     logoUrl?: string;
 }
 
@@ -105,6 +106,7 @@ export const TicketTemplate: React.FC<TicketProps> = ({
     payments,
     clientDoc,
     invoiceType = "PRE-CUENTA",
+    tableKey,
     invoiceSeries,
     invoiceNumber,
     logoUrl = "/logo.svg",
@@ -126,7 +128,8 @@ export const TicketTemplate: React.FC<TicketProps> = ({
                 {invoiceSeries && invoiceNumber && (
                     <div className="large">{invoiceSeries}-{invoiceNumber}</div>
                 )}
-                <div>Mesa: #KEY (TODO) - Orden: #{orderNumber}</div>
+                {tableKey && <div>Mesa: #{tableKey} - Orden: #{orderNumber}</div>}
+                {!tableKey && <div>Orden: #{orderNumber}</div>}
                 <div>Fecha: {date}</div>
             </div>
 
