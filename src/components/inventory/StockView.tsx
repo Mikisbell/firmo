@@ -343,6 +343,7 @@ export default function StockView({
   locationId,
   onReceive,
   onWaste,
+  onQuickWaste,
   onKardex,
   onHighlightItem,
 }: StockViewProps) {

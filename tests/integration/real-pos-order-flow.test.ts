@@ -235,18 +235,19 @@ describe('Real POS Order Flow - Integration', () => {
     const events = await prisma.events.findMany({
       where: {
         tenant_id: TENANT_ID,
-        aggregate_id: createdOrderId,
+        entity_id: createdOrderId,
       },
       orderBy: { occurred_at: 'asc' },
     });
 
     expect(events.length).toBeGreaterThanOrEqual(1);
-    expect(events[0].event_type).toBe('ORDER_CREATED');
+    expect(events[0].type).toBe('ORDER_CREATED');
 
     // ========================================
     // STEP 5: Add payment via event
     // ========================================
-    checkId = order!.checks?.[0]?.check_id;
+    const orderChecks = order!.checks as Array<{ check_id: string }> | null;
+    checkId = orderChecks?.[0]?.check_id ?? '';
     expect(checkId).toBeDefined();
 
     const paymentResult = await addPayment(createdOrderId, checkId!, 7300, 'CASH');
@@ -277,9 +278,9 @@ describe('Real POS Order Flow - Integration', () => {
     expect(updatedOrder).not.toBeNull();
     
     // Check that checks were updated with payment
-    const checks = updatedOrder!.checks as any[];
-    expect(checks).toBeDefined();
-    expect(checks.length).toBe(1);
+    const orderChecks2 = updatedOrder!.checks as any[] | null;
+    expect(orderChecks2).toBeDefined();
+    expect(orderChecks2?.length).toBe(1);
 
     console.log('✅ Complete POS order flow validated:');
     console.log(`   Order: ${createdOrderId}`);

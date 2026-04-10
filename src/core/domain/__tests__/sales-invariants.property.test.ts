@@ -99,10 +99,10 @@ const orderArb = fc.record({
 }).map(order => {
   // Calcular totales correctamente
   const subtotal_cents = order.items.reduce(
-    (sum, item) => sum + item.unit_price_cents * item.quantity,
+    (sum, item) => sum + (item.unit_price_cents * item.quantity) as Centavos,
     0 as Centavos
   );
-  const igv_cents = centavos(Math.round(subtotal_cents * IGV_RATE / (1 + IGV_RATE)));
+  const igv_cents = centavos(Math.round(Number(subtotal_cents) * IGV_RATE / (1 + IGV_RATE)));
   const total_cents = subtotal_cents;
 
   return {
@@ -125,7 +125,7 @@ const paymentArb = fc.record({
 // Helpers de validación
 // ============================================================
 
-function isValidCentavos(value: number): boolean {
+function isValidCentavos(value: number | Centavos): boolean {
   return Number.isInteger(value) && value >= 0;
 }
 
@@ -179,7 +179,7 @@ describe('Propiedades del Dominio de Ventas', () => {
       fc.property(orderArb, (order) => {
         // En Perú, los precios ya incluyen IGV
         // Fórmula: IGV = subtotal * 0.18 / 1.18
-        const expectedIGV = Math.round(order.subtotal_cents * IGV_RATE / (1 + IGV_RATE));
+        const expectedIGV = Math.round(Number(order.subtotal_cents) * IGV_RATE / (1 + IGV_RATE));
         const actualIGV = order.igv_cents;
 
         // Permitir diferencia de 1 centavo por redondeo
@@ -198,8 +198,8 @@ describe('Propiedades del Dominio de Ventas', () => {
     fc.assert(
       fc.property(orderArb, (order) => {
         const calculatedTotal = order.items.reduce(
-          (sum, item) => sum + item.unit_price_cents * item.quantity,
-          0
+          (sum, item) => sum + (item.unit_price_cents * item.quantity) as Centavos,
+          0 as Centavos
         );
 
         expect(order.total_cents).toBe(calculatedTotal);
@@ -278,10 +278,10 @@ describe('Propiedades del Dominio de Ventas', () => {
       fc.property(orderArb, fc.array(paymentArb, { minLength: 1, maxLength: 10 }), (order, payments) => {
         // Filtrar pagos que corresponden a esta orden
         const orderPayments = payments.filter(p => p.order_id === order.order_id);
-        const totalPaid = orderPayments.reduce((sum, p) => sum + p.amount_cents, 0);
+        const totalPaid = orderPayments.reduce((sum, p) => sum + Number(p.amount_cents), 0);
 
         // El total pagado no debe exceder el total de la orden
-        expect(totalPaid).toBeLessThanOrEqual(order.total_cents);
+        expect(totalPaid).toBeLessThanOrEqual(Number(order.total_cents));
 
         return true;
       }),

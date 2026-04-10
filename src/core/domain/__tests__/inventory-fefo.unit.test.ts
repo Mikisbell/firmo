@@ -477,7 +477,7 @@ describe('Inventory FEFO - Business Logic', () => {
 
     it('should handle: Kardex completo de un producto', () => {
       // Escenario: Historial completo de papas fritas
-      const movements = [
+      const movements: Array<{ date: string; type: MovementType; quantity: number; reference?: string }> = [
         { date: '2026-04-01', type: 'IN', quantity: 200, reference: 'Recepción inicial' },
         { date: '2026-04-02', type: 'OUT', quantity: 50, reference: 'Ventas día 1' },
         { date: '2026-04-03', type: 'OUT', quantity: 45, reference: 'Ventas día 2' },

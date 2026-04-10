@@ -30,6 +30,7 @@ interface SyncEvent {
   synced: EventSyncStatus;
   sync_attempts: number;
   occurred_at: string;
+  last_sync_error?: string;
 }
 
 interface SyncResult {
@@ -108,7 +109,7 @@ const syncEventArb = fc.record({
   synced: syncStatusArb,
   sync_attempts: fc.integer({ min: 0, max: 10 }),
   occurred_at: fc.date({ noInvalidDate: true, min: new Date('2026-01-01'), max: new Date() }).map(d => d.toISOString()),
-  last_sync_error: fc.option(fc.constant('NETWORK_ERROR', 'TIMEOUT', 'PAYMENT_CONFLICT'), { nil: undefined }),
+  last_sync_error: fc.option(fc.oneof(fc.constant('NETWORK_ERROR'), fc.constant('TIMEOUT'), fc.constant('PAYMENT_CONFLICT')), { nil: undefined }),
 });
 
 const syncEventsArrayArb = fc.array(syncEventArb, { minLength: 1, maxLength: 100 });

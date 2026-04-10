@@ -129,12 +129,13 @@ function calculateLoyaltyROI(totalPointsIssued: number, totalPointsRedeemed: num
   roi: number;
   costOfProgramCents: Centavos;
   netProfitCents: Centavos;
+  isProfitable: boolean;
 } {
   const costOfProgramCents = calculateRedemptionValue(totalPointsRedeemed);
   const netProfitCents = centavos(incrementalRevenueCents - costOfProgramCents);
   const roi = costOfProgramCents > 0 ? (netProfitCents / costOfProgramCents) * 100 : 0;
 
-  return { roi, costOfProgramCents, netProfitCents };
+  return { roi, costOfProgramCents, netProfitCents, isProfitable: netProfitCents > 0 };
 }
 
 function centavos(v: number): Centavos {

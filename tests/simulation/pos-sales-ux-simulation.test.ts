@@ -236,7 +236,7 @@ describe('POS Sales Flow UX Simulation', () => {
     expect(state.currentOrder?.status).toBe('PENDING_PAYMENT');
 
     // Remaining should be 3200
-    const remaining = total - state.currentOrder!.payments[0].amountCents;
+    const remaining = centavos(total - state.currentOrder!.payments[0].amountCents);
     expect(remaining).toBe(3200);
 
     // Complete with card

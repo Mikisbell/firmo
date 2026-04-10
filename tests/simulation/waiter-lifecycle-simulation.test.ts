@@ -307,7 +307,7 @@ function calculateMonthlyPayroll(
   // Attendance bonus (perfect attendance = 5% bonus)
   const attendanceBonusCents = (daysAbsent === 0 && daysLate === 0)
     ? centavos(employee.baseSalaryCents * 0.05)
-    : 0;
+    : 0 as Centavos;
 
   // Deductions (absences without justification)
   const dailyRate = centavos(employee.baseSalaryCents / 30);

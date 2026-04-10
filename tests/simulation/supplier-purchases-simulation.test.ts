@@ -161,7 +161,7 @@ function matchInvoice(po: PurchaseOrder, receipt: GoodsReceipt, supplierInvoiceT
     return sum + receivedQty * item.unitPriceCents;
   }, 0) as Centavos;
 
-  const varianceCents = supplierInvoiceTotalCents - receivedTotalCents;
+  const varianceCents = centavos(supplierInvoiceTotalCents - receivedTotalCents);
   const variancePercent = receivedTotalCents > 0 ? Math.abs(varianceCents) / receivedTotalCents * 100 : 0;
   const matched = variancePercent < 5; // Accept up to 5% variance
 

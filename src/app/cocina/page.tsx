@@ -139,10 +139,8 @@ export default function CocinaKDSPage() {
     // In a real system, this would also consider priority (HIGH > MEDIUM > LOW)
     const sortedTickets = useMemo(() => {
         return [...tickets].sort((a, b) => {
-            // Sort by created_at ascending (oldest first)
-            const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
-            const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
-            return timeA - timeB;
+            // Sort by order_number ascending (older orders first)
+            return a.order_number - b.order_number;
         });
     }, [tickets]);
 

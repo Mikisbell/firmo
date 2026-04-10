@@ -15,11 +15,10 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Package, 
-  Truck, 
-  ClipboardList, 
-  Trash2, 
+import {
+  Package,
+  Truck,
+  Trash2,
   AlertTriangle,
   ArrowLeft,
   RefreshCw,
@@ -37,7 +36,6 @@ import StockView from '@/src/components/inventory/StockView';
 import EntryModal from '@/src/components/inventory/EntryModal';
 import WasteModal from '@/src/components/inventory/WasteModal';
 import KardexModal from '@/src/components/inventory/KardexModal';
-import ConteoTab from '@/src/components/inventory/ConteoTab'; // FIX 10
 import { InventoryItem } from '@/src/core/inventory/stock-types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -45,7 +43,7 @@ import { clearTerminalConfig } from '@/src/core/auth/fingerprint';
 import { DEFAULT_TENANT_ID } from '@/src/core/config/terminal';
 import { useInventoryStats } from '@/src/hooks/useSWRHooks';
 
-type TabType = 'dashboard' | 'recepcion' | 'conteo' | 'merma' | 'alertas';
+type TabType = 'dashboard' | 'recepcion' | 'merma' | 'alertas';
 
 interface AuthEmployee {
   id: string;
@@ -290,7 +288,6 @@ export default function InventarioPage() {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Package },
     { id: 'recepcion', label: 'Recepción', icon: Truck },
-    { id: 'conteo', label: 'Conteo', icon: ClipboardList },
     { id: 'merma', label: 'Merma', icon: Trash2 },
     { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
   ] as const;
@@ -408,14 +405,6 @@ export default function InventarioPage() {
             refreshKey={refreshKey}
           />
         )}
-        {activeTab === 'conteo' && (
-          <ConteoTab 
-            employeeId={employee?.id || ''} 
-            tenantId={DEFAULT_TENANT_ID}
-            locationId="default"
-            onToast={addToast}
-          />
-        )}
         {activeTab === 'merma' && (
           <MermaTab 
             tenantId={DEFAULT_TENANT_ID}
@@ -476,7 +465,7 @@ function DashboardStats({ stats }: { stats: { lowStockCount: number; pendingRece
   const cards = [
     { label: 'Stock Bajo', value: stats.lowStockCount, icon: TrendingDown, color: 'text-red-400', bg: 'bg-red-500/20' },
     { label: 'Recepciones Pendientes', value: stats.pendingReceipts, icon: Truck, color: 'text-blue-400', bg: 'bg-blue-500/20' },
-    { label: 'Conteos Pendientes', value: stats.pendingCounts, icon: ClipboardList, color: 'text-amber-400', bg: 'bg-amber-500/20' },
+    { label: 'Conteos Pendientes', value: stats.pendingCounts, icon: Package, color: 'text-amber-400', bg: 'bg-amber-500/20' },
     { label: 'Merma Hoy', value: stats.todayWaste, icon: Trash2, color: 'text-purple-400', bg: 'bg-purple-500/20' },
   ];
 

@@ -29,6 +29,14 @@ interface Payment {
   timestamp: Date;
 }
 
+interface OrderItem {
+  id: string;
+  name: string;
+  priceCents: Centavos;
+  quantity: number;
+  voided?: boolean;
+}
+
 interface Order {
   id: string;
   totalCents: Centavos;
@@ -37,6 +45,7 @@ interface Order {
   discountCents: Centavos;
   createdAt: Date;
   lastPaymentAt?: Date;
+  items?: OrderItem[];
 }
 
 interface Shift {
@@ -241,7 +250,7 @@ function calculateChangeForCash(paymentAmount: Centavos, orderTotal: Centavos): 
 
   // Auto-calculate optimal bill/coin breakdown
   const breakdown: Record<number, number> = {};
-  let remaining = change;
+  let remaining = Number(change);
 
   const denominations = [10000, 5000, 2000, 1000, 500, 200, 100, 50, 20, 10];
 

@@ -152,9 +152,11 @@ describe('Inventory Stress Tests', () => {
 
     // Verificar orden FEFO
     for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i].expiryDate && sorted[i - 1].expiryDate) {
-        expect(new Date(sorted[i].expiryDate).getTime()).toBeGreaterThanOrEqual(
-          new Date(sorted[i - 1].expiryDate).getTime()
+      const currentDate = sorted[i].expiryDate;
+      const prevDate = sorted[i - 1].expiryDate;
+      if (currentDate && prevDate) {
+        expect(new Date(currentDate).getTime()).toBeGreaterThanOrEqual(
+          new Date(prevDate).getTime()
         );
       }
     }
