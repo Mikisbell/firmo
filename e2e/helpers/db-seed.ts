@@ -204,7 +204,125 @@ export async function generateTestJWT(params: {
 }
 
 /**
+ * Creates an order through the event ingestion pipeline.
+ *
+ * Unlike seedOrder() which writes directly to PostgreSQL (bypassing Dexie),
+ * this function sends ORDER_CREATED events through /api/events/ingest,
+ * which triggers the full pipeline:
+ *
+ *   Event → Ingest API → PostgreSQL events → SSE stream → Dexie projections → UI
+ *
+ * This ensures the order appears in the POS UI because Dexie projections
+ * are populated via the SSE stream that listens to ingested events.
+ *
+ * @param params - Order creation parameters
+ * @param baseURL - API base URL (default: http://localhost:3000)
+ */
+export async function createOrderViaEvents(
+  params: {
+    tenantId: string;
+    terminalId: string;
+    orderNumber: number;
+    shiftId?: string;
+    items: Array<{
+      line_id: string;
+      name: string;
+      unit_price_cents: number;
+      qty: number;
+      station?: string;
+    }>;
+    checks: Array<{
+      check_id: string;
+      lines: Array<{ line_id: string; qty: number }>;
+      total_cents: number;
+    }>;
+  },
+  baseURL: string = 'http://localhost:3000',
+): Promise<{ orderId: string; accepted: boolean; error?: string }> {
+  const { v4: uuidv4 } = await import('uuid');
+
+  const orderId = uuidv4();
+  const occurredAt = new Date().toISOString();
+
+  // Build ORDER_CREATED event
+  const orderCreatedEvent = {
+    event_id: uuidv4(),
+    event_type: 'ORDER_CREATED',
+    tenant_id: params.tenantId,
+    terminal_id: params.terminalId,
+    occurred_at: occurredAt,
+    aggregate_type: 'ORDER' as const,
+    aggregate_id: orderId,
+    schema_version: 1,
+    terminal_sequence: 0,
+    correlation_id: uuidv4(),
+    payload: {
+      order_id: orderId,
+      order_number: params.orderNumber,
+      order_type: 'DINE_IN',
+      items: params.items.map(item => ({
+        line_id: item.line_id,
+        name: item.name,
+        qty: item.qty,
+        unit_price_cents: item.unit_price_cents,
+        station: item.station || 'COCINA',
+        status: 'PENDING',
+      })),
+      checks: params.checks,
+      total_cents: params.items.reduce((sum, i) => sum + i.unit_price_cents * i.qty, 0),
+      subtotal_cents: params.items.reduce((sum, i) => sum + i.unit_price_cents * i.qty, 0),
+      discount_cents: 0,
+    },
+  };
+
+  // Send to ingest API
+  const response = await fetch(`${baseURL}/api/events/ingest`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-secret': process.env.PARK_API_SECRET || 'trZSA6uzhY4SIGbQ+bCl8t2BhffTrT35DVnXf5fOgao=',
+    },
+    body: JSON.stringify({
+      tenant_id: params.tenantId,
+      terminal_id: params.terminalId,
+      events: [orderCreatedEvent],
+      from_terminal_sequence: 0,
+      to_terminal_sequence: 1,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    return {
+      orderId,
+      accepted: false,
+      error: result.error?.message || `HTTP ${response.status}`,
+    };
+  }
+
+  return {
+    orderId,
+    accepted: true,
+  };
+}
+
+/**
  * Cleanup test data by tenant + terminal
+ *
+ * Strategy: Delete ALL tables that reference orders or shifts,
+ * in correct dependency order. Uses raw SQL for child tables
+ * because Prisma doesn't expose them all as queryable relations.
+ *
+ * Full dependency graph (from schema.prisma):
+ *   delivery_orders  -> orders
+ *   invoices         -> orders
+ *   order_item_projections -> orders
+ *   tips             -> orders
+ *   payments         -> shifts
+ *   z_reports        -> shifts
+ *   orders           -> shifts
+ *   shifts           -> (parent)
  */
 export async function cleanupTestData(
   tenantId: string,
@@ -212,16 +330,36 @@ export async function cleanupTestData(
 ): Promise<void> {
   const db = getClient();
 
-  // Delete in dependency order
-  await db.payments.deleteMany({
-    where: { tenant_id: tenantId, terminal_id: terminalId },
-  });
+  // LEVEL 1: Grandchildren (reference orders)
+  const childTablesOfOrders = [
+    'delivery_orders',
+    'invoices',
+    'order_item_projections',
+    'tips',
+  ];
+
+  for (const table of childTablesOfOrders) {
+    await db.$executeRawUnsafe(
+      `DELETE FROM ${table} WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = $1::uuid AND terminal_id = $2)`,
+      tenantId, terminalId,
+    );
+  }
+
+  // LEVEL 2: orders (children deleted above)
   await db.orders.deleteMany({
     where: { tenant_id: tenantId, terminal_id: terminalId },
   });
+
+  // LEVEL 3: Direct children of shifts
+  await db.payments.deleteMany({
+    where: { tenant_id: tenantId, terminal_id: terminalId },
+  });
+
   await db.z_reports.deleteMany({
     where: { tenant_id: tenantId, terminal_id: terminalId },
   });
+
+  // LEVEL 4: shifts (parent)
   await db.shifts.deleteMany({
     where: { tenant_id: tenantId, terminal_id: terminalId },
   });

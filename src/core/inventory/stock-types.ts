@@ -5,7 +5,7 @@
 
 import type { Centavos } from '@/src/core/types/shared';
 
-export type StockStatus = 'OK' | 'LOW' | 'CRITICAL';
+export type StockStatus = 'OK' | 'LOW' | 'CRITICAL' | 'ZERO';
 
 // Tipo de urgencia de vencimiento
 export type ExpiryUrgency = 'EXPIRED' | 'TODAY' | 'TOMORROW' | 'SOON_3D' | 'SOON_7D' | 'OK';
@@ -43,9 +43,14 @@ export interface StockResponse {
  * Calcula el status del stock basado en stock actual vs minStock
  * - CRITICAL: stock < minStock
  * - LOW: minStock <= stock < 1.5 * minStock
+/**
+ * - ZERO: stock = 0 (out of stock)
+ * - CRITICAL: stock < minStock
+ * - LOW: stock < 1.5 * minStock
  * - OK: stock >= 1.5 * minStock
  */
 export function calculateStatus(stock: number, minStock: number): StockStatus {
+  if (stock === 0) return 'ZERO';
   if (minStock <= 0) return 'OK';
   if (stock < minStock) return 'CRITICAL';
   if (stock < minStock * 1.5) return 'LOW';

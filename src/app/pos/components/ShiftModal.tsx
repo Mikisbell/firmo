@@ -14,9 +14,11 @@ interface ShiftModalProps {
     actorId: string;
     currentShiftId?: string;
     expectedCash?: number;
+    hasOpenChecks?: boolean; // FIX 21
     onClose: () => void;
     onSuccess: () => void;
     onAdjustCash?: (cents: number, reason: string) => Promise<void>;
+    onGenerateReport?: (shiftId: string) => Promise<void>; // FIX 19
 }
 
 export function ShiftModal({
@@ -27,9 +29,11 @@ export function ShiftModal({
     actorId,
     currentShiftId,
     expectedCash = 0,
+    hasOpenChecks = false,
     onClose,
     onSuccess,
     onAdjustCash,
+    onGenerateReport,
 }: ShiftModalProps) {
     const [amount, setAmount] = useState("");
     const [notes, setNotes] = useState("");
@@ -42,14 +46,40 @@ export function ShiftModal({
         e.preventDefault();
         if (!amount) return;
 
+        // FIX 21: Prevent partial close - check for open checks before allowing close
+        if (mode === "close" && hasOpenChecks) {
+            toast.error("Cierra todas las cuentas pendientes antes de cerrar el turno");
+            return;
+        }
+
         setLoading(true);
         try {
             const cents = Math.round(parseFloat(amount) * 100);
+
+            // FIX 20: Cash discrepancy warning before closing
+            if (mode === "close" && currentShiftId) {
+                const diff = cents - expectedCash;
+                const absDiff = Math.abs(diff);
+                if (absDiff > 5000) { // S/. 50 threshold
+                    const confirmed = window.confirm(
+                        `⚠️ Variación de caja detectada: S/. ${(diff / 100).toFixed(2)}\n\n¿Estás seguro de continuar con el cierre del turno?`
+                    );
+                    if (!confirmed) {
+                        setLoading(false);
+                        return;
+                    }
+                }
+            }
 
             if (mode === "open") {
                 await POSActions.openShift(tenantId, terminalId, actorId, cents);
             } else if (mode === "close" && currentShiftId) {
                 await POSActions.closeShift(tenantId, terminalId, actorId, currentShiftId, cents, notes || undefined);
+
+                // FIX 19: Generate closing summary report
+                if (onGenerateReport) {
+                    await onGenerateReport(currentShiftId);
+                }
 
                 // Save denomination counts if used
                 if (useByDenom && Object.keys(denomCountsRef.current).length > 0) {

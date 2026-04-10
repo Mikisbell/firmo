@@ -39,6 +39,15 @@ interface FormErrors {
   expiryDate?: string;
 }
 
+// FIX 6 & 8: Helper to calculate days until expiry
+function getDaysUntilExpiry(expiryDateStr: string): number {
+  if (!expiryDateStr) return 999;
+  const expiry = new Date(expiryDateStr);
+  const now = new Date();
+  const diffMs = expiry.getTime() - now.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
 export default function EntryModal({
   isOpen,
   onClose,
@@ -83,20 +92,26 @@ export default function EntryModal({
   // Validate form
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     const qty = parseFloat(formData.quantity);
     if (!formData.quantity || isNaN(qty) || qty <= 0) {
       newErrors.quantity = 'La cantidad debe ser mayor a 0';
     }
-    
+
     const cost = parseFloat(formData.unitCostCents);
     if (!formData.unitCostCents || isNaN(cost) || cost < 0) {
       newErrors.unitCostCents = 'El costo debe ser >= 0';
     }
-    
-    // Fecha de vencimiento obligatoria para perecederos (simplificado: siempre recomendado)
-    // En producción, esto dependería de una propiedad del insumo
-    
+
+    // FIX 6: Block expired lots, warn < 3 days
+    if (formData.expiryDate) {
+      const daysUntilExpiry = getDaysUntilExpiry(formData.expiryDate);
+      if (daysUntilExpiry < 0) {
+        newErrors.expiryDate = `🔴 LOTE EXPIRADO (venció hace ${Math.abs(daysUntilExpiry)} días)`;
+      }
+      // Warning only, not error
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -314,6 +329,31 @@ export default function EntryModal({
                       className="w-full pl-10 pr-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:border-amber-500 transition-colors"
                     />
                   </div>
+                  {errors.expiryDate && (
+                    <p className="mt-1 text-xs text-red-400">{errors.expiryDate}</p>
+                  )}
+                  {/* FIX 8: FEFO guidance */}
+                  {formData.expiryDate && !errors.expiryDate && (() => {
+                    const days = getDaysUntilExpiry(formData.expiryDate);
+                    if (days < 0) return null;
+                    if (days < 3) {
+                      return (
+                        <p className="mt-1 text-xs text-orange-400 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          ⚠️ Vence en {days} día(s). Usar PRIMERO (FEFO)
+                        </p>
+                      );
+                    }
+                    if (days < 7) {
+                      return (
+                        <p className="mt-1 text-xs text-amber-400 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          Vence en {days} días
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
               

@@ -30,10 +30,14 @@ const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
 const JWT_ISSUER = 'park-pos';
 const JWT_AUDIENCE = 'park-pos-client';
 
-// Lockout settings
-const MAX_FAILED_ATTEMPTS = 3;
-const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
-const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours — full shift duration
+// Lockout settings - ESCALATING (not too aggressive)
+// First lockout: 5 failed attempts → 2 minutes
+// Second lockout: 10 failed attempts → 10 minutes
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 2 * 60 * 1000; // 2 minutes (escalates to 10 min after 10 attempts)
+const ESCALATED_LOCKOUT_MS = 10 * 60 * 1000; // 10 minutes after 10 attempts
+const ESCALATED_ATTEMPTS = 10;
+const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours — consistent across all auth endpoints
 const SESSION_INACTIVITY_MS = 8 * 60 * 60 * 1000; // 8 hours inactivity before auto-logout
 
 export interface AuthPayload extends JWTPayload {
@@ -66,13 +70,14 @@ export interface TokenValidationResult {
 
 /**
  * Check if an employee is locked out due to failed attempts (by PIN hash)
+ * ESCALATING lockout: 5 attempts → 2 min, 10 attempts → 10 min
  */
 export async function isLockedOut(
     prisma: PrismaClientType,
     tenantId: string,
     pinHash: string
 ): Promise<{ locked: boolean; until?: Date; attempts: number }> {
-    const since = new Date(Date.now() - LOCKOUT_DURATION_MS);
+    const since = new Date(Date.now() - ESCALATED_LOCKOUT_MS); // Look back far enough for escalated lockout
 
     const recentAttempts = await prisma.login_attempts.findMany({
         where: {
@@ -81,12 +86,21 @@ export async function isLockedOut(
             attempted_at: { gte: since },
         },
         orderBy: { attempted_at: 'desc' },
-        take: MAX_FAILED_ATTEMPTS + 1,
+        take: ESCALATED_ATTEMPTS + 1,
     });
 
     const failedAttempts = recentAttempts.filter((a: { success: boolean }) => !a.success);
 
-    if (failedAttempts.length >= MAX_FAILED_ATTEMPTS) {
+    if (failedAttempts.length >= ESCALATED_ATTEMPTS) {
+        // Escalated lockout: 10 minutes after 10 attempts
+        const oldestFailed = failedAttempts[failedAttempts.length - 1];
+        const lockoutUntil = new Date(oldestFailed.attempted_at.getTime() + ESCALATED_LOCKOUT_MS);
+
+        if (lockoutUntil > new Date()) {
+            return { locked: true, until: lockoutUntil, attempts: failedAttempts.length };
+        }
+    } else if (failedAttempts.length >= MAX_FAILED_ATTEMPTS) {
+        // Standard lockout: 2 minutes after 5 attempts
         const oldestFailed = failedAttempts[failedAttempts.length - 1];
         const lockoutUntil = new Date(oldestFailed.attempted_at.getTime() + LOCKOUT_DURATION_MS);
 
@@ -100,13 +114,14 @@ export async function isLockedOut(
 
 /**
  * Check lockout by employee_id (used for DNI+PIN flow to avoid cross-employee lockout)
+ * ESCALATING lockout: 5 attempts → 2 min, 10 attempts → 10 min
  */
 export async function isLockedOutByEmployeeId(
     prisma: PrismaClientType,
     tenantId: string,
     employeeId: string
 ): Promise<{ locked: boolean; until?: Date; attempts: number }> {
-    const since = new Date(Date.now() - LOCKOUT_DURATION_MS);
+    const since = new Date(Date.now() - ESCALATED_LOCKOUT_MS);
 
     const recentAttempts = await prisma.login_attempts.findMany({
         where: {
@@ -115,12 +130,21 @@ export async function isLockedOutByEmployeeId(
             attempted_at: { gte: since },
         },
         orderBy: { attempted_at: 'desc' },
-        take: MAX_FAILED_ATTEMPTS + 1,
+        take: ESCALATED_ATTEMPTS + 1,
     });
 
     const failedAttempts = recentAttempts.filter((a: { success: boolean }) => !a.success);
 
-    if (failedAttempts.length >= MAX_FAILED_ATTEMPTS) {
+    if (failedAttempts.length >= ESCALATED_ATTEMPTS) {
+        // Escalated lockout: 10 minutes after 10 attempts
+        const oldestFailed = failedAttempts[failedAttempts.length - 1];
+        const lockoutUntil = new Date(oldestFailed.attempted_at.getTime() + ESCALATED_LOCKOUT_MS);
+
+        if (lockoutUntil > new Date()) {
+            return { locked: true, until: lockoutUntil, attempts: failedAttempts.length };
+        }
+    } else if (failedAttempts.length >= MAX_FAILED_ATTEMPTS) {
+        // Standard lockout: 2 minutes after 5 attempts
         const oldestFailed = failedAttempts[failedAttempts.length - 1];
         const lockoutUntil = new Date(oldestFailed.attempted_at.getTime() + LOCKOUT_DURATION_MS);
 

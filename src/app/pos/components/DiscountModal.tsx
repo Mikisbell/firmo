@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Percent, DollarSign } from 'lucide-react';
+import { X, Percent, DollarSign, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface DiscountModalProps {
@@ -16,6 +16,7 @@ const QUICK_PERCENTAGES = [5, 10, 15, 20];
 export function DiscountModal({ subtotalCents, currentDiscountCents, onClose, onApply }: DiscountModalProps) {
     const [mode, setMode] = useState<"PERCENTAGE" | "FIXED">("PERCENTAGE");
     const [customValue, setCustomValue] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const previewCents = mode === "PERCENTAGE"
         ? Math.round(subtotalCents * (Number(customValue) || 0) / 100)
@@ -23,14 +24,29 @@ export function DiscountModal({ subtotalCents, currentDiscountCents, onClose, on
 
     const handleApplyCustom = () => {
         const val = Number(customValue);
-        if (!val || val <= 0) return;
+        setErrorMessage(""); // Clear previous errors
+
+        if (!val || val <= 0) {
+            setErrorMessage("Ingresa un valor válido");
+            return;
+        }
 
         if (mode === "PERCENTAGE") {
-            if (val > 100) return;
+            if (val > 50) {
+                setErrorMessage("Descuento máximo: 50%");
+                return;
+            }
+            if (val > 100) {
+                setErrorMessage("Descuento no puede exceder 100%");
+                return;
+            }
             onApply("PERCENTAGE", val);
         } else {
             const fixedCents = Math.round(val * 100);
-            if (fixedCents > subtotalCents) return;
+            if (fixedCents > subtotalCents) {
+                setErrorMessage(`Descuento excede el total (S/. ${(subtotalCents / 100).toFixed(2)})`);
+                return;
+            }
             onApply("FIXED", fixedCents);
         }
     };
@@ -152,7 +168,7 @@ export function DiscountModal({ subtotalCents, currentDiscountCents, onClose, on
                                     type="number"
                                     inputMode="decimal"
                                     value={customValue}
-                                    onChange={(e) => setCustomValue(e.target.value)}
+                                    onChange={(e) => { setCustomValue(e.target.value); setErrorMessage(""); }}
                                     onKeyDown={(e) => { if (e.key === "Enter") handleApplyCustom(); }}
                                     placeholder={mode === "PERCENTAGE" ? "Ej: 12" : "Ej: 5.00"}
                                     className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-lg font-mono font-bold text-gray-900 outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent min-h-[48px]"
@@ -169,6 +185,14 @@ export function DiscountModal({ subtotalCents, currentDiscountCents, onClose, on
                                 Aplicar
                             </button>
                         </div>
+
+                        {/* Error Message */}
+                        {errorMessage && (
+                            <div className="mt-2 flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                <span className="text-sm font-medium">{errorMessage}</span>
+                            </div>
+                        )}
 
                         {/* Preview */}
                         {customValue && Number(customValue) > 0 && (

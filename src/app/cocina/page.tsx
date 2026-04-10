@@ -124,15 +124,26 @@ export default function CocinaKDSPage() {
     const { pendingCount, cookingCount } = useMemo(() => {
         let pending = 0;
         let cooking = 0;
-        
+
         for (const ticket of tickets) {
             for (const line of Object.values(ticket.lines)) {
                 if (line.status === "PENDING") pending++;
                 else if (line.status === "COOKING") cooking++;
             }
         }
-        
+
         return { pendingCount: pending, cookingCount: cooking };
+    }, [tickets]);
+
+    // FIX 4: Auto-prioritize tickets by age (oldest first)
+    // In a real system, this would also consider priority (HIGH > MEDIUM > LOW)
+    const sortedTickets = useMemo(() => {
+        return [...tickets].sort((a, b) => {
+            // Sort by created_at ascending (oldest first)
+            const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return timeA - timeB;
+        });
     }, [tickets]);
 
     const currentTime = mounted && now 
@@ -166,7 +177,7 @@ export default function CocinaKDSPage() {
                 emptyIcon={UtensilsCrossed}
                 emptyTitle="Cocina Lista"
                 emptySubtitle="Esperando pedidos..."
-                hasTickets={tickets.length > 0}
+                hasTickets={sortedTickets.length > 0}
                 employeeSlot={session && (
                     <>
                         <EmployeeProfileButton
@@ -186,13 +197,13 @@ export default function CocinaKDSPage() {
                             terminalRole={session.terminal_role}
                             sessionCreatedAt={session.created_at}
                             accentColor="amber"
-                            stat={{ label: 'Tickets pendientes', value: tickets.length }}
+                            stat={{ label: 'Tickets pendientes', value: sortedTickets.length }}
                             onLogout={handleLogout}
                         />
                     </>
                 )}
             >
-                {tickets.map(ticket => (
+                {sortedTickets.map(ticket => (
                     <div
                         key={ticket.order_id}
                         onClick={() => setSelectedOrderId(

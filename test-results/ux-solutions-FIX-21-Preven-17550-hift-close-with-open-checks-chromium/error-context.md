@@ -1,0 +1,291 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T"
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "PARK POS" [ref=e6]
+          - generic [ref=e12]: PARK
+          - generic [ref=e13]: POS
+        - generic [ref=e14]:
+          - link "Funcionalidades" [ref=e15] [cursor=pointer]:
+            - /url: "#features"
+          - link "Precios" [ref=e16] [cursor=pointer]:
+            - /url: "#pricing"
+          - link "Demo Gratis" [ref=e17] [cursor=pointer]:
+            - /url: "#demo"
+          - link "Ingresar al Sistema" [ref=e18] [cursor=pointer]:
+            - /url: /login
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - img [ref=e24]
+          - text: Sistema POS para Pollerías y Parrilleras
+        - heading "Tu pollería merece un POS de verdad" [level=1] [ref=e26]
+        - paragraph [ref=e27]: PARK POS es el sistema todo-en-uno diseñado para pollerías peruanas. Vende offline, emite boletas SUNAT, controla tu cocina y gestiona tu personal.
+        - generic [ref=e28]:
+          - link "Solicitar Demo Gratis" [ref=e29] [cursor=pointer]:
+            - /url: "#demo"
+            - text: Solicitar Demo Gratis
+            - img [ref=e30]
+          - link "Ver Funcionalidades" [ref=e32] [cursor=pointer]:
+            - /url: "#features"
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - img [ref=e35]
+          - text: Offline-first
+        - generic [ref=e38]:
+          - img [ref=e39]
+          - text: Facturación SUNAT
+        - generic [ref=e42]:
+          - img [ref=e43]
+          - text: Multi-terminal
+        - generic [ref=e46]:
+          - img [ref=e47]
+          - text: Hecho en Perú
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - heading "Todo lo que tu negocio necesita" [level=2] [ref=e53]
+        - paragraph [ref=e54]: Diseñado específicamente para pollerías y parrilleras peruanas
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - img [ref=e58]
+          - heading "Funciona Sin Internet" [level=3] [ref=e65]
+          - paragraph [ref=e66]: "Offline-first: sigue vendiendo cuando la conexión falla. Se sincroniza automáticamente al reconectarse."
+        - generic [ref=e67]:
+          - img [ref=e69]
+          - heading "Multi-Terminal" [level=3] [ref=e71]
+          - paragraph [ref=e72]: Caja, meseros, cocina, barra — cada estación en su dispositivo con su vista especializada.
+        - generic [ref=e73]:
+          - img [ref=e75]
+          - heading "Facturación SUNAT" [level=3] [ref=e78]
+          - paragraph [ref=e79]: Boletas y facturas electrónicas integradas. Cumple con la normativa de SUNAT al 100%.
+        - generic [ref=e80]:
+          - img [ref=e82]
+          - heading "Inventario FEFO" [level=3] [ref=e86]
+          - paragraph [ref=e87]: Control de stock con expiración. Auto-86 cuando un insumo se agota. Alertas automáticas.
+        - generic [ref=e88]:
+          - img [ref=e90]
+          - heading "Gestión de Personal" [level=3] [ref=e95]
+          - paragraph [ref=e96]: Horarios, asistencia, nómina, permisos, adelantos, evaluaciones — todo en un solo lugar.
+        - generic [ref=e97]:
+          - img [ref=e99]
+          - heading "KDS Cocina" [level=3] [ref=e101]
+          - paragraph [ref=e102]: Pantalla de cocina en tiempo real. Control de cursos, tiempos por plato y fire control.
+        - generic [ref=e103]:
+          - img [ref=e105]
+          - heading "Reportes en Vivo" [level=3] [ref=e108]
+          - paragraph [ref=e109]: "Dashboard con KPIs del día: ventas, ticket promedio, top productos, distribución por hora."
+        - generic [ref=e110]:
+          - img [ref=e112]
+          - heading "Seguridad Avanzada" [level=3] [ref=e114]
+          - paragraph [ref=e115]: Fingerprint de dispositivo, validación MAC, rate limiting. Tu negocio protegido.
+    - generic [ref=e117]:
+      - generic [ref=e118]:
+        - heading "Planes simples, sin sorpresas" [level=2] [ref=e119]
+        - paragraph [ref=e120]: Todos los precios en soles peruanos. Sin contratos de permanencia.
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - heading "Básico" [level=3] [ref=e123]
+          - paragraph [ref=e124]: Para pollerías con 1-2 cajas
+          - generic [ref=e125]:
+            - generic [ref=e126]: S/ 149
+            - text: /mes
+          - list [ref=e127]:
+            - listitem [ref=e128]:
+              - img [ref=e129]
+              - generic [ref=e132]: 1 terminal POS
+            - listitem [ref=e133]:
+              - img [ref=e134]
+              - generic [ref=e137]: Facturación SUNAT
+            - listitem [ref=e138]:
+              - img [ref=e139]
+              - generic [ref=e142]: Inventario básico
+            - listitem [ref=e143]:
+              - img [ref=e144]
+              - generic [ref=e147]: Soporte por email
+          - link "Empezar Gratis" [ref=e148] [cursor=pointer]:
+            - /url: "#demo"
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - img [ref=e151]
+            - text: Más Popular
+          - heading "Pro" [level=3] [ref=e153]
+          - paragraph [ref=e154]: Para restaurantes en crecimiento
+          - generic [ref=e155]:
+            - generic [ref=e156]: S/ 299
+            - text: /mes
+          - list [ref=e157]:
+            - listitem [ref=e158]:
+              - img [ref=e159]
+              - generic [ref=e162]: 5 terminales
+            - listitem [ref=e163]:
+              - img [ref=e164]
+              - generic [ref=e167]: Facturación + Delivery
+            - listitem [ref=e168]:
+              - img [ref=e169]
+              - generic [ref=e172]: RRHH completo
+            - listitem [ref=e173]:
+              - img [ref=e174]
+              - generic [ref=e177]: KDS Cocina
+            - listitem [ref=e178]:
+              - img [ref=e179]
+              - generic [ref=e182]: Reportes avanzados
+            - listitem [ref=e183]:
+              - img [ref=e184]
+              - generic [ref=e187]: Soporte prioritario
+          - link "Solicitar Demo" [ref=e188] [cursor=pointer]:
+            - /url: "#demo"
+        - generic [ref=e189]:
+          - heading "Enterprise" [level=3] [ref=e190]
+          - paragraph [ref=e191]: Para cadenas y franquicias
+          - generic [ref=e192]: Contactar
+          - list [ref=e193]:
+            - listitem [ref=e194]:
+              - img [ref=e195]
+              - generic [ref=e198]: Terminales ilimitados
+            - listitem [ref=e199]:
+              - img [ref=e200]
+              - generic [ref=e203]: Multi-local
+            - listitem [ref=e204]:
+              - img [ref=e205]
+              - generic [ref=e208]: API personalizada
+            - listitem [ref=e209]:
+              - img [ref=e210]
+              - generic [ref=e213]: Integraciones a medida
+            - listitem [ref=e214]:
+              - img [ref=e215]
+              - generic [ref=e218]: SLA garantizado
+            - listitem [ref=e219]:
+              - img [ref=e220]
+              - generic [ref=e223]: Gerente de cuenta
+          - link "Contactar Ventas" [ref=e224] [cursor=pointer]:
+            - /url: "#demo"
+    - generic [ref=e226]:
+      - generic [ref=e227]:
+        - heading "Solicitar Demo Gratis" [level=2] [ref=e228]
+        - paragraph [ref=e229]: Te mostramos PARK POS funcionando con los datos de tu negocio
+      - generic [ref=e230]:
+        - generic [ref=e231]:
+          - generic [ref=e232]: Nombre completo *
+          - textbox "Juan Pérez" [ref=e233]
+        - generic [ref=e234]:
+          - generic [ref=e235]: Email *
+          - generic [ref=e236]:
+            - img [ref=e237]
+            - textbox "juan@mirestaurante.com" [ref=e240]
+        - generic [ref=e241]:
+          - generic [ref=e242]: Nombre del restaurante *
+          - generic [ref=e243]:
+            - img [ref=e244]
+            - textbox "Pollería El Sabrosón" [ref=e248]
+        - generic [ref=e249]:
+          - generic [ref=e250]: Teléfono (opcional)
+          - generic [ref=e251]:
+            - img [ref=e252]
+            - textbox "987 654 321" [ref=e254]
+        - button "Solicitar Demo" [disabled] [ref=e255]:
+          - img [ref=e256]
+          - text: Solicitar Demo
+    - contentinfo [ref=e259]:
+      - generic [ref=e260]:
+        - generic [ref=e261]:
+          - generic [ref=e262]:
+            - img "PARK POS" [ref=e263]
+            - generic [ref=e269]: PARK
+            - generic [ref=e270]: POS
+          - generic [ref=e271]:
+            - link "WhatsApp" [ref=e272] [cursor=pointer]:
+              - /url: https://wa.me/51999999999
+              - img "WhatsApp" [ref=e273]
+            - link "Instagram" [ref=e275] [cursor=pointer]:
+              - /url: https://instagram.com/parkpos
+              - img "Instagram" [ref=e276]
+            - link "Facebook" [ref=e278] [cursor=pointer]:
+              - /url: https://facebook.com/parkpos
+              - img "Facebook" [ref=e279]
+          - paragraph [ref=e281]: © 2026 PARK POS
+        - paragraph [ref=e282]: Hecho con dedicación en Perú. Sistema POS para pollerías y parrilleras.
+  - region "Notifications alt+T"
+  - generic [active]:
+    - generic [ref=e285]:
+      - generic [ref=e286]:
+        - generic [ref=e287]:
+          - navigation [ref=e288]:
+            - button "previous" [disabled] [ref=e289]:
+              - img "previous" [ref=e290]
+            - generic [ref=e292]:
+              - generic [ref=e293]: 1/
+              - text: "1"
+            - button "next" [disabled] [ref=e294]:
+              - img "next" [ref=e295]
+          - img
+        - generic [ref=e297]:
+          - link "Next.js 16.1.6 (stale) Turbopack" [ref=e298] [cursor=pointer]:
+            - /url: https://nextjs.org/docs/messages/version-staleness
+            - img [ref=e299]
+            - generic "There is a newer version (16.2.3) available, upgrade recommended!" [ref=e301]: Next.js 16.1.6 (stale)
+            - generic [ref=e302]: Turbopack
+          - img
+      - dialog "Build Error" [ref=e304]:
+        - generic [ref=e307]:
+          - generic [ref=e308]:
+            - generic [ref=e309]:
+              - generic [ref=e311]: Build Error
+              - generic [ref=e312]:
+                - button "Copy Error Info" [ref=e313] [cursor=pointer]:
+                  - img [ref=e314]
+                - link "Go to related documentation" [ref=e316] [cursor=pointer]:
+                  - /url: https://nextjs.org/docs/messages/module-not-found
+                  - img [ref=e317]
+                - button "Attach Node.js inspector" [ref=e319] [cursor=pointer]:
+                  - img [ref=e320]
+            - generic [ref=e329]: "Module not found: Can't resolve '@/src/components/inventory/ConteoTab'"
+          - generic [ref=e331]:
+            - generic [ref=e333]:
+              - img [ref=e335]
+              - generic [ref=e338]: ./src/app/inventario/page.tsx (40:1)
+              - button "Open in editor" [ref=e339] [cursor=pointer]:
+                - img [ref=e341]
+            - generic [ref=e344]:
+              - generic [ref=e345]: "Module not found: Can't resolve '@/src/components/inventory/ConteoTab'"
+              - generic [ref=e346]: 38 |
+              - text: import WasteModal from '@/src/components/inventory/WasteModal';
+              - generic [ref=e347]: 39 |
+              - text: import KardexModal from '@/src/components/inventory/KardexModal'; >
+              - generic [ref=e348]: 40 |
+              - text: import ConteoTab from '@/src/components/inventory/ConteoTab';
+              - generic [ref=e349]: // FIX 10
+              - generic [ref=e350]: "|"
+              - text: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=e351]: 41 |
+              - text: import
+              - generic [ref=e352]: "{"
+              - text: InventoryItem
+              - generic [ref=e353]: "}"
+              - text: from '@/src/core/inventory/stock-types';
+              - generic [ref=e354]: 42 |
+              - text: import Link from 'next/link';
+              - generic [ref=e355]: 43 |
+              - text: import
+              - generic [ref=e356]: "{ useRouter }"
+              - text: from 'next/navigation';
+              - generic [ref=e357]:
+                - text: "Import map: aliased to relative './src/components/inventory/ConteoTab' inside of [project]/ Import traces: Client Component Browser: ./src/app/inventario/page.tsx [Client Component Browser] ./src/app/inventario/page.tsx [Server Component] Client Component SSR: ./src/app/inventario/page.tsx [Client Component SSR] ./src/app/inventario/page.tsx [Server Component]"
+                - link "https://nextjs.org/docs/messages/module-not-found" [ref=e358] [cursor=pointer]:
+                  - /url: https://nextjs.org/docs/messages/module-not-found
+        - generic [ref=e359]: "1"
+        - generic [ref=e360]: "2"
+    - generic [ref=e365] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e366]:
+        - img [ref=e367]
+      - button "Open issues overlay" [ref=e371]:
+        - generic [ref=e372]:
+          - generic [ref=e373]: "0"
+          - generic [ref=e374]: "1"
+        - generic [ref=e375]: Issue
+  - alert [ref=e376]
+```

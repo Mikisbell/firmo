@@ -387,10 +387,9 @@ test.describe('Flujo de Orden', () => {
     await page.goto('/');
     await page.fill('[data-testid="pin-input"]', '1234');
     await page.click('[data-testid="login-button"]');
-    
+
     // Crear orden
     await page.click('[data-testid="new-order"]');
-    await page.click('[data-testid="product-pollo-1-4"]');
     await page.click('[data-testid="add-to-order"]');
     
     // Verificar
@@ -398,6 +397,42 @@ test.describe('Flujo de Orden', () => {
       .toHaveText('S/ 25.00');
   });
 });
+```
+
+### Notas sobre Tests E2E
+
+**Selectores de productos**: Los productos en la BD tienen **UUIDs aleatorios** (generados por `uuid()` en `seed.ts`). El patrón `data-testid` es `product-{uuid}`, NO `product-{nombre}`.
+
+**Forma correcta** — usar selector `^=` y click por índice:
+```typescript
+// CORRECTO: Seleccionar cualquier producto disponible
+await page.waitForSelector('[data-testid^="product-"]', { timeout: 10000 });
+const products = page.locator('[data-testid^="product-"]');
+await products.nth(0).click(); // Primer producto
+```
+
+**Otra forma correcta** — mock del catálogo con IDs fijos:
+```typescript
+// CORRECTO: Mock API con IDs predecibles
+await context.route('/api/catalog/latest', async route => {
+  await route.fulfill({
+    body: JSON.stringify({
+      items: [
+        { id: 'pollo-entero', sku: 'POLLO-ENT', name: 'Pollo Entero', price_cents: 5500, category: 'POLLOS', station: 'PARRILLA', active: true },
+      ],
+    }),
+  });
+});
+
+// Ahora funciona
+await page.click('[data-testid="product-pollo-entero"]');
+```
+
+**Forma INCORRECTA** — esto NUNCA funcionará:
+```typescript
+// ERROR: Los productos tienen UUIDs aleatorios, no slugs
+await page.click('[data-testid="product-pollo-entero"]'); // No existe
+await page.click('[data-testid="product-POLLO-ENT"]');    // Tampoco
 ```
 
 ### Ejecutar Tests

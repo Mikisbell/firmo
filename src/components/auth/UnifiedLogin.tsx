@@ -259,7 +259,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       const data = await res.json();
 
       if (!data.exists) {
-        setError('DNI no registrado en el sistema');
+        setError('DNI no encontrado. Verifica tu DNI o contacta al administrador.');
         setPhase('dni');
         return;
       }

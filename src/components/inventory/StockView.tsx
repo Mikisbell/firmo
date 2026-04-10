@@ -32,6 +32,7 @@ interface StockViewProps {
   employeeId?: string; // Optional - for future audit logging
   onReceive?: (item: InventoryItem) => void;
   onWaste?: (item: InventoryItem) => void;
+  onQuickWaste?: (item: InventoryItem, quantity: number) => void; // FIX 9
   onKardex?: (item: InventoryItem) => void;
   onHighlightItem?: (code: string) => void;
 }
@@ -49,6 +50,7 @@ interface RecentMovement {
 
 // Función para calcular status (exportada para tests)
 export function calculateStatus(stock: number, minStock: number): StockStatus {
+  if (stock === 0) return 'ZERO';
   if (minStock <= 0) return 'OK';
   if (stock < minStock) return 'CRITICAL';
   if (stock < minStock * 1.5) return 'LOW';
@@ -57,14 +59,15 @@ export function calculateStatus(stock: number, minStock: number): StockStatus {
 
 // Indicador de status visual
 function StatusIndicator({ status }: { status: StockStatus }) {
-  const config = {
+  const config: Record<StockStatus, { color: string; icon: string; label: string }> = {
+    ZERO: { color: 'bg-red-600 animate-pulse', icon: '⛔', label: 'SIN STOCK' },
     CRITICAL: { color: 'bg-red-500', icon: '🔴', label: 'Crítico' },
     LOW: { color: 'bg-amber-500', icon: '🟡', label: 'Bajo' },
     OK: { color: 'bg-green-500', icon: '🟢', label: 'OK' },
   };
-  
+
   const { color, icon, label } = config[status];
-  
+
   return (
     <span className="flex items-center gap-1.5" title={label}>
       <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
@@ -561,6 +564,17 @@ export default function StockView({
                   >
                     <Minus className="w-5 h-5" />
                   </button>
+                  {/* FIX 9: Quick Waste Button - 1-click waste of 1 unit */}
+                  {item.stock > 0 && (
+                    <button
+                      onClick={() => onQuickWaste?.(item, 1)}
+                      className="p-2.5 rounded-lg hover:bg-orange-500/20 text-orange-400 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:bg-orange-500/30"
+                      title="Merma rápida (1 unidad)"
+                      aria-label={`Merma rápida de 1 ${item.name}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                   <button
                     onClick={() => onKardex?.(item)}
                     className="p-2.5 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:bg-blue-500/30"

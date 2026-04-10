@@ -388,7 +388,7 @@ export function PaymentModal({ totalDueCents, remainingCents, subtotalCents, tip
                                     </div>
                                 </div>
 
-                                {/* Auto-Calculate Change */}
+                                {/* Auto-Calculate Change with Breakdown */}
                                 {selectedMethod === "CASH" && enteredAmountCents > 0 && (
                                     <div className={`mt-3 text-center py-2.5 px-4 rounded-lg font-bold tabular-nums ${
                                         isShortfall
@@ -401,6 +401,40 @@ export function PaymentModal({ totalDueCents, remainingCents, subtotalCents, tip
                                         <span className="text-2xl md:text-3xl">
                                             S/ {(Math.abs(changeCents) / 100).toFixed(2)}
                                         </span>
+                                        
+                                        {/* Optimal Bill/Coin Breakdown */}
+                                        {!isShortfall && changeCents > 0 && (
+                                            <div className="mt-2 pt-2 border-t border-emerald-200">
+                                                <span className="text-xs text-emerald-600 block mb-1">Desglose óptimo:</span>
+                                                <span className="text-sm font-mono text-emerald-700">
+                                                    {(() => {
+                                                        const denominations = [
+                                                            { value: 20000, label: 'S/200' },
+                                                            { value: 10000, label: 'S/100' },
+                                                            { value: 5000, label: 'S/50' },
+                                                            { value: 2000, label: 'S/20' },
+                                                            { value: 1000, label: 'S/10' },
+                                                            { value: 500, label: 'S/5' },
+                                                            { value: 200, label: 'S/2' },
+                                                            { value: 100, label: 'S/1' },
+                                                            { value: 50, label: 'S/0.50' },
+                                                            { value: 20, label: 'S/0.20' },
+                                                            { value: 10, label: 'S/0.10' },
+                                                        ];
+                                                        let remaining = changeCents;
+                                                        const breakdown: string[] = [];
+                                                        for (const denom of denominations) {
+                                                            if (remaining >= denom.value) {
+                                                                const count = Math.floor(remaining / denom.value);
+                                                                breakdown.push(`${count}×${denom.label}`);
+                                                                remaining -= count * denom.value;
+                                                            }
+                                                        }
+                                                        return breakdown.join(' ');
+                                                    })()}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

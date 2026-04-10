@@ -9,8 +9,21 @@
  */
 
 import { motion } from "framer-motion";
-import { Play, CheckCircle2, Check, Lock, LucideIcon } from "lucide-react";
+import { Play, CheckCircle2, Check, Lock, LucideIcon, AlertTriangle } from "lucide-react";
 import { type ItemStatus } from "@/src/core/domain/events";
+
+// Allergen detection keywords
+const ALLERGEN_KEYWORDS = ['alérgico', 'alergia', 'intolerancia', 'celíaco', 'sin gluten', 'sin picante', 'maní', 'mariscos', 'nueces', 'lácteos'];
+
+function detectAllergen(notes?: string): { isAllergen: boolean; warning: string } {
+    if (!notes) return { isAllergen: false, warning: '' };
+    const lowerNotes = notes.toLowerCase();
+    const found = ALLERGEN_KEYWORDS.find(kw => lowerNotes.includes(kw));
+    if (found) {
+        return { isAllergen: true, warning: `🔴 ALÉRGENO: ${notes}` };
+    }
+    return { isAllergen: false, warning: '' };
+}
 
 export interface KDSTicketItem {
     line_id: string;
@@ -19,6 +32,7 @@ export interface KDSTicketItem {
     status: ItemStatus;
     course?: number;
     held?: boolean;
+    notes?: string; // Special instructions, may contain allergen info
 }
 
 export interface KDSTicketProps {
@@ -147,6 +161,14 @@ export function KDSTicket({
                                 {elapsedMinutes}m
                             </span>
                         )}
+                        
+                        {/* FIX 5: Alert when items are ready but not picked up */}
+                        {items.some(i => i.status === "READY") && elapsedMinutes !== undefined && elapsedMinutes > 3 && (
+                            <span className="flex items-center gap-1 text-xs font-bold text-orange-400 bg-orange-900/30 border border-orange-500 rounded-full px-2 py-0.5 animate-pulse">
+                                <AlertTriangle size={12} />
+                                ¡Listo hace {elapsedMinutes}min!
+                            </span>
+                        )}
                         {/* Order Type Badge */}
                         <span className={`text-[10px] md:text-xs font-bold uppercase px-2 md:px-3 py-1 rounded-full ${
                             orderType === "DELIVERY" 
@@ -218,6 +240,20 @@ export function KDSTicket({
                                 {!isHeld && item.status === "DONE" && <Check size={18} className="text-zinc-600" />}
                             </span>
                         </div>
+                        
+                        {/* Allergen Warning */}
+                        {item.notes && (() => {
+                            const { isAllergen, warning } = detectAllergen(item.notes);
+                            if (isAllergen) {
+                                return (
+                                    <div className="mt-1 flex items-center gap-1.5 text-red-400 bg-red-900/30 border border-red-500 rounded px-2 py-1">
+                                        <AlertTriangle size={12} className="flex-shrink-0 animate-pulse" />
+                                        <span className="text-xs font-bold truncate">{warning}</span>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
                     </motion.button>
                     );
                 })}

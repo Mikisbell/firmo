@@ -37,6 +37,7 @@ import StockView from '@/src/components/inventory/StockView';
 import EntryModal from '@/src/components/inventory/EntryModal';
 import WasteModal from '@/src/components/inventory/WasteModal';
 import KardexModal from '@/src/components/inventory/KardexModal';
+import ConteoTab from '@/src/components/inventory/ConteoTab'; // FIX 10
 import { InventoryItem } from '@/src/core/inventory/stock-types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -408,7 +409,12 @@ export default function InventarioPage() {
           />
         )}
         {activeTab === 'conteo' && (
-          <ConteoTab employeeId={employee?.id || ''} />
+          <ConteoTab 
+            employeeId={employee?.id || ''} 
+            tenantId={DEFAULT_TENANT_ID}
+            locationId="default"
+            onToast={addToast}
+          />
         )}
         {activeTab === 'merma' && (
           <MermaTab 
@@ -520,26 +526,6 @@ function RecepcionTab({
         employeeId={employeeId}
         onReceive={onReceive}
       />
-    </div>
-  );
-}
-
-// Conteo Tab (placeholder - future implementation)
-function ConteoTab({ employeeId }: { employeeId: string }) {
-  return (
-    <div className="bg-park-gray-900 rounded-xl p-6 border border-park-gray-800">
-      <h2 className="text-lg font-semibold mb-4">Conteo de Inventario</h2>
-      <p className="text-park-gray-400">
-        Inicia un nuevo conteo físico o continúa uno existente.
-      </p>
-      <div className="mt-4 p-4 bg-park-gray-800/50 rounded-lg">
-        <p className="text-sm text-park-gray-500">
-          Empleado autorizado: {employeeId}
-        </p>
-        <p className="text-xs text-amber-400 mt-2">
-          🚧 Funcionalidad en desarrollo
-        </p>
-      </div>
     </div>
   );
 }
