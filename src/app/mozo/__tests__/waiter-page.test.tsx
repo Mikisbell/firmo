@@ -46,6 +46,10 @@ vi.mock('@/src/app/mozo/hooks/useWaiterNotifications', () => ({
   useWaiterNotifications: () => ({ unreadCount: 0, readyItemsCount: 0 }),
 }));
 
+vi.mock('@/src/hooks/useSyncClient', () => ({
+  useSyncClient: vi.fn(),
+}));
+
 vi.mock('../components/NotificationPanel', () => ({
   NotificationPanel: () => null,
 }));

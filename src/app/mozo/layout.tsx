@@ -6,12 +6,15 @@ import { RoleGuard } from '@/src/components/auth/RoleGuard';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
 import { PushSubscriptionPrompt } from './components/PushSubscriptionPrompt';
+import { useSyncClient } from '@/src/hooks/useSyncClient';
 
 export default function MozoLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    useSyncClient(); // ADDED: Global sync for all mozo pages
+
     return (
         <ErrorBoundary>
             <AuthProvider requireAuth={true}>
