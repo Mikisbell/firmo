@@ -86,8 +86,8 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 order_type: (o.order_type as "DINE_IN" | "TAKEOUT" | "DELIVERY") || "DINE_IN",
                 
                 // DINE_IN fields
-                table_number: fulfillment.table_number || o.table_id,
-                waiter_name: o.waiter_name || o.actor_name,
+                table_number: fulfillment.table_number,
+                waiter_name: undefined,
                 guest_count: fulfillment.guest_count,
                 
                 // DELIVERY fields - basic info from fulfillment
@@ -103,17 +103,17 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 // TAKEOUT fields
                 pickup_name: fulfillment.pickup_name,
                 pickup_phone: fulfillment.pickup_phone,
-                pickup_time: fulfillment.pickup_time ? new Date(fulfillment.pickup_time) : undefined,
+                pickup_time: undefined, // Add to SaleProjection if needed later
                 
                 // Common fields
                 total_cents: o.total_cents || 0,
                 items_count: Object.keys(o.lines || {}).length,
-                created_at: new Date(o.created_at || Date.now()),
-                status: mapFulfillmentStatus(o.fulfillment_status, o.delivery_status),
+                created_at: new Date(), // Fallback, not in SaleProjection currently
+                status: "PENDING", // Fallback, need to derive from status
                 
                 // External integrations
-                external_source: o.external_source,
-                external_order_id: o.external_order_id,
+                external_source: undefined,
+                external_order_id: undefined,
             };
         });
 
