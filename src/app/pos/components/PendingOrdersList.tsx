@@ -32,7 +32,7 @@ export interface PendingOrder {
     total_cents: number;
     items_count: number;
     created_at: Date;
-    status: "COOKING" | "READY" | "SERVED" | "DISPATCHED" | "DELIVERED";
+    status: "PENDING" | "COOKING" | "READY" | "SERVED" | "DISPATCHED" | "DELIVERED";
     
     // External integrations (Rappi, PedidosYa, etc.)
     external_source?: "RAPPI" | "PEDIDOSYA" | "UBEREATS" | "WHATSAPP" | "PHONE";
