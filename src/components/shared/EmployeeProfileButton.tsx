@@ -18,7 +18,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, User, LayoutDashboard } from 'lucide-react';
+import { ChevronDown, User, LayoutDashboard, LogOut } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { ROLE_LABELS } from '@/src/core/constants/roles';
 
@@ -182,6 +182,14 @@ export function EmployeeProfileButton({
             >
               <LayoutDashboard className="w-4 h-4 text-zinc-500 flex-shrink-0" aria-hidden />
               Detalles del turno
+            </button>
+            <button
+              role="menuitem"
+              onClick={() => { setIsOpen(false); onLogout?.(); }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors"
+            >
+              <LogOut className="w-4 h-4 text-red-400/70 flex-shrink-0" aria-hidden />
+              Salir
             </button>
           </div>
 
