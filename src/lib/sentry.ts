@@ -10,7 +10,7 @@ async function getSentry() {
   if (_sentry) return _sentry
   try {
     // @ts-expect-error — optional dependency, safe to fail
-    _sentry = await import('@sentry/nextjs')
+    _sentry = await import(/* webpackIgnore: true */ '@sentry/nextjs')
     return _sentry
   } catch {
     return null
