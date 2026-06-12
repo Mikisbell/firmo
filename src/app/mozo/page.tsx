@@ -126,12 +126,12 @@ export default function WaiterPage() {
     const handleExit = useCallback(() => {
         clearTerminalConfig();
         authLogout();
-        router.push("/");
+        router.push("/login");
     }, [router, authLogout]);
 
     const handleSimpleLogout = useCallback(() => {
         authLogout();
-        router.push("/");
+        router.push("/login");
     }, [router, authLogout]);
 
     const handleHome = useCallback(() => {

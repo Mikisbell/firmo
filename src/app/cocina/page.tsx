@@ -41,12 +41,12 @@ export default function CocinaKDSPage() {
     const handleLogout = useCallback(() => {
         clearTerminalConfig();
         authLogout();
-        router.push("/");
+        router.push("/login");
     }, [authLogout, router]);
 
     const handleSimpleLogout = useCallback(() => {
         authLogout();
-        router.push("/");
+        router.push("/login");
     }, [authLogout, router]);
 
     const [now, setNow] = useState<number | null>(null);

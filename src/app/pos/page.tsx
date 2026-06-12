@@ -18,6 +18,8 @@ import { ParkLogo } from "@/src/components/icons";
 import { toast, Toaster } from "sonner";
 import { getDb } from "@/src/core/db/schema";
 import { useAuth } from "@/src/components/auth";
+import { useRouter } from "next/navigation";
+import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
 import { useLiveOrders } from "./hooks/useLiveOrders";
 import { MobileWarning } from "@/src/components/ui";
 import { useCustomerDisplay } from "@/src/hooks/useCustomerDisplay";
@@ -57,6 +59,19 @@ export default function POSPage() {
 
     // FIX 17: Start sync client for real-time event processing
     useSyncClient();
+
+    const router = useRouter();
+
+    const handleSimpleLogout = () => {
+        logout();
+        router.push("/login");
+    };
+
+    const handleExit = () => {
+        clearTerminalConfig();
+        logout();
+        router.push("/login");
+    };
 
     // Shift modal state
     const [shiftModalOpen, setShiftModalOpen] = useState(false);
@@ -572,7 +587,7 @@ export default function POSPage() {
                                 employeeRole={session.employee_role}
                                 accentColor="emerald"
                                 onOpenDrawer={() => setProfileOpen(true)}
-                                onLogout={logout}
+                                onLogout={handleSimpleLogout}
                             />
                         )}
 
@@ -829,7 +844,7 @@ export default function POSPage() {
                 sessionCreatedAt={session?.created_at}
                 accentColor="emerald"
                 stat={{ label: 'Órdenes en espera', value: liveOrders.length }}
-                onLogout={logout}
+                onLogout={handleExit}
             />
         </div>
     );
