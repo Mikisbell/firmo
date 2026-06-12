@@ -37,8 +37,8 @@ const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 2 * 60 * 1000; // 2 minutes (escalates to 10 min after 10 attempts)
 const ESCALATED_LOCKOUT_MS = 10 * 60 * 1000; // 10 minutes after 10 attempts
 const ESCALATED_ATTEMPTS = 10;
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours — consistent across all auth endpoints
-const SESSION_INACTIVITY_MS = 8 * 60 * 60 * 1000; // 8 hours inactivity before auto-logout
+const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days — consistent across all auth endpoints
+const SESSION_INACTIVITY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days inactivity before auto-logout
 
 export interface AuthPayload extends JWTPayload {
     sub: string;        // employee_id

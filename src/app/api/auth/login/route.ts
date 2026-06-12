@@ -354,7 +354,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,                              // XSS protection
       secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
       sameSite: 'strict',                          // CSRF protection
-      maxAge: 28800,                               // 8 hours (consistent with auth.service.ts)
+      maxAge: 30 * 24 * 60 * 60,                   // 30 days (consistent with auth.service.ts)
       path: '/',
     });
 
@@ -363,7 +363,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 28800,                               // 8 hours (consistent with auth.service.ts)
+      maxAge: 30 * 24 * 60 * 60,                   // 30 days (consistent with auth.service.ts)
       path: '/',
     });
 
