@@ -102,15 +102,25 @@ export async function POST(request: NextRequest) {
     log.debug('Paso 2: Validación MAC híbrida');
     let macValidationWarning: string | undefined;
 
+    // Fetch Terminal UUID for MAC validation
+    let terminalUuid: string | undefined = undefined;
+    if (data.terminal_id) {
+      const terminalDb = await prisma.terminals.findUnique({
+        where: { tenant_id_terminal_id: { tenant_id: data.tenant_id, terminal_id: data.terminal_id } },
+        select: { id: true }
+      });
+      if (terminalDb) terminalUuid = terminalDb.id;
+    }
+
     // ADMIN users bypass MAC validation so they can automatically register the device
-    if (data.mac_address && data.terminal_id && !isAdmin) {
+    if (data.mac_address && terminalUuid && !isAdmin) {
       log.debug('Validando dirección MAC');
       
       const macValidation = await validateMAC(
         data.tenant_id,
         authResult.employee!.id,
         data.mac_address,
-        data.terminal_id
+        terminalUuid
       );
 
       if (!macValidation.isValid) {
@@ -158,7 +168,7 @@ export async function POST(request: NextRequest) {
       log.debug('Verificando autorización de terminal');
       const terminalAuth = await checkTerminalAuthorization(
         data.tenant_id,
-        data.terminal_id,
+        terminalUuid!,
         data.mac_address,
         authResult.employee!.id
       );
@@ -319,14 +329,14 @@ export async function POST(request: NextRequest) {
     log.debug('Sesión activa creada', { sessionId });
 
     // Step 7: Register MAC if it's new (NEW)
-    if (data.mac_address && data.terminal_id) {
+    if (data.mac_address && terminalUuid) {
       log.debug('Registrando dirección MAC');
       try {
         await registerMAC(
           data.tenant_id,
           authResult.employee!.id,
           data.mac_address,
-          data.terminal_id
+          terminalUuid
         );
         log.debug('MAC registrado exitosamente');
       } catch (error) {
