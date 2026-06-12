@@ -22,7 +22,7 @@ interface PaymentModalProps {
     tipCents?: number;
     orderNumber?: number | string;
     onClose: () => void;
-    onConfirm: (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number, reference?: string) => void;
+    onConfirm: (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number, reference?: string, changeCents?: number) => void;
     onTipChange?: (tipCents: number) => void;
 }
 
@@ -92,19 +92,26 @@ export function PaymentModal({ totalDueCents, remainingCents, subtotalCents, tip
     const handleConfirm = () => {
         if (isDigitalMethod) {
             if (!reference.trim()) return;
-            onConfirm(selectedMethod, effectiveRemainingCents, reference.trim());
+            // Digital payments (Yape/Plin) are always exact — no change
+            onConfirm(selectedMethod, effectiveRemainingCents, reference.trim(), 0);
         } else {
             const val = parseFloat(amount);
             if (isNaN(val) || val <= 0) return;
-            onConfirm(selectedMethod, Math.round(val * 100));
+            const amountCents = Math.round(val * 100);
+            // Change only applies to CASH; CARD charges the exact amount
+            const confirmedChangeCents = selectedMethod === "CASH"
+                ? Math.max(0, amountCents - effectiveRemainingCents)
+                : 0;
+            onConfirm(selectedMethod, amountCents, undefined, confirmedChangeCents);
         }
     };
 
     const handleQuickPay = (method: "CASH" | "CARD" | "YAPE") => {
         if (method === "CASH") {
-            onConfirm("CASH", effectiveRemainingCents);
+            // Quick pay = exact amount tendered → no change
+            onConfirm("CASH", effectiveRemainingCents, undefined, 0);
         } else if (method === "CARD") {
-            onConfirm("CARD", effectiveRemainingCents);
+            onConfirm("CARD", effectiveRemainingCents, undefined, 0);
         } else {
             setSelectedMethod("YAPE");
         }

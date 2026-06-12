@@ -95,6 +95,13 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
         }
         
         if (response.status === 403 && (data.error?.includes('Dispositivo') || data.message?.includes('Dispositivo'))) {
+          // Si es un error de validación de dispositivo/MAC (UNKNOWN_DEVICE, etc), 
+          // mostramos el error en pantalla en lugar de resetear toda la configuración del terminal
+          if (data.requires_confirmation || data.error === 'UNKNOWN_DEVICE' || data.error === 'DEVICE_MISMATCH' || data.error === 'BLOCKED_DEVICE') {
+            setError(data.message || data.error);
+            setLoading(false);
+            return;
+          }
           onTerminalError();
           return;
         }

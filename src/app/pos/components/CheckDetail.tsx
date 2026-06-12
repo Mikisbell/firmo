@@ -23,7 +23,7 @@ interface CheckDetailProps {
     terminalId: string;
     actorId: string; // New Prop
     onBack: () => void;
-    onPayment: (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number) => void;
+    onPayment: (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number, changeCents?: number) => void;
     onInvoice: (type: "BOLETA" | "FACTURA") => void;
     onUpdateQty?: (lineId: string, newQty: number) => void;
     onTipChange?: (tipCents: number) => void;
@@ -397,7 +397,8 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => {
-                                        onPayment("CASH", remainingCents);
+                                        // Quick pay = exact amount tendered → no change
+                                        onPayment("CASH", remainingCents, 0);
                                     }}
                                     disabled={check.total_cents <= 0}
                                     className="flex-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 touch-manipulation min-h-[48px]"
@@ -407,7 +408,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 </button>
                                 <button
                                     onClick={() => {
-                                        onPayment("CARD", remainingCents);
+                                        onPayment("CARD", remainingCents, 0);
                                     }}
                                     disabled={check.total_cents <= 0}
                                     className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95 touch-manipulation min-h-[48px]"
@@ -492,8 +493,8 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         tipCents={check.tip_cents}
                         orderNumber={order.order_number}
                         onClose={() => setShowPayModal(false)}
-                        onConfirm={(method, amount) => {
-                            onPayment(method, amount);
+                        onConfirm={(method, amount, _reference, changeCents) => {
+                            onPayment(method, amount, changeCents ?? 0);
                             setShowPayModal(false);
                         }}
                         onTipChange={onTipChange}

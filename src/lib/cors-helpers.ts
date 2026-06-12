@@ -16,10 +16,12 @@ export function handleCorsPreflightRequest(origin?: string | null): NextResponse
     : ['http://localhost:3000', 'http://localhost:3001'];
 
   // Validar origen
-  const isAllowed = origin && allowedOrigins.includes(origin);
+  const isVercel = origin && origin.endsWith('.vercel.app');
+  const isAllowed = origin && (allowedOrigins.includes(origin) || isVercel);
   
   if (!isAllowed) {
     // Si el origen no está permitido, retornar 403
+    console.warn(`[CORS] Request from origin '${origin}' was rejected.`);
     return new NextResponse(null, {
       status: 403,
       headers: {
@@ -50,7 +52,8 @@ export function isOriginAllowed(origin: string | null): boolean {
     ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
     : ['http://localhost:3000', 'http://localhost:3001'];
 
-  return allowedOrigins.includes(origin);
+  const isVercel = origin.endsWith('.vercel.app');
+  return allowedOrigins.includes(origin) || isVercel;
 }
 
 /**

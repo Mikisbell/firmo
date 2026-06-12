@@ -83,32 +83,37 @@ export async function POST(request: NextRequest): Promise<NextResponse<WasteResp
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined;
   const userAgent = request.headers.get('user-agent') || undefined;
 
-  // 1. Validate authentication (optional - can be disabled for testing)
-  const skipAuth = request.headers.get('x-skip-auth') === 'true';
-  if (!skipAuth) {
-    const authResult = await validateInventoryAuth(request);
-    if (!authResult.success) {
-      return createAuthErrorResponse(authResult) as NextResponse<WasteResponse>;
-    }
+  // 1. Validate authentication (ALWAYS required — no bypass)
+  const authResult = await validateInventoryAuth(request);
+  if (!authResult.success || !authResult.auth) {
+    return createAuthErrorResponse(authResult) as NextResponse<WasteResponse>;
   }
 
   try {
     const body = await request.json();
-    
+
     // 2. Validate input
     const validation = wasteSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Error de validación', 
-          details: validation.error.issues 
+        {
+          success: false,
+          error: 'Error de validación',
+          details: validation.error.issues
         },
         { status: 400 }
       );
     }
 
     const input = validation.data;
+
+    // 2b. Tenant isolation: body tenant_id must match the JWT tenant
+    if (input.tenant_id !== authResult.auth.tid) {
+      return NextResponse.json(
+        { success: false, error: 'Tenant no autorizado' },
+        { status: 403 }
+      );
+    }
 
     // 3. Verify actor exists
     const actor = await prisma.employees.findFirst({

@@ -719,10 +719,21 @@ export class SyncClient {
      */
     async refreshOrder(orderId: string): Promise<boolean> {
         try {
-            const apiSecret = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_SECRET
-                ? process.env.NEXT_PUBLIC_API_SECRET
-                : "park_secret_mvp_2025"; // Fallback for development
-            
+            // SECURITY: never fall back to a hardcoded secret. If the env var is
+            // missing, fail loudly and report the refresh as failed (degraded sync).
+            // TODO(security): move this secret server-side (device token) — bigger redesign.
+            const apiSecret = process.env?.NEXT_PUBLIC_API_SECRET;
+
+            if (!apiSecret) {
+                logger.error(
+                    'sync.config_error',
+                    'SECURITY ERROR: NEXT_PUBLIC_API_SECRET must be configured — refusing to call API without secret',
+                    undefined,
+                    { order_id: orderId }
+                );
+                return false;
+            }
+
             const response = await fetch(`/api/orders/${orderId}/state`, {
                 headers: {
                     "x-api-secret": apiSecret

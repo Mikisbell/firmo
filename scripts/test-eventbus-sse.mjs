@@ -8,7 +8,12 @@
  */
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
-const API_SECRET = process.env.PARK_API_SECRET || 'park_secret_mvp_2025';
+const API_SECRET = process.env.PARK_API_SECRET;
+
+if (!API_SECRET) {
+    console.error('ERROR: PARK_API_SECRET env var is required (no hardcoded fallback). Set it before running this script.');
+    process.exit(1);
+}
 const BASE_URL = 'http://localhost:3000';
 
 console.log('🔍 Diagnóstico EventBus + SSE\n');

@@ -160,6 +160,12 @@ export const POSActions = {
     /**
      * Add payment to a check
      * Returns Result to propagate errors to UI
+     *
+     * NOTA: el schema de CHECK_PAYMENT_ADDED (CheckPaymentAddedPayload) NO tiene
+     * campo de vuelto por pago — agregarlo requeriría versionar el payload.
+     * El vuelto se registra a nivel de check via CHECK_MARKED_PAID.change_cents
+     * (ver markCheckPaid). En CASH, amount_cents es el monto ENTREGADO por el
+     * cliente; el shift reducer compensa con cash_change_out_cents.
      */
     async addPayment(
         tenant_id: string,
@@ -213,6 +219,12 @@ export const POSActions = {
 
     /**
      * Mark check as paid
+     *
+     * `change_cents` = vuelto entregado al cliente (solo aplica a pagos CASH;
+     * para métodos digitales/tarjeta debe ser 0). Se registra a nivel de check
+     * en CHECK_MARKED_PAID porque el schema de CHECK_PAYMENT_ADDED no soporta
+     * vuelto por pago individual (agregarlo requeriría payload versioning).
+     * El shift reducer usa este valor para cash_change_out_cents.
      */
     async markCheckPaid(
         tenant_id: string,
@@ -222,6 +234,9 @@ export const POSActions = {
         check_id: string,
         change_cents: number = 0
     ) {
+        // Defensa: el schema exige entero no-negativo (positiveCentsSchema)
+        const safe_change_cents = Math.max(0, Math.round(change_cents));
+
         await appendEvent(tenant_id, terminal_id, {
             event_id: newUUID(),
             event_type: "CHECK_MARKED_PAID",
@@ -234,7 +249,7 @@ export const POSActions = {
                 order_id,
                 check_id,
                 paid_at: new Date().toISOString(),
-                change_cents,
+                change_cents: safe_change_cents,
             },
         });
     },

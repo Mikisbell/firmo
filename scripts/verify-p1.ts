@@ -3,7 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 const VERIFY_API_URL = "http://localhost:3000/api/events/ingest";
-const API_SECRET = "park_secret_mvp_2025";
+const API_SECRET = process.env.PARK_API_SECRET;
+
+if (!API_SECRET) {
+    console.error("ERROR: PARK_API_SECRET env var is required (no hardcoded fallback). Set it before running this script.");
+    process.exit(1);
+}
 
 async function verify() {
     console.log("🔍 Verifying Phase P1: Backend Ingest & Projections");

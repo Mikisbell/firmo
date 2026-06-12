@@ -12,6 +12,7 @@ import { rateLimiter } from "@/src/core/rate-limiting/rate-limiter";
 import { logger } from '@/src/core/observability/structured-logger';
 import { startSpan, endSpan } from '@/src/core/observability/tracing';
 import { eventMigrator } from "@/src/core/domain/event-migrator";
+import { handleCorsPreflightRequest, addCorsHeaders } from "@/src/lib/cors-helpers";
 import "@/src/core/domain/migrations";
 
 export const runtime = "nodejs";
@@ -303,7 +304,15 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                     const paidChecks = (paidOrder.checks as any[]) || [];
                     const updatedChecks = paidChecks.map((c: any) => {
                         if (c.check_id !== p.check_id) return c;
-                        return { ...c, status: 'PAID', payment: { ...c.payment, status: 'PAID' } };
+                        // Persist change_cents (vuelto) in the check JSON.
+                        // No dedicated column exists for it (orders.checks is Json);
+                        // the full payload is also retained in the events table.
+                        return {
+                            ...c,
+                            status: 'PAID',
+                            change_cents: p.change_cents ?? 0,
+                            payment: { ...c.payment, status: 'PAID' },
+                        };
                     });
                     await tx.orders.update({
                         where: { id: p.order_id },
@@ -756,31 +765,36 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
     return true;
 }
 
+export async function OPTIONS(req: Request) {
+    const origin = req.headers.get('origin');
+    return handleCorsPreflightRequest(origin);
+}
+
 export async function POST(req: Request) {
     // Security: Validate API Secret
     const secret = req.headers.get("x-api-secret");
     if (secret !== process.env.PARK_API_SECRET) {
-        return serverError(
+        return addCorsHeaders(serverError(
             err("UNAUTHORIZED", "Acceso denegado.", "Verifica tus credenciales."),
             401
-        );
+        ), req.headers.get('origin') || undefined);
     }
 
     let body: unknown;
     try {
         body = await req.json();
     } catch {
-        return serverError(err("INVALID_JSON", "No se pudo parsear el JSON.", "Verifica el formato del body."), 400);
+        return addCorsHeaders(serverError(err("INVALID_JSON", "No se pudo parsear el JSON.", "Verifica el formato del body."), 400), req.headers.get('origin') || undefined);
     }
 
     const result = ingestRequestSchema.safeParse(body);
     if (!result.success) {
-        return serverError(
+        return addCorsHeaders(serverError(
             err("SCHEMA_VALIDATION_FAILED", "El body no cumple con el schema.", "Corrige los campos.", {
                 context: { issues: result.error.errors },
             }),
             400
-        );
+        ), req.headers.get('origin') || undefined);
     }
 
     const { tenant_id, terminal_id, events, to_terminal_sequence } = result.data;
@@ -1135,7 +1149,7 @@ export async function POST(req: Request) {
             ackedThrough: to_terminal_sequence,
         });
 
-        return NextResponse.json(
+        return addCorsHeaders(NextResponse.json(
             {
                 accepted: true,
                 tenant_id,
@@ -1146,7 +1160,7 @@ export async function POST(req: Request) {
                 merged,
             },
             { status: 200 }
-        );
+        ), req.headers.get('origin') || undefined);
     } catch (e: unknown) {
         endSpan(txSpan, e);
         const msg = e instanceof Error ? e.message : String(e);
@@ -1155,7 +1169,7 @@ export async function POST(req: Request) {
             terminalId: terminal_id,
         });
 
-        return serverError(
+        return addCorsHeaders(serverError(
             err(
                 "DB_ERROR",
                 "Error CRITICO al guardar eventos.",
@@ -1165,6 +1179,6 @@ export async function POST(req: Request) {
                     context: { db_message: msg },
                 }
             )
-        );
+        ), req.headers.get('origin') || undefined);
     }
 }

@@ -6,7 +6,12 @@ const TERM_ID = "waiter_1";
 const ACTOR_ID = "00000000-0000-0000-0000-000000000003";
 
 const INGEST_API_URL = "http://localhost:3000/api/events/ingest";
-const API_SECRET = "park_secret_mvp_2025";
+const API_SECRET = process.env.PARK_API_SECRET;
+
+if (!API_SECRET) {
+    console.error("ERROR: PARK_API_SECRET env var is required (no hardcoded fallback). Set it before running this script.");
+    process.exit(1);
+}
 
 function uuid() {
     return uuidv4();

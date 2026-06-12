@@ -134,7 +134,7 @@ export default function POSPage() {
         });
     }, [activeSale, activeCheck, broadcastDisplay]);
 
-    const handlePayment = async (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number) => {
+    const handlePayment = async (method: "CASH" | "CARD" | "YAPE" | "PLIN", amountCents: number, changeCents: number = 0) => {
         if (!shiftIsOpen) {
             toast.error("Turno cerrado. Abre un turno para cobrar.");
             setShiftModalMode("open");
@@ -164,7 +164,9 @@ export default function POSPage() {
         // Check if this payment completes the check
         const newPaidTotal = activeCheck.payment.payments.reduce((sum, p) => sum + p.amount_cents, 0) + amountCents;
         if (newPaidTotal >= activeCheck.total_cents) {
-            await POSActions.markCheckPaid(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, activeCheck.check_id);
+            // Vuelto solo aplica a pagos CASH; métodos digitales/tarjeta son exactos
+            const safeChangeCents = method === "CASH" ? Math.max(0, Math.round(changeCents)) : 0;
+            await POSActions.markCheckPaid(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, activeCheck.check_id, safeChangeCents);
             toast.success("Pago registrado ✓");
         }
     };

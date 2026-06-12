@@ -9,10 +9,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { validateToken, validateSession, logAdminAccess, type AuthPayload } from '@/src/core/auth/auth.service';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 import prisma from '@/src/core/db/prisma';
 
-// Roles allowed to access inventory APIs
-const INVENTORY_ALLOWED_ROLES = ['ADMIN', 'MANAGER'];
+// Roles allowed to access inventory APIs (SSoT: OWNER, ADMIN, MANAGER, SUPERVISOR)
+const INVENTORY_ALLOWED_ROLES: readonly string[] = ADMIN_ROLES;
 
 export interface AuthenticatedRequest {
   auth: AuthPayload;
@@ -30,9 +31,15 @@ export interface AuthMiddlewareResult {
 }
 
 /**
- * Extract Bearer token from Authorization header
+ * Extract token from auth_token cookie (browser sessions) or
+ * Authorization Bearer header (API clients).
+ * Same precedence as validateAdminAuth (cookie first, header fallback).
  */
 function extractToken(request: NextRequest): string | null {
+  const cookieToken = request.cookies.get('auth_token')?.value;
+  if (cookieToken) {
+    return cookieToken;
+  }
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
