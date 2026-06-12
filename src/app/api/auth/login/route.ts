@@ -96,11 +96,14 @@ export async function POST(request: NextRequest) {
 
     log.info('Autenticación exitosa', { employeeName: authResult.employee?.name, role: authResult.employee?.role });
 
+    const isAdmin = authResult.employee?.role && (ADMIN_ROLES as readonly string[]).includes(authResult.employee.role);
+
     // Step 2: HYBRID MAC Validation (NEW)
     log.debug('Paso 2: Validación MAC híbrida');
     let macValidationWarning: string | undefined;
 
-    if (data.mac_address && data.terminal_id) {
+    // ADMIN users bypass MAC validation so they can automatically register the device
+    if (data.mac_address && data.terminal_id && !isAdmin) {
       log.debug('Validando dirección MAC');
       
       const macValidation = await validateMAC(
@@ -184,7 +187,6 @@ export async function POST(request: NextRequest) {
 
     // Step 3: Validate terminal (if provided)
     // ADMIN users bypass terminal validation - they can access any terminal
-    const isAdmin = authResult.employee?.role && (ADMIN_ROLES as readonly string[]).includes(authResult.employee.role);
     log.debug('Paso 3: Validación de terminal', { isAdmin, terminalId: data.terminal_id });
 
     if (data.terminal_id && !isAdmin) {
