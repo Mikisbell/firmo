@@ -9,24 +9,22 @@ interface LiveOrdersOptions {
     tenantId: string;
 }
 
-/**
- * Hook para obtener órdenes en tiempo real
- * Combina:
- * 1. Dexie LiveQuery para reactividad local
- * 2. SSE para actualizaciones del servidor
- * 3. Polling como fallback
- */
 export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
     const [orders, setOrders] = useState<PendingOrder[]>([]);
-    const [isConnected, setIsConnected] = useState(false);
-    const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+    
+    // El EventSyncClient se encarga de la conexión SSE y de mantener db.events actualizado.
+    // Nosotros solo necesitamos observar db.events localmente para reaccionar a CUALQUIER cambio
+    // (ya sea local o de red).
+    const isConnected = true; 
 
     // Live query from IndexedDB events instead of projections
     const projections = useLiveQuery(async () => {
-        const dbInstance = getDb();
-        if (!dbInstance) return [];
+        if (!tenantId) return undefined;
 
-        // 1. Fetch all ORDER events
+        const dbInstance = getDb();
+        if (!dbInstance) return undefined;
+
+        // 1. Fetch all ORDER events for this tenant
         const orderEvents = await dbInstance.events
             .where("aggregate_type")
             .equals("ORDER")
@@ -35,6 +33,9 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
         // 2. Group by order_id
         const eventsByOrder = new Map<string, any[]>();
         for (const e of orderEvents) {
+            // Filtrar por tenant localmente por seguridad
+            if (e.tenant_id !== tenantId) continue;
+            
             let list = eventsByOrder.get(e.aggregate_id);
             if (!list) {
                 list = [];
@@ -43,6 +44,7 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
             list.push(e);
         }
 
+        // Import dinámico para no romper SSR en caso de que useLiveOrders sea importado
         const { applySaleEvent } = await import("@/src/core/projections/sale.reducer");
         const allProjections = [];
 
@@ -91,25 +93,26 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 guest_count: fulfillment.guest_count,
                 
                 // DELIVERY fields - basic info from fulfillment
-                // Full delivery info should be fetched from delivery_orders API
                 customer_name: fulfillment.pickup_name,
                 customer_phone: fulfillment.pickup_phone,
-                delivery_address: undefined, // Fetch from delivery_orders
-                delivery_reference: undefined, // Fetch from delivery_orders
-                delivery_fee_cents: undefined, // Fetch from delivery_orders
-                assigned_driver: undefined, // Fetch from delivery_orders
-                payment_expectation: undefined, // Fetch from delivery_orders
+                delivery_address: undefined, 
+                delivery_reference: undefined, 
+                delivery_fee_cents: undefined, 
+                assigned_driver: undefined, 
+                payment_expectation: undefined, 
                 
                 // TAKEOUT fields
                 pickup_name: fulfillment.pickup_name,
                 pickup_phone: fulfillment.pickup_phone,
-                pickup_time: undefined, // Add to SaleProjection if needed later
+                pickup_time: undefined, 
                 
                 // Common fields
                 total_cents: o.total_cents || 0,
                 items_count: Object.keys(o.lines || {}).length,
-                created_at: new Date(), // Fallback, not in SaleProjection currently
-                status: "PENDING", // Fallback, need to derive from status
+                created_at: o.lines && Object.values(o.lines).length > 0 
+                    ? new Date((Object.values(o.lines)[0] as any).created_at) 
+                    : new Date(),
+                status: "PENDING",
                 
                 // External integrations
                 external_source: undefined,
@@ -121,94 +124,18 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
         pending.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
 
         setOrders(pending);
-        setLastUpdate(new Date());
     }, [projections]);
 
-    // SSE Connection for real-time updates
-    useEffect(() => {
-        if (!tenantId || typeof window === "undefined") return;
-
-        let eventSource: EventSource | null = null;
-        let reconnectTimeout: NodeJS.Timeout | null = null;
-
-        const connect = () => {
-            eventSource = new EventSource(`/api/events/stream?tenant_id=${tenantId}`);
-
-            eventSource.onopen = () => {
-                setIsConnected(true);
-                console.log("[LiveOrders] SSE Connected");
-            };
-
-            eventSource.onmessage = (msg) => {
-                try {
-                    const event = JSON.parse(msg.data);
-                    if (event.type === "CONNECTED") return;
-
-                    // Trigger refresh on order-related events
-                    const orderEvents = [
-                        "ORDER_CREATED", "ORDER_ITEM_ADDED", "ORDER_ITEM_VOIDED",
-                        "CHECK_PAYMENT_ADDED", "CHECK_MARKED_PAID", "ORDER_CLOSED",
-                        "ORDER_CANCELLED", "CHECK_CREATED"
-                    ];
-
-                    if (orderEvents.includes(event.event_type)) {
-                        setLastUpdate(new Date());
-                    }
-                } catch (e) {
-                    console.error("[LiveOrders] SSE parse error:", e);
-                }
-            };
-
-            eventSource.onerror = () => {
-                setIsConnected(false);
-                eventSource?.close();
-                // Reconnect after 5 seconds
-                reconnectTimeout = setTimeout(connect, 5000);
-            };
-        };
-
-        connect();
-
-        return () => {
-            eventSource?.close();
-            if (reconnectTimeout) clearTimeout(reconnectTimeout);
-        };
-    }, [tenantId]);
-
-    // Manual refresh function
+    // Manual refresh function (ya no es necesario, pero mantenemos la API)
     const refresh = useCallback(() => {
-        setLastUpdate(new Date());
+        // useLiveQuery is reactive, no need to do anything here
     }, []);
 
     return {
         orders,
         isConnected,
-        lastUpdate,
+        lastUpdate: new Date(),
         refresh,
         isLoading: projections === undefined,
     };
-}
-
-function mapFulfillmentStatus(
-    fulfillmentStatus: string | undefined, 
-    deliveryStatus?: string
-): "COOKING" | "READY" | "SERVED" | "DISPATCHED" | "DELIVERED" {
-    // Delivery-specific statuses take priority
-    if (deliveryStatus) {
-        switch (deliveryStatus) {
-            case "DISPATCHED":
-                return "DISPATCHED";
-            case "DELIVERED":
-                return "DELIVERED";
-        }
-    }
-    
-    switch (fulfillmentStatus) {
-        case "READY":
-            return "READY";
-        case "DELIVERED":
-            return "SERVED";
-        default:
-            return "COOKING";
-    }
 }

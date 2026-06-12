@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { ROLE_LABELS } from "@/src/core/constants/roles";
 import { useTableStatus, useZones, TableStatus } from "./hooks/useTableStatus";
 import { useWaiterNotifications } from "./hooks/useWaiterNotifications";
 import { NotificationPanel } from "./components/NotificationPanel";
@@ -172,7 +173,7 @@ export default function WaiterPage() {
             {isMobile ? (
                 <>
                     <MobileHeader
-                        title="MESERO"
+                        title={(session?.employee_role ? ROLE_LABELS[session.employee_role]?.toUpperCase() : "MESERO") || "MESERO"}
                         subtitle={`${occupiedCount} ocupadas`}
                         variant="colored"
                         colorClass="bg-gradient-to-r from-violet-950/90 to-purple-950/90 border-b-2 border-violet-500"
@@ -227,7 +228,7 @@ export default function WaiterPage() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-black tracking-wider">
-                                <span className="text-violet-400">MESERO</span>
+                                <span className="text-violet-400 uppercase">{(session?.employee_role ? ROLE_LABELS[session.employee_role] : "MESERO") || "MESERO"}</span>
                                 <span className="text-violet-600/60 text-lg ml-2">T-01</span>
                             </h1>
                             <p className="text-violet-300/50 text-xs uppercase tracking-widest">Toma de Pedidos • Mesas</p>
