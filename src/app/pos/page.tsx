@@ -488,7 +488,7 @@ export default function POSPage() {
     };
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-park-gray-950 text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-950/20 via-park-gray-950 to-park-gray-950" data-testid="pos-page">
+        <div className="flex h-screen w-screen overflow-hidden bg-park-black text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-zinc-900 via-park-black to-zinc-950" data-testid="pos-page">
             <Toaster position="top-center" richColors />
             
             {/* Mobile Warning - POS is optimized for tablet/desktop */}
@@ -552,7 +552,7 @@ export default function POSPage() {
 
             {/* Left: Catalog */}
             <div className="flex-1 flex flex-col relative z-0">
-                <header className="h-20 px-6 bg-gradient-to-r from-emerald-950/90 to-park-gray-950 backdrop-blur-sm border-b-4 border-emerald-500 flex justify-between items-center z-10 sticky top-0 shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+                <header className="h-20 px-6 bg-gradient-to-r from-zinc-900/95 to-park-black/95 backdrop-blur-md border-b border-white/5 flex justify-between items-center z-10 sticky top-0 shadow-2xl shadow-black/50">
                     <div className="flex items-center gap-3">
                         <ParkLogo size={40} className="rounded-xl shadow-lg" />
                         <div>

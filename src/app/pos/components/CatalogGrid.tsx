@@ -217,14 +217,14 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
                                             className={`
                                                 group relative flex flex-col items-start justify-between 
                                                 p-3 md:p-4 
-                                                min-h-[100px] md:min-h-[140px] lg:min-h-[160px]
-                                                w-full rounded-xl md:rounded-2xl border shadow-lg backdrop-blur-sm 
-                                                transition-all overflow-hidden text-left 
+                                                min-h-[110px] md:min-h-[140px] lg:min-h-[160px]
+                                                w-full rounded-2xl border shadow-xl backdrop-blur-md 
+                                                transition-all duration-300 overflow-hidden text-left 
                                                 ${!shiftOpen
-                                                    ? 'opacity-40 cursor-not-allowed bg-zinc-900 border-zinc-800 grayscale'
+                                                    ? 'opacity-40 cursor-not-allowed bg-zinc-950/50 border-zinc-900 grayscale'
                                                     : isRecommended
-                                                        ? 'bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-500/40 ring-1 ring-indigo-400/20'
-                                                        : 'bg-zinc-900/80 border-zinc-800 hover:border-indigo-500/30 hover:bg-zinc-800 active:bg-zinc-700'
+                                                        ? 'bg-gradient-to-br from-park-brand-900/40 to-park-brand-800/20 border-park-brand-500/30 ring-1 ring-park-brand-400/20 hover:border-park-brand-500/60 hover:bg-park-brand-900/50'
+                                                        : 'bg-white/[0.03] border-white/10 hover:border-white/20 hover:bg-white/[0.08] active:bg-white/[0.05] shadow-black/20'
                                                 }
                                             `}
                                         >
@@ -237,8 +237,8 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
                                             )}
 
                                             <div className="flex items-center gap-1.5 md:gap-2 w-full">
-                                                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center ${isRecommended ? 'bg-indigo-500/20' : 'bg-zinc-800'}`}>
-                                                    <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isRecommended ? 'text-indigo-300' : 'text-zinc-400'}`} />
+                                                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner ${isRecommended ? 'bg-park-brand-500/20' : 'bg-zinc-800/80 group-hover:bg-zinc-700/80 transition-colors'}`}>
+                                                    <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isRecommended ? 'text-park-brand-300' : 'text-zinc-400 group-hover:text-zinc-300'} transition-colors`} />
                                                 </div>
                                                 {!isMobile && (
                                                     <span className={`text-[8px] md:text-[9px] font-bold tracking-wider px-1 md:px-1.5 py-0.5 rounded border ${stationColor} uppercase`}>
@@ -248,12 +248,12 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
                                             </div>
 
                                             <div className="w-full mt-auto">
-                                                <h3 className="font-medium text-xs md:text-sm text-zinc-100 leading-tight line-clamp-2 mb-0.5 md:mb-1">
+                                                <h3 className="font-semibold text-xs md:text-sm text-zinc-100 leading-tight line-clamp-2 mb-1 group-hover:text-white transition-colors">
                                                     {p.name}
                                                 </h3>
                                                 <div className="flex items-baseline gap-0.5 md:gap-1">
-                                                    <span className="text-[8px] md:text-[10px] text-zinc-500">S/</span>
-                                                    <span className={`font-mono text-base md:text-xl font-bold ${isRecommended ? 'text-emerald-300' : 'text-emerald-400'}`}>
+                                                    <span className="text-[10px] md:text-xs text-zinc-500 font-medium">S/</span>
+                                                    <span className={`font-mono text-lg md:text-2xl font-black tracking-tight ${isRecommended ? 'text-park-brand-400' : 'text-emerald-400 group-hover:text-emerald-300'} transition-colors drop-shadow-sm`}>
                                                         {formatCents(p.price)}
                                                     </span>
                                                 </div>

@@ -153,14 +153,16 @@ export function OrderPanel({
                 {/* Summary & Actions - Sticky at bottom */}
                 <div className="sticky bottom-0 pt-3 pb-safe border-t border-zinc-800/50 bg-zinc-900 space-y-3 px-1">
                     {/* Totals */}
-                    <div className="space-y-1">
-                        <div className="flex justify-between text-sm text-zinc-400">
+                    <div className="space-y-1 mb-2">
+                        <div className="flex justify-between text-sm text-zinc-400 font-medium">
                             <span>Subtotal ({itemCount} items)</span>
-                            <span>S/ {formatCents(subtotalCents)}</span>
+                            <span className="tabular-nums">S/ {formatCents(subtotalCents)}</span>
                         </div>
-                        <div className="flex justify-between text-xl font-bold">
-                            <span>Total</span>
-                            <span className="text-park-brand-500">S/ {formatCents(subtotalCents)}</span>
+                        <div className="flex justify-between items-baseline text-2xl font-black">
+                            <span className="tracking-tight">TOTAL</span>
+                            <span className="text-park-brand-500 text-3xl tabular-nums drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]">
+                                S/ {formatCents(subtotalCents)}
+                            </span>
                         </div>
                     </div>
 
@@ -224,29 +226,29 @@ export function OrderPanel({
                     {/* CASHIER MODE ACTIONS - Mobile optimized */}
                     {isCashier && !isPaid && (
                         <>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 gap-3">
                                 <button
                                     onClick={onPayCash}
                                     disabled={items.length === 0}
-                                    className="flex flex-col items-center justify-center gap-1 py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 disabled:opacity-50 rounded-xl font-medium text-sm transition-colors min-h-[64px] touch-manipulation"
+                                    className="group flex flex-col items-center justify-center gap-1.5 py-4 bg-zinc-800 hover:bg-emerald-600 active:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-zinc-800 border border-emerald-500/20 hover:border-emerald-500 rounded-2xl font-bold text-xs transition-all shadow-lg"
                                 >
-                                    <Banknote size={24} />
+                                    <Banknote size={26} className="text-emerald-500 group-hover:text-white transition-colors" />
                                     <span>CASH</span>
                                 </button>
                                 <button
                                     onClick={onPayYape}
                                     disabled={items.length === 0}
-                                    className="flex flex-col items-center justify-center gap-1 py-4 bg-purple-600 hover:bg-purple-500 active:bg-purple-400 disabled:opacity-50 rounded-xl font-medium text-sm transition-colors min-h-[64px] touch-manipulation"
+                                    className="group flex flex-col items-center justify-center gap-1.5 py-4 bg-zinc-800 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-50 disabled:hover:bg-zinc-800 border border-purple-500/20 hover:border-purple-500 rounded-2xl font-bold text-xs transition-all shadow-lg"
                                 >
-                                    <Smartphone size={24} />
+                                    <Smartphone size={26} className="text-purple-500 group-hover:text-white transition-colors" />
                                     <span>YAPE</span>
                                 </button>
                                 <button
                                     onClick={onPayCard}
                                     disabled={items.length === 0}
-                                    className="flex flex-col items-center justify-center gap-1 py-4 bg-blue-600 hover:bg-blue-500 active:bg-blue-400 disabled:opacity-50 rounded-xl font-medium text-sm transition-colors min-h-[64px] touch-manipulation"
+                                    className="group flex flex-col items-center justify-center gap-1.5 py-4 bg-zinc-800 hover:bg-blue-600 active:bg-blue-700 disabled:opacity-50 disabled:hover:bg-zinc-800 border border-blue-500/20 hover:border-blue-500 rounded-2xl font-bold text-xs transition-all shadow-lg"
                                 >
-                                    <CreditCard size={24} />
+                                    <CreditCard size={26} className="text-blue-500 group-hover:text-white transition-colors" />
                                     <span>TARJETA</span>
                                 </button>
                             </div>
@@ -259,7 +261,7 @@ export function OrderPanel({
 
     // Sidebar mode (desktop)
     return (
-        <aside className="w-80 lg:w-96 border-l border-zinc-800/50 bg-zinc-900/30 flex flex-col shrink-0">
+        <aside className="w-80 lg:w-[400px] border-l border-zinc-800/80 bg-zinc-950/90 flex flex-col shrink-0 shadow-2xl z-20">
             {/* Header */}
             <div className="p-4 border-b border-zinc-800/50">
                 <div className="flex items-center justify-between">
@@ -295,14 +297,16 @@ export function OrderPanel({
             {/* Summary & Actions - Sticky */}
             <div className="sticky bottom-0 p-4 border-t border-zinc-800/50 bg-zinc-900/95 backdrop-blur-sm space-y-3">
                 {/* Totals */}
-                <div className="space-y-1">
-                    <div className="flex justify-between text-sm text-zinc-400">
+                <div className="space-y-1 mb-4">
+                    <div className="flex justify-between text-sm text-zinc-400 font-medium px-1">
                         <span>Subtotal</span>
-                        <span>S/ {formatCents(subtotalCents)}</span>
+                        <span className="tabular-nums">S/ {formatCents(subtotalCents)}</span>
                     </div>
-                    <div className="flex justify-between text-lg font-bold">
-                        <span>Total</span>
-                        <span className="text-park-brand-500">S/ {formatCents(subtotalCents)}</span>
+                    <div className="flex justify-between items-baseline text-3xl font-black px-1 mt-1">
+                        <span className="tracking-tight">TOTAL</span>
+                        <span className="text-park-brand-500 tabular-nums drop-shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                            S/ {formatCents(subtotalCents)}
+                        </span>
                     </div>
                 </div>
 
@@ -400,29 +404,29 @@ export function OrderPanel({
                 {isCashier && !isPaid && (
                     <>
                         {/* Payment Methods */}
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-3 mb-2">
                             <button
                                 onClick={onPayCash}
                                 disabled={items.length === 0}
-                                className="flex flex-col items-center justify-center gap-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-lg font-medium text-xs transition-colors"
+                                className="group flex flex-col items-center justify-center gap-2 py-5 bg-zinc-900 hover:bg-emerald-600 active:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-zinc-900 border border-emerald-500/30 hover:border-emerald-500 rounded-2xl font-bold text-sm transition-all shadow-lg"
                             >
-                                <Banknote size={20} />
+                                <Banknote size={28} className="text-emerald-500 group-hover:text-white transition-colors" />
                                 <span>CASH</span>
                             </button>
                             <button
                                 onClick={onPayYape}
                                 disabled={items.length === 0}
-                                className="flex flex-col items-center justify-center gap-1 py-3 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 rounded-lg font-medium text-xs transition-colors"
+                                className="group flex flex-col items-center justify-center gap-2 py-5 bg-zinc-900 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-50 disabled:hover:bg-zinc-900 border border-purple-500/30 hover:border-purple-500 rounded-2xl font-bold text-sm transition-all shadow-lg"
                             >
-                                <Smartphone size={20} />
+                                <Smartphone size={28} className="text-purple-500 group-hover:text-white transition-colors" />
                                 <span>YAPE</span>
                             </button>
                             <button
                                 onClick={onPayCard}
                                 disabled={items.length === 0}
-                                className="flex flex-col items-center justify-center gap-1 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg font-medium text-xs transition-colors"
+                                className="group flex flex-col items-center justify-center gap-2 py-5 bg-zinc-900 hover:bg-blue-600 active:bg-blue-700 disabled:opacity-50 disabled:hover:bg-zinc-900 border border-blue-500/30 hover:border-blue-500 rounded-2xl font-bold text-sm transition-all shadow-lg"
                             >
-                                <CreditCard size={20} />
+                                <CreditCard size={28} className="text-blue-500 group-hover:text-white transition-colors" />
                                 <span>TARJETA</span>
                             </button>
                         </div>
