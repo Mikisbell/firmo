@@ -106,6 +106,13 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
           return;
         }
 
+        // Si el terminal ya no existe en la base de datos o fue desactivado,
+        // debemos sacarlo de la pantalla de PIN y devolverlo a la selección de terminal
+        if (response.status === 403 && (data.error === 'Terminal no registrado' || data.error === 'UNREGISTERED_TERMINAL' || data.error === 'TERMINAL_DISABLED')) {
+          onTerminalError();
+          return;
+        }
+
         // Only record a failed PIN attempt if the backend explicitly tells us it was an invalid PIN or account lockout
         if (data.errorCode === 'INVALID_PIN' || data.errorCode === 'ACCOUNT_LOCKED') {
           const attemptResult = recordPinAttempt(false);
