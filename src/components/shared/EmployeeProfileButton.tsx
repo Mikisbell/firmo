@@ -54,6 +54,7 @@ export function EmployeeProfileButton({
   employeeRole,
   accentColor,
   onOpenDrawer,
+  onLogout,
   compact = false,
 }: EmployeeProfileButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
