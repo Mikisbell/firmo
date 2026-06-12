@@ -40,7 +40,7 @@ export default function AdminHeader({ employee, isOnline = true, onLogout }: Adm
   const handleLogout = () => {
     setShowDropdown(false);
     onLogout();
-    router.push('/');
+    router.push('/login');
   };
 
   const getRoleBadgeColor = (role: string) => {

@@ -171,7 +171,7 @@ export function KDSLayout({
 
     const handleExit = () => {
         clearTerminalConfig();
-        router.push("/");
+        router.push("/login");
     };
 
     const handleHome = () => {

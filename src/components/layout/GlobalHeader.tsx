@@ -28,9 +28,9 @@ export function GlobalHeader({
   const router = useRouter();
 
   const handleExit = useCallback(() => {
-    // Clear terminal config and redirect to home
+    // Clear terminal config and redirect to login
     clearTerminalConfig();
-    router.push("/");
+    router.push("/login");
   }, [router]);
 
   const handleHome = useCallback(() => {
