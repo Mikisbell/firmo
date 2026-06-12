@@ -274,7 +274,10 @@ export class SyncClient {
 
         try {
             await db.transaction('rw', db.events, async () => {
-                const existing = await db.events.where({ tenant_id: event.tenant_id, event_id: event.event_id }).first();
+                const existing = await db.events
+                    .where('[tenant_id+event_id]')
+                    .equals([event.tenant_id, event.event_id])
+                    .first();
                 if (existing) {
                     // Start of idempotency: if it's identical, ignore.
                     // If we have it unsynced and server sends it, it implies it IS synced now.
