@@ -89,7 +89,7 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
 
       if (!response.ok) {
         // Handle specific errors
-        if (response.status === 403 && data.error?.includes('desactivado')) {
+        if (response.status === 403 && (data.error?.includes('desactivado') || data.error?.includes('Terminal no registrado'))) {
           onTerminalError();
           return;
         }

@@ -11,6 +11,8 @@ import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { authenticate } from '@/src/core/auth/auth.service';
 import { validateMAC, checkTerminalAuthorization, registerMAC } from '@/src/core/security/mac-validator-hybrid';
 import { detectSimultaneousLogin, createActiveSession, closeAllSessionsExcept } from '@/src/core/security/session-validator';
+import { trackTerminalLogin, updateTerminalLastSeen } from "@/src/core/security/terminal-tracker";
+import { ADMIN_ROLES } from "@/src/core/constants/roles";
 import { createAlert } from '@/src/core/security/alert-service';
 import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
@@ -183,7 +185,7 @@ export async function POST(request: NextRequest) {
 
     // Step 3: Validate terminal (if provided)
     // ADMIN users bypass terminal validation - they can access any terminal
-    const isAdmin = authResult.employee?.role === 'ADMIN';
+    const isAdmin = authResult.employee?.role && (ADMIN_ROLES as readonly string[]).includes(authResult.employee.role);
     log.debug('Paso 3: Validación de terminal', { isAdmin, terminalId: data.terminal_id });
 
     if (data.terminal_id && !isAdmin) {
