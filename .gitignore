@@ -174,3 +174,7 @@ public/workbox-*.js
 
 .vercel
 NUL
+
+# Test scripts
+test_*.cjs
+check*.cjs
