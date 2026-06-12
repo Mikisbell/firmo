@@ -94,19 +94,25 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
           return;
         }
         
-        if (response.status === 403 && data.error?.includes('Dispositivo')) {
+        if (response.status === 403 && (data.error?.includes('Dispositivo') || data.message?.includes('Dispositivo'))) {
           onTerminalError();
           return;
         }
 
-        // Record failed attempt
-        const attemptResult = recordPinAttempt(false);
-        if (attemptResult.locked) {
-          setLockStatus({ locked: true, remainingMinutes: attemptResult.lockoutMinutes });
-          setError(`Demasiados intentos. Espera ${attemptResult.lockoutMinutes} minutos.`);
+        // Only record a failed PIN attempt if the backend explicitly tells us it was an invalid PIN or account lockout
+        if (data.errorCode === 'INVALID_PIN' || data.errorCode === 'ACCOUNT_LOCKED') {
+          const attemptResult = recordPinAttempt(false);
+          if (attemptResult.locked) {
+            setLockStatus({ locked: true, remainingMinutes: attemptResult.lockoutMinutes });
+            setError(`Demasiados intentos. Espera ${attemptResult.lockoutMinutes} minutos.`);
+          } else {
+            setError(data.error || `PIN incorrecto. ${attemptResult.remainingAttempts} intentos restantes.`);
+          }
         } else {
-          setError(`PIN incorrecto. ${attemptResult.remainingAttempts} intentos restantes.`);
+          // For other errors (like Session Expired, Server Error, etc.), just show the error without locking
+          setError(data.error || data.message || 'Error de conexión. Intenta nuevamente.');
         }
+        
         setLoading(false);
         return;
       }

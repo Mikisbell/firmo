@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const rl = await rateLimit(request, AUTH_RATE_LIMIT);
     if (!rl.allowed) {
       return NextResponse.json(
-        { error: 'Demasiados intentos. Intenta de nuevo más tarde.' },
+        { error: 'Demasiados intentos. Intenta de nuevo más tarde.', errorCode: 'RATE_LIMIT' },
         { status: 429, headers: { 'Retry-After': String(getRetryAfterSeconds(rl.resetAt)) } }
       );
     }
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (!authResult.success) {
       log.warn('Autenticación fallida', { error: authResult.error });
       return NextResponse.json(
-        { error: authResult.error },
+        { error: authResult.error, errorCode: authResult.errorCode },
         { status: 401 }
       );
     }
