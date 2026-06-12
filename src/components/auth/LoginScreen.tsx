@@ -62,6 +62,13 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
 
       const riskAssessment = assessRisk(riskFactors);
       
+      // Generate a pseudo MAC address from the fingerprint hash (first 12 chars formatted as XX:XX:XX:XX:XX:XX)
+      const pseudoMac = fingerprint.hash
+        .substring(0, 12)
+        .toUpperCase()
+        .match(/.{1,2}/g)
+        ?.join(':') || '00:00:00:00:00:00';
+      
       // Set risk level for UI
       if (riskAssessment.score < 30) setRiskLevel('low');
       else if (riskAssessment.score < 70) setRiskLevel('medium');
@@ -81,6 +88,7 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
             signalCount: fingerprint.signalCount,
             timestamp: fingerprint.timestamp,
           },
+          mac_address: pseudoMac,
           risk_score: riskAssessment.score,
         }),
       });

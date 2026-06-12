@@ -51,10 +51,31 @@ export async function validateMAC(
 
   const normalizedMAC = normalizeMACAddress(macAddress);
 
-  // 1. Is MAC known?
+  // 1. Check if MAC is authorized for this terminal
+  if (terminalId) {
+    const terminalAccess = await prisma.terminal_mac_registry.findFirst({
+      where: {
+        tenant_id: tenantId,
+        terminal_id: terminalId,
+        mac_address: normalizedMAC,
+        is_authorized: true,
+      },
+    });
+
+    if (terminalAccess) {
+      // If the terminal has authorized this MAC, allow access for any employee on this terminal
+      return {
+        isValid: true,
+        trustLevel: 'TRUSTED',
+      };
+    }
+  }
+
+  // 2. Is MAC known for this specific employee?
   const knownMAC = await prisma.device_mac_addresses.findFirst({
     where: {
       mac_address: normalizedMAC,
+      employee_id: employeeId,
       tenant_id: tenantId,
     },
   });
@@ -69,15 +90,7 @@ export async function validateMAC(
     };
   }
 
-  // 2. Does it belong to this employee?
-  if (knownMAC.employee_id !== employeeId) {
-    // MAC known but for different employee - possible device theft
-    return {
-      isValid: false,
-      reason: 'DEVICE_MISMATCH',
-      trustLevel: 'BLOCKED',
-    };
-  }
+  // (Removed employee check since we now search by employee_id above)
 
   // 3. Is it blocked?
   if (knownMAC.trust_level === 'BLOCKED') {
@@ -188,19 +201,17 @@ export async function registerMAC(
   const normalizedMAC = normalizeMACAddress(macAddress);
   const finalTerminalId = terminalId || ANY_TERMINAL_ID;
 
-  // Check if MAC is already registered to another employee
+  // Check if MAC is already registered for this specific employee
   const existingMAC = await prisma.device_mac_addresses.findFirst({
     where: {
       mac_address: normalizedMAC,
+      employee_id: employeeId,
       tenant_id: tenantId,
     },
   });
 
-  if (existingMAC && existingMAC.employee_id !== employeeId) {
-    throw new Error(
-      `MAC address ${normalizedMAC} is already registered to another employee`
-    );
-  }
+  // We no longer throw an error if another employee uses this MAC
+  // because POS terminals are shared.
 
   // Register or update MAC
   await prisma.device_mac_addresses.upsert({

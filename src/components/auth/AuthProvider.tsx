@@ -278,7 +278,7 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
   const handleTerminalError = useCallback(() => {
     clearTerminalConfig();
     handleLogout();
-    window.location.href = '/';
+    window.location.href = '/login';
   }, [handleLogout]);
 
   const logout = handleLogout;
