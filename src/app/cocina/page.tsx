@@ -44,6 +44,11 @@ export default function CocinaKDSPage() {
         router.push("/");
     }, [authLogout, router]);
 
+    const handleSimpleLogout = useCallback(() => {
+        authLogout();
+        router.push("/");
+    }, [authLogout, router]);
+
     const [now, setNow] = useState<number | null>(null);
     const [mounted, setMounted] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -183,7 +188,7 @@ export default function CocinaKDSPage() {
                             employeeRole={session.employee_role}
                             accentColor="amber"
                             onOpenDrawer={() => setProfileOpen(true)}
-                            onLogout={handleLogout}
+                            onLogout={handleSimpleLogout}
                             compact
                         />
                         <EmployeeProfileDrawer

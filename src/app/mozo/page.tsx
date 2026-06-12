@@ -129,6 +129,11 @@ export default function WaiterPage() {
         router.push("/");
     }, [router, authLogout]);
 
+    const handleSimpleLogout = useCallback(() => {
+        authLogout();
+        router.push("/");
+    }, [router, authLogout]);
+
     const handleHome = useCallback(() => {
         router.push("/");
     }, [router]);
@@ -190,7 +195,7 @@ export default function WaiterPage() {
                                     employeeRole={session.employee_role}
                                     accentColor="violet"
                                     onOpenDrawer={() => setProfileOpen(true)}
-                                    onLogout={handleExit}
+                                    onLogout={handleSimpleLogout}
                                     compact
                                 />
                             ),
@@ -292,7 +297,7 @@ export default function WaiterPage() {
                                 employeeRole={session.employee_role}
                                 accentColor="violet"
                                 onOpenDrawer={() => setProfileOpen(true)}
-                                onLogout={handleExit}
+                                onLogout={handleSimpleLogout}
                             />
                         )}
 
