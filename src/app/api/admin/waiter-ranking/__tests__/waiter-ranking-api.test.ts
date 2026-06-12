@@ -56,7 +56,7 @@ const mockRankingResult = {
       {
         employeeId: 'w-1',
         employeeName: 'Juan',
-        role: 'mesero',
+        role: 'mozo',
         totalOrders: 10,
         totalSalesCents: 50000,
         averageTicketCents: 5000,
@@ -285,6 +285,6 @@ describe('GET /api/admin/waiter-ranking/export', () => {
 
     const res = await GET_EXPORT(req);
     const disposition = res.headers.get('content-disposition');
-    expect(disposition).toContain('ranking-meseros-2026-02-01-2026-02-28');
+    expect(disposition).toContain('ranking-mozos-2026-02-01-2026-02-28');
   });
 });

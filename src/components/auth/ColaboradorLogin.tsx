@@ -375,7 +375,7 @@ export function ColaboradorLogin({ onBack }: ColaboradorLoginProps) {
           </AnimatePresence>
 
           <p className="text-center text-xs text-zinc-600 mt-6">
-            Mesero · Cocina · Cocinero · Empaquetador · Bar · Caja · Motorizado
+            Mozo · Cocina · Cocinero · Empaquetador · Bar · Caja · Motorizado
           </p>
         </div>
       </main>

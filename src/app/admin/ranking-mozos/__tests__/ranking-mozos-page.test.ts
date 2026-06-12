@@ -1,5 +1,5 @@
 /**
- * Admin Ranking Meseros Page — Unit Tests
+ * Admin Ranking Mozos Page — Unit Tests
  *
  * Validates:
  * - Module export
@@ -8,7 +8,7 @@
  * - getDefaultDateRange: returns current month ISO dates
  * - Export URL building (format: xlsx / csv / pdf)
  *
- * @module app/admin/ranking-meseros/__tests__/ranking-meseros-page
+ * @module app/admin/ranking-mozos/__tests__/ranking-mozos-page
  */
 
 import { describe, it, expect } from 'vitest';
@@ -53,7 +53,7 @@ function buildExportURL(start: string, end: string, sort: SortField, format: Exp
 // Tests — Module export
 // ============================================================================
 
-describe('AdminRankingMeserosPage', () => {
+describe('AdminRankingMozosPage', () => {
   it('debe exportar un componente default', async () => {
     const mod = await import('../page');
     expect(mod.default).toBeDefined();
@@ -65,7 +65,7 @@ describe('AdminRankingMeserosPage', () => {
 // Tests — SORT_OPTIONS
 // ============================================================================
 
-describe('AdminRankingMeserosPage — SORT_OPTIONS', () => {
+describe('AdminRankingMozosPage — SORT_OPTIONS', () => {
   it('hay exactamente 5 opciones de ordenamiento', () => {
     expect(SORT_OPTIONS).toHaveLength(5);
   });
@@ -104,7 +104,7 @@ describe('AdminRankingMeserosPage — SORT_OPTIONS', () => {
 // Tests — formatCurrency
 // ============================================================================
 
-describe('AdminRankingMeserosPage — formatCurrency', () => {
+describe('AdminRankingMozosPage — formatCurrency', () => {
   it('100000 centavos → "S/ 1000.00"', () => {
     expect(formatCurrency(100000)).toBe('S/ 1000.00');
   });
@@ -137,7 +137,7 @@ describe('AdminRankingMeserosPage — formatCurrency', () => {
 // Tests — getDefaultDateRange
 // ============================================================================
 
-describe('AdminRankingMeserosPage — getDefaultDateRange', () => {
+describe('AdminRankingMozosPage — getDefaultDateRange', () => {
   it('start es el primer día del mes (termina en -01)', () => {
     expect(getDefaultDateRange().start).toMatch(/-01$/);
   });
@@ -158,7 +158,7 @@ describe('AdminRankingMeserosPage — getDefaultDateRange', () => {
 // Tests — Export URL
 // ============================================================================
 
-describe('AdminRankingMeserosPage — URL de exportación', () => {
+describe('AdminRankingMozosPage — URL de exportación', () => {
   it('incluye start, end, sort y format', () => {
     const url = buildExportURL('2026-03-01', '2026-03-31', 'sales', 'xlsx');
     expect(url).toContain('start=2026-03-01');

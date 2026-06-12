@@ -863,7 +863,7 @@ export function useInventoryStats(tenantId: string | null, config?: SWRConfigura
   );
 }
 
-// ============ FASE C3 - RANKING MESEROS ============
+// ============ FASE C3 - RANKING MOZOS ============
 
 import type { WaiterRankingReport, RankingSortField } from '@/src/core/types/waiter-ranking';
 
@@ -874,7 +874,7 @@ interface WaiterRankingResponse {
 }
 
 /**
- * Hook para obtener ranking de meseros
+ * Hook para obtener ranking de mozos
  *
  * @param params - start, end (YYYY-MM-DD), sort opcional
  * @returns {object} { data, error, isLoading, mutate }

@@ -5,8 +5,8 @@
  * permitiendo que la página reciba eventos en tiempo real vía SSE.
  * 
  * CRÍTICO para:
- * - KDS (recibir pedidos de meseros)
- * - Mesero (recibir actualizaciones de cocina)
+ * - KDS (recibir pedidos de mozos)
+ * - Mozo (recibir actualizaciones de cocina)
  * - Caja (recibir pedidos listos)
  */
 

@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Ranking Meseros Page
+ * Ranking Mozos Page
  *
  * Displays waiter performance metrics with sorting, date range filter,
  * export (XLSX/CSV/PDF), and a top-10 bar chart.
  *
- * @module app/admin/ranking-meseros/page
+ * @module app/admin/ranking-mozos/page
  */
 
 import { useState, useCallback } from 'react';
@@ -53,7 +53,7 @@ function getDefaultDateRange() {
   };
 }
 
-export default function RankingMeserosPage() {
+export default function RankingMozosPage() {
   const defaults = getDefaultDateRange();
   const [startDate, setStartDate] = useState(defaults.start);
   const [endDate, setEndDate] = useState(defaults.end);
@@ -90,7 +90,7 @@ export default function RankingMeserosPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ranking-meseros-${startDate}-${endDate}.${format}`;
+        a.download = `ranking-mozos-${startDate}-${endDate}.${format}`;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -133,8 +133,8 @@ export default function RankingMeserosPage() {
   return (
     <div className="p-4 space-y-6">
       <PageHeader
-        title="Ranking Meseros"
-        description="Rendimiento de meseros por periodo"
+        title="Ranking Mozos"
+        description="Rendimiento de mozos por periodo"
         actions={
           <div className="flex gap-2">
             <Button
@@ -206,7 +206,7 @@ export default function RankingMeserosPage() {
       {/* Summary Cards */}
       {data?.summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard label="Meseros" value={data.summary.totalWaiters} />
+          <MetricCard label="Mozos" value={data.summary.totalWaiters} />
           <MetricCard label="Total Ordenes" value={data.summary.totalOrdersAll} />
           <MetricCard
             label="Total Ventas"
@@ -214,7 +214,7 @@ export default function RankingMeserosPage() {
             format="currency"
           />
           <MetricCard
-            label="Mejor Mesero"
+            label="Mejor Mozo"
             value={data.summary.bestPerformerName || '\u2014'}
             icon={<Award className="w-5 h-5 text-amber-400" />}
           />
@@ -230,7 +230,7 @@ export default function RankingMeserosPage() {
       {/* Chart - Top 10 */}
       {data && chartData.length > 0 && (
         <Card>
-          <h2 className="text-lg font-semibold mb-4">Top 10 Meseros por Ventas</h2>
+          <h2 className="text-lg font-semibold mb-4">Top 10 Mozos por Ventas</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
@@ -259,7 +259,7 @@ export default function RankingMeserosPage() {
               <thead>
                 <tr className="border-b border-park-gray-800 bg-park-gray-900/50">
                   <th className="text-left px-4 py-3 text-park-gray-400 font-medium">#</th>
-                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Mesero</th>
+                  <th className="text-left px-4 py-3 text-park-gray-400 font-medium">Mozo</th>
                   <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Ordenes</th>
                   <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Ventas</th>
                   <th className="text-right px-4 py-3 text-park-gray-400 font-medium">Ticket Prom.</th>
@@ -314,7 +314,7 @@ export default function RankingMeserosPage() {
           <EmptyState
             icon={<Award />}
             title="No hay datos para el periodo seleccionado"
-            description="Ajusta las fechas o verifica que haya ordenes con mesero asignado"
+            description="Ajusta las fechas o verifica que haya ordenes con mozo asignado"
           />
         </Card>
       )}

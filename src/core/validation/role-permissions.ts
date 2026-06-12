@@ -2,7 +2,7 @@
  * Role-Based Event Validation
  *
  * Define qué roles pueden emitir qué tipos de eventos.
- * Esto previene que un mesero emita pagos o que cocina cree órdenes.
+ * Esto previene que un mozo emita pagos o que cocina cree órdenes.
  *
  * All 11 canonical roles from @/src/core/constants/roles
  */

@@ -1,7 +1,7 @@
 /**
  * Waiter Ranking Types
  *
- * Types for waiter/mesero performance metrics and ranking reports.
+ * Types for waiter/mozo performance metrics and ranking reports.
  * All monetary values in centavos (integer).
  *
  * @module core/types/waiter-ranking

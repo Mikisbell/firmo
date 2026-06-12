@@ -35,7 +35,7 @@ const FEATURES = [
   {
     icon: Monitor,
     title: 'Multi-Terminal',
-    desc: 'Caja, meseros, cocina, barra — cada estación en su dispositivo con su vista especializada.',
+    desc: 'Caja, mozos, cocina, barra — cada estación en su dispositivo con su vista especializada.',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
   },

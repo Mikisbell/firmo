@@ -494,7 +494,7 @@ export default function POSPage() {
             {/* Mobile Warning - POS is optimized for tablet/desktop */}
             <MobileWarning
                 title="Caja optimizada para tablet/desktop"
-                message="La caja principal funciona mejor en pantallas grandes. Usa el modo Mesero para móvil."
+                message="La caja principal funciona mejor en pantallas grandes. Usa el modo Mozo para móvil."
                 storageKey="pos-mobile-warning-dismissed"
             />
 

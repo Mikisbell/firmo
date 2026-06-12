@@ -40,7 +40,7 @@ describe('Login Page — Accessibility', () => {
         </label>
         <label>
           <input type="radio" name="role" value="WAITER" />
-          Mesero
+          Mozo
         </label>
         <label>
           <input type="radio" name="role" value="KITCHEN" />

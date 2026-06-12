@@ -84,7 +84,7 @@ const ALL_PAGES: PageEntry[] = [
   { href: '/admin/empleados', label: 'Empleados', description: 'Altas, bajas y roles del personal', icon: Users },
   { href: '/admin/drivers', label: 'Motorizados', description: 'Repartidores de delivery', icon: Bike },
   { href: '/admin/hr', label: 'Recursos Humanos', description: 'Asistencia, planillas y vacaciones', icon: Briefcase },
-  { href: '/admin/ranking-meseros', label: 'Ranking Meseros', description: 'Desempeño y ventas por mesero', icon: Award },
+  { href: '/admin/ranking-mozos', label: 'Ranking Mozos', description: 'Desempeño y ventas por mozo', icon: Award },
   { href: '/employee', label: 'Portal Empleado', description: 'Vista del empleado (boletas, horarios)', icon: Store },
   // Finanzas
   { href: '/admin/caja-chica', label: 'Caja Chica', description: 'Gastos menores y reembolsos', icon: Wallet },

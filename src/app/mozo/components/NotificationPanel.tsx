@@ -1,5 +1,5 @@
 /**
- * Panel de Notificaciones para Mesero
+ * Panel de Notificaciones para Mozo
  * Diseño moderno 2026 con animaciones y UX intuitiva
  */
 

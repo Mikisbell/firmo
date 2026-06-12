@@ -2,7 +2,7 @@
 
 /**
  * Unified Team Management Page
- * Replaces: /admin/empleados, /admin/drivers, /admin/hr, /admin/ranking-meseros
+ * Replaces: /admin/empleados, /admin/drivers, /admin/hr, /admin/ranking-mozos
  * Inspired by 7shifts team management model
  *
  * Requirements: 4.1, 4.2, 9.6

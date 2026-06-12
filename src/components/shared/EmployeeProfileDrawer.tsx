@@ -21,7 +21,7 @@
  * POS del rubro expone IDs de sesión al empleado. Se normaliza a texto legible.
  *
  * ### Stat por rol (inspirado en Toast POS y Square for Restaurants)
- * Toast muestra mesas activas del mesero en su perfil. Square muestra ventas del
+ * Toast muestra mesas activas del mozo en su perfil. Square muestra ventas del
  * turno para cajeros. Lightspeed muestra tickets para cocina. Se implementa
  * mediante una prop `stat` opcional para no acoplar el drawer a ninguna fuente
  * de datos específica.
@@ -68,7 +68,7 @@ export interface EmployeeProfileDrawerProps {
   accentColor: AccentColor;
   /**
    * Indicador clave relevante para el rol. Inspirado en Toast POS (mesas activas
-   * para meseros) y Square (ventas de turno para cajeros).
+   * para mozos) y Square (ventas de turno para cajeros).
    *
    * @example
    * // Mozo: mesas ocupadas
@@ -91,8 +91,8 @@ export interface EmployeeProfileDrawerProps {
 
 const TERMINAL_ROLE_LABELS: Record<string, string> = {
   CASHIER:   'Caja',
-  WAITER:    'Mesero',
-  MOZO:      'Mesero',
+  WAITER:    'Mozo',
+  MOZO:      'Mozo',
   KDS:       'Cocina',
   KDS_COCINA:'Cocina',
   KDS_HORNO: 'Horno / Parrilla',

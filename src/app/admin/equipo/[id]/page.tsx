@@ -31,7 +31,7 @@ const ROLE_OPTIONS = [
   { value: 'MANAGER', label: 'Gerente' },
   { value: 'SUPERVISOR', label: 'Supervisor(a)' },
   { value: 'CASHIER', label: 'Cajero(a)' },
-  { value: 'WAITER', label: 'Mesero(a)' },
+  { value: 'WAITER', label: 'Mozo(a)' },
   { value: 'KITCHEN', label: 'Cocina' },
   { value: 'COOK', label: 'Cocinero(a)' },
   { value: 'PACKER', label: 'Empaquetador(a)' },
@@ -976,8 +976,8 @@ function EvaluacionesTab({ employee }: { employee: EmployeeProfile }) {
       {employee.role === 'WAITER' && (
         <Alert
           variant="info"
-          title="Ranking de mesero"
-          description="El ranking de meseros se calcula a partir de evaluaciones, propinas y feedback de clientes."
+          title="Ranking de mozo"
+          description="El ranking de mozos se calcula a partir de evaluaciones, propinas y feedback de clientes."
         />
       )}
 

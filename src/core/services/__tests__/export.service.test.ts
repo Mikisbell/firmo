@@ -49,7 +49,7 @@ describe('ExportService - Excel', () => {
   it('debe generar Excel con título', async () => {
     const config: ExcelConfig = {
       sheetName: 'Ranking',
-      title: 'Ranking Meseros - Febrero 2026',
+      title: 'Ranking Mozos - Febrero 2026',
       columns: sampleColumns,
       rows: sampleRows,
     };
@@ -109,7 +109,7 @@ describe('ExportService - Excel', () => {
   it('debe generar Excel con dataset grande (100 filas)', async () => {
     const { randomInt, random: rng } = seededMathRandom(42);
     const largeRows = Array.from({ length: 100 }, (_, i) => ({
-      name: `Mesero ${i + 1}`,
+      name: `Mozo ${i + 1}`,
       orders: randomInt(0, 99),
       salesCents: randomInt(0, 499999),
       margin: rng() * 50,
@@ -226,14 +226,14 @@ describe('ExportService - CSV', () => {
 describe('ExportService - PDF HTML', () => {
   it('debe generar HTML válido con título', () => {
     const config: PDFConfig = {
-      title: 'Ranking Meseros',
+      title: 'Ranking Mozos',
       columns: sampleColumns,
       rows: sampleRows,
     };
 
     const html = service.generatePDFHtml(config);
     expect(html).toContain('<!DOCTYPE html>');
-    expect(html).toContain('Ranking Meseros');
+    expect(html).toContain('Ranking Mozos');
     expect(html).toContain('<table');
     expect(html).toContain('</table>');
   });

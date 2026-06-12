@@ -20,13 +20,13 @@ export type TerminalRole = (typeof TERMINAL_ROLES)[number];
 /** Terminal (hardware) role labels — matches TerminalRole enum */
 export const TERMINAL_ROLE_LABELS: Record<string, string> = {
   CASHIER: 'Caja',
-  WAITER:  'Mesero',
+  WAITER:  'Mozo',
   KDS:     'Cocina / KDS',
   BAR:     'Bar',
   ADMIN:   'Administrador',
   // Legacy Spanish keys kept for backward-compat while migration is pending
   CAJA:      'Caja',
-  MOZO:      'Mesero',
+  MOZO:      'Mozo',
   KDS_COCINA: 'Cocina',
   KDS_HORNO:  'Horno',
   KDS_BAR:    'Bar',
@@ -50,7 +50,7 @@ export const ROLE_LABELS: Record<string, string> = {
   MANAGER:    'Gerente',
   SUPERVISOR: 'Supervisor(a)',
   CASHIER:    'Cajero(a)',
-  WAITER:     'Mesero(a)',
+  WAITER:     'Mozo(a)',
   KITCHEN:    'Cocina',
   COOK:       'Cocinero(a)',
   PACKER:     'Empaquetador(a)',

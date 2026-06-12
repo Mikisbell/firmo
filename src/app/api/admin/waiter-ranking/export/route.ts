@@ -23,7 +23,7 @@ const QuerySchema = z.object({
 
 const columns: ExportColumn[] = [
   { header: '#', key: 'rank', width: 5, format: 'number' },
-  { header: 'Mesero', key: 'name', width: 25, format: 'text' },
+  { header: 'Mozo', key: 'name', width: 25, format: 'text' },
   { header: 'Órdenes', key: 'orders', width: 10, format: 'number' },
   { header: 'Ventas', key: 'salesCents', width: 15, format: 'currency' },
   { header: 'Ticket Prom.', key: 'avgTicketCents', width: 15, format: 'currency' },
@@ -83,13 +83,13 @@ export async function GET(request: NextRequest) {
       delivery: rows.reduce((s, r) => s + (r.delivery as number), 0),
     };
 
-    const title = `Ranking Meseros — ${params.start} a ${params.end}`;
-    const filename = `ranking-meseros-${params.start}-${params.end}`;
+    const title = `Ranking Mozos — ${params.start} a ${params.end}`;
+    const filename = `ranking-mozos-${params.start}-${params.end}`;
 
     switch (params.format) {
       case 'xlsx': {
         const buffer = await exportService.generateExcel({
-          sheetName: 'Ranking Meseros',
+          sheetName: 'Ranking Mozos',
           title,
           columns,
           rows,
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       case 'pdf': {
         const html = exportService.generatePDFHtml({
           title,
-          subtitle: `${result.data.summary.totalWaiters} meseros · ${result.data.summary.totalOrdersAll} órdenes`,
+          subtitle: `${result.data.summary.totalWaiters} mozos · ${result.data.summary.totalOrdersAll} órdenes`,
           columns,
           rows,
           footerRow,

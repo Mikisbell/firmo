@@ -76,7 +76,7 @@ vi.mock('@/src/hooks/useRequireTerminal', () => ({
 
 vi.mock('@/src/components/auth', () => ({
   useAuth: () => ({
-    session: { employee_name: 'Mesero', employee_role: 'WAITER', terminal_role: 'MOZO', created_at: new Date().toISOString() },
+    session: { employee_name: 'Mozo', employee_role: 'WAITER', terminal_role: 'MOZO', created_at: new Date().toISOString() },
     terminal: { terminal_id: 'term-mozo-1' },
     logout: vi.fn(),
   }),

@@ -391,7 +391,7 @@ function CreateTerminalModal({ onClose, onCreate, creating }: CreateTerminalModa
               disabled={creating}
             >
               <option value="CAJA">Caja (CASHIER)</option>
-              <option value="MOZO">Mesero (WAITER)</option>
+              <option value="MOZO">Mozo (WAITER)</option>
               <option value="KDS_COCINA">Cocina (KDS)</option>
               <option value="KDS_HORNO">Horno (KDS)</option>
               <option value="KDS_BAR">Bar (KDS)</option>
@@ -407,7 +407,7 @@ function CreateTerminalModal({ onClose, onCreate, creating }: CreateTerminalModa
               type="text"
               value={formData.device_name}
               onChange={(e) => setFormData({ ...formData, device_name: e.target.value })}
-              placeholder="iPad Caja Principal, Tablet Mesero 1, etc."
+              placeholder="iPad Caja Principal, Tablet Mozo 1, etc."
               className="w-full px-3 py-2 bg-park-gray-800 border border-park-gray-700 rounded-lg focus:outline-none focus:border-amber-500 text-white"
               required
               disabled={creating}

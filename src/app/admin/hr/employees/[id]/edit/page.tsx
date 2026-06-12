@@ -15,7 +15,7 @@ import { Button, Card, CardFooter, PageHeader, Input, Select, Breadcrumbs } from
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Propietario', ADMIN: 'Administrador', MANAGER: 'Gerente',
-  SUPERVISOR: 'Supervisor(a)', CASHIER: 'Cajero(a)', WAITER: 'Mesero(a)',
+  SUPERVISOR: 'Supervisor(a)', CASHIER: 'Cajero(a)', WAITER: 'Mozo(a)',
   KITCHEN: 'Cocina', COOK: 'Cocinero(a)', PACKER: 'Empaquetador(a)',
   BAR: 'Barman', DRIVER: 'Motorizado(a)',
 };

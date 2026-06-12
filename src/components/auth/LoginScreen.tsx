@@ -201,7 +201,7 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
   const getRoleName = () => {
     switch (terminal.role) {
       case 'CASHIER': return 'Caja';
-      case 'WAITER': return 'Mesero';
+      case 'WAITER': return 'Mozo';
       case 'KDS': return 'Cocina';
       case 'BAR': return 'Bar';
       case 'ADMIN': return 'Admin';

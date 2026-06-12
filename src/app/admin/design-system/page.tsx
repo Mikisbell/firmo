@@ -391,7 +391,7 @@ export default function DesignSystemPage() {
               options={[
                 { value: 'ADMIN', label: 'Administrador' },
                 { value: 'CASHIER', label: 'Cajero' },
-                { value: 'WAITER', label: 'Mesero' },
+                { value: 'WAITER', label: 'Mozo' },
               ]}
               hint="Define los permisos del empleado"
             />
@@ -1266,7 +1266,7 @@ export default function DesignSystemPage() {
               steps={[
                 { label: 'Pedido recibido', description: 'Orden #1234' },
                 { label: 'En preparacion', description: 'Cocina y parrilla' },
-                { label: 'Listo para servir', description: 'Esperando mesero' },
+                { label: 'Listo para servir', description: 'Esperando mozo' },
                 { label: 'Entregado', description: 'Confirmacion del cliente' },
               ]}
             />
@@ -1322,7 +1322,7 @@ export default function DesignSystemPage() {
               options={[
                 { value: 'ADMIN', label: 'Administrador', description: 'Acceso total al sistema' },
                 { value: 'CASHIER', label: 'Cajero', description: 'Acceso al POS y caja' },
-                { value: 'WAITER', label: 'Mesero', description: 'Tomar ordenes y servir' },
+                { value: 'WAITER', label: 'Mozo', description: 'Tomar ordenes y servir' },
                 { value: 'KITCHEN', label: 'Cocina', description: 'Solo pantalla KDS' },
               ]}
             />

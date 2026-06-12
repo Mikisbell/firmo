@@ -72,7 +72,7 @@ describe('Mozo Page — Accessibility', () => {
   it('header de mozo con estado de conexion', async () => {
     const html = `
       <header role="banner">
-        <h1>Panel del Mesero</h1>
+        <h1>Panel del Mozo</h1>
         <div aria-label="Estado de conexión">
           <span aria-label="Conectado">En línea</span>
         </div>

@@ -46,7 +46,7 @@ function makeOrder(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function makeEmployee(id: string, name: string, role = 'mesero') {
+function makeEmployee(id: string, name: string, role = 'mozo') {
   return { id, name, role };
 }
 
@@ -59,7 +59,7 @@ beforeEach(() => {
 // ============================================================================
 
 describe('WaiterRankingService - getRankings', () => {
-  it('debe calcular ranking para un mesero con múltiples órdenes', async () => {
+  it('debe calcular ranking para un mozo con múltiples órdenes', async () => {
     mockPrisma.orders.findMany.mockResolvedValueOnce([
       makeOrder({ waiter_id: 'w-1', total_cents: 3000 }),
       makeOrder({ waiter_id: 'w-1', total_cents: 5000 }),
@@ -82,7 +82,7 @@ describe('WaiterRankingService - getRankings', () => {
     }
   });
 
-  it('debe rankear múltiples meseros por ventas', async () => {
+  it('debe rankear múltiples mozos por ventas', async () => {
     mockPrisma.orders.findMany.mockResolvedValueOnce([
       makeOrder({ waiter_id: 'w-1', total_cents: 3000 }),
       makeOrder({ waiter_id: 'w-2', total_cents: 8000 }),
@@ -381,7 +381,7 @@ describe('WaiterRankingService - getRankings', () => {
 // ============================================================================
 
 describe('WaiterRankingService - getWaiterDetail', () => {
-  it('debe retornar métricas de un mesero específico', async () => {
+  it('debe retornar métricas de un mozo específico', async () => {
     mockPrisma.orders.findMany.mockResolvedValueOnce([
       makeOrder({ waiter_id: 'w-1', total_cents: 3000 }),
       makeOrder({ waiter_id: 'w-2', total_cents: 7000 }),
@@ -401,7 +401,7 @@ describe('WaiterRankingService - getWaiterDetail', () => {
     }
   });
 
-  it('debe retornar error si mesero no tiene órdenes', async () => {
+  it('debe retornar error si mozo no tiene órdenes', async () => {
     mockPrisma.orders.findMany.mockResolvedValueOnce([
       makeOrder({ waiter_id: 'w-1' }),
     ]);

@@ -39,7 +39,7 @@ vi.mock('@/src/core/constants/roles', () => ({
     MANAGER: 'Gerente',
     SUPERVISOR: 'Supervisor',
     CASHIER: 'Cajero',
-    WAITER: 'Mesero',
+    WAITER: 'Mozo',
     KITCHEN: 'Cocina',
     COOK: 'Cocinero',
     PACKER: 'Empacador',

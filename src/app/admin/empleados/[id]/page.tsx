@@ -26,7 +26,7 @@ const ROLE_OPTIONS = [
   { value: 'MANAGER',    label: 'Gerente' },
   { value: 'SUPERVISOR', label: 'Supervisor(a)' },
   { value: 'CASHIER',    label: 'Cajero(a)' },
-  { value: 'WAITER',     label: 'Mesero(a)' },
+  { value: 'WAITER',     label: 'Mozo(a)' },
   { value: 'KITCHEN',    label: 'Cocina' },
   { value: 'COOK',       label: 'Cocinero(a)' },
   { value: 'PACKER',     label: 'Empaquetador(a)' },

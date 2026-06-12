@@ -156,7 +156,7 @@ export class WaiterRankingService {
       rankings.push({
         employeeId: waiterId,
         employeeName: employee?.name ?? 'Desconocido',
-        role: employee?.role ?? 'mesero',
+        role: employee?.role ?? 'mozo',
         totalOrders: stats.totalOrders,
         totalSalesCents: stats.totalSalesCents,
         averageTicketCents: stats.totalOrders > 0
@@ -207,7 +207,7 @@ export class WaiterRankingService {
 
     const waiter = result.data.rankings.find((r) => r.employeeId === waiterId);
     if (!waiter) {
-      return err(new ValidationError(`Mesero ${waiterId} no tiene órdenes en el período`));
+      return err(new ValidationError(`Mozo ${waiterId} no tiene órdenes en el período`));
     }
 
     return ok(waiter);
