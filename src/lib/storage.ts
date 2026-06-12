@@ -44,6 +44,9 @@ class SafeStorageImpl implements SafeStorage {
    * @returns true si localStorage está disponible, false en caso contrario
    */
   private checkAvailability(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
     try {
       const test = '__storage_test__';
       localStorage.setItem(test, test);
