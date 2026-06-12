@@ -11,6 +11,7 @@ import {
   validateSession as validateSessionV2, 
   updateActivity as updateActivityV2,
   logout as logoutV2,
+  restoreSession as restoreSessionV2,
   setFingerprintProvider,
   startPeriodicFingerprintValidation,
   stopPeriodicFingerprintValidation,
@@ -78,8 +79,16 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
             const storedSession = JSON.parse(storedSessionData);
             const expiresAt = new Date(storedSession.expires_at);
             if (expiresAt > new Date()) {
-              // Valid collaborator session — use it directly, no PIN needed
-              setSession(storedSession);
+              // Valid collaborator session — restore it into the Map so periodic check works
+              const restoredSession: SecureSession = {
+                ...storedSession,
+                created_at: new Date(storedSession.created_at),
+                last_activity_at: new Date(),
+                last_fingerprint_check: new Date(storedSession.last_fingerprint_check ?? new Date()),
+                expires_at: new Date(storedSession.expires_at),
+              };
+              restoreSessionV2(restoredSession); // re-populate the in-memory Map
+              setSession(restoredSession);
               setNeedsLogin(false);
               setIsLoading(false);
               return;
@@ -146,7 +155,7 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
         try {
           const storedSession = JSON.parse(storedSessionData) as SecureSession;
           
-          // Validate session
+          // First try in-memory validation (fast path)
           const validation = validateSessionV2(storedSession.id);
           
           if (validation.valid && validation.session) {
@@ -156,12 +165,42 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
             // Set up fingerprint provider for periodic checks
             setFingerprintProvider(generateFingerprintV2);
             startPeriodicFingerprintValidation();
+          } else if (validation.reason === 'not_found') {
+            // In-memory session map was cleared (server hot-reload / serverless cold start)
+            // Validate directly from the stored session data instead of asking for PIN
+            const expiresAt = new Date(storedSession.expires_at);
+            const lastActivity = new Date(storedSession.last_activity_at);
+            const now = new Date();
+            const inactiveMs = now.getTime() - lastActivity.getTime();
+            const SESSION_MAX_INACTIVE_MS = 8 * 60 * 60 * 1000; // 8 hours (full shift)
+
+            if (expiresAt > now && inactiveMs < SESSION_MAX_INACTIVE_MS) {
+              // Session data is still fresh — restore without PIN
+              // Re-populate the in-memory Map so periodic check and updateActivity work
+              const refreshedSession: SecureSession = {
+                ...storedSession,
+                expires_at: new Date(now.getTime() + SESSION_MAX_INACTIVE_MS),
+                last_activity_at: now,
+                created_at: new Date(storedSession.created_at),
+                last_fingerprint_check: new Date(storedSession.last_fingerprint_check),
+              };
+              restoreSessionV2(refreshedSession); // critical: puts back into Map
+              sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(refreshedSession));
+              setSession(refreshedSession);
+              setNeedsLogin(false);
+              setFingerprintProvider(generateFingerprintV2);
+              startPeriodicFingerprintValidation();
+            } else {
+              // Actually expired or too long inactive
+              sessionStorage.removeItem(SESSION_STORAGE_KEY);
+              setNeedsLogin(true);
+              setStepUpReason('Tu sesión ha expirado. Por favor ingresá nuevamente.');
+            }
           } else {
-            // Session invalid - need to re-login
+            // Session invalid for another reason (fingerprint_changed, superseded, etc.)
             sessionStorage.removeItem(SESSION_STORAGE_KEY);
             setNeedsLogin(true);
             
-            // Show reason for re-auth if needed
             if (validation.reason) {
               const reasonMessages = {
                 expired: 'Tu sesión ha expirado',
@@ -206,12 +245,21 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
     setNeedsLogin(true);
   }, [session]);
 
-  // Track activity and update session
+  // Track activity and update session (Map + sessionStorage)
   useEffect(() => {
     if (!session) return;
 
     const handleActivity = () => {
       updateActivityV2(session.id);
+      // Also keep sessionStorage in sync so last_activity persists across refreshes
+      try {
+        const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          parsed.last_activity_at = new Date().toISOString();
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(parsed));
+        }
+      } catch { /* ignore */ }
     };
 
     window.addEventListener('click', handleActivity);
@@ -225,7 +273,7 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
     };
   }, [session]);
 
-  // Periodic session validation
+  // Periodic session validation — only kills session for security-relevant reasons
   useEffect(() => {
     if (!session) return;
 
@@ -233,7 +281,13 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       const validation = validateSessionV2(session.id);
       
       if (!validation.valid) {
-        // Session became invalid - logout
+        if (validation.reason === 'not_found') {
+          // Map was cleared (hot-reload, module re-init) — silently restore instead of logging out
+          restoreSessionV2(session);
+          return;
+        }
+
+        // Legitimate security reasons — log out
         handleLogout();
         
         if (validation.reason === 'fingerprint_changed') {

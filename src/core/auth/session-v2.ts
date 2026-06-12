@@ -61,7 +61,7 @@ export interface SessionValidation {
 
 // ============ CONSTANTS ============
 
-const SESSION_TIMEOUT_MINUTES = 15;           // Inactivity timeout (Requirement 5.3)
+const SESSION_TIMEOUT_MINUTES = 480;          // Inactivity timeout: 8 hours = full shift
 const FINGERPRINT_CHECK_INTERVAL_MINUTES = 5; // Periodic check (Requirement 5.4)
 const FINGERPRINT_DRIFT_THRESHOLD = 50;       // Below this requires re-auth (Requirement 5.5)
 
@@ -214,6 +214,33 @@ export function createSession(
   });
 
   return session;
+}
+
+/**
+ * Restore an existing session into the in-memory store.
+ * Used when the browser page refreshes and the Map is cleared
+ * but sessionStorage still has valid session data.
+ * Does NOT create a new session ID — reuses the existing one.
+ */
+export function restoreSession(session: SecureSession): void {
+  const now = new Date();
+  // Hydrate date fields (they come back as strings from JSON.parse)
+  const hydrated: SecureSession = {
+    ...session,
+    created_at: new Date(session.created_at),
+    last_activity_at: now,  // treat restore as activity
+    last_fingerprint_check: new Date(session.last_fingerprint_check),
+    expires_at: new Date(now.getTime() + SESSION_TIMEOUT_MINUTES * 60 * 1000),
+  };
+
+  sessions.set(hydrated.id, hydrated);
+  employeeSessions.set(hydrated.employee_id, hydrated.id);
+
+  logger.info('SESSION_RESTORED', 'Session restored from client storage', {
+    session_id: hydrated.id,
+    employee_id: hydrated.employee_id,
+    terminal_id: hydrated.terminal_id,
+  });
 }
 
 /**

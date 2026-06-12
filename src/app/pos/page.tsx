@@ -11,7 +11,7 @@ import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
-import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, Receipt, Truck, Plus } from "lucide-react";
+import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, Receipt, Truck, Plus, Utensils, LayoutDashboard } from "lucide-react";
 import { EmployeeProfileButton } from "@/src/components/shared/EmployeeProfileButton";
 import { EmployeeProfileDrawer } from "@/src/components/shared/EmployeeProfileDrawer";
 import { ParkLogo } from "@/src/components/icons";
@@ -624,7 +624,7 @@ export default function POSPage() {
 
                 <main className="flex-1 overflow-y-auto">
                     {/* View Tabs */}
-                    <div className="flex gap-2 p-4 border-b border-park-gray-800 bg-park-gray-900/50">
+                    <div className="flex gap-2 p-4 border-b border-park-gray-800 bg-park-gray-900/50 overflow-x-auto whitespace-nowrap">
                         <button
                             onClick={() => setCashierView("PENDING")}
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -656,6 +656,27 @@ export default function POSPage() {
                             <Truck size={18} />
                             Delivery / Mostrador
                         </button>
+
+                        <div className="flex-1"></div>
+
+                        <button
+                            onClick={() => window.open('/mozo', '_blank')}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 ml-auto"
+                        >
+                            <Utensils size={18} />
+                            Ver Mesas y Mozos
+                        </button>
+
+                        {/* Only show Admin Dashboard if they are an admin role */}
+                        {session?.employee_role && ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR'].includes(session.employee_role) && (
+                            <button
+                                onClick={() => window.open('/admin', '_blank')}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white border border-zinc-700 ml-2"
+                            >
+                                <LayoutDashboard size={18} />
+                                Panel Admin
+                            </button>
+                        )}
                     </div>
 
                     {/* Content based on view */}
