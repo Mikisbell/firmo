@@ -11,7 +11,6 @@ import { handleCorsPreflightRequest } from '@/src/lib/cors-helpers';
 import { authenticate } from '@/src/core/auth/auth.service';
 import { validateMAC, checkTerminalAuthorization, registerMAC } from '@/src/core/security/mac-validator-hybrid';
 import { detectSimultaneousLogin, createActiveSession, closeAllSessionsExcept } from '@/src/core/security/session-validator';
-import { trackTerminalLogin, updateTerminalLastSeen } from "@/src/core/security/terminal-tracker";
 import { ADMIN_ROLES } from "@/src/core/constants/roles";
 import { createAlert } from '@/src/core/security/alert-service';
 import { rateLimit, getRetryAfterSeconds } from '@/src/core/middleware/rate-limit';
