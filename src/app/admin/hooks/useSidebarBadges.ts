@@ -47,8 +47,8 @@ export function useSidebarBadges(): SidebarBadges {
 
     fetchBadges();
 
-    // Refresh every 30 seconds
-    const intervalId = setInterval(fetchBadges, 30000);
+    // Refresh every 60 seconds to prevent DB connection pool exhaustion
+    const intervalId = setInterval(fetchBadges, 60000);
 
     return () => clearInterval(intervalId);
   }, []);

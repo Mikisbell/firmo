@@ -38,7 +38,7 @@ export interface WaiterNotification {
   totalCents?: number;
 }
 
-const POLL_INTERVAL_MS = 10_000; // 10 seconds
+const POLL_INTERVAL_MS = 30_000; // 30 seconds (increased from 10s to prevent DB pool exhaustion)
 const NOTIFICATION_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
 
 // ─── Server-side ITEM_READY source ───────────────────────────────────────────
