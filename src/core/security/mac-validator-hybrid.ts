@@ -71,16 +71,15 @@ export async function validateMAC(
     }
   }
 
-  // 2. Is MAC known for this specific employee?
-  const knownMAC = await prisma.device_mac_addresses.findFirst({
+  // 2. Is MAC known for this tenant?
+  const knownMACs = await prisma.device_mac_addresses.findMany({
     where: {
       mac_address: normalizedMAC,
-      employee_id: employeeId,
       tenant_id: tenantId,
     },
   });
 
-  if (!knownMAC) {
+  if (knownMACs.length === 0) {
     // MAC completely unknown - requires confirmation
     return {
       isValid: false,
@@ -90,10 +89,9 @@ export async function validateMAC(
     };
   }
 
-  // (Removed employee check since we now search by employee_id above)
-
-  // 3. Is it blocked?
-  if (knownMAC.trust_level === 'BLOCKED') {
+  // 3. Is it blocked specifically for this employee?
+  const myBlocked = knownMACs.find(m => m.employee_id === employeeId && m.trust_level === 'BLOCKED');
+  if (myBlocked) {
     return {
       isValid: false,
       reason: 'BLOCKED_DEVICE',
@@ -101,9 +99,21 @@ export async function validateMAC(
     };
   }
 
+  // Is it trusted by ANYONE in this tenant? (e.g. an Admin auto-registered it)
+  const trustedMAC = knownMACs.find(m => m.trust_level === 'TRUSTED');
+  if (!trustedMAC) {
+    // Known but not trusted (maybe pending or unknown state)
+    return {
+      isValid: false,
+      reason: 'UNKNOWN_MAC',
+      requiresConfirmation: true,
+      trustLevel: 'UNKNOWN',
+    };
+  }
+
   // 4. Is terminal correct? (if MAC is terminal-specific)
-  if (knownMAC.terminal_id !== ANY_TERMINAL_ID && terminalId) {
-    if (knownMAC.terminal_id !== terminalId) {
+  if (trustedMAC.terminal_id !== ANY_TERMINAL_ID && terminalId) {
+    if (trustedMAC.terminal_id !== terminalId) {
       // MAC known but for different terminal
       // Allow with warning (employee rotation)
       return {

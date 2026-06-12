@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ADMIN users bypass MAC validation so they can automatically register the device
-    if (effectiveMac && terminalUuid && !isAdmin) {
+    if (effectiveMac && !isAdmin) {
       log.debug('Validando dirección MAC');
       
       const macValidation = await validateMAC(
@@ -196,6 +196,41 @@ export async function POST(request: NextRequest) {
           },
           { status: 403 }
         );
+      }
+    }
+
+    // Auto-register MAC globally for ADMIN users
+    if (isAdmin && effectiveMac) {
+      log.debug('Admin login: Auto-registrando MAC a nivel global');
+      const knownMACs = await prisma.device_mac_addresses.findMany({
+        where: { mac_address: effectiveMac, tenant_id: data.tenant_id }
+      });
+      
+      const hasTrusted = knownMACs.some(m => m.trust_level === 'TRUSTED');
+      
+      if (!hasTrusted) {
+        const myRecord = knownMACs.find(m => m.employee_id === authResult.employee!.id);
+        if (myRecord) {
+           await prisma.device_mac_addresses.update({
+             where: {
+               mac_address_employee_id_terminal_id: {
+                 mac_address: myRecord.mac_address,
+                 employee_id: myRecord.employee_id,
+                 terminal_id: myRecord.terminal_id
+               }
+             },
+             data: { trust_level: 'TRUSTED' }
+           });
+        } else {
+           await prisma.device_mac_addresses.create({
+             data: {
+               mac_address: effectiveMac,
+               tenant_id: data.tenant_id,
+               employee_id: authResult.employee!.id,
+               trust_level: 'TRUSTED'
+             }
+           });
+        }
       }
     }
 

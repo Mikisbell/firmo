@@ -21,18 +21,44 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
     const [isConnected, setIsConnected] = useState(false);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-    // Live query from IndexedDB projections
+    // Live query from IndexedDB events instead of projections
     const projections = useLiveQuery(async () => {
         const dbInstance = getDb();
         if (!dbInstance) return [];
 
-        const allProjections = await dbInstance.projections
-            .where("key")
-            .startsWith("order:")
-            .toArray();
+        // 1. Fetch all ORDER events
+        const orderEvents = await dbInstance.events
+            .where("aggregate_type")
+            .equals("ORDER")
+            .toArray() as any[];
+
+        // 2. Group by order_id
+        const eventsByOrder = new Map<string, any[]>();
+        for (const e of orderEvents) {
+            let list = eventsByOrder.get(e.aggregate_id);
+            if (!list) {
+                list = [];
+                eventsByOrder.set(e.aggregate_id, list);
+            }
+            list.push(e);
+        }
+
+        const { applySaleEvent } = await import("@/src/core/projections/sale.reducer");
+        const allProjections = [];
+
+        // 3. Rebuild each order
+        for (const [orderId, events] of eventsByOrder.entries()) {
+            events.sort((a, b) => a.terminal_sequence - b.terminal_sequence);
+            let state = null;
+            for (const e of events) {
+                state = applySaleEvent(state, e).state;
+            }
+            if (state) {
+                allProjections.push(state);
+            }
+        }
 
         return allProjections
-            .map(p => p.data)
             .filter((o): o is NonNullable<typeof o> => {
                 if (!o) return false;
                 // Solo órdenes OPEN que no estén completamente pagadas
