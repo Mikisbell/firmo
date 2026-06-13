@@ -152,7 +152,7 @@ export class SyncClient {
     private onOnlineBound: () => void;
 
     constructor(opts: SyncClientOptions = {}) {
-        this.endpoint = opts.endpoint ?? "/api/events/ingest";
+        this.endpoint = opts.endpoint ?? "/api/data-sync/ingest";
         this.batchSize = opts.batchSize ?? 200;
         this.tickMs = opts.tickMs ?? 5000;
         this.maxBackoffMs = opts.maxBackoffMs ?? 60000;
@@ -235,7 +235,7 @@ export class SyncClient {
             return;
         }
         
-        this.eventSource = new EventSource(`/api/events/stream?tenant_id=${tenantId}`);
+        this.eventSource = new EventSource(`/api/data-sync/stream?tenant_id=${tenantId}`);
 
         this.eventSource.onmessage = async (msg) => {
             try {
