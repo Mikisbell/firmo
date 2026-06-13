@@ -429,7 +429,7 @@
 - [006-service-worker-app-shell.md](docs/adr/006-service-worker-app-shell.md) - Service Worker
 - [007-hybrid-cloud-ingest-security.md](docs/adr/007-hybrid-cloud-ingest-security.md) - Hybrid cloud security
 - [008-outbox-pattern.md](docs/adr/008-outbox-pattern.md) - Outbox Pattern
-- [008-shared-component-architecture.md](docs/adr/008-shared-component-architecture.md) - Shared components
+- [009-shared-component-architecture.md](docs/adr/009-shared-component-architecture.md) - Shared components
 
 ---
 

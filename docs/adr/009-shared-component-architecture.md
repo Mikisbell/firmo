@@ -1,4 +1,4 @@
-# ADR-008: Shared Component Architecture for Multi-Role POS
+# ADR-009: Shared Component Architecture for Multi-Role POS
 
 **Status:** Accepted  
 **Date:** 2026-01-05  
