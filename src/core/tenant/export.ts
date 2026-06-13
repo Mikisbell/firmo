@@ -1,6 +1,12 @@
 import prisma from '@/src/core/db/prisma';
-import { randomUUID } from 'crypto';
-import { createHash } from 'crypto';
+import {
+  randomUUID,
+  randomBytes,
+  scryptSync,
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+} from 'crypto';
 import { createLogger } from '@/src/core/observability/structured-logger';
 
 const log = createLogger('tenant-export');
@@ -298,30 +304,113 @@ function calculateChecksum(data: string): string {
   return createHash('sha256').update(data).digest('hex');
 }
 
+// ============================================================================
+// Encryption (AES-256-GCM, server-side via Node crypto)
+//
+// Blob format (binary): salt(16) || iv(12) || authTag(16) || ciphertext
+//
+// The user-facing `encryption_key` is a random UUID handed back in the export
+// result. The actual AES key is DERIVED from that UUID with scrypt + a random
+// per-export salt (the UUID is never used as the raw key). The salt and IV are
+// stored alongside the ciphertext so `decryptExport` can reconstruct the key
+// and decrypt without any external state.
+// ============================================================================
+
+const ENC_ALGORITHM = 'aes-256-gcm';
+const ENC_SALT_LENGTH = 16; // 128-bit salt for scrypt
+const ENC_IV_LENGTH = 12; // 96-bit IV recommended for GCM
+const ENC_AUTH_TAG_LENGTH = 16; // 128-bit GCM auth tag
+const ENC_KEY_LENGTH = 32; // 256-bit AES key
+
 /**
- * Generate encryption key for export
+ * Generate the user-facing encryption key for an export.
+ * This UUID is returned to the caller and is the secret required to decrypt.
  */
 function generateEncryptionKey(): string {
   return randomUUID();
 }
 
 /**
- * Encrypt data using simple XOR with key (for Node.js server-side)
- * In production, use proper encryption like AES-256-GCM
+ * Derive a 32-byte AES key from the export key (UUID) using scrypt + salt.
+ * scrypt is memory-hard, so the UUID is never used directly as the AES key.
  */
-function encryptData(data: string, key: string): Buffer {
-  // For now, use a simple approach: base64 encode
-  // In production, implement proper AES-256-GCM encryption
-  const buffer = Buffer.from(data, 'utf-8');
-  const keyBuffer = Buffer.from(key, 'utf-8');
+function deriveAesKey(key: string, salt: Buffer): Buffer {
+  return scryptSync(key, salt, ENC_KEY_LENGTH);
+}
 
-  // Simple XOR encryption (NOT for production - just for demo)
-  const encrypted = Buffer.alloc(buffer.length);
-  for (let i = 0; i < buffer.length; i++) {
-    encrypted[i] = buffer[i] ^ keyBuffer[i % keyBuffer.length];
+/**
+ * Encrypt export data using AES-256-GCM (server-side).
+ *
+ * Output buffer layout: salt(16) || iv(12) || authTag(16) || ciphertext
+ *
+ * @param data Plaintext export payload (JSON or SQL string)
+ * @param key  User-facing export key (UUID) returned in the result
+ */
+export function encryptData(data: string, key: string): Buffer {
+  const salt = randomBytes(ENC_SALT_LENGTH);
+  const iv = randomBytes(ENC_IV_LENGTH);
+  const aesKey = deriveAesKey(key, salt);
+
+  const cipher = createCipheriv(ENC_ALGORITHM, aesKey, iv, {
+    authTagLength: ENC_AUTH_TAG_LENGTH,
+  });
+
+  const ciphertext = Buffer.concat([
+    cipher.update(data, 'utf-8'),
+    cipher.final(),
+  ]);
+  const authTag = cipher.getAuthTag();
+
+  return Buffer.concat([salt, iv, authTag, ciphertext]);
+}
+
+/**
+ * Decrypt an export blob produced by `encryptData`.
+ *
+ * Reads salt(16) || iv(12) || authTag(16) || ciphertext, re-derives the AES key
+ * from the provided export key and salt, and verifies the GCM auth tag.
+ *
+ * @param encrypted Encrypted blob from `encryptData`
+ * @param key       The same export key (UUID) used to encrypt
+ * @returns Decrypted plaintext export payload
+ * @throws {ExportError} if the format is invalid, the key is wrong, or the
+ *         ciphertext/auth tag was tampered with (GCM verification fails)
+ */
+export function decryptExport(encrypted: Buffer, key: string): string {
+  const minLength = ENC_SALT_LENGTH + ENC_IV_LENGTH + ENC_AUTH_TAG_LENGTH;
+  if (encrypted.length < minLength) {
+    throw new ExportError('Encrypted export is malformed (payload too short)');
   }
 
-  return encrypted;
+  const salt = encrypted.subarray(0, ENC_SALT_LENGTH);
+  const iv = encrypted.subarray(ENC_SALT_LENGTH, ENC_SALT_LENGTH + ENC_IV_LENGTH);
+  const authTag = encrypted.subarray(
+    ENC_SALT_LENGTH + ENC_IV_LENGTH,
+    ENC_SALT_LENGTH + ENC_IV_LENGTH + ENC_AUTH_TAG_LENGTH,
+  );
+  const ciphertext = encrypted.subarray(
+    ENC_SALT_LENGTH + ENC_IV_LENGTH + ENC_AUTH_TAG_LENGTH,
+  );
+
+  const aesKey = deriveAesKey(key, salt);
+
+  const decipher = createDecipheriv(ENC_ALGORITHM, aesKey, iv, {
+    authTagLength: ENC_AUTH_TAG_LENGTH,
+  });
+  decipher.setAuthTag(authTag);
+
+  try {
+    const decrypted = Buffer.concat([
+      decipher.update(ciphertext),
+      decipher.final(),
+    ]);
+    return decrypted.toString('utf-8');
+  } catch {
+    // GCM auth tag verification failed: wrong key or tampered ciphertext.
+    throw new ExportError(
+      'Failed to decrypt export: wrong key or corrupted/tampered data',
+    );
+  }
 }
 
 /**

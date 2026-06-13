@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   exportTenantData,
+  encryptData,
+  decryptExport,
   ExportRequest,
   ExportResult,
 } from '../export';
+import { randomUUID } from 'crypto';
 import prisma from '@/src/core/db/prisma';
 
 // Mock Prisma
@@ -489,6 +492,81 @@ describe('Tenant Export Service', () => {
 
       expect(result).toBeDefined();
       expect(result.export_id).toBeDefined();
+    });
+  });
+
+  describe('12.3 AES-256-GCM Encryption Round-Trip', () => {
+    const payload = JSON.stringify({
+      export_metadata: { tenant_id: mockTenantId, version: '1.0' },
+      products: [{ id: '1', name: 'Pollo a la Brasa', price_cents: 2500 }],
+      events: [{ event_id: 'e1', type: 'ORDER_CREATED' }],
+    });
+
+    it('should decrypt to the original plaintext (round-trip)', () => {
+      const key = randomUUID();
+      const encrypted = encryptData(payload, key);
+
+      // Encrypted blob must NOT be the plaintext (real encryption, not base64/XOR no-op)
+      expect(encrypted.toString('utf-8')).not.toContain('Pollo a la Brasa');
+
+      const decrypted = decryptExport(encrypted, key);
+      expect(decrypted).toBe(payload);
+      expect(JSON.parse(decrypted).products[0].name).toBe('Pollo a la Brasa');
+    });
+
+    it('should produce different ciphertext for the same input (random salt + IV)', () => {
+      const key = randomUUID();
+      const a = encryptData(payload, key);
+      const b = encryptData(payload, key);
+
+      expect(a.equals(b)).toBe(false);
+      // Both still decrypt back to the original
+      expect(decryptExport(a, key)).toBe(payload);
+      expect(decryptExport(b, key)).toBe(payload);
+    });
+
+    it('should fail to decrypt with the wrong key', () => {
+      const key = randomUUID();
+      const wrongKey = randomUUID();
+      const encrypted = encryptData(payload, key);
+
+      expect(() => decryptExport(encrypted, wrongKey)).toThrow(
+        /wrong key or corrupted/i,
+      );
+    });
+
+    it('should fail GCM verification when the ciphertext is tampered', () => {
+      const key = randomUUID();
+      const encrypted = encryptData(payload, key);
+
+      // Flip a byte in the ciphertext region (after salt[16]+iv[12]+authTag[16] = 44)
+      const tampered = Buffer.from(encrypted);
+      const ciphertextStart = 16 + 12 + 16;
+      tampered[ciphertextStart] = tampered[ciphertextStart] ^ 0xff;
+
+      expect(() => decryptExport(tampered, key)).toThrow(
+        /wrong key or corrupted/i,
+      );
+    });
+
+    it('should fail GCM verification when the auth tag is tampered', () => {
+      const key = randomUUID();
+      const encrypted = encryptData(payload, key);
+
+      // Flip a byte in the auth tag region (offset salt[16]+iv[12] = 28)
+      const tampered = Buffer.from(encrypted);
+      const authTagStart = 16 + 12;
+      tampered[authTagStart] = tampered[authTagStart] ^ 0xff;
+
+      expect(() => decryptExport(tampered, key)).toThrow(
+        /wrong key or corrupted/i,
+      );
+    });
+
+    it('should reject a malformed (too short) blob', () => {
+      expect(() => decryptExport(Buffer.alloc(10), randomUUID())).toThrow(
+        /malformed/i,
+      );
     });
   });
 });
