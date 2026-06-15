@@ -22,6 +22,7 @@ import { assessRisk, type RiskAssessment } from '@/src/core/auth/risk-validator'
 import { getTerminal } from '@/src/core/auth/terminal-registry';
 import { StepUpAuthModal } from './StepUpAuthModal';
 import { safeStorage } from '@/src/lib/storage';
+import { ADMIN_ROLES } from '@/src/core/constants/roles';
 
 interface AuthContextValue {
   terminal: TerminalConfig | null;
@@ -62,6 +63,58 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
     async function initializeAuth() {
       const storedConfig = getStoredTerminalConfig();
       
+      // Native Supervisor Mode: Check global admin session
+      let hasAdminCookie = false;
+      let adminEmployee = null;
+      try {
+        const response = await fetch('/api/auth/session', { credentials: 'include' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.valid && data.employee) {
+            if ((ADMIN_ROLES as readonly string[]).includes(data.employee.role)) {
+              hasAdminCookie = true;
+              adminEmployee = data.employee;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error checking admin session:', err);
+      }
+
+      // If user is admin but has no terminal, auto-start a virtual terminal session
+      if (hasAdminCookie && adminEmployee && !storedConfig?.terminal_id) {
+        const virtualConfig: TerminalConfig = {
+          terminal_id: `COLAB_ADMIN_${adminEmployee.id.substring(0, 8)}`,
+          tenant_id: 'default', 
+          device_fingerprint: 'supervisor_virtual_device',
+          actor_id: adminEmployee.id,
+          role: 'ADMIN',
+          last_verified: new Date().toISOString()
+        };
+        
+        const mockSession: SecureSession = {
+          id: `supervisor-session-${Date.now()}`,
+          terminal_id: virtualConfig.terminal_id,
+          employee_id: adminEmployee.id,
+          employee_name: adminEmployee.name,
+          employee_role: adminEmployee.role as SecureSession['employee_role'],
+          terminal_role: 'CAJA' as SecureSession['terminal_role'],
+          fingerprint_at_login: virtualConfig.device_fingerprint,
+          fingerprint_signals_at_login: JSON.stringify({}),
+          risk_score_at_login: 0,
+          created_at: new Date(),
+          last_activity_at: new Date(),
+          last_fingerprint_check: new Date(),
+          expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours
+        };
+
+        setTerminal(virtualConfig);
+        setSession(mockSession);
+        setNeedsLogin(false);
+        setIsLoading(false);
+        return;
+      }
+
       if (!storedConfig?.terminal_id) {
         // No hay terminal configurada - redirigir a home
         setNoTerminal(true);

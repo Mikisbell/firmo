@@ -11,17 +11,15 @@ import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
-import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, Receipt, Truck, Plus, Utensils, LayoutDashboard, Menu, Store, History, Settings } from "lucide-react";
+import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, Receipt, Truck, Plus, Utensils, LayoutDashboard } from "lucide-react";
 import { EmployeeProfileButton } from "@/src/components/shared/EmployeeProfileButton";
 import { EmployeeProfileDrawer } from "@/src/components/shared/EmployeeProfileDrawer";
 import { ParkLogo } from "@/src/components/icons";
 import { toast, Toaster } from "sonner";
 import { getDb } from "@/src/core/db/schema";
 import { useAuth } from "@/src/components/auth";
-import { AuthSession } from "@/src/core/auth/types";
-import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
-import { ADMIN_ROLES } from "@/src/core/constants/roles";
 import { useRouter } from "next/navigation";
+import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
 import { useLiveOrders } from "./hooks/useLiveOrders";
 import { MobileWarning } from "@/src/components/ui";
 import { useCustomerDisplay } from "@/src/hooks/useCustomerDisplay";
@@ -53,7 +51,6 @@ export default function POSPage() {
     const [isOnline, setIsOnline] = useState(true);
     const [pendingSync, setPendingSync] = useState(0);
     const [cashierView, setCashierView] = useState<CashierView>("PENDING");
-    const [currentNavSection, setCurrentNavSection] = useState<"POS" | "ORDERS" | "DELIVERY" | "REPORTS" | "SETTINGS">("POS");
 
     // Real-time orders from all terminals
     const { orders: liveOrders, isConnected: sseConnected } = useLiveOrders({
@@ -66,22 +63,14 @@ export default function POSPage() {
     const router = useRouter();
 
     const handleSimpleLogout = () => {
-        if (session && (ADMIN_ROLES as readonly string[]).includes(session.employee_role)) {
-            router.push("/admin");
-        } else {
-            logout();
-            router.push("/login");
-        }
+        logout();
+        router.push("/login");
     };
 
     const handleExit = () => {
-        if (session && (ADMIN_ROLES as readonly string[]).includes(session.employee_role)) {
-            router.push("/admin");
-        } else {
-            clearTerminalConfig();
-            logout();
-            router.push("/login");
-        }
+        clearTerminalConfig();
+        logout();
+        router.push("/login");
     };
 
     // Shift modal state
@@ -576,92 +565,43 @@ export default function POSPage() {
                 )}
             </AnimatePresence>
 
-            {/* NEW ENTERPRISE LAYOUT - 3 COLUMNS */}
-
-            {/* COLUMN 1: SIDEBAR NAVIGATION */}
-            <nav className="w-[88px] bg-zinc-950 border-r border-white/5 flex flex-col items-center py-6 gap-6 z-30 shrink-0 shadow-2xl shadow-black">
-                <div className="mb-4">
-                    <ParkLogo size={44} className="rounded-xl shadow-lg" />
-                </div>
-                
-                <div className="flex flex-col gap-4 flex-1 w-full px-3">
-                    <button 
-                        onClick={() => setCurrentNavSection("POS")}
-                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "POS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
-                    >
-                        <Store size={24} strokeWidth={currentNavSection === "POS" ? 2.5 : 2} />
-                        <span className="text-[10px] font-bold tracking-wider">POS</span>
-                    </button>
-                    
-                    <button 
-                        onClick={() => setCurrentNavSection("ORDERS")}
-                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 relative ${currentNavSection === "ORDERS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
-                    >
-                        <Utensils size={24} strokeWidth={currentNavSection === "ORDERS" ? 2.5 : 2} />
-                        <span className="text-[10px] font-bold tracking-wider">MESAS</span>
-                        {liveOrders.length > 0 && (
-                            <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-zinc-950 animate-pulse"></span>
-                        )}
-                    </button>
-                    
-                    <button 
-                        onClick={() => setCurrentNavSection("DELIVERY")}
-                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "DELIVERY" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
-                    >
-                        <Truck size={24} strokeWidth={currentNavSection === "DELIVERY" ? 2.5 : 2} />
-                        <span className="text-[10px] font-bold tracking-wider">ENVÍOS</span>
-                    </button>
-                    
-                    <button 
-                        onClick={() => setCurrentNavSection("REPORTS")}
-                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "REPORTS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
-                    >
-                        <History size={24} strokeWidth={currentNavSection === "REPORTS" ? 2.5 : 2} />
-                        <span className="text-[10px] font-bold tracking-wider">HISTORIAL</span>
-                    </button>
-                </div>
-                
-                <div className="flex flex-col gap-4 w-full px-3 mt-auto">
-                    {/* Shift Status inside sidebar */}
-                    <ShiftStatus
-                        isOpen={shiftIsOpen}
-                        shiftId={shift?.shift_id}
-                        expectedCash={shift?.expected_cash_cents ?? 0}
-                        openedAt={shift?.opened_at}
-                        employeeName={session?.employee_name ?? "Sin sesión"}
-                        onOpenClick={() => openShiftModal("open")}
-                        onCloseClick={() => openShiftModal("close")}
-                        onMovementsClick={() => openShiftModal("movements")}
-                    />
-                    
-                    {/* Employee Profile */}
-                    {session && (
-                        <EmployeeProfileButton
-                            employeeName={session.employee_name}
-                            employeeRole={session.employee_role}
-                            accentColor="emerald"
-                            onOpenDrawer={() => setProfileOpen(true)}
-                            onLogout={handleSimpleLogout}
-                        />
-                    )}
-                </div>
-            </nav>
-
-            {/* COLUMN 2: MAIN CENTRAL AREA */}
-            <div className="flex-1 flex flex-col relative z-0 bg-park-black">
-                <header className="h-16 px-6 bg-zinc-900/40 backdrop-blur-md border-b border-white/5 flex justify-between items-center z-10 sticky top-0">
+            {/* Left: Catalog */}
+            <div className="flex-1 flex flex-col relative z-0">
+                <header className="h-20 px-6 bg-gradient-to-r from-zinc-900/95 to-park-black/95 backdrop-blur-md border-b border-white/5 flex justify-between items-center z-10 sticky top-0 shadow-2xl shadow-black/50">
                     <div className="flex items-center gap-3">
+                        <ParkLogo size={40} className="rounded-xl shadow-lg" />
                         <div>
-                            <h1 className="text-xl font-bold tracking-tight text-white">
-                                {currentNavSection === "POS" && "Terminal de Ventas"}
-                                {currentNavSection === "ORDERS" && "Órdenes Activas"}
-                                {currentNavSection === "DELIVERY" && "Gestión de Envíos"}
-                                {currentNavSection === "REPORTS" && "Historial y Reportes"}
+                            <h1 className="text-2xl font-black tracking-tight">
+                                <span className="text-emerald-400">CAJA</span>
+                                <span className="text-white ml-1">PRINCIPAL</span>
                             </h1>
+                            <p className="text-emerald-300/50 text-[10px] uppercase tracking-widest">Cobros • Delivery • Reportes</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {/* Employee Profile Button */}
+                        {session && (
+                            <EmployeeProfileButton
+                                employeeName={session.employee_name}
+                                employeeRole={session.employee_role}
+                                accentColor="emerald"
+                                onOpenDrawer={() => setProfileOpen(true)}
+                                onLogout={handleSimpleLogout}
+                            />
+                        )}
+
+                        {/* Shift Status */}
+                        <ShiftStatus
+                            isOpen={shiftIsOpen}
+                            shiftId={shift?.shift_id}
+                            expectedCash={shift?.expected_cash_cents ?? 0}
+                            openedAt={shift?.opened_at}
+                            employeeName={session?.employee_name ?? "Sin sesión"}
+                            onOpenClick={() => openShiftModal("open")}
+                            onCloseClick={() => openShiftModal("close")}
+                            onMovementsClick={() => openShiftModal("movements")}
+                        />
 
                         {/* UNDO Button - FR-005 */}
                         {activeSale && activeCheck && activeCheck.payment.status !== "PAID" && (
@@ -697,59 +637,115 @@ export default function POSPage() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto bg-park-gray-950 p-4">
+                <main className="flex-1 overflow-y-auto">
+                    {/* View Tabs */}
+                    <div className="flex gap-2 p-4 border-b border-park-gray-800 bg-park-gray-900/50 overflow-x-auto whitespace-nowrap">
+                        <button
+                            onClick={() => setCashierView("PENDING")}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                                cashierView === "PENDING"
+                                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                                    : "bg-park-gray-800 text-park-gray-400 hover:bg-park-gray-700 hover:text-white"
+                            }`}
+                        >
+                            <Receipt size={18} />
+                            Órdenes Pendientes
+                            {liveOrders.length > 0 && (
+                                <span className={`px-2 py-0.5 rounded-full text-xs ${
+                                    cashierView === "PENDING" ? "bg-white/20" : "bg-indigo-500/20 text-indigo-400"
+                                }`}>
+                                    {liveOrders.length}
+                                </span>
+                            )}
+                            {/* SSE Connection indicator */}
+                            <span className={`w-2 h-2 rounded-full ${sseConnected ? "bg-emerald-400" : "bg-red-400 animate-pulse"}`} />
+                        </button>
+                        <button
+                            onClick={() => setCashierView("DELIVERY")}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                                cashierView === "DELIVERY"
+                                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                                    : "bg-park-gray-800 text-park-gray-400 hover:bg-park-gray-700 hover:text-white"
+                            }`}
+                        >
+                            <Truck size={18} />
+                            Delivery / Mostrador
+                        </button>
+
+                        <div className="flex-1"></div>
+
+                        <button
+                            onClick={() => window.open('/mozo', '_blank')}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 ml-auto"
+                        >
+                            <Utensils size={18} />
+                            Ver Mesas y Mozos
+                        </button>
+
+                        {/* Only show Admin Dashboard if they are an admin role */}
+                        {session?.employee_role && ['OWNER', 'ADMIN', 'MANAGER', 'SUPERVISOR'].includes(session.employee_role) && (
+                            <button
+                                onClick={() => window.open('/admin', '_blank')}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white border border-zinc-700 ml-2"
+                            >
+                                <LayoutDashboard size={18} />
+                                Panel Admin
+                            </button>
+                        )}
+                    </div>
+
                     {/* Content based on view */}
-                    <div className="w-full h-full">
-                        {currentNavSection === "ORDERS" ? (
+                    <div className="flex-1 h-[calc(100%-73px)]">
+                        {cashierView === "PENDING" ? (
                             <PendingOrdersList
                                 orders={liveOrders}
-                                isConnected={sseConnected}
                                 onSelectOrder={handleSelectPendingOrder}
+                                selectedOrderId={currentOrder?.order_id}
                             />
-                        ) : currentNavSection === "POS" || currentNavSection === "DELIVERY" ? (
-                            <div className="flex flex-col h-full bg-park-black rounded-3xl overflow-hidden border border-white/5 shadow-2xl shadow-black/20">
-                                {/* Header for POS/Delivery */}
-                                <div className="flex items-center justify-between p-4 bg-zinc-900/60 border-b border-white/5">
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => {
-                                                setCashierView("DELIVERY");
-                                                setNewOrderModalOpen(true);
-                                            }}
-                                            className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/20"
-                                        >
-                                            <Plus size={18} />
-                                            NUEVO PEDIDO {currentNavSection === "DELIVERY" && "DELIVERY"}
-                                        </button>
-                                    </div>
+                        ) : (
+                            <div className="flex flex-col h-full">
+                                {/* New Order Button */}
+                                <div className="p-4 border-b border-park-gray-800">
+                                    <button
+                                        onClick={() => setNewOrderModalOpen(true)}
+                                        disabled={!shiftIsOpen}
+                                        className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all ${
+                                            shiftIsOpen
+                                                ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20"
+                                                : "bg-park-gray-700 text-park-gray-500 cursor-not-allowed"
+                                        }`}
+                                    >
+                                        <Plus size={20} />
+                                        Nuevo Pedido Delivery / Para Llevar
+                                    </button>
                                     {!shiftIsOpen && (
-                                        <p className="text-xs text-park-gray-500">
+                                        <p className="text-xs text-park-gray-500 text-center mt-2">
                                             Abre un turno para crear pedidos
                                         </p>
                                     )}
                                 </div>
                                 
                                 {/* Catalog for adding items */}
-                                <div className="flex-1 overflow-y-auto p-2 bg-park-black">
+                                <div className="flex-1 overflow-y-auto p-4">
                                     {currentOrder && pendingNewOrder ? (
                                         <>
                                             {/* Current order info banner */}
-                                            <div className="m-2 mb-4 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 shadow-inner">
+                                            <div className="mb-4 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30">
                                                 <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-2">
                                                         {pendingNewOrder.order_type === "DELIVERY" ? (
-                                                            <Truck size={20} className="text-indigo-400" />
+                                                            <Truck size={16} className="text-indigo-400" />
                                                         ) : (
-                                                            <Receipt size={20} className="text-indigo-400" />
+                                                            <Receipt size={16} className="text-indigo-400" />
                                                         )}
-                                                        <span className="text-lg font-bold text-white">
+                                                        <span className="text-sm font-medium text-white">
                                                             {pendingNewOrder.customer_name}
                                                         </span>
-                                                        <span className="text-sm font-mono text-park-gray-400 bg-black/40 px-3 py-1 rounded-full">
+                                                        <span className="text-xs text-park-gray-400">
                                                             {pendingNewOrder.customer_phone}
                                                         </span>
                                                     </div>
-                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${
+                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                                                         pendingNewOrder.order_type === "DELIVERY"
                                                             ? "bg-purple-500/20 text-purple-400"
                                                             : "bg-blue-500/20 text-blue-400"
@@ -758,39 +754,31 @@ export default function POSPage() {
                                                     </span>
                                                 </div>
                                                 {pendingNewOrder.delivery_address && (
-                                                    <p className="text-sm text-park-gray-400 mt-2 ml-8 flex items-center gap-2">
-                                                        <span>📍</span> {pendingNewOrder.delivery_address}
+                                                    <p className="text-xs text-park-gray-400 mt-1 truncate">
+                                                        📍 {pendingNewOrder.delivery_address}
                                                     </p>
                                                 )}
                                             </div>
-                                            <div className="px-2">
-                                                <CatalogGrid
-                                                    onAdd={handleAddWithOrderType}
-                                                    recommendations={recommendations}
-                                                    shiftOpen={shiftIsOpen}
-                                                />
-                                            </div>
+                                            <CatalogGrid
+                                                onAdd={handleAddWithOrderType}
+                                                recommendations={recommendations}
+                                                shiftOpen={shiftIsOpen}
+                                            />
                                         </>
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                                            <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center mb-6 border border-white/5 shadow-2xl">
-                                                <ShoppingCart className="text-park-gray-600 w-10 h-10" />
+                                        <div className="flex flex-col items-center justify-center h-full text-center">
+                                            <div className="w-16 h-16 bg-park-gray-800 rounded-full flex items-center justify-center mb-4">
+                                                <Truck className="text-park-gray-600 w-8 h-8" />
                                             </div>
-                                            <h3 className="text-xl font-bold text-white mb-2">Caja Principal Lista</h3>
-                                            <p className="text-park-gray-400 text-sm max-w-sm mx-auto leading-relaxed">
-                                                Inicia un "Nuevo Pedido" arriba, o selecciona una orden activa en la sección MESAS.
+                                            <p className="text-park-gray-400 text-sm mb-2">
+                                                Crea un pedido para agregar productos
+                                            </p>
+                                            <p className="text-park-gray-600 text-xs">
+                                                Usa el botón "Nuevo Pedido" arriba
                                             </p>
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-center">
-                                <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center mb-6">
-                                    <LayoutDashboard className="text-park-gray-600 w-10 h-10" />
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Próximamente</h3>
-                                <p className="text-park-gray-400 text-sm max-w-sm">Esta sección estará disponible en la próxima actualización de la Caja.</p>
                             </div>
                         )}
                     </div>
@@ -798,7 +786,7 @@ export default function POSPage() {
             </div>
 
             {/* Right: Check Detail (or Empty State) */}
-            <div className="w-[380px] xl:w-[420px] bg-white text-park-black shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.5)] z-40 flex flex-col shrink-0">
+            <div className="w-[420px] xl:w-[480px] bg-white shadow-2xl z-20 flex flex-col">
                 {activeSale && activeCheck ? (
                     <CheckDetail
                         check={activeCheck}
