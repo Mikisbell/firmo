@@ -73,6 +73,16 @@ export interface OfflineSagaEventEntity {
     last_sync_error?: string;
 }
 
+export interface MasterTableEntity {
+    id: string;
+    tenant_id: string;
+    number: string;
+    display_name: string | null;
+    zone: any; // Zone type
+    is_active: boolean;
+    capacity: number;
+}
+
 export interface ProjectionEntity {
     key: string;
     data: any;
@@ -103,6 +113,7 @@ export class ParkDB extends Dexie {
     snapshots!: EntityTable<SnapshotEntity, 'id'>;
     saga_logs!: EntityTable<SagaLogEntity, 'saga_id'>;
     offline_saga_events!: EntityTable<OfflineSagaEventEntity, 'event_id'>;
+    master_tables!: EntityTable<MasterTableEntity, 'id'>;
 
     constructor() {
         super(DB_NAME);
@@ -182,6 +193,19 @@ export class ParkDB extends Dexie {
             snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
             saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]',
             offline_saga_events: 'event_id, [tenant_id+synced], saga_id, queued_at'
+        });
+
+        // Version 8: Added master_tables for offline table fallback
+        this.version(8).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, aggregate_id, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, product_id, name',
+            snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
+            saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]',
+            offline_saga_events: 'event_id, [tenant_id+synced], saga_id, queued_at',
+            master_tables: 'id, tenant_id, number'
         });
     }
 }

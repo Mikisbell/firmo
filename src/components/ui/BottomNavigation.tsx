@@ -50,16 +50,17 @@ export const BottomNavigation = React.memo(function BottomNavigation({
       {/* Spacer to prevent content from being hidden behind nav */}
       <div 
         className="md:hidden" 
-        style={{ height: NAV_HEIGHT }} 
+        style={{ height: NAV_HEIGHT + 16 }} 
       />
       
       {/* Navigation */}
       <nav
         className={`
-          fixed bottom-0 left-0 right-0
+          fixed bottom-2 left-2 right-2
           md:hidden
-          bg-zinc-900 border-t border-zinc-800
-          safe-area-inset-bottom
+          bg-park-gray-900/80 backdrop-blur-xl border border-violet-500/20
+          safe-area-inset-bottom rounded-2xl shadow-2xl shadow-black/50
+          overflow-hidden
           ${className}
         `}
         style={{ 
@@ -77,23 +78,22 @@ export const BottomNavigation = React.memo(function BottomNavigation({
                 href={item.href}
                 className={`
                   relative flex flex-col items-center justify-center
-                  min-w-[64px] min-h-[48px]
-                  px-3 py-1
-                  rounded-lg
-                  transition-colors
+                  min-w-[64px] h-full
+                  px-3
+                  transition-all active:scale-90
                   ${isActive 
-                    ? 'text-amber-500' 
-                    : 'text-zinc-400 hover:text-zinc-200 active:bg-zinc-800'
+                    ? 'text-violet-400 bg-violet-500/10' 
+                    : 'text-park-gray-400 hover:text-white active:bg-park-gray-800'
                   }
                 `}
               >
                 {/* Active indicator */}
                 {isActive && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-amber-500 rounded-full" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-violet-500 rounded-b-full shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
                 )}
                 
                 {/* Icon with badge */}
-                <div className="relative">
+                <div className="relative mt-1">
                   <div className="w-6 h-6">
                     {item.icon}
                   </div>
@@ -105,9 +105,9 @@ export const BottomNavigation = React.memo(function BottomNavigation({
                       min-w-[18px] h-[18px]
                       flex items-center justify-center
                       px-1
-                      text-xs font-bold
+                      text-[10px] font-bold
                       bg-red-500 text-white
-                      rounded-full
+                      rounded-full animate-pulse shadow-lg shadow-red-500/50
                     ">
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
@@ -116,8 +116,8 @@ export const BottomNavigation = React.memo(function BottomNavigation({
                 
                 {/* Label */}
                 <span className={`
-                  text-xs mt-1
-                  ${isActive ? 'font-medium' : ''}
+                  text-[10px] mt-1
+                  ${isActive ? 'font-bold' : 'font-medium'}
                 `}>
                   {item.label}
                 </span>

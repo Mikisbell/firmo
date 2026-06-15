@@ -47,6 +47,10 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
     const [showSplitModal, setShowSplitModal] = useState(false);
     const [splitAssignment, setSplitAssignment] = useState<Record<string, 1 | 2>>({});
 
+    // Feature 4: Join tables modal
+    const [showJoinModal, setShowJoinModal] = useState(false);
+    const [joinCandidates, setJoinCandidates] = useState<string[]>([]);
+
     // Reactive State
     const activeSale = useOrder(orderId);
 
@@ -141,6 +145,7 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                 setNoteDialog(null);
                 setShowTransferModal(false);
                 setShowSplitModal(false);
+                setShowJoinModal(false);
             }
         }
         document.addEventListener("keydown", handleKeyDown);
@@ -449,6 +454,77 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
             router.replace(`/mozo/mesa/${toTable}`);
         } catch (_e) {
             toast.error("Error al transferir mesa");
+        }
+    };
+
+    // ─── Feature 4: Join Tables ───────────────────────────────────────────────
+
+    const handleOpenJoin = useCallback(async () => {
+        try {
+            const events = await db.events
+                .where("aggregate_type")
+                .equals("ORDER")
+                .toArray() as ParkEvent[];
+
+            const occupiedTables = new Set<string>();
+            const ordersMap = new Map<string, { table: string }>();
+
+            events.sort((a, b) => a.terminal_sequence - b.terminal_sequence);
+            for (const ev of events) {
+                if (ev.event_type === "ORDER_CREATED") {
+                    const p = ev.payload as any;
+                    if (p.fulfillment?.table_number) {
+                        ordersMap.set(p.order_id, { table: p.fulfillment.table_number });
+                    }
+                } else if (ev.event_type === "ORDER_TABLE_CHANGED") {
+                    const p = ev.payload as any;
+                    const existing = ordersMap.get(p.order_id);
+                    if (existing) ordersMap.set(p.order_id, { table: p.to_table });
+                } else if (ev.event_type === "TABLE_ATTACHED_TO_ORDER") {
+                    const p = ev.payload as any;
+                    occupiedTables.add(p.attached_table_id);
+                } else if (ev.event_type === "ORDER_CANCELLED" || (ev.event_type as any) === "ORDER_CLOSED") {
+                    const p = ev.payload as any;
+                    ordersMap.delete(p.order_id);
+                }
+            }
+
+            for (const ord of ordersMap.values()) {
+                occupiedTables.add(ord.table);
+            }
+
+            // Generate candidate tables (1-20 by convention, excluding current and occupied)
+            const candidates: string[] = [];
+            for (let i = 1; i <= 20; i++) {
+                const t = String(i);
+                if (t !== tableId && !occupiedTables.has(t)) {
+                    candidates.push(t);
+                }
+            }
+
+            setJoinCandidates(candidates);
+            setShowJoinModal(true);
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al buscar mesas disponibles");
+        }
+    }, [tableId]);
+
+    const handleJoinTables = async (tableToJoin: string) => {
+        if (!orderId || !terminalConfig) return;
+        try {
+            await POSActions.attachTable(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                tableId,
+                tableToJoin
+            );
+            setShowJoinModal(false);
+            toast.success(`Mesa ${tableToJoin} unida a la orden actual`);
+        } catch (_e) {
+            toast.error("Error al unir mesas");
         }
     };
 
@@ -819,6 +895,40 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                             >
                                 Confirmar división
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Join Tables */}
+            {showJoinModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-zinc-900 w-full max-w-sm rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 zoom-in-95">
+                        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+                            <h2 className="font-bold text-lg text-white">Unir Mesa</h2>
+                            <button
+                                onClick={() => setShowJoinModal(false)}
+                                className="p-2 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-full text-zinc-400 hover:text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-4 max-h-[60vh] overflow-y-auto">
+                            {joinCandidates.length === 0 ? (
+                                <p className="text-zinc-500 text-center py-8">No hay mesas libres para unir</p>
+                            ) : (
+                                <div className="grid grid-cols-4 gap-3">
+                                    {joinCandidates.map(t => (
+                                        <button
+                                            key={t}
+                                            onClick={() => handleJoinTables(t)}
+                                            className="h-14 bg-zinc-800 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center transition-colors"
+                                        >
+                                            {t}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

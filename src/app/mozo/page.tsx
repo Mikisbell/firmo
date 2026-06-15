@@ -18,13 +18,7 @@ import { useResponsive } from "@/src/hooks/useResponsive";
 import { MobileHeader, HeaderSpacer } from "@/src/components/ui/MobileHeader";
 import { BottomNavigation, BottomNavItem } from "@/src/components/ui/BottomNavigation";
 
-// Fallback zones when API is not available
-const DEFAULT_ZONES = [
-    { id: "salon", code: "SAL", name: "Salón", color: "#8b5cf6" },
-    { id: "terraza", code: "TER", name: "Terraza", color: "#10b981" },
-    { id: "vip", code: "VIP", name: "VIP", color: "#f59e0b" },
-];
-
+// Empty string to replace DEFAULT_ZONES
 // Time thresholds for color coding (in minutes)
 const TIME_THRESHOLDS = {
     WARNING: 20,  // Yellow after 20 min
@@ -76,17 +70,16 @@ function getTableColors(status: TableStatus, elapsedMinutes?: number) {
         };
     }
     
-    if (minutes >= TIME_THRESHOLDS.WARNING) {
-        // Yellow/Orange - attention needed soon
+    if (status === "COOKING") {
         return {
             bg: "bg-orange-950/40",
             border: "border-orange-500/50",
             shadow: "shadow-orange-900/20",
             gradient: "from-orange-500/10 via-transparent to-amber-500/5",
             icon: "bg-orange-500/20 text-orange-300 ring-orange-500/30",
-            light: "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)]",
+            light: "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)] animate-pulse",
             text: "text-orange-400",
-            label: `${minutes}m`,
+            label: `${minutes}m 🍳`,
         };
     }
     
@@ -116,8 +109,8 @@ export default function WaiterPage() {
     // Hook de notificaciones
     const { unreadCount, readyItemsCount } = useWaiterNotifications();
     
-    // Use API zones or fallback
-    const zones = apiZones.length > 0 ? apiZones : DEFAULT_ZONES;
+    // Use API zones only
+    const zones = apiZones;
     
     // Get tables filtered by zone (null = all zones)
     const tables = useTableStatus(selectedZoneId === "all" ? undefined : selectedZoneId || undefined);
@@ -158,9 +151,9 @@ export default function WaiterPage() {
     const filteredTables = tables;
 
     const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-    const occupiedCount = tables.filter(t => t.status === "OCCUPIED" || t.status === "BILL_REQUESTED").length;
+    const occupiedCount = tables.filter(t => t.status === "OCCUPIED" || t.status === "COOKING" || t.status === "BILL_REQUESTED").length;
     const alertCount = tables.filter(t =>
-        (t.status === "OCCUPIED" && (t.elapsedMinutes ?? 0) >= TIME_THRESHOLDS.ALERT) ||
+        ((t.status === "OCCUPIED" || t.status === "COOKING") && (t.elapsedMinutes ?? 0) >= TIME_THRESHOLDS.ALERT) ||
         t.status === "BILL_REQUESTED"
     ).length;
     const readyItemsTotal = tables.reduce((sum, t) => sum + (t.readyItemsCount ?? 0), 0);
@@ -354,6 +347,19 @@ export default function WaiterPage() {
                     ))}
                 </div>
 
+                {/* Empty State */}
+                {tables.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+                        <div className="w-16 h-16 bg-park-gray-800 rounded-full flex items-center justify-center mb-4">
+                            <Utensils className="w-8 h-8 text-park-gray-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">No hay mesas configuradas</h3>
+                        <p className="text-park-gray-400 max-w-sm">
+                            El sistema está sincronizando o no se han creado mesas aún. Si eres el administrador, por favor crea tu plano de mesas desde el Panel de Administración.
+                        </p>
+                    </div>
+                )}
+
                 {/* Tables Grid - Responsive columns */}
                 <motion.div
                     layout
@@ -385,7 +391,7 @@ export default function WaiterPage() {
                                     min-h-[80px] md:min-h-[140px] aspect-[4/3]
                                     ${colors.bg} ${colors.border} shadow-xl ${colors.shadow}
                                     ${t.readyItemsCount && t.readyItemsCount > 0 ? 'border-emerald-400 animate-pulse' : ''}
-                                    ${t.status === 'OCCUPIED' && !(t.readyItemsCount && t.readyItemsCount > 0) ? 'border-amber-500/60' : ''}
+                                    ${(t.status === 'OCCUPIED' || t.status === 'COOKING') && !(t.readyItemsCount && t.readyItemsCount > 0) ? 'border-amber-500/60' : ''}
                                 `}
                             >
                                 {/* Active State Background Gradient */}
@@ -486,7 +492,7 @@ export default function WaiterPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-orange-500" />
-                        <span>20-40m</span>
+                        <span>Cocinando</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />

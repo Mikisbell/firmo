@@ -891,6 +891,28 @@ const OrderTableChangedPayload = z.object({
 });
 
 // ============================================================================
+// TABLE_ATTACHED_TO_ORDER payload
+// ============================================================================
+
+const TableAttachedToOrderPayload = z.object({
+    order_id: uuidSchema,
+    primary_table_id: z.string(),
+    attached_table_id: z.string(),
+    attached_by: uuidSchema,
+});
+
+// ============================================================================
+// TABLE_DETACHED_FROM_ORDER payload
+// ============================================================================
+
+const TableDetachedFromOrderPayload = z.object({
+    order_id: uuidSchema,
+    primary_table_id: z.string(),
+    detached_table_id: z.string(),
+    detached_by: uuidSchema,
+});
+
+// ============================================================================
 // Discriminated Union of All Events
 // ============================================================================
 
@@ -967,6 +989,16 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("ORDER_TABLE_CHANGED"),
         aggregate_type: z.literal("ORDER"),
         payload: OrderTableChangedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("TABLE_ATTACHED_TO_ORDER"),
+        aggregate_type: z.literal("ORDER"),
+        payload: TableAttachedToOrderPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("TABLE_DETACHED_FROM_ORDER"),
+        aggregate_type: z.literal("ORDER"),
+        payload: TableDetachedFromOrderPayload,
     }),
 
     // CHECK events (split bill)
@@ -1405,6 +1437,10 @@ export type PromotionRemovedEvent = Extract<ParkEvent, { event_type: "PROMOTION_
 
 // Course fire event types
 export type OrderCourseFiredEvent = Extract<ParkEvent, { event_type: "ORDER_COURSE_FIRED" }>;
+
+// Table merge event types
+export type TableAttachedToOrderEvent = Extract<ParkEvent, { event_type: "TABLE_ATTACHED_TO_ORDER" }>;
+export type TableDetachedFromOrderEvent = Extract<ParkEvent, { event_type: "TABLE_DETACHED_FROM_ORDER" }>;
 
 // Catalog event types (Auto-86)
 export type ProductMarkedUnavailableEvent = Extract<ParkEvent, { event_type: "PRODUCT_MARKED_UNAVAILABLE" }>;

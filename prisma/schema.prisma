@@ -141,29 +141,29 @@ model coupons {
 }
 
 model customer_profile {
-  tenant_id            String    @db.Uuid
-  customer_id          String    @unique @db.Uuid
-  first_seen_at        DateTime? @db.Timestamptz(6)
-  last_seen_at         DateTime? @db.Timestamptz(6)
-  orders_count         Int       @default(0)
-  invoices_count       Int       @default(0)
-  lifetime_value_cents Int       @default(0)
-  avg_ticket_cents     Int       @default(0)
-  favorite_order_type  String?
-  favorite_products    Json?
-  recency_days         Int?
-  frequency_30d        Int?
-  monetary_30d         Int?
-  rfm_segment          String?
-  rfm_calculated_at    DateTime? @db.Timestamptz(6)
-  is_birthday              Boolean   @default(false)
-  updated_at               DateTime  @default(now()) @db.Timestamptz(6)
-  loyalty_points_balance   Int       @default(0)
-  loyalty_lifetime_points  Int       @default(0)
-  loyalty_tier             String    @default("BRONCE")
-  loyalty_tier_updated_at  DateTime? @db.Timestamptz(6)
-  customers                customers @relation(fields: [customer_id], references: [id])
-  tenants                  tenants   @relation(fields: [tenant_id], references: [id])
+  tenant_id               String    @db.Uuid
+  customer_id             String    @unique @db.Uuid
+  first_seen_at           DateTime? @db.Timestamptz(6)
+  last_seen_at            DateTime? @db.Timestamptz(6)
+  orders_count            Int       @default(0)
+  invoices_count          Int       @default(0)
+  lifetime_value_cents    Int       @default(0)
+  avg_ticket_cents        Int       @default(0)
+  favorite_order_type     String?
+  favorite_products       Json?
+  recency_days            Int?
+  frequency_30d           Int?
+  monetary_30d            Int?
+  rfm_segment             String?
+  rfm_calculated_at       DateTime? @db.Timestamptz(6)
+  is_birthday             Boolean   @default(false)
+  updated_at              DateTime  @default(now()) @db.Timestamptz(6)
+  loyalty_points_balance  Int       @default(0)
+  loyalty_lifetime_points Int       @default(0)
+  loyalty_tier            String    @default("BRONCE")
+  loyalty_tier_updated_at DateTime? @db.Timestamptz(6)
+  customers               customers @relation(fields: [customer_id], references: [id])
+  tenants                 tenants   @relation(fields: [tenant_id], references: [id])
 
   @@id([tenant_id, customer_id])
 }
@@ -543,20 +543,20 @@ model inventory_log {
 }
 
 model loyalty_ledger {
-  id              String    @id @db.Uuid
-  tenant_id       String    @db.Uuid
-  customer_id     String    @db.Uuid
-  type            String    @db.VarChar(20)
-  points          Int
-  balance_after   Int
-  reference_type  String?   @db.VarChar(20)
-  reference_id    String?   @db.Uuid
-  description     String?
-  multiplier      Decimal   @default(1.0) @db.Decimal(3, 1)
-  created_at      DateTime  @default(now()) @db.Timestamptz(6)
-  created_by      String?   @db.Uuid
-  tenants         tenants   @relation(fields: [tenant_id], references: [id])
-  customers       customers @relation(fields: [customer_id], references: [id])
+  id             String    @id @db.Uuid
+  tenant_id      String    @db.Uuid
+  customer_id    String    @db.Uuid
+  type           String    @db.VarChar(20)
+  points         Int
+  balance_after  Int
+  reference_type String?   @db.VarChar(20)
+  reference_id   String?   @db.Uuid
+  description    String?
+  multiplier     Decimal   @default(1.0) @db.Decimal(3, 1)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  created_by     String?   @db.Uuid
+  tenants        tenants   @relation(fields: [tenant_id], references: [id])
+  customers      customers @relation(fields: [customer_id], references: [id])
 
   @@index([tenant_id, customer_id, created_at(sort: Desc)])
   @@index([tenant_id, reference_type, reference_id])
@@ -623,31 +623,31 @@ model invoice_queue {
 }
 
 model invoices {
-  id                String          @id @db.Uuid
-  tenant_id         String          @db.Uuid
-  order_id          String          @db.Uuid
-  check_id          String
-  invoice_type      String
-  series            String?
-  invoice_number    String?
-  customer_doc_type String?
-  customer_doc      String?
-  customer_name     String?
-  total_cents       Int
-  payment_summary   Json?
-  status            String          @default("ISSUED")
-  void_reason       String?
-  voided_by         String?         @db.Uuid
-  voided_at         DateTime?       @db.Timestamptz(6)
-  created_at        DateTime        @default(now()) @db.Timestamptz(6)
-  credit_notes                 credit_notes[]
-  invoice_cdr                  invoice_cdr[]
-  invoice_queue                invoice_queue[]
-  sunat_contingency_invoices   sunat_contingency_invoices[]
-  customer_id       String?         @db.Uuid
-  orders            orders          @relation(fields: [order_id], references: [id])
-  tenants           tenants         @relation(fields: [tenant_id], references: [id])
-  customer          customers?      @relation("invoice_customer", fields: [customer_id], references: [id])
+  id                         String                       @id @db.Uuid
+  tenant_id                  String                       @db.Uuid
+  order_id                   String                       @db.Uuid
+  check_id                   String
+  invoice_type               String
+  series                     String?
+  invoice_number             String?
+  customer_doc_type          String?
+  customer_doc               String?
+  customer_name              String?
+  total_cents                Int
+  payment_summary            Json?
+  status                     String                       @default("ISSUED")
+  void_reason                String?
+  voided_by                  String?                      @db.Uuid
+  voided_at                  DateTime?                    @db.Timestamptz(6)
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  credit_notes               credit_notes[]
+  invoice_cdr                invoice_cdr[]
+  invoice_queue              invoice_queue[]
+  sunat_contingency_invoices sunat_contingency_invoices[]
+  customer_id                String?                      @db.Uuid
+  orders                     orders                       @relation(fields: [order_id], references: [id])
+  tenants                    tenants                      @relation(fields: [tenant_id], references: [id])
+  customer                   customers?                   @relation("invoice_customer", fields: [customer_id], references: [id])
 
   @@unique([tenant_id, order_id, check_id])
   @@unique([tenant_id, series, invoice_number])
@@ -786,47 +786,49 @@ model message_templates {
 }
 
 model orders {
-  id                  String            @id @db.Uuid
-  tenant_id           String            @db.Uuid
-  order_number        Int
-  order_type          String
-  order_status        String            @default("OPEN")
-  fulfillment_status  String            @default("COOKING")
-  handoff_status      String            @default("WAITING")
-  stations_active     String[]          @default([])
-  unpaid_checks_count Int               @default(0)
-  subtotal_cents      Int               @default(0)
-  discount_cents      Int               @default(0)
-  total_cents         Int               @default(0)
-  promotion_id        String?           @db.Uuid
-  promotion_snapshot  Json?
-  coupon_code         String?
-  revision            Int               @default(1)
-  terminal_id         String
-  created_at          DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime          @default(now()) @db.Timestamptz(6)
-  items               Json              @default("[]")
-  checks              Json              @default("[]")
-  fulfillment         Json?
-  business_date       DateTime?         @db.Date
-  customer_id         String?           @db.Uuid
-  location_id         String?           @db.Uuid
-  shift_id            String?           @db.Uuid
-  table_id            String?           @db.Uuid
-  waiter_id           String?           @db.Uuid
-  delivery_orders     delivery_orders[]
-  invoices            invoices[]
-  customers           customers?        @relation(fields: [customer_id], references: [id])
-  locations           locations?        @relation(fields: [location_id], references: [id])
-  promotions          promotions?       @relation(fields: [promotion_id], references: [id])
-  shifts              shifts?           @relation(fields: [shift_id], references: [id])
-  tables              tables?           @relation(fields: [table_id], references: [id])
-  tenants             tenants           @relation(fields: [tenant_id], references: [id])
-  employees           employees?        @relation(fields: [waiter_id], references: [id])
-  payments            payments[]
-  platform_orders     platform_orders[]
-  refunds             refunds[]
-  tips                tips[]
+  id                     String                   @id @db.Uuid
+  tenant_id              String                   @db.Uuid
+  order_number           Int
+  order_type             String
+  order_status           String                   @default("OPEN")
+  fulfillment_status     String                   @default("COOKING")
+  handoff_status         String                   @default("WAITING")
+  stations_active        String[]                 @default([])
+  unpaid_checks_count    Int                      @default(0)
+  subtotal_cents         Int                      @default(0)
+  discount_cents         Int                      @default(0)
+  total_cents            Int                      @default(0)
+  promotion_id           String?                  @db.Uuid
+  promotion_snapshot     Json?
+  coupon_code            String?
+  revision               Int                      @default(1)
+  terminal_id            String
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  items                  Json                     @default("[]")
+  checks                 Json                     @default("[]")
+  fulfillment            Json?
+  business_date          DateTime?                @db.Date
+  customer_id            String?                  @db.Uuid
+  location_id            String?                  @db.Uuid
+  shift_id               String?                  @db.Uuid
+  table_id               String?                  @db.Uuid
+  waiter_id              String?                  @db.Uuid
+  delivery_orders        delivery_orders[]
+  invoices               invoices[]
+  customers              customers?               @relation(fields: [customer_id], references: [id])
+  locations              locations?               @relation(fields: [location_id], references: [id])
+  promotions             promotions?              @relation(fields: [promotion_id], references: [id])
+  shifts                 shifts?                  @relation(fields: [shift_id], references: [id])
+  tables                 tables?                  @relation(fields: [table_id], references: [id])
+  tenants                tenants                  @relation(fields: [tenant_id], references: [id])
+  employees              employees?               @relation(fields: [waiter_id], references: [id])
+  payments               payments[]
+  platform_orders        platform_orders[]
+  refunds                refunds[]
+  tips                   tips[]
+  order_item_projections order_item_projections[]
+  order_tables           order_tables[]
 
   @@index([tenant_id, fulfillment_status], map: "idx_orders_fulfillment")
   @@index([tenant_id, order_number], map: "idx_orders_number")
@@ -841,7 +843,20 @@ model orders {
   @@index([tenant_id, table_id])
   @@index([items(ops: JsonbPathOps)], map: "idx_orders_items_gin", type: Gin)
   @@index([tenant_id, promotion_id], map: "orders_promotion_id_idx")
-  order_item_projections order_item_projections[]
+}
+
+/// Many-to-Many relationship for historical analytics of merged tables
+model order_tables {
+  order_id   String   @db.Uuid
+  table_id   String   @db.Uuid
+  is_primary Boolean  @default(false)
+  joined_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  orders orders @relation(fields: [order_id], references: [id])
+  tables tables @relation(fields: [table_id], references: [id])
+
+  @@id([order_id, table_id])
+  @@index([table_id])
 }
 
 /// Materialized projection of each order line's lifecycle.
@@ -1256,8 +1271,8 @@ model shifts {
   tenants                               tenants    @relation(fields: [tenant_id], references: [id])
   tips                                  tips[]
 
-  shift_denominations           shift_denominations[]
-  z_reports                     z_reports[]
+  shift_denominations shift_denominations[]
+  z_reports           z_reports[]
 
   @@index([tenant_id, opened_at(sort: Desc)], map: "idx_shifts_history")
   @@index([tenant_id, terminal_id, status], map: "idx_shifts_terminal_status")
@@ -1290,7 +1305,7 @@ model z_reports {
   shift_id              String   @db.Uuid
   terminal_id           String
   report_type           String   @default("Z") // Z=cierre, X=parcial
-  report_number         Int      // Correlativo por terminal
+  report_number         Int // Correlativo por terminal
   // === Montos ===
   gross_sales_cents     Int      @default(0)
   net_sales_cents       Int      @default(0)
@@ -1311,7 +1326,7 @@ model z_reports {
   voided_invoices_count Int      @default(0)
   credit_notes_count    Int      @default(0)
   // === Pagos ===
-  payments_breakdown    Json?    // {CASH: {count, totalCents}, YAPE: {...}, ...}
+  payments_breakdown    Json? // {CASH: {count, totalCents}, YAPE: {...}, ...}
   // === Caja ===
   cash_opening_cents    Int      @default(0)
   cash_expected_cents   Int      @default(0)
@@ -1478,10 +1493,10 @@ model customer_feedback {
   tenant_id     String   @db.Uuid
   table_id      String?  @db.Uuid
   table_number  String?
-  type          String   // QUEJA | SUGERENCIA | ELOGIO
+  type          String // QUEJA | SUGERENCIA | ELOGIO
   message       String
   customer_name String?
-  rating        Int?     // 1-5, optional
+  rating        Int? // 1-5, optional
   created_at    DateTime @default(now()) @db.Timestamptz(6)
   tenants       tenants  @relation(fields: [tenant_id], references: [id])
 
@@ -1531,6 +1546,7 @@ model tables {
   created_at       DateTime       @default(now()) @db.Timestamptz(6)
   updated_at       DateTime       @default(now()) @db.Timestamptz(6)
   orders           orders[]
+  order_tables     order_tables[]
   reservations     reservations[]
   locations        locations      @relation(fields: [location_id], references: [id])
   tenants          tenants        @relation(fields: [tenant_id], references: [id])
@@ -1542,55 +1558,55 @@ model tables {
 }
 
 model tenant_settings {
-  tenant_id                     String   @id @db.Uuid
+  tenant_id                     String    @id @db.Uuid
   legal_name                    String
   ruc                           String?
   address_text                  String?
   logo_url                      String?
-  timezone                      String   @default("America/Lima")
-  currency                      String   @default("PEN")
+  timezone                      String    @default("America/Lima")
+  currency                      String    @default("PEN")
   receipt_footer_text           String?
-  kds_audio_enabled             Boolean  @default(true)
-  kds_audio_volume              Int      @default(80)
-  default_delivery_fee_cents    Int      @default(0)
-  require_payment_verification  Boolean  @default(false)
-  allow_cod                     Boolean  @default(true)
-  default_payment_expectation   String   @default("PREPAID")
-  enable_tips                   Boolean  @default(true)
-  tips_on_invoice               Boolean  @default(false)
-  allow_offline_coupon          Boolean  @default(false)
-  max_offline_coupons_per_order Int      @default(1)
-  require_manager_for_offline   Boolean  @default(true)
-  updated_at                    DateTime @default(now()) @db.Timestamptz(6)
-  onboarding_status             String   @default("IN_PROGRESS")
+  kds_audio_enabled             Boolean   @default(true)
+  kds_audio_volume              Int       @default(80)
+  default_delivery_fee_cents    Int       @default(0)
+  require_payment_verification  Boolean   @default(false)
+  allow_cod                     Boolean   @default(true)
+  default_payment_expectation   String    @default("PREPAID")
+  enable_tips                   Boolean   @default(true)
+  tips_on_invoice               Boolean   @default(false)
+  allow_offline_coupon          Boolean   @default(false)
+  max_offline_coupons_per_order Int       @default(1)
+  require_manager_for_offline   Boolean   @default(true)
+  updated_at                    DateTime  @default(now()) @db.Timestamptz(6)
+  onboarding_status             String    @default("IN_PROGRESS")
   yape_merchant_phone           String?
   yape_merchant_name            String?
   plin_merchant_phone           String?
   plin_merchant_name            String?
   // === Caja Perú ===
-  max_cash_opening_cents        Int      @default(50000)  // S/500 máximo fondo inicial
-  cash_variance_alert_cents     Int      @default(2000)   // S/20 alerta diferencia arqueo
-  require_denomination_count    Boolean  @default(false)  // Exigir conteo por denominación al cierre
-  tip_max_untaxed_percent       Int      @default(10)     // Propina voluntaria no gravada hasta 10%
+  max_cash_opening_cents        Int       @default(50000) // S/500 máximo fondo inicial
+  cash_variance_alert_cents     Int       @default(2000) // S/20 alerta diferencia arqueo
+  require_denomination_count    Boolean   @default(false) // Exigir conteo por denominación al cierre
+  tip_max_untaxed_percent       Int       @default(10) // Propina voluntaria no gravada hasta 10%
   // === SUNAT Electronic Invoicing ===
-  sunat_provider                String?  @default("NONE")       // SUNAT_DIRECT | NUBEFACT | NONE
-  sunat_mode                    String?  @default("DISABLED")   // PRODUCTION | BETA | DISABLED
-  sunat_sol_user                String?                          // SOL username (e.g., "MODDATOS")
-  sunat_sol_password            String?                          // Encrypted AES-256-GCM
-  sunat_certificate_pem         String?                          // Encrypted AES-256-GCM
-  sunat_private_key_pem         String?                          // Encrypted AES-256-GCM
-  sunat_cert_expires_at         DateTime? @db.Timestamptz(6)     // Certificate expiration
-  nubefact_token                String?                          // Encrypted AES-256-GCM
-  nubefact_url                  String?                          // Nubefact API URL
+  sunat_provider                String?   @default("NONE") // SUNAT_DIRECT | NUBEFACT | NONE
+  sunat_mode                    String?   @default("DISABLED") // PRODUCTION | BETA | DISABLED
+  sunat_sol_user                String? // SOL username (e.g., "MODDATOS")
+  sunat_sol_password            String? // Encrypted AES-256-GCM
+  sunat_certificate_pem         String? // Encrypted AES-256-GCM
+  sunat_private_key_pem         String? // Encrypted AES-256-GCM
+  sunat_cert_expires_at         DateTime? @db.Timestamptz(6) // Certificate expiration
+  nubefact_token                String? // Encrypted AES-256-GCM
+  nubefact_url                  String? // Nubefact API URL
   // === Peru Identity Lookup (RENIEC/SUNAT) ===
-  peru_identity_api_token       String?                          // apis.net.pe Bearer token
+  peru_identity_api_token       String? // apis.net.pe Bearer token
   // === Loyalty Program ===
-  loyalty_enabled               Boolean  @default(false)
-  loyalty_points_per_sol        Int      @default(1)
-  loyalty_redemption_rate       Int      @default(100)           // points per S/1.00 discount
-  loyalty_tiers                 Json?                            // LoyaltyTier[] JSON
-  loyalty_min_redemption_points Int      @default(100)
-  tenants                       tenants  @relation(fields: [tenant_id], references: [id])
+  loyalty_enabled               Boolean   @default(false)
+  loyalty_points_per_sol        Int       @default(1)
+  loyalty_redemption_rate       Int       @default(100) // points per S/1.00 discount
+  loyalty_tiers                 Json? // LoyaltyTier[] JSON
+  loyalty_min_redemption_points Int       @default(100)
+  tenants                       tenants   @relation(fields: [tenant_id], references: [id])
 }
 
 model terminal_number_ranges {
@@ -1620,7 +1636,6 @@ model terminals {
   @@unique([tenant_id, terminal_id])
   @@index([tenant_id, station_id], map: "terminals_station_id_idx")
 }
-
 
 model tip_config {
   id                      String  @id @db.Uuid
@@ -1890,135 +1905,135 @@ model credit_notes {
 }
 
 model tenants {
-  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                     String
-  is_active                Boolean                    @default(true)
-  created_at               DateTime                   @default(now()) @db.Timestamptz(6)
-  updated_at               DateTime                   @default(now()) @db.Timestamptz(6)
-  slug                     String?                    @unique
-  activation_codes         activation_codes[]
-  active_sessions          active_sessions[]
-  admin_access_logs        admin_access_logs[]
-  archived_events          archived_events[]
-  advances                 advances[]
-  ai_suggestions           ai_suggestions[]
-  alert_configurations     alert_configurations[]
-  alert_events             alert_events[]
-  analytics_cache          analytics_cache[]
-  assignment_logs          assignment_logs[]
-  assignment_weights       assignment_weights?
-  attendance               attendance[]
-  auth_events              auth_events[]
-  catalog_meta             catalog_meta?
-  conflict_logs            conflict_logs[]
-  coupon_redemptions       coupon_redemptions[]
-  coupons                  coupons[]
-  credit_notes             credit_notes[]
-  cross_tenant_audit_log   cross_tenant_audit_log[]
-  customer_feedback        customer_feedback[]
-  customer_profile         customer_profile[]
-  customers                customers[]
-  daily_sales_summary      daily_sales_summary[]
-  dead_letter_queue        dead_letter_queue[]
-  pending_events           pending_events[]
-  delivery_addresses       delivery_addresses[]
-  delivery_metrics         delivery_metrics[]
-  delivery_orders          delivery_orders[]
-  delivery_zones           delivery_zones[]
-  device_mac_addresses     device_mac_addresses[]
-  drivers                  drivers[]
-  emergency_contacts       emergency_contacts[]
-  employee_documents       employee_documents[]
-  employee_schedules       employee_schedules[]
-  employees                employees[]
-  eta_predictions          eta_predictions[]
-  evaluations              evaluations[]
-  event_outbox             event_outbox[]
-  events                   events[]
-  goods_receipts           goods_receipts[]
-  inventory                inventory[]
-  inventory_counts         inventory_counts[]
-  inventory_log            inventory_log[]
-  invoice_cdr              invoice_cdr[]
-  invoice_queue            invoice_queue[]
-  invoices                 invoices[]
-  leave_requests           leave_requests[]
-  location_history         location_history[]
-  locations                locations[]
-  login_attempts           login_attempts[]
-  maintenance_windows      maintenance_windows[]
-  marketing_campaigns      marketing_campaigns[]
-  marketing_segments       marketing_segments[]
-  message_outbox           message_outbox[]
-  message_templates        message_templates[]
-  notification_preferences notification_preferences[]
-  onboarding_steps         onboarding_steps[]
-  orders                   orders[]
-  payment_settlements      payment_settlements[]
-  payments                 payments[]
-  payroll_records          payroll_records[]
-  petty_cash_balance       petty_cash_balance[]
-  petty_cash_transactions  petty_cash_transactions[]
-  pin_history              pin_history[]
-  platform_configs         platform_configs[]
-  order_item_projections   order_item_projections[]
-  platform_orders          platform_orders[]
-  pollo_daily_summary      pollo_daily_summary[]
-  pollo_production_logs    pollo_production_logs[]
-  print_jobs               print_jobs[]
-  printers                 printers[]
-  processed_events         processed_events[]
-  products                 products[]
-  promotions               promotions[]
-  purchase_orders          purchase_orders[]
-  push_subscriptions       push_subscriptions[]
-  recipes                  recipes[]
-  recovery_action_log      recovery_action_log[]
-  refunds                  refunds[]
-  reservations             reservations[]
-  schedule_templates       schedule_templates[]
-  schedules                schedules[]
-  security_alerts          security_alerts[]
-  segment_members          segment_members[]
-  session_alerts           session_alerts[]
-  session_audit_log        session_audit_log[]
-  sessions                 sessions[]
-  shift_change_requests    shift_change_requests[]
-  shift_denominations      shift_denominations[]
-  shifts                   shifts[]
-  soft_locks               soft_locks[]
-  station_alerts           station_alerts[]
-  stations                 stations[]
-  stock_alerts             stock_alerts[]
-  stock_transfers          stock_transfers[]
-  sunat_contingency            sunat_contingency[]
-  sunat_contingency_invoices   sunat_contingency_invoices[]
-  sunat_daily_summary      sunat_daily_summary[]
-  supplier_products        supplier_products[]
-  suppliers                suppliers[]
-  sync_conflicts           sync_conflicts[]
-  table_layouts            table_layouts[]
-  tables                   tables[]
-  tenant_analytics         tenant_analytics[]
-  tenant_health_checks     tenant_health_checks[]
-  tenant_quotas            tenant_quotas?
-  tenant_settings          tenant_settings?
-  tenant_usage             tenant_usage?
-  terminal_devices         terminal_devices[]
-  terminal_mac_registry    terminal_mac_registry[]
-  terminal_number_ranges   terminal_number_ranges[]
-  terminals                terminals[]
-  tip_config               tip_config[]
-  tip_distributions        tip_distributions[]
-  tips                     tips[]
-  training_records         training_records[]
-  transaction_limits       transaction_limits[]
-  waitlist                 waitlist[]
-  loyalty_ledger           loyalty_ledger[]
-  waste_logs               waste_logs[]
-  whatsapp_messages        whatsapp_messages[]
-  z_reports                z_reports[]
-  zones                    zones[]
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                       String
+  is_active                  Boolean                      @default(true)
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  slug                       String?                      @unique
+  activation_codes           activation_codes[]
+  active_sessions            active_sessions[]
+  admin_access_logs          admin_access_logs[]
+  archived_events            archived_events[]
+  advances                   advances[]
+  ai_suggestions             ai_suggestions[]
+  alert_configurations       alert_configurations[]
+  alert_events               alert_events[]
+  analytics_cache            analytics_cache[]
+  assignment_logs            assignment_logs[]
+  assignment_weights         assignment_weights?
+  attendance                 attendance[]
+  auth_events                auth_events[]
+  catalog_meta               catalog_meta?
+  conflict_logs              conflict_logs[]
+  coupon_redemptions         coupon_redemptions[]
+  coupons                    coupons[]
+  credit_notes               credit_notes[]
+  cross_tenant_audit_log     cross_tenant_audit_log[]
+  customer_feedback          customer_feedback[]
+  customer_profile           customer_profile[]
+  customers                  customers[]
+  daily_sales_summary        daily_sales_summary[]
+  dead_letter_queue          dead_letter_queue[]
+  pending_events             pending_events[]
+  delivery_addresses         delivery_addresses[]
+  delivery_metrics           delivery_metrics[]
+  delivery_orders            delivery_orders[]
+  delivery_zones             delivery_zones[]
+  device_mac_addresses       device_mac_addresses[]
+  drivers                    drivers[]
+  emergency_contacts         emergency_contacts[]
+  employee_documents         employee_documents[]
+  employee_schedules         employee_schedules[]
+  employees                  employees[]
+  eta_predictions            eta_predictions[]
+  evaluations                evaluations[]
+  event_outbox               event_outbox[]
+  events                     events[]
+  goods_receipts             goods_receipts[]
+  inventory                  inventory[]
+  inventory_counts           inventory_counts[]
+  inventory_log              inventory_log[]
+  invoice_cdr                invoice_cdr[]
+  invoice_queue              invoice_queue[]
+  invoices                   invoices[]
+  leave_requests             leave_requests[]
+  location_history           location_history[]
+  locations                  locations[]
+  login_attempts             login_attempts[]
+  maintenance_windows        maintenance_windows[]
+  marketing_campaigns        marketing_campaigns[]
+  marketing_segments         marketing_segments[]
+  message_outbox             message_outbox[]
+  message_templates          message_templates[]
+  notification_preferences   notification_preferences[]
+  onboarding_steps           onboarding_steps[]
+  orders                     orders[]
+  payment_settlements        payment_settlements[]
+  payments                   payments[]
+  payroll_records            payroll_records[]
+  petty_cash_balance         petty_cash_balance[]
+  petty_cash_transactions    petty_cash_transactions[]
+  pin_history                pin_history[]
+  platform_configs           platform_configs[]
+  order_item_projections     order_item_projections[]
+  platform_orders            platform_orders[]
+  pollo_daily_summary        pollo_daily_summary[]
+  pollo_production_logs      pollo_production_logs[]
+  print_jobs                 print_jobs[]
+  printers                   printers[]
+  processed_events           processed_events[]
+  products                   products[]
+  promotions                 promotions[]
+  purchase_orders            purchase_orders[]
+  push_subscriptions         push_subscriptions[]
+  recipes                    recipes[]
+  recovery_action_log        recovery_action_log[]
+  refunds                    refunds[]
+  reservations               reservations[]
+  schedule_templates         schedule_templates[]
+  schedules                  schedules[]
+  security_alerts            security_alerts[]
+  segment_members            segment_members[]
+  session_alerts             session_alerts[]
+  session_audit_log          session_audit_log[]
+  sessions                   sessions[]
+  shift_change_requests      shift_change_requests[]
+  shift_denominations        shift_denominations[]
+  shifts                     shifts[]
+  soft_locks                 soft_locks[]
+  station_alerts             station_alerts[]
+  stations                   stations[]
+  stock_alerts               stock_alerts[]
+  stock_transfers            stock_transfers[]
+  sunat_contingency          sunat_contingency[]
+  sunat_contingency_invoices sunat_contingency_invoices[]
+  sunat_daily_summary        sunat_daily_summary[]
+  supplier_products          supplier_products[]
+  suppliers                  suppliers[]
+  sync_conflicts             sync_conflicts[]
+  table_layouts              table_layouts[]
+  tables                     tables[]
+  tenant_analytics           tenant_analytics[]
+  tenant_health_checks       tenant_health_checks[]
+  tenant_quotas              tenant_quotas?
+  tenant_settings            tenant_settings?
+  tenant_usage               tenant_usage?
+  terminal_devices           terminal_devices[]
+  terminal_mac_registry      terminal_mac_registry[]
+  terminal_number_ranges     terminal_number_ranges[]
+  terminals                  terminals[]
+  tip_config                 tip_config[]
+  tip_distributions          tip_distributions[]
+  tips                       tips[]
+  training_records           training_records[]
+  transaction_limits         transaction_limits[]
+  waitlist                   waitlist[]
+  loyalty_ledger             loyalty_ledger[]
+  waste_logs                 waste_logs[]
+  whatsapp_messages          whatsapp_messages[]
+  z_reports                  z_reports[]
+  zones                      zones[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -2094,7 +2109,6 @@ model assignment_weights {
   performance Float    @default(0.3)
   updated_at  DateTime @default(now()) @db.Timestamptz(6)
   tenants     tenants  @relation(fields: [tenant_id], references: [id])
-
 }
 
 model assignment_logs {
@@ -2894,19 +2908,19 @@ model sunat_contingency {
 }
 
 model sunat_contingency_invoices {
-  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contingency_id   String             @db.Uuid
-  invoice_id       String             @db.Uuid
-  tenant_id        String             @db.Uuid
-  series           String
-  number           String
-  issued_at        DateTime           @db.Timestamptz(6)
-  reconcile_by     DateTime           @db.Timestamptz(6)
-  reconciled_at    DateTime?          @db.Timestamptz(6)
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contingency_id    String            @db.Uuid
+  invoice_id        String            @db.Uuid
+  tenant_id         String            @db.Uuid
+  series            String
+  number            String
+  issued_at         DateTime          @db.Timestamptz(6)
+  reconcile_by      DateTime          @db.Timestamptz(6)
+  reconciled_at     DateTime?         @db.Timestamptz(6)
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
   sunat_contingency sunat_contingency @relation(fields: [contingency_id], references: [id])
-  invoices         invoices           @relation(fields: [invoice_id], references: [id])
-  tenants          tenants            @relation(fields: [tenant_id], references: [id])
+  invoices          invoices          @relation(fields: [invoice_id], references: [id])
+  tenants           tenants           @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, reconciled_at])
   @@index([contingency_id])

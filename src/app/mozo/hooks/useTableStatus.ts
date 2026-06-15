@@ -15,7 +15,7 @@ import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
  * would break the mozo reducer without a full sync-pipeline migration.
  * See: src/app/admin/mesas/page.tsx for the DB-side 'AVAILABLE' vocabulary.
  */
-export type TableStatus = "FREE" | "OCCUPIED" | "BILL_REQUESTED" | "PAID";
+export type TableStatus = "FREE" | "OCCUPIED" | "COOKING" | "BILL_REQUESTED" | "PAID";
 
 export interface Zone {
     id: string;
@@ -38,24 +38,73 @@ export interface TableInfo {
     zone?: Zone;
 }
 
-// Fetch tables from API
+// Fetch tables from API and sync to IndexedDB
 async function fetchTablesFromAPI(): Promise<Array<{
     id: string;
     number: string;
     display_name: string | null;
     zone: Zone | null;
     is_active: boolean;
+    capacity: number;
 }>> {
+    const config = getStoredTerminalConfig();
+    const tenantId = config?.tenant_id;
+    if (!tenantId) return [];
+
     try {
-        const config = getStoredTerminalConfig();
-        const tenantId = config?.tenant_id;
-        if (!tenantId) return [];
         const res = await fetch('/api/pos/tables?active=true', {
             headers: { 'x-tenant-id': tenantId },
         });
-        if (!res.ok) return [];
-        return await res.json();
-    } catch {
+        
+        if (!res.ok) {
+            throw new Error("API not ok");
+        }
+        
+        const tables = await res.json();
+        
+        // Cache in IndexedDB
+        if (tables && tables.length > 0) {
+            try {
+                await db.master_tables.bulkPut(
+                    tables.map((t: any) => ({
+                        id: t.id,
+                        tenant_id: tenantId,
+                        number: t.number,
+                        display_name: t.display_name,
+                        zone: t.zone,
+                        is_active: t.is_active !== false,
+                        capacity: t.capacity || 4
+                    }))
+                );
+            } catch (dbErr) {
+                console.error("Failed to cache tables in IndexedDB", dbErr);
+            }
+        }
+        
+        return tables;
+    } catch (err) {
+        // Fallback to IndexedDB
+        console.log("Network error fetching tables, falling back to IndexedDB", err);
+        try {
+            const cachedTables = await db.master_tables
+                .where('tenant_id')
+                .equals(tenantId)
+                .toArray();
+                
+            if (cachedTables && cachedTables.length > 0) {
+                return cachedTables.map(t => ({
+                    id: t.id,
+                    number: t.number,
+                    display_name: t.display_name,
+                    zone: t.zone,
+                    is_active: t.is_active,
+                    capacity: t.capacity
+                }));
+            }
+        } catch (dbErr) {
+            console.error("Failed to read cached tables", dbErr);
+        }
+        
         return [];
     }
 }
@@ -144,37 +193,8 @@ export function useTableStatus(zoneId?: string) {
         const tableState: Record<string, TableInfo> = {};
         const now = Date.now();
 
-        // Use API tables if available, fallback to default
-        // Fallback mirrors DB: 23 tables across 4 zones (SALON 1-10, TERRAZA 11-16, BAR 17-20, VIP 21-22+24)
-        const SALON    = { id: "salon",   code: "SALON",   name: "Salón Principal", color: "#4CAF50" };
-        const TERRAZA  = { id: "terraza", code: "TERRAZA", name: "Terraza",          color: "#2196F3" };
-        const BAR      = { id: "bar",     code: "BAR",     name: "Barra",            color: "#FF9800" };
-        const VIP      = { id: "vip",     code: "VIP",     name: "Zona VIP",         color: "#9C27B0" };
-        const tablesToUse = apiTables.length > 0 ? apiTables : [
-            { id: "1",  number: "1",  display_name: null, zone: SALON   },
-            { id: "2",  number: "2",  display_name: null, zone: SALON   },
-            { id: "3",  number: "3",  display_name: null, zone: SALON   },
-            { id: "4",  number: "4",  display_name: null, zone: SALON   },
-            { id: "5",  number: "5",  display_name: null, zone: SALON   },
-            { id: "6",  number: "6",  display_name: null, zone: SALON   },
-            { id: "7",  number: "7",  display_name: null, zone: SALON   },
-            { id: "8",  number: "8",  display_name: null, zone: SALON   },
-            { id: "9",  number: "9",  display_name: null, zone: SALON   },
-            { id: "10", number: "10", display_name: null, zone: SALON   },
-            { id: "11", number: "11", display_name: null, zone: TERRAZA },
-            { id: "12", number: "12", display_name: null, zone: TERRAZA },
-            { id: "13", number: "13", display_name: null, zone: TERRAZA },
-            { id: "14", number: "14", display_name: null, zone: TERRAZA },
-            { id: "15", number: "15", display_name: null, zone: TERRAZA },
-            { id: "16", number: "16", display_name: null, zone: TERRAZA },
-            { id: "17", number: "17", display_name: null, zone: BAR     },
-            { id: "18", number: "18", display_name: null, zone: BAR     },
-            { id: "19", number: "19", display_name: null, zone: BAR     },
-            { id: "20", number: "20", display_name: null, zone: BAR     },
-            { id: "21", number: "21", display_name: null, zone: VIP     },
-            { id: "22", number: "22", display_name: null, zone: VIP     },
-            { id: "24", number: "24", display_name: null, zone: VIP     },
-        ];
+        // Use API tables only. No fallback stubs to prevent fake data in UI.
+        const tablesToUse = apiTables;
 
         // Initialize all tables as FREE
         tablesToUse.forEach(t => {
@@ -213,6 +233,9 @@ export function useTableStatus(zoneId?: string) {
 
                 // Determine status
                 let status: TableStatus = "OCCUPIED";
+                if (ord.status === "SENT" || ord.status === "PREPARING") {
+                    status = "COOKING";
+                }
                 if (ord.billRequested) {
                     status = "BILL_REQUESTED";
                 }

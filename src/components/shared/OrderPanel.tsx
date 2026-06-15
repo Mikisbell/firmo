@@ -12,10 +12,11 @@ import {
     CreditCard,
     Banknote,
     Smartphone,
-    Receipt,
     Trash2,
     ArrowLeftRight,
     Scissors,
+    Users,
+    Receipt,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -45,6 +46,7 @@ interface OrderPanelProps {
     onPrintPrecheck?: () => void;
     onTransferTable?: () => void;
     onSplitBill?: () => void;
+    onJoinTable?: () => void;
 
     // Cashier actions
     onPayCash?: () => void;
@@ -81,6 +83,7 @@ export function OrderPanel({
     onPrintPrecheck,
     onTransferTable,
     onSplitBill,
+    onJoinTable,
     onPayCash,
     onPayYape,
     onPayCard,
@@ -196,7 +199,7 @@ export function OrderPanel({
                                 </button>
                             </div>
 
-                            {(onTransferTable || onSplitBill) && (
+                            {(onTransferTable || onSplitBill || onJoinTable) && (
                                 <div className="grid grid-cols-2 gap-2">
                                     {onTransferTable && (
                                         <button
@@ -216,6 +219,16 @@ export function OrderPanel({
                                         >
                                             <Scissors size={18} />
                                             <span>Dividir</span>
+                                        </button>
+                                    )}
+                                    {onJoinTable && (
+                                        <button
+                                            onClick={onJoinTable}
+                                            disabled={items.length === 0}
+                                            className="flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 disabled:opacity-50 rounded-xl font-medium text-sm transition-colors min-h-[48px] touch-manipulation col-span-2"
+                                        >
+                                            <Users size={18} />
+                                            <span>Unir Mesas</span>
                                         </button>
                                     )}
                                 </div>
@@ -355,7 +368,7 @@ export function OrderPanel({
                             </button>
                         </div>
 
-                        {(onTransferTable || onSplitBill) && (
+                        {(onTransferTable || onSplitBill || onJoinTable) && (
                             <div className="grid grid-cols-2 gap-2">
                                 {onTransferTable && (
                                     <button
@@ -375,6 +388,16 @@ export function OrderPanel({
                                     >
                                         <Scissors size={16} />
                                         <span>Dividir</span>
+                                    </button>
+                                )}
+                                {onJoinTable && (
+                                    <button
+                                        onClick={onJoinTable}
+                                        disabled={items.length === 0}
+                                        className="flex items-center justify-center gap-2 py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 rounded-lg font-medium text-sm transition-colors col-span-2"
+                                    >
+                                        <Users size={16} />
+                                        <span>Unir Mesas</span>
                                     </button>
                                 )}
                             </div>

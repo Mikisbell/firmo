@@ -828,6 +828,29 @@ export const POSActions = {
     },
 
     /**
+     * Attach a table to an existing order
+     */
+    async attachTable(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        primary_table: string,
+        attached_table_id: string
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "TABLE_ATTACHED_TO_ORDER",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: { order_id, primary_table_id: primary_table, attached_table_id, attached_by: actor_id },
+        });
+    },
+
+    /**
      * Get next order number from server-side range allocator
      * Auto-allocates range if needed via API
      */

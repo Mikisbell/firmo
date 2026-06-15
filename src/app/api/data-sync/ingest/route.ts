@@ -70,6 +70,7 @@ async function checkDependencies(
         'CHECK_CREATED', 'CHECK_PAYMENT_ADDED', 'CHECK_MARKED_PAID',
         'CHECK_TIP_SET', 'CHECK_DISCOUNT_SET', 'CHECK_ITEMS_UPDATED', 'CHECK_ITEMS_MOVED',
         'REFUND_ISSUED', 'REQUEST_CHECK',
+        'TABLE_ATTACHED_TO_ORDER', 'TABLE_DETACHED_FROM_ORDER',
     ]);
 
     if (ORDER_DEPENDENT_EVENTS.has(event_type)) {
@@ -196,6 +197,126 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         WHERE tenant_id = ${tenant_id}::uuid 
                           AND number = ${p.fulfillment.table_number}
                     `;
+
+                    const tbl = await tx.tables.findFirst({
+                        where: { tenant_id, number: p.fulfillment.table_number },
+                        select: { id: true }
+                    });
+                    if (tbl) {
+                        await tx.order_tables.create({
+                            data: {
+                                order_id: p.order_id,
+                                table_id: tbl.id,
+                                is_primary: true
+                            }
+                        }).catch(() => {}); // Ignore duplicate
+                    }
+                }
+                break;
+            }
+
+            case "TABLE_ATTACHED_TO_ORDER": {
+                const p = payload as any;
+                // Add to junction table first to get the IDs
+                const primaryTbl = await tx.tables.findFirst({
+                    where: { tenant_id, number: p.primary_table_id },
+                    select: { id: true }
+                });
+                const attachedTbl = await tx.tables.findFirst({
+                    where: { tenant_id, number: p.attached_table_id },
+                    select: { id: true }
+                });
+
+                if (attachedTbl) {
+                    // Update table status to OCCUPIED and link to order
+                    await tx.$executeRaw`
+                        UPDATE tables 
+                        SET status = 'OCCUPIED', 
+                            current_order_id = ${p.order_id}::uuid,
+                            parent_table_id = ${primaryTbl?.id ?? null}::uuid,
+                            occupied_since = ${new Date(occurred_at)}
+                        WHERE id = ${attachedTbl.id}::uuid
+                    `;
+
+                    await tx.order_tables.create({
+                        data: {
+                            order_id: p.order_id,
+                            table_id: attachedTbl.id,
+                            is_primary: false,
+                            joined_at: new Date(occurred_at)
+                        }
+                    }).catch(() => {});
+                }
+                break;
+            }
+
+            case "TABLE_DETACHED_FROM_ORDER": {
+                const p = payload as any;
+                // Free the table
+                await tx.$executeRaw`
+                    UPDATE tables 
+                    SET status = 'AVAILABLE', 
+                        current_order_id = NULL,
+                        parent_table_id = NULL,
+                        occupied_since = NULL
+                    WHERE tenant_id = ${tenant_id}::uuid 
+                      AND number = ${p.detached_table_id}
+                `;
+
+                // Remove from junction table
+                const detachedTbl = await tx.tables.findFirst({
+                    where: { tenant_id, number: p.detached_table_id },
+                    select: { id: true }
+                });
+                if (detachedTbl) {
+                    await tx.order_tables.deleteMany({
+                        where: {
+                            order_id: p.order_id,
+                            table_id: detachedTbl.id,
+                            is_primary: false
+                        }
+                    });
+                }
+                break;
+            }
+
+            case "ORDER_TABLE_CHANGED": {
+                const p = payload as any;
+                // Free old table
+                await tx.$executeRaw`
+                    UPDATE tables 
+                    SET status = 'AVAILABLE', 
+                        current_order_id = NULL,
+                        occupied_since = NULL
+                    WHERE tenant_id = ${tenant_id}::uuid 
+                      AND number = ${p.from_table}
+                `;
+                
+                // Occupy new table
+                await tx.$executeRaw`
+                    UPDATE tables 
+                    SET status = 'OCCUPIED', 
+                        current_order_id = ${p.order_id}::uuid,
+                        occupied_since = ${new Date(occurred_at)}
+                    WHERE tenant_id = ${tenant_id}::uuid 
+                      AND number = ${p.to_table}
+                `;
+
+                // Update junction table
+                const oldTbl = await tx.tables.findFirst({
+                    where: { tenant_id, number: p.from_table },
+                    select: { id: true }
+                });
+                const newTbl = await tx.tables.findFirst({
+                    where: { tenant_id, number: p.to_table },
+                    select: { id: true }
+                });
+                
+                if (oldTbl && newTbl) {
+                    await tx.order_tables.updateMany({
+                        where: { order_id: p.order_id, table_id: oldTbl.id, is_primary: true },
+                        data: { table_id: newTbl.id }
+                    });
                 }
                 break;
             }
@@ -780,6 +901,72 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                     SET table_number = ${p.to_table}, updated_at = ${new Date(occurred_at)}
                     WHERE order_id = ${p.order_id}::uuid
                 `;
+                
+                // Update primary link
+                await tx.order_tables.deleteMany({
+                    where: { order_id: p.order_id, is_primary: true }
+                });
+                
+                const newTbl = await tx.tables.findFirst({
+                    where: { tenant_id, number: p.to_table },
+                    select: { id: true }
+                });
+                if (newTbl) {
+                    await tx.order_tables.create({
+                        data: {
+                            order_id: p.order_id,
+                            table_id: newTbl.id,
+                            is_primary: true
+                        }
+                    }).catch(() => {});
+                }
+                break;
+            }
+
+            case "TABLE_ATTACHED_TO_ORDER": {
+                const p = payload as any;
+                await tx.$executeRaw`
+                    UPDATE tables 
+                    SET status = 'OCCUPIED', 
+                        current_order_id = ${p.order_id}::uuid,
+                        occupied_since = ${new Date(occurred_at)}
+                    WHERE id = ${p.attached_table_id}::uuid
+                `;
+
+                await tx.order_tables.upsert({
+                    where: {
+                        order_id_table_id: {
+                            order_id: p.order_id,
+                            table_id: p.attached_table_id
+                        }
+                    },
+                    create: {
+                        order_id: p.order_id,
+                        table_id: p.attached_table_id,
+                        is_primary: false,
+                        joined_at: new Date(occurred_at)
+                    },
+                    update: {}
+                });
+                break;
+            }
+
+            case "TABLE_DETACHED_FROM_ORDER": {
+                const p = payload as any;
+                await tx.$executeRaw`
+                    UPDATE tables 
+                    SET status = 'AVAILABLE', 
+                        current_order_id = NULL,
+                        occupied_since = NULL
+                    WHERE id = ${p.detached_table_id}::uuid
+                `;
+                
+                await tx.order_tables.deleteMany({
+                    where: {
+                        order_id: p.order_id,
+                        table_id: p.detached_table_id
+                    }
+                });
                 break;
             }
 
