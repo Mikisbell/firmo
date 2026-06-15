@@ -137,7 +137,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
     };
 
     return (
-        <div className="h-full flex flex-col bg-park-black border-l border-white/10 shadow-2xl">
+        <div className="h-full flex flex-col bg-transparent">
             {/* Header */}
             <div className="bg-zinc-900/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-10 flex flex-col">
                 <div className="p-4 flex items-center gap-3">
@@ -205,7 +205,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
             </div>
 
             {/* Items List - Virtual Ticket Style */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-park-black relative">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-transparent relative">
                 {/* Zigzag decoration top */}
                 <div className="absolute top-0 left-0 right-0 h-2 bg-transparent bg-contain opacity-50"></div>
 
@@ -227,7 +227,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         </button>
                     </div>
                 ) : (
-                    <div className="bg-zinc-900 shadow-lg border border-white/5 rounded-2xl p-4 min-h-full flex flex-col">
+                    <div className="bg-zinc-900/40 backdrop-blur-md shadow-xl shadow-black/20 border border-white/10 rounded-2xl p-4 min-h-full flex flex-col">
                         <div className="text-center border-b border-dashed border-white/10 pb-4 mb-4">
                             <ParkLogo size={48} className="mx-auto mb-2" />
                             <h3 className="font-black text-xl uppercase tracking-widest text-white">PARK POS</h3>
@@ -371,9 +371,9 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             <span>+ S/ {(check.tip_cents / 100).toFixed(2)}</span>
                         </div>
                     )}
-                    <div className="flex justify-between items-baseline text-white border-t border-white/20 pt-4">
-                        <span className="font-black text-3xl tracking-tighter text-emerald-400">TOTAL</span>
-                        <span className="font-mono text-4xl font-black tabular-nums text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">S/ {(check.total_cents / 100).toFixed(2)}</span>
+                    <div className="flex justify-between items-baseline text-white border-t border-white/10 pt-4 mt-2">
+                        <span className="font-black text-3xl tracking-tighter text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">TOTAL</span>
+                        <span className="font-mono text-4xl font-black tabular-nums text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]">S/ {(check.total_cents / 100).toFixed(2)}</span>
                     </div>
 
                     {/* Payment Progress Bar */}
@@ -401,9 +401,9 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                         onPayment("CASH", remainingCents, 0);
                                     }}
                                     disabled={check.total_cents <= 0}
-                                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-park-black py-4 rounded-2xl font-black text-lg uppercase flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/30 active:scale-95 touch-manipulation min-h-[60px]"
+                                    className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 active:from-emerald-600 active:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-park-black py-4 rounded-2xl font-black text-lg uppercase flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] active:scale-95 touch-manipulation min-h-[60px] border border-emerald-300/50"
                                 >
-                                    <Banknote className="w-5 h-5" />
+                                    <Banknote className="w-5 h-5 drop-shadow-sm" />
                                     Efectivo S/ {(remainingCents / 100).toFixed(2)}
                                 </button>
                                 <button
@@ -439,9 +439,9 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 <button
                                     onClick={() => setShowPayModal(true)}
                                     disabled={check.total_cents <= 0}
-                                    className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-lg uppercase flex justify-center items-center gap-1.5 transition-all shadow-xl shadow-indigo-600/30 active:scale-95 min-h-[60px] touch-manipulation"
+                                    className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-lg uppercase flex justify-center items-center gap-1.5 transition-all shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-400/50 active:scale-95 min-h-[60px] touch-manipulation"
                                 >
-                                    <CreditCard className="w-4 h-4" />
+                                    <CreditCard className="w-4 h-4 drop-shadow-sm" />
                                     COBRAR
                                 </button>
                             </div>

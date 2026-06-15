@@ -147,19 +147,19 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
     return (
         <div className="space-y-4">
             {/* Search Input */}
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+            <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-indigo-400 transition-colors" />
                 <input
                     type="text"
-                    placeholder="Buscar producto..."
+                    placeholder="Buscar producto por nombre o SKU..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full pl-12 pr-12 py-3.5 bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-2xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 shadow-inner transition-all"
                 />
                 {searchQuery && (
                     <button
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
                     >
                         ✕
                     </button>
@@ -211,54 +211,57 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
                                             key={p.id}
                                             data-testid={`product-${p.id}`}
                                             onClick={() => shiftOpen ? onAdd(p) : alert("Abre un turno para vender")}
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.95 }}
+                                            whileHover={{ scale: 1.03, y: -2 }}
+                                            whileTap={{ scale: 0.97 }}
                                             disabled={!shiftOpen}
                                             className={`
                                                 group relative flex flex-col items-start justify-between 
                                                 p-4 
                                                 min-h-[140px] lg:min-h-[150px]
-                                                w-full rounded-xl border-b-4 shadow-md 
-                                                transition-all duration-150 overflow-hidden text-left active:translate-y-1 active:border-b-0
+                                                w-full rounded-2xl border backdrop-blur-sm shadow-lg
+                                                transition-all duration-300 overflow-hidden text-left
                                                 ${!shiftOpen
-                                                    ? 'opacity-40 cursor-not-allowed bg-zinc-900 border-zinc-950 grayscale'
-                                                    : p.category === 'POLLOS' || p.category === 'PARRILLA' ? 'bg-orange-600 border-orange-800 hover:bg-orange-500 text-white'
-                                                    : p.category === 'BEBIDAS' ? 'bg-blue-600 border-blue-800 hover:bg-blue-500 text-white'
-                                                    : p.category === 'GUARNICIONES' ? 'bg-emerald-600 border-emerald-800 hover:bg-emerald-500 text-white'
-                                                    : p.category === 'POSTRES' ? 'bg-pink-600 border-pink-800 hover:bg-pink-500 text-white'
-                                                    : p.category === 'EXTRAS' ? 'bg-lime-600 border-lime-800 hover:bg-lime-500 text-white'
-                                                    : p.category === 'COMBOS' ? 'bg-yellow-500 border-yellow-700 hover:bg-yellow-400 text-park-black'
-                                                    : 'bg-zinc-800 border-zinc-950 hover:bg-zinc-700 text-white'
+                                                    ? 'opacity-40 cursor-not-allowed bg-zinc-900 border-white/5 grayscale'
+                                                    : p.category === 'POLLOS' || p.category === 'PARRILLA' ? 'bg-orange-500/10 border-orange-500/20 hover:bg-orange-500/20 hover:border-orange-500/40 hover:shadow-orange-500/20 text-orange-50'
+                                                    : p.category === 'BEBIDAS' ? 'bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/40 hover:shadow-blue-500/20 text-blue-50'
+                                                    : p.category === 'GUARNICIONES' ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:shadow-emerald-500/20 text-emerald-50'
+                                                    : p.category === 'POSTRES' ? 'bg-pink-500/10 border-pink-500/20 hover:bg-pink-500/20 hover:border-pink-500/40 hover:shadow-pink-500/20 text-pink-50'
+                                                    : p.category === 'EXTRAS' ? 'bg-lime-500/10 border-lime-500/20 hover:bg-lime-500/20 hover:border-lime-500/40 hover:shadow-lime-500/20 text-lime-50'
+                                                    : p.category === 'COMBOS' ? 'bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 hover:shadow-amber-500/20 text-amber-50'
+                                                    : 'bg-zinc-800/40 border-zinc-700/50 hover:bg-zinc-700/50 hover:border-zinc-500/50 hover:shadow-zinc-500/20 text-zinc-100'
                                                 }
-                                                ${isRecommended ? 'ring-2 ring-white ring-offset-2 ring-offset-park-black' : ''}
+                                                ${isRecommended ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 shadow-[0_0_20px_rgba(99,102,241,0.4)]' : ''}
                                             `}
                                         >
+                                            {/* Glowing gradient background on hover */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
                                             {isRecommended && (
-                                                <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2">
-                                                    <span className="bg-indigo-500 text-white text-[8px] md:text-[9px] uppercase font-black px-1 md:px-1.5 py-0.5 rounded-full">
-                                                        🔥
+                                                <div className="absolute top-2 right-2 z-10 animate-pulse">
+                                                    <span className="bg-indigo-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-full shadow-lg shadow-indigo-500/50 flex items-center gap-1">
+                                                        <Star size={10} className="fill-white" />
                                                     </span>
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-2 w-full">
-                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-inner bg-black/20`}>
-                                                    <Icon className={`w-5 h-5 text-current opacity-80`} />
+                                            <div className="flex items-center gap-3 w-full relative z-10">
+                                                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-inner bg-black/40 border border-white/5 backdrop-blur-md`}>
+                                                    <Icon className={`w-5 h-5 text-current opacity-90`} />
                                                 </div>
                                                 {!isMobile && (
-                                                    <span className={`text-[10px] font-black tracking-wider px-2 py-0.5 rounded bg-black/30 text-white/90 uppercase ml-auto`}>
+                                                    <span className={`text-[9px] font-black tracking-widest px-2.5 py-1 rounded-md bg-black/40 border border-white/5 text-white/90 uppercase ml-auto`}>
                                                         {p.station}
                                                     </span>
                                                 )}
                                             </div>
 
-                                            <div className="w-full mt-auto">
-                                                <h3 className="font-bold text-sm md:text-base leading-tight line-clamp-2 mb-2 text-current drop-shadow-md">
+                                            <div className="w-full mt-auto relative z-10">
+                                                <h3 className="font-bold text-sm md:text-base leading-snug line-clamp-2 mb-2 text-current drop-shadow-sm group-hover:text-white transition-colors">
                                                     {p.name}
                                                 </h3>
-                                                <div className="flex items-baseline gap-1 bg-black/20 px-2 py-1 rounded-md inline-flex">
-                                                    <span className="text-xs font-bold text-current opacity-80">S/</span>
-                                                    <span className={`font-mono text-lg md:text-xl font-black tracking-tight text-current drop-shadow-sm`}>
+                                                <div className="flex items-baseline gap-1 bg-black/40 border border-white/5 px-2.5 py-1.5 rounded-lg inline-flex backdrop-blur-sm">
+                                                    <span className="text-xs font-bold text-current opacity-70">S/</span>
+                                                    <span className={`font-mono text-lg md:text-xl font-black tracking-tight text-white drop-shadow-md`}>
                                                         {formatCents(p.price)}
                                                     </span>
                                                 </div>

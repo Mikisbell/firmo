@@ -54,7 +54,7 @@ export default function POSPage() {
     const [isOnline, setIsOnline] = useState(true);
     const [pendingSync, setPendingSync] = useState(0);
     const [cashierView, setCashierView] = useState<CashierView>("PENDING");
-    const [currentNavSection, setCurrentNavSection] = useState<"POS" | "SALON" | "ORDERS" | "DELIVERY" | "REPORTS" | "SETTINGS">("POS");
+    const [currentNavSection, setCurrentNavSection] = useState<"POS" | "SALON" | "ORDERS" | "DELIVERY" | "SETTINGS">("POS");
 
     // Real-time orders from all terminals
     const { orders: liveOrders, isConnected: sseConnected } = useLiveOrders({
@@ -543,7 +543,7 @@ export default function POSPage() {
     };
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-park-black text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-zinc-900 via-park-black to-zinc-950" data-testid="pos-page">
+        <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-white relative font-sans bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-zinc-950 via-zinc-900/50 to-zinc-950" data-testid="pos-page">
             <Toaster position="top-center" richColors />
             
             {/* Mobile Warning - POS is optimized for tablet/desktop */}
@@ -608,7 +608,7 @@ export default function POSPage() {
             {/* NEW ENTERPRISE LAYOUT - 3 COLUMNS */}
 
             {/* COLUMN 1: SIDEBAR NAVIGATION */}
-            <nav className="w-[88px] bg-zinc-950 border-r border-white/5 flex flex-col items-center py-6 gap-6 z-30 shrink-0 shadow-2xl shadow-black">
+            <nav className="w-[88px] bg-zinc-950/80 backdrop-blur-xl border-r border-white/10 flex flex-col items-center py-6 gap-6 z-30 shrink-0 shadow-2xl shadow-black/50">
                 <div className="mb-4">
                     <ParkLogo size={44} className="rounded-xl shadow-lg" />
                 </div>
@@ -649,13 +649,6 @@ export default function POSPage() {
                         <span className="text-[10px] font-bold tracking-wider">ENVÍOS</span>
                     </button>
                     
-                    <button 
-                        onClick={() => setCurrentNavSection("REPORTS")}
-                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "REPORTS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
-                    >
-                        <History size={24} strokeWidth={currentNavSection === "REPORTS" ? 2.5 : 2} />
-                        <span className="text-[10px] font-bold tracking-wider">HISTORIAL</span>
-                    </button>
                 </div>
                 
                 <div className="flex flex-col gap-4 w-full px-3 mt-auto">
@@ -685,8 +678,8 @@ export default function POSPage() {
             </nav>
 
             {/* COLUMN 2: MAIN CENTRAL AREA */}
-            <div className="flex-1 flex flex-col relative z-0 bg-park-black">
-                <header className="h-16 px-6 bg-zinc-900/40 backdrop-blur-md border-b border-white/5 flex justify-between items-center z-10 sticky top-0">
+            <div className="flex-1 flex flex-col relative z-0 bg-transparent">
+                <header className="h-16 px-6 bg-zinc-900/40 backdrop-blur-xl border-b border-white/10 flex justify-between items-center z-10 sticky top-0 shadow-lg shadow-black/20">
                     <div className="flex items-center gap-3">
                         <div>
                             <h1 className="text-xl font-bold tracking-tight text-white">
@@ -694,7 +687,6 @@ export default function POSPage() {
                                 {currentNavSection === "SALON" && "Floor Plan"}
                                 {currentNavSection === "ORDERS" && "Órdenes Activas"}
                                 {currentNavSection === "DELIVERY" && "Gestión de Envíos"}
-                                {currentNavSection === "REPORTS" && "Historial y Reportes"}
                             </h1>
                         </div>
                     </div>
@@ -735,7 +727,7 @@ export default function POSPage() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto bg-park-gray-950 p-4">
+                <main className="flex-1 overflow-y-auto bg-transparent p-4">
                     {/* Content based on view */}
                     <div className="w-full h-full">
                         {currentNavSection === "SALON" ? (
@@ -758,9 +750,9 @@ export default function POSPage() {
                                 onSelectOrder={handleSelectPendingOrder}
                             />
                         ) : currentNavSection === "POS" || currentNavSection === "DELIVERY" ? (
-                            <div className="flex flex-col h-full bg-park-black rounded-3xl overflow-hidden border border-white/5 shadow-2xl shadow-black/20">
+                            <div className="flex flex-col h-full bg-zinc-900/40 backdrop-blur-md rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-black/40">
                                 {/* Header for POS/Delivery */}
-                                <div className="flex items-center justify-between p-4 bg-zinc-900/60 border-b border-white/5">
+                                <div className="flex items-center justify-between p-4 bg-zinc-900/60 border-b border-white/10">
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => {
@@ -835,21 +827,13 @@ export default function POSPage() {
                                     )}
                                 </div>
                             </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-center">
-                                <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center mb-6">
-                                    <LayoutDashboard className="text-park-gray-600 w-10 h-10" />
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Próximamente</h3>
-                                <p className="text-park-gray-400 text-sm max-w-sm">Esta sección estará disponible en la próxima actualización de la Caja.</p>
-                            </div>
-                        )}
+                        ) : null}
                     </div>
                 </main>
             </div>
 
             {/* Right: Check Detail (or Empty State) */}
-            <div className="w-[380px] xl:w-[420px] bg-white text-park-black shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.5)] z-40 flex flex-col shrink-0">
+            <div className="w-[380px] xl:w-[420px] bg-zinc-950/90 backdrop-blur-2xl text-white border-l border-white/10 shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.7)] z-40 flex flex-col shrink-0">
                 {activeSale && activeCheck ? (
                     <CheckDetail
                         check={activeCheck}
