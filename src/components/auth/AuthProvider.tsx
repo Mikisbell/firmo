@@ -85,11 +85,14 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       if (hasAdminCookie && adminEmployee && !storedConfig?.terminal_id) {
         const virtualConfig: TerminalConfig = {
           terminal_id: `COLAB_ADMIN_${adminEmployee.id.substring(0, 8)}`,
-          tenant_id: 'default', 
+          tenant_id: 'default',
           device_fingerprint: 'supervisor_virtual_device',
+          device_name: 'Virtual Supervisor Terminal',
+          location_id: 'default',
+          is_allowed: true,
+          registered_at: new Date().toISOString(),
           actor_id: adminEmployee.id,
-          role: 'ADMIN',
-          last_verified: new Date().toISOString()
+          role: 'ADMIN'
         };
         
         const mockSession: SecureSession = {

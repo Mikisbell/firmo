@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import CatalogGrid from "./components/CatalogGrid";
+import { FloorPlanView } from "./components/FloorPlanView";
 import { CheckDetail } from "./components/CheckDetail";
 import { ShiftModal, ShiftStatus } from "./components/ShiftModal";
 import { PendingOrdersList } from "./components/PendingOrdersList";
@@ -53,7 +54,7 @@ export default function POSPage() {
     const [isOnline, setIsOnline] = useState(true);
     const [pendingSync, setPendingSync] = useState(0);
     const [cashierView, setCashierView] = useState<CashierView>("PENDING");
-    const [currentNavSection, setCurrentNavSection] = useState<"POS" | "ORDERS" | "DELIVERY" | "REPORTS" | "SETTINGS">("POS");
+    const [currentNavSection, setCurrentNavSection] = useState<"POS" | "SALON" | "ORDERS" | "DELIVERY" | "REPORTS" | "SETTINGS">("POS");
 
     // Real-time orders from all terminals
     const { orders: liveOrders, isConnected: sseConnected } = useLiveOrders({
@@ -81,6 +82,34 @@ export default function POSPage() {
             clearTerminalConfig();
             logout();
             router.push("/login");
+        }
+    };
+
+    const handleOpenTableOrder = async (tableNumber: string) => {
+        if (!shiftIsOpen) {
+            setShiftModalMode("open");
+            setShiftModalOpen(true);
+            return;
+        }
+
+        try {
+            const numResult = await POSActions.getNextOrderNumber(TENANT_ID, TERM_ID);
+            const orderNum = numResult.success ? numResult.orderNumber : offlineOrderCounter++;
+
+            const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
+                order_type: "DINE_IN",
+                order_number: orderNum,
+                fulfillment: {
+                    table_number: tableNumber,
+                }
+            });
+            setCurrentOrder(result);
+            setSelectedCheckId(result.check_id);
+            setCurrentNavSection("POS");
+            toast.success(`Orden abierta para mesa ${tableNumber}`);
+        } catch (error) {
+            console.error("Error creating table order", error);
+            toast.error("Error al abrir orden para la mesa");
         }
     };
 
@@ -594,11 +623,19 @@ export default function POSPage() {
                     </button>
                     
                     <button 
+                        onClick={() => setCurrentNavSection("SALON")}
+                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "SALON" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
+                    >
+                        <Utensils size={24} strokeWidth={currentNavSection === "SALON" ? 2.5 : 2} />
+                        <span className="text-[10px] font-bold tracking-wider">SALÓN</span>
+                    </button>
+
+                    <button 
                         onClick={() => setCurrentNavSection("ORDERS")}
                         className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 relative ${currentNavSection === "ORDERS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
                     >
-                        <Utensils size={24} strokeWidth={currentNavSection === "ORDERS" ? 2.5 : 2} />
-                        <span className="text-[10px] font-bold tracking-wider">MESAS</span>
+                        <Menu size={24} strokeWidth={currentNavSection === "ORDERS" ? 2.5 : 2} />
+                        <span className="text-[10px] font-bold tracking-wider">PENDIENTES</span>
                         {liveOrders.length > 0 && (
                             <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-zinc-950 animate-pulse"></span>
                         )}
@@ -654,6 +691,7 @@ export default function POSPage() {
                         <div>
                             <h1 className="text-xl font-bold tracking-tight text-white">
                                 {currentNavSection === "POS" && "Terminal de Ventas"}
+                                {currentNavSection === "SALON" && "Floor Plan"}
                                 {currentNavSection === "ORDERS" && "Órdenes Activas"}
                                 {currentNavSection === "DELIVERY" && "Gestión de Envíos"}
                                 {currentNavSection === "REPORTS" && "Historial y Reportes"}
@@ -700,7 +738,20 @@ export default function POSPage() {
                 <main className="flex-1 overflow-y-auto bg-park-gray-950 p-4">
                     {/* Content based on view */}
                     <div className="w-full h-full">
-                        {currentNavSection === "ORDERS" ? (
+                        {currentNavSection === "SALON" ? (
+                            <FloorPlanView
+                                tenantId={TENANT_ID}
+                                onSelectTable={(tableId, orderId, tableNumber) => {
+                                    if (orderId) {
+                                        // Open existing order
+                                        handleSelectPendingOrder(orderId);
+                                    } else {
+                                        // Create new order for this table
+                                        handleOpenTableOrder(tableNumber);
+                                    }
+                                }}
+                            />
+                        ) : currentNavSection === "ORDERS" ? (
                             <PendingOrdersList
                                 orders={liveOrders}
                                 isConnected={sseConnected}

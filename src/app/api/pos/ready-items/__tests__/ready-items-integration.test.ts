@@ -221,7 +221,7 @@ function makeEvent(event_type: string, payload: Record<string, unknown>) {
 }
 
 async function postIngest(events: ReturnType<typeof makeEvent>[]) {
-  const { POST } = await import('@/src/app/api/events/ingest/route');
+  const { POST } = await import('@/src/app/api/data-sync/ingest/route');
   mockFindFirst.mockResolvedValue(null);
 
   const body = JSON.stringify({

@@ -239,7 +239,7 @@ export default function RankingMozosPage() {
               <Tooltip
                 contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }}
                 labelStyle={{ color: '#fafafa' }}
-                formatter={(value: number | undefined) => [`S/ ${(value ?? 0).toFixed(2)}`, 'Ventas']}
+                formatter={(value: any) => [`S/ ${(Number(value) || 0).toFixed(2)}`, 'Ventas']}
               />
               <Bar dataKey="ventas" radius={[4, 4, 0, 0]}>
                 {chartData.map((_, i) => (

@@ -185,6 +185,18 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                         updated_at: new Date(occurred_at),
                     },
                 });
+
+                // CQRS Projection: Update Tables
+                if (p.order_type === 'DINE_IN' && p.fulfillment?.table_number) {
+                    await tx.$executeRaw`
+                        UPDATE tables 
+                        SET status = 'OCCUPIED', 
+                            current_order_id = ${p.order_id}::uuid,
+                            occupied_since = ${new Date(occurred_at)}
+                        WHERE tenant_id = ${tenant_id}::uuid 
+                          AND number = ${p.fulfillment.table_number}
+                    `;
+                }
                 break;
             }
 
@@ -314,14 +326,41 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                             payment: { ...c.payment, status: 'PAID' },
                         };
                     });
+                    
+                    const newUnpaidCount = Math.max(0, (paidOrder.unpaid_checks_count ?? 1) - 1);
+
                     await tx.orders.update({
                         where: { id: p.order_id },
                         data: {
                             checks: updatedChecks,
-                            unpaid_checks_count: { decrement: 1 },
+                            unpaid_checks_count: newUnpaidCount,
                             updated_at: new Date(occurred_at),
                         },
                     });
+
+                    // CQRS Projection: Free the table if all checks are paid
+                    if (newUnpaidCount === 0 && paidOrder.table_id) {
+                        await tx.$executeRaw`
+                            UPDATE tables 
+                            SET status = 'AVAILABLE', 
+                                current_order_id = NULL,
+                                occupied_since = NULL
+                            WHERE id = ${paidOrder.table_id}::uuid
+                        `;
+                    } else if (newUnpaidCount === 0) {
+                        // Fallback using fulfillment if table_id is null
+                        const fulfillment = (paidOrder as any).fulfillment as any;
+                        if (fulfillment?.table_number) {
+                            await tx.$executeRaw`
+                                UPDATE tables 
+                                SET status = 'AVAILABLE', 
+                                    current_order_id = NULL,
+                                    occupied_since = NULL
+                                WHERE tenant_id = ${tenant_id}::uuid 
+                                  AND number = ${fulfillment.table_number}
+                            `;
+                        }
+                    }
                 } else {
                     await tx.orders.update({
                         where: { id: p.order_id },
@@ -750,6 +789,15 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                 await tx.$executeRaw`
                     DELETE FROM order_item_projections
                     WHERE order_id = ${p.order_id}::uuid
+                `;
+                
+                // CQRS Projection: Free the table
+                await tx.$executeRaw`
+                    UPDATE tables 
+                    SET status = 'AVAILABLE', 
+                        current_order_id = NULL,
+                        occupied_since = NULL
+                    WHERE current_order_id = ${p.order_id}::uuid
                 `;
                 break;
             }
