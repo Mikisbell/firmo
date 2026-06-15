@@ -43,12 +43,13 @@ interface PendingOrdersListProps {
     orders: PendingOrder[];
     onSelectOrder: (orderId: string) => void;
     selectedOrderId?: string;
+    isConnected?: boolean;
 }
 
 type SortBy = "time" | "total" | "number";
 type FilterType = "ALL" | "DINE_IN" | "DELIVERY";
 
-export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId }: PendingOrdersListProps) {
+export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId, isConnected }: PendingOrdersListProps) {
     const [filter, setFilter] = useState<FilterType>("ALL");
     const [sortBy, setSortBy] = useState<SortBy>("time");
     const [searchQuery, setSearchQuery] = useState("");
@@ -142,7 +143,7 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId }: Pe
     return (
         <div className="flex flex-col h-full bg-zinc-950">
             {/* Search & Filters */}
-            <div className="p-4 space-y-3 border-b border-zinc-800">
+            <div className="p-4 space-y-4 border-b border-white/5 bg-zinc-900/60">
                 {/* Search */}
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
@@ -206,7 +207,7 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId }: Pe
             </div>
 
             {/* Orders List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start content-start">
                 <AnimatePresence mode="popLayout">
                     {filteredAndSortedOrders.length === 0 ? (
                         <motion.div 
@@ -232,10 +233,10 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId }: Pe
                                 whileHover={{ scale: 1.01 }}
                                 whileTap={{ scale: 0.99 }}
                                 onClick={() => onSelectOrder(order.order_id)}
-                                className={`w-full p-4 rounded-xl border transition-all text-left ${
+                                className={`w-full p-5 rounded-2xl border-2 transition-all text-left flex flex-col h-[180px] shadow-lg ${
                                     selectedOrderId === order.order_id
-                                        ? "bg-indigo-600/20 border-indigo-500 ring-1 ring-indigo-500/50"
-                                        : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/50"
+                                        ? "bg-indigo-500/20 border-indigo-500 ring-2 ring-indigo-500/50 shadow-indigo-500/20"
+                                        : "bg-zinc-900 border-white/5 hover:border-white/20 hover:bg-zinc-800"
                                 }`}
                             >
                                 {/* Header: Order number, status, total */}
@@ -244,7 +245,7 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId }: Pe
                                         <span className="text-xl font-bold text-white">
                                             #{order.order_number}
                                         </span>
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+                                        <span className={`px-2 py-1 rounded border uppercase tracking-wider text-[10px] font-black ${getStatusColor(order.status)}`}>
                                             {getStatusLabel(order.status)}
                                         </span>
                                         {/* External source badge */}
@@ -319,7 +320,7 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId }: Pe
                                 )}
 
                                 {/* Footer: items count and delivery fee */}
-                                <div className="flex items-center justify-between text-xs text-zinc-500">
+                                <div className="flex items-center justify-between text-xs text-zinc-500 mt-auto pt-3 border-t border-white/5">
                                     <span>{order.items_count} {order.items_count === 1 ? "item" : "items"}</span>
                                     {order.delivery_fee_cents && order.delivery_fee_cents > 0 && (
                                         <span className="text-zinc-400">

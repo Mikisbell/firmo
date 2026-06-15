@@ -137,29 +137,29 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
     };
 
     return (
-        <div className="h-full flex flex-col bg-gray-50 border-l border-gray-200 shadow-xl">
+        <div className="h-full flex flex-col bg-park-black border-l border-white/10 shadow-2xl">
             {/* Header */}
-            <div className="bg-white border-b shadow-sm sticky top-0 z-10 flex flex-col">
+            <div className="bg-zinc-900/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-10 flex flex-col">
                 <div className="p-4 flex items-center gap-3">
-                    <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600">
+                    <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white">
                         <ArrowLeft className="w-6 h-6" />
                     </button>
                     <div className="flex-1">
-                        <h2 className="font-bold text-lg text-gray-900 leading-tight">
+                        <h2 className="font-bold text-lg text-white leading-tight">
                             {isDineIn && currentTable ? `Mesa ${currentTable}` : check.name || "Principal"}
                         </h2>
                         <div className="flex items-center gap-2 text-xs font-medium">
-                            <span className={`px-2 py-0.5 rounded-full ${isPaid ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                            <span className={`px-2 py-0.5 rounded-full uppercase tracking-wider text-[10px] font-bold ${isPaid ? "bg-emerald-500/20 text-emerald-400" : "bg-yellow-500/20 text-yellow-400"}`}>
                                 {isPaid ? "PAGADO" : "PENDIENTE"}
                             </span>
-                            <span className="text-gray-400">#{check.check_id.slice(0, 4)}</span>
+                            <span className="text-zinc-500 font-mono">#{check.check_id.slice(0, 4)}</span>
                         </div>
                     </div>
                     {/* Transfer Table Button (Only for DINE_IN and unpaid) */}
                     {isDineIn && !isPaid && (
                         <button
                             onClick={() => setShowTableTransferModal(true)}
-                            className="bg-amber-50 hover:bg-amber-100 text-amber-800 px-3 py-2 rounded-lg text-xs font-bold border border-amber-300 flex items-center gap-2 min-h-[44px] touch-manipulation"
+                            className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-2 rounded-lg text-xs font-bold border border-amber-500/30 flex items-center gap-2 min-h-[44px] touch-manipulation"
                         >
                             <ArrowRightLeft size={14} /> TRANSFERIR
                         </button>
@@ -168,7 +168,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                     {(!isPaid || checks.length > 1) && (
                         <button
                             onClick={() => setShowSplitModal(true)}
-                            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 px-3 py-2 rounded-lg text-xs font-bold border border-zinc-300 flex items-center gap-2 min-h-[44px] touch-manipulation"
+                            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-lg text-xs font-bold border border-zinc-700 flex items-center gap-2 min-h-[44px] touch-manipulation"
                         >
                             <Split size={14} /> DIVIDIR
                         </button>
@@ -190,8 +190,8 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                     className={`
                                         flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-all flex items-center gap-2
                                         ${selectedCheckId === c.check_id
-                                            ? "bg-gray-900 text-white border-gray-900 shadow-md transform scale-105"
-                                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                            ? "bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/20 transform scale-105"
+                                            : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-600 hover:text-white"
                                         }
                                     `}
                                 >
@@ -205,14 +205,14 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
             </div>
 
             {/* Items List - Virtual Ticket Style */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-1 bg-[#f8f9fa] relative">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-park-black relative">
                 {/* Zigzag decoration top */}
-                <div className="absolute top-0 left-0 right-0 h-2 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxMCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+PHBhdGggZD0iTTAgMTBMMTAgMEwyMCAxMEgwWiIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==')] bg-contain opacity-50"></div>
+                <div className="absolute top-0 left-0 right-0 h-2 bg-transparent bg-contain opacity-50"></div>
 
                 {check.lines.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400">
                         <Receipt className="w-12 h-12 mb-2 opacity-20" />
-                        <p className="font-mono text-xs uppercase tracking-widest">Ticket Vacío</p>
+                        <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Ticket Vacío</p>
                         {checks.length > 1 && (
                             <p className="text-xs text-indigo-500 mt-2 animate-pulse">
                                 ☝️ Selecciona otra cuenta arriba
@@ -227,10 +227,10 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         </button>
                     </div>
                 ) : (
-                    <div className="bg-white shadow-sm border border-gray-200 rounded-sm p-4 min-h-full flex flex-col">
-                        <div className="text-center border-b border-dashed border-gray-300 pb-4 mb-4">
+                    <div className="bg-zinc-900 shadow-lg border border-white/5 rounded-2xl p-4 min-h-full flex flex-col">
+                        <div className="text-center border-b border-dashed border-white/10 pb-4 mb-4">
                             <ParkLogo size={48} className="mx-auto mb-2" />
-                            <h3 className="font-black text-xl uppercase tracking-widest text-gray-900">PARK POS</h3>
+                            <h3 className="font-black text-xl uppercase tracking-widest text-white">PARK POS</h3>
                             <p className="text-xs text-gray-500 font-mono mt-1">{new Date().toLocaleDateString()}</p>
                         </div>
 
@@ -246,25 +246,25 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 return (
                                     <div key={l.line_id + idx} className="group py-1.5">
                                         <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2 text-sm text-gray-800 flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 text-sm text-zinc-200 flex-1 min-w-0">
                                                 {onUpdateQty && !isPaid && (
                                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
                                                             onClick={() => onUpdateQty(l.line_id, l.qty - 1)}
-                                                            className="w-7 h-7 rounded bg-gray-100 hover:bg-red-100 flex items-center justify-center text-gray-500 hover:text-red-600 min-h-[44px] min-w-[28px] touch-manipulation"
+                                                            className="w-7 h-7 rounded bg-zinc-800 hover:bg-red-500/20 flex items-center justify-center text-zinc-400 hover:text-red-400 border border-transparent hover:border-red-500/30 min-h-[44px] min-w-[28px] touch-manipulation"
                                                         >
                                                             {l.qty === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
                                                         </button>
                                                         <button
                                                             onClick={() => onUpdateQty(l.line_id, l.qty + 1)}
-                                                            className="w-7 h-7 rounded bg-gray-100 hover:bg-green-100 flex items-center justify-center text-gray-500 hover:text-green-600 min-h-[44px] min-w-[28px] touch-manipulation"
+                                                            className="w-7 h-7 rounded bg-zinc-800 hover:bg-emerald-500/20 flex items-center justify-center text-zinc-400 hover:text-emerald-400 border border-transparent hover:border-emerald-500/30 min-h-[44px] min-w-[28px] touch-manipulation"
                                                         >
                                                             <Plus size={12} />
                                                         </button>
                                                     </div>
                                                 )}
-                                                <span className="font-mono font-bold w-6 text-right flex-shrink-0">{l.qty}</span>
-                                                <span className="font-medium group-hover:text-black truncate">{name}</span>
+                                                <span className="font-mono font-bold w-8 text-center bg-zinc-800 text-emerald-400 py-1 rounded-md flex-shrink-0">{l.qty}</span>
+                                                <span className="font-medium group-hover:text-white truncate">{name}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 flex-shrink-0">
                                                 {/* Note button */}
@@ -281,7 +281,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                                         <MessageSquare size={13} />
                                                     </button>
                                                 )}
-                                                <span className="text-sm font-mono text-gray-600">
+                                                <span className="text-base font-mono font-bold text-white tracking-tight">
                                                     S/ {(total / 100).toFixed(2)}
                                                 </span>
                                             </div>
@@ -309,7 +309,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                                             if (e.key === "Escape") { setEditingNoteLineId(null); setNoteText(""); }
                                                         }}
                                                         placeholder="Ej: sin cebolla, bien cocido..."
-                                                        className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white text-gray-900 min-h-[44px]"
+                                                        className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white text-white min-h-[44px]"
                                                         autoFocus
                                                     />
                                                     <button
@@ -352,10 +352,10 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
             </div>
 
             {/* Footer / Totals */}
-            <div className="bg-white border-t border-dashed border-gray-300 p-6 pb-8 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] sticky bottom-0 z-20">
+            <div className="bg-zinc-950 border-t border-white/10 p-6 pb-8 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.5)] sticky bottom-0 z-20">
                 {/* Math Summary */}
                 <div className="space-y-4 mb-6">
-                    <div className="flex justify-between text-gray-500 font-mono text-sm">
+                    <div className="flex justify-between text-zinc-400 font-mono text-sm">
                         <span>SUB TOTAL</span>
                         <span>S/ {(check.subtotal_cents / 100).toFixed(2)}</span>
                     </div>
@@ -371,9 +371,9 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             <span>+ S/ {(check.tip_cents / 100).toFixed(2)}</span>
                         </div>
                     )}
-                    <div className="flex justify-between items-baseline text-gray-900 border-t-2 border-gray-900 pt-4">
-                        <span className="font-black text-2xl tracking-tighter">TOTAL</span>
-                        <span className="font-mono text-3xl font-bold tabular-nums">S/ {(check.total_cents / 100).toFixed(2)}</span>
+                    <div className="flex justify-between items-baseline text-white border-t border-white/20 pt-4">
+                        <span className="font-black text-3xl tracking-tighter text-emerald-400">TOTAL</span>
+                        <span className="font-mono text-4xl font-black tabular-nums text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">S/ {(check.total_cents / 100).toFixed(2)}</span>
                     </div>
 
                     {/* Payment Progress Bar */}
@@ -401,7 +401,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                         onPayment("CASH", remainingCents, 0);
                                     }}
                                     disabled={check.total_cents <= 0}
-                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 touch-manipulation min-h-[48px]"
+                                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-park-black py-4 rounded-2xl font-black text-lg uppercase flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/30 active:scale-95 touch-manipulation min-h-[60px]"
                                 >
                                     <Banknote className="w-5 h-5" />
                                     Efectivo S/ {(remainingCents / 100).toFixed(2)}
@@ -422,7 +422,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                     <button
                                         onClick={() => setShowDiscountModal(true)}
                                         disabled={check.subtotal_cents <= 0}
-                                        className="bg-amber-50 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed text-amber-700 border border-amber-300 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[48px] touch-manipulation"
+                                        className="bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-amber-400 border border-amber-500/40 py-4 rounded-2xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[60px] touch-manipulation"
                                     >
                                         <Percent className="w-4 h-4" />
                                         DCTO
@@ -431,7 +431,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 <button
                                     onClick={handlePrintPreCheck}
                                     disabled={check.total_cents <= 0}
-                                    className="bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 border-2 border-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[48px] touch-manipulation"
+                                    className="bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-white border-2 border-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[48px] touch-manipulation"
                                 >
                                     <Printer className="w-4 h-4" />
                                     PRE-CUENTA
@@ -439,7 +439,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 <button
                                     onClick={() => setShowPayModal(true)}
                                     disabled={check.total_cents <= 0}
-                                    className="bg-gray-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex justify-center items-center gap-1.5 transition-all shadow-xl shadow-gray-900/20 active:scale-95 text-sm min-h-[48px] touch-manipulation"
+                                    className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-lg uppercase flex justify-center items-center gap-1.5 transition-all shadow-xl shadow-indigo-600/30 active:scale-95 min-h-[60px] touch-manipulation"
                                 >
                                     <CreditCard className="w-4 h-4" />
                                     COBRAR
