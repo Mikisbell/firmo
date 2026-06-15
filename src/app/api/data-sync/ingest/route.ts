@@ -466,7 +466,8 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                             SET status = 'AVAILABLE', 
                                 current_order_id = NULL,
                                 occupied_since = NULL
-                            WHERE id = ${paidOrder.table_id}::uuid
+                            WHERE current_order_id = ${p.order_id}::uuid
+                               OR id = ${paidOrder.table_id}::uuid
                         `;
                     } else if (newUnpaidCount === 0) {
                         // Fallback using fulfillment if table_id is null

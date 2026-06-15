@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import CatalogGrid from "./components/CatalogGrid";
 import { FloorPlanView } from "./components/FloorPlanView";
 import { CheckDetail } from "./components/CheckDetail";
+import { ReportsView } from "./components/ReportsView";
 import { ShiftModal, ShiftStatus } from "./components/ShiftModal";
 import { PendingOrdersList } from "./components/PendingOrdersList";
 import { NewOrderModal, type NewOrderData } from "./components/NewOrderModal";
@@ -54,7 +55,7 @@ export default function POSPage() {
     const [isOnline, setIsOnline] = useState(true);
     const [pendingSync, setPendingSync] = useState(0);
     const [cashierView, setCashierView] = useState<CashierView>("PENDING");
-    const [currentNavSection, setCurrentNavSection] = useState<"POS" | "SALON" | "ORDERS" | "DELIVERY" | "SETTINGS">("POS");
+    const [currentNavSection, setCurrentNavSection] = useState<"POS" | "SALON" | "ORDERS" | "DELIVERY" | "REPORTS" | "SETTINGS">("POS");
 
     // Real-time orders from all terminals
     const { orders: liveOrders, isConnected: sseConnected } = useLiveOrders({
@@ -649,6 +650,14 @@ export default function POSPage() {
                         <span className="text-[10px] font-bold tracking-wider">ENVÍOS</span>
                     </button>
                     
+                    <button 
+                        onClick={() => setCurrentNavSection("REPORTS")}
+                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "REPORTS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
+                    >
+                        <History size={24} strokeWidth={currentNavSection === "REPORTS" ? 2.5 : 2} />
+                        <span className="text-[10px] font-bold tracking-wider">REPORTE</span>
+                    </button>
+                    
                 </div>
                 
                 <div className="flex flex-col gap-4 w-full px-3 mt-auto">
@@ -687,6 +696,7 @@ export default function POSPage() {
                                 {currentNavSection === "SALON" && "Floor Plan"}
                                 {currentNavSection === "ORDERS" && "Órdenes Activas"}
                                 {currentNavSection === "DELIVERY" && "Gestión de Envíos"}
+                                {currentNavSection === "REPORTS" && "Reportes de Venta"}
                             </h1>
                         </div>
                     </div>
@@ -749,6 +759,8 @@ export default function POSPage() {
                                 isConnected={sseConnected}
                                 onSelectOrder={handleSelectPendingOrder}
                             />
+                        ) : currentNavSection === "REPORTS" ? (
+                            <ReportsView />
                         ) : currentNavSection === "POS" || currentNavSection === "DELIVERY" ? (
                             <div className="flex flex-col h-full bg-zinc-900/40 backdrop-blur-md rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-black/40">
                                 {/* Header for POS/Delivery */}

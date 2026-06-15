@@ -851,6 +851,28 @@ export const POSActions = {
     },
 
     /**
+     * Detach a table from an existing order
+     */
+    async detachTable(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        detached_table_id: string
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "TABLE_DETACHED_FROM_ORDER",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: { order_id, detached_table_id, detached_by: actor_id },
+        });
+    },
+
+    /**
      * Get next order number from server-side range allocator
      * Auto-allocates range if needed via API
      */
