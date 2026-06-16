@@ -518,13 +518,31 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
 
       {/* Footer */}
       <div className="px-6 py-4 flex items-center justify-between border-t border-zinc-900">
-        <button
-          onClick={onCajaSetup}
-          className="flex items-center gap-2 text-zinc-700 hover:text-zinc-500 text-xs transition-colors"
-        >
-          <Settings className="w-3.5 h-3.5" />
-          Terminal fija
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onCajaSetup}
+            className="flex items-center gap-2 text-zinc-700 hover:text-zinc-500 text-xs transition-colors"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            Terminal fija
+          </button>
+
+          {/* BYPASS DEV habilitado en prod/github para pruebas */}
+          <button
+            onClick={() => {
+              setDniValue('99999999');
+              submitDni('99999999').then(() => {
+                setTimeout(() => {
+                  setPinValue('1234');
+                  submitPin('1234');
+                }, 300);
+              });
+            }}
+            className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
+          >
+            <span>🚀</span> BYPASS DEV (Cajero Test)
+          </button>
+        </div>
         <span className="text-zinc-800 text-xs">v{APP_VERSION}</span>
       </div>
     </div>

@@ -8,7 +8,7 @@ import { ReportsView } from "./components/ReportsView";
 import { ShiftModal, ShiftStatus } from "./components/ShiftModal";
 import { PendingOrdersList } from "./components/PendingOrdersList";
 import { NewOrderModal, type NewOrderData } from "./components/NewOrderModal";
-import { useProjections } from "@/src/core/projections/useProjections";
+import { useProjections, useOrderProjection } from "@/src/core/projections/useProjections";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { recommender } from "@/src/core/ai/recommendations";
@@ -44,13 +44,18 @@ export default function POSPage() {
     const TERM_ID = terminal?.terminal_id ?? "";
     const ACTOR_ID = session?.employee_id ?? "";
     
+    // Shift is global (singleton)
     const projections = useProjections();
-    const activeSale = projections?.activeSale ?? null;
     const shift = projections?.shift ?? null;
+
+    const [currentOrder, setCurrentOrder] = useState<{ order_id: string; check_id: string } | null>(null);
+    
+    // Order is specific to the selected UI state (Premium Parallel Sales)
+    const currentOrderProjection = useOrderProjection(currentOrder?.order_id ?? null);
+    const activeSale = currentOrderProjection ?? null;
 
     const [profileOpen, setProfileOpen] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
-    const [currentOrder, setCurrentOrder] = useState<{ order_id: string; check_id: string } | null>(null);
     const [selectedCheckId, setSelectedCheckId] = useState<string>("c1");
     const [isOnline, setIsOnline] = useState(true);
     const [pendingSync, setPendingSync] = useState(0);
@@ -413,22 +418,12 @@ export default function POSPage() {
         toast.success(deltaCents > 0 ? "Ingreso registrado" : "Salida registrada");
     };
 
-    // Select a pending order to charge
+    // Select a pending order to charge (Premium Parallel Checkout)
     const handleSelectPendingOrder = async (orderId: string) => {
-        // Load the order from projections
-        const db = getDb();
-        if (!db) return;
-        
-        const projection = await db.projections.get(`order:${orderId}`);
-        if (projection?.data) {
-            const order = projection.data;
-            setCurrentOrder({ 
-                order_id: orderId, 
-                check_id: order.checks?.[0]?.check_id || "c1" 
-            });
-            setSelectedCheckId(order.checks?.[0]?.check_id || "c1");
-            toast.success(`Orden #${order.order_number} cargada`);
-        }
+        setCurrentOrder({ order_id: orderId, check_id: "c1" });
+        setSelectedCheckId("c1");
+        setCurrentNavSection("POS");
+        // El hook reactivo useOrderProjection hidratará la UI instantáneamente (O(1))
     };
 
     // Get next order number from server (persistent) or fallback offline
