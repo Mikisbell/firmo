@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from '@neondatabase/serverless';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/src/core/db/prisma';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
     const tenantId = request.headers.get('x-tenant-id') || request.nextUrl.searchParams.get('tenant_id');
@@ -14,10 +12,7 @@ export async function GET(request: NextRequest) {
 
     try {
         // En un entorno productivo real 2026, aquí leeríamos primero de Upstash Redis.
-        // Por simplicidad del blueprint, vamos directo a Neon via WebSockets (Edge).
-        const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-        const adapter = new PrismaNeon(pool as any);
-        const prisma = new PrismaClient({ adapter });
+        // Por simplicidad del blueprint, usamos Node.js Serverless + Neon WebSockets (prisma singleton).
 
         // 1. Cargar Mesas
         const tables = await prisma.tables.findMany({
@@ -45,8 +40,7 @@ export async function GET(request: NextRequest) {
 
         // (Aquí podríamos sumar catalog, employees, etc.)
 
-        // Desconectamos para no dejar conexiones WebSocket huérfanas en el Edge
-        await prisma.$disconnect();
+        // No desconectamos prisma porque estamos usando el singleton global
 
         return NextResponse.json({ tables: masterTables });
     } catch (error) {
