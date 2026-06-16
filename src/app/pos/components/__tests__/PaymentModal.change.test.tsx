@@ -14,7 +14,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
-import { render, fireEvent, cleanup } from '@testing-library/react';
+import { render, cleanup } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom';
 
 // ============================================================================
 // Mocks

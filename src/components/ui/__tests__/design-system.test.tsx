@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { createRef } from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { screen, fireEvent, within } from '@testing-library/dom';
 import { Button } from '../Button';
 import { Badge } from '../Badge';
 import { Input } from '../Input';

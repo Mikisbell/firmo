@@ -8,6 +8,7 @@ import { ReportsView } from "./components/ReportsView";
 import { ShiftModal, ShiftStatus } from "./components/ShiftModal";
 import { PendingOrdersList } from "./components/PendingOrdersList";
 import { NewOrderModal, type NewOrderData } from "./components/NewOrderModal";
+import { SeatingModal } from "./components/SeatingModal";
 import { useProjections, useOrderProjection } from "@/src/core/projections/useProjections";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -98,10 +99,32 @@ export default function POSPage() {
             return;
         }
 
-        setPendingTableOrder(tableNumber);
-        setCurrentOrder(null);
-        setSelectedCheckId("c1");
-        setCurrentNavSection("POS");
+        setSeatingTable(tableNumber);
+        setSeatingModalOpen(true);
+    };
+
+    const handleConfirmSeating = async (pax: number) => {
+        if (!seatingTable || !shiftIsOpen) return;
+        
+        try {
+            const dineInNum = await getOrderNumber();
+            const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
+                order_type: "DINE_IN",
+                order_number: dineInNum,
+                fulfillment: { table_number: seatingTable, guest_count: pax }
+            });
+            
+            setSeatingModalOpen(false);
+            setSeatingTable(null);
+            
+            // Switch to POS view with the new order
+            setCurrentOrder(result);
+            setSelectedCheckId(result.check_id);
+            setCurrentNavSection("POS");
+        } catch (error) {
+            console.error("Error creating seating order:", error);
+            toast.error("Error al abrir la mesa");
+        }
     };
 
     // Shift modal state
@@ -112,6 +135,10 @@ export default function POSPage() {
     const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
     const [pendingNewOrder, setPendingNewOrder] = useState<NewOrderData | null>(null);
     const [pendingTableOrder, setPendingTableOrder] = useState<string | null>(null);
+
+    // Seating modal state
+    const [seatingModalOpen, setSeatingModalOpen] = useState(false);
+    const [seatingTable, setSeatingTable] = useState<string | null>(null);
 
     const shiftIsOpen = shift?.status === "OPEN";
 
@@ -563,6 +590,14 @@ export default function POSPage() {
                 onClose={() => setNewOrderModalOpen(false)}
                 onConfirm={handleCreateNewOrder}
                 defaultDeliveryFee={600} // S/ 6.00
+            />
+
+            {/* Seating Modal (Dine-in) */}
+            <SeatingModal
+                isOpen={seatingModalOpen}
+                onClose={() => setSeatingModalOpen(false)}
+                onConfirm={handleConfirmSeating}
+                tableName={seatingTable ?? ""}
             />
 
             {/* Success Animation */}

@@ -8,11 +8,11 @@
 
 | Capa | Tecnología | Versión |
 |------|-----------|---------|
-| Framework | Next.js (App Router) | 16.1 |
+| Framework | Next.js (Cloudflare Pages / Edge Runtime) | 16.1 |
 | Lenguaje | TypeScript (strict) | 5.7 |
-| ORM | Prisma | 6.19 |
-| Base de datos | PostgreSQL (Supabase Cloud) | 16 |
-| Cache | Redis (Upstash) | 7 |
+| ORM | Prisma (Adapter Neon) | 6.19 |
+| Base de datos | PostgreSQL (Neon Serverless) | 16 |
+| Cache | Upstash Redis (REST HTTP) | 7 |
 | Offline DB | Dexie (IndexedDB) | 4.0.11 |
 | Tests | Vitest + fast-check + Playwright | — |
 | UI | Tailwind CSS 4 + Radix UI + Lucide | — |
@@ -40,14 +40,14 @@
 └────────────────────────────┼─────────────────────────────┘
                              │ HTTPS + SSE
 ┌────────────────────────────┼─────────────────────────────┐
-│  NEXT.JS 16 MONOLITH       │                              │
+│  NEXT.JS 16 EDGE MONOLITH (Cloudflare Pages)              │
 │  Auth → Rate Limit → Validate → Route Handler             │
 │  Core: Events(72) · Projections · Services(40) · RBAC     │
 └────────────────────────────┼─────────────────────────────┘
                              │
 ┌────────────────────────────┼─────────────────────────────┐
 │  PERSISTENCE                │                              │
-│  PostgreSQL(121) · Redis · Supabase Realtime(LISTEN/NOTIFY)│
+│  Neon Serverless(121) · Upstash Redis · Cloudflare KV      │
 └──────────────────────────────────────────────────────────┘
 
 EXTERNAL: SUNAT · PedidosYa · LlamaFood · Twilio(WhatsApp) · Sentry · Logtail · Slack
@@ -62,7 +62,7 @@ EXTERNAL: SUNAT · PedidosYa · LlamaFood · Twilio(WhatsApp) · Sentry · Logta
 | 3 | **Metas de Calidad** | [03-quality-goals.md](docs/architecture/03-quality-goals.md) | Atributos de calidad con escenarios medibles |
 | 4 | **Building Blocks** | [04-building-blocks.md](docs/architecture/04-building-blocks.md) | Módulos, dependencias, componentes internos |
 | 5 | **Runtime Views** | [05-runtime-views.md](docs/architecture/05-runtime-views.md) | Flujos: venta, offline→sync, conflicto, plataformas |
-| 6 | **Deployment** | [06-deployment.md](docs/architecture/06-deployment.md) | Vercel, CI/CD, health checks, env vars |
+| 6 | **Deployment** | [06-deployment.md](docs/architecture/06-deployment.md) | Cloudflare Pages, CI/CD, health checks, env vars |
 | 7 | **Cross-Cutting** | [07-crosscutting.md](docs/architecture/07-crosscutting.md) | Auth, cache, errors, logging, rate limiting, i18n, printing, notifications |
 | 8 | **Decisiones (ADRs)** | [08-decisions.md](docs/architecture/08-decisions.md) | 9 ADRs con contexto, alternativas, consecuencias |
 | 9 | **Riesgos y Deuda** | [09-risks.md](docs/architecture/09-risks.md) | 5 riesgos + 7 deudas técnicas con matriz de prioridad |
@@ -86,6 +86,6 @@ EXTERNAL: SUNAT · PedidosYa · LlamaFood · Twilio(WhatsApp) · Sentry · Logta
 | [001](docs/architecture/08-decisions.md) | Event Sourcing | Auditoría perfecta, complejidad en queries |
 | [002](docs/architecture/08-decisions.md) | Single DB multi-tenant | Simple ops, sin RLS, sin backup por tenant |
 | [003](docs/architecture/08-decisions.md) | SSE (no WebSocket) | Simple, auto-reconnect, unidireccional |
-| [005](docs/architecture/08-decisions.md) | Next.js monolith (261 routes, 83 pages) | Un deploy, build time crece |
+| [005](docs/architecture/08-decisions.md) | Next.js monolith on Edge | Un deploy, strict compatibility (no C++) |
 | [008](docs/architecture/08-decisions.md) | Pagos conflictivos = REJECT | Nunca cobro doble, fricción en reconexión |
 | [009](docs/architecture/08-decisions.md) | Sin RLS (aislamiento por código) | Simple, sin overhead de policies, riesgo de data leak por bug |

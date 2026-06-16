@@ -51,11 +51,11 @@
 
 | Capa | Tecnologia | Version |
 |------|------------|---------|
-| Framework | Next.js (App Router + Turbopack) | 16.1 |
+| Framework | Next.js (App Router + Cloudflare Pages) | 16.1 |
 | Lenguaje | TypeScript | 5.7 |
-| ORM | Prisma | 6.19 |
-| Base de Datos | PostgreSQL (Supabase Cloud) | — |
-| Cache | Redis (ioredis) | — |
+| ORM | Prisma (Neon Adapter) | 6.19 |
+| Base de Datos | PostgreSQL (Neon Serverless) | — |
+| Cache | Redis (Upstash REST) | — |
 | DB Local | Dexie (IndexedDB) | 4.0.11 |
 | UI | Tailwind CSS | 4.x |
 | Animaciones | Framer Motion | 12.x |
@@ -261,7 +261,7 @@ node scripts/smoke-all.mjs
 
 ## Deployment
 
-**Plataforma:** Vercel
+**Plataforma:** Cloudflare Pages / Workers (Edge Runtime)
 
 **Crons configurados** (`vercel.json`):
 

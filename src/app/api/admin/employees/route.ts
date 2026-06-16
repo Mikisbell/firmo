@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
-import { createHash } from 'crypto';
+import { hashPin } from '@/src/core/auth/crypto-utils';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { checkRateLimit, RATE_LIMIT_CONFIGS } from '@/src/lib/rate-limit-response';
@@ -20,9 +20,7 @@ import { metrics, MetricNames } from '@/src/core/observability/metrics';
 
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts
 
-function hashPin(pin: string): string {
-  return createHash('sha256').update(SALT + pin).digest('hex');
-}
+
 
 // OPTIONS - Handle CORS preflight
 export async function OPTIONS(request: NextRequest) {
@@ -200,7 +198,7 @@ async function handlePOST(request: NextRequest) {
     const { name, role, pin, dni, is_active = true } = validatedData;
 
     // Hash PIN
-    const pin_hash = hashPin(pin);
+    const pin_hash = await hashPin(pin);
 
     // Check PIN uniqueness within tenant
     const existingPin = await prisma.employees.findFirst({

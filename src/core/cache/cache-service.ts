@@ -14,7 +14,7 @@
  * @module core/cache/cache-service
  */
 
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 import { logger } from '@/src/core/observability/structured-logger';
 import { metrics } from '@/src/core/observability/metrics';
 import { compress, decompress } from '@/src/core/utils/compression';
@@ -184,45 +184,20 @@ export class RedisCacheService implements CacheService {
    */
   private initializeRedis(): void {
     try {
-      const redisUrl = process.env.REDIS_URL;
+      const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
       
-      if (!this.isTest && redisUrl) {
-        this.redis = new Redis(redisUrl, {
-          maxRetriesPerRequest: 3,
-          retryStrategy: (times) => {
-            if (times > 3) {
-              logger.info('Redis connection failed after 3 retries, falling back to in-memory cache');
-              return null; // Stop retrying
-            }
-            return Math.min(times * 100, 2000);
-          },
-          lazyConnect: true,
+      if (!this.isTest && redisUrl && redisToken) {
+        this.redis = new Redis({
+          url: redisUrl,
+          token: redisToken,
         });
         
-        this.redis.on('error', (error) => {
-          logger.warn('Redis error, will use in-memory cache', { error: error.message });
-          metrics.increment('cache.redis.error');
+        logger.info('Upstash Redis cache initialized successfully', {
+          type: 'redis',
         });
+        metrics.gauge('cache.redis.connected', 1);
         
-        this.redis.on('connect', () => {
-          logger.info('Redis cache initialized successfully', {
-            type: 'redis',
-          });
-          metrics.gauge('cache.redis.connected', 1);
-        });
-        
-        this.redis.on('close', () => {
-          logger.warn('Redis connection closed');
-          metrics.gauge('cache.redis.connected', 0);
-        });
-        
-        // Try to connect
-        this.redis.connect().catch((error) => {
-          logger.info('Redis not available, using in-memory cache', {
-            error: error.message,
-          });
-          this.redis = null;
-        });
       } else {
         logger.info('Redis not configured, using in-memory cache', {
           type: 'memory',

@@ -185,6 +185,13 @@ Do NOT force SDD on small tasks (single file edits, quick fixes, questions).
 - `ADMIN_ROLES.includes(role)` — NUNCA `role === 'ADMIN'` solo
 - Logs sanitizados: PIN y mac_address nunca en console.log
 
+### Edge Computing / Cloudflare Workers
+- **PROHIBIDO C++ Native Bindings:** `bcrypt` y `sharp` rompen el entorno V8 Isolates. Usar `bcryptjs` o WebCrypto API.
+- **PROHIBIDO TCP Sockets:** `pg` y `ioredis` fallan en Edge.
+- Usar `@neondatabase/serverless` + `@prisma/adapter-neon` para Base de Datos vía WebSockets.
+- Usar `@upstash/redis` (HTTP REST) en lugar de conexiones redis:// puras.
+- Queries ultra-optimizadas (< 10ms CPU time limit). Caché agresivo con Cloudflare KV.
+
 ### Database
 - PrismaClient singleton: `import prisma from '@/src/core/db/prisma'` — PROHIBIDO `new PrismaClient()`
 - Cleanup en tests: `deleteMany({ where: { tenant_id } })` — NUNCA `deleteMany({})`

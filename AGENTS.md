@@ -24,6 +24,13 @@
 - Schema drift: `ALTER TABLE ADD COLUMN IF NOT EXISTS` via `prisma db execute`
 - All Prisma calls in API routes MUST be wrapped in try/catch returning appropriate HTTP status
 
+## Edge Computing / Cloudflare Workers (Critical)
+- **NO C++ Native Bindings:** `bcrypt` and `sharp` are STRICTLY FORBIDDEN. Use `bcryptjs` or WebCrypto API instead.
+- **NO TCP Sockets:** `pg` and `ioredis` cannot connect via standard TCP. 
+- Use `@neondatabase/serverless` and `@prisma/adapter-neon` for WebSockets database connections.
+- Use `@upstash/redis` (REST HTTP) instead of `ioredis`.
+- Queries must be optimized to run within the 10ms CPU time limit. Cache heavy queries using Cloudflare KV.
+
 ## TypeScript
 - No `any` types unless wrapping external libs with known schema drift (document with comment)
 - Prefer `interface` for object shapes, `type` for unions/intersections

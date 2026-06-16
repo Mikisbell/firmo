@@ -7,7 +7,7 @@
  * @module core/infra/supabase-event-bus
  */
 
-import { Pool, PoolClient } from 'pg';
+import { Pool, PoolClient } from '@neondatabase/serverless';
 import { ParkEvent } from '@/src/core/domain/events';
 import { logger, createLogger } from '@/src/core/observability/structured-logger';
 

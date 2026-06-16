@@ -13,7 +13,7 @@
  * @module core/rate-limiting/rate-limiter
  */
 
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import { metricsHelpers } from '@/src/core/observability/metrics';
 
@@ -45,40 +45,20 @@ let inMemoryStore: Map<string, Array<{ timestamp: number; id: string }>> | null 
 
 // Inicializar Redis connection
 try {
-  if (!isTest && process.env.REDIS_URL) {
-    redis = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      retryStrategy: (times) => {
-        if (times > 3) {
-          pinoLogger.info({ times }, 'Rate limiter: Redis connection failed, falling back to in-memory');
-          return null;
-        }
-        return Math.min(times * 100, 2000);
-      },
-      lazyConnect: true,
-    });
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-    redis.on('error', (error) => {
-      pinoLogger.info({ error: error.message }, 'Rate limiter: Redis error, using in-memory store');
-      redis = null;
-      inMemoryStore = new Map();
+  if (!isTest && redisUrl && redisToken) {
+    redis = new Redis({
+      url: redisUrl,
+      token: redisToken,
     });
-
-    redis.on('connect', () => {
-      pinoLogger.info('Rate limiter: Redis connected successfully');
-    });
-
-    // Intentar conectar
-    redis.connect().catch(() => {
-      pinoLogger.info('Rate limiter: Redis not available, using in-memory store (OK for MVP)');
-      redis = null;
-      inMemoryStore = new Map();
-    });
+    pinoLogger.info('Rate limiter: Upstash Redis connected successfully');
   } else {
-    // Usar in-memory store para tests o cuando REDIS_URL no está configurado
+    // Usar in-memory store para tests o cuando REST_URL no está configurado
     inMemoryStore = new Map();
-    if (!isTest && !process.env.REDIS_URL) {
-      pinoLogger.info('Rate limiter: REDIS_URL not configured, using in-memory store (OK for MVP)');
+    if (!isTest && !redisUrl) {
+      pinoLogger.info('Rate limiter: UPSTASH_REDIS_REST_URL not configured, using in-memory store (OK for MVP)');
     }
   }
 } catch (error) {
@@ -150,7 +130,7 @@ export class RateLimiterService {
 
     // 3. Agregar el request actual
     const requestId = `${now}:${Math.random()}`;
-    pipeline.zadd(key, now, requestId);
+    pipeline.zadd(key, { score: now, member: requestId });
 
     // 4. Expirar la key después de 2 segundos
     pipeline.expire(key, 2);
@@ -161,8 +141,8 @@ export class RateLimiterService {
       throw new Error('Redis pipeline failed');
     }
 
-    // El resultado de zcard está en results[1][1]
-    const count = (results[1][1] as number) || 0;
+    // El resultado de zcard está en results[1] para Upstash
+    const count = (results[1] as number) || 0;
 
     // Verificar límites
     if (count >= BURST_LIMIT) {

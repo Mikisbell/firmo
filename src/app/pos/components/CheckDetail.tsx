@@ -9,7 +9,7 @@ import { DiscountModal } from "./DiscountModal";
 import { ArrowLeft, Receipt, Printer, FileText, CreditCard, CheckCircle, Split, Plus, Minus, Trash2, Banknote, RotateCcw, MessageSquare, ArrowRightLeft, X, Percent, Eye } from "lucide-react";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint, OrderLineInput } from "@/src/core/printing/utils";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { asCentavos } from "@/src/core/types/shared";
 import { ParkLogo } from "@/src/components/icons";
 import { POSActions } from "@/src/core/actions/pos.actions";
@@ -213,6 +213,25 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                     <div className="h-full flex flex-col items-center justify-center text-gray-400">
                         <Receipt className="w-12 h-12 mb-2 opacity-20" />
                         <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Ticket Vacío</p>
+                        
+                        {isDineIn && checks.length === 1 && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        await POSActions.cancelOrder(tenantId, terminalId, actorId, order.order_id, "Liberar mesa sin consumo");
+                                        toast.success("Mesa liberada");
+                                        onBack();
+                                    } catch(e) {
+                                        toast.error("Error al liberar mesa");
+                                    }
+                                }}
+                                className="mt-6 px-4 py-2 bg-zinc-800 hover:bg-red-500/20 text-zinc-300 hover:text-red-400 border border-zinc-700 hover:border-red-500/30 rounded-xl transition-all font-medium text-sm flex items-center gap-2"
+                            >
+                                <Trash2 size={16} />
+                                Liberar Mesa
+                            </button>
+                        )}
+
                         {checks.length > 1 && (
                             <p className="text-xs text-indigo-500 mt-2 animate-pulse">
                                 ☝️ Selecciona otra cuenta arriba
@@ -235,6 +254,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         </div>
 
                         <div className="flex-1 space-y-1">
+                            <AnimatePresence initial={false}>
                             {check.lines.map((l, idx) => {
                                 const lineDetail = allLines[l.line_id];
                                 const name = lineDetail?.name || `Item ${l.line_id.slice(0, 4)}`;
@@ -244,7 +264,14 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 const isEditingThis = editingNoteLineId === l.line_id;
 
                                 return (
-                                    <div key={l.line_id + idx} className="group py-1.5">
+                                    <motion.div 
+                                        key={l.line_id + idx} 
+                                        layout
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                                        className="group py-2 border-b border-white/5 last:border-0"
+                                    >
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center gap-3 text-sm text-zinc-200 flex-1 min-w-0">
                                                 {onUpdateQty && !isPaid && (
@@ -343,16 +370,17 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                                 </div>
                                             </div>
                                         )}
-                                    </div>
+                                    </motion.div>
                                 );
                             })}
+                            </AnimatePresence>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Footer / Totals */}
-            <div className="bg-zinc-950 border-t border-white/10 p-6 pb-8 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.5)] sticky bottom-0 z-20">
+            {/* Footer / Totals (Premium Glassmorphism) */}
+            <div className="bg-zinc-950/90 backdrop-blur-xl border-t border-white/10 p-6 pb-8 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.7)] sticky bottom-0 z-20">
                 {/* Math Summary */}
                 <div className="space-y-4 mb-6">
                     <div className="flex justify-between text-zinc-400 font-mono text-sm">
@@ -372,8 +400,8 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         </div>
                     )}
                     <div className="flex justify-between items-baseline text-white border-t border-white/10 pt-4 mt-2">
-                        <span className="font-black text-3xl tracking-tighter text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">TOTAL</span>
-                        <span className="font-mono text-4xl font-black tabular-nums text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]">S/ {(check.total_cents / 100).toFixed(2)}</span>
+                        <span className="font-black text-3xl tracking-tighter text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">TOTAL</span>
+                        <span className="font-mono text-4xl font-black tabular-nums text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]">S/ {(check.total_cents / 100).toFixed(2)}</span>
                     </div>
 
                     {/* Payment Progress Bar */}
@@ -422,7 +450,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                     <button
                                         onClick={() => setShowDiscountModal(true)}
                                         disabled={check.subtotal_cents <= 0}
-                                        className="bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-amber-400 border border-amber-500/40 py-4 rounded-2xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[60px] touch-manipulation"
+                                        className="bg-amber-500/10 hover:bg-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed text-amber-400 border border-amber-500/30 py-4 rounded-2xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[60px] touch-manipulation"
                                     >
                                         <Percent className="w-4 h-4" />
                                         DCTO
@@ -431,7 +459,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                                 <button
                                     onClick={handlePrintPreCheck}
                                     disabled={check.total_cents <= 0}
-                                    className="bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-white border-2 border-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[48px] touch-manipulation"
+                                    className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-300 border border-zinc-700 py-3 rounded-2xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-sm min-h-[48px] touch-manipulation"
                                 >
                                     <Printer className="w-4 h-4" />
                                     PRE-CUENTA

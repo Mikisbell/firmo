@@ -11,7 +11,7 @@
  * @module delivery/redis-connection
  */
 
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 
 /**
@@ -32,38 +32,20 @@ const isTest = process.env.NODE_ENV === 'test';
  */
 function initializeDeliveryRedis(): void {
   try {
-    if (!isTest && process.env.REDIS_URL) {
-      deliveryRedis = new Redis(process.env.REDIS_URL, {
-        lazyConnect: true,
-        maxRetriesPerRequest: 3,
-        retryStrategy: (times) => {
-          if (times > 3) {
-            pinoLogger.info({ times }, 'Delivery Redis connection failed, falling back to in-memory');
-            return null;
-          }
-          return Math.min(times * 100, 3000);
-        },
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    if (!isTest && redisUrl && redisToken) {
+      deliveryRedis = new Redis({
+        url: redisUrl,
+        token: redisToken,
       });
 
-      deliveryRedis.on('error', (error) => {
-        pinoLogger.warn({ error: error.message }, 'Delivery Redis error, using in-memory fallback');
-        deliveryRedis = null;
-        inMemoryStore = new Map();
-      });
-
-      deliveryRedis.on('connect', () => {
-        pinoLogger.info('Delivery Redis connected successfully');
-      });
-
-      deliveryRedis.connect().catch(() => {
-        pinoLogger.info('Delivery Redis not available, using in-memory fallback');
-        deliveryRedis = null;
-        inMemoryStore = new Map();
-      });
+      pinoLogger.info('Delivery Upstash Redis connected successfully');
     } else {
       inMemoryStore = new Map();
-      if (!isTest && !process.env.REDIS_URL) {
-        pinoLogger.info('REDIS_URL not configured, using in-memory fallback for delivery');
+      if (!isTest && !redisUrl) {
+        pinoLogger.info('UPSTASH_REDIS_REST_URL not configured, using in-memory fallback for delivery');
       }
     }
   } catch (error) {
@@ -160,40 +142,10 @@ export const deliveryRedisService = {
   },
 
   /**
-   * Publish a message to a channel (for SSE broadcasting)
+   * NOTA: publish, subscribe y unsubscribe fueron eliminados.
+   * Se debe utilizar SupabaseEventBus (Neon LISTEN/NOTIFY) 
+   * para la funcionalidad de Pub/Sub en tiempo real en la capa Edge.
    */
-  async publish(channel: string, message: string): Promise<void> {
-    try {
-      if (deliveryRedis) {
-        await deliveryRedis.publish(channel, message);
-      }
-      // In-memory mode doesn't support pub/sub (single instance only)
-    } catch (error) {
-      pinoLogger.error({ error, channel }, 'Failed to publish Redis message');
-      throw error;
-    }
-  },
-
-  /**
-   * Subscribe to a channel (for SSE broadcasting)
-   */
-  subscribe(channel: string, callback: (message: string) => void): void {
-    try {
-      if (deliveryRedis) {
-        const subscriber = deliveryRedis.duplicate();
-        subscriber.subscribe(channel);
-        subscriber.on('message', (ch, msg) => {
-          if (ch === channel) {
-            callback(msg);
-          }
-        });
-      }
-      // In-memory mode doesn't support pub/sub
-    } catch (error) {
-      pinoLogger.error({ error, channel }, 'Failed to subscribe to Redis channel');
-      throw error;
-    }
-  },
 
   /**
    * Push to a list (for queues)
@@ -412,7 +364,8 @@ export const deliveryRedisService = {
   async hgetall(key: string): Promise<Record<string, string>> {
     try {
       if (deliveryRedis) {
-        return await deliveryRedis.hgetall(key);
+        const result = await deliveryRedis.hgetall<Record<string, string>>(key);
+        return result || {};
       } else if (inMemoryStore) {
         const existing = inMemoryStore.get(key);
         if (!existing) return {};
@@ -553,20 +506,7 @@ export const deliveryRedisService = {
     }
   },
 
-  /**
-   * Unsubscribe from a channel
-   */
-  async unsubscribe(channel: string): Promise<void> {
-    try {
-      if (deliveryRedis) {
-        await deliveryRedis.unsubscribe(channel);
-      }
-      // In-memory mode doesn't support pub/sub
-    } catch (error) {
-      pinoLogger.error({ error, channel }, 'Failed to unsubscribe from Redis channel');
-      throw error;
-    }
-  },
+  // Unsubscribe eliminado. Usar SupabaseEventBus.
 
   /**
    * Check if Redis is available

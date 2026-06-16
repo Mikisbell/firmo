@@ -9,14 +9,14 @@ const withSerwist = withSerwistInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
     reactStrictMode: true,
 
     // Optimizar fuentes de Google
     optimizeFonts: true,
 
-    // Exclude heavy server-only packages from serverless bundles (reduces cold start)
-    serverExternalPackages: ['@prisma/client', 'prisma', 'pino', 'pino-pretty', '@logtail/pino', '@opentelemetry/sdk-node', '@opentelemetry/sdk-trace-node', '@vercel/otel'],
+    // IMPORTANTE PARA CLOUDFLARE EDGE:
+    // No usar output: 'standalone' (eso es para Node/Docker).
+    // No usar serverExternalPackages (Cloudflare necesita todo empaquetado, no puede hacer require() en runtime).
 
     // Code Splitting Optimization
     experimental: {

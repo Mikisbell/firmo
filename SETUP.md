@@ -25,7 +25,7 @@
 |----------|----------------|---------------------|-----------|
 | **Node.js** | 18.x | 20.x LTS | Runtime de JavaScript |
 | **npm** | 9.x | 10.x | Gestor de paquetes |
-| **PostgreSQL** | 14.x | 15.x | Base de datos |
+| **PostgreSQL** | 14.x | 16.x (Neon Serverless) | Base de datos compatible con Edge |
 | **Git** | 2.x | Latest | Control de versiones |
 
 ### Herramientas Opcionales
@@ -145,19 +145,13 @@ GRANT ALL PRIVILEGES ON DATABASE park_pos TO park_user;
 \q
 ```
 
-### Opción B: Supabase (Recomendado para Producción)
+### Opción B: Neon Serverless (Recomendado para Cloudflare Edge)
 
-1. Ir a [https://supabase.com](https://supabase.com)
+1. Ir a [https://neon.tech](https://neon.tech)
 2. Crear una cuenta o iniciar sesión
-3. Crear un nuevo proyecto:
-   - **Name:** park-pos
-   - **Database Password:** (genera uno seguro)
-   - **Region:** South America (São Paulo) - más cercano a Perú
-4. Esperar a que el proyecto se cree (~2 minutos)
-5. Ir a **Settings** → **Database**
-6. Copiar las cadenas de conexión:
-   - **Connection string** (para DATABASE_URL)
-   - **Direct connection** (para DIRECT_URL)
+3. Crear un nuevo proyecto
+4. Copiar la cadena de conexión (Connection String)
+5. En Neon, la conexión usa WebSockets nativamente con `@neondatabase/serverless`, lo cual es vital para el límite de Cloudflare Workers.
 
 ---
 
@@ -186,9 +180,9 @@ nano .env.local  # Terminal
 DATABASE_URL="postgresql://postgres:password@localhost:5432/park_pos?schema=public"
 DIRECT_URL="postgresql://postgres:password@localhost:5432/park_pos?schema=public"
 
-# O Supabase (reemplazar con tus valores)
-DATABASE_URL="postgresql://postgres.xxxxx:password@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=20"
-DIRECT_URL="postgresql://postgres.xxxxx:password@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
+# O Neon Serverless (reemplazar con tus valores)
+DATABASE_URL="postgresql://user:password@ep-cold-sky-xxxxx.us-east-2.aws.neon.tech/neondb?sslmode=require"
+DIRECT_URL="postgresql://user:password@ep-cold-sky-xxxxx.us-east-2.aws.neon.tech/neondb?sslmode=require"
 
 # ============================================
 # AUTENTICACIÓN
@@ -212,7 +206,8 @@ SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 # REDIS (Opcional - para multi-node)
 # ============================================
 
-# REDIS_URL="redis://localhost:6379"
+# UPSTASH_REDIS_REST_URL="https://..."
+# UPSTASH_REDIS_REST_TOKEN="..."
 
 # ============================================
 # CONFIGURACIÓN DE APLICACIÓN

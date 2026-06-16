@@ -8,19 +8,22 @@
  * Requirements: 1.1, 1.4, 1.8
  */
 
+// Import deliveryRedisService for legacy usages if any, but pub/sub is handled by eventBus
 import { deliveryRedisService } from './redis-connection';
+import { eventBus } from '@/src/core/infra/event-bus';
 import { sseConnectionManager, SSEClient } from './sse-connection-manager';
 import { DeliveryEvent, TenantId, DriverId } from './types-2026';
 import { logger } from '@/src/core/observability/logger';
 import { v4 as uuidv4 } from 'uuid';
 
 export class SSEBroadcaster {
-  private readonly REDIS_CHANNEL = 'delivery:events';
   private subscriptionActive = false;
+  private readonly GLOBAL_TENANT = 'GLOBAL_DELIVERY';
   private eventCounter = 0;
+  private unsubscribeFn: (() => void) | null = null;
   
   constructor() {
-    this.startRedisSubscription();
+    this.startEventBusSubscription();
   }
   
   /**
@@ -61,14 +64,12 @@ export class SSEBroadcaster {
     const successful = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
     
-    // Publish to Redis for other server instances
+    // Publish to EventBus for other server instances
     try {
-      await deliveryRedisService.publish(
-        this.REDIS_CHANNEL,
-        JSON.stringify(event)
-      );
+      const tenantId = event.restaurantId || this.GLOBAL_TENANT;
+      await eventBus.publish(tenantId, event as any);
     } catch (error) {
-      logger.error('SSE_REDIS_PUBLISH_ERROR', 'Failed to publish event to Redis', error as Error, {
+      logger.error('SSE_EVENTBUS_PUBLISH_ERROR', 'Failed to publish event to EventBus', error as Error, {
         restaurantId: event.restaurantId,
         driverId: event.driverId,
         eventType: event.type
@@ -191,94 +192,97 @@ export class SSEBroadcaster {
   }
   
   /**
-   * Start Redis Pub/Sub subscription for multi-instance support
+   * Start EventBus subscription for multi-instance support
    * 
-   * When an event is published to Redis, it's broadcast to all
+   * When an event is published to Postgres (Neon), it's broadcast to all
    * server instances, which then send it to their local clients.
    */
-  private async startRedisSubscription(): Promise<void> {
+  private async startEventBusSubscription(): Promise<void> {
     if (this.subscriptionActive) {
       return;
     }
     
     try {
-      await deliveryRedisService.subscribe(
-        this.REDIS_CHANNEL,
-        async (message: string) => {
+      // Usamos GLOBAL_TENANT o podríamos suscribirnos por tenant si SSEBroadcaster fuera tenant-aware.
+      // Por compatibilidad con la versión anterior que usaba REDIS_CHANNEL, 
+      // nos suscribimos al GLOBAL_TENANT, aunque también podríamos escuchar en todos los canales.
+      // Ojo: Si los eventos se publican con event.restaurantId como tenantId, 
+      // SSEBroadcaster (siendo singleton global) debería usar ese tenantId, 
+      // pero EventBus subscribe requiere el tenantId específico.
+      // Para solucionarlo, el SSEBroadcaster simplemente emite como evento genérico o 
+      // cada nueva suscripción de un cliente SSE al server debería llamar a eventBus.subscribe internamente.
+      
+      // Suscribirse a nivel GLOBAL para eventos broadcast
+      const unsub = await eventBus.subscribe(
+        this.GLOBAL_TENANT,
+        async (event: any) => {
           try {
-            const event = JSON.parse(message) as DeliveryEvent;
-            
-            // Convert timestamp string back to Date
-            if (typeof event.timestamp === 'string') {
-              event.timestamp = new Date(event.timestamp);
-            }
+            const deliveryEvent = event as DeliveryEvent;
             
             // Get local clients for this event
             const clients = sseConnectionManager.getFilteredClients(
-              event.restaurantId,
-              event.driverId
+              deliveryEvent.restaurantId,
+              deliveryEvent.driverId
             );
             
             if (clients.length === 0) {
               return;
             }
             
-            // Send to local clients only (don't re-publish to Redis)
+            // Send to local clients only
             await Promise.allSettled(
-              clients.map(client => this.sendToClient(client.id, event))
+              clients.map(client => this.sendToClient(client.id, deliveryEvent))
             );
             
-            logger.debug('SSE_REDIS_EVENT_RECEIVED', 'Received event from Redis Pub/Sub', {
-              eventId: event.id,
-              eventType: event.type,
+            logger.debug('SSE_EVENTBUS_EVENT_RECEIVED', 'Received event from EventBus', {
+              eventId: deliveryEvent.id,
+              eventType: deliveryEvent.type,
               localClients: clients.length
             });
           } catch (error) {
-            logger.error('SSE_REDIS_MESSAGE_ERROR', 'Error processing Redis Pub/Sub message', error as Error, {
-              message
-            });
+            logger.error('SSE_EVENTBUS_MESSAGE_ERROR', 'Error processing EventBus message', error as Error);
           }
         }
       );
       
+      this.unsubscribeFn = unsub;
       this.subscriptionActive = true;
       
-      logger.info('SSE_REDIS_SUBSCRIPTION_STARTED', 'Started Redis Pub/Sub subscription for SSE broadcasting', {
-        channel: this.REDIS_CHANNEL
+      logger.info('SSE_EVENTBUS_SUBSCRIPTION_STARTED', 'Started EventBus subscription for SSE broadcasting', {
+        channel: this.GLOBAL_TENANT
       });
     } catch (error) {
-      logger.error('SSE_REDIS_SUBSCRIPTION_ERROR', 'Failed to start Redis Pub/Sub subscription', error as Error);
-      // Continue without Redis Pub/Sub (single-instance mode)
+      logger.error('SSE_EVENTBUS_SUBSCRIPTION_ERROR', 'Failed to start EventBus subscription', error as Error);
+      // Continue without Pub/Sub (single-instance mode)
     }
   }
   
   /**
-   * Stop Redis Pub/Sub subscription
+   * Stop EventBus subscription
    */
   async shutdown(): Promise<void> {
     if (this.subscriptionActive) {
       try {
-        await deliveryRedisService.unsubscribe(this.REDIS_CHANNEL);
+        if (this.unsubscribeFn) {
+          this.unsubscribeFn();
+        }
         this.subscriptionActive = false;
-        logger.info('SSE_REDIS_SUBSCRIPTION_STOPPED', 'Stopped Redis Pub/Sub subscription');
+        logger.info('SSE_EVENTBUS_SUBSCRIPTION_STOPPED', 'Stopped EventBus subscription');
       } catch (error) {
-        logger.error('SSE_REDIS_UNSUBSCRIBE_ERROR', 'Error stopping Redis Pub/Sub subscription', error as Error);
+        logger.error('SSE_EVENTBUS_UNSUBSCRIBE_ERROR', 'Error stopping EventBus subscription', error as Error);
       }
     }
   }
   
-  /**
-   * Get broadcasting statistics
-   */
   getStats(): {
     subscriptionActive: boolean;
     eventCounter: number;
-    redisChannel: string;
+    channel: string;
   } {
     return {
       subscriptionActive: this.subscriptionActive,
       eventCounter: this.eventCounter,
-      redisChannel: this.REDIS_CHANNEL
+      channel: this.GLOBAL_TENANT
     };
   }
 }

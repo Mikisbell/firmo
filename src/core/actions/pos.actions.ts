@@ -110,7 +110,32 @@ export const POSActions = {
     },
 
     /**
-     * Add item to order
+     * Cancel an order
+     */
+    async cancelOrder(
+        tenant_id: string,
+        terminal_id: string,
+        actor_id: string,
+        order_id: string,
+        reason: string
+    ) {
+        await appendEvent(tenant_id, terminal_id, {
+            event_id: newUUID(),
+            event_type: "ORDER_CANCELLED",
+            aggregate_type: "ORDER",
+            aggregate_id: order_id,
+            correlation_id: order_id,
+            causation_id: null,
+            actor_id,
+            payload: {
+                order_id,
+                reason
+            }
+        });
+    },
+
+    /**
+     * Add an item to an order
      */
     async addItem(
         tenant_id: string,

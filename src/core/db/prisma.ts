@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { Pool } from '@neondatabase/serverless'
+import { PrismaNeon } from '@prisma/adapter-neon'
 import { logger } from '@/src/core/observability/structured-logger'
 import { metrics } from '@/src/core/observability/metrics'
 
@@ -12,7 +14,12 @@ const SLOW_QUERY_THRESHOLD_MS = 1000
  * Create Prisma client with slow query logging middleware
  */
 const prismaClientSingleton = () => {
-    const baseClient = new PrismaClient()
+    // Configurar Pool de Neon para conexiones WebSocket en el Edge
+    const connectionString = process.env.DATABASE_URL || ''
+    const pool = new Pool({ connectionString })
+    const adapter = new PrismaNeon(pool as any)
+    
+    const baseClient = new PrismaClient({ adapter })
     
     // Use Prisma 6 extension API for middleware
     const extendedClient = baseClient.$extends({

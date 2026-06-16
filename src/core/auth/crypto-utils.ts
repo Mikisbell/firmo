@@ -3,21 +3,21 @@
 /**
  * Crypto utilities
  * 
- * This module uses Node.js crypto which is only available on the server.
- * Import this only in server-side code (API routes, server actions, etc.)
+ * This module uses WebCrypto API which is natively supported in Edge (Cloudflare Workers).
  * 
  * @module crypto-utils
  */
 
-import { createHash, randomBytes } from 'crypto';
-
 const SALT = process.env.PIN_SALT || 'PARK_POS_2026_';
 
 /**
- * Hash a PIN using SHA256 + salt
+ * Hash a PIN using SHA256 + salt via WebCrypto
  */
 export async function hashPin(pin: string): Promise<string> {
-  return createHash('sha256').update(SALT + pin).digest('hex');
+  const data = new TextEncoder().encode(SALT + pin);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -32,7 +32,9 @@ export async function verifyPin(pin: string, hash: string): Promise<boolean> {
  * Generate a random token
  */
 export async function generateToken(length: number = 32): Promise<string> {
-  return randomBytes(length).toString('hex');
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, length);
 }
 
 /**
@@ -40,5 +42,8 @@ export async function generateToken(length: number = 32): Promise<string> {
  */
 export async function generateTokenHash(): Promise<string> {
   const token = await generateToken(32);
-  return createHash('sha256').update(token).digest('hex');
+  const data = new TextEncoder().encode(token);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }

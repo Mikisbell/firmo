@@ -6,7 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/src/core/db/prisma';
-import { createHash, randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
+import { hashPin } from '@/src/core/auth/crypto-utils';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { cache } from '@/src/core/cache/redis.service';
 import { EMPLOYEE_ROLES } from '@/src/core/constants/roles';
@@ -26,9 +27,7 @@ const updateEmployeeSchema = z.object({
 
 const SALT = 'PARK_POS_2026_'; // Must match seed.ts and route.ts
 
-function hashPin(pin: string): string {
-  return createHash('sha256').update(SALT + pin).digest('hex');
-}
+
 
 // Validate UUID format
 function isValidUUID(id: string): boolean {
@@ -149,7 +148,7 @@ export async function PUT(
     // If PIN is being changed, check uniqueness within tenant
     let pin_hash: string | undefined;
     if (pin) {
-      pin_hash = hashPin(pin);
+      pin_hash = await hashPin(pin);
       const existingPin = await prisma.employees.findFirst({
         where: {
           tenant_id: tenantId,
