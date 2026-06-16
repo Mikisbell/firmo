@@ -64,15 +64,11 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       const storedConfig = getStoredTerminalConfig();
       
       // =========================================================
-      // BYPASS LOGIN GLOBAL (DEV / TEST / PREVIEW)
-      // Como buenos profesionales, no usamos botones en la UI.
-      // Inyectamos la sesión mockeada y desactivamos el login entero
-      // si NEXT_PUBLIC_BYPASS_AUTH=true o si estamos en localhost/github.
+      // TODO: Restaurar auth cuando haya más usuarios.
+      // Por ahora bypass total — solo el dev usa el sistema.
       // =========================================================
-      const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === 'caja.localhost');
-      const isGithub = typeof window !== 'undefined' && window.location.hostname.includes('github');
-      const isBypassEnabled = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' || isLocalhost || isGithub;
-      
+      const isBypassEnabled = true;
+
       if (isBypassEnabled) {
         const bypassTerminal: TerminalConfig = {
           terminal_id: 'CAJA_BYPASS_001',
