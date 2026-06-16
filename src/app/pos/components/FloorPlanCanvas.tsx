@@ -11,10 +11,12 @@ import { useAuth } from "@/src/components/auth";
 export function FloorPlanCanvas({ 
     zones, 
     liveOrders, 
+    shiftOpen = true,
     onSelectTable 
 }: { 
     zones: { id: string; name: string; tables: any[] }[], 
     liveOrders: any[],
+    shiftOpen?: boolean,
     onSelectTable: (tableId: string, orderId: string | null, tableNumber: string) => void 
 }) {
     const [draggingTable, setDraggingTable] = useState<string | null>(null);
@@ -144,11 +146,16 @@ export function FloorPlanCanvas({
                             return (
                                 <motion.div
                                     key={table.id}
-                                    drag
+                                    drag={shiftOpen}
                                     dragMomentum={false}
-                                    onDragStart={() => setDraggingTable(table.id)}
-                                    onDragEnd={(e, info) => handleDragEnd(e, info, table)}
-                                    className={`absolute cursor-grab active:cursor-grabbing flex flex-col items-center justify-center border-2 transition-colors z-10 
+                                    onDragStart={() => {
+                                        if (shiftOpen) setDraggingTable(table.id);
+                                    }}
+                                    onDragEnd={(e, info) => {
+                                        if (shiftOpen) handleDragEnd(e, info, table);
+                                    }}
+                                    className={`absolute flex flex-col items-center justify-center border-2 transition-colors z-10 
+                                        ${shiftOpen ? 'cursor-grab active:cursor-grabbing' : ''}
                                         ${bgColors[richStatus]} 
                                         ${draggingTable === table.id ? "scale-110 shadow-2xl z-50 ring-4 ring-emerald-500/50" : "shadow-lg hover:ring-2 ring-emerald-500/30"}
                                         ${isRound ? "rounded-full" : isBarStool ? "rounded-t-full rounded-b-xl" : "rounded-2xl"}
@@ -163,10 +170,11 @@ export function FloorPlanCanvas({
                                     }}
                                 >
                                     <button 
-                                        className="w-full h-full flex flex-col items-center justify-center p-2 outline-none"
+                                        className="w-full h-full flex flex-col items-center justify-center p-2 outline-none disabled:opacity-80"
+                                        disabled={!shiftOpen}
                                         onClick={(e) => {
-                                            // Prevenir click al arrastrar
-                                            if (draggingTable) return;
+                                            // Prevenir click al arrastrar o si el turno está cerrado
+                                            if (draggingTable || !shiftOpen) return;
                                             onSelectTable(table.id, order?.order_id || null, table.number);
                                         }}
                                     >

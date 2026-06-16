@@ -3,20 +3,20 @@
 import React, { useMemo } from "react";
 import useSWR from "swr";
 import { useLiveOrders } from "../hooks/useLiveOrders";
-import { motion } from "framer-motion";
-import { Utensils, Users, Clock, AlertCircle } from "lucide-react";
-import { Badge } from "@/src/components/ui";
+import { Utensils, LockKeyhole } from "lucide-react";
 
 import { FloorPlanCanvas } from "./FloorPlanCanvas";
+import type { ShiftProjection } from "@/src/core/projections/types";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 interface FloorPlanViewProps {
     tenantId: string;
+    shift: ShiftProjection | null;
     onSelectTable: (tableId: string, orderId: string | null, tableNumber: string) => void;
 }
 
-export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
+export function FloorPlanView({ tenantId, shift, onSelectTable }: FloorPlanViewProps) {
     // Usar endpoint POS (no admin) para no requerir cookie JWT de admin
     const { data: tablesRaw, isLoading: tablesLoading } = useSWR(
         tenantId ? `/api/pos/tables?tenant_id=${tenantId}` : null,
@@ -28,6 +28,9 @@ export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
         items: Array.isArray(tablesRaw) ? tablesRaw : (tablesRaw?.items ?? [])
     }), [tablesRaw]);
     const { orders: liveOrders } = useLiveOrders({ tenantId });
+
+    // ── Turno abierto = mesas interactivas ──────────────────────────
+    const isShiftOpen = shift?.status === "OPEN";
 
     // Agrupar mesas por zona
     const zones = useMemo(() => {
@@ -69,10 +72,16 @@ export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
 
     return (
         <div className="flex flex-col gap-6 p-6 overflow-y-auto h-full bg-zinc-100 dark:bg-zinc-900">
+            {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
                 <div>
                     <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Centro de Comando 2D</h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Arrastra una mesa sobre otra para unirlas</p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        {isShiftOpen
+                            ? "Arrastra una mesa sobre otra para unirlas"
+                            : "Abre un turno para interactuar con las mesas"
+                        }
+                    </p>
                 </div>
                 <div className="flex gap-4 text-sm font-medium">
                     <div className="flex items-center gap-2">
@@ -95,11 +104,29 @@ export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
             </div>
 
             {zones.length > 0 ? (
-                <FloorPlanCanvas 
-                    zones={zones} 
-                    liveOrders={liveOrders} 
-                    onSelectTable={onSelectTable} 
-                />
+                <div className="relative">
+                    <FloorPlanCanvas 
+                        zones={zones} 
+                        liveOrders={liveOrders} 
+                        shiftOpen={isShiftOpen}
+                        onSelectTable={onSelectTable} 
+                    />
+
+                    {/* ── OVERLAY: Turno Cerrado ─────────────────── */}
+                    {!isShiftOpen && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 rounded-3xl backdrop-blur-sm bg-zinc-950/60 pointer-events-none">
+                            <div className="flex flex-col items-center gap-3 bg-zinc-900/90 border border-zinc-800 rounded-2xl px-8 py-6 shadow-2xl pointer-events-auto">
+                                <div className="w-14 h-14 rounded-full bg-zinc-800 flex items-center justify-center">
+                                    <LockKeyhole className="w-7 h-7 text-zinc-400" />
+                                </div>
+                                <h3 className="text-lg font-bold text-zinc-100">Turno Cerrado</h3>
+                                <p className="text-sm text-zinc-400 text-center max-w-xs">
+                                    Abrí un turno desde el panel inferior para habilitar las mesas y empezar a tomar pedidos.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
             ) : (
                 <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl">
                     <Utensils className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mb-4" />

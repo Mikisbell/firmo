@@ -738,6 +738,7 @@ export default function POSPage() {
                         {currentNavSection === "SALON" ? (
                             <FloorPlanView
                                 tenantId={TENANT_ID}
+                                shift={shift}
                                 onSelectTable={(tableId, orderId, tableNumber) => {
                                     if (orderId) {
                                         // Open existing order
