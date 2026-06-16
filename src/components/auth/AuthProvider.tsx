@@ -72,7 +72,7 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       if (isBypassEnabled) {
         const bypassTerminal: TerminalConfig = {
           terminal_id: 'CAJA_BYPASS_001',
-          tenant_id: 'default',
+          tenant_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // tenant real
           device_fingerprint: 'bypass_virtual_device',
           device_name: 'Virtual Bypass Terminal',
           location_id: 'default',

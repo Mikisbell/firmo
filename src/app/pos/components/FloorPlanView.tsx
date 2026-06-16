@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useTables } from "@/src/hooks/useSWRHooks";
+import useSWR from "swr";
 import { useLiveOrders } from "../hooks/useLiveOrders";
 import { motion } from "framer-motion";
 import { Utensils, Users, Clock, AlertCircle } from "lucide-react";
@@ -9,13 +9,24 @@ import { Badge } from "@/src/components/ui";
 
 import { FloorPlanCanvas } from "./FloorPlanCanvas";
 
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
 interface FloorPlanViewProps {
     tenantId: string;
     onSelectTable: (tableId: string, orderId: string | null, tableNumber: string) => void;
 }
 
 export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
-    const { data: tablesData, isLoading: tablesLoading } = useTables();
+    // Usar endpoint POS (no admin) para no requerir cookie JWT de admin
+    const { data: tablesRaw, isLoading: tablesLoading } = useSWR(
+        tenantId ? `/api/pos/tables?tenant_id=${tenantId}&active=true` : null,
+        fetcher,
+        { revalidateOnFocus: false }
+    );
+    // El endpoint POS devuelve array directo; el admin devuelve { items }
+    const tablesData = useMemo(() => ({
+        items: Array.isArray(tablesRaw) ? tablesRaw : (tablesRaw?.items ?? [])
+    }), [tablesRaw]);
     const { orders: liveOrders } = useLiveOrders({ tenantId });
 
     // Agrupar mesas por zona
@@ -23,7 +34,7 @@ export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
         const tables = tablesData?.items || [];
         const map = new Map<string, { id: string; name: string; tables: typeof tables }>();
         
-        tables.forEach((t) => {
+        tables.forEach((t: any) => {
             const zoneId = t.zone_id || "unassigned";
             const zoneName = t.zone?.name || "Salón Principal";
             
@@ -35,7 +46,7 @@ export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
 
         // Ordenar mesas por número dentro de cada zona
         Array.from(map.values()).forEach(z => {
-            z.tables.sort((a, b) => {
+            z.tables.sort((a: any, b: any) => {
                 const numA = parseInt(a.number.replace(/\D/g, '') || '0');
                 const numB = parseInt(b.number.replace(/\D/g, '') || '0');
                 return numA - numB;
