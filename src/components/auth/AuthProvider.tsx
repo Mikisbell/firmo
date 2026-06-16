@@ -63,6 +63,48 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
     async function initializeAuth() {
       const storedConfig = getStoredTerminalConfig();
       
+      // =========================================================
+      // BYPASS LOGIN GLOBAL (DEV / TEST)
+      // Como buenos profesionales, no usamos botones en la UI.
+      // Si NEXT_PUBLIC_BYPASS_AUTH=true (o si forzamos temporalmente),
+      // inyectamos la sesión mockeada y desactivamos el login entero.
+      // =========================================================
+      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' || true) { // Forzado temporalmente a petición
+        const bypassTerminal: TerminalConfig = {
+          terminal_id: 'CAJA_BYPASS_001',
+          tenant_id: 'default',
+          device_fingerprint: 'bypass_virtual_device',
+          device_name: 'Virtual Bypass Terminal',
+          location_id: 'default',
+          is_allowed: true,
+          registered_at: new Date().toISOString(),
+          actor_id: 'emp-1',
+          role: 'CAJA'
+        };
+        
+        const mockSession: SecureSession = {
+          id: `bypass-session-${Date.now()}`,
+          terminal_id: bypassTerminal.terminal_id,
+          employee_id: 'emp-1',
+          employee_name: 'Dev Cajero',
+          employee_role: 'CASHIER',
+          terminal_role: 'CAJA',
+          fingerprint_at_login: bypassTerminal.device_fingerprint,
+          fingerprint_signals_at_login: JSON.stringify({ bypass: true }),
+          risk_score_at_login: 0,
+          created_at: new Date(),
+          last_activity_at: new Date(),
+          last_fingerprint_check: new Date(),
+          expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours
+        };
+
+        setTerminal(bypassTerminal);
+        setSession(mockSession);
+        setNeedsLogin(false);
+        setIsLoading(false);
+        return;
+      }
+
       // Native Supervisor Mode: Check global admin session
       let hasAdminCookie = false;
       let adminEmployee = null;
