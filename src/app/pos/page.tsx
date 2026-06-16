@@ -98,25 +98,10 @@ export default function POSPage() {
             return;
         }
 
-        try {
-            const numResult = await POSActions.getNextOrderNumber(TENANT_ID, TERM_ID);
-            const orderNum = numResult.success ? numResult.orderNumber : offlineOrderCounter++;
-
-            const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
-                order_type: "DINE_IN",
-                order_number: orderNum,
-                fulfillment: {
-                    table_number: tableNumber,
-                }
-            });
-            setCurrentOrder(result);
-            setSelectedCheckId(result.check_id);
-            setCurrentNavSection("POS");
-            toast.success(`Orden abierta para mesa ${tableNumber}`);
-        } catch (error) {
-            console.error("Error creating table order", error);
-            toast.error("Error al abrir orden para la mesa");
-        }
+        setPendingTableOrder(tableNumber);
+        setCurrentOrder(null);
+        setSelectedCheckId("c1");
+        setCurrentNavSection("POS");
     };
 
     // Shift modal state
@@ -126,6 +111,7 @@ export default function POSPage() {
     // New order modal state (for delivery/takeout)
     const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
     const [pendingNewOrder, setPendingNewOrder] = useState<NewOrderData | null>(null);
+    const [pendingTableOrder, setPendingTableOrder] = useState<string | null>(null);
 
     const shiftIsOpen = shift?.status === "OPEN";
 
@@ -420,6 +406,7 @@ export default function POSPage() {
 
     // Select a pending order to charge (Premium Parallel Checkout)
     const handleSelectPendingOrder = async (orderId: string) => {
+        setPendingTableOrder(null);
         setCurrentOrder({ order_id: orderId, check_id: "c1" });
         setSelectedCheckId("c1");
         setCurrentNavSection("POS");
@@ -517,13 +504,16 @@ export default function POSPage() {
             
             // Create DINE_IN order by default (from pending view)
             const dineInNum = await getOrderNumber();
+            const fulfillment = pendingTableOrder ? { table_number: pendingTableOrder } : undefined;
             const result = await POSActions.createOrder(TENANT_ID, TERM_ID, ACTOR_ID, {
                 order_type: "DINE_IN",
                 order_number: dineInNum,
+                fulfillment
             });
             orderId = result.order_id;
             setCurrentOrder(result);
             setSelectedCheckId(result.check_id);
+            setPendingTableOrder(null);
         }
 
         // Add item to order
@@ -782,38 +772,53 @@ export default function POSPage() {
                                 
                                 {/* Catalog for adding items */}
                                 <div className="flex-1 overflow-y-auto p-2 bg-park-black">
-                                    {currentOrder && pendingNewOrder ? (
+                                    {currentOrder || pendingTableOrder || pendingNewOrder ? (
                                         <>
                                             {/* Current order info banner */}
-                                            <div className="m-2 mb-4 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 shadow-inner">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        {pendingNewOrder.order_type === "DELIVERY" ? (
-                                                            <Truck size={20} className="text-indigo-400" />
-                                                        ) : (
-                                                            <Receipt size={20} className="text-indigo-400" />
-                                                        )}
-                                                        <span className="text-lg font-bold text-white">
-                                                            {pendingNewOrder.customer_name}
-                                                        </span>
-                                                        <span className="text-sm font-mono text-park-gray-400 bg-black/40 px-3 py-1 rounded-full">
-                                                            {pendingNewOrder.customer_phone}
+                                            {pendingNewOrder && (
+                                                <div className="m-2 mb-4 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 shadow-inner">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            {pendingNewOrder.order_type === "DELIVERY" ? (
+                                                                <Truck size={20} className="text-indigo-400" />
+                                                            ) : (
+                                                                <Receipt size={20} className="text-indigo-400" />
+                                                            )}
+                                                            <span className="text-lg font-bold text-white">
+                                                                {pendingNewOrder.customer_name}
+                                                            </span>
+                                                            <span className="text-sm font-mono text-park-gray-400 bg-black/40 px-3 py-1 rounded-full">
+                                                                {pendingNewOrder.customer_phone}
+                                                            </span>
+                                                        </div>
+                                                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${
+                                                            pendingNewOrder.order_type === "DELIVERY"
+                                                                ? "bg-purple-500/20 text-purple-400"
+                                                                : "bg-blue-500/20 text-blue-400"
+                                                        }`}>
+                                                            {pendingNewOrder.order_type === "DELIVERY" ? "Delivery" : "Para llevar"}
                                                         </span>
                                                     </div>
-                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${
-                                                        pendingNewOrder.order_type === "DELIVERY"
-                                                            ? "bg-purple-500/20 text-purple-400"
-                                                            : "bg-blue-500/20 text-blue-400"
-                                                    }`}>
-                                                        {pendingNewOrder.order_type === "DELIVERY" ? "Delivery" : "Para llevar"}
-                                                    </span>
+                                                    {pendingNewOrder.delivery_address && (
+                                                        <p className="text-sm text-park-gray-400 mt-2 ml-8 flex items-center gap-2">
+                                                            <span>📍</span> {pendingNewOrder.delivery_address}
+                                                        </p>
+                                                    )}
                                                 </div>
-                                                {pendingNewOrder.delivery_address && (
-                                                    <p className="text-sm text-park-gray-400 mt-2 ml-8 flex items-center gap-2">
-                                                        <span>📍</span> {pendingNewOrder.delivery_address}
-                                                    </p>
-                                                )}
-                                            </div>
+                                            )}
+                                            {pendingTableOrder && !currentOrder && (
+                                                <div className="m-2 mb-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-inner flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Utensils size={20} className="text-emerald-400" />
+                                                        <span className="text-lg font-bold text-white">
+                                                            Mesa {pendingTableOrder}
+                                                        </span>
+                                                        <span className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest bg-emerald-500/20 text-emerald-400">
+                                                            Nueva Orden
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div className="px-2">
                                                 <CatalogGrid
                                                     onAdd={handleAddWithOrderType}
@@ -863,6 +868,16 @@ export default function POSPage() {
                         selectedCheckId={selectedCheckId}
                         onSelectCheck={setSelectedCheckId}
                     />
+                ) : pendingTableOrder ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-park-gray-900">
+                        <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-emerald-500/20">
+                            <Utensils className="text-emerald-500 w-10 h-10" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Mesa {pendingTableOrder}</h3>
+                        <p className="text-park-gray-500 text-sm mb-8 max-w-[200px]">
+                            Agrega productos del catálogo para comenzar.
+                        </p>
+                    </div>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-park-gray-900">
                         <div className="w-20 h-20 bg-park-gray-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
