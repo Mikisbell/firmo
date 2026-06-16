@@ -84,7 +84,7 @@ export function FloorPlanCanvas({
 
             try {
                 await POSActions.attachTable(
-                    session!.tenant_id,
+                    terminal!.tenant_id,
                     terminalId!,
                     session!.employee_id,
                     orderToAttachTo.order_id,
