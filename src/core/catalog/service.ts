@@ -54,10 +54,14 @@ export async function saveCatalogToLocal(catalog: CatalogSnapshot): Promise<void
         for (const item of catalog.items) {
             await db.catalog_items.add({
                 id: item.id,
+                tenant_id: storeId,
                 product_id: item.id,
                 name: item.name,
                 price_cents: item.price_cents,
                 tax_rate: 0.18, // IGV Peru
+                category: item.category,
+                station: item.station,
+                sku: item.sku,
             });
         }
     });

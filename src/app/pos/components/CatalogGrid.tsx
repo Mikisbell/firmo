@@ -8,7 +8,9 @@ import type { CatalogItem } from "@/src/core/catalog/service";
 import { CategoryTabs } from "./CategoryTabs";
 import { useResponsive } from "@/src/hooks/useResponsive";
 import { VirtualizedGrid } from "./VirtualizedGrid";
-import { useCatalog } from "@/src/hooks/useSWRHooks";
+import { useLiveQuery } from "dexie-react-hooks";
+import { getDb } from "@/src/core/db/schema";
+import { useAuth } from "@/src/components/auth";
 
 // Threshold for enabling virtualization
 const VIRTUALIZATION_THRESHOLD = 50;
@@ -58,40 +60,45 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
     const { isMobile } = useResponsive();
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Usar SWR para fetch con deduplicación automática
-    const { data, error, isLoading } = useCatalog();
+    const { terminal } = useAuth();
+    const tenantId = terminal?.tenant_id || "";
 
-    // Transformar datos del catálogo a formato de productos
-    const products = useMemo(() => {
-        if (!data?.items) return [];
-        return data.items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price_cents,
-            sku: item.sku,
-            station: item.station,
-            category: item.category,
-        }));
-    }, [data]);
+    // Usar IndexedDB directamente para ahorrar RAM (Low-RAM mode)
+    // Dexie react hooks observará los cambios en la DB
+    const productsFromDb = useLiveQuery(
+        async () => {
+            const db = getDb();
+            if (!db || !tenantId) return [];
+            
+            // Limitamos a 200 productos activos para no saturar RAM 
+            // y usamos where() para index scan
+            let query = db.catalog_items.where('tenant_id').equals(tenantId);
+            
+            if (selectedCategory !== "ALL") {
+                query = db.catalog_items.where({ tenant_id: tenantId, category: selectedCategory });
+            }
 
-    // Category counts
-    const categoryCounts = useMemo(() => {
-        const counts: Record<string, number> = {};
-        products.forEach(p => {
-            const cat = p.category || "OTROS";
-            counts[cat] = (counts[cat] || 0) + 1;
-        });
-        return counts;
-    }, [products]);
+            const items = await query.limit(200).toArray();
+            
+            return items.map((item) => ({
+                id: item.product_id || item.id,
+                name: item.name,
+                price: item.price_cents,
+                sku: item.sku || "",
+                station: item.station || "COCINA",
+                category: item.category || "OTROS",
+            }));
+        },
+        [selectedCategory, tenantId],
+        []
+    );
 
-    // Filter and sort products
+    const isLoading = !productsFromDb && tenantId;
+    const error = false;
+
+    // Filter by search locally
     const filteredProducts = useMemo(() => {
-        let result = [...products];
-
-        // Filter by category
-        if (selectedCategory !== "ALL") {
-            result = result.filter(p => p.category === selectedCategory);
-        }
+        let result = productsFromDb || [];
 
         // Filter by search
         if (searchQuery.trim()) {
@@ -112,7 +119,21 @@ export default function CatalogGrid({ onAdd, recommendations = [], shiftOpen = t
         });
 
         return result;
-    }, [products, selectedCategory, searchQuery, recommendations]);
+    }, [productsFromDb, searchQuery, recommendations]);
+
+    // Category counts (using cached totals or dynamic based on subset)
+    const categoryCounts = useMemo(() => {
+        // En low-ram podríamos saltar esto o hacerlo con un count() rápido en DB,
+        // por ahora usamos los cargados
+        const counts: Record<string, number> = {};
+        (productsFromDb || []).forEach(p => {
+            const cat = p.category || "OTROS";
+            counts[cat] = (counts[cat] || 0) + 1;
+        });
+        return counts;
+    }, [productsFromDb]);
+
+
 
     // Variants for staggered entry
     const container = {

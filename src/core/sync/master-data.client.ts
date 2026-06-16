@@ -21,12 +21,14 @@ export class MasterDataSyncClient {
             const data = await res.json();
             
             // Inyectar en Dexie de un solo golpe (Transacción ACID local)
-            await db.transaction('rw', db.master_tables, async () => {
+            await db.transaction('rw', db.master_tables, db.catalog_items, async () => {
                 if (data.tables && Array.isArray(data.tables)) {
-                    // Limpiar caché anterior
                     await db.master_tables.where('tenant_id').equals(this.tenantId).delete();
-                    // Insertar nueva
                     await db.master_tables.bulkAdd(data.tables);
+                }
+                if (data.catalog && Array.isArray(data.catalog)) {
+                    await db.catalog_items.where('tenant_id').equals(this.tenantId).delete();
+                    await db.catalog_items.bulkAdd(data.catalog);
                 }
             });
 

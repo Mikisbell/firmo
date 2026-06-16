@@ -42,10 +42,14 @@ export interface CatalogVersionEntity {
 
 export interface CatalogItemEntity {
     id: string;
+    tenant_id: string;
     product_id: string;
     name: string;
     price_cents: number;
     tax_rate: number;
+    category?: string | null;
+    station?: string | null;
+    sku?: string | null;
 }
 
 export interface SagaLogEntity {
@@ -124,7 +128,7 @@ export class ParkDB extends Dexie {
             projections: 'key',
             sync_state: 'id',
             catalog_versions: '[store_id+version], active',
-            catalog_items: 'id, product_id, name'
+            catalog_items: 'id, tenant_id, product_id, category, name'
         });
 
         // Version 2: Updated to use tenant_id
@@ -202,6 +206,18 @@ export class ParkDB extends Dexie {
             sync_state: 'id',
             catalog_versions: '[tenant_id+version], active',
             catalog_items: 'id, product_id, name',
+            snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
+            saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]',
+            offline_saga_events: 'event_id, [tenant_id+synced], saga_id, queued_at',
+        });
+
+        // Version 9: Added tenant_id and category indexes to catalog_items
+        this.version(9).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, aggregate_id, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, tenant_id, product_id, category, name',
             snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
             saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]',
             offline_saga_events: 'event_id, [tenant_id+synced], saga_id, queued_at',

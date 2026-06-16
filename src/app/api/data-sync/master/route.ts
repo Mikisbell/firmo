@@ -38,11 +38,27 @@ export async function GET(request: NextRequest) {
             zone: zones ?? null,
         }));
 
-        // (Aquí podríamos sumar catalog, employees, etc.)
+        // 2. Cargar Catálogo (Productos)
+        const products = await prisma.products.findMany({
+            where: { tenant_id: tenantId, is_active: true },
+            select: { id: true, name: true, price_cents: true, category: true, station: true, sku: true }
+        });
+
+        const masterCatalog = products.map(p => ({
+            id: p.id,
+            tenant_id: tenantId,
+            product_id: p.id,
+            name: p.name,
+            price_cents: p.price_cents,
+            category: p.category,
+            station: p.station,
+            sku: p.sku,
+            tax_rate: 0.18 // Default if schema lacks it
+        }));
 
         // No desconectamos prisma porque estamos usando el singleton global
 
-        return NextResponse.json({ tables: masterTables });
+        return NextResponse.json({ tables: masterTables, catalog: masterCatalog });
     } catch (error) {
         console.error('Edge Bootstrap Error:', error);
         return NextResponse.json({ error: 'Error al hacer bootstrap en el Edge' }, { status: 500 });
