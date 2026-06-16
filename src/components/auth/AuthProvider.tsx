@@ -64,12 +64,14 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       const storedConfig = getStoredTerminalConfig();
       
       // =========================================================
-      // BYPASS LOGIN GLOBAL (DEV / TEST)
+      // BYPASS LOGIN GLOBAL (DEV / TEST / PREVIEW)
       // Como buenos profesionales, no usamos botones en la UI.
-      // Si NEXT_PUBLIC_BYPASS_AUTH=true (o si forzamos temporalmente),
-      // inyectamos la sesión mockeada y desactivamos el login entero.
+      // Inyectamos la sesión mockeada y desactivamos el login entero
+      // si NEXT_PUBLIC_BYPASS_AUTH=true o si no estamos en producción real.
       // =========================================================
-      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' || true) { // Forzado temporalmente a petición
+      const isBypassEnabled = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' || process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production';
+      
+      if (isBypassEnabled) {
         const bypassTerminal: TerminalConfig = {
           terminal_id: 'CAJA_BYPASS_001',
           tenant_id: 'default',
@@ -79,7 +81,7 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
           is_allowed: true,
           registered_at: new Date().toISOString(),
           actor_id: 'emp-1',
-          role: 'CAJA'
+          role: 'CASHIER'
         };
         
         const mockSession: SecureSession = {
