@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/src/core/db/schema";
-import { requirePosAuth } from "@/src/core/auth/middleware";
+import prisma from "@/src/core/db/prisma";
+import { requirePosAuth } from "@/src/core/middleware";
 
 export async function GET(req: NextRequest) {
     try {
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
         const tenant_id = authResult.user.tenantId;
         const { searchParams } = new URL(req.url);
         const dateParam = searchParams.get('date');
-        
+
         let targetDate = new Date();
         if (dateParam) {
             targetDate = new Date(dateParam);
@@ -25,11 +25,13 @@ export async function GET(req: NextRequest) {
         const endOfDay = new Date(targetDate);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Fetch today's paid orders
-        const orders = await db.orders.findMany({
+        // Fetch today's fully-paid orders from Prisma (server DB)
+        // Note: order_status tracks OPEN/CANCELLED. Paid orders are detected via unpaid_checks_count = 0
+        const orders = await prisma.orders.findMany({
             where: {
                 tenant_id,
-                status: "PAID",
+                unpaid_checks_count: 0,
+                total_cents: { gt: 0 },
                 created_at: {
                     gte: startOfDay,
                     lte: endOfDay
@@ -41,8 +43,10 @@ export async function GET(req: NextRequest) {
                 order_type: true,
                 total_cents: true,
                 created_at: true,
-                updated_at: true,
-                table_number: true,
+                fulfillment: true,
+                tables: {
+                    select: { number: true }
+                }
             },
             orderBy: {
                 created_at: "desc"
@@ -50,12 +54,12 @@ export async function GET(req: NextRequest) {
         });
 
         // Calculate summaries
-        const totalSales = orders.reduce((sum, order) => sum + order.total_cents, 0);
+        const totalSales = orders.reduce((sum, order) => sum + (order.total_cents ?? 0), 0);
         const totalOrders = orders.length;
 
         // Group by order_type
         const byType = orders.reduce((acc, order) => {
-            acc[order.order_type] = (acc[order.order_type] || 0) + order.total_cents;
+            acc[order.order_type] = (acc[order.order_type] || 0) + (order.total_cents ?? 0);
             return acc;
         }, {} as Record<string, number>);
 
@@ -66,7 +70,18 @@ export async function GET(req: NextRequest) {
                 total_orders: totalOrders,
                 by_type: byType
             },
-            recent_orders: orders.slice(0, 50) // Last 50 orders
+            recent_orders: orders.slice(0, 50).map(o => {
+                const fulfillment = o.fulfillment as Record<string, unknown> | null;
+                const tableNumber = (o.tables?.number) ?? (fulfillment?.table_number as string | undefined) ?? null;
+                return {
+                    id: o.id,
+                    order_number: o.order_number,
+                    order_type: o.order_type,
+                    total_cents: o.total_cents,
+                    created_at: o.created_at,
+                    table_number: tableNumber,
+                };
+            })
         });
     } catch (error) {
         console.error("Error fetching reports:", error);

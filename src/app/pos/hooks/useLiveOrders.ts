@@ -63,15 +63,19 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
         return allProjections
             .filter((o): o is NonNullable<typeof o> => {
                 if (!o) return false;
-                // Solo órdenes OPEN que no estén completamente pagadas
+                // Solo órdenes OPEN
                 if (o.status !== "OPEN") return false;
-                // Verificar si tiene checks sin pagar
+                // Incluir si no tiene checks aún (orden recién creada por mozo)
                 const checks = o.checks || [];
+                if (checks.length === 0) return true;
+                // Incluir si tiene al menos una check sin pagar completamente
                 const hasUnpaidCheck = checks.some((c: any) => {
+                    if (c.payment?.status === "PAID") return false;
                     const paid = (c.payment?.payments || []).reduce((sum: number, p: any) => sum + (p.amount_cents || 0), 0);
-                    return paid < (c.total_cents || 0);
+                    // Incluir si no está pagado o si el total es 0 (aún agregando items)
+                    return paid < (c.total_cents || 0) || (c.total_cents || 0) === 0;
                 });
-                return hasUnpaidCheck || checks.length === 0;
+                return hasUnpaidCheck;
             });
     }, [tenantId]);
 
@@ -80,7 +84,10 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
         if (!projections) return;
 
         const pending: PendingOrder[] = projections.map(o => {
-            const fulfillment = o.fulfillment || {};
+            const fulfillment = (o.fulfillment as Record<string, unknown> | undefined) || {};
+            // Normalize table_number: can be at root or inside fulfillment
+            const tableNum = (o.table_number as string | undefined)
+                ?? (fulfillment.table_number as string | undefined);
             
             return {
                 order_id: o.order_id,
@@ -88,13 +95,13 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 order_type: (o.order_type as "DINE_IN" | "TAKEOUT" | "DELIVERY") || "DINE_IN",
                 
                 // DINE_IN fields
-                table_number: fulfillment.table_number,
-                waiter_name: undefined,
-                guest_count: fulfillment.guest_count,
+                table_number: tableNum,
+                waiter_name: (o.actor_id as string | undefined) ? `Mozo ${(o.actor_id as string).slice(0, 6)}` : undefined,
+                guest_count: fulfillment.guest_count as number | undefined,
                 
                 // DELIVERY fields - basic info from fulfillment
-                customer_name: fulfillment.pickup_name,
-                customer_phone: fulfillment.pickup_phone,
+                customer_name: fulfillment.pickup_name as string | undefined,
+                customer_phone: fulfillment.pickup_phone as string | undefined,
                 delivery_address: undefined, 
                 delivery_reference: undefined, 
                 delivery_fee_cents: undefined, 
@@ -102,8 +109,8 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 payment_expectation: undefined, 
                 
                 // TAKEOUT fields
-                pickup_name: fulfillment.pickup_name,
-                pickup_phone: fulfillment.pickup_phone,
+                pickup_name: fulfillment.pickup_name as string | undefined,
+                pickup_phone: fulfillment.pickup_phone as string | undefined,
                 pickup_time: undefined, 
                 
                 // Common fields

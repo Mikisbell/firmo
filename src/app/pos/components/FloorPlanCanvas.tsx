@@ -6,31 +6,33 @@ import { Utensils, Users, Clock, Link as LinkIcon, Merge } from "lucide-react";
 import { Badge } from "@/src/components/ui";
 import { toast } from "sonner";
 import { POSActions } from "@/src/core/actions/pos.actions";
-import { useAuth } from "@/src/contexts/AuthContext";
-import { useTerminal } from "@/src/contexts/TerminalContext";
+import { useAuth } from "@/src/components/auth";
 
 export function FloorPlanCanvas({ 
     zones, 
     liveOrders, 
     onSelectTable 
 }: { 
-    zones: { id: string; name: string; tables: Record<string, unknown>[] }[], 
-    liveOrders: Record<string, unknown>[],
+    zones: { id: string; name: string; tables: any[] }[], 
+    liveOrders: any[],
     onSelectTable: (tableId: string, orderId: string | null, tableNumber: string) => void 
 }) {
     const [draggingTable, setDraggingTable] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const { session } = useAuth();
-    const { terminalId } = useTerminal();
+    const { session, terminal } = useAuth();
+    const terminalId = terminal?.terminal_id;
 
-    const getTableOrder = (tableNumber: string): Record<string, unknown> | undefined => {
-        return liveOrders.find((o: Record<string, unknown>) => 
-            o.order_type === "DINE_IN" && 
-            o.table_number === tableNumber
-        );
+    const getTableOrder = (tableNumber: string): any | undefined => {
+        return liveOrders.find((o: any) => {
+            if (o.order_type !== "DINE_IN") return false;
+            // Support both flat table_number and nested fulfillment.table_number
+            const tNum = (o.table_number as string | undefined)
+                ?? ((o.fulfillment as Record<string, unknown> | undefined)?.table_number as string | undefined);
+            return tNum === tableNumber;
+        });
     };
 
-    const handleDragEnd = async (e: MouseEvent | TouchEvent | PointerEvent, info: { point: { x: number, y: number } }, draggedTable: Record<string, unknown>) => {
+    const handleDragEnd = async (e: MouseEvent | TouchEvent | PointerEvent, info: { point: { x: number, y: number } }, draggedTable: any) => {
         setDraggingTable(null);
         if (!containerRef.current) return;
 
@@ -100,11 +102,11 @@ export function FloorPlanCanvas({
         <div ref={containerRef} className="relative w-full h-full min-h-[700px] bg-zinc-50 dark:bg-zinc-950/50 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-inner p-4">
             {zones.map(zone => {
                 // Si la posición X e Y son 0, usamos un auto-layout en grilla visual dentro del canvas
-                const autoLayout = zone.tables.every((t: Record<string, unknown>) => (t.position_x === 0 && t.position_y === 0));
+                const autoLayout = zone.tables.every((t: any) => (t.position_x === 0 && t.position_y === 0));
                 
                 return (
                     <React.Fragment key={zone.id}>
-                        {zone.tables.map((table: Record<string, unknown>, index: number) => {
+                        {zone.tables.map((table: any, index: number) => {
                             const order = getTableOrder(table.number);
                             let richStatus: "FREE" | "SEATED" | "COOKING" | "BILL" = "FREE";
                             let elapsedMinutes = 0;
