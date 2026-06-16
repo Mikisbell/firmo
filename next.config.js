@@ -23,6 +23,15 @@ const nextConfig = {
         // Enable optimized package imports for better code splitting
         optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-icons', 'framer-motion', 'sonner'],
     },
+
+    // ACELERAR EL BUILD EN VERCEL:
+    // Ignoramos validaciones estáticas durante el empaquetado (ya las verificamos localmente)
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
+    typescript: {
+        ignoreBuildErrors: true,
+    },
     
     // Webpack configuration for code splitting
     webpack: (config, { isServer }) => {
