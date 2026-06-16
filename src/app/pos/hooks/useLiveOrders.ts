@@ -89,6 +89,14 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
             const tableNum = ((o as any).table_number as string | undefined)
                 ?? (fulfillment.table_number as string | undefined);
             
+            const lines = Object.values(o.lines || {}) as any[];
+            let calculatedStatus: "PENDING" | "COOKING" | "READY" | "SERVED" = "PENDING";
+            if (lines.length > 0) {
+                if (lines.some(l => l.status === "READY")) calculatedStatus = "READY";
+                else if (lines.some(l => l.status === "COOKING")) calculatedStatus = "COOKING";
+                else if (lines.every(l => l.status === "SERVED")) calculatedStatus = "SERVED";
+            }
+
             return {
                 order_id: o.order_id,
                 order_number: o.order_number || 0,
@@ -119,7 +127,7 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 created_at: o.lines && Object.values(o.lines).length > 0 
                     ? new Date((Object.values(o.lines)[0] as any).created_at) 
                     : new Date(),
-                status: "PENDING",
+                status: calculatedStatus,
                 
                 // External integrations
                 external_source: undefined,

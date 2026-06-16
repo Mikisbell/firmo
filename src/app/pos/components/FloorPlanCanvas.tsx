@@ -179,13 +179,18 @@ export function FloorPlanCanvas({
                                         }}
                                     >
                                         <span className={`text-xl font-bold font-mono ${richStatus === "FREE" ? "text-zinc-800 dark:text-zinc-200" : "text-white"}`}>
-                                            {table.number}
+                                            M{table.number}
                                         </span>
                                         
-                                        {richStatus !== "FREE" && (
-                                            <div className="flex items-center gap-1 mt-1 bg-black/20 px-2 py-0.5 rounded-full text-xs font-medium">
-                                                <Clock className="w-3 h-3" />
-                                                <span>{elapsedMinutes}m</span>
+                                        {richStatus !== "FREE" && order && (
+                                            <div className="flex flex-col items-center gap-0.5 mt-1">
+                                                <div className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded-full text-[10px] font-medium text-white/90">
+                                                    <Clock className="w-2.5 h-2.5" />
+                                                    <span>{elapsedMinutes}m</span>
+                                                </div>
+                                                <div className="text-xs font-black text-white tracking-tight">
+                                                    S/ {(order.total_cents / 100).toFixed(2)}
+                                                </div>
                                             </div>
                                         )}
 
