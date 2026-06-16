@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/src/components/auth";
 import { toast } from "sonner";
 import { Badge } from "@/src/components/ui";
-import { DollarSign, Receipt, TrendingUp, Clock, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { DollarSign, Receipt, TrendingUp, Clock, Wifi, WifiOff } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getDb } from "@/src/core/db/schema";
 
@@ -103,39 +103,21 @@ async function buildLocalReport(): Promise<ReportData> {
 
 export function ReportsView() {
     const { session } = useAuth();
-    const [data, setData] = useState<ReportData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    const loadReports = async () => {
-        setLoading(true);
+    
+    // Convertimos la vista de reportes en totalmente reactiva al Event Store local.
+    // Esto significa que si estamos offline o si entran eventos por WebSocket,
+    // el reporte de ventas del día se actualiza instantáneamente en pantalla.
+    const data = useLiveQuery(async () => {
+        if (!session?.employee_id) return null;
         try {
-            // Try server first
-            const res = await fetch("/api/data-sync/reports", { signal: AbortSignal.timeout(5000) });
-            const json = await res.json();
-            if (json.success) {
-                setData({ ...json, source: "server" });
-                return;
-            }
-        } catch {
-            // Server unavailable — fall through to local
+            return await buildLocalReport();
+        } catch (error) {
+            console.error("Error building local report:", error);
+            return null;
         }
+    }, [session?.employee_id]);
 
-        // Fallback: build from local IndexedDB
-        try {
-            const local = await buildLocalReport();
-            setData(local);
-        } catch (err) {
-            toast.error("No se pudo cargar el reporte");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        loadReports().finally(() => setLoading(false));
-    }, [session?.employee_id, refreshKey]);
+    const loading = data === undefined;
 
     const formatMoney = (cents: number) =>
         (cents / 100).toLocaleString("es-PE", { style: "currency", currency: "PEN" });
@@ -160,18 +142,12 @@ export function ReportsView() {
         );
     }
 
-    if (!data) {
+    if (data === null) {
         return (
             <div className="flex h-full items-center justify-center">
                 <div className="flex flex-col items-center gap-4 text-center">
                     <WifiOff className="w-12 h-12 text-zinc-700" />
-                    <p className="text-zinc-400 text-sm">No se pudo cargar el reporte</p>
-                    <button
-                        onClick={() => setRefreshKey(k => k + 1)}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
-                    >
-                        Reintentar
-                    </button>
+                    <p className="text-zinc-400 text-sm">No hay datos de reportes aún</p>
                 </div>
             </div>
         );
@@ -190,24 +166,12 @@ export function ReportsView() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    {data.source === "local" ? (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full">
-                            <WifiOff className="w-3.5 h-3.5 text-amber-400" />
-                            <span className="text-amber-400 text-xs font-medium">Datos locales</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
-                            <Wifi className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-emerald-400 text-xs font-medium">Sincronizado</span>
-                        </div>
-                    )}
-                    <button
-                        onClick={() => setRefreshKey(k => k + 1)}
-                        className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors"
-                        title="Actualizar"
-                    >
-                        <RefreshCw className="w-4 h-4 text-zinc-400" />
-                    </button>
+                    {/* En la nueva arquitectura Edge local-first, los reportes siempre 
+                        vienen de IndexedDB (sincronizado por Supabase/Neon WebSockets) */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-full">
+                        <Wifi className="w-3.5 h-3.5 text-blue-400" />
+                        <span className="text-blue-400 text-xs font-medium">En vivo (Edge)</span>
+                    </div>
                 </div>
             </div>
 
