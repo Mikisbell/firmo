@@ -117,9 +117,10 @@ export function FloorPlanCanvas({
                                 if (order.status === "SERVED") richStatus = "BILL";
                                 const startTime = new Date(order.created_at).getTime();
                                 elapsedMinutes = Math.floor((Date.now() - startTime) / 60000);
-                            } else if (table.status === "OCCUPIED") {
-                                richStatus = "SEATED";
                             }
+                            // NOTA: NO leer table.status de la DB — el estado operacional
+                            // viene ÚNICAMENTE de los eventos en tiempo real (Dexie).
+                            // La DB es catálogo de mesas, NO estado operacional.
 
                             // Dynamic Styling
                             const bgColors = {

@@ -19,7 +19,7 @@ interface FloorPlanViewProps {
 export function FloorPlanView({ tenantId, onSelectTable }: FloorPlanViewProps) {
     // Usar endpoint POS (no admin) para no requerir cookie JWT de admin
     const { data: tablesRaw, isLoading: tablesLoading } = useSWR(
-        tenantId ? `/api/pos/tables?tenant_id=${tenantId}&active=true` : null,
+        tenantId ? `/api/pos/tables?tenant_id=${tenantId}` : null,
         fetcher,
         { revalidateOnFocus: false }
     );
