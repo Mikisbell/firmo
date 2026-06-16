@@ -101,6 +101,7 @@ const ShiftOpenedPayload = z.object({
 const ShiftClosedPayload = z.object({
     shift_id: uuidSchema,
     cash_counted_cents: positiveCentsSchema,
+    denominations: z.record(z.string(), z.number().int().nonnegative()).optional(),
     notes: z.string().optional(),
 });
 

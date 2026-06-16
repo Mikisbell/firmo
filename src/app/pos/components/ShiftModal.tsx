@@ -74,28 +74,15 @@ export function ShiftModal({
             if (mode === "open") {
                 await POSActions.openShift(tenantId, terminalId, actorId, cents);
             } else if (mode === "close" && currentShiftId) {
-                await POSActions.closeShift(tenantId, terminalId, actorId, currentShiftId, cents, notes || undefined);
+                const denoms = (useByDenom && Object.keys(denomCountsRef.current).length > 0) 
+                    ? denomCountsRef.current 
+                    : undefined;
+                    
+                await POSActions.closeShift(tenantId, terminalId, actorId, currentShiftId, cents, denoms, notes || undefined);
 
-                // FIX 19: Generate closing summary report
+                // FIX 19: Generate closing summary report (local from Dexie)
                 if (onGenerateReport) {
                     await onGenerateReport(currentShiftId);
-                }
-
-                // Save denomination counts if used
-                if (useByDenom && Object.keys(denomCountsRef.current).length > 0) {
-                    try {
-                        await fetch("/api/pos/denominations", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            credentials: "include",
-                            body: JSON.stringify({
-                                shiftId: currentShiftId,
-                                counts: denomCountsRef.current,
-                            }),
-                        });
-                    } catch {
-                        // Non-critical — shift already closed
-                    }
                 }
             } else if (mode === "movements" && onAdjustCash) {
                 const delta = movementType === "IN" ? cents : -cents;

@@ -354,6 +354,7 @@ export const POSActions = {
         actor_id: string,
         shift_id: string,
         cash_counted_cents: number,
+        denominations?: Record<string, number>,
         notes?: string
     ) {
         await appendEvent(tenant_id, terminal_id, {
@@ -367,6 +368,7 @@ export const POSActions = {
             payload: {
                 shift_id,
                 cash_counted_cents,
+                denominations,
                 notes,
             },
         });

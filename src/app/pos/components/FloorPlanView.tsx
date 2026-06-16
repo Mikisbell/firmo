@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useMemo } from "react";
-import useSWR from "swr";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/src/core/db/schema";
 import { useLiveOrders } from "../hooks/useLiveOrders";
 import { Utensils, LockKeyhole } from "lucide-react";
 
 import { FloorPlanCanvas } from "./FloorPlanCanvas";
 import type { ShiftProjection } from "@/src/core/projections/types";
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 interface FloorPlanViewProps {
     tenantId: string;
@@ -17,16 +17,17 @@ interface FloorPlanViewProps {
 }
 
 export function FloorPlanView({ tenantId, shift, onSelectTable }: FloorPlanViewProps) {
-    // Usar endpoint POS (no admin) para no requerir cookie JWT de admin
-    const { data: tablesRaw, isLoading: tablesLoading } = useSWR(
-        tenantId ? `/api/pos/tables?tenant_id=${tenantId}` : null,
-        fetcher,
-        { revalidateOnFocus: false }
+    // Lectura O(1) desde IndexedDB local. Cero red.
+    const masterTables = useLiveQuery(
+        () => db.master_tables.where('tenant_id').equals(tenantId).toArray(),
+        [tenantId]
     );
-    // El endpoint POS devuelve array directo; el admin devuelve { items }
+
+    const tablesLoading = masterTables === undefined;
     const tablesData = useMemo(() => ({
-        items: Array.isArray(tablesRaw) ? tablesRaw : (tablesRaw?.items ?? [])
-    }), [tablesRaw]);
+        items: masterTables ?? []
+    }), [masterTables]);
+
     const { orders: liveOrders } = useLiveOrders({ tenantId });
 
     // ── Turno abierto = mesas interactivas ──────────────────────────

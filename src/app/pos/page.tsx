@@ -29,6 +29,7 @@ import { useLiveOrders } from "./hooks/useLiveOrders";
 import { MobileWarning } from "@/src/components/ui";
 import { useCustomerDisplay } from "@/src/hooks/useCustomerDisplay";
 import { useSyncClient } from "@/src/hooks/useSyncClient"; // FIX 17: Real-time sync
+import { MasterDataSyncClient } from "@/src/core/sync/master-data.client";
 
 // Fallback counter for offline mode
 let offlineOrderCounter = Date.now();
@@ -153,6 +154,18 @@ export default function POSPage() {
             window.removeEventListener("offline", updateOnlineStatus);
         };
     }, []);
+
+    // Bootstrap Master Data on load or when coming back online
+    useEffect(() => {
+        if (TENANT_ID && isOnline) {
+            const masterSync = new MasterDataSyncClient(TENANT_ID);
+            masterSync.bootstrap().then(success => {
+                if (success) {
+                    console.log("[MasterData] Bootstrap completado vía Edge");
+                }
+            });
+        }
+    }, [TENANT_ID, isOnline]);
 
     // Sync status polling
     useEffect(() => {
