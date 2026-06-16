@@ -86,7 +86,7 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
         const pending: PendingOrder[] = projections.map(o => {
             const fulfillment = (o.fulfillment as Record<string, unknown> | undefined) || {};
             // Normalize table_number: can be at root or inside fulfillment
-            const tableNum = (o.table_number as string | undefined)
+            const tableNum = ((o as any).table_number as string | undefined)
                 ?? (fulfillment.table_number as string | undefined);
             
             return {
