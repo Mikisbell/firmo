@@ -72,21 +72,21 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       if (isBypassEnabled) {
         const bypassTerminal: TerminalConfig = {
           terminal_id: 'CAJA_BYPASS_001',
-          tenant_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // tenant real
+          tenant_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           device_fingerprint: 'bypass_virtual_device',
           device_name: 'Virtual Bypass Terminal',
           location_id: 'default',
           is_allowed: true,
           registered_at: new Date().toISOString(),
-          actor_id: 'emp-1',
+          actor_id: '00000000-0000-0000-0000-000000000005', // empleado real (Pedro Ruiz)
           role: 'CASHIER'
         };
         
         const mockSession: SecureSession = {
           id: `bypass-session-${Date.now()}`,
           terminal_id: bypassTerminal.terminal_id,
-          employee_id: 'emp-1',
-          employee_name: 'Dev Cajero',
+          employee_id: '00000000-0000-0000-0000-000000000005', // UUID real - evita sync errors
+          employee_name: 'Pedro Ruiz',
           employee_role: 'CASHIER',
           terminal_role: 'CAJA',
           fingerprint_at_login: bypassTerminal.device_fingerprint,
@@ -95,7 +95,7 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
           created_at: new Date(),
           last_activity_at: new Date(),
           last_fingerprint_check: new Date(),
-          expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours
+          expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000),
         };
 
         setTerminal(bypassTerminal);
