@@ -96,7 +96,7 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 
                 // DINE_IN fields
                 table_number: tableNum,
-                waiter_name: (o.actor_id as string | undefined) ? `Mozo ${(o.actor_id as string).slice(0, 6)}` : undefined,
+                waiter_name: ((o as any).actor_id as string | undefined) ? `Mozo ${((o as any).actor_id as string).slice(0, 6)}` : undefined,
                 guest_count: fulfillment.guest_count as number | undefined,
                 
                 // DELIVERY fields - basic info from fulfillment

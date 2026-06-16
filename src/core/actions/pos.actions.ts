@@ -858,6 +858,7 @@ export const POSActions = {
         terminal_id: string,
         actor_id: string,
         order_id: string,
+        primary_table_id: string,
         detached_table_id: string
     ) {
         await appendEvent(tenant_id, terminal_id, {
@@ -868,7 +869,7 @@ export const POSActions = {
             correlation_id: order_id,
             causation_id: null,
             actor_id,
-            payload: { order_id, detached_table_id, detached_by: actor_id },
+            payload: { order_id, primary_table_id, detached_table_id, detached_by: actor_id },
         });
     },
 
