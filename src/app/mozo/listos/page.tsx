@@ -11,7 +11,7 @@ import { useWaiterNotifications } from "../hooks/useWaiterNotifications";
 import { useRequireTerminal } from "@/src/hooks/useRequireTerminal";
 import { useResponsive } from "@/src/hooks/useResponsive";
 import { MobileHeader, HeaderSpacer } from "@/src/components/ui/MobileHeader";
-import { BottomNavigation, BottomNavItem } from "@/src/components/ui/BottomNavigation";
+import { useWaiterContext } from "../context/WaiterContext";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 
@@ -19,15 +19,10 @@ export default function ListosPage() {
     const router = useRouter();
     const { isLoading, isAuthenticated } = useRequireTerminal();
     const { isMobile } = useResponsive();
-    const {
-        notifications,
-        readyItemsCount,
-        markAsRead,
-        refreshReadyItems,
-    } = useWaiterNotifications();
+    const { readyItemNotifs, markAsRead } = useWaiterContext();
 
-    const readyNotifications = notifications.filter(n => n.type === 'ITEM_READY');
-    const checkNotifications = notifications.filter(n => n.type === 'REQUEST_CHECK');
+    const readyNotifications = readyItemNotifs.filter(n => n.type === 'ITEM_READY' && !n.read);
+    const readyItemsCount = readyNotifications.length;
 
     // Mark individual item as served — lineId always present (server projection)
     const handleMarkServed = useCallback(async (
@@ -50,18 +45,13 @@ export default function ListosPage() {
                 "waiter",
             );
             markAsRead(notificationId);
-            await refreshReadyItems();
             toast.success("Item marcado como servido");
         } catch {
             toast.error("Error al marcar como servido");
         }
-    }, [markAsRead, refreshReadyItems]);
+    }, [markAsRead]);
 
-    const navItems: BottomNavItem[] = [
-        { id: 'mesas',  icon: <Utensils className="w-6 h-6" />, label: 'Mesas',  href: '/mozo' },
-        { id: 'listos', icon: <Bell className="w-6 h-6" />,     label: 'Listos', href: '/mozo/listos', badge: readyItemsCount > 0 ? readyItemsCount : undefined },
-        { id: 'config', icon: <Settings className="w-6 h-6" />, label: 'Config', href: '/mozo/configuracion' },
-    ];
+
 
     if (isLoading || !isAuthenticated) {
         return (
@@ -85,16 +75,7 @@ export default function ListosPage() {
                                 <ChefHat className="text-emerald-400 w-5 h-5" />
                             </div>
                         }
-                        rightActions={[
-                            <button
-                                key="refresh"
-                                onClick={refreshReadyItems}
-                                className="p-2 text-emerald-400 hover:text-emerald-300 transition-colors"
-                                aria-label="Actualizar"
-                            >
-                                <RefreshCw className="w-5 h-5" />
-                            </button>
-                        ]}
+                        rightActions={[]}
                     />
                     <HeaderSpacer />
                 </>
@@ -266,8 +247,6 @@ export default function ListosPage() {
                     </>
                 )}
             </div>
-
-            <BottomNavigation items={navItems} activeId="listos" />
         </div>
     );
 }

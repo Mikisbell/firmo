@@ -8,6 +8,9 @@ import { ADMIN_ROLES } from '@/src/core/constants/roles';
 import { PushSubscriptionPrompt } from './components/PushSubscriptionPrompt';
 import { useSyncClient } from '@/src/hooks/useSyncClient';
 
+import { WaiterContextProvider } from './context/WaiterContext';
+import { MozoLayoutContent } from './components/MozoLayoutContent';
+
 export default function MozoLayout({
     children,
 }: {
@@ -20,7 +23,11 @@ export default function MozoLayout({
             <AuthProvider requireAuth={true}>
                 <RoleGuard allowedRoles={['WAITER', 'CASHIER', ...ADMIN_ROLES]}>
                     <PushSubscriptionPrompt />
-                    {children}
+                    <WaiterContextProvider>
+                        <MozoLayoutContent>
+                            {children}
+                        </MozoLayoutContent>
+                    </WaiterContextProvider>
                 </RoleGuard>
             </AuthProvider>
         </ErrorBoundary>

@@ -97,67 +97,97 @@ export function useWaiterNotifications() {
     };
   }, [refreshReadyItems]);
 
-  // REQUEST_CHECK notifications — still from Dexie (offline-first)
+  // REQUEST_CHECK notifications & Phantom item filter — still from Dexie (offline-first)
   const events = useLiveQuery(async () => {
-    return db.events.where('aggregate_type').equals('ORDER').toArray() as Promise<ParkEvent[]>;
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    return db.events
+        .where('aggregate_type').equals('ORDER')
+        .filter(ev => ev.occurred_at >= yesterday)
+        .toArray() as Promise<ParkEvent[]>;
   }, []);
 
   const [checkNotifs, setCheckNotifs] = useState<WaiterNotification[]>([]);
+  const [localDoneItems, setLocalDoneItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!events) return;
     const now = Date.now();
     const notifs: WaiterNotification[] = [];
+    const doneItems = new Set<string>();
 
+    const orderData = new Map<string, {
+      tableNumber?: string;
+      totalCents: number;
+      lastRequestCheck?: ParkEvent;
+      acknowledged: boolean;
+    }>();
+
+    // Single pass (O(N)) to build order data and find requests
     for (const ev of events) {
-      if (ev.event_type !== 'REQUEST_CHECK') continue;
-      const eventTime = new Date(ev.occurred_at).getTime();
-      if (now - eventTime > NOTIFICATION_WINDOW_MS) continue;
+      if (!orderData.has(ev.aggregate_id)) {
+        orderData.set(ev.aggregate_id, { totalCents: 0, acknowledged: false });
+      }
+      const data = orderData.get(ev.aggregate_id)!;
 
-      const payload = ev.payload as { order_id: string; table_id?: string };
+      if (ev.event_type === 'ORDER_CREATED') {
+        const p = ev.payload as any;
+        if (p.fulfillment?.table_number) {
+          data.tableNumber = p.fulfillment.table_number;
+        }
+      } else if (ev.event_type === 'ORDER_ITEM_ADDED') {
+        const p = ev.payload as any;
+        if (p.line) {
+          data.totalCents += p.line.qty * p.line.unit_price_cents;
+        }
+      } else if (ev.event_type === 'ORDER_ITEM_STATUS_CHANGED') {
+         const p = ev.payload as any;
+         if (p.to === 'DONE') {
+             doneItems.add(`${p.order_id}-${p.line_id}`);
+         }
+      } else if (ev.event_type === 'REQUEST_CHECK') {
+        const p = ev.payload as any;
+        if (p.table_number && !data.tableNumber) {
+          data.tableNumber = p.table_number;
+        }
+        data.lastRequestCheck = ev;
+        data.acknowledged = false;
+      } else if (ev.event_type === 'CHECK_REQUEST_ACKNOWLEDGED' || ev.event_type === 'CHECK_MARKED_PAID') {
+        data.acknowledged = true;
+      }
+    }
 
-      const orderEvent = events.find(e => {
-        const p = e.payload as { order_id?: string };
-        return p.order_id === payload.order_id && e.event_type === 'ORDER_CREATED';
-      });
+    setLocalDoneItems(doneItems);
 
-      const orderPayload = orderEvent?.payload as {
-        fulfillment?: { table_number?: string };
-      } | undefined;
-      const tableNumber =
-        orderPayload?.fulfillment?.table_number ?? payload.table_id ?? 'N/A';
-
-      let totalCents = 0;
-      for (const itemEv of events) {
-        if (itemEv.event_type !== 'ORDER_ITEM_ADDED') continue;
-        const ip = itemEv.payload as {
-          order_id: string;
-          line?: { qty: number; unit_price_cents: number };
-        };
-        if (ip.order_id === payload.order_id && ip.line) {
-          totalCents += ip.line.qty * ip.line.unit_price_cents;
+    // Build notifications for unacknowledged requests within window
+    for (const [orderId, data] of orderData.entries()) {
+      if (data.lastRequestCheck && !data.acknowledged) {
+        const evTime = new Date(data.lastRequestCheck.occurred_at).getTime();
+        if (now - evTime <= NOTIFICATION_WINDOW_MS) {
+          const tableNumber = data.tableNumber ?? 'N/A';
+          notifs.push({
+            id: `request-check-${orderId}`,
+            type: 'REQUEST_CHECK',
+            orderId,
+            tableNumber,
+            title: `Cuenta solicitada — Mesa ${tableNumber}`,
+            message: `Total: S/ ${(data.totalCents / 100).toFixed(2)}`,
+            timestamp: new Date(data.lastRequestCheck.occurred_at),
+            read: false,
+            totalCents: data.totalCents,
+          });
         }
       }
-
-      notifs.push({
-        id: `request-check-${payload.order_id}`,
-        type: 'REQUEST_CHECK',
-        orderId: payload.order_id,
-        tableNumber,
-        title: `Cuenta solicitada — Mesa ${tableNumber}`,
-        message: `Total: S/ ${(totalCents / 100).toFixed(2)}`,
-        timestamp: new Date(ev.occurred_at),
-        read: false,
-        totalCents,
-      });
     }
 
     setCheckNotifs(notifs);
   }, [events]);
 
+  // Filter out phantom items that were marked as DONE locally but API still returns
+  const filteredReadyItems = readyItemNotifs.filter(n => !localDoneItems.has(`${n.orderId}-${n.lineId}`));
+
   // Merge both sources; apply local readSet to mark dismissed items
   const notifications: WaiterNotification[] = [
-    ...readyItemNotifs.map(n => ({ ...n, read: readSet.has(n.id) })),
+    ...filteredReadyItems.map(n => ({ ...n, read: readSet.has(n.id) })),
     ...checkNotifs.map(n => ({ ...n, read: readSet.has(n.id) })),
   ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
@@ -180,6 +210,9 @@ export function useWaiterNotifications() {
 
   return {
     notifications,
+    readyItemNotifs: filteredReadyItems,
+    checkNotifs,
+    readSet,
     unreadCount,
     readyItemsCount,
     markAsRead,

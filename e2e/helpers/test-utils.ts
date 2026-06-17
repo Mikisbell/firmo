@@ -176,6 +176,7 @@ export async function setupRoleTerminal(
         localStorage.setItem('park_session', JSON.stringify({
             employee_id: '00000000-0000-0000-0000-000000000099',
             role,
+            employee_role: role,
             terminal_id: tid,
             logged_in_at: new Date().toISOString(),
             pin_verified: true,
@@ -212,6 +213,7 @@ export async function setupWaiterTerminal(page: Page) {
         const session = {
             employee_id: "00000000-0000-0000-0000-000000000003", // Carlos López, WAITER
             role: "WAITER",
+            employee_role: "WAITER",
             terminal_id: "waiter_test_1",
             logged_in_at: new Date().toISOString(),
             pin_verified: true,

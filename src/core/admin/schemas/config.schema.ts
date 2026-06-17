@@ -23,6 +23,24 @@ export const UpdateConfigSchema = z.object({
     .max(500, 'Dirección muy larga (máximo 500 caracteres)')
     .nullable()
     .optional(),
+  table_inactivity_threshold_min: z
+    .number()
+    .int()
+    .min(1, 'El tiempo mínimo es 1 minuto')
+    .max(120, 'El tiempo máximo es 120 minutos')
+    .optional(),
+  sla_normal_min: z
+    .number()
+    .int()
+    .min(1, 'El tiempo mínimo es 1 minuto')
+    .max(120, 'El tiempo máximo es 120 minutos')
+    .optional(),
+  sla_special_min: z
+    .number()
+    .int()
+    .min(1, 'El tiempo mínimo es 1 minuto')
+    .max(120, 'El tiempo máximo es 120 minutos')
+    .optional(),
 });
 
 export type UpdateConfigDTO = z.infer<typeof UpdateConfigSchema>;

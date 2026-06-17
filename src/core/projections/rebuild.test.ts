@@ -60,7 +60,7 @@ describe("rebuildFromEvents", () => {
                         qty: 1,
                         station: "COCINA",
                         status: "PENDING",
-                        tax_category: "GRAVADO",
+                        tax_category: "GRAVADO", is_special_sla: false,
                         mods: [],
                         notes: ""
                     }

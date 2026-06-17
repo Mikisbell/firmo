@@ -1,10 +1,12 @@
 "use client";
 
+import { compareTablesByPriority } from '@/src/core/utils/table-sort.utils';
+
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ROLE_LABELS } from "@/src/core/constants/roles";
-import { useTableStatus, useZones, TableStatus } from "./hooks/useTableStatus";
-import { useWaiterNotifications } from "./hooks/useWaiterNotifications";
+import { useZones, TableStatus } from "./hooks/useTableStatus";
+import { useWaiterContext } from "./context/WaiterContext";
 import { NotificationPanel } from "./components/NotificationPanel";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCents } from "@/src/core/domain/money";
@@ -16,85 +18,11 @@ import { EmployeeProfileButton } from "@/src/components/shared/EmployeeProfileBu
 import { EmployeeProfileDrawer } from "@/src/components/shared/EmployeeProfileDrawer";
 import { useResponsive } from "@/src/hooks/useResponsive";
 import { MobileHeader, HeaderSpacer } from "@/src/components/ui/MobileHeader";
-import { BottomNavigation, BottomNavItem } from "@/src/components/ui/BottomNavigation";
 
-// Empty string to replace DEFAULT_ZONES
-// Time thresholds for color coding (in minutes)
-const TIME_THRESHOLDS = {
-    WARNING: 20,  // Yellow after 20 min
-    ALERT: 40,    // Red after 40 min
-};
-
-// Get table color based on status and elapsed time
-function getTableColors(status: TableStatus, elapsedMinutes?: number) {
-    if (status === "FREE") {
-        return {
-            bg: "bg-emerald-950/40",
-            border: "border-emerald-500/50",
-            shadow: "shadow-emerald-900/20",
-            gradient: "from-emerald-500/10 via-transparent to-green-500/5",
-            icon: "bg-emerald-500/20 text-emerald-300 ring-emerald-500/30",
-            light: "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)]",
-            text: "text-emerald-400",
-            label: "Disponible",
-        };
-    }
-    
-    if (status === "BILL_REQUESTED") {
-        return {
-            bg: "bg-amber-950/40",
-            border: "border-amber-500/50",
-            shadow: "shadow-amber-900/20",
-            gradient: "from-amber-500/10 via-transparent to-orange-500/5",
-            icon: "bg-amber-500/20 text-amber-300 ring-amber-500/30",
-            light: "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)] animate-pulse",
-            text: "text-amber-400",
-            label: "PIDE CUENTA",
-        };
-    }
-    
-    // OCCUPIED - color depends on elapsed time
-    const minutes = elapsedMinutes ?? 0;
-    
-    if (minutes >= TIME_THRESHOLDS.ALERT) {
-        // Red - urgent attention needed
-        return {
-            bg: "bg-red-950/40",
-            border: "border-red-500/50",
-            shadow: "shadow-red-900/20",
-            gradient: "from-red-500/10 via-transparent to-rose-500/5",
-            icon: "bg-red-500/20 text-red-300 ring-red-500/30",
-            light: "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse",
-            text: "text-red-400",
-            label: `${minutes}m ⚠️`,
-        };
-    }
-    
-    if (status === "COOKING") {
-        return {
-            bg: "bg-orange-950/40",
-            border: "border-orange-500/50",
-            shadow: "shadow-orange-900/20",
-            gradient: "from-orange-500/10 via-transparent to-amber-500/5",
-            icon: "bg-orange-500/20 text-orange-300 ring-orange-500/30",
-            light: "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)] animate-pulse",
-            text: "text-orange-400",
-            label: `${minutes}m 🍳`,
-        };
-    }
-    
-    // Blue/Violet - normal occupied
-    return {
-        bg: "bg-violet-950/40",
-        border: "border-violet-500/50",
-        shadow: "shadow-violet-900/20",
-        gradient: "from-violet-500/10 via-transparent to-purple-500/5",
-        icon: "bg-violet-500/20 text-violet-300 ring-violet-500/30",
-        light: "bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.6)]",
-        text: "text-violet-400",
-        label: `${minutes}m`,
-    };
-}
+import { PremiumTable } from "@/src/components/ui";
+import type { TableStatus as ThemeTableStatus } from "@/src/components/ui/table-theme";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/src/core/db/schema";
 
 export default function WaiterPage() {
     const router = useRouter();
@@ -106,14 +34,24 @@ export default function WaiterPage() {
     const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     
-    // Hook de notificaciones
-    const { unreadCount, readyItemsCount } = useWaiterNotifications();
-    
+    // Hook de contexto global
+    const { tableState, readyItemNotifs } = useWaiterContext();
+    const unreadCount = useWaiterContext().checkNotifs.filter(n => !useWaiterContext().readSet.has(n.id)).length;
+    const readyItemsCount = readyItemNotifs.filter(n => !useWaiterContext().readSet.has(n.id)).length;
+
     // Use API zones only
     const zones = apiZones;
     
-    // Get tables filtered by zone (null = all zones)
-    const tables = useTableStatus(selectedZoneId === "all" ? undefined : selectedZoneId || undefined);
+    // Get tables filtered by zone
+    const tables = Object.values(tableState).filter(t => 
+        selectedZoneId === "all" ? true : t.zone?.id === selectedZoneId
+    );
+
+    const tenantSettings = useLiveQuery(
+        () => terminal ? db.tenant_settings.get(terminal.tenant_id) : undefined,
+        [terminal?.tenant_id]
+    );
+    const inactivityThresholdMin = tenantSettings?.table_inactivity_threshold_min ?? 15;
 
     // All hooks MUST be called before any early return (React rules of hooks)
     const handleExit = useCallback(() => {
@@ -147,23 +85,18 @@ export default function WaiterPage() {
         );
     }
 
-    // Tables are already filtered by zone in the hook
-    const filteredTables = tables;
+    // Sort tables: Occupied first, then numerically
+    const filteredTables = [...tables].sort(compareTablesByPriority);
 
     const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
     const occupiedCount = tables.filter(t => t.status === "OCCUPIED" || t.status === "COOKING" || t.status === "BILL_REQUESTED").length;
     const alertCount = tables.filter(t =>
-        ((t.status === "OCCUPIED" || t.status === "COOKING") && (t.elapsedMinutes ?? 0) >= TIME_THRESHOLDS.ALERT) ||
-        t.status === "BILL_REQUESTED"
+        ((t.status === "OCCUPIED" || t.status === "COOKING") && (t.elapsedMinutes ?? 0) >= inactivityThresholdMin) ||
+        t.status === "BILL_REQUESTED" ||
+        t.slaStatus === "SLA_WARNING" ||
+        t.slaStatus === "SLA_CRITICAL"
     ).length;
     const readyItemsTotal = tables.reduce((sum, t) => sum + (t.readyItemsCount ?? 0), 0);
-
-    // Bottom navigation items for mobile
-    const navItems: BottomNavItem[] = [
-        { id: 'mesas', icon: <Utensils className="w-6 h-6" />, label: 'Mesas', href: '/mozo', badge: alertCount > 0 ? alertCount : undefined },
-        { id: 'listos', icon: <Bell className="w-6 h-6" />, label: 'Listos', href: '/mozo/listos', badge: readyItemsTotal > 0 ? readyItemsTotal : undefined },
-        { id: 'config', icon: <Settings className="w-6 h-6" />, label: 'Config', href: '/mozo/configuracion' },
-    ];
 
     return (
         <div className="min-h-screen bg-park-gray-950 text-park-gray-100 font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/30 via-park-gray-950 to-park-gray-950">
@@ -373,99 +306,24 @@ export default function WaiterPage() {
                     }`}
                 >
                     <AnimatePresence mode="popLayout">
-                        {filteredTables.map((t) => {
-                            const colors = getTableColors(t.status, t.elapsedMinutes);
-                            return (
-                            <motion.button
+                        {filteredTables.map((t) => (
+                            <PremiumTable
                                 key={t.id}
-                                data-testid={`table-${t.number}`}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
+                                id={t.id}
+                                number={t.number}
+                                displayName={t.name}
+                                status={t.status as ThemeTableStatus}
+                                elapsedMinutes={t.elapsedMinutes}
+                                slaStatus={t.slaStatus}
+                                totalCents={t.totalCents}
+                                readyItemsCount={t.readyItemsCount}
+                                isMerged={t.is_merged}
+                                zoneColor={t.zone?.color}
+                                zoneCode={t.zone?.code}
+                                mode="grid"
                                 onClick={() => router.push(`/mozo/mesa/${t.number}`)}
-                                whileTap={{ scale: 0.97 }}
-                                className={`
-                                    relative rounded-xl md:rounded-2xl flex flex-col items-center justify-center
-                                    border-2 transition-all overflow-hidden group
-                                    min-h-[80px] md:min-h-[140px] aspect-[4/3]
-                                    ${colors.bg} ${colors.border} shadow-xl ${colors.shadow}
-                                    ${t.readyItemsCount && t.readyItemsCount > 0 ? 'border-emerald-400 animate-pulse' : ''}
-                                    ${(t.status === 'OCCUPIED' || t.status === 'COOKING') && !(t.readyItemsCount && t.readyItemsCount > 0) ? 'border-amber-500/60' : ''}
-                                `}
-                            >
-                                {/* Active State Background Gradient */}
-                                {t.status !== "FREE" && (
-                                    <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} pointer-events-none`} />
-                                )}
-
-                                {/* Ready Items Badge */}
-                                {t.readyItemsCount && t.readyItemsCount > 0 && (
-                                    <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 bg-emerald-500 text-white text-[10px] md:text-xs font-bold rounded-full animate-pulse shadow-lg shadow-emerald-500/50">
-                                        <Bell size={isMobile ? 10 : 12} />
-                                        {t.readyItemsCount}
-                                    </div>
-                                )}
-
-                                {/* Bill Requested Badge */}
-                                {t.status === "BILL_REQUESTED" && (
-                                    <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 bg-amber-500 text-white text-[10px] md:text-xs font-bold rounded-full animate-pulse shadow-lg shadow-amber-500/50">
-                                        <Receipt size={isMobile ? 10 : 12} />
-                                        {!isMobile && 'CUENTA'}
-                                    </div>
-                                )}
-
-                                {/* Zone indicator when showing all */}
-                                {selectedZoneId === "all" && t.zone && (
-                                    <div 
-                                        className="absolute bottom-1.5 left-1.5 md:bottom-2 md:left-2 px-1.5 md:px-2 py-0.5 rounded text-[8px] md:text-[10px] font-bold uppercase tracking-wider"
-                                        style={{ backgroundColor: `${t.zone.color}30`, color: t.zone.color }}
-                                    >
-                                        {t.zone.code}
-                                    </div>
-                                )}
-
-                                <div className="space-y-1 md:space-y-2 z-10 flex flex-col items-center">
-                                    <div className={`p-2 md:p-3 rounded-lg md:rounded-xl transition-colors ring-2 ${colors.icon}`}>
-                                        {t.status === "FREE" 
-                                            ? <Utensils className="w-4 h-4 md:w-6 md:h-6" />
-                                            : t.status === "BILL_REQUESTED"
-                                            ? <Receipt className="w-4 h-4 md:w-6 md:h-6" />
-                                            : <Users className="w-4 h-4 md:w-6 md:h-6" />
-                                        }
-                                    </div>
-
-                                    <div className="text-center">
-                                        <div className="text-sm md:text-lg font-bold text-white tracking-tight">{t.name}</div>
-                                        {t.status !== "FREE" ? (
-                                            <div className="mt-0.5 md:mt-1 flex flex-col animate-in fade-in slide-in-from-bottom-2">
-                                                <span className={`text-xs md:text-sm font-mono font-medium ${colors.text}`}>
-                                                    {formatCents(t.totalCents || 0)}
-                                                </span>
-                                                <span className={`text-[9px] md:text-[10px] mt-0.5 flex items-center justify-center gap-0.5 md:gap-1 ${colors.text}`}>
-                                                    <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" /> {colors.label}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <span className="text-[10px] md:text-xs font-medium text-emerald-400 mt-0.5 md:mt-1 block">
-                                                {colors.label}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Order Count Badge */}
-                                {t.status !== 'FREE' && (
-                                    <div className="absolute top-1 right-1 md:top-2 md:right-2 w-5 h-5 md:w-6 md:h-6 bg-park-gray-800/90 border border-park-gray-600 rounded-full flex items-center justify-center">
-                                        <span className="text-[9px] md:text-[10px] font-bold text-white tabular-nums">1</span>
-                                    </div>
-                                )}
-
-                                {/* Status Light */}
-                                <div className={`absolute ${t.status !== 'FREE' ? 'top-1 right-7 md:top-2 md:right-9' : 'top-2 right-2 md:top-3 md:right-3'} w-2 h-2 md:w-3 md:h-3 rounded-full ${colors.light}`} />
-                            </motion.button>
-                            );
-                        })}
+                            />
+                        ))}
                     </AnimatePresence>
 
                     {/* Add Table Button - Only show in specific zone */}
@@ -504,9 +362,6 @@ export default function WaiterPage() {
                     </div>
                 </div>
             </div>
-
-            {/* Bottom Navigation - Mobile only */}
-            <BottomNavigation items={navItems} activeId="mesas" />
 
             {/* Notification Panel */}
             <NotificationPanel

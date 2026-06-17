@@ -14,6 +14,7 @@ import { withRequestLogging } from '@/src/core/middleware/request-logger';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics, MetricNames } from '@/src/core/observability/metrics';
+import { invalidateCache } from '@/src/workers/kv';
 
 
 // GET - List all products with pagination
@@ -190,7 +191,7 @@ async function handlePOST(request: NextRequest) {
     
     // Validate with Zod
     const validatedData = CreateProductSchema.parse(body);
-    const { sku, name, short_name, price_cents, category, station, type = 'SIMPLE', is_active = true } = validatedData;
+    const { sku, name, short_name, price_cents, category, station, type = 'SIMPLE', is_active = true, is_special_sla = false } = validatedData;
 
     // Check SKU uniqueness within tenant
     const existingSku = await prisma.products.findFirst({
@@ -229,6 +230,7 @@ async function handlePOST(request: NextRequest) {
           station,
           type,
           is_active,
+          is_special_sla,
         },
       });
 
@@ -265,6 +267,9 @@ async function handlePOST(request: NextRequest) {
 
     // Invalidate products cache by tag (consistent with PUT/DELETE in [id]/route.ts)
     await cache.deleteByTag('products');
+    
+    // Invalidate Edge KV cache for POS catalog
+    await invalidateCache(`kv_pos_catalog_${tenantId}`);
 
     // Record business metrics
     metrics.increment('products_created_total', {

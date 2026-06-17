@@ -33,6 +33,8 @@ interface CheckDetailProps {
     checks: CheckProjection[];
     selectedCheckId: string;
     onSelectCheck: (id: string) => void;
+    requestPaymentOpen?: boolean;
+    onRequestPaymentOpenConsumed?: () => void;
 }
 
 // Quick note presets for kitchen instructions
@@ -47,7 +49,7 @@ const QUICK_NOTES = [
     "Sin sal",
 ];
 
-export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, onUpdateQty, onTipChange, onDiscount, onRefund, checks, selectedCheckId, onSelectCheck }: CheckDetailProps) {
+export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBack, onPayment, onInvoice, onUpdateQty, onTipChange, onDiscount, onRefund, checks, selectedCheckId, onSelectCheck, requestPaymentOpen, onRequestPaymentOpenConsumed }: CheckDetailProps) {
     const [showPayModal, setShowPayModal] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [showSplitModal, setShowSplitModal] = useState(false);
@@ -59,6 +61,15 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
     // Item note state
     const [editingNoteLineId, setEditingNoteLineId] = useState<string | null>(null);
     const [noteText, setNoteText] = useState("");
+
+    useEffect(() => {
+        if (requestPaymentOpen) {
+            setShowPayModal(true);
+            if (onRequestPaymentOpenConsumed) {
+                onRequestPaymentOpenConsumed();
+            }
+        }
+    }, [requestPaymentOpen, onRequestPaymentOpenConsumed]);
 
     // Derived
     const allLines = order.lines;
@@ -112,7 +123,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
             return {
                 line_id: l.line_id,
                 product_id: l.line_id,
-                name: item?.name || "Unknown",
+                name: item?.name || "Desconocido",
                 qty: l.qty,
                 unit_price_cents: asCentavos(unitPrice),
                 line_total_cents: asCentavos(unitPrice * l.qty)
@@ -257,7 +268,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                             <AnimatePresence initial={false}>
                             {check.lines.map((l, idx) => {
                                 const lineDetail = allLines[l.line_id];
-                                const name = lineDetail?.name || `Item ${l.line_id.slice(0, 4)}`;
+                            const name = lineDetail?.name || `Ítem ${l.line_id.slice(0, 4)}`;
                                 const unitPrice = lineDetail?.unit_price_cents || 0;
                                 const total = unitPrice * l.qty;
                                 const itemNotes = lineDetail?.notes;

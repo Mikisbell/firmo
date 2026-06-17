@@ -1,0 +1,80 @@
+name: Production SRE Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  migrate-database:
+    name: 🏗️ Prisma Migrations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: 🛡️ Expand & Contract Linter (Anti-Apocalipsis)
+        run: |
+          echo "Scanning NEW Prisma migrations for destructive operations..."
+          
+          # Extraemos solo los archivos .sql que fueron añadidos o modificados en este push
+          NEW_MIGRATIONS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'prisma/migrations/.*\.sql$' || true)
+          
+          if [ -n "$NEW_MIGRATIONS" ]; then
+            echo "Archivos de migración a auditar:"
+            echo "$NEW_MIGRATIONS"
+            
+            # Escaneamos exclusivamente los archivos nuevos
+            if grep -iE 'DROP\s+(TABLE|COLUMN)|RENAME\s+(TO|COLUMN)' $NEW_MIGRATIONS; then
+              echo "::error::🚨 MIGRACIÓN DESTRUCTIVA DETECTADA en el commit actual."
+              echo "::error::Usa el patrón Expand and Contract. El despliegue ha sido abortado."
+              exit 1
+            fi
+            echo "✅ Nuevas migraciones validadas. Solo operaciones aditivas."
+          else
+            echo "✅ No hay migraciones nuevas en este despliegue."
+          fi
+
+      - name: Run Prisma Migrate Deploy
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL_DIRECT }}
+        run: npx prisma migrate deploy
+
+  deploy-edge:
+    name: 🚀 Build & Deploy to Edge
+    needs: migrate-database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Build for Cloudflare Pages (Edge)
+        run: bun run pages:build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: park-pos-edge
+          directory: .vercel/output/static
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+

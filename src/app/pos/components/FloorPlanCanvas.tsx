@@ -3,26 +3,40 @@
 import React, { useMemo, useState, useRef } from "react";
 import { motion, useAnimation, useDragControls } from "framer-motion";
 import { Utensils, Users, Clock, Link as LinkIcon, Merge } from "lucide-react";
-import { Badge } from "@/src/components/ui";
+import { Badge, PremiumTable } from "@/src/components/ui";
+import type { TableStatus } from "@/src/components/ui/table-theme";
+import { compareTablesByPriority } from "@/src/core/utils/table-sort.utils";
 import { toast } from "sonner";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { useAuth } from "@/src/components/auth";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/src/core/db/schema";
 
 export function FloorPlanCanvas({ 
     zones, 
     liveOrders, 
     shiftOpen = true,
-    onSelectTable 
+    onSelectTable,
+    zoom = 1,
+    filter = "ALL"
 }: { 
     zones: { id: string; name: string; tables: any[] }[], 
     liveOrders: any[],
     shiftOpen?: boolean,
-    onSelectTable: (tableId: string, orderId: string | null, tableNumber: string) => void 
+    onSelectTable: (tableId: string, orderId: string | null, tableNumber: string) => void,
+    zoom?: number,
+    filter?: "ALL" | "AVAILABLE" | "OCCUPIED"
 }) {
     const [draggingTable, setDraggingTable] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const { session, terminal } = useAuth();
     const terminalId = terminal?.terminal_id;
+
+    const tenantSettings = useLiveQuery(
+        () => terminal ? db.tenant_settings.get(terminal.tenant_id) : undefined,
+        [terminal?.tenant_id]
+    );
+    const inactivityThresholdMin = tenantSettings?.table_inactivity_threshold_min ?? 15;
 
     const getTableOrder = (tableNumber: string): any | undefined => {
         return liveOrders.find((o: any) => {
@@ -101,111 +115,69 @@ export function FloorPlanCanvas({
     };
 
     return (
-        <div ref={containerRef} className="relative w-full h-full min-h-[700px] bg-zinc-50 dark:bg-zinc-950/50 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-inner p-4">
-            {zones.map(zone => {
-                // Si la posición X e Y son 0, usamos un auto-layout en grilla visual dentro del canvas
-                const autoLayout = zone.tables.every((t: any) => (t.position_x === 0 && t.position_y === 0));
-                
-                return (
-                    <React.Fragment key={zone.id}>
-                        {zone.tables.map((table: any, index: number) => {
-                            const order = getTableOrder(table.number);
-                            let richStatus: "FREE" | "SEATED" | "COOKING" | "BILL" = "FREE";
-                            let elapsedMinutes = 0;
+        <div ref={containerRef} className="relative w-full h-full min-h-[700px] bg-zinc-950 rounded-3xl border border-zinc-800 overflow-auto shadow-inner bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/50 via-zinc-950 to-zinc-950 p-6">
+            <div 
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 origin-top-left" 
+                style={{ 
+                    transform: `scale(${zoom || 1})`,
+                    width: '100%'
+                }}
+            >
+                {zones.flatMap(z => z.tables)
+                    .map((table: any) => {
+                        const order = getTableOrder(table.number);
+                        let richStatus: "FREE" | "SEATED" | "COOKING" | "BILL" = "FREE";
+                        let elapsedMinutes = 0;
 
-                            if (order) {
-                                richStatus = "SEATED";
-                                if (order.status === "COOKING" || order.status === "READY") richStatus = "COOKING";
-                                if (order.status === "SERVED") richStatus = "BILL";
-                                const startTime = new Date(order.created_at).getTime();
-                                elapsedMinutes = Math.floor((Date.now() - startTime) / 60000);
-                            }
-                            // NOTA: NO leer table.status de la DB — el estado operacional
-                            // viene ÚNICAMENTE de los eventos en tiempo real (Dexie).
-                            // La DB es catálogo de mesas, NO estado operacional.
+                        if (order) {
+                            richStatus = "SEATED";
+                            if (order.status === "COOKING" || order.status === "READY") richStatus = "COOKING";
+                            if (order.status === "SERVED") richStatus = "BILL";
+                            const startTime = new Date(order.created_at).getTime();
+                            elapsedMinutes = Math.floor((Date.now() - startTime) / 60000);
+                        }
+                        let mappedStatus: "FREE" | "AVAILABLE" | "OCCUPIED" | "COOKING" | "BILL_REQUESTED" = "FREE";
+                        if (richStatus === "SEATED") mappedStatus = "OCCUPIED";
+                        else if (richStatus === "COOKING") mappedStatus = "COOKING";
+                        else if (richStatus === "BILL") mappedStatus = "BILL_REQUESTED";
+                        else mappedStatus = table.status as any;
 
-                            // Dynamic Styling
-                            const bgColors = {
-                                FREE: "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800",
-                                SEATED: "bg-blue-500 text-white border-blue-600 shadow-blue-500/20",
-                                COOKING: "bg-orange-500 text-white border-orange-600 shadow-orange-500/20",
-                                BILL: "bg-red-500 text-white border-red-600 shadow-red-500/20",
-                            };
+                        const isOccupied = mappedStatus !== "FREE" && mappedStatus !== "AVAILABLE";
+                        return { table, order, mappedStatus, elapsedMinutes, isOccupied };
+                    })
+                    .filter(item => {
+                        if (filter === "AVAILABLE") return !item.isOccupied;
+                        if (filter === "OCCUPIED") return item.isOccupied;
+                        return true;
+                    })
+                    .sort((a, b) => compareTablesByPriority(
+                        { status: a.mappedStatus, number: a.table.number },
+                        { status: b.mappedStatus, number: b.table.number }
+                    ))
+                    .map(({ table, order, mappedStatus, elapsedMinutes }, globalIndex) => {
+                        // Remover grilla matemática absoluta, el contenedor maneja la grilla responsiva.
 
-                            const isWarning = elapsedMinutes > 30 && richStatus === "SEATED"; // Example warning
-
-                            // Layout Fallback
-                            const x = autoLayout ? (index % 5) * 120 + 20 : table.position_x;
-                            const y = autoLayout ? Math.floor(index / 5) * 120 + 20 : table.position_y;
-                            const w = table.width || 100;
-                            const h = table.height || 100;
-
-                            const isRound = table.shape === "ROUND";
-                            const isBarStool = table.shape === "BAR_STOOL";
-
-                            return (
-                                <motion.div
-                                    key={table.id}
-                                    drag={shiftOpen}
-                                    dragMomentum={false}
-                                    onDragStart={() => {
-                                        if (shiftOpen) setDraggingTable(table.id);
-                                    }}
-                                    onDragEnd={(e, info) => {
-                                        if (shiftOpen) handleDragEnd(e, info, table);
-                                    }}
-                                    className={`absolute flex flex-col items-center justify-center border-2 transition-colors z-10 
-                                        ${shiftOpen ? 'cursor-grab active:cursor-grabbing' : ''}
-                                        ${bgColors[richStatus]} 
-                                        ${draggingTable === table.id ? "scale-110 shadow-2xl z-50 ring-4 ring-emerald-500/50" : "shadow-lg hover:ring-2 ring-emerald-500/30"}
-                                        ${isRound ? "rounded-full" : isBarStool ? "rounded-t-full rounded-b-xl" : "rounded-2xl"}
-                                        ${isWarning ? "animate-pulse ring-4 ring-red-500" : ""}
-                                    `}
-                                    style={{
-                                        width: w,
-                                        height: h,
-                                        x,
-                                        y,
-                                        rotate: table.rotation || 0,
-                                    }}
-                                >
-                                    <button 
-                                        className="w-full h-full flex flex-col items-center justify-center p-2 outline-none disabled:opacity-80"
-                                        disabled={!shiftOpen}
-                                        onClick={(e) => {
-                                            // Prevenir click al arrastrar o si el turno está cerrado
-                                            if (draggingTable || !shiftOpen) return;
-                                            onSelectTable(table.id, order?.order_id || null, table.number);
-                                        }}
-                                    >
-                                        <span className={`text-xl font-bold font-mono ${richStatus === "FREE" ? "text-zinc-800 dark:text-zinc-200" : "text-white"}`}>
-                                            M{table.number}
-                                        </span>
-                                        
-                                        {richStatus !== "FREE" && order && (
-                                            <div className="flex flex-col items-center gap-0.5 mt-1">
-                                                <div className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded-full text-[10px] font-medium text-white/90">
-                                                    <Clock className="w-2.5 h-2.5" />
-                                                    <span>{elapsedMinutes}m</span>
-                                                </div>
-                                                <div className="text-xs font-black text-white tracking-tight">
-                                                    S/ {(order.total_cents / 100).toFixed(2)}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {table.is_merged && (
-                                            <div className="absolute -top-2 -right-2 bg-purple-500 text-white rounded-full p-1 shadow-md">
-                                                <Merge className="w-3 h-3" />
-                                            </div>
-                                        )}
-                                    </button>
-                                </motion.div>
-                            );
-                        })}
-                    </React.Fragment>
-                );
-            })}
+                    return (
+                        <PremiumTable
+                            key={table.id}
+                            id={table.id}
+                            number={table.number}
+                            status={mappedStatus as any}
+                            elapsedMinutes={elapsedMinutes}
+                            inactivityThresholdMin={inactivityThresholdMin}
+                            totalCents={order?.total_cents}
+                            isMerged={table.is_merged}
+                            mode="grid"
+                            isDraggable={false}
+                            isDragging={false}
+                            onClick={() => {
+                                if (!shiftOpen) return;
+                                onSelectTable(table.id, order?.order_id || null, table.number);
+                            }}
+                        />
+                    );
+                })}
+            </div>
         </div>
     );
 }

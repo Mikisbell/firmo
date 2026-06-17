@@ -77,7 +77,7 @@ describe("sale.reducer - ORDER_SUBMITTED", () => {
                     unit_price_cents: 1000,
                     station,
                     status: "PENDING",
-                    tax_category: "GRAVADO",
+                    tax_category: "GRAVADO", is_special_sla: false,
                     mods: [],
                 },
             },

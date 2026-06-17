@@ -23,6 +23,15 @@ import { toDriverId, Location } from '../types-2026';
 import { deliveryRedisService } from '../redis-connection';
 import prisma from '@/src/core/db/prisma';
 
+vi.mock('@/src/core/observability/logger', () => ({
+  logger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  }
+}));
+
 describe('Geolocation Service - Unit Tests', () => {
   beforeEach(async () => {
     // Clear Redis before each test

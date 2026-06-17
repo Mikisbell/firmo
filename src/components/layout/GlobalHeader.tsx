@@ -5,6 +5,7 @@ import { LogOut, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { clearTerminalConfig } from "@/src/core/auth/fingerprint";
 import { ParkLogo } from "@/src/components/icons";
+import { SyncStatusBadge } from "@/src/components/shared/SyncStatusBadge";
 
 interface GlobalHeaderProps {
   title: string;
@@ -61,6 +62,8 @@ export function GlobalHeader({
       </div>
 
       <div className="flex items-center gap-3">
+        <SyncStatusBadge />
+        
         {rightContent}
 
         {/* Home Button */}

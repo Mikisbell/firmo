@@ -18,6 +18,7 @@ import type { ProductImage } from '@/src/core/types/product-images';
 import { ZodError } from 'zod';
 import { metrics } from '@/src/core/observability/metrics';
 import { logger } from '@/src/core/observability/structured-logger';
+import { invalidateCache } from '@/src/workers/kv';
 
 
 // Validate UUID format
@@ -101,7 +102,7 @@ export async function PUT(
     }
     
     const body = await request.json();
-    const { sku, name, short_name, price_cents, category, station, type, is_active, images } = body;
+    const { sku, name, short_name, price_cents, category, station, type, is_active, is_special_sla, images } = body;
 
     // Check product exists and belongs to tenant
     const existing = await prisma.products.findFirst({
@@ -210,6 +211,7 @@ export async function PUT(
           ...(station && { station }),
           ...(type && { type }),
           ...(typeof is_active === 'boolean' && { is_active }),
+          ...(typeof is_special_sla === 'boolean' && { is_special_sla }),
           ...(images !== undefined && { images: images as any }),
           version: { increment: 1 },
           updated_at: new Date(),
@@ -253,6 +255,10 @@ export async function PUT(
     // Invalidate cache using tag-based invalidation
     await cache.deleteByTag(`tenant:${tenantId}`);
     await cache.deleteByTag('products');
+    
+    // Invalidate Edge KV cache for POS catalog
+    await invalidateCache(`kv_pos_catalog_${tenantId}`);
+    
     metrics.increment('cache.invalidation', { resource: 'products', reason: 'update' });
 
     return NextResponse.json(updated);
@@ -329,6 +335,10 @@ export async function DELETE(
     // Invalidate cache using tag-based invalidation
     await cache.deleteByTag(`tenant:${tenantId}`);
     await cache.deleteByTag('products');
+    
+    // Invalidate Edge KV cache for POS catalog
+    await invalidateCache(`kv_pos_catalog_${tenantId}`);
+    
     metrics.increment('cache.invalidation', { resource: 'products', reason: 'delete' });
 
     return new NextResponse(null, { status: 204 });

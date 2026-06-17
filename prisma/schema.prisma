@@ -380,6 +380,8 @@ model event_outbox {
   tenants      tenants   @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, published, created_at])
+  @@unique([event_id])
+  @@index([created_at])
 }
 
 model events {
@@ -397,6 +399,7 @@ model events {
   payload_version     Int      @default(1)
   payload             Json
   tenants             tenants  @relation(fields: [tenant_id], references: [id])
+  global_sequence     BigInt   @default(autoincrement()) @unique
 
   @@index([tenant_id, occurred_at(sort: Desc)])
   @@index([terminal_id, occurred_at(sort: Desc)], map: "idx_events_by_terminal")
@@ -1003,12 +1006,14 @@ model products {
   updated_by   String?   @db.Uuid
   images       Json      @default("[]")
   is_available Boolean   @default(true)
+  is_special_sla Boolean @default(false)
   tenants      tenants   @relation(fields: [tenant_id], references: [id])
   recipes      recipes[]
 
   @@unique([tenant_id, sku])
   @@index([tenant_id, category])
   @@index([tenant_id, is_available])
+  @@index([tenant_id, is_active])
 }
 
 model promotions {
@@ -1555,6 +1560,7 @@ model tables {
   @@unique([tenant_id, location_id, number])
   @@index([tenant_id, location_id, status])
   @@index([tenant_id, zone_id], map: "tables_zone_id_idx")
+  @@index([tenant_id, is_active])
 }
 
 model tenant_settings {
@@ -1579,6 +1585,10 @@ model tenant_settings {
   require_manager_for_offline   Boolean   @default(true)
   updated_at                    DateTime  @default(now()) @db.Timestamptz(6)
   onboarding_status             String    @default("IN_PROGRESS")
+  // === POS Config ===
+  table_inactivity_threshold_min Int      @default(15) // Minutes before a table shows an inactivity alert
+  sla_normal_min                 Int      @default(10) // SLA in minutes for normal dishes
+  sla_special_min                Int      @default(20) // SLA in minutes for special dishes
   yape_merchant_phone           String?
   yape_merchant_name            String?
   plin_merchant_phone           String?
@@ -2940,4 +2950,15 @@ model notifications {
 
   @@index([tenant_id, recipient_id])
   @@index([tenant_id, recipient_id, read])
+}
+
+model projection_checkpoints {
+  projection_name  String   @id
+  last_sequence_id BigInt   @default(0)
+  updated_at       DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model missing_sequences {
+  sequence_id BigInt   @id
+  detected_at DateTime @default(now()) @db.Timestamptz(6)
 }

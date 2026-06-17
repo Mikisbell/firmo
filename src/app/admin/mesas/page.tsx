@@ -13,6 +13,7 @@ import { DataTable, Column, FilterConfig } from '../components/DataTable';
 import { useTables } from '@/src/hooks/useSWRHooks';
 import { Button, Badge, Card, PageHeader, EmptyState, Modal, Input, Select, Checkbox } from '@/src/components/ui';
 import { useQueryStates } from '@/src/hooks/useQueryState';
+import { AdminFloorPlanEditor } from './components/AdminFloorPlanEditor';
 
 interface Zone {
   id: string;
@@ -32,6 +33,11 @@ interface Table {
   is_active: boolean;
   zone_id: string | null;
   zone: { id: string; code: string; name: string; color: string } | null;
+  position_x: number;
+  position_y: number;
+  width: number;
+  height: number;
+  rotation: number;
 }
 
 export default function TablesPage() {
@@ -40,6 +46,7 @@ export default function TablesPage() {
   const tables = data?.items || [];
   const error = swrError ? 'Error al cargar datos' : null;
   
+  const [viewMode, setViewMode] = useState<'list' | 'plan'>('list');
   const [zones, setZones] = useState<Zone[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
@@ -206,28 +213,57 @@ export default function TablesPage() {
         title="Mesas"
         description={`${tables.length} mesas en ${zones.length} zonas`}
         actions={
-          <Button
-            variant="primary"
-            icon={<Plus size={16} />}
-            onClick={() => { setEditingTable(null); setShowModal(true); }}
-          >
-            Nueva Mesa
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${viewMode === 'list' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Vista Lista
+              </button>
+              <button
+                onClick={() => setViewMode('plan')}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${viewMode === 'plan' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Vista Plano
+              </button>
+            </div>
+            <Button
+              variant="primary"
+              icon={<Plus size={16} />}
+              onClick={() => { setEditingTable(null); setShowModal(true); }}
+            >
+              Nueva Mesa
+            </Button>
+          </div>
         }
       />
 
-      {/* Zone summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Zone summary - Premium UI */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {(zones && Array.isArray(zones) ? zones : []).map(zone => (
-          <Card
+          <div
             key={zone.id}
-            padding="md"
+            className="relative overflow-hidden bg-gradient-to-br from-zinc-900/80 to-zinc-950 border border-white/5 shadow-xl shadow-black/20 rounded-2xl p-4 transition-all hover:border-white/10 group"
           >
-            <div style={{ borderLeftColor: zone.color, borderLeftWidth: 4, paddingLeft: 12 }}>
-              <div className="text-sm text-park-gray-400">{zone.name}</div>
-              <div className="text-xl font-bold text-white">{zone.tables_count} mesas</div>
+            <div 
+              className="absolute inset-0 opacity-10 transition-opacity group-hover:opacity-20 pointer-events-none"
+              style={{ background: `radial-gradient(circle at top right, ${zone.color}, transparent 60%)` }}
+            />
+            
+            <div className="relative z-10 flex flex-col justify-between h-full min-h-[60px]">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-2.5 h-2.5 rounded-full shadow-lg"
+                  style={{ backgroundColor: zone.color, boxShadow: `0 0 10px ${zone.color}80` }}
+                />
+                <div className="text-sm font-medium text-zinc-400 uppercase tracking-widest">{zone.name}</div>
+              </div>
+              <div className="text-3xl font-black tracking-tighter text-white mt-2">
+                {zone.tables_count} <span className="text-sm font-medium text-zinc-500 font-sans tracking-normal">mesas</span>
+              </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
 
@@ -237,34 +273,42 @@ export default function TablesPage() {
         </div>
       )}
 
-      <Card padding="none">
-        {tables.length === 0 ? (
-          <EmptyState
-            icon={<LayoutGrid />}
-            title="Sin mesas"
-            description="Agrega tu primera mesa para gestionar el salón"
-            action={{ label: 'Nueva Mesa', onClick: () => { setEditingTable(null); setShowModal(true); } }}
-          />
-        ) : (
-          <DataTable
-            data={tables}
-            columns={columns}
-            filters={filters}
-            searchPlaceholder="Buscar por número o nombre..."
-            searchKeys={['number', 'display_name']}
-            loading={loading}
-            emptyMessage="No hay mesas"
-            exportable={true}
-            exportFileName="mesas"
-            activeFilters={tableFilters}
-            onFiltersChange={(f) => setTableFilters({
-              zone_id: f.zone_id || '',
-              is_active: f.is_active || '',
-              shape: f.shape || '',
-            })}
-          />
-        )}
-      </Card>
+      {viewMode === 'plan' ? (
+        <AdminFloorPlanEditor 
+          tables={tables} 
+          zones={zones} 
+          onSaved={() => mutate()} 
+        />
+      ) : (
+        <Card padding="none">
+          {tables.length === 0 ? (
+            <EmptyState
+              icon={<LayoutGrid />}
+              title="Sin mesas"
+              description="Agrega tu primera mesa para gestionar el salón"
+              action={{ label: 'Nueva Mesa', onClick: () => { setEditingTable(null); setShowModal(true); } }}
+            />
+          ) : (
+            <DataTable
+              data={tables}
+              columns={columns}
+              filters={filters}
+              searchPlaceholder="Buscar por número o nombre..."
+              searchKeys={['number', 'display_name']}
+              loading={loading}
+              emptyMessage="No hay mesas"
+              exportable={true}
+              exportFileName="mesas"
+              activeFilters={tableFilters}
+              onFiltersChange={(f) => setTableFilters({
+                zone_id: f.zone_id || '',
+                is_active: f.is_active || '',
+                shape: f.shape || '',
+              })}
+            />
+          )}
+        </Card>
+      )}
 
       {showModal && (
         <TableModal

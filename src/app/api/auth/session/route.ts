@@ -33,6 +33,23 @@ export async function GET(request: NextRequest) {
     const token = cookieToken || headerToken;
 
     if (!token) {
+      // DEV BACKDOOR: Auto-login to bypass login screen in development
+      if (process.env.NODE_ENV === 'development') {
+        const admin = await prisma.employees.findFirst({
+          where: { role: { in: ['ADMIN', 'OWNER', 'MANAGER'] } }
+        });
+        if (admin) {
+          return NextResponse.json({
+            valid: true,
+            employee: {
+              id: admin.id,
+              name: admin.name || 'Dev Admin',
+              role: admin.role,
+            },
+          });
+        }
+      }
+
       return NextResponse.json(
         { valid: false, error: 'No autenticado' },
         { status: 401 }

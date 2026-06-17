@@ -62,6 +62,7 @@ export async function saveCatalogToLocal(catalog: CatalogSnapshot): Promise<void
                 category: item.category,
                 station: item.station,
                 sku: item.sku,
+        is_special_sla: false,
             });
         }
     });

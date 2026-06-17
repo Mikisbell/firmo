@@ -1,218 +1,108 @@
-// Script para crear un pedido de prueba con items de cocina y bar
 import { v4 as uuidv4 } from 'uuid';
 
-const TEST_ORDER_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const TERM_ID = "waiter_1";
-const ACTOR_ID = "00000000-0000-0000-0000-000000000003";
+const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const TERMINAL_ID = 'MOZO_01';
+const API_SECRET = 'trZSA6uzhY4SIGbQ+bCl8t2BhffTrT35DVnXf5fOgao=';
+const ACTOR_ID = '00000000-0000-0000-0000-000000000004';
 
-const INGEST_API_URL = "http://localhost:3000/api/events/ingest";
-const API_SECRET = process.env.PARK_API_SECRET;
-
-if (!API_SECRET) {
-    console.error("ERROR: PARK_API_SECRET env var is required (no hardcoded fallback). Set it before running this script.");
-    process.exit(1);
-}
-
-function uuid() {
-    return uuidv4();
-}
-
-async function createTestOrder() {
-    const orderId = uuid();
-    const checkId = uuid();
-    const correlationId = uuid();
-    const now = new Date().toISOString();
-    const orderNumber = Math.floor(Math.random() * 900) + 100;
-    const baseSeq = Date.now();
-    
-    const line1Id = uuid();
-    const line2Id = uuid();
-    const line3Id = uuid();
-    const line4Id = uuid();
-
-    const events = [
-        {
-            event_id: uuid(),
-            event_type: "ORDER_CREATED",
-            tenant_id: TEST_ORDER_TENANT_ID,
-            terminal_id: TERM_ID,
-            terminal_sequence: baseSeq,
-            actor_id: ACTOR_ID,
-            occurred_at: now,
-            aggregate_type: "ORDER",
-            aggregate_id: orderId,
-            correlation_id: correlationId,
-            schema_version: 1,
-            payload: {
-                order_id: orderId,
-                order_type: "DINE_IN",
-                order_number: orderNumber,
-                items: [],
-                checks: [{ 
-                    check_id: checkId, 
-                    lines: [],
-                    subtotal_cents: 0,
-                    discount_cents: 0,
-                    tip_cents: 0,
-                    total_cents: 0,
-                }],
-                fulfillment: {
-                    table_number: "M04",
-                    guest_count: 4,
-                },
-            }
+async function main() {
+  const orderId = uuidv4();
+  const shiftId = uuidv4();
+  const TABLE_NUMBER = "1";
+  
+  const events = [
+    {
+      event_id: uuidv4(),
+      event_type: 'SHIFT_OPENED',
+      tenant_id: TENANT_ID,
+      terminal_id: TERMINAL_ID,
+      occurred_at: new Date(Date.now() - 3600000).toISOString(),
+      aggregate_type: 'SHIFT',
+      aggregate_id: orderId,
+      schema_version: 1,
+      terminal_sequence: Math.floor(Date.now() / 1000) % 1000000,
+      correlation_id: uuidv4(),
+      actor_id: ACTOR_ID,
+      actor_role_snapshot: 'CASHIER',
+      payload: {
+        shift_id: shiftId,
+        terminal_id: TERMINAL_ID,
+        cash_opening_cents: 10000,
+        opened_by: ACTOR_ID,
+      }
+    },
+    {
+      event_id: uuidv4(),
+      event_type: 'ORDER_CREATED',
+      tenant_id: TENANT_ID,
+      terminal_id: TERMINAL_ID,
+      occurred_at: new Date().toISOString(),
+      aggregate_type: 'ORDER',
+      aggregate_id: orderId,
+      schema_version: 1,
+      terminal_sequence: (Math.floor(Date.now() / 1000) % 1000000) + 1,
+      correlation_id: uuidv4(),
+      actor_id: ACTOR_ID,
+      actor_role_snapshot: 'WAITER',
+      payload: {
+        order_id: orderId,
+        order_number: Math.floor(Math.random() * 10000),
+        order_type: 'DINE_IN',
+        fulfillment: {
+          table_number: "1",
         },
-        {
-            event_id: uuid(),
-            event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TEST_ORDER_TENANT_ID,
-            terminal_id: TERM_ID,
-            terminal_sequence: baseSeq + 1,
-            actor_id: ACTOR_ID,
-            occurred_at: now,
-            aggregate_type: "ORDER",
-            aggregate_id: orderId,
-            correlation_id: correlationId,
-            schema_version: 1,
-            payload: {
-                order_id: orderId,
-                line: {
-                    line_id: line1Id,
-                    product_id: uuid(),
-                    sku: "pollo_1_2",
-                    name: "1/2 Pollo a la Brasa",
-                    qty: 2,
-                    unit_price_cents: 3600,
-                    station: "PARRILLA",
-                    status: "PENDING",
-                    mods: [],
-                }
-            }
-        },
-        {
-            event_id: uuid(),
-            event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TEST_ORDER_TENANT_ID,
-            terminal_id: TERM_ID,
-            terminal_sequence: baseSeq + 2,
-            actor_id: ACTOR_ID,
-            occurred_at: now,
-            aggregate_type: "ORDER",
-            aggregate_id: orderId,
-            correlation_id: correlationId,
-            schema_version: 1,
-            payload: {
-                order_id: orderId,
-                line: {
-                    line_id: line2Id,
-                    product_id: uuid(),
-                    sku: "papas_gde",
-                    name: "Papas Fritas Grande",
-                    qty: 1,
-                    unit_price_cents: 1800,
-                    station: "COCINA",
-                    status: "PENDING",
-                    mods: [],
-                }
-            }
-        },
-        {
-            event_id: uuid(),
-            event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TEST_ORDER_TENANT_ID,
-            terminal_id: TERM_ID,
-            terminal_sequence: baseSeq + 3,
-            actor_id: ACTOR_ID,
-            occurred_at: now,
-            aggregate_type: "ORDER",
-            aggregate_id: orderId,
-            correlation_id: correlationId,
-            schema_version: 1,
-            payload: {
-                order_id: orderId,
-                line: {
-                    line_id: line3Id,
-                    product_id: uuid(),
-                    sku: "chicha",
-                    name: "Jarra Chicha Morada 1L",
-                    qty: 1,
-                    unit_price_cents: 1500,
-                    station: "BAR",
-                    status: "PENDING",
-                    mods: [],
-                }
-            }
-        },
-        {
-            event_id: uuid(),
-            event_type: "ORDER_ITEM_ADDED",
-            tenant_id: TEST_ORDER_TENANT_ID,
-            terminal_id: TERM_ID,
-            terminal_sequence: baseSeq + 4,
-            actor_id: ACTOR_ID,
-            occurred_at: now,
-            aggregate_type: "ORDER",
-            aggregate_id: orderId,
-            correlation_id: correlationId,
-            schema_version: 1,
-            payload: {
-                order_id: orderId,
-                line: {
-                    line_id: line4Id,
-                    product_id: uuid(),
-                    sku: "cusquena",
-                    name: "Cerveza Cusqueña",
-                    qty: 2,
-                    unit_price_cents: 1200,
-                    station: "BAR",
-                    status: "PENDING",
-                    mods: [],
-                }
-            }
-        },
-    ];
-
-    console.log("🍗 Creando pedido de prueba...\n");
-    console.log(`   Order #${orderNumber}`);
-    console.log(`   Mesa: M04`);
-    console.log(`   Items:`);
-    console.log(`     - 2x 1/2 Pollo (PARRILLA)`);
-    console.log(`     - 1x Papas Grande (COCINA)`);
-    console.log(`     - 1x Chicha Morada (BAR)`);
-    console.log(`     - 2x Cusqueña (BAR)\n`);
-
-    const body = {
-        tenant_id: TEST_ORDER_TENANT_ID,
-        terminal_id: TERM_ID,
-        from_terminal_sequence: baseSeq,
-        to_terminal_sequence: baseSeq + 4,
-        events,
-    };
-
-    try {
-        const res = await fetch(INGEST_API_URL, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "x-api-secret": API_SECRET,
-            },
-            body: JSON.stringify(body),
-        });
-        
-        const data = await res.json();
-        
-        if (data.accepted) {
-            console.log("✅ Pedido creado exitosamente!");
-        } else {
-            console.error("❌ Error:", JSON.stringify(data.error, null, 2));
-        }
-    } catch (e) {
-        console.error("❌ Error de conexión:", e);
+        status: 'OPEN',
+        opened_at: new Date().toISOString(),
+        items: [
+          {
+            line_id: uuidv4(),
+            product_id: 'prod-001',
+            sku: 'SLA-01',
+            name: 'Producto Especial SLA',
+            qty: 1,
+            unit_price_cents: 2500,
+            total_cents: 2500,
+            notes: 'SLA',
+            station: 'COCINA'
+          }
+        ],
+        checks: [{ 
+          check_id: uuidv4(), 
+          lines: [{
+            line_id: uuidv4(),
+            product_id: 'prod-001',
+            sku: 'SLA-01',
+            name: 'Producto Especial SLA',
+            qty: 1,
+            unit_price_cents: 2500,
+            total_cents: 2500,
+            notes: 'SLA',
+            station: 'COCINA'
+          }],
+          payment: { status: 'UNPAID', payments: [] },
+          total_cents: 2500,
+        }],
+      }
     }
+  ];
 
-    console.log("\n📺 Abre estas URLs para ver el pedido:");
-    console.log("   - Cocina: http://localhost:3000/cocina");
-    console.log("   - Bar:    http://localhost:3000/bar");
+  const res = await fetch('http://localhost:3000/api/data-sync/ingest', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-secret': API_SECRET,
+    },
+    body: JSON.stringify({
+      tenant_id: TENANT_ID,
+      terminal_id: TERMINAL_ID,
+      events: events,
+      from_terminal_sequence: Math.floor(Date.now() / 1000) % 1000000,
+      to_terminal_sequence: (Math.floor(Date.now() / 1000) % 1000000) + 1,
+    }),
+  });
+
+  const text = await res.text();
+  console.log('Ingest Result:', text);
 }
 
-createTestOrder();
+main().catch(console.error);

@@ -12,6 +12,7 @@ import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { createRequestLogger, logAudit, logPerformance } from '@/src/core/observability/logger-pino';
 import { cache } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
+import { invalidateCache } from '@/src/workers/kv';
 
 const updateTableSchema = z.object({
   number: z.string().min(1).max(20).optional(),
@@ -215,6 +216,10 @@ export async function PUT(
 
     // Invalidate tables cache
     await cache.invalidatePattern('tables:*');
+    
+    // Invalidate Edge KV cache for POS tables
+    await invalidateCache(`kv_pos_tables_${tenantId}_${existing.location_id}_true`);
+    await invalidateCache(`kv_pos_tables_${tenantId}_${existing.location_id}_false`);
 
     // Record business metrics with tenantId from JWT
     metrics.increment('tables_updated_total', {
@@ -326,6 +331,10 @@ export async function DELETE(
 
     // Invalidate tables cache
     await cache.invalidatePattern('tables:*');
+    
+    // Invalidate Edge KV cache for POS tables
+    await invalidateCache(`kv_pos_tables_${tenantId}_${existing.location_id}_true`);
+    await invalidateCache(`kv_pos_tables_${tenantId}_${existing.location_id}_false`);
 
     // Update active tables gauge with tenantId from JWT
     const activeCount = await prisma.tables.count({

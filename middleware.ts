@@ -55,8 +55,13 @@ export async function middleware(request: NextRequest) {
   const token = extractToken(request);
 
   if (!token) {
+    // DEV BACKDOOR: Bypass login redirect in development
+    if (process.env.NODE_ENV === 'development') {
+      return NextResponse.next();
+    }
+    
     // No token, redirect to login (only for UI pages, not APIs)
-    const loginUrl = new URL('/admin', request.url);
+    const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -68,7 +73,7 @@ export async function middleware(request: NextRequest) {
 
     if (!tokenResult.valid || !tokenResult.payload) {
       // Invalid token, clear cookie and redirect to login
-      const response = NextResponse.redirect(new URL('/admin', request.url));
+      const response = NextResponse.redirect(new URL('/login', request.url));
       response.cookies.delete('auth_token');
       return response;
     }
@@ -89,7 +94,7 @@ export async function middleware(request: NextRequest) {
   } catch (error) {
     console.error('Middleware auth error:', error);
     // On error, clear cookie and redirect to login
-    const response = NextResponse.redirect(new URL('/admin', request.url));
+    const response = NextResponse.redirect(new URL('/login', request.url));
     response.cookies.delete('auth_token');
     return response;
   }

@@ -134,6 +134,9 @@ async function handlePUT(request: NextRequest) {
           legal_name: validatedData.legal_name,
           ruc: validatedData.ruc || null,
           address_text: validatedData.address_text || null,
+          ...(validatedData.table_inactivity_threshold_min !== undefined && { table_inactivity_threshold_min: validatedData.table_inactivity_threshold_min }),
+          ...(validatedData.sla_normal_min !== undefined && { sla_normal_min: validatedData.sla_normal_min }),
+          ...(validatedData.sla_special_min !== undefined && { sla_special_min: validatedData.sla_special_min }),
           updated_at: new Date(),
         },
       });

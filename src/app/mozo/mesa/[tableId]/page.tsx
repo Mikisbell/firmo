@@ -4,10 +4,9 @@ import { useEffect, useState, use, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useOrder } from "@/src/app/mozo/hooks/useOrder";
+import { useWaiterContext } from "../../context/WaiterContext";
 import CatalogGrid from "@/src/app/pos/components/CatalogGrid";
 import { POSActions } from "@/src/core/actions/pos.actions";
-import { db } from "@/src/core/db/schema";
-import { ParkEvent } from "@/src/core/domain/events";
 import { OrderPanel } from "@/src/components/shared/OrderPanel";
 import { ArrowLeft, Clock, X } from "lucide-react";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
@@ -86,57 +85,14 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
         setTerminalConfig(config);
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // 1. Resolve existing order for this table
+    // 1. Resolve existing order for this table using global context
+    const { tableState } = useWaiterContext();
+    const contextOrderId = tableState[tableId]?.orderId || null;
+
     useEffect(() => {
-        async function resolveOrder() {
-            try {
-                const events = await db.events
-                    .where("aggregate_type")
-                    .equals("ORDER")
-                    .toArray() as ParkEvent[];
-
-                const openOrders = new Map<string, { id: string, table: string, status: string }>();
-
-                events.sort((a, b) => a.terminal_sequence - b.terminal_sequence);
-                for (const ev of events) {
-                    if (ev.event_type === "ORDER_CREATED") {
-                        const p = ev.payload as any;
-                        openOrders.set(p.order_id, {
-                            id: p.order_id,
-                            table: p.fulfillment?.table_number,
-                            status: p.order_status || "OPEN"
-                        });
-                    } else if (ev.event_type === "ORDER_TABLE_CHANGED") {
-                        const p = ev.payload as any;
-                        const existing = openOrders.get(p.order_id);
-                        if (existing) {
-                            openOrders.set(p.order_id, { ...existing, table: p.to_table });
-                        }
-                    } else if (ev.event_type === "ORDER_CANCELLED" || (ev.event_type as any) === "ORDER_CLOSED") {
-                        const p = ev.payload as any;
-                        openOrders.delete(p.order_id);
-                    }
-                }
-
-                let match: string | null = null;
-                for (const ord of openOrders.values()) {
-                    if (ord.table === tableId && ord.status !== "DONE") {
-                        match = ord.id;
-                        break;
-                    }
-                }
-
-                if (match) {
-                    setOrderId(match);
-                }
-            } catch (e) {
-                console.error("Error resolving order", e);
-            } finally {
-                setInitializing(false);
-            }
-        }
-        resolveOrder();
-    }, [tableId]);
+        setOrderId(contextOrderId);
+        setInitializing(false);
+    }, [contextOrderId]);
 
     // Close modals on Escape key
     useEffect(() => {

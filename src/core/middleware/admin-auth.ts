@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateToken } from '@/src/core/auth/auth.service';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
 import { createLogger } from '@/src/core/observability/structured-logger';
+import prisma from '@/src/core/db/prisma';
 
 const log = createLogger('admin-auth');
 
@@ -38,6 +39,26 @@ export async function validateAdminAuth(request: NextRequest): Promise<
   const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   
   const token = cookieToken || headerToken;
+
+  // DEV BACKDOOR: Auto-login to bypass login screen in development
+  if (!token && process.env.NODE_ENV === 'development') {
+    try {
+      const admin = await prisma.employees.findFirst({
+        where: { role: { in: ['ADMIN', 'OWNER', 'MANAGER'] } }
+      });
+      if (admin) {
+        return { valid: true, user: {
+          id: admin.id,
+          role: admin.role,
+          name: admin.name || 'Dev Admin',
+          tenantId: admin.tenant_id,
+          sessionId: 'dev-session'
+        } };
+      }
+    } catch (e) {
+      log.error('Dev backdoor error', e instanceof Error ? e : new Error(String(e)));
+    }
+  }
 
   if (!token) {
     return {

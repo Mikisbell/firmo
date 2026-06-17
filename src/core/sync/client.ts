@@ -226,12 +226,21 @@ export class SyncClient {
         if (this.eventSource) return;
 
         // Get tenant_id from localStorage (set during terminal setup)
-        const tenantId = typeof localStorage !== 'undefined' 
-            ? safeStorage.getItem('park_pos_tenant_id') 
-            : null;
+        let tenantId = null;
+        if (typeof localStorage !== 'undefined') {
+            try {
+                const configStr = safeStorage.getItem('park_terminal_config');
+                if (configStr) {
+                    const config = JSON.parse(configStr);
+                    tenantId = config.tenant_id;
+                }
+            } catch (e) {
+                logger.error('sync.tenant_parse_error', 'Error reading tenant config');
+            }
+        }
         
         if (!tenantId) {
-            logger.debug('sync.no_tenant', 'No tenant_id available for SSE connection. Set park_pos_tenant_id in localStorage.');
+            logger.debug('sync.no_tenant', 'No tenant_id available for SSE connection. Terminal not configured.');
             return;
         }
         

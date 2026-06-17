@@ -305,10 +305,27 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
       }
 
       const emp = data.employee as { id: string; name: string; role: string };
-      const route = getRouteForRole(emp.role);
+      const defaultRoute = getRouteForRole(emp.role);
+      let targetRoute = defaultRoute;
+
+      // Leer el parámetro redirect
+      if (typeof window !== 'undefined') {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect');
+          if (redirect) {
+            // Validar que el rol tenga permiso para el redirect
+            if (redirect.startsWith('/admin') && !(ADMIN_ROLES as readonly string[]).includes(emp.role)) {
+              targetRoute = defaultRoute; // Fallback
+            } else {
+              targetRoute = redirect;
+            }
+          }
+        } catch { /* ignore */ }
+      }
 
       if ((ADMIN_ROLES as readonly string[]).includes(emp.role)) {
-        window.location.href = route;
+        window.location.href = targetRoute;
         return;
       }
 
@@ -342,7 +359,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
         expires_at: new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString(),
       }));
 
-      window.location.href = route;
+      window.location.href = targetRoute;
     } catch {
       setError('Sin conexión al servidor');
       setPinValue('');

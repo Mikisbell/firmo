@@ -50,6 +50,7 @@ export interface CatalogItemEntity {
     category?: string | null;
     station?: string | null;
     sku?: string | null;
+    is_special_sla: boolean;
 }
 
 export interface SagaLogEntity {
@@ -82,15 +83,31 @@ export interface MasterTableEntity {
     tenant_id: string;
     number: string;
     display_name: string | null;
-    zone: any; // Zone type
+    zone: { id: string; code: string; name: string; color: string } | null;
+    zone_id: string | null;
     is_active: boolean;
     capacity: number;
+    shape: string;          // 'SQUARE' | 'ROUND' | 'RECTANGLE'
+    status: string;         // 'AVAILABLE' | 'OCCUPIED' | 'COOKING' | 'BILL_REQUESTED' | 'UNAVAILABLE'
+    position_x: number;
+    position_y: number;
+    width: number;
+    height: number;
+    rotation: number;
 }
 
 export interface ProjectionEntity {
     key: string;
     data: any;
     last_seq: number;
+}
+
+export interface TenantSettingsEntity {
+    tenant_id: string;
+    table_inactivity_threshold_min: number;
+    sla_normal_min: number;
+    sla_special_min: number;
+    [key: string]: any;
 }
 
 // Snapshot entity for fast projection rebuilds
@@ -118,6 +135,7 @@ export class ParkDB extends Dexie {
     saga_logs!: EntityTable<SagaLogEntity, 'saga_id'>;
     offline_saga_events!: EntityTable<OfflineSagaEventEntity, 'event_id'>;
     master_tables!: EntityTable<MasterTableEntity, 'id'>;
+    tenant_settings!: EntityTable<TenantSettingsEntity, 'tenant_id'>;
 
     constructor() {
         super(DB_NAME);
@@ -222,6 +240,20 @@ export class ParkDB extends Dexie {
             saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]',
             offline_saga_events: 'event_id, [tenant_id+synced], saga_id, queued_at',
             master_tables: 'id, tenant_id, number'
+        });
+
+        // Version 10: Added tenant_settings for offline config access
+        this.version(10).stores({
+            events: '++id, synced, terminal_sequence, [tenant_id+terminal_sequence], &[tenant_id+event_id], aggregate_type, aggregate_id, event_type, occurred_at',
+            projections: 'key',
+            sync_state: 'id',
+            catalog_versions: '[tenant_id+version], active',
+            catalog_items: 'id, tenant_id, product_id, category, name',
+            snapshots: '++id, [aggregate_type+aggregate_id], sequence, created_at',
+            saga_logs: 'saga_id, [tenant_id+status], [tenant_id+saga_name+created_at]',
+            offline_saga_events: 'event_id, [tenant_id+synced], saga_id, queued_at',
+            master_tables: 'id, tenant_id, number',
+            tenant_settings: 'tenant_id'
         });
     }
 }

@@ -9,6 +9,7 @@ import { ShiftModal, ShiftStatus } from "./components/ShiftModal";
 import { PendingOrdersList } from "./components/PendingOrdersList";
 import { NewOrderModal, type NewOrderData } from "./components/NewOrderModal";
 import { SeatingModal } from "./components/SeatingModal";
+import { OrderCheckoutPanel } from "./components/OrderCheckoutPanel";
 import { useProjections, useOrderProjection } from "@/src/core/projections/useProjections";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -63,7 +64,21 @@ export default function POSPage() {
     const [pendingSync, setPendingSync] = useState(0);
     const [cashierView, setCashierView] = useState<CashierView>("PENDING");
     const [currentNavSection, setCurrentNavSection] = useState<"POS" | "SALON" | "ORDERS" | "DELIVERY" | "REPORTS" | "SETTINGS">("POS");
+    const [checkoutMode, setCheckoutMode] = useState(false);
+    const [requestPaymentOpen, setRequestPaymentOpen] = useState(false);
 
+    // Persist navigation state across reloads
+    useEffect(() => {
+        const saved = localStorage.getItem("park_pos_nav_section");
+        if (saved) {
+            setCurrentNavSection(saved as any);
+        }
+    }, []);
+
+    const handleNavChange = (section: "POS" | "SALON" | "ORDERS" | "DELIVERY" | "REPORTS" | "SETTINGS") => {
+        setCurrentNavSection(section);
+        localStorage.setItem("park_pos_nav_section", section);
+    };
     // Real-time orders from all terminals
     const { orders: liveOrders, isConnected: sseConnected } = useLiveOrders({
         tenantId: TENANT_ID,
@@ -121,7 +136,7 @@ export default function POSPage() {
             // Switch to POS view with the new order
             setCurrentOrder(result);
             setSelectedCheckId(result.check_id);
-            setCurrentNavSection("POS");
+            handleNavChange("POS");
         } catch (error) {
             console.error("Error creating seating order:", error);
             toast.error("Error al abrir la mesa");
@@ -155,16 +170,30 @@ export default function POSPage() {
         };
     }, []);
 
-    // Bootstrap Master Data on load or when coming back online
+    // Bootstrap Master Data on load, when coming back online, or when returning to the tab
     useEffect(() => {
-        if (TENANT_ID && isOnline) {
+        if (!TENANT_ID || !isOnline) return;
+
+        const runBootstrap = () => {
             const masterSync = new MasterDataSyncClient(TENANT_ID);
             masterSync.bootstrap().then(success => {
                 if (success) {
                     console.log("[MasterData] Bootstrap completado vía Edge");
                 }
             });
-        }
+        };
+
+        // Run immediately on mount / when TENANT_ID becomes available
+        runBootstrap();
+
+        // Re-run when the user returns to this tab (e.g. after editing tables in admin)
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") {
+                runBootstrap();
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
+        return () => document.removeEventListener("visibilitychange", handleVisibility);
     }, [TENANT_ID, isOnline]);
 
     // Sync status polling
@@ -292,7 +321,7 @@ export default function POSPage() {
         const linesToPrint = activeCheck.lines.map(l => {
             const item = activeSale.lines[l.line_id];
             return {
-                name: item?.name || "Unknown",
+                name: item?.name || "Desconocido",
                 qty: l.qty,
                 total: (item?.unit_price_cents || 0) * l.qty
             };
@@ -430,7 +459,7 @@ export default function POSPage() {
         }
 
         await POSActions.voidItem(TENANT_ID, TERM_ID, ACTOR_ID, activeSale.order_id, lastLine.line_id, "UNDO");
-        toast.success("UNDO: Último item eliminado", { icon: "↩️" });
+        toast.success("Deshecho: Último item eliminado", { icon: "↩️" });
     };
 
     const openShiftModal = (mode: "open" | "close" | "movements") => {
@@ -449,8 +478,19 @@ export default function POSPage() {
         setPendingTableOrder(null);
         setCurrentOrder({ order_id: orderId, check_id: "c1" });
         setSelectedCheckId("c1");
-        setCurrentNavSection("POS");
-        // El hook reactivo useOrderProjection hidratará la UI instantáneamente (O(1))
+        setCheckoutMode(true);
+        // Do NOT change nav section, stay in ORDERS or change if desired
+        // The plan says we keep it in ORDERS or wherever we are, 
+        // actually if we stay in ORDERS we can render CheckoutPanel.
+        // Let's ensure currentNavSection === "ORDERS" handles it.
+    };
+
+    const handleQuickCheckout = async (orderId: string) => {
+        setPendingTableOrder(null);
+        setCurrentOrder({ order_id: orderId, check_id: "c1" });
+        setSelectedCheckId("c1");
+        setCheckoutMode(true);
+        setRequestPaymentOpen(true);
     };
 
     // Get next order number from server (persistent) or fallback offline
@@ -649,7 +689,7 @@ export default function POSPage() {
                 
                 <div className="flex flex-col gap-4 flex-1 w-full px-3">
                     <button 
-                        onClick={() => setCurrentNavSection("POS")}
+                        onClick={() => handleNavChange("POS")}
                         className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "POS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
                     >
                         <Store size={24} strokeWidth={currentNavSection === "POS" ? 2.5 : 2} />
@@ -657,7 +697,7 @@ export default function POSPage() {
                     </button>
                     
                     <button 
-                        onClick={() => setCurrentNavSection("SALON")}
+                        onClick={() => handleNavChange("SALON")}
                         className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "SALON" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
                     >
                         <Utensils size={24} strokeWidth={currentNavSection === "SALON" ? 2.5 : 2} />
@@ -665,7 +705,7 @@ export default function POSPage() {
                     </button>
 
                     <button 
-                        onClick={() => setCurrentNavSection("ORDERS")}
+                        onClick={() => handleNavChange("ORDERS")}
                         className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 relative ${currentNavSection === "ORDERS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
                     >
                         <Menu size={24} strokeWidth={currentNavSection === "ORDERS" ? 2.5 : 2} />
@@ -676,7 +716,7 @@ export default function POSPage() {
                     </button>
                     
                     <button 
-                        onClick={() => setCurrentNavSection("DELIVERY")}
+                        onClick={() => handleNavChange("DELIVERY")}
                         className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "DELIVERY" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
                     >
                         <Truck size={24} strokeWidth={currentNavSection === "DELIVERY" ? 2.5 : 2} />
@@ -684,7 +724,7 @@ export default function POSPage() {
                     </button>
                     
                     <button 
-                        onClick={() => setCurrentNavSection("REPORTS")}
+                        onClick={() => handleNavChange("REPORTS")}
                         className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all duration-200 ${currentNavSection === "REPORTS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-park-gray-400 hover:text-white hover:bg-white/5"}`}
                     >
                         <History size={24} strokeWidth={currentNavSection === "REPORTS" ? 2.5 : 2} />
@@ -694,27 +734,20 @@ export default function POSPage() {
                 </div>
                 
                 <div className="flex flex-col gap-4 w-full px-3 mt-auto">
-                    {/* Shift Status inside sidebar */}
-                    <ShiftStatus
-                        isOpen={shiftIsOpen}
-                        shiftId={shift?.shift_id}
-                        expectedCash={shift?.expected_cash_cents ?? 0}
-                        openedAt={shift?.opened_at}
-                        employeeName={session?.employee_name ?? "Sin sesión"}
-                        onOpenClick={() => openShiftModal("open")}
-                        onCloseClick={() => openShiftModal("close")}
-                        onMovementsClick={() => openShiftModal("movements")}
-                    />
-                    
+
                     {/* Employee Profile */}
                     {session && (
-                        <EmployeeProfileButton
-                            employeeName={session.employee_name}
-                            employeeRole={session.employee_role}
-                            accentColor="emerald"
-                            onOpenDrawer={() => setProfileOpen(true)}
-                            onLogout={handleSimpleLogout}
-                        />
+                        <div className="flex justify-center w-full pb-4">
+                            <EmployeeProfileButton
+                                employeeName={session.employee_name}
+                                employeeRole={session.employee_role}
+                                accentColor="emerald"
+                                compact={true}
+                                dropdownPosition="right"
+                                onOpenDrawer={() => setProfileOpen(true)}
+                                onLogout={handleSimpleLogout}
+                            />
+                        </div>
                     )}
                 </div>
             </nav>
@@ -726,7 +759,7 @@ export default function POSPage() {
                         <div>
                             <h1 className="text-xl font-bold tracking-tight text-white">
                                 {currentNavSection === "POS" && "Terminal de Ventas"}
-                                {currentNavSection === "SALON" && "Floor Plan"}
+                                {currentNavSection === "SALON" && "Plano del Salón"}
                                 {currentNavSection === "ORDERS" && "Órdenes Activas"}
                                 {currentNavSection === "DELIVERY" && "Gestión de Envíos"}
                                 {currentNavSection === "REPORTS" && "Reportes de Venta"}
@@ -734,17 +767,29 @@ export default function POSPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-6">
+                        <ShiftStatus
+                            isOpen={shiftIsOpen}
+                            shiftId={shift?.shift_id}
+                            expectedCash={shift?.expected_cash_cents ?? 0}
+                            openedAt={shift?.opened_at}
+                            employeeName={session?.employee_name ?? "Sin sesión"}
+                            onOpenClick={() => openShiftModal("open")}
+                            onCloseClick={() => openShiftModal("close")}
+                            onMovementsClick={() => openShiftModal("movements")}
+                        />
+
+                        <div className="flex items-center gap-3">
 
                         {/* UNDO Button - FR-005 */}
                         {activeSale && activeCheck && activeCheck.payment.status !== "PAID" && (
                             <button
                                 onClick={handleUndo}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-park-gray-800 hover:bg-park-gray-700 text-park-gray-300 hover:text-white transition-colors text-sm font-medium border border-park-gray-700"
-                                title="Deshacer último item (UNDO)"
+                                title="Deshacer último item"
                             >
                                 <Undo2 size={16} />
-                                <span>UNDO</span>
+                                <span>DESHACER</span>
                             </button>
                         )}
 
@@ -754,7 +799,7 @@ export default function POSPage() {
                             : "text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
                             }`}>
                             {pendingSync > 0 ? <CloudOff size={12} /> : <Cloud size={12} />}
-                            <span>{pendingSync > 0 ? pendingSync : "SYNCED"}</span>
+                            <span>{pendingSync > 0 ? `${pendingSync} pendiente${pendingSync > 1 ? 's' : ''}` : "SINCRONIZADO"}</span>
                         </div>
 
                         {/* Online/Offline Status */}
@@ -763,9 +808,10 @@ export default function POSPage() {
                             : "text-red-400 bg-red-500/10 border-red-500/30"
                             }`}>
                             {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
-                            <span>{isOnline ? "ONLINE" : "OFFLINE"}</span>
+                            <span>{isOnline ? "EN LÍNEA" : "SIN CONEXIÓN"}</span>
                             <span className="w-px h-3 bg-park-gray-700"></span>
                             <span>T:{terminal?.terminal_id?.slice(-4) ?? "---"}</span>
+                        </div>
                         </div>
                     </div>
                 </header>
@@ -788,11 +834,25 @@ export default function POSPage() {
                                 }}
                             />
                         ) : currentNavSection === "ORDERS" ? (
-                            <PendingOrdersList
-                                orders={liveOrders}
-                                isConnected={sseConnected}
-                                onSelectOrder={handleSelectPendingOrder}
-                            />
+                            checkoutMode && activeSale && activeCheck ? (
+                                <OrderCheckoutPanel
+                                    order={activeSale}
+                                    activeCheck={activeCheck}
+                                    onBack={() => {
+                                        setCheckoutMode(false);
+                                        setCurrentOrder(null);
+                                    }}
+                                    onQuickPay={(method) => handlePayment(method, activeCheck.total_cents)}
+                                    onOpenPayment={() => setRequestPaymentOpen(true)}
+                                />
+                            ) : (
+                                <PendingOrdersList
+                                    orders={liveOrders}
+                                    isConnected={sseConnected}
+                                    onSelectOrder={handleSelectPendingOrder}
+                                    onQuickCheckout={handleQuickCheckout}
+                                />
+                            )
                         ) : currentNavSection === "REPORTS" ? (
                             <ReportsView />
                         ) : currentNavSection === "POS" || currentNavSection === "DELIVERY" ? (
@@ -808,7 +868,7 @@ export default function POSPage() {
                                             className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/20"
                                         >
                                             <Plus size={18} />
-                                            NUEVO PEDIDO {currentNavSection === "DELIVERY" && "DELIVERY"}
+                                            NUEVO PEDIDO {currentNavSection === "DELIVERY" && "ENVÍO"}
                                         </button>
                                     </div>
                                     {!shiftIsOpen && (
@@ -844,7 +904,7 @@ export default function POSPage() {
                                                                 ? "bg-purple-500/20 text-purple-400"
                                                                 : "bg-blue-500/20 text-blue-400"
                                                         }`}>
-                                                            {pendingNewOrder.order_type === "DELIVERY" ? "Delivery" : "Para llevar"}
+                                                            {pendingNewOrder.order_type === "DELIVERY" ? "Envío a domicilio" : "Para llevar"}
                                                         </span>
                                                     </div>
                                                     {pendingNewOrder.delivery_address && (
@@ -915,6 +975,8 @@ export default function POSPage() {
                         checks={activeSale.checks}
                         selectedCheckId={selectedCheckId}
                         onSelectCheck={setSelectedCheckId}
+                        requestPaymentOpen={requestPaymentOpen}
+                        onRequestPaymentOpenConsumed={() => setRequestPaymentOpen(false)}
                     />
                 ) : pendingTableOrder ? (
                     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-park-gray-900">

@@ -80,7 +80,7 @@ function makeItemAddedEvent(order_id: string, seq: number, price: number): Extra
                 unit_price_cents: price,
                 station: "COCINA",
                 status: "PENDING",
-                tax_category: "GRAVADO",
+                tax_category: "GRAVADO", is_special_sla: false,
                 mods: [],
             },
         },

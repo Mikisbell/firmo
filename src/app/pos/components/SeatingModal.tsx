@@ -128,7 +128,7 @@ export function SeatingModal({ isOpen, onClose, onConfirm, tableName }: SeatingM
                             onClick={handleConfirm}
                             className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 transition-all"
                         >
-                            Bloquear Mesa
+                            Abrir Mesa
                         </button>
                     </div>
                 </motion.div>

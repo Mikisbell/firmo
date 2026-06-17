@@ -33,6 +33,7 @@ export interface EmployeeProfileButtonProps {
   /** Libera el dispositivo (usado solo si el padre lo necesita externamente) */
   onLogout?: () => void;
   compact?: boolean;
+  dropdownPosition?: 'bottom' | 'top' | 'right';
 }
 
 const COLOR_MAP: Record<AccentColor, { bg: string; border: string; text: string; ring: string }> = {
@@ -56,6 +57,7 @@ export function EmployeeProfileButton({
   onOpenDrawer,
   onLogout,
   compact = false,
+  dropdownPosition = 'bottom',
 }: EmployeeProfileButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -84,6 +86,13 @@ export function EmployeeProfileButton({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [isOpen]);
+
+  // Posicionamiento dinámico del dropdown
+  const positionClasses = {
+    bottom: 'absolute right-0 top-full mt-2',
+    top: 'absolute right-0 bottom-full mb-2',
+    right: 'absolute left-full bottom-0 ml-4',
+  }[dropdownPosition];
 
   return (
     <div ref={ref} className="relative">
@@ -144,9 +153,10 @@ export function EmployeeProfileButton({
         <div
           role="menu"
           className={cn(
-            'absolute right-0 top-full mt-2 w-56 rounded-xl border border-zinc-700',
+            positionClasses,
+            'w-56 rounded-xl border border-zinc-700',
             'bg-zinc-900/95 backdrop-blur-sm shadow-2xl z-50 overflow-hidden',
-            'animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150',
+            'animate-in fade-in-0 zoom-in-95 duration-150',
           )}
         >
           {/* Cabecera: identidad del empleado */}

@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Save, Building2, AlertCircle } from 'lucide-react';
+import { Save, Building2, AlertCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminMutation } from '@/src/hooks/useAdminData';
 import { Button, Card, CardHeader, CardContent, PageHeader, Input, FormField } from '@/src/components/ui';
@@ -18,6 +18,9 @@ interface TenantSettings {
   address_text: string | null;
   timezone: string;
   currency: string;
+  table_inactivity_threshold_min: number;
+  sla_normal_min: number;
+  sla_special_min: number;
 }
 
 export default function ConfigurationPage() {
@@ -128,6 +131,49 @@ export default function ConfigurationPage() {
           />
         </div>
       </Card>
+
+      <Card>
+        <h2 className="font-medium flex items-center gap-2 mb-4 text-white"><Clock className="w-4 h-4" />Alertas de Servicio (SLA)</h2>
+          <div className="space-y-4">
+            <Input
+              label="Tiempo Máximo de Inactividad en Mesas (minutos)"
+              type="number"
+              min={1}
+              max={120}
+              value={form?.table_inactivity_threshold_min || 15}
+              onChange={(e) => setForm((s) => s ? { ...s, table_inactivity_threshold_min: parseInt(e.target.value) || 15 } : s)}
+            />
+            <p className="text-xs text-park-gray-400 mt-1">
+              Tiempo que puede pasar una mesa sin atención antes de mostrar una alerta visual.
+            </p>
+          </div>
+          <div className="space-y-4 mt-4">
+            <Input
+              label="SLA Platos Normales (minutos)"
+              type="number"
+              min={1}
+              max={120}
+              value={form?.sla_normal_min || 10}
+              onChange={(e) => setForm((s) => s ? { ...s, sla_normal_min: parseInt(e.target.value) || 10 } : s)}
+            />
+            <p className="text-xs text-park-gray-400 mt-1">
+              Tiempo límite de preparación para platos regulares (bebidas, entradas rápidas).
+            </p>
+          </div>
+          <div className="space-y-4 mt-4">
+            <Input
+              label="SLA Platos Especiales (minutos)"
+              type="number"
+              min={1}
+              max={120}
+              value={form?.sla_special_min || 20}
+              onChange={(e) => setForm((s) => s ? { ...s, sla_special_min: parseInt(e.target.value) || 20 } : s)}
+            />
+            <p className="text-xs text-park-gray-400 mt-1">
+              Tiempo límite de preparación para platos elaborados (parrillas, horneados).
+            </p>
+          </div>
+        </Card>
 
       <Button
         variant="primary"

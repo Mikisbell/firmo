@@ -17,6 +17,8 @@ const nextConfig = {
     // IMPORTANTE PARA CLOUDFLARE EDGE:
     // No usar output: 'standalone' (eso es para Node/Docker).
     // No usar serverExternalPackages (Cloudflare necesita todo empaquetado, no puede hacer require() en runtime).
+    
+    allowedDevOrigins: ['192.168.1.167', '172.19.32.1', 'localhost', '0.0.0.0'],
 
     // Code Splitting Optimization
     experimental: {
@@ -171,9 +173,8 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        // 'unsafe-eval' removed — Next.js 16 with Turbopack does not require it in production.
-                        // 'unsafe-inline' kept because Next.js injects inline scripts for hydration/routing.
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; img-src 'self' data: https: blob:; font-src 'self' data: https://vercel.live https://*.vercel.app; connect-src 'self' https://api.push.apple.com https://updates.push.services.mozilla.com https://vercel.live https://*.vercel.app wss://*.vercel.app; frame-src 'self' https://vercel.live https://*.vercel.app; frame-ancestors 'none'; media-src 'self' blob:;",
+                        // React fast refresh requires unsafe-eval in development mode
+                        value: `default-src 'self'; script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ""} https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; img-src 'self' data: https: blob:; font-src 'self' data: https://vercel.live https://*.vercel.app; connect-src 'self' https://api.push.apple.com https://updates.push.services.mozilla.com https://vercel.live https://*.vercel.app wss://*.vercel.app ${process.env.NODE_ENV === 'development' ? "ws: wss:" : ""}; frame-src 'self' https://vercel.live https://*.vercel.app; frame-ancestors 'none'; media-src 'self' blob:;`,
                     },
                 ],
             },

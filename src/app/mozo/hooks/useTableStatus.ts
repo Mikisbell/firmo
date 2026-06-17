@@ -33,9 +33,13 @@ export interface TableInfo {
     waiterName?: string;
     totalCents?: number;
     elapsedMinutes?: number;
+    waitingSince?: string;
+    waitingMinutes?: number;
     readyItemsCount?: number;
     createdAt?: string;
     zone?: Zone;
+    is_merged?: boolean;
+    slaStatus?: "NORMAL" | "SLA_WARNING" | "SLA_CRITICAL";
 }
 
 // Fetch tables from API and sync to IndexedDB
@@ -123,10 +127,12 @@ export function useTableStatus(zoneId?: string) {
     }, []);
 
     const tables = useLiveQuery(async () => {
-        // 1. Get all ORDER events from IndexedDB
+        // 1. Get ORDER events from the last 24 hours to prevent O(N) history explosion
+        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         const events = await db.events
             .where("aggregate_type")
             .equals("ORDER")
+            .filter(ev => ev.occurred_at >= yesterday)
             .toArray() as ParkEvent[];
 
         // 2. Rebuild state of Open Orders
@@ -137,9 +143,20 @@ export function useTableStatus(zoneId?: string) {
             total: number;
             waiter?: string;
             createdAt?: string;
+            sentAt?: string;
             billRequested?: boolean;
             readyItems: number;
+            hasSpecialSla: boolean;
         }>();
+
+        // 2b. Get tenant settings for SLA limits
+        const config = getStoredTerminalConfig();
+        const tenantSettings = config?.tenant_id 
+            ? await db.tenant_settings.get(config.tenant_id)
+            : null;
+        
+        const slaNormal = tenantSettings?.sla_normal_min ?? 10;
+        const slaSpecial = tenantSettings?.sla_special_min ?? 20;
 
         // Sort by sequence to replay correctly
         events.sort((a, b) => a.terminal_sequence - b.terminal_sequence);
@@ -156,6 +173,7 @@ export function useTableStatus(zoneId?: string) {
                     waiter: ev.actor_id || "Mozo",
                     createdAt: ev.occurred_at,
                     readyItems: 0,
+                    hasSpecialSla: false,
                 });
             } else if (ev.event_type === "ORDER_CANCELLED") {
                 const p = ev.payload as Record<string, unknown>;
@@ -172,6 +190,7 @@ export function useTableStatus(zoneId?: string) {
                 const ord = ordersMap.get(p.order_id as string);
                 if (ord && line) {
                     ord.total += ((line.qty as number) * (line.unit_price_cents as number));
+                    if (line.is_special_sla) ord.hasSpecialSla = true;
                 }
             } else if (ev.event_type === "ORDER_ITEM_STATUS_CHANGED") {
                 const p = ev.payload as Record<string, unknown>;
@@ -179,12 +198,24 @@ export function useTableStatus(zoneId?: string) {
                 if (ord && p.to === "READY") {
                     ord.readyItems++;
                 }
+            } else if (ev.event_type === "ORDER_SUBMITTED" || ev.event_type === "ORDER_COURSE_FIRED") {
+                const ord = ordersMap.get(ev.aggregate_id);
+                if (ord) {
+                    ord.status = "SENT";
+                    ord.sentAt = ev.occurred_at; // SLA Tracker start
+                }
             } else if (ev.event_type === "REQUEST_CHECK") {
                 // Mark order as bill requested
                 const p = ev.payload as Record<string, unknown>;
                 const ord = ordersMap.get(p.order_id as string);
                 if (ord) {
                     ord.billRequested = true;
+                }
+            } else if (ev.event_type === "CHECK_REQUEST_ACKNOWLEDGED") {
+                const p = ev.payload as Record<string, unknown>;
+                const ord = ordersMap.get(p.order_id as string);
+                if (ord) {
+                    ord.billRequested = false;
                 }
             }
         }
@@ -231,10 +262,24 @@ export function useTableStatus(zoneId?: string) {
                     elapsedMinutes = Math.floor((now - created) / 60000);
                 }
 
-                // Determine status
                 let status: TableStatus = "OCCUPIED";
+                let waitingMinutes: number | undefined;
+                let slaStatus: "NORMAL" | "SLA_WARNING" | "SLA_CRITICAL" = "NORMAL";
+
                 if (ord.status === "SENT" || ord.status === "PREPARING") {
                     status = "COOKING";
+                    if (ord.sentAt) {
+                        const sentTime = new Date(ord.sentAt).getTime();
+                        waitingMinutes = Math.floor((now - sentTime) / 60000);
+                        
+                        // SLA Calculation
+                        const threshold = ord.hasSpecialSla ? slaSpecial : slaNormal;
+                        if (waitingMinutes >= threshold) {
+                            slaStatus = "SLA_CRITICAL";
+                        } else if (waitingMinutes >= threshold * 0.8) { // 80% of SLA time triggers warning
+                            slaStatus = "SLA_WARNING";
+                        }
+                    }
                 }
                 if (ord.billRequested) {
                     status = "BILL_REQUESTED";
@@ -247,8 +292,11 @@ export function useTableStatus(zoneId?: string) {
                     totalCents: ord.total,
                     waiterName: ord.waiter,
                     elapsedMinutes,
-                    readyItemsCount: ord.readyItems > 0 ? ord.readyItems : undefined,
+                    waitingSince: ord.sentAt,
+                    waitingMinutes,
+                    readyItemsCount: ord.readyItems,
                     createdAt: ord.createdAt,
+                    slaStatus,
                 };
             }
         });

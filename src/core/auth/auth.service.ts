@@ -555,6 +555,32 @@ export async function getSessionFromRequest(
         }
     }
 
+    // DEV BACKDOOR: Auto-login to bypass login screen in development
+    if (!token && process.env.NODE_ENV === 'development') {
+        try {
+            // IMPORTANT: Filter by the real tenant ID to avoid picking up seed/test tenants
+            const devTenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+            const admin = await prismaClient.employees.findFirst({
+                where: { 
+                    tenant_id: devTenantId,
+                    role: { in: ['ADMIN', 'OWNER', 'MANAGER'] },
+                    is_active: true,
+                }
+            });
+            if (admin) {
+                return {
+                    employeeId: admin.id,
+                    tenantId: admin.tenant_id,
+                    role: admin.role,
+                    name: admin.name || 'Dev Admin',
+                    sessionId: 'dev-session',
+                };
+            }
+        } catch (e) {
+            console.error('Dev backdoor error in getSessionFromRequest', e);
+        }
+    }
+
     // No token found
     if (!token) {
         return null;

@@ -3,6 +3,7 @@ import prisma from "@/src/core/db/prisma";
 import crypto from "crypto";
 import { getTenantId } from "@/src/core/config/tenant";
 import { logger } from '@/src/core/observability/structured-logger';
+import { getCachedData, setCachedData } from '@/src/workers/kv';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,8 +12,15 @@ const TENANT_ID = getTenantId();
 
 export async function GET() {
     const tenantId = TENANT_ID;
+    const cacheKey = `kv_pos_catalog_${tenantId}`;
 
     try {
+        // Try Edge KV first
+        const cachedCatalog = await getCachedData<any>(cacheKey);
+        if (cachedCatalog) {
+            logger.info('POS Catalog retrieved from Edge KV', { operation: 'get_catalog_kv_hit', cacheKey });
+            return NextResponse.json(cachedCatalog);
+        }
         // Get products from database
         const products = await prisma.products.findMany({
             where: {
@@ -55,12 +63,18 @@ export async function GET() {
             return NextResponse.json(getDemoCatalog());
         }
 
-        return NextResponse.json({
+        // Save to Edge KV (expire in 1 hour)
+        const responseData = {
             version: meta?.catalog_version || 1,
             checksum,
             updated_at: meta?.updated_at?.toISOString() || new Date().toISOString(),
             items,
-        });
+        };
+
+        await setCachedData(cacheKey, responseData, 3600);
+        logger.info('POS Catalog retrieved from DB and cached in KV', { operation: 'get_catalog_kv_miss', cacheKey });
+
+        return NextResponse.json(responseData);
     } catch (error) {
         logger.error('Error al obtener catálogo', error instanceof Error ? error : new Error(String(error)));
         // Fallback to demo catalog on error

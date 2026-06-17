@@ -42,6 +42,7 @@ export interface PendingOrder {
 interface PendingOrdersListProps {
     orders: PendingOrder[];
     onSelectOrder: (orderId: string) => void;
+    onQuickCheckout?: (orderId: string) => void;
     selectedOrderId?: string;
     isConnected?: boolean;
 }
@@ -49,7 +50,9 @@ interface PendingOrdersListProps {
 type SortBy = "time" | "total" | "number";
 type FilterType = "ALL" | "DINE_IN" | "DELIVERY";
 
-export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId, isConnected }: PendingOrdersListProps) {
+import { ElapsedTimer } from "./ElapsedTimer";
+
+export function PendingOrdersList({ orders, onSelectOrder, onQuickCheckout, selectedOrderId, isConnected }: PendingOrdersListProps) {
     const [filter, setFilter] = useState<FilterType>("ALL");
     const [sortBy, setSortBy] = useState<SortBy>("time");
     const [searchQuery, setSearchQuery] = useState("");
@@ -161,7 +164,7 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId, isCo
                     {[
                         { key: "ALL" as FilterType, label: "Todas", count: counts.all },
                         { key: "DINE_IN" as FilterType, label: "Mesas", count: counts.dineIn },
-                        { key: "DELIVERY" as FilterType, label: "Delivery", count: counts.delivery },
+                        { key: "DELIVERY" as FilterType, label: "Envíos", count: counts.delivery },
                     ].map(tab => (
                         <button
                             key={tab.key}
@@ -254,13 +257,13 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId, isCo
                                                 {order.external_source}
                                             </span>
                                         )}
-                                        {/* Payment expectation for delivery */}
                                         {order.order_type === "DELIVERY" && order.payment_expectation === "COD" && (
                                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 flex items-center gap-1">
                                                 <Banknote size={10} />
                                                 Contra-entrega
                                             </span>
                                         )}
+                                        <ElapsedTimer createdAt={order.created_at.toISOString()} />
                                     </div>
                                     <span className="text-xl font-bold text-emerald-400">
                                         {formatMoney(order.total_cents)}
@@ -274,7 +277,7 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId, isCo
                                         {getTypeIcon(order.order_type)}
                                         {order.order_type === "DINE_IN" && order.table_number && `Mesa ${order.table_number}`}
                                         {order.order_type === "TAKEOUT" && (order.pickup_name || "Para llevar")}
-                                        {order.order_type === "DELIVERY" && (order.customer_name || "Delivery")}
+                                        {order.order_type === "DELIVERY" && (order.customer_name || "A domicilio")}
                                     </span>
                                     
                                     {/* Waiter for DINE_IN */}
@@ -300,12 +303,6 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId, isCo
                                             {order.assigned_driver}
                                         </span>
                                     )}
-                                    
-                                    {/* Time */}
-                                    <span className="flex items-center gap-1.5 ml-auto">
-                                        <Clock size={14} />
-                                        {formatTime(order.created_at)}
-                                    </span>
                                 </div>
 
                                 {/* Delivery address */}
@@ -321,11 +318,25 @@ export function PendingOrdersList({ orders, onSelectOrder, selectedOrderId, isCo
 
                                 {/* Footer: items count and delivery fee */}
                                 <div className="flex items-center justify-between text-xs text-zinc-500 mt-auto pt-3 border-t border-white/5">
-                                    <span>{order.items_count} {order.items_count === 1 ? "item" : "items"}</span>
-                                    {order.delivery_fee_cents && order.delivery_fee_cents > 0 && (
-                                        <span className="text-zinc-400">
-                                            Delivery: {formatMoney(order.delivery_fee_cents)}
-                                        </span>
+                                    <div className="flex flex-col gap-1">
+                                        <span>{order.items_count} {order.items_count === 1 ? "item" : "items"}</span>
+                                        {order.delivery_fee_cents && order.delivery_fee_cents > 0 && (
+                                            <span className="text-zinc-400">
+                                                Envío: {formatMoney(order.delivery_fee_cents)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    {onQuickCheckout && (
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onQuickCheckout(order.order_id);
+                                            }}
+                                            className="px-4 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-lg font-bold transition-colors"
+                                        >
+                                            Cobrar
+                                        </button>
                                     )}
                                 </div>
                             </motion.button>

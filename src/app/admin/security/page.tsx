@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { AlertCircle, Shield, Smartphone } from 'lucide-react';
 import { useSecurityData } from '@/src/hooks/useSWRHooks';
 import { Button, Badge, Card, CardHeader, PageHeader, MetricCard, EmptyState, Tabs, TabsContent } from '@/src/components/ui';
+import { toast } from 'sonner';
 
 type SecurityTab = 'sessions' | 'devices' | 'alerts';
 
@@ -53,13 +54,12 @@ interface Alert {
 }
 
 const TRUST_BADGE: Record<string, { variant: 'success' | 'warning' | 'critical'; label: string }> = {
-  TRUSTED: { variant: 'success', label: 'TRUSTED' },
-  UNKNOWN: { variant: 'warning', label: 'UNKNOWN' },
-  BLOCKED: { variant: 'critical', label: 'BLOCKED' },
+  TRUSTED: { variant: 'success', label: 'Confiable' },
+  UNKNOWN: { variant: 'warning', label: 'Desconocido' },
+  BLOCKED: { variant: 'critical', label: 'Bloqueado' },
 };
 
 export default function SecurityDashboard() {
-  // Usar SWR para fetch con deduplicación y revalidación automática
   const { sessions, devices, alerts, error, isLoading, mutate } = useSecurityData();
   const [activeTab, setActiveTab] = useState<SecurityTab>('sessions');
 
@@ -69,29 +69,29 @@ export default function SecurityDashboard() {
   }, [sessions]);
 
   const handleBlockDevice = async (macAddress: string) => {
-    if (!confirm(`Block device ${macAddress}?`)) return;
+    if (!confirm(`¿Bloquear el dispositivo ${macAddress}?`)) return;
 
     try {
       const res = await fetch(`/api/admin/security/devices/${macAddress}/block`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Blocked by admin' }),
+        body: JSON.stringify({ reason: 'Bloqueado por administrador' }),
       });
 
       if (res.ok) {
-        alert('Device blocked successfully');
+        toast.success('Dispositivo bloqueado');
         mutate();
       } else {
-        alert('Error blocking device');
+        toast.error('Error al bloquear el dispositivo');
       }
     } catch (err) {
       console.error('Error blocking device:', err);
-      alert('Error blocking device');
+      toast.error('Error al bloquear el dispositivo');
     }
   };
 
   const handleRevokeSession = async (sessionId: string) => {
-    if (!confirm('Revoke this session?')) return;
+    if (!confirm('¿Revocar esta sesión?')) return;
 
     try {
       const res = await fetch(`/api/admin/security/sessions/${sessionId}/revoke`, {
@@ -99,14 +99,14 @@ export default function SecurityDashboard() {
       });
 
       if (res.ok) {
-        alert('Session revoked successfully');
+        toast.success('Sesión revocada');
         mutate();
       } else {
-        alert('Error revoking session');
+        toast.error('Error al revocar la sesión');
       }
     } catch (err) {
       console.error('Error revoking session:', err);
-      alert('Error revoking session');
+      toast.error('Error al revocar la sesión');
     }
   };
 
@@ -134,7 +134,7 @@ export default function SecurityDashboard() {
     <div className="p-4 space-y-6">
       <PageHeader
         title="Seguridad"
-        description="Monitor active sessions, devices, and security alerts"
+        description="Monitoreá sesiones activas, dispositivos y alertas de seguridad"
       />
 
       {error && (
@@ -144,20 +144,20 @@ export default function SecurityDashboard() {
         </div>
       )}
 
-      {/* Metrics */}
+      {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
-          label="Active Sessions"
+          label="Sesiones Activas"
           value={activeSessions.length}
           icon={<Shield className="w-5 h-5" />}
         />
         <MetricCard
-          label="Registered Devices"
+          label="Dispositivos Registrados"
           value={devices.length}
           icon={<Smartphone className="w-5 h-5" />}
         />
         <MetricCard
-          label="Unresolved Alerts"
+          label="Alertas Sin Resolver"
           value={alerts.filter(a => !a.is_resolved).length}
           icon={<AlertCircle className="w-5 h-5" />}
         />
@@ -174,16 +174,15 @@ export default function SecurityDashboard() {
       />
 
       <TabsContent value="sessions" activeValue={activeTab}>
-        {/* Active Sessions */}
         <Card padding="none">
           <CardHeader className="px-6 pt-6">
-            <h2 className="text-xl font-bold">Active Sessions ({activeSessions.length})</h2>
+            <h2 className="text-xl font-bold">Sesiones Activas ({activeSessions.length})</h2>
           </CardHeader>
           {activeSessions.length === 0 ? (
             <EmptyState
               icon={<Shield />}
-              title="No active sessions"
-              description="There are no active sessions at this time"
+              title="Sin sesiones activas"
+              description="No hay sesiones activas en este momento"
             />
           ) : (
             <div className="p-6 space-y-4">
@@ -199,7 +198,7 @@ export default function SecurityDashboard() {
                       size="sm"
                       onClick={() => handleRevokeSession(session.id)}
                     >
-                      Revoke
+                      Revocar
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -208,22 +207,22 @@ export default function SecurityDashboard() {
                       <p className="font-mono text-park-gray-200">{session.terminal_id}</p>
                     </div>
                     <div>
-                      <span className="text-park-gray-400">MAC Address:</span>
+                      <span className="text-park-gray-400">MAC:</span>
                       <p className="font-mono text-park-gray-200">{session.mac_address}</p>
                     </div>
                     <div>
-                      <span className="text-park-gray-400">Started:</span>
-                      <p className="text-park-gray-200">{new Date(session.started_at).toLocaleString()}</p>
+                      <span className="text-park-gray-400">Inicio:</span>
+                      <p className="text-park-gray-200">{new Date(session.started_at).toLocaleString('es-PE')}</p>
                     </div>
                     <div>
-                      <span className="text-park-gray-400">Last Activity:</span>
-                      <p className="text-park-gray-200">{new Date(session.last_activity_at).toLocaleString()}</p>
+                      <span className="text-park-gray-400">Última actividad:</span>
+                      <p className="text-park-gray-200">{new Date(session.last_activity_at).toLocaleString('es-PE')}</p>
                     </div>
                   </div>
                   {session.is_suspicious && (
                     <div className="flex items-center gap-2 text-yellow-400 bg-yellow-500/10 p-2 rounded-lg">
                       <AlertCircle className="w-4 h-4" />
-                      <span className="text-sm">Suspicious activity detected</span>
+                      <span className="text-sm">Actividad sospechosa detectada</span>
                     </div>
                   )}
                 </Card>
@@ -234,16 +233,15 @@ export default function SecurityDashboard() {
       </TabsContent>
 
       <TabsContent value="devices" activeValue={activeTab}>
-        {/* Devices */}
         <Card padding="none">
           <CardHeader className="px-6 pt-6">
-            <h2 className="text-xl font-bold">Registered Devices ({devices.length})</h2>
+            <h2 className="text-xl font-bold">Dispositivos Registrados ({devices.length})</h2>
           </CardHeader>
           {devices.length === 0 ? (
             <EmptyState
               icon={<Smartphone />}
-              title="No devices registered"
-              description="No devices have been registered yet"
+              title="Sin dispositivos registrados"
+              description="No hay dispositivos registrados aún"
             />
           ) : (
             <div className="p-6 space-y-4">
@@ -259,7 +257,7 @@ export default function SecurityDashboard() {
                     </div>
                     <div className="flex gap-2 items-center">
                       <Badge variant={TRUST_BADGE[device.trust_level]?.variant ?? 'neutral'} dot>
-                        {device.trust_level}
+                        {TRUST_BADGE[device.trust_level]?.label ?? device.trust_level}
                       </Badge>
                       {device.trust_level !== 'BLOCKED' && (
                         <Button
@@ -267,7 +265,7 @@ export default function SecurityDashboard() {
                           size="sm"
                           onClick={() => handleBlockDevice(device.mac_address)}
                         >
-                          Block
+                          Bloquear
                         </Button>
                       )}
                     </div>
@@ -278,16 +276,16 @@ export default function SecurityDashboard() {
                       <p className="font-mono text-park-gray-200">{device.terminal_id}</p>
                     </div>
                     <div>
-                      <span className="text-park-gray-400">Access Count:</span>
+                      <span className="text-park-gray-400">Accesos:</span>
                       <p className="text-park-gray-200">{device.access_count}</p>
                     </div>
                     <div>
-                      <span className="text-park-gray-400">First Seen:</span>
-                      <p className="text-park-gray-200">{new Date(device.first_seen).toLocaleString()}</p>
+                      <span className="text-park-gray-400">Primera vez:</span>
+                      <p className="text-park-gray-200">{new Date(device.first_seen).toLocaleString('es-PE')}</p>
                     </div>
                     <div>
-                      <span className="text-park-gray-400">Last Seen:</span>
-                      <p className="text-park-gray-200">{new Date(device.last_seen).toLocaleString()}</p>
+                      <span className="text-park-gray-400">Última vez:</span>
+                      <p className="text-park-gray-200">{new Date(device.last_seen).toLocaleString('es-PE')}</p>
                     </div>
                   </div>
                 </Card>
@@ -298,16 +296,15 @@ export default function SecurityDashboard() {
       </TabsContent>
 
       <TabsContent value="alerts" activeValue={activeTab}>
-        {/* Alerts */}
         <Card padding="none">
           <CardHeader className="px-6 pt-6">
-            <h2 className="text-xl font-bold">Security Alerts ({alerts.filter(a => !a.is_resolved).length})</h2>
+            <h2 className="text-xl font-bold">Alertas de Seguridad ({alerts.filter(a => !a.is_resolved).length} sin resolver)</h2>
           </CardHeader>
           {alerts.length === 0 ? (
             <EmptyState
               icon={<AlertCircle />}
-              title="No alerts"
-              description="No security alerts have been triggered"
+              title="Sin alertas"
+              description="No se han disparado alertas de seguridad"
             />
           ) : (
             <div className="p-6 space-y-4">
@@ -326,13 +323,13 @@ export default function SecurityDashboard() {
                       <p className="text-sm text-park-gray-400">{alert.reason}</p>
                     </div>
                     <Badge variant={alert.is_resolved ? 'neutral' : 'critical'} dot>
-                      {alert.is_resolved ? 'Resolved' : 'Active'}
+                      {alert.is_resolved ? 'Resuelto' : 'Activo'}
                     </Badge>
                   </div>
                   {alert.mac_address && (
                     <p className="text-sm text-park-gray-400">MAC: <span className="font-mono">{alert.mac_address}</span></p>
                   )}
-                  <p className="text-xs text-park-gray-500">{new Date(alert.created_at).toLocaleString()}</p>
+                  <p className="text-xs text-park-gray-500">{new Date(alert.created_at).toLocaleString('es-PE')}</p>
                 </Card>
               ))}
             </div>

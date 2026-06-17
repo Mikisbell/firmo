@@ -86,6 +86,11 @@ interface Table {
   is_active: boolean;
   zone_id: string | null;
   zone: { id: string; code: string; name: string; color: string } | null;
+  position_x: number;
+  position_y: number;
+  width: number;
+  height: number;
+  rotation: number;
 }
 
 interface TablesResponse {
@@ -505,6 +510,7 @@ interface Product {
   station: string;
   type: string;
   is_active: boolean;
+  is_special_sla?: boolean;
   stock_quantity?: number;
   low_stock_threshold?: number;
   images?: ProductImage[];

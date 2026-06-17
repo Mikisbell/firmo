@@ -10,16 +10,31 @@ import { metrics } from '@/src/core/observability/metrics'
  */
 const SLOW_QUERY_THRESHOLD_MS = 1000
 
-/**
- * Create Prisma client with slow query logging middleware
- */
 const prismaClientSingleton = () => {
-    // Configurar Pool de Neon para conexiones WebSocket en el Edge
+    // Si estamos en desarrollo y falta DATABASE_URL, forzamos dotenv
+    if (!process.env.DATABASE_URL && process.env.NODE_ENV !== 'production') {
+        try {
+            require('dotenv').config({ path: '.env' });
+        } catch (e) {
+            console.warn('Could not load dotenv:', e);
+        }
+    }
+
     const connectionString = process.env.DATABASE_URL || ''
-    const pool = new Pool({ connectionString })
-    const adapter = new PrismaNeon(pool as any)
     
-    const baseClient = new PrismaClient({ adapter })
+    let baseClient;
+
+    // Si es entorno local/desarrollo y NO es Neon (ej. Supabase local), usamos cliente nativo
+    // Neon Serverless requiere un proxy WebSocket que Supabase no tiene.
+    if (process.env.NODE_ENV === 'development' && !connectionString.includes('neon.tech')) {
+        console.log('PRISMA INIT - Usando Prisma nativo (TCP) para BD local/Supabase');
+        baseClient = new PrismaClient();
+    } else {
+        console.log('PRISMA INIT - Usando adaptador Neon (WebSocket)');
+        const pool = new Pool({ connectionString });
+        const adapter = new PrismaNeon(pool as any);
+        baseClient = new PrismaClient({ adapter });
+    }
     
     // Use Prisma 6 extension API for middleware
     const extendedClient = baseClient.$extends({
@@ -85,12 +100,7 @@ const prismaClientSingleton = () => {
     return extendedClient as unknown as PrismaClient
 }
 
-declare global {
-    var prisma: undefined | ReturnType<typeof prismaClientSingleton>
-}
-
-const prisma = globalThis.prisma ?? prismaClientSingleton()
+// Eliminamos la caché global en dev por ahora para forzar recarga
+const prisma = prismaClientSingleton()
 
 export default prisma
-
-if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma

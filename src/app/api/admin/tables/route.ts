@@ -17,6 +17,7 @@ import { cache, generateCacheKey } from '@/src/core/cache/redis.service';
 import { metrics } from '@/src/core/observability/metrics';
 import { requireAdminAuth } from '@/src/core/middleware/admin-auth';
 import { getTenantLocationId } from '@/src/core/locations/location.helpers';
+import { invalidateCache } from '@/src/workers/kv';
 
 // GET - List all tables with pagination
 async function handleGET(request: NextRequest) {
@@ -293,6 +294,10 @@ async function handlePOST(request: NextRequest) {
 
     // Invalidate tables cache
     await cache.invalidatePattern('tables:*');
+    
+    // Invalidate Edge KV cache for POS tables
+    await invalidateCache(`kv_pos_tables_${tenantId}_${locationId}_true`);
+    await invalidateCache(`kv_pos_tables_${tenantId}_${locationId}_false`);
 
     // Record business metrics with tenantId from JWT
     metrics.increment('tables_created_total', {

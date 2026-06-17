@@ -17,7 +17,6 @@ import { SWRConfig } from 'swr';
 import { Toaster } from 'sonner';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
-import AdminLoginScreen from './components/AdminLoginScreen';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import dynamic from 'next/dynamic';
 
@@ -69,10 +68,11 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const handleAuthSuccess = useCallback((emp: AuthEmployee) => {
-    login(emp);
-    router.push('/admin/dashboard');
-  }, [login, router]);
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !isStandaloneRoute) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+    }
+  }, [isLoading, isAuthenticated, isStandaloneRoute, pathname, router]);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -92,13 +92,12 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Not authenticated - show professional login screen
+  // Not authenticated - waiting for redirect
   if (!isAuthenticated) {
     return (
-      <AdminLoginScreen
-        onSuccess={handleAuthSuccess}
-        onBack={() => router.push('/')}
-      />
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="animate-pulse text-zinc-400">Redirigiendo...</div>
+      </div>
     );
   }
 

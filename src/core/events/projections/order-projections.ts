@@ -53,7 +53,9 @@ export const handleOrderCreated: ProjectionHandler = async (tx, event) => {
                     table_id: tbl.id,
                     is_primary: true
                 }
-            }).catch(() => {});
+            }).catch((err) => {
+                console.error("ERROR IN order_tables.create:", err);
+            });
         }
     }
     return true;

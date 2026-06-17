@@ -77,6 +77,7 @@ export const CreateProductSchema = z.object({
   station: ProductStationSchema,
   type: ProductTypeSchema.optional().default('SIMPLE'),
   is_active: z.boolean().optional().default(true),
+  is_special_sla: z.boolean().optional().default(false),
   images: ProductImagesArraySchema.optional().default([]),
 });
 

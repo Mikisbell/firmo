@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
 import { createLogger } from '@/src/core/observability/structured-logger';
+import { getCachedData, setCachedData } from '@/src/workers/kv';
 
 const logger = createLogger('pos-tables');
 
@@ -30,6 +31,16 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = request.nextUrl;
     const activeOnly = searchParams.get('active') === 'true';
+
+    // KV Cache Key
+    const cacheKey = `kv_pos_tables_${tenantId}_${locationId}_${activeOnly}`;
+
+    // Try Edge KV first
+    const cachedTables = await getCachedData<any[]>(cacheKey);
+    if (cachedTables) {
+      logger.info('POS Tables retrieved from Edge KV', { operation: 'list_tables_kv_hit', cacheKey });
+      return NextResponse.json(cachedTables);
+    }
 
     const where: Record<string, unknown> = {
       tenant_id: tenantId,
@@ -63,6 +74,10 @@ export async function GET(request: NextRequest) {
       ...rest,
       zone: zones ?? null,
     }));
+
+    // Save to Edge KV (expire in 1 hour)
+    await setCachedData(cacheKey, tables, 3600);
+    logger.info('POS Tables retrieved from DB and cached in KV', { operation: 'list_tables_kv_miss', cacheKey });
 
     return NextResponse.json(tables);
   } catch (error) {

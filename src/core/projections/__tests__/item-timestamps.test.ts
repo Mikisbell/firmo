@@ -49,7 +49,7 @@ function createOrderCreatedEvent(orderId: string, lineId: string, occurredAt: st
         unit_price_cents: 1000,
         station: 'COCINA',
         status: 'PENDING',
-        tax_category: 'GRAVADO',
+        tax_category: "GRAVADO", is_special_sla: false,
         mods: [],
       }],
       checks: [],

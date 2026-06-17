@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:seed": "tsx prisma/dev-seed-users.ts && npm run dev",
     "build": "next build",
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
@@ -22,6 +23,7 @@
     "stress-test": "tsx scripts/stress-test-e2e.ts",
     "seed:prod": "tsx scripts/seed-production.ts",
     "verify:prod": "tsx scripts/verify-production-seed.ts",
+    "ponytail:audit": "echo 'Run /ponytail-audit in the Antigravity agent CLI to perform an automated code simplification audit'",
     "diagnose:terminals": "tsx scripts/diagnose-terminals.ts",
     "docs:generate": "typedoc",
     "docs:watch": "typedoc --watch",
@@ -82,6 +84,7 @@
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
+    "@cloudflare/workers-types": "^4.20260616.1",
     "@eslint/eslintrc": "^3.3.3",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
@@ -100,6 +103,7 @@
     "eslint-config-next": "^15.1.6",
     "fast-check": "^4.5.3",
     "jsdom": "^28.1.0",
+    "miniflare": "^4.20260611.0",
     "openapi-types": "^12.1.3",
     "postcss": "^8.5.6",
     "prisma": "^6.19.1",

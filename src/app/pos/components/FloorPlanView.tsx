@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/src/core/db/schema";
 import { useLiveOrders } from "../hooks/useLiveOrders";
@@ -29,6 +29,12 @@ export function FloorPlanView({ tenantId, shift, onSelectTable }: FloorPlanViewP
     }), [masterTables]);
 
     const { orders: liveOrders } = useLiveOrders({ tenantId });
+    
+    // Zoom control state
+    const [zoom, setZoom] = useState(1);
+    
+    // Filter state
+    const [filter, setFilter] = useState<"ALL" | "AVAILABLE" | "OCCUPIED">("ALL");
 
     // ── Turno abierto = mesas interactivas ──────────────────────────
     const isShiftOpen = shift?.status === "OPEN";
@@ -84,33 +90,79 @@ export function FloorPlanView({ tenantId, shift, onSelectTable }: FloorPlanViewP
                         }
                     </p>
                 </div>
-                <div className="flex gap-4 text-sm font-medium">
+                <div className="flex gap-6 items-center">
+                    {/* Filter Controls */}
+                    <div className="flex bg-zinc-200 dark:bg-zinc-800 rounded-lg p-1">
+                        <button 
+                            onClick={() => setFilter("ALL")}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${filter === "ALL" ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+                        >
+                            Todas
+                        </button>
+                        <button 
+                            onClick={() => setFilter("AVAILABLE")}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${filter === "AVAILABLE" ? "bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm" : "text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400"}`}
+                        >
+                            Libres
+                        </button>
+                        <button 
+                            onClick={() => setFilter("OCCUPIED")}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${filter === "OCCUPIED" ? "bg-white dark:bg-zinc-700 text-rose-600 dark:text-rose-400 shadow-sm" : "text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400"}`}
+                        >
+                            Ocupadas
+                        </button>
+                    </div>
+
+                    {/* Zoom Controls */}
+                    <div className="flex items-center gap-3 bg-zinc-200 dark:bg-zinc-800 rounded-lg p-1">
+                        <button 
+                            onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+                            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors font-bold"
+                        >
+                            -
+                        </button>
+                        <span className="text-xs font-mono font-bold w-12 text-center text-zinc-700 dark:text-zinc-300">
+                            {Math.round(zoom * 100)}%
+                        </span>
+                        <button 
+                            onClick={() => setZoom(z => Math.min(2.5, z + 0.1))}
+                            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors font-bold"
+                        >
+                            +
+                        </button>
+                    </div>
+
+                    {/* Leyenda */}
+                    <div className="flex gap-4 text-sm font-medium">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-white border border-zinc-300" />
-                        <span className="text-zinc-600 dark:text-zinc-400">Libre</span>
+                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        <span className="text-zinc-600 dark:text-zinc-400">Disponible</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-blue-500" />
-                        <span className="text-zinc-600 dark:text-zinc-400">Sentados</span>
+                        <div className="w-3 h-3 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
+                        <span className="text-zinc-600 dark:text-zinc-400">Ocupada</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-orange-500" />
+                        <div className="w-3 h-3 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
                         <span className="text-zinc-600 dark:text-zinc-400">Cocinando</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+                        <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-pulse" />
                         <span className="text-zinc-600 dark:text-zinc-400">Pidiendo Cuenta</span>
                     </div>
+                </div>
                 </div>
             </div>
 
             {zones.length > 0 ? (
-                <div className="relative">
+                <div className="relative flex-1 overflow-hidden">
                     <FloorPlanCanvas 
                         zones={zones} 
                         liveOrders={liveOrders} 
                         shiftOpen={isShiftOpen}
                         onSelectTable={onSelectTable} 
+                        zoom={zoom}
+                        filter={filter}
                     />
 
                     {/* ── OVERLAY: Turno Cerrado ─────────────────── */}

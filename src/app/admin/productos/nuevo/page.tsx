@@ -57,6 +57,7 @@ export default function NewProductPage() {
     station: '',
     type: 'SIMPLE',
     is_active: true,
+    is_special_sla: false,
   });
 
   // Auto-select first station when loaded
@@ -95,6 +96,7 @@ export default function NewProductPage() {
           station: form.station,
           type: form.type,
           is_active: form.is_active,
+          is_special_sla: form.is_special_sla,
         }),
       });
 
@@ -248,11 +250,16 @@ export default function NewProductPage() {
           />
 
           {/* Active status */}
-          <div className="p-4 bg-park-gray-800/50 rounded-lg">
+          <div className="p-4 bg-park-gray-800/50 rounded-lg space-y-4">
             <Checkbox
               label="Producto activo (visible en el catálogo)"
               checked={form.is_active}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+            />
+            <Checkbox
+              label="Es de preparación especial (Aplica SLA especial)"
+              checked={form.is_special_sla}
+              onChange={(e) => setForm({ ...form, is_special_sla: e.target.checked })}
             />
           </div>
 

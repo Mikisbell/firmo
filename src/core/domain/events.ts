@@ -129,6 +129,7 @@ export const OrderLineSchema = z.object({
     tax_category: TaxCategorySchema.default("GRAVADO"), // SUNAT: GRAVADO(18%), EXONERADO(0%), INAFECTO(0%)
     mods: z.array(z.string()).default([]),
     notes: z.string().optional(),
+    is_special_sla: z.boolean().default(false),
     // Course fire control
     course: z.number().int().positive().optional(), // 1=entrada, 2=fondo, 3=postre
     held: z.boolean().optional(), // Retenido por course (no entra a COOKING hasta fire)
@@ -233,6 +234,13 @@ const RequestCheckPayload = z.object({
     requested_by: uuidSchema,
     requested_at: isoDateSchema,
     table_number: z.string().optional(),
+});
+
+// CHECK_REQUEST_ACKNOWLEDGED - Waiter acknowledged bill request
+const CheckRequestAcknowledgedPayload = z.object({
+    order_id: uuidSchema,
+    acknowledged_by: uuidSchema,
+    acknowledged_at: isoDateSchema,
 });
 
 // ORDER_COURSE_FIRED - Course released for cooking
@@ -970,6 +978,11 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         event_type: z.literal("REQUEST_CHECK"),
         aggregate_type: z.literal("ORDER"),
         payload: RequestCheckPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("CHECK_REQUEST_ACKNOWLEDGED"),
+        aggregate_type: z.literal("ORDER"),
+        payload: CheckRequestAcknowledgedPayload,
     }),
     BaseEnvelopeSchema.extend({
         event_type: z.literal("ORDER_SUBMITTED"),

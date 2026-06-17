@@ -199,3 +199,9 @@ export type {
 // Accordion (expandable/collapsible sections)
 export { Accordion } from './Accordion';
 export type { AccordionProps, AccordionItem } from './Accordion';
+
+// Premium Table (Unified Floor Plan)
+export { PremiumTable } from './PremiumTable';
+export type { PremiumTableProps } from './PremiumTable';
+export { getTableColors } from './table-theme';
+export type { TableStatus, TableColors } from './table-theme';

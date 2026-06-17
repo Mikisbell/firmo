@@ -45,6 +45,7 @@ interface Product {
   station: string;
   type: string;
   is_active: boolean;
+  is_special_sla: boolean;
   images: ProductImage[];
 }
 
@@ -66,6 +67,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     station: '',
     type: '',
     is_active: true,
+    is_special_sla: false,
   });
   const [images, setImages] = useState<ProductImage[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
@@ -89,6 +91,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       station: product.station,
       type: product.type,
       is_active: product.is_active,
+      is_special_sla: product.is_special_sla ?? false,
     });
   }, [product]);
 
@@ -164,6 +167,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           station: form.station,
           type: form.type,
           is_active: form.is_active,
+          is_special_sla: form.is_special_sla,
         }),
       });
 
@@ -364,12 +368,18 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           />
 
           {/* Active status */}
-          <div className="p-4 bg-park-gray-800/50 rounded-lg">
+          <div className="p-4 bg-park-gray-800/50 rounded-lg space-y-4">
             <Checkbox
               label="Producto activo (visible en el catálogo)"
               id="is_active"
               checked={form.is_active}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+            />
+            <Checkbox
+              label="Es de preparación especial (Aplica SLA especial)"
+              id="is_special_sla"
+              checked={form.is_special_sla}
+              onChange={(e) => setForm({ ...form, is_special_sla: e.target.checked })}
             />
           </div>
 

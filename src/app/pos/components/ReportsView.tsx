@@ -128,7 +128,7 @@ export function ReportsView() {
     const orderTypeLabel: Record<string, string> = {
         DINE_IN: "Mesa",
         TAKEOUT: "Para llevar",
-        DELIVERY: "Delivery",
+        DELIVERY: "A domicilio",
     };
 
     if (loading) {

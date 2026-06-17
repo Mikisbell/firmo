@@ -77,7 +77,8 @@ class InMemoryEventBus extends EventEmitter implements EventBus {
  * @returns Instancia de EventBus (Supabase o InMemory)
  */
 function createEventBus(): EventBus {
-    const databaseUrl = process.env.DATABASE_URL || process.env.DIRECT_URL;
+    // LISTEN/NOTIFY MUST use a direct connection, not a transaction pooler.
+    const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
     
     if (databaseUrl) {
         log.info('Usando SupabaseEventBus (PostgreSQL LISTEN/NOTIFY)');

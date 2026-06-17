@@ -1,0 +1,24 @@
+name = "park-pos-edge"
+compatibility_date = "2024-03-20"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare Pages build configuration
+[pages_build_output_dir]
+path = ".vercel/output/static"
+
+# KV Namespaces configuration
+# We will use KV for fast caching of configurations, menus, and temporary session data.
+# Note: You will need to create these namespaces in your Cloudflare dashboard and update the IDs.
+# wrangler kv:namespace create "PARK_POS_KV"
+# [[kv_namespaces]]
+# binding = "PARK_POS_KV"
+# id = "<YOUR_PRODUCTION_KV_ID>"
+# preview_id = "<YOUR_PREVIEW_KV_ID>"
+
+# Environment variables
+[vars]
+NEXT_PUBLIC_TENANT_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
+# Rate limiting or cron triggers can be defined here
+# [triggers]
+# crons = ["*/15 * * * *"] # Every 15 minutes
