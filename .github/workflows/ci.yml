@@ -29,6 +29,8 @@ jobs:
       - run: bun install
 
       - name: TypeScript check
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
         run: npx tsc --noEmit
 
       - name: ESLint
