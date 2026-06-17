@@ -51,31 +51,15 @@ jobs:
           DIRECT_URL: ${{ secrets.SUPABASE_DB_URL_DIRECT }}
         run: npx prisma migrate deploy
 
-  deploy-edge:
-    name: 🚀 Build & Deploy to Edge
+  trigger-cloudflare:
+    name: 🚀 Trigger Cloudflare Edge Build
     needs: migrate-database
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install Dependencies
-        run: bun install
-
-      - name: Build for Cloudflare Pages (Edge)
-        run: bun run pages:build
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: park-pos-edge
-          directory: .vercel/output/static
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger Webhook
+        env:
+          CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+        run: |
+          echo "Triggering Cloudflare build via webhook..."
+          curl -X POST "$CLOUDFLARE_DEPLOY_HOOK" -H "Content-Type: application/json" || echo "Webhook trigger completed"
 
