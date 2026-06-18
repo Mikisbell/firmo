@@ -166,6 +166,7 @@ export class SyncClient {
     private eventSource: EventSource | null = null;
     private realtimeClient: SupabaseClient | null = null;
     private realtimeChannel: RealtimeChannel | null = null;
+    private realtimeTokenTimer: number | null = null;
 
     start() {
         if (this.running) return;
@@ -329,12 +330,39 @@ export class SyncClient {
                 }
             });
             this.realtimeChannel = channel;
+
+            // El token minteado expira en 1h: lo renovamos antes (cada 50 min) para no
+            // perder el realtime en sesiones largas (cajas abiertas todo el dia).
+            this.realtimeTokenTimer = window.setInterval(() => {
+                void this.refreshRealtimeToken();
+            }, 50 * 60 * 1000);
         } catch (e) {
             logger.error('sync.realtime_connect_error', 'Error conectando a Supabase Realtime', e instanceof Error ? e : new Error(String(e)));
         }
     }
 
+    /** Renueva el token de Realtime antes de que expire y lo re-aplica al cliente. */
+    private async refreshRealtimeToken() {
+        if (!this.realtimeClient) return;
+        try {
+            const res = await fetch('/api/realtime/token', { credentials: 'include' });
+            if (!res.ok) {
+                logger.warn('sync.realtime_token_refresh_failed', `No se pudo renovar token Realtime (HTTP ${res.status})`);
+                return;
+            }
+            const { token } = await res.json();
+            this.realtimeClient.realtime.setAuth(token);
+            logger.debug('sync.realtime_token_refreshed', 'Token de Realtime renovado');
+        } catch (e) {
+            logger.warn('sync.realtime_token_refresh_failed', 'Error renovando token de Realtime');
+        }
+    }
+
     private disconnectRealtime() {
+        if (this.realtimeTokenTimer) {
+            window.clearInterval(this.realtimeTokenTimer);
+            this.realtimeTokenTimer = null;
+        }
         if (this.realtimeClient && this.realtimeChannel) {
             void this.realtimeClient.removeChannel(this.realtimeChannel);
         }
