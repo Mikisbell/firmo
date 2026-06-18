@@ -24,16 +24,20 @@ const prismaClientSingleton = () => {
     
     let baseClient;
 
-    // Si es entorno local/desarrollo y NO es Neon (ej. Supabase local), usamos cliente nativo
-    // Neon Serverless requiere un proxy WebSocket que Supabase no tiene.
-    if (process.env.NODE_ENV === 'development' && !connectionString.includes('neon.tech')) {
-        console.log('PRISMA INIT - Usando Prisma nativo (TCP) para BD local/Supabase');
-        baseClient = new PrismaClient();
-    } else {
+    // El adaptador Neon (WebSocket) SOLO aplica si la DB es realmente Neon (neon.tech).
+    // Para Supabase / Postgres estandar en runtime Node usamos el cliente nativo (TCP),
+    // que conecta sin el proxy WebSocket que exige Neon Serverless (el adaptador se
+    // colgaba al conectar contra Supabase en Node). Edge ya no aplica: el ingest es nodejs.
+    if (connectionString.includes('neon.tech')) {
         console.log('PRISMA INIT - Usando adaptador Neon (WebSocket)');
         const pool = new Pool({ connectionString });
-        const adapter = new PrismaNeon(pool as any);
+        // El Pool de @neondatabase/serverless difiere del tipo que espera PrismaNeon
+        // por drift de versiones; cast acotado y documentado (no es un any generico).
+        const adapter = new PrismaNeon(pool as unknown as ConstructorParameters<typeof PrismaNeon>[0]);
         baseClient = new PrismaClient({ adapter });
+    } else {
+        console.log('PRISMA INIT - Usando Prisma nativo (TCP) para Supabase/Postgres');
+        baseClient = new PrismaClient();
     }
     
     // Use Prisma 6 extension API for middleware
