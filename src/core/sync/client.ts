@@ -4,6 +4,7 @@ import { ingestRequestSchema, type IngestRequest, type ParkEvent } from "@/src/c
 import { syncCircuitBreaker } from "./circuit-breaker";
 import { logger, logEvents } from "@/src/core/observability/logger";
 import { safeStorage } from "@/src/lib/storage";
+import { createClient, type SupabaseClient, type RealtimeChannel } from "@supabase/supabase-js";
 
 export type IngestResponse = {
     accepted: boolean;
@@ -163,6 +164,8 @@ export class SyncClient {
     }
 
     private eventSource: EventSource | null = null;
+    private realtimeClient: SupabaseClient | null = null;
+    private realtimeChannel: RealtimeChannel | null = null;
 
     start() {
         if (this.running) return;
@@ -172,6 +175,10 @@ export class SyncClient {
             window.addEventListener("online", this.onOnlineBound);
             this.timer = window.setInterval(() => void this.syncNow(), this.tickMs);
             this.connectSSE();
+            // Realtime por Supabase (broadcast) en PARALELO al SSE; ambos alimentan
+            // handleIncomingEvent (idempotente). Transicion sin riesgo: si Realtime falla,
+            // SSE + polling siguen entregando.
+            void this.connectRealtime();
             
             // Clean up invalid events on startup BEFORE first sync
             this.cleanupInvalidEvents().then(() => {
@@ -218,27 +225,30 @@ export class SyncClient {
             window.removeEventListener("online", this.onOnlineBound);
             if (this.timer) window.clearInterval(this.timer);
             this.disconnectSSE();
+            this.disconnectRealtime();
         }
         this.timer = null;
+    }
+
+    /** Lee el tenant_id de la config del terminal en localStorage (o null si no esta). */
+    private getConfiguredTenantId(): string | null {
+        if (typeof localStorage === 'undefined') return null;
+        try {
+            const configStr = safeStorage.getItem('park_terminal_config');
+            if (configStr) {
+                const config = JSON.parse(configStr);
+                return config.tenant_id ?? null;
+            }
+        } catch {
+            logger.error('sync.tenant_parse_error', 'Error reading tenant config');
+        }
+        return null;
     }
 
     private connectSSE() {
         if (this.eventSource) return;
 
-        // Get tenant_id from localStorage (set during terminal setup)
-        let tenantId = null;
-        if (typeof localStorage !== 'undefined') {
-            try {
-                const configStr = safeStorage.getItem('park_terminal_config');
-                if (configStr) {
-                    const config = JSON.parse(configStr);
-                    tenantId = config.tenant_id;
-                }
-            } catch (e) {
-                logger.error('sync.tenant_parse_error', 'Error reading tenant config');
-            }
-        }
-        
+        const tenantId = this.getConfiguredTenantId();
         if (!tenantId) {
             logger.debug('sync.no_tenant', 'No tenant_id available for SSE connection. Terminal not configured.');
             return;
@@ -272,6 +282,64 @@ export class SyncClient {
             this.eventSource.close();
             this.eventSource = null;
         }
+    }
+
+    /**
+     * Suscripcion a Supabase Realtime (canal privado del tenant) por WEBSOCKET.
+     * Corre en PARALELO al SSE durante la transicion: los eventos que llegan por
+     * broadcast pasan por el mismo handleIncomingEvent idempotente, asi recibir el
+     * mismo evento por SSE y por Realtime no duplica nada. Sin puerto 5432 -> Cloudflare-safe.
+     */
+    private async connectRealtime() {
+        if (this.realtimeChannel) return;
+        if (typeof window === 'undefined') return;
+
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (!url || !anonKey) {
+            logger.debug('sync.realtime_disabled', 'Supabase Realtime no configurado; se usa solo SSE');
+            return;
+        }
+
+        const tenantId = this.getConfiguredTenantId();
+        if (!tenantId) return;
+
+        try {
+            // El token (y el tenant) los decide el servidor desde la sesion, no el cliente.
+            const res = await fetch('/api/realtime/token', { credentials: 'include' });
+            if (!res.ok) {
+                logger.warn('sync.realtime_token_failed', `No se pudo obtener token Realtime (HTTP ${res.status}); se usa solo SSE`);
+                return;
+            }
+            const { token } = await res.json();
+
+            const client = createClient(url, anonKey);
+            client.realtime.setAuth(token);
+            this.realtimeClient = client;
+
+            const channel = client.channel(`tenant:${tenantId}`, { config: { private: true } });
+            channel.on('broadcast', { event: 'park_event' }, (msg) => {
+                void this.handleIncomingEvent(msg.payload as ParkEvent);
+            });
+            channel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    logger.info('sync.realtime_connected', 'Supabase Realtime conectado');
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    logger.warn('sync.realtime_error', `Canal Realtime ${status}; SSE/polling siguen activos`);
+                }
+            });
+            this.realtimeChannel = channel;
+        } catch (e) {
+            logger.error('sync.realtime_connect_error', 'Error conectando a Supabase Realtime', e instanceof Error ? e : new Error(String(e)));
+        }
+    }
+
+    private disconnectRealtime() {
+        if (this.realtimeClient && this.realtimeChannel) {
+            void this.realtimeClient.removeChannel(this.realtimeChannel);
+        }
+        this.realtimeChannel = null;
+        this.realtimeClient = null;
     }
 
     private async handleIncomingEvent(event: ParkEvent) {
