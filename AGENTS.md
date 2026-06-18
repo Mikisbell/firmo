@@ -1,7 +1,8 @@
 # PARK POS — Code Review Rules (GGA)
 
 ## Language
-- Code, variables, and comments in English
+- Code and variables in English
+- Comments in Spanish (ALL code comments, same as the frontend)
 - User-facing strings in Spanish
 
 ## Money (Critical)

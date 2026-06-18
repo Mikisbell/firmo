@@ -421,10 +421,10 @@ export class SyncClient {
         let resp: IngestResponse;
         try {
             resp = await syncCircuitBreaker.execute(async () => {
-                // AUTH (bug #3 fix): send the HttpOnly session cookie (auth_token) via
-                // credentials:'include'. The ingest derives tenant_id/actor_id from the
-                // jose-verified JWT — removes the NEXT_PUBLIC_API_SECRET that was bundled
-                // into the browser (cross-tenant injection risk).
+                // AUTH (fix bug #3): enviamos el cookie HttpOnly de sesion (auth_token) via
+                // credentials:'include'. El ingest deriva tenant_id/actor_id del JWT verificado
+                // con jose — elimina el NEXT_PUBLIC_API_SECRET que se empaquetaba en el bundle
+                // del navegador (riesgo de inyeccion cross-tenant).
                 const r = await fetch(this.endpoint, {
                     method: "POST",
                     credentials: "include",
@@ -517,7 +517,7 @@ export class SyncClient {
             });
         } catch (e: unknown) {
             const err = e instanceof Error ? e : new Error(String(e));
-            // Structured logging (Pino): log only the normalized error, never the raw payload.
+            // Logging estructurado (Pino): loguea solo el error normalizado, nunca el payload crudo.
             logger.error('sync.fetch_error', 'Sync fetch failed', err, { message: err.message });
             
             if (err.message === 'Circuit breaker is OPEN') {
@@ -731,8 +731,8 @@ export class SyncClient {
      */
     async refreshOrder(orderId: string): Promise<boolean> {
         try {
-            // AUTH (bug #3 fix): HttpOnly session cookie (auth_token) via credentials:'include'.
-            // Same-origin: the cookie is sent automatically and /state derives the tenant from the JWT.
+            // AUTH (fix bug #3): cookie HttpOnly de sesion (auth_token) via credentials:'include'.
+            // Same-origin: el cookie viaja solo y /state deriva el tenant del JWT.
             const response = await fetch(`/api/orders/${orderId}/state`, {
                 credentials: "include",
             });

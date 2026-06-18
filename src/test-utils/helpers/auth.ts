@@ -1,15 +1,15 @@
 /**
- * Test auth helpers — sign JWTs for authenticated route tests.
+ * Helpers de auth para tests — firma JWTs para tests de rutas autenticadas.
  *
- * Replicates the EXACT contract that production routes verify
- * (src/core/auth/auth.service.ts and src/app/api/data-sync/ingest/route.ts):
+ * Replica el contrato EXACTO que verifican las rutas de produccion
+ * (src/core/auth/auth.service.ts y src/app/api/data-sync/ingest/route.ts):
  *   - secret:   process.env.JWT_SECRET (TextEncoder().encode), HS256
  *   - issuer:   'park-pos'
  *   - audience: 'park-pos-client'
  *   - claims:   tid (tenant_id), sub (actor_id), role
  *
- * JWT_SECRET is provided by vitest.config.ts (test.env) at import-time,
- * so signing here uses the same key the routes verify against.
+ * vitest.config.ts (test.env) provee JWT_SECRET en import-time, asi que
+ * firmar aca usa la misma llave contra la que verifican las rutas.
  *
  * @module test-utils/helpers/auth
  */
@@ -23,29 +23,29 @@ function getSecret(): Uint8Array {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
         throw new Error(
-            'JWT_SECRET is not defined in the test environment. ' +
-            'Check vitest.config.ts (test.env.JWT_SECRET).'
+            'JWT_SECRET no esta definido en el entorno de test. ' +
+            'Revisa vitest.config.ts (test.env.JWT_SECRET).'
         );
     }
     return new TextEncoder().encode(secret);
 }
 
 export interface TestTokenOptions {
-    /** tenant_id → claim `tid` (forced by the ingest onto every event). */
+    /** tenant_id → claim `tid` (el que el ingest fuerza sobre cada evento). */
     tenantId: string;
     /** actor_id → claim `sub`. */
     actorId?: string;
-    /** actor role → claim `role`. */
+    /** rol del actor → claim `role`. */
     role?: string;
-    /** session_id → claim `sid` (required by requirePosAuth/validateSession). */
+    /** session_id → claim `sid` (requerido por requirePosAuth/validateSession). */
     sessionId?: string;
-    /** actor name → claim `name`. */
+    /** nombre del actor → claim `name`. */
     name?: string;
 }
 
 /**
- * Signs a test JWT with the same contract the routes verify.
- * Use in headers as `Authorization: Bearer <token>` or cookie `auth_token=<token>`.
+ * Firma un JWT de prueba con el mismo contrato que verifican las rutas.
+ * Usar en headers como `Authorization: Bearer <token>` o cookie `auth_token=<token>`.
  */
 export async function signTestToken(opts: TestTokenOptions): Promise<string> {
     const {
@@ -72,7 +72,7 @@ export async function signTestToken(opts: TestTokenOptions): Promise<string> {
 }
 
 /**
- * Convenience helper: returns a ready-to-use Authorization header.
+ * Helper de conveniencia: devuelve el header Authorization listo para usar.
  */
 export async function bearerHeader(opts: TestTokenOptions): Promise<{ authorization: string }> {
     const token = await signTestToken(opts);

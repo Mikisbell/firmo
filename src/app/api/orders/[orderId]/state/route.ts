@@ -11,7 +11,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
-  // AUTH (bug #3 fix): session JWT via cookie/Bearer instead of the exposed x-api-secret.
+  // AUTH (fix bug #3): JWT de sesion via cookie/Bearer en vez del x-api-secret expuesto.
   const authResult = await requirePosAuth(req);
   if (!authResult.authorized) return authResult.response;
 
@@ -23,7 +23,7 @@ export async function GET(
       where: { id: orderId },
     });
 
-    // Tenant isolation: 404 (not 403) to avoid leaking cross-tenant existence.
+    // Aislamiento de tenant: 404 (no 403) para no filtrar existencia cross-tenant.
     if (!order || order.tenant_id !== tenantId) {
       return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
     }
