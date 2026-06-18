@@ -51,15 +51,21 @@ jobs:
           DIRECT_URL: ${{ secrets.SUPABASE_DB_URL_DIRECT }}
         run: npx prisma migrate deploy
 
-  trigger-cloudflare:
-    name: 🚀 Trigger Cloudflare Edge Build
-    needs: migrate-database
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Webhook
-        env:
-          CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
-        run: |
-          echo "Triggering Cloudflare build via webhook..."
-          curl -X POST "$CLOUDFLARE_DEPLOY_HOOK" -H "Content-Type: application/json" || echo "Webhook trigger completed"
+  # ───────────────────────────────────────────────────────────────────────────
+  # DESPLIEGUE: por ahora corre en VERCEL (Node), vía la integración Git de Vercel
+  # (cada push despliega automáticamente — este workflow NO necesita un job de deploy).
+  # El trigger a Cloudflare queda DESHABILITADO hasta que migremos a Cloudflare al 100%.
+  # Reactivar este job cuando se vuelva a Cloudflare.
+  # ───────────────────────────────────────────────────────────────────────────
+  # trigger-cloudflare:
+  #   name: 🚀 Trigger Cloudflare Edge Build
+  #   needs: migrate-database
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Webhook
+  #       env:
+  #         CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+  #       run: |
+  #         echo "Triggering Cloudflare build via webhook..."
+  #         curl -X POST "$CLOUDFLARE_DEPLOY_HOOK" -H "Content-Type: application/json" || echo "Webhook trigger completed"
 
