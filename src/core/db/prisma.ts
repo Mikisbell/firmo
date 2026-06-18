@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { Pool } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { logger } from '@/src/core/observability/structured-logger'
 import { metrics } from '@/src/core/observability/metrics'
 
@@ -24,11 +25,10 @@ const prismaClientSingleton = () => {
     
     let baseClient;
 
-    // El adaptador Neon (WebSocket) SOLO aplica si la DB es realmente Neon (neon.tech).
-    // Para Supabase / Postgres estandar en runtime Node usamos el cliente nativo (TCP),
-    // que conecta sin el proxy WebSocket que exige Neon Serverless (el adaptador se
-    // colgaba al conectar contra Supabase en Node). Edge ya no aplica: el ingest es nodejs.
+    // Ambas ramas usan driver adapters (JS puro): NO requieren el binary del query
+    // engine nativo, asi que conectan igual en local y en Vercel serverless (Lambda).
     if (connectionString.includes('neon.tech')) {
+        // DB Neon: adaptador Neon sobre WebSocket.
         console.log('PRISMA INIT - Usando adaptador Neon (WebSocket)');
         const pool = new Pool({ connectionString });
         // El Pool de @neondatabase/serverless difiere del tipo que espera PrismaNeon
@@ -36,8 +36,12 @@ const prismaClientSingleton = () => {
         const adapter = new PrismaNeon(pool as unknown as ConstructorParameters<typeof PrismaNeon>[0]);
         baseClient = new PrismaClient({ adapter });
     } else {
-        console.log('PRISMA INIT - Usando Prisma nativo (TCP) para Supabase/Postgres');
-        baseClient = new PrismaClient();
+        // Supabase / Postgres estandar: adaptador pg (node-postgres) sobre TCP.
+        // Conecta al pooler de Supabase y NO depende del binary del engine nativo
+        // (que en Vercel serverless fallaba al instante por target de plataforma).
+        console.log('PRISMA INIT - Usando adaptador pg para Supabase/Postgres');
+        const adapter = new PrismaPg({ connectionString });
+        baseClient = new PrismaClient({ adapter });
     }
     
     // Use Prisma 6 extension API for middleware
