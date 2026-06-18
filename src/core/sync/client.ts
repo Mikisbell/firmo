@@ -246,6 +246,8 @@ export class SyncClient {
         return null;
     }
 
+    // @deprecated FASE 3 (issue #4): SSE legacy, corre en paralelo al realtime de Supabase.
+    // Retirar (dejar solo connectRealtime) tras validar el realtime con trafico real.
     private connectSSE() {
         if (this.eventSource) return;
 

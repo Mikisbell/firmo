@@ -120,6 +120,8 @@ function createEventBus(): EventBus {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (databaseUrl) {
+        // @deprecated FASE 3 (issue #4): el bus pg (LISTEN/SSE) es transitorio. Cuando el
+        // realtime por Supabase este validado con trafico real, devolver SupabaseRealtimeEventBus directo.
         const pgBus = new SupabaseEventBus(databaseUrl);
 
         // Iniciar conexión asíncrona (no bloquear)

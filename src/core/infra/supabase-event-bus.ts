@@ -36,6 +36,8 @@ type EventChannel = `events:${string}`;
  * - Aislamiento por tenant
  * - Manejo robusto de errores
  */
+// @deprecated FASE 3 (issue #4): bus por PG LISTEN/NOTIFY (TCP 5432). Reemplazado por
+// SupabaseRealtimeEventBus (broadcast, sin 5432, Cloudflare-safe). Retirar tras validar.
 export class SupabaseEventBus {
     private pool: Pool | null = null;
     private client: PoolClient | null = null;

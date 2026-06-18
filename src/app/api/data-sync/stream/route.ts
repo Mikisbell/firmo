@@ -4,6 +4,8 @@ import type { ParkEvent } from "@/src/core/domain/events";
 import { requirePosAuth } from "@/src/core/middleware/pos-auth";
 import { logger } from '@/src/core/observability/structured-logger';
 
+// @deprecated FASE 3 (issue #4): endpoint SSE legacy, en paralelo al realtime de Supabase.
+// Retirar tras validar el realtime con trafico real. No corre en Cloudflare Workers (runtime nodejs).
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
