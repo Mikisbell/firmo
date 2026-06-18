@@ -2,6 +2,11 @@ import { PrismaClient } from '@prisma/client'
 import { Pool } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
+// Solo runtime NODE (Vercel/Supabase). pg NO se usa en Edge/Cloudflare Workers
+// (alli regiria la regla de no-TCP de AGENTS.md). El proyecto corre en Node;
+// @prisma/adapter-pg ya depende de pg internamente, aca solo lo hacemos explicito
+// para poder colgar el handler pool.on('error') y evitar el crash por idle.
+import { Pool as PgPool } from 'pg'
 import { logger } from '@/src/core/observability/structured-logger'
 import { metrics } from '@/src/core/observability/metrics'
 
@@ -42,7 +47,14 @@ const prismaClientSingleton = () => {
         console.log('PRISMA INIT - Usando adaptador pg para Supabase/Postgres');
         // ssl rejectUnauthorized:false: Supabase EXIGE SSL y su certificado no esta en el
         // trust store por defecto de Node en Vercel; sin esto el handshake TLS cuelga (timeout).
-        const adapter = new PrismaPg({ connectionString, ssl: { rejectUnauthorized: false } });
+        const pool = new PgPool({ connectionString, ssl: { rejectUnauthorized: false } });
+        // CRITICO: el pooler (pgbouncer) corta conexiones idle. Sin este handler, ese error
+        // sube como 'uncaughtException' y TUMBA el proceso (dev server / funcion serverless).
+        // Lo logueamos y el pool se recupera solo (abre nueva conexion en el siguiente query).
+        pool.on('error', (err) => {
+            logger.error('Error en el pool de pg (conexion idle cortada, recuperable)', err);
+        });
+        const adapter = new PrismaPg(pool);
         baseClient = new PrismaClient({ adapter });
     }
     
