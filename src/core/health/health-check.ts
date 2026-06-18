@@ -74,12 +74,20 @@ export class HealthCheckService {
     const startTime = Date.now();
 
     try {
-      // Run all health checks in parallel with timeout
-      const [database, redis, eventSourcing] = await Promise.all([
+      // Probes independientes con allSettled: el fallo/timeout de UNO ya no enmascara
+      // a los demas (antes Promise.all rechazaba al primero y marcaba todo down).
+      const [databaseR, redisR, eventSourcingR] = await Promise.allSettled([
         this.checkDatabaseWithTimeout(),
         this.checkRedisWithTimeout(),
         this.checkEventSourcingWithTimeout(),
       ]);
+      const settle = (r: PromiseSettledResult<ComponentHealth>, label: string): ComponentHealth =>
+        r.status === 'fulfilled'
+          ? r.value
+          : { status: 'down', responseTime: 0, message: r.reason instanceof Error ? r.reason.message : `Fallo en ${label}` };
+      const database = settle(databaseR, 'database');
+      const redis = settle(redisR, 'redis');
+      const eventSourcing = settle(eventSourcingR, 'eventSourcing');
 
       const responseTime = Date.now() - startTime;
 
