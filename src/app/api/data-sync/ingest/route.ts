@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import prisma from "@/src/core/db/prisma";
 import { ingestRequestSchema, type ParkEvent, type PaymentMethod } from "@/src/core/domain/events";
@@ -13,7 +13,7 @@ import { logger } from '@/src/core/observability/structured-logger';
 import { startSpan, endSpan } from '@/src/core/observability/tracing';
 import { eventMigrator } from "@/src/core/domain/event-migrator";
 import { handleCorsPreflightRequest, addCorsHeaders } from "@/src/lib/cors-helpers";
-import { jwtVerify, type JWTPayload } from 'jose';
+import { requirePosAuth } from "@/src/core/middleware/pos-auth";
 import "@/src/core/domain/migrations";
 
 export const runtime = "nodejs";
@@ -21,11 +21,6 @@ export const dynamic = "force-dynamic";
 
 // Iniciar cleanup job al cargar el módulo
 startCleanupJob();
-
-// JWT verification (native, mismo contrato que src/core/auth/auth.service.ts)
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-const JWT_ISSUER = 'park-pos';
-const JWT_AUDIENCE = 'park-pos-client';
 
 // Error Helpers
 type ApiError = {
@@ -853,55 +848,22 @@ export async function OPTIONS(req: Request) {
     return handleCorsPreflightRequest(origin);
 }
 
-export async function POST(req: Request) {
-    // SECURITY: Identidad verificada criptográficamente (JWT nativo con jose).
-    // El tenant_id y actor_id se derivan SIEMPRE del token firmado, NUNCA del body
-    // del cliente. Esto previene inyección/falsificación cross-tenant.
-    const authHeader = req.headers.get('authorization');
-    let token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-    if (!token) {
-        const cookieHeader = req.headers.get('cookie');
-        if (cookieHeader) {
-            const match = cookieHeader.match(/(?:^|;\s*)auth_token=([^;]*)/);
-            if (match) {
-                token = match[1];
-            }
-        }
+export async function POST(req: NextRequest) {
+    // SECURITY: Identidad verificada vía requirePosAuth (el mismo middleware que
+    // usa el resto de la app). Honra el DEV BACKDOOR de validateAdminAuth en
+    // desarrollo y lee el token de cookie `auth_token` o header Bearer.
+    // El tenant_id y actor_id se derivan SIEMPRE de la sesión autenticada,
+    // NUNCA del body del cliente. Esto previene inyección/falsificación cross-tenant.
+    const authResult = await requirePosAuth(req);
+    if (!authResult.authorized) {
+        // El ingest agrega CORS a todas sus respuestas; preservarlo también en el error.
+        return addCorsHeaders(authResult.response, req.headers.get('origin') || undefined);
     }
 
-    if (!token) {
-        return addCorsHeaders(serverError(
-            err("UNAUTHORIZED", "Acceso denegado.", "Verifica tus credenciales."),
-            401
-        ), req.headers.get('origin') || undefined);
-    }
-
-    let jwtPayload: JWTPayload;
-    try {
-        const { payload } = await jwtVerify(token, JWT_SECRET, {
-            issuer: JWT_ISSUER,
-            audience: JWT_AUDIENCE,
-        });
-        jwtPayload = payload;
-    } catch {
-        return addCorsHeaders(serverError(
-            err("UNAUTHORIZED", "Acceso denegado.", "Verifica tus credenciales."),
-            401
-        ), req.headers.get('origin') || undefined);
-    }
-
-    // Identidad segura derivada del token criptográfico.
-    const secureTenantId = jwtPayload.tid as string;
-    const secureActorId = (jwtPayload.sub as string) ?? null;
-    const secureActorRole = (jwtPayload.role as string | undefined) ?? null;
-
-    if (!secureTenantId) {
-        return addCorsHeaders(serverError(
-            err("UNAUTHORIZED", "Token sin tenant.", "Vuelve a iniciar sesión."),
-            401
-        ), req.headers.get('origin') || undefined);
-    }
+    // Identidad segura derivada de la sesión autenticada.
+    const secureTenantId = authResult.user.tenantId;
+    const secureActorId = authResult.user.id;
+    const secureActorRole = authResult.user.role ?? null;
 
     let body: unknown;
     try {

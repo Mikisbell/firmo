@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 import { signTestToken } from '@/src/test-utils/helpers/auth';
 
 // ---------------------------------------------------------------------------
@@ -85,7 +86,7 @@ function makeRequest(body: any, token?: string) {
   if (token !== undefined) {
     headers['authorization'] = `Bearer ${token}`;
   }
-  return new Request('http://localhost/api/events/ingest', {
+  return new NextRequest('http://localhost/api/events/ingest', {
     method: 'POST',
     body: JSON.stringify(body),
     headers,
@@ -141,8 +142,8 @@ describe('POST /api/events/ingest', () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data.accepted).toBe(false);
-    expect(data.error.error_code).toBe('UNAUTHORIZED');
+    // requirePosAuth/validateAdminAuth devuelve { error: string } en el 401.
+    expect(data.error).toBeDefined();
   });
 
   it('debe rechazar con token JWT inválido (401)', async () => {
@@ -151,12 +152,12 @@ describe('POST /api/events/ingest', () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data.accepted).toBe(false);
+    expect(data.error).toBeDefined();
   });
 
   it('debe rechazar JSON inválido (400)', async () => {
     const { POST } = await import('../ingest/route');
-    const req = new Request('http://localhost/api/events/ingest', {
+    const req = new NextRequest('http://localhost/api/events/ingest', {
       method: 'POST',
       body: 'not-json{{{',
       headers: {
