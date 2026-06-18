@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import CatalogGrid from "./components/CatalogGrid";
 import { FloorPlanView } from "./components/FloorPlanView";
 import { CheckDetail } from "./components/CheckDetail";
@@ -32,8 +32,56 @@ import { useCustomerDisplay } from "@/src/hooks/useCustomerDisplay";
 import { useSyncClient } from "@/src/hooks/useSyncClient"; // FIX 17: Real-time sync
 import { MasterDataSyncClient } from "@/src/core/sync/master-data.client";
 
-// Fallback counter for offline mode
-let offlineOrderCounter = Date.now();
+// ════════════════════════════════════════════════════════════════════════════
+// NUMERACIÓN OFFLINE DE ÓRDENES
+//
+// El número de orden online se asigna desde `terminal_number_ranges`: cada terminal
+// posee un rango DISJUNTO de 10.000 enteros (ver src/core/order-numbers). Online,
+// getNextOrderNumber() incrementa `current_number` dentro de ese rango.
+//
+// Offline necesitamos un contador local que respete las mismas garantías:
+//   (a) NO desborde INT4 (máx 2.147.483.647). Prohibido Date.now() (≈1.78e12 → overflow
+//       en el proyector y la orden nunca se persiste).
+//   (b) NO colisione entre terminales. Prohibido un literal compartido (ej. 100): toda
+//       tablet arrancaría en el mismo número y los tickets chocarían al sincronizar.
+//   (c) NO bloquee el path de crear orden: el seed se obtiene UNA vez al montar/abrir
+//       caja; crear órdenes offline solo hace un ++ en memoria.
+//
+// El seed correcto es el `current_number` del rango asignado al terminal (mismo espacio
+// que usa el path online). Mientras la tablet estuvo online al menos una vez, ese valor
+// queda disponible y el offline continúa la secuencia del propio terminal sin colisión.
+//
+// Si la tablet nunca pudo leer su rango (cold-start 100% offline), derivamos una base
+// determinística por terminal_id: el hash del id se mapea a una banda inicial de tamaño
+// RANGE_SIZE, replicando el espaciado de la asignación de rangos del servidor. Es
+// best-effort: el servidor reconcilia el número definitivo al sincronizar, pero dos
+// terminales distintos arrancan en bandas distintas en vez de chocar en el mismo número.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Debe coincidir con RANGE_SIZE de src/core/order-numbers/range-allocator.ts
+const OFFLINE_RANGE_SIZE = 10000;
+
+// Cota de seguridad: número máximo de terminales antes de acercarnos a INT4.
+// Las bandas derivadas viven en [1, MAX_OFFLINE_TERMINAL_BANDS * OFFLINE_RANGE_SIZE),
+// muy por debajo de INT4_MAX (2.147.483.647). 200.000 bandas × 10.000 ≈ 2e9 < 2.14e9.
+const MAX_OFFLINE_TERMINAL_BANDS = 200000;
+
+/**
+ * Deriva una base de numeración offline determinística y específica del terminal.
+ * Usada solo como fallback cuando nunca se pudo leer el rango real desde el servidor.
+ * Mismo terminal_id → misma banda (estable entre recargas); terminales distintos →
+ * bandas distintas (sin colisión), todo acotado bajo INT4.
+ */
+function deriveOfflineSeed(terminalId: string): number {
+    // Hash determinístico (djb2) del terminal_id.
+    let hash = 5381;
+    for (let i = 0; i < terminalId.length; i++) {
+        hash = ((hash << 5) + hash + terminalId.charCodeAt(i)) | 0;
+    }
+    const band = Math.abs(hash) % MAX_OFFLINE_TERMINAL_BANDS;
+    // Inicio de la banda (1-based para evitar el 0).
+    return band * OFFLINE_RANGE_SIZE + 1;
+}
 
 // View modes for cashier
 type CashierView = "PENDING" | "DELIVERY";
@@ -46,7 +94,11 @@ export default function POSPage() {
     const TENANT_ID = terminal?.tenant_id ?? "";
     const TERM_ID = terminal?.terminal_id ?? "";
     const ACTOR_ID = session?.employee_id ?? "";
-    
+
+    // Contador offline de órdenes (ver nota "NUMERACIÓN OFFLINE" arriba).
+    // -1 = aún sin sembrar. Se siembra una vez con el rango real del terminal.
+    const offlineOrderCounterRef = useRef<number>(-1);
+
     // Shift is global (singleton)
     const projections = useProjections();
     const shift = projections?.shift ?? null;
@@ -208,6 +260,44 @@ export default function POSPage() {
         const interval = setInterval(checkPendingSync, 5000);
         return () => clearInterval(interval);
     }, []);
+
+    // Siembra del contador offline (UNA vez por terminal, no por orden).
+    // Intenta leer el rango real del terminal; si no hay red, cae a la base
+    // determinística por terminal_id. Nunca bloquea la creación de órdenes.
+    useEffect(() => {
+        if (!TERM_ID || offlineOrderCounterRef.current !== -1) return;
+
+        let cancelled = false;
+
+        const seedOfflineCounter = async () => {
+            // Fallback inmediato: garantiza un seed válido aunque la red falle.
+            let seed = deriveOfflineSeed(TERM_ID);
+
+            try {
+                const res = await fetch(
+                    `/api/terminals/range?terminal_id=${encodeURIComponent(TERM_ID)}`,
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    // current_number = próximo libre dentro del rango propio del terminal.
+                    if (typeof data.current_number === "number" && data.current_number > 0) {
+                        seed = data.current_number;
+                    }
+                }
+            } catch {
+                // Sin red: conservamos la base determinística. El servidor reconcilia al sincronizar.
+            }
+
+            if (!cancelled && offlineOrderCounterRef.current === -1) {
+                offlineOrderCounterRef.current = seed;
+            }
+        };
+
+        seedOfflineCounter();
+        return () => {
+            cancelled = true;
+        };
+    }, [TERM_ID]);
 
     // Train AI model on load
     useEffect(() => {
@@ -497,8 +587,14 @@ export default function POSPage() {
     const getOrderNumber = async (): Promise<number> => {
         const numResult = await POSActions.getNextOrderNumber(TENANT_ID, TERM_ID);
         if (numResult.success) return numResult.orderNumber;
-        // Offline fallback: use timestamp-based unique number
-        return offlineOrderCounter++;
+
+        // Fallback offline: secuencia local sembrada con el rango del terminal (sin query bloqueante).
+        // Si el seed aún no llegó (red lenta en el primer render), lo derivamos sincrónicamente
+        // del terminal_id para no colisionar ni desbordar INT4.
+        if (offlineOrderCounterRef.current === -1) {
+            offlineOrderCounterRef.current = deriveOfflineSeed(TERM_ID);
+        }
+        return offlineOrderCounterRef.current++;
     };
 
     // Create new delivery/takeout order
