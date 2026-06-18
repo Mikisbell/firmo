@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { CheckProjection, SaleProjection } from "@/src/core/projections/types";
 import { PaymentModal } from "./PaymentModal";
 import { InvoiceModal } from "./InvoiceModal";

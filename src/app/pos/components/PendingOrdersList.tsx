@@ -226,8 +226,10 @@ export function PendingOrdersList({ orders, onSelectOrder, onQuickCheckout, sele
                         </motion.div>
                     ) : (
                         filteredAndSortedOrders.map((order, index) => (
-                            <motion.button
+                            <motion.div
                                 key={order.order_id}
+                                role="button"
+                                tabIndex={0}
                                 layout
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -339,7 +341,7 @@ export function PendingOrdersList({ orders, onSelectOrder, onQuickCheckout, sele
                                         </button>
                                     )}
                                 </div>
-                            </motion.button>
+                            </motion.div>
                         ))
                     )}
                 </AnimatePresence>
