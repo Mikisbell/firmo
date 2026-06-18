@@ -2,9 +2,10 @@
   "name": "park",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.3.14",
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:seed": "tsx prisma/dev-seed-users.ts && npm run dev",
+    "dev:seed": "tsx prisma/dev-seed-users.ts && bun run dev",
     "build": "next build",
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
