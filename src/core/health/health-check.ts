@@ -358,19 +358,20 @@ export class HealthCheckService {
     redis: ComponentHealth,
     eventSourcing: ComponentHealth
   ): SystemStatus {
-    const components = [database, redis, eventSourcing];
-
-    // If any component is down, system is unhealthy
-    if (components.some((c) => c.status === 'down')) {
+    // Redis es NO-critico: tiene fallback en memoria, su caida NO debe tumbar el
+    // sistema a unhealthy (solo degrada). Criticos para operar: database y eventSourcing.
+    const critical = [database, eventSourcing];
+    if (critical.some((c) => c.status === 'down')) {
       return 'unhealthy';
     }
 
-    // If any component is degraded, system is degraded
-    if (components.some((c) => c.status === 'degraded')) {
+    // Cualquier componente down (ej. redis) o degraded -> degraded (HTTP 200).
+    const all = [database, redis, eventSourcing];
+    if (all.some((c) => c.status === 'down' || c.status === 'degraded')) {
       return 'degraded';
     }
 
-    // All components are up
+    // Todos arriba
     return 'healthy';
   }
 
