@@ -40,7 +40,9 @@ const prismaClientSingleton = () => {
         // Conecta al pooler de Supabase y NO depende del binary del engine nativo
         // (que en Vercel serverless fallaba al instante por target de plataforma).
         console.log('PRISMA INIT - Usando adaptador pg para Supabase/Postgres');
-        const adapter = new PrismaPg({ connectionString });
+        // ssl rejectUnauthorized:false: Supabase EXIGE SSL y su certificado no esta en el
+        // trust store por defecto de Node en Vercel; sin esto el handshake TLS cuelga (timeout).
+        const adapter = new PrismaPg({ connectionString, ssl: { rejectUnauthorized: false } });
         baseClient = new PrismaClient({ adapter });
     }
     

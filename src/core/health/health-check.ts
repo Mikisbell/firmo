@@ -60,7 +60,7 @@ export interface HealthCheckResult {
  */
 export class HealthCheckService {
   private prisma: PrismaClient;
-  private readonly timeout = 2000; // 2 seconds max response time
+  private readonly timeout = 8000; // 8s: margen para el cold-start de conexion DB en serverless
 
   constructor(prisma?: PrismaClient) {
     this.prisma = prisma || prismaSingleton;
@@ -119,6 +119,8 @@ export class HealthCheckService {
       logger.error('Health check failed', error as Error);
 
       const responseTime = Date.now() - startTime;
+      // Exponemos el error real (antes se ocultaba con un mensaje generico) para diagnostico.
+      const failMsg = error instanceof Error ? error.message : 'Verificación de salud fallida';
 
       return {
         status: 'unhealthy',
@@ -127,17 +129,17 @@ export class HealthCheckService {
           database: {
             status: 'down',
             responseTime: 0,
-            message: 'Verificación de salud fallida',
+            message: failMsg,
           },
           redis: {
             status: 'down',
             responseTime: 0,
-            message: 'Verificación de salud fallida',
+            message: failMsg,
           },
           eventSourcing: {
             status: 'down',
             responseTime: 0,
-            message: 'Verificación de salud fallida',
+            message: failMsg,
           },
         },
         responseTime,
