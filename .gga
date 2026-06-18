@@ -9,7 +9,7 @@ PROVIDER="claude"
 FILE_PATTERNS="*.ts,*.tsx"
 
 # File patterns to exclude from review (comma-separated)
-EXCLUDE_PATTERNS="*.test.ts,*.spec.ts,*.test.tsx,*.spec.tsx,*.d.ts,*.property.test.ts,node_modules/**,dist/**,.next/**"
+EXCLUDE_PATTERNS="*.test.ts,*.spec.ts,*.test.tsx,*.spec.tsx,*.d.ts,*.property.test.ts,node_modules/**,dist/**,.next/**,prisma/cleanup/**"
 
 # File containing code review rules
 RULES_FILE="AGENTS.md"
