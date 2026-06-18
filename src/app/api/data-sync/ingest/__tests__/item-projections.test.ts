@@ -18,6 +18,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 import * as fc from 'fast-check';
 import { signTestToken } from '@/src/test-utils/helpers/auth';
 
@@ -153,7 +154,7 @@ async function ingestEvent(event: ReturnType<typeof baseEvent>) {
     events: [event],
   });
   const token = await signTestToken({ tenantId: TENANT_ID, actorId: ACTOR_ID });
-  const req = new Request('http://localhost/api/events/ingest', {
+  const req = new NextRequest('http://localhost/api/events/ingest', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -161,7 +162,7 @@ async function ingestEvent(event: ReturnType<typeof baseEvent>) {
     },
     body,
   });
-  return POST(req as any);
+  return POST(req);
 }
 
 // ---------------------------------------------------------------------------

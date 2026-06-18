@@ -232,7 +232,7 @@ async function postIngest(events: ReturnType<typeof makeEvent>[]) {
   });
   // El ingest deriva el tenant_id del claim `tid` del JWT, no del body.
   const token = await signTestToken({ tenantId: TENANT_ID });
-  const req = new Request('http://localhost/api/events/ingest', {
+  const req = new NextRequest('http://localhost/api/events/ingest', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ async function postIngest(events: ReturnType<typeof makeEvent>[]) {
     },
     body,
   });
-  return POST(req as any);
+  return POST(req);
 }
 
 async function getReadyItems() {
