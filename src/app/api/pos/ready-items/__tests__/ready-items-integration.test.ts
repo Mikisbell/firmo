@@ -13,6 +13,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { signTestToken } from '@/src/test-utils/helpers/auth';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Simulated order_item_projections store (mirrors DB behavior)
@@ -65,8 +66,6 @@ function storeReady(tenant_id: string): ProjectionRow[] {
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks — ingest route
 // ─────────────────────────────────────────────────────────────────────────────
-
-process.env.PARK_API_SECRET = 'test-secret-integration';
 
 const mockFindFirst = vi.fn().mockResolvedValue(null);
 
@@ -231,12 +230,13 @@ async function postIngest(events: ReturnType<typeof makeEvent>[]) {
     to_terminal_sequence: events.length,
     events,
   });
+  // El ingest deriva el tenant_id del claim `tid` del JWT, no del body.
+  const token = await signTestToken({ tenantId: TENANT_ID });
   const req = new Request('http://localhost/api/events/ingest', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-tenant-id': TENANT_ID,
-      'x-api-secret': 'test-secret-integration',
+      'authorization': `Bearer ${token}`,
     },
     body,
   });

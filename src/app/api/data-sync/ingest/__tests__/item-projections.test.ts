@@ -19,6 +19,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
+import { signTestToken } from '@/src/test-utils/helpers/auth';
 
 // ---------------------------------------------------------------------------
 // Mocks — full prisma tx object
@@ -98,9 +99,8 @@ vi.mock('@/src/core/validation', () => ({
 // Helpers
 // ---------------------------------------------------------------------------
 
-// API secret must match process.env.PARK_API_SECRET (undefined → skip check via mock)
-process.env.PARK_API_SECRET = 'test-secret';
-
+// Auth: JWT (Bearer). El claim `tid` debe coincidir con TENANT_ID porque el
+// ingest fuerza el tenant_id de cada evento desde el token, no desde el body.
 const TENANT_ID  = '00000000-0000-0000-0000-000000000001';
 const TERMINAL_ID = 'TERM-001';
 const ORDER_ID   = '00000000-0000-0000-0000-000000000020';
@@ -152,12 +152,12 @@ async function ingestEvent(event: ReturnType<typeof baseEvent>) {
     to_terminal_sequence: 1,
     events: [event],
   });
+  const token = await signTestToken({ tenantId: TENANT_ID, actorId: ACTOR_ID });
   const req = new Request('http://localhost/api/events/ingest', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-tenant-id': TENANT_ID,
-      'x-api-secret': 'test-secret',
+      'authorization': `Bearer ${token}`,
     },
     body,
   });
