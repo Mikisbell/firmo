@@ -40,13 +40,33 @@ function makeMockPrisma(options: {
     const createdAlerts: any[] = [];
     const stockUpdates: any[] = [];
 
+    // El servicio ahora corre TODO sobre un único cliente de transacción (tx).
+    // Por eso el mock expone recipes + inventory + logs en el MISMO objeto,
+    // sin un $transaction que reciba métodos aparte.
     const txMethods = {
+        recipes: {
+            findUnique: vi.fn().mockResolvedValue(
+                hasRecipe
+                    ? {
+                        is_active: true,
+                        ingredients: ingredients.map((i) => ({
+                            inventory_code: i.code,
+                            quantity: i.quantity,
+                            unit: "g",
+                            is_optional: i.is_optional || false,
+                        })),
+                    }
+                    : null
+            ),
+        },
         inventory: {
             findFirst: vi.fn().mockImplementation(({ where }: any) => {
                 const code = where.code;
                 if (inventoryStock[code] === undefined) return null;
                 return {
                     id: `inv-${code}`,
+                    name: `Insumo ${code}`,
+                    unit: "g",
                     stock: new Decimal(inventoryStock[code]),
                     min_stock: inventoryMinStock[code] !== undefined
                         ? new Decimal(inventoryMinStock[code]!)
@@ -77,26 +97,8 @@ function makeMockPrisma(options: {
         },
     };
 
-    const mockPrisma = {
-        recipes: {
-            findUnique: vi.fn().mockResolvedValue(
-                hasRecipe
-                    ? {
-                        is_active: true,
-                        ingredients: ingredients.map((i) => ({
-                            inventory_code: i.code,
-                            quantity: i.quantity,
-                            unit: "g",
-                            is_optional: i.is_optional || false,
-                        })),
-                    }
-                    : null
-            ),
-        },
-        $transaction: vi.fn().mockImplementation(async (fn: any) => {
-            return fn(txMethods);
-        }),
-    };
+    // mockPrisma === el tx que se pasa al servicio (alias por compatibilidad).
+    const mockPrisma = txMethods;
 
     return { mockPrisma, txMethods, createdLogs, createdAlerts, stockUpdates };
 }

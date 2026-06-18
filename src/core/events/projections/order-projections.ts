@@ -2,7 +2,52 @@ import { Prisma } from "@prisma/client";
 import { ParkEvent } from "@/src/core/domain/events";
 import { logger } from "@/src/core/observability/structured-logger";
 import { ProjectionHandler } from "./types";
-import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
+import {
+    deductInventoryForOrder,
+    type DeductionAlert,
+} from "@/src/core/inventory/deduction.service";
+
+/**
+ * Ejecuta los efectos secundarios de una deducción de inventario (push
+ * notifications de stock + Auto-86) FUERA de la transacción, usando el prisma
+ * global. Best-effort: nunca propaga errores. Se invoca fire-and-forget para
+ * no retener la transacción de la proyección.
+ */
+async function runDeductionSideEffects(
+    tenantId: string,
+    alerts: DeductionAlert[],
+    productIdToReevaluate: string | null,
+): Promise<void> {
+    if (alerts.length > 0) {
+        const { notifyLowStock } = await import("@/src/core/inventory/stock-alert-notifier");
+        for (const alert of alerts) {
+            await notifyLowStock({
+                tenantId,
+                inventoryCode: alert.inventory_code,
+                inventoryName: alert.inventory_name,
+                currentStock: alert.current_stock,
+                minStock: alert.min_stock ?? 0,
+                unit: alert.unit,
+                alertType: alert.type === "NEGATIVE_STOCK" ? "OUT_OF_STOCK" : "LOW_STOCK",
+            }).catch(() => { /* best-effort */ });
+        }
+    }
+
+    if (productIdToReevaluate) {
+        try {
+            const prisma = (await import("@/src/core/db/prisma")).default;
+            const { ProductAvailabilityService } = await import("@/src/core/services/product-availability.service");
+            const { eventBus } = await import("@/src/core/infra/event-bus");
+            const availService = new ProductAvailabilityService(prisma, eventBus);
+            await availService.autoCheckAvailability(tenantId, productIdToReevaluate);
+        } catch (e) {
+            logger.warn("Auto-86 check falló post-deducción", {
+                productId: productIdToReevaluate,
+                error: e instanceof Error ? e.message : String(e),
+            });
+        }
+    }
+}
 
 export const handleOrderCreated: ProjectionHandler = async (tx, event) => {
     const { tenant_id, payload, occurred_at, terminal_id } = event;
@@ -144,8 +189,10 @@ export const handleOrderItemStatusChanged: ProjectionHandler = async (tx, event)
             const item = items.find((i: any) => i.line_id === p.line_id);
             if (item) {
                 const locationId = (order as any).location_id || tenant_id;
+                // Pasamos `tx` directamente: la deducción corre dentro de la misma
+                // transacción de la proyección (sin transacción anidada).
                 const deductionResult = await deductInventoryForOrder(
-                    tx as any, // Using Prisma tx might conflict if service creates its own tx, but we pass it anyway
+                    tx,
                     tenant_id,
                     locationId,
                     event.aggregate_id,
@@ -156,6 +203,7 @@ export const handleOrderItemStatusChanged: ProjectionHandler = async (tx, event)
                     success: false as const,
                     deductions: [],
                     alerts: [],
+                    productIdToReevaluate: null,
                     error: err instanceof Error ? err.message : String(err),
                 }));
 
@@ -165,6 +213,15 @@ export const handleOrderItemStatusChanged: ProjectionHandler = async (tx, event)
                         lineId: p.line_id,
                         deductionError: deductionResult.error,
                     });
+                } else {
+                    // Efectos secundarios (push + Auto-86) fire-and-forget con el
+                    // prisma global: NO se await dentro de la tx para no retenerla.
+                    // El error se traga (best-effort), igual que las notificaciones.
+                    runDeductionSideEffects(
+                        tenant_id,
+                        deductionResult.alerts,
+                        deductionResult.productIdToReevaluate,
+                    ).catch(() => { /* best-effort */ });
                 }
             }
         }

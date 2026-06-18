@@ -144,7 +144,7 @@ const tx = {
 };
 
 vi.mock('@/src/core/inventory/deduction.service', () => ({
-  deductInventoryForOrder: vi.fn().mockResolvedValue({ success: true, deductions: [], alerts: [] }),
+  deductInventoryForOrder: vi.fn().mockResolvedValue({ success: true, deductions: [], alerts: [], productIdToReevaluate: null }),
 }));
 vi.mock('@/src/core/conflict/conflict-resolver', () => ({
   detectAndResolveConflict: vi.fn().mockResolvedValue({ resolution: 'ACCEPT' }),

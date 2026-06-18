@@ -179,7 +179,21 @@ interface OrderFulfillment {
 }
 
 // Projections using Prisma (with idempotency check)
-async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Promise<boolean> {
+// Efectos secundarios de la deducción de inventario que NO deben correr dentro
+// de la transacción del ingest (push notifications + Auto-86). Se acumulan
+// durante la proyección y el caller los ejecuta DESPUÉS del commit con el
+// prisma global. Así evitamos abrir conexiones extra dentro de la transacción.
+type DeductionSideEffect = {
+    tenantId: string;
+    productIdToReevaluate: string | null;
+    alerts: import("@/src/core/inventory/deduction.service").DeductionAlert[];
+};
+
+async function projectEvent(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent,
+    deductionSink?: DeductionSideEffect[],
+): Promise<boolean> {
     const { event_type, tenant_id, occurred_at, terminal_id, actor_id } = event;
 
     // 3. Project the event
@@ -699,9 +713,12 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                             // Get location from order or use default (location_id is a typed column)
                             const locationId = order.location_id || tenant_id;
 
-                            // H5: Await deduction — log failures for reconciliation
+                            // H5: Await deduction — log failures for reconciliation.
+                            // Pasamos `tx` (no el prisma global): la deducción es atómica
+                            // con la proyección y comparte la conexión de la transacción,
+                            // evitando la transacción anidada que saturaba el pool.
                             const deductionResult = await deductInventoryForOrder(
-                                prisma,
+                                tx,
                                 tenant_id,
                                 locationId,
                                 event.aggregate_id,
@@ -712,6 +729,7 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                                 success: false as const,
                                 deductions: [],
                                 alerts: [],
+                                productIdToReevaluate: null,
                                 error: err instanceof Error ? err.message : String(err),
                             }));
 
@@ -721,6 +739,14 @@ async function projectEvent(tx: Prisma.TransactionClient, event: ParkEvent): Pro
                                     orderId: event.aggregate_id,
                                     lineId: p.line_id,
                                     deductionError: deductionResult.error,
+                                });
+                            } else if (deductionSink) {
+                                // Acumula efectos secundarios para ejecutarlos post-commit
+                                // (push notifications de stock + Auto-86), fuera de la tx.
+                                deductionSink.push({
+                                    tenantId: tenant_id,
+                                    productIdToReevaluate: deductionResult.productIdToReevaluate,
+                                    alerts: deductionResult.alerts,
                                 });
                             }
                         }
@@ -961,6 +987,10 @@ export async function POST(req: Request) {
 
         const acceptedEvents: ParkEvent[] = [];
 
+        // Acumulador de efectos secundarios de la deducción de inventario.
+        // Se llena durante la proyección y se procesa DESPUÉS del commit.
+        const deductionSideEffects: DeductionSideEffect[] = [];
+
         await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             for (const ev of secureEvents) {
                 // 1. DEDUPLICATION CHECK FIRST (atomic with constraint)
@@ -1059,7 +1089,7 @@ export async function POST(req: Request) {
                 });
 
                 // 6. Project the event (apply to projections)
-                const projected = await projectEvent(tx, migrated);
+                const projected = await projectEvent(tx, migrated, deductionSideEffects);
                 if (!projected) {
                     logger.warn('Projection failed, event will be rejected', {
                         eventId: ev.event_id,
@@ -1132,7 +1162,7 @@ export async function POST(req: Request) {
                             });
 
                             // Proyectar con evento migrado
-                            const qProjected = await projectEvent(tx, migratedQueued);
+                            const qProjected = await projectEvent(tx, migratedQueued, deductionSideEffects);
                             if (!qProjected) {
                                 logger.warn('Queued event projection failed', {
                                     eventId: queuedEvent.event_id,
@@ -1194,6 +1224,45 @@ export async function POST(req: Request) {
         txSpan.setAttribute('ingest.deduped', deduped_event_ids.length);
         txSpan.setAttribute('ingest.rejected', rejected.length);
         endSpan(txSpan);
+
+        // Post-transaction: efectos secundarios de la deducción de inventario.
+        // Se ejecutan DESPUÉS del commit para no abrir conexiones extra dentro
+        // de la transacción (push notifications best-effort + Auto-86).
+        if (deductionSideEffects.length > 0) {
+            const { notifyLowStock } = await import('@/src/core/inventory/stock-alert-notifier');
+            for (const effect of deductionSideEffects) {
+                // Push notifications de stock bajo/agotado (best-effort, no bloqueante).
+                for (const alert of effect.alerts) {
+                    notifyLowStock({
+                        tenantId: effect.tenantId,
+                        inventoryCode: alert.inventory_code,
+                        inventoryName: alert.inventory_name,
+                        currentStock: alert.current_stock,
+                        minStock: alert.min_stock ?? 0,
+                        unit: alert.unit,
+                        alertType: alert.type === 'NEGATIVE_STOCK' ? 'OUT_OF_STOCK' : 'LOW_STOCK',
+                    }).catch(() => {
+                        // Best-effort: nunca falla por una notificación
+                    });
+                }
+
+                // H4: Auto-86 — reevalúa disponibilidad del producto si algún
+                // insumo llegó a 0. Usa el prisma global (post-commit), no la tx.
+                if (effect.productIdToReevaluate) {
+                    try {
+                        const { ProductAvailabilityService } = await import('@/src/core/services/product-availability.service');
+                        const { eventBus } = await import('@/src/core/infra/event-bus');
+                        const availService = new ProductAvailabilityService(prisma, eventBus);
+                        await availService.autoCheckAvailability(effect.tenantId, effect.productIdToReevaluate);
+                    } catch (e) {
+                        logger.warn('Auto-86 check falló post-deducción', {
+                            productId: effect.productIdToReevaluate,
+                            error: e instanceof Error ? e.message : String(e),
+                        });
+                    }
+                }
+            }
+        }
 
         // Post-transaction: Cash variance alert on SHIFT_CLOSED
         for (const ev of acceptedEvents) {

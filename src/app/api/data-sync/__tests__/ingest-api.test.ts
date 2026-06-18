@@ -31,7 +31,7 @@ vi.mock('@/src/core/validation', () => ({
 
 // Mock inventory deduction
 vi.mock('@/src/core/inventory/deduction.service', () => ({
-  deductInventoryForOrder: vi.fn().mockResolvedValue({ success: true, deductions: [], alerts: [] }),
+  deductInventoryForOrder: vi.fn().mockResolvedValue({ success: true, deductions: [], alerts: [], productIdToReevaluate: null }),
 }));
 
 // Mock conflict resolver
