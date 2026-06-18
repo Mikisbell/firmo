@@ -7,7 +7,10 @@
  * @module core/infra/supabase-event-bus
  */
 
-import { Pool, PoolClient } from '@neondatabase/serverless';
+// Pool de node-postgres (pg) sobre TCP: soporta LISTEN/NOTIFY nativo. Solo runtime NODE
+// (Vercel/Supabase); pg NO corre en Edge/Workers, mismo criterio que prisma.ts. Antes se
+// usaba @neondatabase/serverless (WebSocket de Neon), que contra Supabase daba EAUTHPROTOCOL.
+import { Pool, PoolClient } from 'pg';
 import { ParkEvent } from '@/src/core/domain/events';
 import { logger, createLogger } from '@/src/core/observability/structured-logger';
 
@@ -55,14 +58,38 @@ export class SupabaseEventBus {
      */
     async connect(): Promise<void> {
         try {
-            // Crear pool de conexiones
+            // Limpiar pool previo si esto es una reconexión (evita fuga de conexiones)
+            if (this.pool) {
+                await this.pool.end().catch(() => { /* pool ya cerrado o en error */ });
+                this.pool = null;
+            }
+
+            // Crear pool de conexiones (pg sobre TCP)
             this.pool = new Pool({
                 connectionString: this.connectionString,
                 max: 10, // Máximo 10 conexiones en el pool
+                // Supabase EXIGE SSL y su certificado no está en el trust store por defecto
+                // de Node en Vercel; sin esto el handshake TLS cuelga (timeout).
+                ssl: { rejectUnauthorized: false },
             });
 
-            // Obtener cliente dedicado para LISTEN
+            // Errores en conexiones idle del pool: los logueamos para que NO suban como
+            // uncaughtException y tumben el proceso (el pool se recupera solo).
+            this.pool.on('error', (err) => {
+                log.error('Error en el pool del event-bus (conexión idle, recuperable)', err instanceof Error ? err : new Error(String(err)));
+            });
+
+            // Obtener cliente dedicado para LISTEN (LISTEN es a nivel de sesión: requiere
+            // una conexión fija, no una del pool rotando)
             this.client = await this.pool.connect();
+
+            // CRÍTICO: si la conexión de LISTEN se cae, sin este handler el error sube como
+            // uncaughtException y TUMBA el proceso. Lo logueamos, soltamos el cliente y reconectamos.
+            this.client.on('error', (err) => {
+                log.error('Error en la conexión LISTEN del event-bus, reconectando', err instanceof Error ? err : new Error(String(err)));
+                this.client = null;
+                this.scheduleReconnect();
+            });
 
             // Configurar handler para notificaciones
             this.client.on('notification', this.handleNotification.bind(this));
