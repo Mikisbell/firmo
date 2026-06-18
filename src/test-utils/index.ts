@@ -10,6 +10,7 @@ export * from './arbitraries/inventory';
 // Helpers
 export * from './helpers/property-patterns';
 export * from './helpers/assertions';
+export * from './helpers/auth';
 
 // Fixtures
 export * from './fixtures/realistic-data';

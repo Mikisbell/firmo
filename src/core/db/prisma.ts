@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { Pool } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { logger } from '@/src/core/observability/structured-logger'
 import { metrics } from '@/src/core/observability/metrics'
 
@@ -24,15 +25,24 @@ const prismaClientSingleton = () => {
     
     let baseClient;
 
-    // Si es entorno local/desarrollo y NO es Neon (ej. Supabase local), usamos cliente nativo
-    // Neon Serverless requiere un proxy WebSocket que Supabase no tiene.
-    if (process.env.NODE_ENV === 'development' && !connectionString.includes('neon.tech')) {
-        console.log('PRISMA INIT - Usando Prisma nativo (TCP) para BD local/Supabase');
-        baseClient = new PrismaClient();
-    } else {
+    // Ambas ramas usan driver adapters (JS puro): NO requieren el binary del query
+    // engine nativo, asi que conectan igual en local y en Vercel serverless (Lambda).
+    if (connectionString.includes('neon.tech')) {
+        // DB Neon: adaptador Neon sobre WebSocket.
         console.log('PRISMA INIT - Usando adaptador Neon (WebSocket)');
         const pool = new Pool({ connectionString });
-        const adapter = new PrismaNeon(pool as any);
+        // El Pool de @neondatabase/serverless difiere del tipo que espera PrismaNeon
+        // por drift de versiones; cast acotado y documentado (no es un any generico).
+        const adapter = new PrismaNeon(pool as unknown as ConstructorParameters<typeof PrismaNeon>[0]);
+        baseClient = new PrismaClient({ adapter });
+    } else {
+        // Supabase / Postgres estandar: adaptador pg (node-postgres) sobre TCP.
+        // Conecta al pooler de Supabase y NO depende del binary del engine nativo
+        // (que en Vercel serverless fallaba al instante por target de plataforma).
+        console.log('PRISMA INIT - Usando adaptador pg para Supabase/Postgres');
+        // ssl rejectUnauthorized:false: Supabase EXIGE SSL y su certificado no esta en el
+        // trust store por defecto de Node en Vercel; sin esto el handshake TLS cuelga (timeout).
+        const adapter = new PrismaPg({ connectionString, ssl: { rejectUnauthorized: false } });
         baseClient = new PrismaClient({ adapter });
     }
     

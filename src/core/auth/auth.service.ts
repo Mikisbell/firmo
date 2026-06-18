@@ -171,7 +171,7 @@ export async function recordLoginAttempt(
     
     await prisma.login_attempts.create({
         data: {
-            id: await generateRandomToken(16),
+            id: crypto.randomUUID(),
             tenant_id: tenantId,
             employee_id: employeeId,
             pin_hash: pinHash,
@@ -203,7 +203,7 @@ export async function logAdminAccess(
     
     await prisma.admin_access_logs.create({
         data: {
-            id: await generateRandomToken(16),
+            id: crypto.randomUUID(),
             tenant_id: tenantId,
             employee_id: employeeId,
             action,
@@ -275,7 +275,7 @@ export async function createSession(
 ): Promise<string> {
     const { generateToken: generateRandomToken } = await import('./crypto-utils');
     
-    const sessionId = await generateRandomToken(16);
+    const sessionId = crypto.randomUUID();
     
     await prisma.sessions.create({
         data: {

@@ -60,7 +60,7 @@ export interface HealthCheckResult {
  */
 export class HealthCheckService {
   private prisma: PrismaClient;
-  private readonly timeout = 2000; // 2 seconds max response time
+  private readonly timeout = 8000; // 8s: margen para el cold-start de conexion DB en serverless
 
   constructor(prisma?: PrismaClient) {
     this.prisma = prisma || prismaSingleton;
@@ -74,12 +74,20 @@ export class HealthCheckService {
     const startTime = Date.now();
 
     try {
-      // Run all health checks in parallel with timeout
-      const [database, redis, eventSourcing] = await Promise.all([
+      // Probes independientes con allSettled: el fallo/timeout de UNO ya no enmascara
+      // a los demas (antes Promise.all rechazaba al primero y marcaba todo down).
+      const [databaseR, redisR, eventSourcingR] = await Promise.allSettled([
         this.checkDatabaseWithTimeout(),
         this.checkRedisWithTimeout(),
         this.checkEventSourcingWithTimeout(),
       ]);
+      const settle = (r: PromiseSettledResult<ComponentHealth>, label: string): ComponentHealth =>
+        r.status === 'fulfilled'
+          ? r.value
+          : { status: 'down', responseTime: 0, message: r.reason instanceof Error ? r.reason.message : `Fallo en ${label}` };
+      const database = settle(databaseR, 'database');
+      const redis = settle(redisR, 'redis');
+      const eventSourcing = settle(eventSourcingR, 'eventSourcing');
 
       const responseTime = Date.now() - startTime;
 
@@ -119,6 +127,8 @@ export class HealthCheckService {
       logger.error('Health check failed', error as Error);
 
       const responseTime = Date.now() - startTime;
+      // Exponemos el error real (antes se ocultaba con un mensaje generico) para diagnostico.
+      const failMsg = error instanceof Error ? error.message : 'Verificación de salud fallida';
 
       return {
         status: 'unhealthy',
@@ -127,17 +137,17 @@ export class HealthCheckService {
           database: {
             status: 'down',
             responseTime: 0,
-            message: 'Verificación de salud fallida',
+            message: failMsg,
           },
           redis: {
             status: 'down',
             responseTime: 0,
-            message: 'Verificación de salud fallida',
+            message: failMsg,
           },
           eventSourcing: {
             status: 'down',
             responseTime: 0,
-            message: 'Verificación de salud fallida',
+            message: failMsg,
           },
         },
         responseTime,
@@ -348,19 +358,20 @@ export class HealthCheckService {
     redis: ComponentHealth,
     eventSourcing: ComponentHealth
   ): SystemStatus {
-    const components = [database, redis, eventSourcing];
-
-    // If any component is down, system is unhealthy
-    if (components.some((c) => c.status === 'down')) {
+    // Redis es NO-critico: tiene fallback en memoria, su caida NO debe tumbar el
+    // sistema a unhealthy (solo degrada). Criticos para operar: database y eventSourcing.
+    const critical = [database, eventSourcing];
+    if (critical.some((c) => c.status === 'down')) {
       return 'unhealthy';
     }
 
-    // If any component is degraded, system is degraded
-    if (components.some((c) => c.status === 'degraded')) {
+    // Cualquier componente down (ej. redis) o degraded -> degraded (HTTP 200).
+    const all = [database, redis, eventSourcing];
+    if (all.some((c) => c.status === 'down' || c.status === 'degraded')) {
       return 'degraded';
     }
 
-    // All components are up
+    // Todos arriba
     return 'healthy';
   }
 

@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 
+# Non-Bun lockfiles (este proyecto usa Bun — bun.lock es la unica fuente de verdad)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # Next.js build output
 .next/
 out/
@@ -178,3 +183,6 @@ NUL
 # Test scripts
 test_*.cjs
 check*.cjs
+
+# Backups de base de datos (datos reales - NUNCA commitear)
+backups/

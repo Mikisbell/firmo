@@ -159,7 +159,7 @@ export function useLiveOrders({ tenantId }: LiveOrdersOptions) {
                 pickup_time: undefined, 
                 
                 // Common fields
-                total_cents: o.total_cents || 0,
+                total_cents: o.total_cents || o.subtotal_cents || 0,
                 items_count: Object.keys(o.lines || {}).length,
                 created_at: o.lines && Object.values(o.lines).length > 0 
                     ? new Date((Object.values(o.lines)[0] as any).created_at) 

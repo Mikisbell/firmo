@@ -1,7 +1,7 @@
 # PARK POS — Sistema Cognitivo
 
 ## Idioma
-Todo en espanol. Codigo, variables y comentarios en ingles.
+Todo en espanol. Codigo y variables en ingles; comentarios en espanol (como el frontend).
 
 ## Memory Protocol (Engram v1.6.0)
 

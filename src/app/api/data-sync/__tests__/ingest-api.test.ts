@@ -1,13 +1,15 @@
 /**
  * Events Ingest API Tests
  *
- * Tests for POST /api/events/ingest
- * Auth: x-api-secret header (not JWT middleware)
+ * Tests for POST /api/data-sync/ingest
+ * Auth: JWT (Authorization: Bearer <token>) verificado con jose.
+ * El tenant_id se deriva del claim `tid` del token, NUNCA del body.
  *
  * @module app/api/events/__tests__/ingest-api.test
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { signTestToken } from '@/src/test-utils/helpers/auth';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -29,7 +31,7 @@ vi.mock('@/src/core/validation', () => ({
 
 // Mock inventory deduction
 vi.mock('@/src/core/inventory/deduction.service', () => ({
-  deductInventoryForOrder: vi.fn().mockResolvedValue({ success: true, deductions: [], alerts: [] }),
+  deductInventoryForOrder: vi.fn().mockResolvedValue({ success: true, deductions: [], alerts: [], productIdToReevaluate: null }),
 }));
 
 // Mock conflict resolver
@@ -72,12 +74,16 @@ vi.mock('@/src/core/observability/structured-logger', () => ({
 // Helpers
 // ---------------------------------------------------------------------------
 
-const VALID_SECRET = 'test-api-secret';
+const TENANT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
-function makeRequest(body: any, secret?: string) {
+// Token JWT válido para el tenant esperado por los tests. Se firma en beforeEach
+// con el mismo JWT_SECRET que verifica la ruta (provisto por vitest.config.ts).
+let VALID_TOKEN = '';
+
+function makeRequest(body: any, token?: string) {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (secret !== undefined) {
-    headers['x-api-secret'] = secret;
+  if (token !== undefined) {
+    headers['authorization'] = `Bearer ${token}`;
   }
   return new Request('http://localhost/api/events/ingest', {
     method: 'POST',
@@ -123,13 +129,13 @@ function makeValidBody(overrides: Record<string, unknown> = {}) {
 // ---------------------------------------------------------------------------
 
 describe('POST /api/events/ingest', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    process.env.PARK_API_SECRET = VALID_SECRET;
     mockCheckLimit.mockResolvedValue({ allowed: true });
+    VALID_TOKEN = await signTestToken({ tenantId: TENANT_ID });
   });
 
-  it('debe rechazar sin x-api-secret (401)', async () => {
+  it('debe rechazar sin token JWT (401)', async () => {
     const { POST } = await import('../ingest/route');
     const res = await POST(makeRequest(makeValidBody()));
 
@@ -139,9 +145,9 @@ describe('POST /api/events/ingest', () => {
     expect(data.error.error_code).toBe('UNAUTHORIZED');
   });
 
-  it('debe rechazar con x-api-secret incorrecto (401)', async () => {
+  it('debe rechazar con token JWT inválido (401)', async () => {
     const { POST } = await import('../ingest/route');
-    const res = await POST(makeRequest(makeValidBody(), 'wrong-secret'));
+    const res = await POST(makeRequest(makeValidBody(), 'token-invalido-no-firmado'));
 
     expect(res.status).toBe(401);
     const data = await res.json();
@@ -155,7 +161,7 @@ describe('POST /api/events/ingest', () => {
       body: 'not-json{{{',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-secret': VALID_SECRET,
+        'authorization': `Bearer ${VALID_TOKEN}`,
       },
     });
 
@@ -167,7 +173,7 @@ describe('POST /api/events/ingest', () => {
 
   it('debe rechazar body que no cumple el schema (400)', async () => {
     const { POST } = await import('../ingest/route');
-    const res = await POST(makeRequest({ bad: 'data' }, VALID_SECRET));
+    const res = await POST(makeRequest({ bad: 'data' }, VALID_TOKEN));
 
     expect(res.status).toBe(400);
     const data = await res.json();
@@ -184,7 +190,7 @@ describe('POST /api/events/ingest', () => {
     });
 
     const { POST } = await import('../ingest/route');
-    const res = await POST(makeRequest(makeValidBody(), VALID_SECRET));
+    const res = await POST(makeRequest(makeValidBody(), VALID_TOKEN));
 
     expect(res.status).toBe(429);
     const data = await res.json();
@@ -217,19 +223,20 @@ describe('POST /api/events/ingest', () => {
     });
 
     const { POST } = await import('../ingest/route');
-    const res = await POST(makeRequest(makeValidBody(), VALID_SECRET));
+    const res = await POST(makeRequest(makeValidBody(), VALID_TOKEN));
 
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.accepted).toBe(true);
-    expect(data.tenant_id).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+    // El tenant_id efectivo proviene del claim `tid` del JWT, no del body.
+    expect(data.tenant_id).toBe(TENANT_ID);
   });
 
   it('debe rechazar body sin tenant_id (400)', async () => {
     const { POST } = await import('../ingest/route');
     const body = makeValidBody();
     delete (body as any).tenant_id;
-    const res = await POST(makeRequest(body, VALID_SECRET));
+    const res = await POST(makeRequest(body, VALID_TOKEN));
 
     expect(res.status).toBe(400);
     const data = await res.json();

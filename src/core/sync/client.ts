@@ -421,17 +421,15 @@ export class SyncClient {
         let resp: IngestResponse;
         try {
             resp = await syncCircuitBreaker.execute(async () => {
-                const apiSecret = process.env?.NEXT_PUBLIC_API_SECRET;
-                
-                if (!apiSecret) {
-                    throw new Error('SECURITY ERROR: NEXT_PUBLIC_API_SECRET must be configured');
-                }
-                
+                // AUTH (fix bug #3): enviamos el cookie HttpOnly de sesion (auth_token) via
+                // credentials:'include'. El ingest deriva tenant_id/actor_id del JWT verificado
+                // con jose — elimina el NEXT_PUBLIC_API_SECRET que se empaquetaba en el bundle
+                // del navegador (riesgo de inyeccion cross-tenant).
                 const r = await fetch(this.endpoint, {
                     method: "POST",
+                    credentials: "include",
                     headers: {
                         "content-type": "application/json",
-                        "x-api-secret": apiSecret
                     },
                     body: JSON.stringify(req),
                 });
@@ -519,6 +517,8 @@ export class SyncClient {
             });
         } catch (e: unknown) {
             const err = e instanceof Error ? e : new Error(String(e));
+            // Logging estructurado (Pino): loguea solo el error normalizado, nunca el payload crudo.
+            logger.error('sync.fetch_error', 'Sync fetch failed', err, { message: err.message });
             
             if (err.message === 'Circuit breaker is OPEN') {
                 logger.debug('sync.circuit_open', 'Circuit breaker OPEN, skipping request');
@@ -731,25 +731,10 @@ export class SyncClient {
      */
     async refreshOrder(orderId: string): Promise<boolean> {
         try {
-            // SECURITY: never fall back to a hardcoded secret. If the env var is
-            // missing, fail loudly and report the refresh as failed (degraded sync).
-            // TODO(security): move this secret server-side (device token) — bigger redesign.
-            const apiSecret = process.env?.NEXT_PUBLIC_API_SECRET;
-
-            if (!apiSecret) {
-                logger.error(
-                    'sync.config_error',
-                    'SECURITY ERROR: NEXT_PUBLIC_API_SECRET must be configured — refusing to call API without secret',
-                    undefined,
-                    { order_id: orderId }
-                );
-                return false;
-            }
-
+            // AUTH (fix bug #3): cookie HttpOnly de sesion (auth_token) via credentials:'include'.
+            // Same-origin: el cookie viaja solo y /state deriva el tenant del JWT.
             const response = await fetch(`/api/orders/${orderId}/state`, {
-                headers: {
-                    "x-api-secret": apiSecret
-                }
+                credentials: "include",
             });
             
             if (!response.ok) {
