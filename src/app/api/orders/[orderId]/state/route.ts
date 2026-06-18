@@ -2,28 +2,29 @@
 // Order State Endpoint for Conflict Resolution
 // Returns current order state with revision for client refresh
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/src/core/db/prisma";
 import { logger } from '@/src/core/observability/structured-logger';
+import { requirePosAuth } from "@/src/core/middleware/pos-auth";
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
-  const { orderId } = await params;
+  // AUTH (bug #3 fix): session JWT via cookie/Bearer instead of the exposed x-api-secret.
+  const authResult = await requirePosAuth(req);
+  if (!authResult.authorized) return authResult.response;
 
-  // Auth check
-  const secret = req.headers.get("x-api-secret");
-  if (secret !== process.env.PARK_API_SECRET) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  const { orderId } = await params;
+  const tenantId = authResult.user.tenantId;
 
   try {
     const order = await prisma.orders.findUnique({
       where: { id: orderId },
     });
 
-    if (!order) {
+    // Tenant isolation: 404 (not 403) to avoid leaking cross-tenant existence.
+    if (!order || order.tenant_id !== tenantId) {
       return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
     }
 
