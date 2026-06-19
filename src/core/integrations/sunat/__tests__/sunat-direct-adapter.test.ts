@@ -22,6 +22,7 @@ const mockGetStatus = vi.fn();
 // El adapter usa modulos PROPIOS para firmar/generar/enviar (nodefact era un stub roto).
 const mockSignXmlSunat = vi.fn();
 const mockGenerateComprobante = vi.fn();
+const mockGenerateCreditNote = vi.fn();
 
 vi.mock('nodefact', () => ({
   generateXML: vi.fn().mockReturnValue('<Invoice>mock-xml</Invoice>'),
@@ -71,6 +72,7 @@ vi.mock('../sunat-signer', () => ({
 }));
 vi.mock('../sunat-ubl', () => ({
   generateComprobanteXml: (...args: unknown[]) => mockGenerateComprobante(...args),
+  generateCreditNoteXml: (...args: unknown[]) => mockGenerateCreditNote(...args),
 }));
 
 vi.mock('@/src/core/observability/logger-pino', () => ({
@@ -186,6 +188,7 @@ describe('SunatDirectAdapter', () => {
       signedXml: '<SignedInvoice>mock-signed-xml</SignedInvoice>',
     });
     mockGenerateComprobante.mockReturnValue('<Invoice>mock-xml</Invoice>');
+    mockGenerateCreditNote.mockReturnValue('<CreditNote>mock-xml</CreditNote>');
 
     mockSendBill.mockResolvedValue({
       success: true,
@@ -287,14 +290,11 @@ describe('SunatDirectAdapter', () => {
       }
     });
 
-    it('debe usar tipo de documento "07" para nota de credito', async () => {
-      const { generateXML } = await import('nodefact');
-
+    it('debe generar la nota de credito con el generador propio', async () => {
       await adapter.sendCreditNote(testCreditNote);
 
-      expect(generateXML).toHaveBeenCalledWith(
-        expect.anything(),
-        '07', // TipoDocumento.NOTA_CREDITO
+      expect(mockGenerateCreditNote).toHaveBeenCalledWith(
+        expect.objectContaining({ docModificado: expect.objectContaining({ tipo: expect.any(String) }) }),
       );
     });
   });

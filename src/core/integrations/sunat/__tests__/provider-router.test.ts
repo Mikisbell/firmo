@@ -22,6 +22,7 @@ const mockGetTenantSunatConfig = vi.fn<(tenantId: string) => Promise<TenantSunat
 
 vi.mock('../provider-config', () => ({
   getTenantSunatConfig: (...args: any[]) => mockGetTenantSunatConfig(args[0]),
+  DEFAULT_EMISOR_GEO: { ubigeo: '150101', departamento: 'LIMA', provincia: 'LIMA', distrito: 'LIMA' },
 }));
 
 vi.mock('nodefact', () => ({

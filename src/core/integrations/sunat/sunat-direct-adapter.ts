@@ -46,7 +46,7 @@ import { pinoLogger } from '@/src/core/observability/logger-pino';
 import type { InvoiceData } from './client';
 import { signXmlSunat } from './sunat-signer';
 import { SunatSoapClient } from './sunat-soap';
-import { generateComprobanteXml, type UblComprobante, type UblEmisor } from './sunat-ubl';
+import { generateComprobanteXml, generateCreditNoteXml, type UblComprobante, type UblEmisor, type UblNotaCredito } from './sunat-ubl';
 
 // ============================================================================
 // Configuration Types
@@ -277,6 +277,51 @@ export class SunatDirectAdapterImpl {
     };
   }
 
+  /** Mapea CreditNoteData (centavos) a UblNotaCredito (soles) para el generador propio. */
+  private mapCreditNoteToUbl(data: CreditNoteData): UblNotaCredito {
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+    const items = data.items.map((it) => {
+      const precioConIgv = round2(it.precioUnitario / 100);
+      const valorUnitario = round2(precioConIgv / 1.18);
+      const valorVenta = round2(valorUnitario * it.cantidad);
+      const igv = round2(valorVenta * 0.18);
+      return {
+        cantidad: it.cantidad,
+        unidad: it.unidadMedida,
+        descripcion: it.descripcion,
+        codigo: it.codigo,
+        valorUnitario,
+        precioUnitarioConIgv: precioConIgv,
+        valorVenta,
+        igv,
+      };
+    });
+    const totalGravado = round2(items.reduce((s, i) => s + i.valorVenta, 0));
+    const totalIgv = round2(items.reduce((s, i) => s + i.igv, 0));
+    return {
+      serie: data.serie,
+      numero: data.numero,
+      fechaEmision: data.fechaEmision.slice(0, 10),
+      horaEmision: data.fechaEmision.length >= 19 ? data.fechaEmision.slice(11, 19) : '12:00:00',
+      moneda: data.moneda === 'USD' ? 'USD' : 'PEN',
+      docModificado: data.invoiceReference,
+      // Catalogo 09 por defecto: 01 = anulacion de la operacion (caso comun en POS). El detalle
+      // textual viene de data.motivo; el codigo se puede extender si el flujo lo provee.
+      motivoCodigo: '01',
+      motivoDescripcion: data.motivo,
+      emisor: this.config.emisor,
+      cliente: {
+        tipoDoc: data.tipoDocumentoCliente,
+        numDoc: data.numeroDocumentoCliente,
+        razonSocial: data.razonSocialCliente,
+      },
+      items,
+      totalGravado,
+      totalIgv,
+      totalPrecio: round2(totalGravado + totalIgv),
+    };
+  }
+
   /**
    * Send an invoice (boleta or factura) to SUNAT.
    * Maps InvoiceData (money in centavos) to nodefact format.
@@ -362,8 +407,7 @@ export class SunatDirectAdapterImpl {
     this.logger.info(traceCtx, 'Sending credit note to SUNAT via nodefact');
 
     try {
-      const nodefactData = this.mapCreditNoteToNodefact(data);
-      const xml = generateXML(nodefactData, TipoDocumento.NOTA_CREDITO);
+      const xml = generateCreditNoteXml(this.mapCreditNoteToUbl(data));
 
       const signResult = this.signXml(xml);
 
