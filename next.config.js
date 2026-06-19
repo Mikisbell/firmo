@@ -26,13 +26,16 @@ const nextConfig = {
         optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-icons', 'framer-motion', 'sonner'],
     },
 
-    // ACELERAR EL BUILD EN VERCEL:
-    // Ignoramos validaciones estáticas durante el empaquetado (ya las verificamos localmente)
+    // VALIDACION DE TIPOS EN EL BUILD (Vercel):
+    // El build NO ignora errores de TypeScript: si tsc falla, el deploy falla. Esto evita
+    // que errores de tipos lleguen a produccion invisiblemente (paso obligatorio antes del go-live).
+    // Mantenemos el typecheck tambien en CI (.github/workflows/ci.yml) como doble red.
+    //
+    // ESLint: se sigue corriendo en CI con el script exacto (bun run lint, gate bloqueante).
+    // El lint del build de Next puede divergir de ese script; se mantiene ignorado en el
+    // empaquetado para no romper deploys por reglas distintas. El gate real de lint vive en CI.
     eslint: {
         ignoreDuringBuilds: true,
-    },
-    typescript: {
-        ignoreBuildErrors: true,
     },
     
     // Webpack configuration for code splitting
