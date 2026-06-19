@@ -3,11 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getStoredTerminalConfig } from '@/src/core/auth/fingerprint';
-import type { TerminalConfig } from '@/src/core/auth/types';
 import { safeStorage } from '@/src/lib/storage';
-import { getTenantId } from '@/src/core/config/tenant';
-import { DEFAULT_LOCATION_ID } from '@/src/core/config/location';
-import { DEFAULT_EMPLOYEE_IDS } from '@/src/core/config/employees';
+import { getDevTerminalConfig, resolveDevStation } from '@/src/core/config/dev-identity';
 
 /**
  * Hook que verifica si hay un terminal configurado.
@@ -35,21 +32,13 @@ export function useRequireTerminal() {
       console.log('[useRequireTerminal] No config found', { isDev, isE2E, hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown' });
       
       if (isDev || isE2E) {
-        // Config por defecto para dev/testing. CRITICO: el tenant/location/actor deben venir
-        // de la MISMA fuente que usa el resto del sistema (getTenantId = NEXT_PUBLIC_TENANT_ID
-        // || tenant demo), si no el mozo opera en un tenant fantasma: sus eventos no los ve
-        // nadie y el canal Realtime (topic) no coincide con el claim del token -> CHANNEL_ERROR.
-        const defaultConfig: TerminalConfig = {
-          tenant_id: getTenantId(),
-          terminal_id: "WAITER_DEV_01",
-          actor_id: DEFAULT_EMPLOYEE_IDS.WAITER_CARLOS,
-          role: "WAITER",
-          device_fingerprint: "dev-device-fingerprint",
-          device_name: "Development Waiter Terminal",
-          location_id: DEFAULT_LOCATION_ID,
-          is_allowed: true,
-          registered_at: new Date().toISOString()
-        };
+        // Identidad de dev desde la AUTORIDAD UNICA (dev-identity), coherente con el resto del
+        // sistema y el seed. Respeta la estacion elegida en el launcher /dev; por defecto MOZO
+        // (este hook es el guard del terminal de mozo). Evita el tenant fantasma / CHANNEL_ERROR.
+        const rawStation = typeof window !== 'undefined'
+          ? (safeStorage.getItem('dev_station') ?? safeStorage.getItem('dev_role'))
+          : null;
+        const defaultConfig = getDevTerminalConfig(rawStation ? resolveDevStation(rawStation) : 'MOZO');
         
         console.log('[useRequireTerminal] Using default config for dev/test');
         

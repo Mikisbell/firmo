@@ -23,6 +23,7 @@ import { getTerminal } from '@/src/core/auth/terminal-registry';
 import { StepUpAuthModal } from './StepUpAuthModal';
 import { safeStorage } from '@/src/lib/storage';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { getDevIdentity, resolveDevStation } from '@/src/core/config/dev-identity';
 
 interface AuthContextValue {
   terminal: TerminalConfig | null;
@@ -72,44 +73,20 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       const isBypassEnabled = process.env.NODE_ENV !== 'production';
 
       if (isBypassEnabled) {
-        // El launcher /dev guarda en localStorage('dev_role') el rol a simular, asi se
-        // puede abrir cada estacion como su rol real (COOK, BAR, OWNER...) sin re-login.
-        let devRole = 'CASHIER';
+        // Identidad de dev desde la AUTORIDAD UNICA (espeja el seed): cada estacion abre con
+        // su dispositivo + empleado real + rol coherentes, sin login. El launcher /dev guarda
+        // la estacion en localStorage('dev_station'); aceptamos 'dev_role' legacy por compat.
+        let rawStation: string | null = null;
         try {
-          const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('dev_role') : null;
-          if (stored) devRole = stored.toUpperCase();
+          if (typeof localStorage !== 'undefined') {
+            rawStation = localStorage.getItem('dev_station') ?? localStorage.getItem('dev_role');
+          }
         } catch { /* localStorage no disponible */ }
 
-        const bypassTerminal: TerminalConfig = {
-          terminal_id: 'CAJA_BYPASS_001',
-          tenant_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          device_fingerprint: 'bypass_virtual_device',
-          device_name: 'Virtual Bypass Terminal',
-          location_id: 'default',
-          is_allowed: true,
-          registered_at: new Date().toISOString(),
-          actor_id: '00000000-0000-0000-0000-000000000005', // empleado real (Pedro Ruiz)
-          role: devRole as TerminalConfig['role']
-        };
+        const { terminal: devTerminal, session: devSession } = getDevIdentity(resolveDevStation(rawStation));
 
-        const mockSession: SecureSession = {
-          id: `bypass-session-${Date.now()}`,
-          terminal_id: bypassTerminal.terminal_id,
-          employee_id: '00000000-0000-0000-0000-000000000005', // UUID real - evita sync errors
-          employee_name: 'Pedro Ruiz',
-          employee_role: devRole as SecureSession['employee_role'],
-          terminal_role: 'CAJA',
-          fingerprint_at_login: bypassTerminal.device_fingerprint,
-          fingerprint_signals_at_login: JSON.stringify({ bypass: true }),
-          risk_score_at_login: 0,
-          created_at: new Date(),
-          last_activity_at: new Date(),
-          last_fingerprint_check: new Date(),
-          expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000),
-        };
-
-        setTerminal(bypassTerminal);
-        setSession(mockSession);
+        setTerminal(devTerminal);
+        setSession(devSession);
         setNeedsLogin(false);
         setIsLoading(false);
         return;

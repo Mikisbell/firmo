@@ -16,11 +16,13 @@
  * @module app/dev/page
  */
 
+import { getDevTerminalConfig, type DevStationKey } from '@/src/core/config/dev-identity';
+
 interface Estacion {
   label: string;
   ruta: string;
-  /** Rol del empleado a simular (employees.role) — el bypass lo aplica via dev_role. */
-  rol: string;
+  /** Estacion de la AUTORIDAD UNICA de dev (dev-identity). Define dispositivo + empleado + rol. */
+  station: DevStationKey;
   desc: string;
 }
 
@@ -28,32 +30,32 @@ const GRUPOS: { titulo: string; items: Estacion[] }[] = [
   {
     titulo: 'Estaciones de operación',
     items: [
-      { label: 'Caja (POS)', ruta: '/pos', rol: 'CASHIER', desc: 'Registro de ventas y cobro' },
-      { label: 'Mozo', ruta: '/mozo', rol: 'WAITER', desc: 'Mesas y comandas' },
-      { label: 'Cocina · Horno', ruta: '/cocina/horno', rol: 'COOK', desc: 'KDS — estación horno' },
-      { label: 'Cocina · Empaque', ruta: '/cocina/empaque', rol: 'PACKER', desc: 'KDS — empaque / despacho' },
-      { label: 'Bar', ruta: '/bar', rol: 'BAR', desc: 'KDS — barra' },
-      { label: 'Display / KDS', ruta: '/display', rol: 'CASHIER', desc: 'Pantalla de pedidos (solo lectura)' },
+      { label: 'Caja (POS)', ruta: '/pos', station: 'CAJA', desc: 'Registro de ventas y cobro' },
+      { label: 'Mozo', ruta: '/mozo', station: 'MOZO', desc: 'Mesas y comandas' },
+      { label: 'Cocina · Horno', ruta: '/cocina/horno', station: 'HORNO', desc: 'KDS — estación horno' },
+      { label: 'Cocina · Empaque', ruta: '/cocina/empaque', station: 'EMPAQUE', desc: 'KDS — empaque / despacho' },
+      { label: 'Bar', ruta: '/bar', station: 'BAR', desc: 'KDS — barra' },
+      { label: 'Display / KDS', ruta: '/display', station: 'DISPLAY', desc: 'Pantalla de pedidos (solo lectura)' },
     ],
   },
   {
     titulo: 'Delivery',
     items: [
-      { label: 'Driver (repartidor)', ruta: '/driver', rol: 'DRIVER', desc: 'App del repartidor' },
-      { label: 'Delivery (despacho)', ruta: '/delivery', rol: 'DRIVER', desc: 'Gestión de entregas' },
+      { label: 'Driver (repartidor)', ruta: '/driver', station: 'DRIVER', desc: 'App del repartidor' },
+      { label: 'Delivery (despacho)', ruta: '/delivery', station: 'DRIVER', desc: 'Gestión de entregas' },
     ],
   },
   {
     titulo: 'Otros',
     items: [
-      { label: 'Inventario', ruta: '/inventario', rol: 'MANAGER', desc: 'Stock y mermas (PIN)' },
-      { label: 'Portal Empleado', ruta: '/employee', rol: 'CASHIER', desc: 'Autoservicio del empleado' },
+      { label: 'Inventario', ruta: '/inventario', station: 'INVENTARIO', desc: 'Stock y mermas (PIN)' },
+      { label: 'Portal Empleado', ruta: '/employee', station: 'EMPLOYEE', desc: 'Autoservicio del empleado' },
     ],
   },
   {
     titulo: 'Back-office',
     items: [
-      { label: 'Admin (panel)', ruta: '/admin', rol: 'OWNER', desc: 'Reportes, menú, staff, configuración' },
+      { label: 'Admin (panel)', ruta: '/admin', station: 'ADMIN', desc: 'Reportes, menú, staff, configuración' },
     ],
   },
 ];
@@ -72,11 +74,15 @@ export default function DevLauncher() {
 
   const ir = (item: Estacion) => {
     try {
-      localStorage.setItem('dev_role', item.rol);
+      // Re-apareamos el dispositivo a la estacion elegida: guardamos la estacion y REESCRIBIMOS
+      // el park_terminal_config (si no, un config viejo en localStorage persiste y no cambia).
+      localStorage.setItem('dev_station', item.station);
+      localStorage.setItem('park_terminal_config', JSON.stringify(getDevTerminalConfig(item.station)));
+      localStorage.removeItem('dev_role'); // limpiar clave legacy
     } catch {
       /* localStorage no disponible */
     }
-    // Recarga completa para que AuthProvider re-inicialice la sesion con el nuevo rol.
+    // Recarga completa para que AuthProvider re-inicialice la sesion con la nueva estacion.
     window.location.href = item.ruta;
   };
 
@@ -110,7 +116,7 @@ export default function DevLauncher() {
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-white">{item.label}</span>
                       <span className="text-[10px] font-mono text-zinc-500 group-hover:text-indigo-300">
-                        {item.rol}
+                        {item.station}
                       </span>
                     </div>
                     <p className="text-sm text-zinc-400 mt-1">{item.desc}</p>

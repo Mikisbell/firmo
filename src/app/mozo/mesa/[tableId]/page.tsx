@@ -13,9 +13,7 @@ import { OrderPanel } from "@/src/components/shared/OrderPanel";
 import { ArrowLeft, Clock, X } from "lucide-react";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 import { TerminalConfig } from "@/src/core/auth/types";
-import { getTenantId } from "@/src/core/config/tenant";
-import { DEFAULT_LOCATION_ID } from "@/src/core/config/location";
-import { DEFAULT_EMPLOYEE_IDS } from "@/src/core/config/employees";
+import { getDevTerminalConfig, resolveDevStation } from "@/src/core/config/dev-identity";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint } from "@/src/core/printing/utils";
 import { useResponsive } from "@/src/hooks/useResponsive";
@@ -68,19 +66,12 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
             const isE2E = typeof window !== 'undefined' && localStorage.getItem('e2e_mode') === 'true';
 
             if (isDev || isE2E) {
-                // Tenant/location/actor desde la MISMA fuente que el resto del sistema, si no
-                // el mozo opera en un tenant fantasma (eventos invisibles + CHANNEL_ERROR de Realtime).
-                const defaultConfig: TerminalConfig = {
-                    tenant_id: getTenantId(),
-                    terminal_id: "WAITER_DEV_01",
-                    actor_id: DEFAULT_EMPLOYEE_IDS.WAITER_CARLOS,
-                    role: "WAITER",
-                    device_fingerprint: "dev-device-fingerprint",
-                    device_name: "Development Waiter Terminal",
-                    location_id: DEFAULT_LOCATION_ID,
-                    is_allowed: true,
-                    registered_at: new Date().toISOString()
-                };
+                // Identidad de dev desde la AUTORIDAD UNICA (dev-identity), coherente con el seed.
+                // Respeta la estacion del launcher /dev; por defecto MOZO (vista de mesa del mozo).
+                const rawStation = typeof window !== 'undefined'
+                    ? (localStorage.getItem('dev_station') ?? localStorage.getItem('dev_role'))
+                    : null;
+                const defaultConfig = getDevTerminalConfig(rawStation ? resolveDevStation(rawStation) : 'MOZO');
                 setTerminalConfig(defaultConfig);
                 return;
             }
