@@ -85,6 +85,22 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
 
         const { terminal: devTerminal, session: devSession } = getDevIdentity(resolveDevStation(rawStation));
 
+        // Sanar/definir el config en localStorage: el SSE stream (getConfiguredTenantId) y las
+        // acciones POS (getStoredTerminalConfig) leen de ahi. Si quedo un config viejo en tenant
+        // fantasma, corregimos SOLO tenant/location (conservando la estacion); si no hay, lo creamos.
+        try {
+          const stored = getStoredTerminalConfig();
+          if (!stored?.terminal_id) {
+            safeStorage.setItem('park_terminal_config', JSON.stringify(devTerminal));
+          } else if (stored.tenant_id !== devTerminal.tenant_id || stored.location_id !== devTerminal.location_id) {
+            safeStorage.setItem('park_terminal_config', JSON.stringify({
+              ...stored,
+              tenant_id: devTerminal.tenant_id,
+              location_id: devTerminal.location_id,
+            }));
+          }
+        } catch { /* localStorage no disponible */ }
+
         setTerminal(devTerminal);
         setSession(devSession);
         setNeedsLogin(false);

@@ -166,6 +166,7 @@ export class SyncClient {
     private eventSource: EventSource | null = null;
     private realtimeClient: SupabaseClient | null = null;
     private realtimeChannel: RealtimeChannel | null = null;
+    private realtimeConnecting = false;
     private realtimeTokenTimer: number | null = null;
 
     start() {
@@ -294,7 +295,11 @@ export class SyncClient {
      * mismo evento por SSE y por Realtime no duplica nada. Sin puerto 5432 -> Cloudflare-safe.
      */
     private async connectRealtime() {
-        if (this.realtimeChannel) return;
+        // Guard SINCRONO: realtimeChannel se setea DESPUES del await del fetch, asi que dos
+        // llamadas concurrentes (p.ej. React StrictMode en dev) pasaban el guard viejo y
+        // creaban DOS clientes Realtime -> warning "Multiple GoTrueClient". realtimeConnecting
+        // bloquea la segunda llamada antes del primer await.
+        if (this.realtimeChannel || this.realtimeClient || this.realtimeConnecting) return;
         if (typeof window === 'undefined') return;
 
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -307,6 +312,7 @@ export class SyncClient {
         const tenantId = this.getConfiguredTenantId();
         if (!tenantId) return;
 
+        this.realtimeConnecting = true;
         try {
             // El token (y el tenant) los decide el servidor desde la sesion, no el cliente.
             const res = await fetch('/api/realtime/token', { credentials: 'include' });
@@ -319,7 +325,9 @@ export class SyncClient {
             // Cliente SOLO para Realtime: deshabilitamos la auth persistente de GoTrue para no
             // registrar otra instancia que comparte storage key (warning "Multiple GoTrueClient").
             const client = createClient(url, anonKey, {
-                auth: { persistSession: false, autoRefreshToken: false },
+                // storageKey propia: no compartir la default con otros clientes Supabase del
+                // browser (p.ej. el de imagenes) -> mata el warning "Multiple GoTrueClient".
+                auth: { persistSession: false, autoRefreshToken: false, storageKey: 'park-realtime-auth' },
             });
             client.realtime.setAuth(token);
             this.realtimeClient = client;
@@ -347,6 +355,8 @@ export class SyncClient {
             }, 50 * 60 * 1000);
         } catch (e) {
             logger.error('sync.realtime_connect_error', 'Error conectando a Supabase Realtime', e instanceof Error ? e : new Error(String(e)));
+        } finally {
+            this.realtimeConnecting = false;
         }
     }
 
