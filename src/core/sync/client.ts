@@ -314,13 +314,20 @@ export class SyncClient {
                 logger.warn('sync.realtime_token_failed', `No se pudo obtener token Realtime (HTTP ${res.status}); se usa solo SSE`);
                 return;
             }
-            const { token } = await res.json();
+            const { token, channel: serverTopic } = await res.json();
 
-            const client = createClient(url, anonKey);
+            // Cliente SOLO para Realtime: deshabilitamos la auth persistente de GoTrue para no
+            // registrar otra instancia que comparte storage key (warning "Multiple GoTrueClient").
+            const client = createClient(url, anonKey, {
+                auth: { persistSession: false, autoRefreshToken: false },
+            });
             client.realtime.setAuth(token);
             this.realtimeClient = client;
 
-            const channel = client.channel(`tenant:${tenantId}`, { config: { private: true } });
+            // Usamos el topic que devuelve el servidor: deriva del tenant de la SESION, igual que
+            // el claim tenant_id del token. Si lo armamos en el cliente desde el tenant local y
+            // difiere del claim, el RLS del canal privado deniega la suscripcion -> CHANNEL_ERROR.
+            const channel = client.channel(serverTopic ?? `tenant:${tenantId}`, { config: { private: true } });
             channel.on('broadcast', { event: 'park_event' }, (msg) => {
                 void this.handleIncomingEvent(msg.payload as ParkEvent);
             });
