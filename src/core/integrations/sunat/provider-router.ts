@@ -13,7 +13,7 @@
 
 import { Result, ok, err, DomainError } from '@/src/core/result';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
-import { getTenantSunatConfig } from './provider-config';
+import { getTenantSunatConfig, DEFAULT_EMISOR_GEO } from './provider-config';
 import type { TenantSunatCredentials, SunatMode } from './provider-config';
 import { SunatDirectAdapterImpl } from './sunat-direct-adapter';
 import type { SunatDocumentResult, CreditNoteData, VoidData, DailySummaryData, TicketStatusResult } from './sunat-direct-adapter';
@@ -167,6 +167,12 @@ export class InvoiceProviderRouter {
       certificatePem: config.certificatePem,
       privateKeyPem: config.privateKeyPem,
       mode: config.mode as 'PRODUCTION' | 'BETA',
+      emisor: config.emisor ?? {
+        ruc: config.ruc,
+        razonSocial: '',
+        direccion: '',
+        ...DEFAULT_EMISOR_GEO,
+      },
     });
 
     this.adapterCache.set(tenantId, adapter);

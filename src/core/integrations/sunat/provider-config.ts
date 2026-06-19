@@ -19,6 +19,19 @@ export type SunatProvider = 'mock' | 'nubefact' | 'sunat-direct';
 
 export type SunatMode = 'PRODUCTION' | 'BETA' | 'DISABLED';
 
+/**
+ * Geografia por defecto del emisor (Lima) mientras tenant_settings no tenga columnas
+ * ubigeo/departamento/provincia/distrito. Estructura valida para BETA; el emisor geografico
+ * real por tenant se completa al agregar esas columnas + campos en el admin de facturacion.
+ * Seguimiento en Engram: architecture/sunat-direct-funcional-beta.
+ */
+export const DEFAULT_EMISOR_GEO = {
+  ubigeo: '150101',
+  departamento: 'LIMA',
+  provincia: 'LIMA',
+  distrito: 'LIMA',
+} as const;
+
 export interface ProviderConfig {
   provider: SunatProvider;
   nubefact?: {
@@ -55,6 +68,17 @@ export interface TenantSunatCredentials {
   nubefactUrl?: string;
   /** Tenant's RUC number */
   ruc: string;
+  /** Datos del emisor para el XML UBL (razon social, direccion, ubigeo). getTenantSunatConfig
+   *  siempre lo pobla; opcional para no romper fixtures de test que arman el objeto a mano. */
+  emisor?: {
+    ruc: string;
+    razonSocial: string;
+    direccion: string;
+    ubigeo: string;
+    departamento: string;
+    provincia: string;
+    distrito: string;
+  };
 }
 
 /**
@@ -133,6 +157,16 @@ export async function getTenantSunatConfig(
       nubefactToken: safeDecrypt(settings.nubefact_token),
       nubefactUrl: settings.nubefact_url ?? undefined,
       ruc: settings.ruc ?? '',
+      emisor: {
+        ruc: settings.ruc ?? '',
+        razonSocial: settings.legal_name ?? '',
+        direccion: settings.address_text ?? '',
+        // Geografia aun no modelada en tenant_settings: se usan defaults (ver DEFAULT_EMISOR_GEO).
+        ubigeo: settings.ubigeo ?? DEFAULT_EMISOR_GEO.ubigeo,
+        departamento: settings.departamento ?? DEFAULT_EMISOR_GEO.departamento,
+        provincia: settings.provincia ?? DEFAULT_EMISOR_GEO.provincia,
+        distrito: settings.distrito ?? DEFAULT_EMISOR_GEO.distrito,
+      },
     };
   } catch (error) {
     pinoLogger.error({ tenantId, error }, 'Failed to load tenant SUNAT config');

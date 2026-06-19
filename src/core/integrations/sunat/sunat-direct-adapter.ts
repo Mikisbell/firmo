@@ -46,6 +46,7 @@ import { pinoLogger } from '@/src/core/observability/logger-pino';
 import type { InvoiceData } from './client';
 import { signXmlSunat } from './sunat-signer';
 import { SunatSoapClient } from './sunat-soap';
+import { generateComprobanteXml, type UblComprobante, type UblEmisor } from './sunat-ubl';
 
 // ============================================================================
 // Configuration Types
@@ -58,6 +59,8 @@ export interface SunatDirectConfig {
   certificatePem: string;
   privateKeyPem: string;
   mode: 'PRODUCTION' | 'BETA';
+  /** Datos del emisor para el XML UBL (razon social, direccion, ubigeo). */
+  emisor: UblEmisor;
 }
 
 export interface SunatDocumentResult {
@@ -231,6 +234,50 @@ export class SunatDirectAdapterImpl {
   }
 
   /**
+   * Mapea InvoiceData (montos en centavos, precio unitario CON IGV) a UblComprobante (soles).
+   * Los totales se derivan de las lineas para que sean internamente consistentes (SUNAT lo valida).
+   */
+  private mapToUbl(data: InvoiceData): UblComprobante {
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+    const items = data.items.map((it) => {
+      const precioConIgv = round2(it.precioUnitario / 100);
+      const valorUnitario = round2(precioConIgv / 1.18);
+      const valorVenta = round2(valorUnitario * it.cantidad);
+      const igv = round2(valorVenta * 0.18);
+      return {
+        cantidad: it.cantidad,
+        unidad: it.unidadMedida,
+        descripcion: it.descripcion,
+        codigo: it.codigo,
+        valorUnitario,
+        precioUnitarioConIgv: precioConIgv,
+        valorVenta,
+        igv,
+      };
+    });
+    const totalGravado = round2(items.reduce((s, i) => s + i.valorVenta, 0));
+    const totalIgv = round2(items.reduce((s, i) => s + i.igv, 0));
+    return {
+      tipoDoc: data.tipo,
+      serie: data.serie,
+      numero: data.numero,
+      fechaEmision: data.fechaEmision.slice(0, 10),
+      horaEmision: data.fechaEmision.length >= 19 ? data.fechaEmision.slice(11, 19) : '12:00:00',
+      moneda: data.moneda === 'USD' ? 'USD' : 'PEN',
+      emisor: this.config.emisor,
+      cliente: {
+        tipoDoc: data.tipoDocumentoCliente,
+        numDoc: data.numeroDocumentoCliente,
+        razonSocial: data.razonSocialCliente,
+      },
+      items,
+      totalGravado,
+      totalIgv,
+      totalPrecio: round2(totalGravado + totalIgv),
+    };
+  }
+
+  /**
    * Send an invoice (boleta or factura) to SUNAT.
    * Maps InvoiceData (money in centavos) to nodefact format.
    */
@@ -239,12 +286,9 @@ export class SunatDirectAdapterImpl {
     this.logger.info(traceCtx, 'Sending invoice to SUNAT via nodefact');
 
     try {
-      // 1. Map InvoiceData to nodefact format
-      const nodefactData = this.mapInvoiceToNodefact(data);
-
-      // 2. Generate UBL 2.1 XML
-      const documentType = data.tipo === '01' ? TipoDocumento.FACTURA : TipoDocumento.BOLETA;
-      const xml = generateXML(nodefactData, documentType);
+      // 1-2. Generar el XML UBL 2.1 con el generador PROPIO (generateXML de nodefact es un
+      // stub vacio). Validado contra SUNAT BETA (boleta aceptada, responseCode 0).
+      const xml = generateComprobanteXml(this.mapToUbl(data));
 
       // 3. Sign XML with certificate and private key
       const signResult = this.signXml(xml);
@@ -272,16 +316,9 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      // 6. Generate PDF (best effort)
-      let pdfBase64: string | undefined;
-      try {
-        const pdfResult: PDFResult = await generatePdf(nodefactData, { paper: 'a4', qrCode: true });
-        if (pdfResult.success && pdfResult.buffer) {
-          pdfBase64 = pdfResult.buffer.toString('base64');
-        }
-      } catch (pdfError) {
-        this.logger.warn({ ...traceCtx, error: pdfError }, 'PDF generation failed (non-blocking)');
-      }
+      // 6. PDF: generatePdf de nodefact es un stub; el PDF propio queda pendiente (no bloquea
+      // la emision, el comprobante ya fue aceptado por SUNAT).
+      const pdfBase64: string | undefined = undefined;
 
       // 7. Generate QR string
       const qrString = this.generateQrString(data);
