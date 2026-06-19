@@ -64,10 +64,12 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       const storedConfig = getStoredTerminalConfig();
       
       // =========================================================
-      // TODO: Restaurar auth cuando haya más usuarios.
-      // Por ahora bypass total — solo el dev usa el sistema.
+      // Bypass de login SOLO en desarrollo (dev/tester sin fricción).
+      // En producción (NODE_ENV=production) se exige el flujo de login real.
+      // GATE DE GO-LIVE: validar LoginScreen + /api/auth/session + fingerprint
+      // antes de lanzar (ver Engram: bugs/authprovider-bypass-unconditional).
       // =========================================================
-      const isBypassEnabled = true;
+      const isBypassEnabled = process.env.NODE_ENV !== 'production';
 
       if (isBypassEnabled) {
         const bypassTerminal: TerminalConfig = {
