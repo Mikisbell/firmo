@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { getStoredTerminalConfig } from '@/src/core/auth/fingerprint';
 import type { TerminalConfig } from '@/src/core/auth/types';
 import { safeStorage } from '@/src/lib/storage';
+import { getTenantId } from '@/src/core/config/tenant';
+import { DEFAULT_LOCATION_ID } from '@/src/core/config/location';
+import { DEFAULT_EMPLOYEE_IDS } from '@/src/core/config/employees';
 
 /**
  * Hook que verifica si hay un terminal configurado.
@@ -32,15 +35,18 @@ export function useRequireTerminal() {
       console.log('[useRequireTerminal] No config found', { isDev, isE2E, hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown' });
       
       if (isDev || isE2E) {
-        // Use default config for development/testing
+        // Config por defecto para dev/testing. CRITICO: el tenant/location/actor deben venir
+        // de la MISMA fuente que usa el resto del sistema (getTenantId = NEXT_PUBLIC_TENANT_ID
+        // || tenant demo), si no el mozo opera en un tenant fantasma: sus eventos no los ve
+        // nadie y el canal Realtime (topic) no coincide con el claim del token -> CHANNEL_ERROR.
         const defaultConfig: TerminalConfig = {
-          tenant_id: "00000000-0000-0000-0000-000000000001",
+          tenant_id: getTenantId(),
           terminal_id: "WAITER_DEV_01",
-          actor_id: "00000000-0000-0000-0000-000000000002",
+          actor_id: DEFAULT_EMPLOYEE_IDS.WAITER_CARLOS,
           role: "WAITER",
           device_fingerprint: "dev-device-fingerprint",
           device_name: "Development Waiter Terminal",
-          location_id: "00000000-0000-0000-0000-000000000001",
+          location_id: DEFAULT_LOCATION_ID,
           is_allowed: true,
           registered_at: new Date().toISOString()
         };
