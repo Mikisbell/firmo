@@ -72,6 +72,14 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       const isBypassEnabled = process.env.NODE_ENV !== 'production';
 
       if (isBypassEnabled) {
+        // El launcher /dev guarda en localStorage('dev_role') el rol a simular, asi se
+        // puede abrir cada estacion como su rol real (COOK, BAR, OWNER...) sin re-login.
+        let devRole = 'CASHIER';
+        try {
+          const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('dev_role') : null;
+          if (stored) devRole = stored.toUpperCase();
+        } catch { /* localStorage no disponible */ }
+
         const bypassTerminal: TerminalConfig = {
           terminal_id: 'CAJA_BYPASS_001',
           tenant_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -81,15 +89,15 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
           is_allowed: true,
           registered_at: new Date().toISOString(),
           actor_id: '00000000-0000-0000-0000-000000000005', // empleado real (Pedro Ruiz)
-          role: 'CASHIER'
+          role: devRole as TerminalConfig['role']
         };
-        
+
         const mockSession: SecureSession = {
           id: `bypass-session-${Date.now()}`,
           terminal_id: bypassTerminal.terminal_id,
           employee_id: '00000000-0000-0000-0000-000000000005', // UUID real - evita sync errors
           employee_name: 'Pedro Ruiz',
-          employee_role: 'CASHIER',
+          employee_role: devRole as SecureSession['employee_role'],
           terminal_role: 'CAJA',
           fingerprint_at_login: bypassTerminal.device_fingerprint,
           fingerprint_signals_at_login: JSON.stringify({ bypass: true }),
