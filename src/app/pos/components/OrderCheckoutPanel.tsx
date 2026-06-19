@@ -39,7 +39,7 @@ export function OrderCheckoutPanel({
                         #{order.order_number}
                         {tableNumber && ` — Mesa ${tableNumber}`}
                     </span>
-                    <ElapsedTimer createdAt={new Date()} /* FIXME: get from pending order */ />
+                    <ElapsedTimer createdAt={order.created_at ?? new Date().toISOString()} />
                 </div>
             </div>
 

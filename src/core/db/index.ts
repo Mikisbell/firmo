@@ -9,15 +9,5 @@ export {
     type CleanupResult,
 } from './cleanup';
 export { withTransaction, type TransactionOptions } from './transaction';
-export {
-    hrOfflineDb,
-    getHrOfflineDb,
-    HROfflineDB,
-    type PendingHREvent,
-    type CachedEmployee,
-    type CachedSchedule,
-    type CachedAttendance,
-    type CachedLeaveRequest,
-    type HREventType,
-    type SyncStatus as HRSyncStatus,
-} from './hr-offline-db';
+// NOTA: el re-export de ./hr-offline-db se elimino — el modulo fue borrado en la
+// migracion Edge (7f00ef7, revertida) y nadie consumia estos simbolos.

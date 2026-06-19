@@ -7,6 +7,8 @@ import { useOrder } from "@/src/app/mozo/hooks/useOrder";
 import { useWaiterContext } from "../../context/WaiterContext";
 import CatalogGrid from "@/src/app/pos/components/CatalogGrid";
 import { POSActions } from "@/src/core/actions/pos.actions";
+import { db } from "@/src/core/db/schema";
+import { ParkEvent } from "@/src/core/domain/events";
 import { OrderPanel } from "@/src/components/shared/OrderPanel";
 import { ArrowLeft, Clock, X } from "lucide-react";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";

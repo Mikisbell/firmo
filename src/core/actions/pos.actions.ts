@@ -170,6 +170,7 @@ export const POSActions = {
       station: string;
       qty?: number;
       tax_category?: "GRAVADO" | "EXONERADO" | "INAFECTO";
+      is_special_sla?: boolean;
     },
   ) {
     const line_id = newUUID();

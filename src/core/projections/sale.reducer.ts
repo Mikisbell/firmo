@@ -44,6 +44,7 @@ export function createOrderFromEvent(e: Extract<ParkEvent, { event_type: "ORDER_
         order_id: asOrderId(order_id),
         order_number,
         order_type,
+        created_at: e.occurred_at,
         catalog_version: 1, // TODO: get from context
         status: "OPEN",
         lines,

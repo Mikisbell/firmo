@@ -11,11 +11,17 @@
  * - Sync automático cuando vuelve conexión
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { InventoryItem, StockSummary } from '@/src/core/inventory/stock-types';
 import { asCentavos } from '@/src/core/types/shared';
 import { KardexEntry, KardexSummary, KardexMovementType } from '@/src/app/api/inventory/kardex/[code]/route';
-import { inventoryOfflineDb, PendingInventoryEvent } from '@/src/core/db/inventory-offline-db';
+// El inventario es event-sourced (GOODS_RECEIVED, WASTE_RECORDED). La cola offline
+// SEPARADA (inventory-offline-db) se elimino por redundante: debe sincronizarse por el
+// pipeline UNIFICADO (db.events + SyncClient), igual que las ordenes — aun no wireado para
+// inventario. Mientras tanto el hook opera SOLO online: si no hay conexion, las operaciones
+// reportan error y devuelven false, en vez de prometer una persistencia local que no existe
+// (evitamos perdida silenciosa de datos). Seguimiento del wiring en Engram:
+// patterns/inventory-offline-unify.
 
 // ============ TYPES ============
 
@@ -80,7 +86,6 @@ export interface UseInventoryReturn {
   getKardex: (code: string, filters?: KardexFilters) => Promise<{ entries: KardexEntry[]; summary: KardexSummary } | null>;
   search: (query: string) => void;
   refresh: () => Promise<void>;
-  syncPendingEvents: () => Promise<void>;
 }
 
 // ============ HELPER FUNCTIONS ============
@@ -109,11 +114,7 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
-  const [pendingEventsCount, setPendingEventsCount] = useState(0);
-  
-  // Refs for sync
-  const syncInProgress = useRef(false);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [pendingEventsCount] = useState(0);
 
   // ============ FETCH FUNCTIONS ============
 
@@ -160,111 +161,18 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
     }
   }, [tenantId, locationId]);
 
-  // ============ OFFLINE SUPPORT ============
-
-  const updatePendingCount = useCallback(async () => {
-    if (typeof window === 'undefined') return;
-    try {
-      const count = await inventoryOfflineDb.getPendingCount();
-      setPendingEventsCount(count);
-    } catch {
-      // Ignore errors
-    }
-  }, []);
-
-  const saveEventOffline = useCallback(async (event: Omit<PendingInventoryEvent, 'id' | 'syncStatus' | 'retryCount' | 'lastError'>) => {
-    if (typeof window === 'undefined') return;
-    
-    await inventoryOfflineDb.addPendingEvent({
-      ...event,
-      syncStatus: 'pending',
-      retryCount: 0,
-    });
-    
-    await updatePendingCount();
-  }, [updatePendingCount]);
-
-  const syncPendingEvents = useCallback(async () => {
-    if (typeof window === 'undefined' || syncInProgress.current || !isOnline) return;
-    
-    syncInProgress.current = true;
-    
-    try {
-      const pendingEvents = await inventoryOfflineDb.getPendingEvents();
-      
-      for (const event of pendingEvents) {
-        try {
-          // Mark as syncing
-          await inventoryOfflineDb.updateEventStatus(event.eventId, 'syncing');
-          
-          // Determine endpoint based on event type
-          let endpoint = '';
-          let body: Record<string, unknown> = {};
-          
-          if (event.type === 'GOODS_RECEIVED') {
-            endpoint = '/api/inventory/receive';
-            const payload = typeof event.payload === 'object' && event.payload !== null ? event.payload : {};
-            body = {
-              tenant_id: event.tenantId,
-              location_id: event.locationId,
-              event_id: event.eventId,
-              ...payload,
-              actor_id: event.actorId,
-              terminal_id: event.terminalId,
-            };
-          } else if (event.type === 'WASTE_RECORDED') {
-            endpoint = '/api/inventory/waste';
-            const payload = typeof event.payload === 'object' && event.payload !== null ? event.payload : {};
-            body = {
-              tenant_id: event.tenantId,
-              location_id: event.locationId,
-              event_id: event.eventId,
-              ...payload,
-              actor_id: event.actorId,
-              terminal_id: event.terminalId,
-            };
-          }
-          
-          if (!endpoint) continue;
-          
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
-          
-          if (response.ok || response.status === 409) {
-            // Success or duplicate (idempotent)
-            await inventoryOfflineDb.updateEventStatus(event.eventId, 'synced');
-          } else {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `HTTP ${response.status}`);
-          }
-        } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-          await inventoryOfflineDb.incrementRetry(event.eventId, errorMessage);
-        }
-      }
-      
-      // Clean up synced events
-      await inventoryOfflineDb.cleanupSyncedEvents();
-      await updatePendingCount();
-      
-      // Refresh data after sync
-      await fetchStock();
-      await fetchRecentMovements();
-      
-    } finally {
-      syncInProgress.current = false;
-    }
-  }, [isOnline, updatePendingCount, fetchStock, fetchRecentMovements]);
-
   // ============ OPERATIONS ============
 
   const receiveGoods = useCallback(async (input: GoodsReceiptInput): Promise<boolean> => {
+    if (!isOnline) {
+      // Inventario opera solo online (sin cola offline aun): no prometemos persistencia local.
+      onError?.('Sin conexión: el registro de entrada requiere conexión.');
+      return false;
+    }
+
     const eventId = generateEventId();
     const timestamp = new Date().toISOString();
-    
+
     // Optimistic update
     setItems(prev => prev.map(item => {
       if (item.code === input.inventoryCode) {
@@ -290,23 +198,6 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
         inventoryName: item.name,
         actorName: 'Tú',
       }, ...prev.slice(0, 9)]);
-    }
-    
-    if (!isOnline) {
-      // Save offline
-      await saveEventOffline({
-        eventId,
-        type: 'GOODS_RECEIVED',
-        tenantId,
-        locationId: locationId || '',
-        actorId: employeeId,
-        terminalId,
-        createdAt: timestamp,
-        payload: input,
-      });
-      
-      onSuccess?.('Entrada guardada localmente. Se sincronizará cuando haya conexión.');
-      return true;
     }
     
     try {
@@ -347,28 +238,21 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
       
       // Revert optimistic update
       await fetchStock();
-      
-      // Save offline for retry
-      await saveEventOffline({
-        eventId,
-        type: 'GOODS_RECEIVED',
-        tenantId,
-        locationId: locationId || '',
-        actorId: employeeId,
-        terminalId,
-        createdAt: timestamp,
-        payload: input,
-      });
-      
       onError?.(message);
       return false;
     }
-  }, [tenantId, locationId, employeeId, terminalId, items, isOnline, saveEventOffline, fetchStock, fetchRecentMovements, onSuccess, onError]);
+  }, [tenantId, locationId, employeeId, terminalId, items, isOnline, fetchStock, fetchRecentMovements, onSuccess, onError]);
 
   const recordWaste = useCallback(async (input: WasteInput): Promise<boolean> => {
+    if (!isOnline) {
+      // Inventario opera solo online (sin cola offline aun): no prometemos persistencia local.
+      onError?.('Sin conexión: el registro de merma requiere conexión.');
+      return false;
+    }
+
     const eventId = generateEventId();
     const timestamp = new Date().toISOString();
-    
+
     // Optimistic update
     setItems(prev => prev.map(item => {
       if (item.code === input.inventoryCode) {
@@ -394,23 +278,6 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
         inventoryName: item.name,
         actorName: 'Tú',
       }, ...prev.slice(0, 9)]);
-    }
-    
-    if (!isOnline) {
-      // Save offline
-      await saveEventOffline({
-        eventId,
-        type: 'WASTE_RECORDED',
-        tenantId,
-        locationId: locationId || '',
-        actorId: employeeId,
-        terminalId,
-        createdAt: timestamp,
-        payload: input,
-      });
-      
-      onSuccess?.('Merma guardada localmente. Se sincronizará cuando haya conexión.');
-      return true;
     }
     
     try {
@@ -449,23 +316,10 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
       
       // Revert optimistic update
       await fetchStock();
-      
-      // Save offline for retry
-      await saveEventOffline({
-        eventId,
-        type: 'WASTE_RECORDED',
-        tenantId,
-        locationId: locationId || '',
-        actorId: employeeId,
-        terminalId,
-        createdAt: timestamp,
-        payload: input,
-      });
-      
       onError?.(message);
       return false;
     }
-  }, [tenantId, locationId, employeeId, terminalId, items, isOnline, saveEventOffline, fetchStock, fetchRecentMovements, onSuccess, onError]);
+  }, [tenantId, locationId, employeeId, terminalId, items, isOnline, fetchStock, fetchRecentMovements, onSuccess, onError]);
 
   const getKardex = useCallback(async (
     code: string, 
@@ -509,22 +363,14 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
   useEffect(() => {
     fetchStock();
     fetchRecentMovements();
-    updatePendingCount();
-  }, [fetchStock, fetchRecentMovements, updatePendingCount]);
+  }, [fetchStock, fetchRecentMovements]);
 
-  // Online/offline detection
+  // Online/offline detection — mantiene isOnline, que decide si las operaciones se permiten.
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleOnline = () => {
-      setIsOnline(true);
-      // Sync pending events when back online
-      syncPendingEvents();
-    };
-    
-    const handleOffline = () => {
-      setIsOnline(false);
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -533,32 +379,7 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [syncPendingEvents]);
-
-  // Periodic sync attempt with exponential backoff
-  useEffect(() => {
-    if (!isOnline || pendingEventsCount === 0) return;
-
-    const attemptSync = () => {
-      syncPendingEvents();
-    };
-
-    // Initial sync attempt
-    attemptSync();
-
-    // Retry every 30 seconds if there are pending events
-    const interval = setInterval(attemptSync, 30000);
-
-    return () => {
-      clearInterval(interval);
-      // Copy ref value to variable for cleanup
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      const retryTimeout = retryTimeoutRef.current;
-      if (retryTimeout) {
-        clearTimeout(retryTimeout);
-      }
-    };
-  }, [isOnline, pendingEventsCount, syncPendingEvents]);
+  }, []);
 
   return {
     items,
@@ -573,6 +394,5 @@ export function useInventory(options: UseInventoryOptions): UseInventoryReturn {
     getKardex,
     search,
     refresh,
-    syncPendingEvents,
   };
 }

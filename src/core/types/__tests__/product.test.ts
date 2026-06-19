@@ -54,6 +54,7 @@ describe('Product Type Utilities', () => {
     type: 'SIMPLE',
     is_active: true,
     is_available: true,
+    is_special_sla: false,
     images: [mockImage1, mockImage2],
     version: 1,
     created_at: new Date('2026-01-27T09:00:00Z'),
