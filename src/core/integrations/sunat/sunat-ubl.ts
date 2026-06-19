@@ -87,6 +87,12 @@ export interface UblNotaCredito {
   totalPrecio: number;
 }
 
+/**
+ * Nota de debito (08). Mismo shape que la nota de credito; la diferencia es que motivoCodigo
+ * usa el Catalogo 10 (01=Intereses por mora, 02=Aumento en el valor, 03=Penalidades/otros).
+ */
+export type UblNotaDebito = UblNotaCredito;
+
 const MONEDA_NOMBRE: Record<string, string> = { PEN: 'SOLES', USD: 'DOLARES AMERICANOS' };
 
 /** Formatea a 2 decimales (lo que exige SUNAT para montos). */
@@ -242,12 +248,13 @@ function taxTotalDocXml(totalGravado: number, totalIgv: number, moneda: string):
   </cac:TaxTotal>`;
 }
 
-function legalMonetaryXml(totalGravado: number, totalPrecio: number, moneda: string): string {
-  return `  <cac:LegalMonetaryTotal>
+/** Totales monetarios. La factura/boleta/NC usan 'LegalMonetaryTotal'; la ND 'RequestedMonetaryTotal'. */
+function montoTotalXml(totalGravado: number, totalPrecio: number, moneda: string, elemento = 'LegalMonetaryTotal'): string {
+  return `  <cac:${elemento}>
     <cbc:LineExtensionAmount currencyID="${moneda}">${n2(totalGravado)}</cbc:LineExtensionAmount>
     <cbc:TaxInclusiveAmount currencyID="${moneda}">${n2(totalPrecio)}</cbc:TaxInclusiveAmount>
     <cbc:PayableAmount currencyID="${moneda}">${n2(totalPrecio)}</cbc:PayableAmount>
-  </cac:LegalMonetaryTotal>`;
+  </cac:${elemento}>`;
 }
 
 /** Cuerpo de una linea (compartido entre InvoiceLine y CreditNoteLine): monto, precio, IGV, item. */
@@ -302,6 +309,30 @@ ${lineBodyXml(item, moneda)}
   </cac:CreditNoteLine>`;
 }
 
+function debitNoteLineXml(item: UblItem, index: number, moneda: string): string {
+  return `  <cac:DebitNoteLine>
+    <cbc:ID>${index + 1}</cbc:ID>
+    <cbc:DebitedQuantity unitCode="${item.unidad}">${item.cantidad}</cbc:DebitedQuantity>
+${lineBodyXml(item, moneda)}
+  </cac:DebitNoteLine>`;
+}
+
+/** Bloque DiscrepancyResponse + BillingReference (compartido por NC y ND). */
+function discrepanciaXml(docModificado: { serie: string; numero: string; tipo: '01' | '03' }, motivoCodigo: string, motivoDescripcion: string): string {
+  const refId = `${docModificado.serie}-${docModificado.numero}`;
+  return `  <cac:DiscrepancyResponse>
+    <cbc:ReferenceID>${refId}</cbc:ReferenceID>
+    <cbc:ResponseCode>${motivoCodigo}</cbc:ResponseCode>
+    <cbc:Description>${cdata(motivoDescripcion)}</cbc:Description>
+  </cac:DiscrepancyResponse>
+  <cac:BillingReference>
+    <cac:InvoiceDocumentReference>
+      <cbc:ID>${refId}</cbc:ID>
+      <cbc:DocumentTypeCode>${docModificado.tipo}</cbc:DocumentTypeCode>
+    </cac:InvoiceDocumentReference>
+  </cac:BillingReference>`;
+}
+
 // ── Generadores ──────────────────────────────────────────────────────────────
 
 /** Genera el XML UBL 2.1 de una factura (01) o boleta (03), SIN firmar. */
@@ -322,7 +353,7 @@ ${customerXml(c.cliente)}
     <cbc:PaymentMeansID>Contado</cbc:PaymentMeansID>
   </cac:PaymentTerms>
 ${taxTotalDocXml(c.totalGravado, c.totalIgv, c.moneda)}
-${legalMonetaryXml(c.totalGravado, c.totalPrecio, c.moneda)}
+${montoTotalXml(c.totalGravado, c.totalPrecio, c.moneda)}
 ${lineas}
 </Invoice>`;
 }
@@ -330,31 +361,37 @@ ${lineas}
 /** Genera el XML UBL 2.1 de una nota de credito (07), SIN firmar. */
 export function generateCreditNoteXml(nc: UblNotaCredito): string {
   const id = `${nc.serie}-${nc.numero}`;
-  const refId = `${nc.docModificado.serie}-${nc.docModificado.numero}`;
   const leyenda = numeroALetras(nc.totalPrecio, nc.moneda);
   const lineas = nc.items.map((it, i) => creditNoteLineXml(it, i, nc.moneda)).join('\n');
-
-  const discrepancia = `  <cac:DiscrepancyResponse>
-    <cbc:ReferenceID>${refId}</cbc:ReferenceID>
-    <cbc:ResponseCode>${nc.motivoCodigo}</cbc:ResponseCode>
-    <cbc:Description>${cdata(nc.motivoDescripcion)}</cbc:Description>
-  </cac:DiscrepancyResponse>
-  <cac:BillingReference>
-    <cac:InvoiceDocumentReference>
-      <cbc:ID>${refId}</cbc:ID>
-      <cbc:DocumentTypeCode>${nc.docModificado.tipo}</cbc:DocumentTypeCode>
-    </cac:InvoiceDocumentReference>
-  </cac:BillingReference>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <CreditNote xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
 ${headerXml(id, nc.fechaEmision, nc.horaEmision, leyenda, nc.moneda, '')}
-${discrepancia}
+${discrepanciaXml(nc.docModificado, nc.motivoCodigo, nc.motivoDescripcion)}
 ${signatureXml(nc.emisor)}
 ${supplierXml(nc.emisor)}
 ${customerXml(nc.cliente)}
 ${taxTotalDocXml(nc.totalGravado, nc.totalIgv, nc.moneda)}
-${legalMonetaryXml(nc.totalGravado, nc.totalPrecio, nc.moneda)}
+${montoTotalXml(nc.totalGravado, nc.totalPrecio, nc.moneda)}
 ${lineas}
 </CreditNote>`;
+}
+
+/** Genera el XML UBL 2.1 de una nota de debito (08), SIN firmar. motivoCodigo = Catalogo 10. */
+export function generateDebitNoteXml(nd: UblNotaDebito): string {
+  const id = `${nd.serie}-${nd.numero}`;
+  const leyenda = numeroALetras(nd.totalPrecio, nd.moneda);
+  const lineas = nd.items.map((it, i) => debitNoteLineXml(it, i, nd.moneda)).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<DebitNote xmlns="urn:oasis:names:specification:ubl:schema:xsd:DebitNote-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
+${headerXml(id, nd.fechaEmision, nd.horaEmision, leyenda, nd.moneda, '')}
+${discrepanciaXml(nd.docModificado, nd.motivoCodigo, nd.motivoDescripcion)}
+${signatureXml(nd.emisor)}
+${supplierXml(nd.emisor)}
+${customerXml(nd.cliente)}
+${taxTotalDocXml(nd.totalGravado, nd.totalIgv, nd.moneda)}
+${montoTotalXml(nd.totalGravado, nd.totalPrecio, nd.moneda, 'RequestedMonetaryTotal')}
+${lineas}
+</DebitNote>`;
 }
