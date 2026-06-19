@@ -21,8 +21,6 @@
 
 import {
   generateXML,
-  signXml,
-  createSunatClient,
   SunatEndpoints,
   TipoDocumento,
   TipoIGV,
@@ -46,6 +44,8 @@ interface PDFResult {
 import { Result, ok, err, DomainError } from '@/src/core/result';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import type { InvoiceData } from './client';
+import { signXmlSunat } from './sunat-signer';
+import { SunatSoapClient } from './sunat-soap';
 
 // ============================================================================
 // Configuration Types
@@ -201,7 +201,7 @@ function centsToSoles(cents: number): number {
 
 export class SunatDirectAdapterImpl {
   private config: SunatDirectConfig;
-  private sunatClient: NodeFactSunatClient;
+  private soapClient: SunatSoapClient;
   private logger;
 
   constructor(config: SunatDirectConfig) {
@@ -210,20 +210,24 @@ export class SunatDirectAdapterImpl {
       ? pinoLogger.child({ module: 'sunat-direct-adapter', ruc: config.ruc })
       : pinoLogger;
 
-    // Initialize nodefact SUNAT client
+    // Cliente SOAP propio (WS-Security + zip + ?wsdl correctos; ver sunat-soap.ts).
     const endpoint = config.mode === 'PRODUCTION'
       ? SUNAT_ENDPOINTS.PRODUCTION.bill
       : SUNAT_ENDPOINTS.BETA.bill;
 
-    this.sunatClient = createSunatClient({
-      endpoint: endpoint as SunatEndpoints,
-      credentials: {
-        ruc: config.ruc,
-        usuario: config.solUser,
-        clave: config.solPassword,
-      },
-      timeout: 30_000,
-    });
+    this.soapClient = new SunatSoapClient(
+      endpoint,
+      { ruc: config.ruc, solUser: config.solUser, solPassword: config.solPassword },
+      30_000,
+    );
+  }
+
+  /**
+   * Firma el XML con el firmador propio (xml-crypto v6). Reemplaza la firma de nodefact, que
+   * esta rota para xml-crypto >=6. Acepta el PEM directo (sin archivos temporales).
+   */
+  private signXml(xml: string) {
+    return signXmlSunat(xml, this.config.certificatePem, this.config.privateKeyPem);
   }
 
   /**
@@ -243,10 +247,7 @@ export class SunatDirectAdapterImpl {
       const xml = generateXML(nodefactData, documentType);
 
       // 3. Sign XML with certificate and private key
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -256,19 +257,18 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      // 4. Compress and send via SOAP
-      const fileName = `${this.config.ruc}-${data.tipo}-${data.serie}-${data.numero}.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
+      // 4. Zip + enviar via SOAP (el cliente zipea el XML y aplica WS-Security)
+      const fileBase = `${this.config.ruc}-${data.tipo}-${data.serie}-${data.numero}`;
+      const sunatResult = await this.soapClient.sendBill(fileBase, signResult.signedXml);
 
-      const sunatResult = await this.sunatClient.sendBill(fileName, contentBase64);
-
-      // 5. Process SUNAT response
-      if (!sunatResult.success) {
-        const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
+      // 5. Validar la ACEPTACION REAL del CDR (ResponseCode 0), no solo que el SOAP respondio
+      if (!sunatResult.success || !sunatResult.accepted) {
+        const reason = sunatResult.description ?? sunatResult.error ?? 'Error desconocido';
+        const errorCode = this.mapSunatErrorCode(reason);
         return err(new DomainError(
-          `SUNAT rechazo: ${sunatResult.error ?? 'Error desconocido'}`,
+          `SUNAT rechazo: ${reason}`,
           errorCode,
-          { ...traceCtx, sunatError: sunatResult.error },
+          { ...traceCtx, responseCode: sunatResult.responseCode, sunatError: reason },
         ));
       }
 
@@ -291,8 +291,8 @@ export class SunatDirectAdapterImpl {
 
       const result: SunatDocumentResult = {
         success: true,
-        cdrResponseCode: '0',
-        cdrResponseMessage: 'Comprobante aceptado por SUNAT',
+        cdrResponseCode: sunatResult.responseCode ?? '0',
+        cdrResponseMessage: sunatResult.description ?? 'Comprobante aceptado por SUNAT',
         cdrXml: sunatResult.cdr ?? '',
         hash,
         signedXml: signResult.signedXml,
@@ -328,10 +328,7 @@ export class SunatDirectAdapterImpl {
       const nodefactData = this.mapCreditNoteToNodefact(data);
       const xml = generateXML(nodefactData, TipoDocumento.NOTA_CREDITO);
 
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -341,17 +338,16 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      const fileName = `${this.config.ruc}-07-${data.serie}-${data.numero}.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
+      const fileBase = `${this.config.ruc}-07-${data.serie}-${data.numero}`;
+      const sunatResult = await this.soapClient.sendBill(fileBase, signResult.signedXml);
 
-      const sunatResult = await this.sunatClient.sendBill(fileName, contentBase64);
-
-      if (!sunatResult.success) {
-        const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
+      if (!sunatResult.success || !sunatResult.accepted) {
+        const reason = sunatResult.description ?? sunatResult.error ?? 'Error desconocido';
+        const errorCode = this.mapSunatErrorCode(reason);
         return err(new DomainError(
-          `SUNAT rechazo nota de credito: ${sunatResult.error ?? 'Error desconocido'}`,
+          `SUNAT rechazo nota de credito: ${reason}`,
           errorCode,
-          { ...traceCtx, sunatError: sunatResult.error },
+          { ...traceCtx, responseCode: sunatResult.responseCode, sunatError: reason },
         ));
       }
 
@@ -359,8 +355,8 @@ export class SunatDirectAdapterImpl {
 
       return ok({
         success: true,
-        cdrResponseCode: '0',
-        cdrResponseMessage: 'Nota de credito aceptada por SUNAT',
+        cdrResponseCode: sunatResult.responseCode ?? '0',
+        cdrResponseMessage: sunatResult.description ?? 'Nota de credito aceptada por SUNAT',
         cdrXml: sunatResult.cdr ?? '',
         hash,
         signedXml: signResult.signedXml,
@@ -391,10 +387,7 @@ export class SunatDirectAdapterImpl {
       const nodefactData = this.mapVoidToNodefact(data);
       const xml = generateXML(nodefactData, TipoDocumento.COMUNICACION_BAJA);
 
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -404,10 +397,8 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      const fileName = `${this.config.ruc}-RA-${data.fechaComunicacion.replace(/-/g, '')}-1.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
-
-      const sunatResult = await this.sunatClient.sendSummary(fileName, contentBase64);
+      const fileBase = `${this.config.ruc}-RA-${data.fechaComunicacion.replace(/-/g, '')}-1`;
+      const sunatResult = await this.soapClient.sendSummary(fileBase, signResult.signedXml);
 
       if (!sunatResult.success) {
         const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
@@ -421,8 +412,8 @@ export class SunatDirectAdapterImpl {
       return ok({
         success: true,
         cdrResponseCode: '0',
-        cdrResponseMessage: 'Comunicacion de baja registrada',
-        cdrXml: sunatResult.cdr ?? '',
+        cdrResponseMessage: 'Comunicacion de baja registrada (ticket pendiente)',
+        cdrXml: '',
         hash: '',
         signedXml: signResult.signedXml,
         ticketNumber: sunatResult.ticket,
@@ -454,10 +445,7 @@ export class SunatDirectAdapterImpl {
       const nodefactData = this.mapDailySummaryToNodefact(data);
       const xml = generateXML(nodefactData, TipoDocumento.RESUMEN_DIARIO);
 
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -467,10 +455,8 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      const fileName = `${data.ruc}-RC-${data.summaryDate.replace(/-/g, '')}.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
-
-      const sunatResult = await this.sunatClient.sendSummary(fileName, contentBase64);
+      const fileBase = `${data.ruc}-RC-${data.summaryDate.replace(/-/g, '')}`;
+      const sunatResult = await this.soapClient.sendSummary(fileBase, signResult.signedXml);
 
       if (!sunatResult.success) {
         const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
@@ -512,7 +498,7 @@ export class SunatDirectAdapterImpl {
     this.logger.info({ ticketNumber }, 'Querying ticket status on SUNAT');
 
     try {
-      const sunatResult = await this.sunatClient.getStatus(ticketNumber);
+      const sunatResult = await this.soapClient.getStatus(ticketNumber);
 
       if (!sunatResult.success && !sunatResult.cdr) {
         // Still pending or error
@@ -562,22 +548,16 @@ export class SunatDirectAdapterImpl {
     this.logger.info({}, 'Testing SUNAT connection');
 
     try {
-      // Create a BETA client for testing (always use BETA regardless of config)
-      const betaClient = createSunatClient({
-        endpoint: SUNAT_ENDPOINTS.BETA.bill as SunatEndpoints,
-        credentials: {
-          ruc: this.config.ruc,
-          usuario: this.config.solUser,
-          clave: this.config.solPassword,
-        },
-        timeout: 15_000,
-      });
+      // Cliente BETA para probar conectividad (siempre BETA, sin importar el modo).
+      const betaClient = new SunatSoapClient(
+        SUNAT_ENDPOINTS.BETA.bill,
+        { ruc: this.config.ruc, solUser: this.config.solUser, solPassword: this.config.solPassword },
+        15_000,
+      );
 
-      // Send a minimal test — just check that SOAP client can connect
-      // We use getStatus with an invalid ticket to test connectivity
-      const testResult = await betaClient.getStatus('0');
+      // getStatus con ticket invalido: cualquier respuesta (aun error) prueba la conexion.
+      await betaClient.getStatus('0');
 
-      // Any response (even error) means connectivity works
       return ok({ message: 'Conexion exitosa con SUNAT (endpoint beta)' });
 
     } catch (error) {
