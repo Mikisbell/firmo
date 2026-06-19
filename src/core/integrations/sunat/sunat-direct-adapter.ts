@@ -137,6 +137,37 @@ export interface TicketStatusResult {
 // ============================================================================
 // SUNAT Endpoint Configuration
 // ============================================================================
+//
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │ PLAYBOOK DE PRUEBAS — AMBIENTE BETA DE SUNAT (verificado jun 2026)          │
+// │ Para cuando llegue el dia de probar facturacion. NO requiere RUC real,      │
+// │ ni Clave SOL real, ni certificado real, ni tramite. Todo gratis y publico.  │
+// │                                                                             │
+// │ Credenciales de PRUEBA publicas de SUNAT (usar en SunatDirectConfig):       │
+// │   ruc        = '20000000001'                                                │
+// │   solUser    = 'MODDATOS'                                                   │
+// │   solPassword= 'moddatos'                                                   │
+// │   mode       = 'BETA'   -> usa SUNAT_ENDPOINTS.BETA (e-beta.sunat.gob.pe)   │
+// │                                                                             │
+// │ Certificado: en BETA SUNAT SOLO valida la ESTRUCTURA del XML (UBL 2.1), NO  │
+// │ la autenticidad del certificado. Sirve un certificado de PRUEBA/autofirmado │
+// │ (los que trae nodefact/greenter). No hace falta el CDT real para BETA.      │
+// │                                                                             │
+// │ Como probar: construir un SunatDirectAdapter con esa config y llamar a      │
+// │ testConnection() o emitir una boleta/factura de prueba. Exito = CDR con     │
+// │ responseCode '0' (ACEPTADO).                                                │
+// │                                                                             │
+// │ PASO A PRODUCCION (cuando lance el cliente):                                │
+// │   - ruc/solUser/solPassword REALES de cada tenant (Clave SOL secundaria de  │
+// │     facturacion) — NUNCA hardcodear ni commitear; van encriptados           │
+// │     (ver credential-encryption.ts) y se inyectan por tenant.                │
+// │   - certificado = CDT GRATIS de SUNAT (req: renta 3ra cat., ingresos        │
+// │     <= S/1.26M/ano; vigente hasta dic-2027). Ver Engram reference/sunat-*.  │
+// │   - mode = 'PRODUCTION' -> SUNAT_ENDPOINTS.PRODUCTION (e-factura).          │
+// │                                                                             │
+// │ Fuentes: cpe.sunat.gob.pe/noticias/servicio-beta-para-realizar-pruebas-ubl-21│
+// │          cpe.sunat.gob.pe/certificado-digital                               │
+// └───────────────────────────────────────────────────────────────────────────┘
 
 const SUNAT_ENDPOINTS = {
   BETA: {
