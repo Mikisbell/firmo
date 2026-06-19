@@ -20,8 +20,16 @@ import { type ParkEvent } from '@/src/core/domain/events';
 import prisma from '@/src/core/db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@/src/core/observability/structured-logger';
+import { metrics } from '@/src/core/observability/metrics';
 
 const log = createLogger('out-of-order-queue');
+
+/**
+ * Tipos de evento CRITICOS (plata / fiscal): perderlos en silencio es inaceptable.
+ * Si uno de estos cae al dead_letter_queue, se alerta a nivel ERROR.
+ */
+const isCriticalEventType = (eventType: string): boolean =>
+  /PAYMENT|INVOICE|REFUND|MARKED_PAID/.test(eventType);
 
 interface QueuedEvent {
   event: ParkEvent;
@@ -212,10 +220,31 @@ class OutOfOrderQueue {
           where: { enqueued_at: { lt: cutoff } },
         });
 
-        log.warn('Eventos expirados movidos a DLQ', {
-          expired_count: expired.length,
-          timeout_ms: this.TIMEOUT_MS,
-        });
+        // ALERTA: eventos perdidos al DLQ. Desglose por tipo + deteccion de criticos
+        // (pagos/facturas) para no perder plata ni data fiscal en silencio.
+        const breakdown: Record<string, number> = {};
+        let criticalCount = 0;
+        for (const row of expired) {
+          breakdown[row.event_type] = (breakdown[row.event_type] ?? 0) + 1;
+          if (isCriticalEventType(row.event_type)) criticalCount++;
+          metrics.increment('dlq.event_expired', { event_type: row.event_type });
+        }
+
+        if (criticalCount > 0) {
+          // Critico: surfacea a nivel ERROR (error-tracker) + metrica dedicada.
+          metrics.increment('dlq.critical_event_lost', { count: String(criticalCount) });
+          log.error(
+            'ALERTA: eventos CRITICOS (pagos/facturas) movidos al dead_letter_queue sin resolver su dependencia',
+            new Error('DLQ_CRITICAL_LOSS'),
+            { critical_count: criticalCount, total_expired: expired.length, breakdown, timeout_ms: this.TIMEOUT_MS },
+          );
+        } else {
+          log.warn('Eventos expirados movidos a DLQ', {
+            expired_count: expired.length,
+            breakdown,
+            timeout_ms: this.TIMEOUT_MS,
+          });
+        }
       }
     } catch (e) {
       log.error('Error en limpieza de DB', e instanceof Error ? e : new Error(String(e)));
