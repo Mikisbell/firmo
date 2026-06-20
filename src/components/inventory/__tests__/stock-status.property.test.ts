@@ -67,15 +67,16 @@ describe('Property 1: Stock Status Indicator Correctness', () => {
     );
   });
 
-  it('should return OK when minStock is 0 or negative', () => {
+  it('should return OK when minStock is 0 or negative (with stock > 0)', () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 0, max: 10000 }),
+        // stock > 0: el caso stock === 0 -> ZERO se cubre en el test comprehensivo.
+        fc.integer({ min: 1, max: 10000 }),
         fc.integer({ min: -100, max: 0 }),
         (stockInt, minStockInt) => {
           const stock = stockInt / 100;
           const minStock = minStockInt / 100;
-          
+
           const status = calculateStatus(stock, minStock);
           expect(status).toBe('OK');
         }
@@ -94,9 +95,12 @@ describe('Property 1: Stock Status Indicator Correctness', () => {
           const minStock = minStockInt / 100;
           
           const status = calculateStatus(stock, minStock);
-          
-          // Verify the status matches the expected classification
-          if (minStock <= 0) {
+
+          // Verify the status matches the expected classification.
+          // stock === 0 (sin stock) tiene prioridad: el indicador es ZERO.
+          if (stock === 0) {
+            expect(status).toBe('ZERO');
+          } else if (minStock <= 0) {
             expect(status).toBe('OK');
           } else if (stock < minStock) {
             expect(status).toBe('CRITICAL');

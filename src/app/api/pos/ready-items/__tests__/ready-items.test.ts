@@ -165,6 +165,10 @@ describe('ready-items property tests', () => {
           { maxLength: 10 },
         ),
         async (rows) => {
+          // Reset por-run: fast-check ejecuta el cuerpo N veces sin re-correr
+          // beforeEach; sin esto el valor mock de una corrida previa puede filtrarse
+          // (flaky CI-only: "body=10 cuando rows=0").
+          mockQueryRaw.mockReset();
           mockQueryRaw.mockResolvedValue(rows);
           const { GET } = await import('../route');
           const res = await GET(makeRequest(TENANT_ID));

@@ -107,6 +107,9 @@ jobs:
         run: npx prisma generate
 
       - name: Build
+        env:
+          # next build pesa mas que tsc; sin esto el worker hace OOM (heap default ~2GB)
+          NODE_OPTIONS: "--max_old_space_size=6144"
         run: bun run build
 
   e2e-tests:
@@ -156,6 +159,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build for E2E
+        env:
+          NODE_OPTIONS: "--max_old_space_size=6144"
         run: bun run build
 
       - name: Run E2E tests
