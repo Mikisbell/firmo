@@ -46,7 +46,7 @@ import { pinoLogger } from '@/src/core/observability/logger-pino';
 import type { InvoiceData } from './client';
 import { signXmlSunat } from './sunat-signer';
 import { SunatSoapClient } from './sunat-soap';
-import { generateComprobanteXml, generateCreditNoteXml, type UblComprobante, type UblEmisor, type UblNotaCredito } from './sunat-ubl';
+import { generateComprobanteXml, generateCreditNoteXml, generateSummaryXml, type UblComprobante, type UblEmisor, type UblNotaCredito, type UblResumenDiario } from './sunat-ubl';
 
 // ============================================================================
 // Configuration Types
@@ -274,6 +274,27 @@ export class SunatDirectAdapterImpl {
       totalGravado,
       totalIgv,
       totalPrecio: round2(totalGravado + totalIgv),
+    };
+  }
+
+  /** Mapea DailySummaryData (centavos) a UblResumenDiario (soles) para el generador propio. */
+  private mapDailySummaryToUbl(data: DailySummaryData): UblResumenDiario {
+    return {
+      id: data.summaryNumber,
+      fechaReferencia: data.referenceDate,
+      fechaEmision: data.summaryDate,
+      moneda: 'PEN',
+      emisor: this.config.emisor,
+      boletas: data.boletas.map((b) => ({
+        tipoDoc: '03',
+        serieNumero: `${b.serie}-${b.numero}`,
+        clienteTipo: b.tipoDocumentoCliente,
+        clienteNumero: b.numeroDocumentoCliente,
+        estado: b.estado,
+        totalGravado: Math.round(b.totalGravadas) / 100,
+        totalIgv: Math.round(b.totalIgv) / 100,
+        totalPrecio: Math.round(b.totalImporte) / 100,
+      })),
     };
   }
 
@@ -523,8 +544,7 @@ export class SunatDirectAdapterImpl {
     this.logger.info(traceCtx, 'Sending daily summary to SUNAT via nodefact');
 
     try {
-      const nodefactData = this.mapDailySummaryToNodefact(data);
-      const xml = generateXML(nodefactData, TipoDocumento.RESUMEN_DIARIO);
+      const xml = generateSummaryXml(this.mapDailySummaryToUbl(data));
 
       const signResult = this.signXml(xml);
 

@@ -377,6 +377,98 @@ ${lineas}
 </CreditNote>`;
 }
 
+export interface UblResumenBoleta {
+  /** Catalogo 01: 03=boleta, 07/08=nota de la boleta. */
+  tipoDoc: string;
+  /** Serie-numero, p.ej. B001-1. */
+  serieNumero: string;
+  /** Catalogo 06 del cliente: 1=DNI, 6=RUC, 0=sin doc. */
+  clienteTipo: string;
+  clienteNumero: string;
+  /** Catalogo 19: 1=Adicionar/registrar, 2=Modificar, 3=Anular. */
+  estado: string;
+  totalGravado: number;
+  totalIgv: number;
+  totalPrecio: number;
+}
+
+export interface UblResumenDiario {
+  /** RC-YYYYMMDD-N */
+  id: string;
+  /** Fecha de generacion = dia en que se emitieron las boletas (YYYY-MM-DD). */
+  fechaReferencia: string;
+  /** Fecha de emision del resumen (YYYY-MM-DD). */
+  fechaEmision: string;
+  moneda: string;
+  emisor: UblEmisor;
+  boletas: UblResumenBoleta[];
+}
+
+function resumenLineaXml(b: UblResumenBoleta, index: number, moneda: string): string {
+  return `  <sac:SummaryDocumentsLine>
+    <cbc:LineID>${index + 1}</cbc:LineID>
+    <cbc:DocumentTypeCode>${b.tipoDoc}</cbc:DocumentTypeCode>
+    <cbc:ID>${b.serieNumero}</cbc:ID>
+    <cac:AccountingCustomerParty>
+      <cbc:CustomerAssignedAccountID>${b.clienteNumero}</cbc:CustomerAssignedAccountID>
+      <cbc:AdditionalAccountID>${b.clienteTipo}</cbc:AdditionalAccountID>
+    </cac:AccountingCustomerParty>
+    <cac:Status>
+      <cbc:ConditionCode>${b.estado}</cbc:ConditionCode>
+    </cac:Status>
+    <sac:TotalAmount currencyID="${moneda}">${n2(b.totalPrecio)}</sac:TotalAmount>
+    <sac:BillingPayment>
+      <cbc:PaidAmount currencyID="${moneda}">${n2(b.totalGravado)}</cbc:PaidAmount>
+      <cbc:InstructionID>01</cbc:InstructionID>
+    </sac:BillingPayment>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="${moneda}">${n2(b.totalIgv)}</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxAmount currencyID="${moneda}">${n2(b.totalIgv)}</cbc:TaxAmount>
+        <cac:TaxCategory>
+          <cac:TaxScheme>
+            <cbc:ID>1000</cbc:ID>
+            <cbc:Name>IGV</cbc:Name>
+            <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+  </sac:SummaryDocumentsLine>`;
+}
+
+/**
+ * Genera el XML UBL del Resumen Diario de boletas (RC), SIN firmar. Es UBL 2.0 / Customization 1.1
+ * y usa el namespace sac:. Se envia ASINCRONO (sendSummary -> ticket -> getStatus).
+ */
+export function generateSummaryXml(r: UblResumenDiario): string {
+  const lineas = r.boletas.map((b, i) => resumenLineaXml(b, i, r.moneda)).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<SummaryDocuments xmlns="urn:sunat:names:specification:ubl:peru:schema:xsd:SummaryDocuments-1" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sac="urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1">
+  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent/>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>
+  <cbc:UBLVersionID>2.0</cbc:UBLVersionID>
+  <cbc:CustomizationID>1.1</cbc:CustomizationID>
+  <cbc:ID>${r.id}</cbc:ID>
+  <cbc:ReferenceDate>${r.fechaReferencia}</cbc:ReferenceDate>
+  <cbc:IssueDate>${r.fechaEmision}</cbc:IssueDate>
+${signatureXml(r.emisor)}
+  <cac:AccountingSupplierParty>
+    <cbc:CustomerAssignedAccountID>${r.emisor.ruc}</cbc:CustomerAssignedAccountID>
+    <cbc:AdditionalAccountID>6</cbc:AdditionalAccountID>
+    <cac:Party>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>${cdata(r.emisor.razonSocial)}</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+${lineas}
+</SummaryDocuments>`;
+}
+
 /** Genera el XML UBL 2.1 de una nota de debito (08), SIN firmar. motivoCodigo = Catalogo 10. */
 export function generateDebitNoteXml(nd: UblNotaDebito): string {
   const id = `${nd.serie}-${nd.numero}`;
