@@ -16,6 +16,8 @@ import { asCentavos } from "@/src/core/types/shared";
 import { ParkLogo } from "@/src/components/icons";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { TableTransferModal } from "./TableTransferModal";
+import { SalesNoteVoidModal } from "@/src/components/SalesNoteVoidModal";
+import { useSalesNoteForCheck } from "@/src/hooks/useSalesNoteForCheck";
 import { toast } from "sonner";
 
 interface CheckDetailProps {
@@ -59,6 +61,22 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
     const [showTableTransferModal, setShowTableTransferModal] = useState(false);
     const [showDiscountModal, setShowDiscountModal] = useState(false);
     const [showReceiptPreview, setShowReceiptPreview] = useState(false);
+    const [showVoidNoteModal, setShowVoidNoteModal] = useState(false);
+
+    // Nota de Venta del check (offline-first, derivada de eventos locales).
+    const salesNote = useSalesNoteForCheck(order.order_id, check.check_id);
+
+    const handleVoidSalesNote = async (reason: string) => {
+        if (!salesNote) return;
+        try {
+            await POSActions.voidSalesNote(tenantId, terminalId, actorId, salesNote.sales_note_id, reason);
+            toast.success(`Nota ${salesNote.serie}-${salesNote.numero} anulada`);
+            setShowVoidNoteModal(false);
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al anular la nota");
+        }
+    };
 
     // Item note state
     const [editingNoteLineId, setEditingNoteLineId] = useState<string | null>(null);
@@ -417,6 +435,32 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                         <span className="font-mono text-4xl font-black tabular-nums text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]">S/ {(check.total_cents / 100).toFixed(2)}</span>
                     </div>
 
+                    {/* Nota de Venta del check (visibilidad en caja) */}
+                    {salesNote && (
+                        <div className="flex items-center justify-between gap-2 bg-zinc-800/60 border border-white/10 rounded-xl px-3 py-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <Receipt className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                                <span className="font-mono text-sm text-white truncate">Nota {salesNote.serie}-{salesNote.numero}</span>
+                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                                    salesNote.status === "CONVERTED" ? "bg-emerald-500/20 text-emerald-300"
+                                    : salesNote.status === "VOIDED" ? "bg-red-500/20 text-red-300"
+                                    : "bg-amber-500/20 text-amber-300"
+                                }`}>
+                                    {salesNote.status === "CONVERTED" ? "Convertida" : salesNote.status === "VOIDED" ? "Anulada" : "Abierta"}
+                                </span>
+                            </div>
+                            {salesNote.status === "OPEN" && (
+                                <button
+                                    onClick={() => setShowVoidNoteModal(true)}
+                                    className="text-xs font-bold text-red-400 hover:text-red-300 flex items-center gap-1 flex-shrink-0 min-h-[44px] px-2 touch-manipulation"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                    Anular
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     {/* Payment Progress Bar */}
                     <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden flex">
                         <div
@@ -525,6 +569,13 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
             </div>
 
             {/* Modals */}
+            {showVoidNoteModal && salesNote && (
+                <SalesNoteVoidModal
+                    label={`${salesNote.serie}-${salesNote.numero}`}
+                    onClose={() => setShowVoidNoteModal(false)}
+                    onConfirm={handleVoidSalesNote}
+                />
+            )}
             <AnimatePresence>
                 {showPayModal && (
                     <PaymentModal
