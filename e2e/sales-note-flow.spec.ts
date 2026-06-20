@@ -14,7 +14,24 @@
  * dev-only) o el catalogo no esta seedeado, el test hace skip con motivo explicito.
  */
 import { test, expect } from '@playwright/test';
-import { setupWaiterTerminal } from './helpers/test-utils';
+import { setupWaiterTerminal, TENANT_ID } from './helpers/test-utils';
+
+// Inyecta un producto de catalogo en ParkDB (IndexedDB) para que el catalogo
+// del tenant de prueba no este vacio. Mismo patron que el inject de SHIFT_OPENED.
+async function injectCatalogItem(page: import('@playwright/test').Page) {
+  await page.evaluate(async (tenantId) => {
+    const req = indexedDB.open('ParkDB');
+    await new Promise<void>((res, rej) => { req.onsuccess = () => res(); req.onerror = () => rej(req.error); });
+    const db = req.result;
+    const tx = db.transaction(['catalog_items'], 'readwrite');
+    tx.objectStore('catalog_items').put({
+      id: 'cat-e2e-1', tenant_id: tenantId, product_id: 'prod-e2e-1', sku: 'E2E-1',
+      name: 'Pollo E2E', price_cents: 1500, category: 'POLLOS', station: 'COCINA', active: true,
+    });
+    await new Promise<void>((res, rej) => { tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); });
+    db.close();
+  }, TENANT_ID);
+}
 
 test.describe('Nota de Venta — flujo mozo', () => {
   test('mozo emite Nota de Venta y la anula', async ({ page }) => {
@@ -27,6 +44,7 @@ test.describe('Nota de Venta — flujo mozo', () => {
     await page.goto('/mozo');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {});
+    await injectCatalogItem(page); // producto de prueba en el catalogo (Dexie)
     await page.waitForTimeout(3000);
 
     // Mesa 1
