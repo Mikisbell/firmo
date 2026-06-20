@@ -20,7 +20,6 @@ test.describe('Nota de Venta — flujo mozo', () => {
   test('mozo emite Nota de Venta y la anula', async ({ page }) => {
     // Neutralizar el dialogo de impresion (printComponent usa iframe.print()).
     await page.addInitScript(() => {
-      // @ts-expect-error override en runtime del browser
       window.print = () => {};
     });
 
