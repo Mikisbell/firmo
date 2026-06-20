@@ -23,6 +23,15 @@ async function main() {
     certificatePem,
     privateKeyPem,
     mode: 'BETA',
+    emisor: {
+      ruc: '20000000001',
+      razonSocial: 'EMPRESA DE PRUEBA SAC',
+      ubigeo: '150101',
+      departamento: 'LIMA',
+      provincia: 'LIMA',
+      distrito: 'LIMA',
+      direccion: 'AV PRUEBA 123',
+    },
   });
 
   // Boleta de prueba: 1 pollo a S/25.00 (bruto, con IGV). Montos en CENTAVOS.
@@ -55,12 +64,12 @@ async function main() {
   console.log('>> Enviando boleta de prueba a SUNAT BETA (RUC 20000000001)...');
   const result = await adapter.sendInvoice(boleta);
 
-  if (result.ok) {
+  if (result.success) {
     console.log('\n✅ ACEPTADO POR SUNAT BETA');
-    console.log('   responseCode:', result.value.cdrResponseCode);
-    console.log('   mensaje     :', result.value.cdrResponseMessage);
-    console.log('   hash        :', result.value.hash);
-    console.log('   PDF generado:', result.value.pdfBase64 ? 'si' : 'no');
+    console.log('   responseCode:', result.data.cdrResponseCode);
+    console.log('   mensaje     :', result.data.cdrResponseMessage);
+    console.log('   hash        :', result.data.hash);
+    console.log('   PDF generado:', result.data.pdfBase64 ? 'si' : 'no');
   } else {
     console.log('\n❌ RECHAZADO / ERROR');
     console.log('   code   :', result.error.code);
