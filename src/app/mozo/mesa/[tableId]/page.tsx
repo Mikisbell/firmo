@@ -232,10 +232,40 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
         }
     };
 
-    const handlePrintPrecheck = () => {
+    const handlePrintPrecheck = async () => {
         if (!activeSale || items.length === 0) {
             toast.error("No hay items para imprimir");
             return;
+        }
+        if (!orderId || !terminalConfig) {
+            toast.error("No hay pedido activo");
+            return;
+        }
+
+        const checkId = activeSale.checks?.[0]?.check_id;
+        if (!checkId) {
+            toast.error("No hay cuenta activa para emitir la nota");
+            return;
+        }
+
+        // Formalizar la pre-cuenta como Nota de Venta (documento interno NO fiscal,
+        // numerado y convertible en caja a boleta/factura). Idempotente por check.
+        let noteSerie: string | undefined;
+        let noteNumero: string | undefined;
+        try {
+            const note = await POSActions.issueSalesNote(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                checkId,
+                activeSale.subtotal_cents,
+            );
+            noteSerie = note.serie;
+            noteNumero = note.numero;
+        } catch (e) {
+            // No bloquear la impresion si falla el registro de la nota.
+            console.error(e);
         }
 
         const linesToPrint = transformLinesToPrint(items);
@@ -249,11 +279,13 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                 subtotal={activeSale.subtotal_cents}
                 discount={0}
                 total={activeSale.subtotal_cents}
-                invoiceType="PRE-CUENTA"
+                invoiceType={noteSerie ? "NOTA DE VENTA" : "PRE-CUENTA"}
+                invoiceSeries={noteSerie}
+                invoiceNumber={noteNumero}
             />,
-            `Pre-cuenta Mesa ${tableId}`
+            `Nota de Venta Mesa ${tableId}`
         );
-        toast.success("Pre-cuenta enviada a impresora");
+        toast.success(noteSerie ? "Nota de Venta emitida e impresa" : "Pre-cuenta impresa");
     };
 
     const handleRemoveItem = async (lineId: string) => {
