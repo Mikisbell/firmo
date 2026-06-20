@@ -66,13 +66,16 @@ export class SupabaseEventBus {
                 this.pool = null;
             }
 
+            // SSL solo para hosts remotos. Supabase EXIGE SSL (cert fuera del trust store
+            // de Node en Vercel -> rejectUnauthorized:false), pero el postgres local de
+            // CI/dev (localhost) NO soporta SSL y forzarlo rompe la conexion.
+            const isLocalDb = /@(localhost|127\.0\.0\.1|postgres)[:/]/.test(this.connectionString)
+                || /sslmode=disable/.test(this.connectionString);
             // Crear pool de conexiones (pg sobre TCP)
             this.pool = new Pool({
                 connectionString: this.connectionString,
                 max: 10, // Máximo 10 conexiones en el pool
-                // Supabase EXIGE SSL y su certificado no está en el trust store por defecto
-                // de Node en Vercel; sin esto el handshake TLS cuelga (timeout).
-                ssl: { rejectUnauthorized: false },
+                ssl: isLocalDb ? false : { rejectUnauthorized: false },
             });
 
             // Errores en conexiones idle del pool: los logueamos para que NO suban como
