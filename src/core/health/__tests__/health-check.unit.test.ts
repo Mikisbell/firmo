@@ -182,16 +182,19 @@ describe('Health Check Service - Unit Tests', () => {
     });
 
     it('should handle timeout gracefully', async () => {
-      // Simulate slow database query (> 2 seconds)
+      // Servicio con timeout corto (500ms) para probar el corte real sin esperar
+      // el default de 8s. La query tarda 3s (> timeout) -> debe cortarse, no esperar.
+      const fastTimeoutService = new HealthCheckService(mockPrisma as unknown as PrismaClient, 500);
       mockPrisma.$queryRaw.mockImplementation(
         () => new Promise((resolve) => setTimeout(() => resolve([{ health_check: 1 }]), 3000))
       );
       mockPrisma.events.count.mockResolvedValue(10);
 
-      const result = await healthCheckService.check();
+      const result = await fastTimeoutService.check();
 
-      // Should complete within timeout
-      expect(result.responseTime).toBeLessThan(2500);
+      // El health check corta la query lenta en ~500ms (no espera los 3s) y reporta down.
+      expect(result.responseTime).toBeLessThan(1500);
+      expect(result.components.database.status).toBe('down');
     });
   });
 

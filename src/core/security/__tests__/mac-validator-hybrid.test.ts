@@ -97,7 +97,9 @@ describe('validateMAC', () => {
   });
 
   it('returns UNKNOWN_MAC when MAC is not found in database', async () => {
-    vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue(null);
+    // Modelo multi-device: validateMAC consulta findMany (array). Sin filas → MAC desconocido.
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([] as never);
 
     const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF');
 
@@ -107,38 +109,48 @@ describe('validateMAC', () => {
     expect(result.trustLevel).toBe('UNKNOWN');
   });
 
-  it('returns DEVICE_MISMATCH when MAC belongs to a different employee', async () => {
-    vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-      id: 'device-1',
-      mac_address: 'AA:BB:CC:DD:EE:FF',
-      tenant_id: 'tenant-1',
-      employee_id: 'different-employee',
-      terminal_id: ANY_TERMINAL_ID,
-      trust_level: 'TRUSTED',
-      first_seen: new Date(),
-      last_seen: new Date(),
-      is_active: true,
-    } as never);
+  it('is VALID when MAC is TRUSTED by another employee of the tenant (shared terminal)', async () => {
+    // Nuevo modelo: confianza a nivel TENANT. Un MAC registrado como TRUSTED por
+    // cualquier empleado del tenant es válido para todos (POS de terminal compartido).
+    // El antiguo reason DEVICE_MISMATCH fue eliminado a propósito en hardening.
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+      {
+        id: 'device-1',
+        mac_address: 'AA:BB:CC:DD:EE:FF',
+        tenant_id: 'tenant-1',
+        employee_id: 'different-employee',
+        terminal_id: ANY_TERMINAL_ID,
+        trust_level: 'TRUSTED',
+        first_seen: new Date(),
+        last_seen: new Date(),
+        is_active: true,
+      },
+    ] as never);
 
     const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF');
 
-    expect(result.isValid).toBe(false);
-    expect(result.reason).toBe('DEVICE_MISMATCH');
-    expect(result.trustLevel).toBe('BLOCKED');
+    expect(result.isValid).toBe(true);
+    expect(result.trustLevel).toBe('TRUSTED');
   });
 
-  it('returns BLOCKED_DEVICE when MAC is blocked', async () => {
-    vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-      id: 'device-1',
-      mac_address: 'AA:BB:CC:DD:EE:FF',
-      tenant_id: 'tenant-1',
-      employee_id: 'emp-1',
-      terminal_id: ANY_TERMINAL_ID,
-      trust_level: 'BLOCKED',
-      first_seen: new Date(),
-      last_seen: new Date(),
-      is_active: false,
-    } as never);
+  it('returns BLOCKED_DEVICE when MAC is blocked for THIS employee', async () => {
+    // El bloqueo es por empleado: solo se rechaza si existe una fila BLOCKED
+    // cuyo employee_id coincide con quien intenta autenticarse.
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+      {
+        id: 'device-1',
+        mac_address: 'AA:BB:CC:DD:EE:FF',
+        tenant_id: 'tenant-1',
+        employee_id: 'emp-1',
+        terminal_id: ANY_TERMINAL_ID,
+        trust_level: 'BLOCKED',
+        first_seen: new Date(),
+        last_seen: new Date(),
+        is_active: false,
+      },
+    ] as never);
 
     const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF');
 
@@ -147,18 +159,46 @@ describe('validateMAC', () => {
     expect(result.trustLevel).toBe('BLOCKED');
   });
 
+  it('is INVALID when MAC is known but NOT trusted by anyone (pending state)', async () => {
+    // Conocido pero sin fila TRUSTED → vuelve a requerir confirmación.
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+      {
+        id: 'device-1',
+        mac_address: 'AA:BB:CC:DD:EE:FF',
+        tenant_id: 'tenant-1',
+        employee_id: 'emp-1',
+        terminal_id: ANY_TERMINAL_ID,
+        trust_level: 'UNKNOWN',
+        first_seen: new Date(),
+        last_seen: new Date(),
+        is_active: true,
+      },
+    ] as never);
+
+    const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF');
+
+    expect(result.isValid).toBe(false);
+    expect(result.reason).toBe('UNKNOWN_MAC');
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.trustLevel).toBe('UNKNOWN');
+  });
+
   it('returns valid with DIFFERENT_TERMINAL warning for terminal mismatch', async () => {
-    vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-      id: 'device-1',
-      mac_address: 'AA:BB:CC:DD:EE:FF',
-      tenant_id: 'tenant-1',
-      employee_id: 'emp-1',
-      terminal_id: 'terminal-A',
-      trust_level: 'TRUSTED',
-      first_seen: new Date(),
-      last_seen: new Date(),
-      is_active: true,
-    } as never);
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+      {
+        id: 'device-1',
+        mac_address: 'AA:BB:CC:DD:EE:FF',
+        tenant_id: 'tenant-1',
+        employee_id: 'emp-1',
+        terminal_id: 'terminal-A',
+        trust_level: 'TRUSTED',
+        first_seen: new Date(),
+        last_seen: new Date(),
+        is_active: true,
+      },
+    ] as never);
 
     const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF', 'terminal-B');
 
@@ -167,18 +207,40 @@ describe('validateMAC', () => {
     expect(result.trustLevel).toBe('TRUSTED');
   });
 
-  it('returns fully valid when all checks pass (any terminal)', async () => {
-    vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-      id: 'device-1',
-      mac_address: 'AA:BB:CC:DD:EE:FF',
+  it('is VALID when terminal_mac_registry authorizes the MAC for the terminal', async () => {
+    // Atajo de nivel terminal: si el MAC está autorizado para ESTE terminal,
+    // es válido para cualquier empleado sin consultar device_mac_addresses.
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue({
+      id: 'registry-1',
       tenant_id: 'tenant-1',
-      employee_id: 'emp-1',
-      terminal_id: ANY_TERMINAL_ID,
-      trust_level: 'TRUSTED',
-      first_seen: new Date(),
-      last_seen: new Date(),
-      is_active: true,
+      terminal_id: 'terminal-A',
+      mac_address: 'AA:BB:CC:DD:EE:FF',
+      is_authorized: true,
     } as never);
+
+    const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF', 'terminal-A');
+
+    expect(result.isValid).toBe(true);
+    expect(result.trustLevel).toBe('TRUSTED');
+    // No debe consultar device_mac_addresses si el terminal ya autorizó el MAC.
+    expect(prisma.device_mac_addresses.findMany).not.toHaveBeenCalled();
+  });
+
+  it('returns fully valid when all checks pass (any terminal)', async () => {
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+      {
+        id: 'device-1',
+        mac_address: 'AA:BB:CC:DD:EE:FF',
+        tenant_id: 'tenant-1',
+        employee_id: 'emp-1',
+        terminal_id: ANY_TERMINAL_ID,
+        trust_level: 'TRUSTED',
+        first_seen: new Date(),
+        last_seen: new Date(),
+        is_active: true,
+      },
+    ] as never);
 
     const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF', 'any-terminal');
 
@@ -189,17 +251,20 @@ describe('validateMAC', () => {
   });
 
   it('returns fully valid when terminal matches exactly', async () => {
-    vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-      id: 'device-1',
-      mac_address: 'AA:BB:CC:DD:EE:FF',
-      tenant_id: 'tenant-1',
-      employee_id: 'emp-1',
-      terminal_id: 'terminal-A',
-      trust_level: 'TRUSTED',
-      first_seen: new Date(),
-      last_seen: new Date(),
-      is_active: true,
-    } as never);
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+      {
+        id: 'device-1',
+        mac_address: 'AA:BB:CC:DD:EE:FF',
+        tenant_id: 'tenant-1',
+        employee_id: 'emp-1',
+        terminal_id: 'terminal-A',
+        trust_level: 'TRUSTED',
+        first_seen: new Date(),
+        last_seen: new Date(),
+        is_active: true,
+      },
+    ] as never);
 
     const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF', 'terminal-A');
 
@@ -208,17 +273,20 @@ describe('validateMAC', () => {
   });
 
   it('skips terminal check when no terminalId is provided', async () => {
-    vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-      id: 'device-1',
-      mac_address: 'AA:BB:CC:DD:EE:FF',
-      tenant_id: 'tenant-1',
-      employee_id: 'emp-1',
-      terminal_id: 'terminal-A',
-      trust_level: 'TRUSTED',
-      first_seen: new Date(),
-      last_seen: new Date(),
-      is_active: true,
-    } as never);
+    vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+      {
+        id: 'device-1',
+        mac_address: 'AA:BB:CC:DD:EE:FF',
+        tenant_id: 'tenant-1',
+        employee_id: 'emp-1',
+        terminal_id: 'terminal-A',
+        trust_level: 'TRUSTED',
+        first_seen: new Date(),
+        last_seen: new Date(),
+        is_active: true,
+      },
+    ] as never);
 
     const result = await validateMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF');
 
@@ -242,7 +310,8 @@ describe('validateMAC', () => {
   it('property: unknown MAC always requires confirmation (100 runs)', async () => {
     await fc.assert(
       fc.asyncProperty(uuidArb, uuidArb, macArb, async (tenantId, employeeId, mac) => {
-        vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue(null);
+        vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+        vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([] as never);
 
         const result = await validateMAC(tenantId, employeeId, mac);
 
@@ -254,25 +323,28 @@ describe('validateMAC', () => {
     );
   });
 
-  // Property: blocked devices are always rejected regardless of employee match
-  it('property: blocked devices are always rejected (100 runs)', async () => {
+  // Property: devices blocked for THIS employee are always rejected
+  it('property: devices blocked for the requesting employee are always rejected (100 runs)', async () => {
     await fc.assert(
       fc.asyncProperty(
         uuidArb,
         uuidArb,
         macArb,
         async (tenantId, employeeId, mac) => {
-          vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-            id: 'device-1',
-            mac_address: mac.toUpperCase(),
-            tenant_id: tenantId,
-            employee_id: employeeId, // Same employee
-            terminal_id: ANY_TERMINAL_ID,
-            trust_level: 'BLOCKED', // But blocked
-            first_seen: new Date(),
-            last_seen: new Date(),
-            is_active: false,
-          } as never);
+          vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+          vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+            {
+              id: 'device-1',
+              mac_address: mac.toUpperCase(),
+              tenant_id: tenantId,
+              employee_id: employeeId, // Mismo empleado
+              terminal_id: ANY_TERMINAL_ID,
+              trust_level: 'BLOCKED', // Pero bloqueado para él
+              first_seen: new Date(),
+              last_seen: new Date(),
+              is_active: false,
+            },
+          ] as never);
 
           const result = await validateMAC(tenantId, employeeId, mac);
 
@@ -285,8 +357,9 @@ describe('validateMAC', () => {
     );
   });
 
-  // Property: device mismatch always returns BLOCKED trust level
-  it('property: device mismatch always returns BLOCKED trust level (100 runs)', async () => {
+  // Property (nuevo modelo tenant-trust): un MAC TRUSTED por OTRO empleado del tenant,
+  // sin fila BLOCKED para el empleado solicitante, es siempre VÁLIDO (terminal compartido).
+  it('property: a MAC trusted by another tenant employee is always valid (100 runs)', async () => {
     await fc.assert(
       fc.asyncProperty(
         uuidArb,
@@ -296,23 +369,25 @@ describe('validateMAC', () => {
         async (tenantId, employeeId, otherEmployeeId, mac) => {
           fc.pre(employeeId !== otherEmployeeId);
 
-          vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
-            id: 'device-1',
-            mac_address: mac.toUpperCase(),
-            tenant_id: tenantId,
-            employee_id: otherEmployeeId, // Different employee
-            terminal_id: ANY_TERMINAL_ID,
-            trust_level: 'TRUSTED',
-            first_seen: new Date(),
-            last_seen: new Date(),
-            is_active: true,
-          } as never);
+          vi.mocked(prisma.terminal_mac_registry.findFirst).mockResolvedValue(null);
+          vi.mocked(prisma.device_mac_addresses.findMany).mockResolvedValue([
+            {
+              id: 'device-1',
+              mac_address: mac.toUpperCase(),
+              tenant_id: tenantId,
+              employee_id: otherEmployeeId, // Otro empleado
+              terminal_id: ANY_TERMINAL_ID,
+              trust_level: 'TRUSTED',
+              first_seen: new Date(),
+              last_seen: new Date(),
+              is_active: true,
+            },
+          ] as never);
 
           const result = await validateMAC(tenantId, employeeId, mac);
 
-          expect(result.isValid).toBe(false);
-          expect(result.reason).toBe('DEVICE_MISMATCH');
-          expect(result.trustLevel).toBe('BLOCKED');
+          expect(result.isValid).toBe(true);
+          expect(result.trustLevel).toBe('TRUSTED');
         }
       ),
       { numRuns: 100 }
@@ -502,7 +577,9 @@ describe('registerMAC', () => {
     );
   });
 
-  it('throws when MAC is already registered to another employee', async () => {
+  it('allows registering a MAC already owned by another employee (shared terminal)', async () => {
+    // Nuevo modelo: los terminales POS son compartidos. registerMAC ya NO lanza
+    // cuando otro empleado tiene el MAC; hace upsert de la fila del nuevo empleado.
     vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
       id: 'existing-1',
       mac_address: 'AA:BB:CC:DD:EE:FF',
@@ -514,10 +591,20 @@ describe('registerMAC', () => {
       last_seen: new Date(),
       is_active: true,
     } as never);
+    vi.mocked(prisma.device_mac_addresses.upsert).mockResolvedValue({} as never);
 
     await expect(
       registerMAC('tenant-1', 'emp-1', 'AA:BB:CC:DD:EE:FF')
-    ).rejects.toThrow('already registered to another employee');
+    ).resolves.not.toThrow();
+
+    expect(prisma.device_mac_addresses.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          employee_id: 'emp-1',
+          trust_level: 'TRUSTED',
+        }),
+      })
+    );
   });
 
   it('allows re-registering MAC for the same employee', async () => {
@@ -539,8 +626,9 @@ describe('registerMAC', () => {
     ).resolves.not.toThrow();
   });
 
-  // Property: registering a MAC owned by different employee always throws
-  it('property: cross-employee registration always throws (50 runs)', async () => {
+  // Property (nuevo modelo): el registro cruzado entre empleados NUNCA lanza
+  // y siempre hace upsert de la fila del empleado solicitante (terminal compartido).
+  it('property: cross-employee registration never throws and upserts (50 runs)', async () => {
     await fc.assert(
       fc.asyncProperty(
         uuidArb,
@@ -550,16 +638,17 @@ describe('registerMAC', () => {
         async (tenantId, empId, otherEmpId, mac) => {
           fc.pre(empId !== otherEmpId);
 
+          vi.clearAllMocks();
           vi.mocked(prisma.device_mac_addresses.findFirst).mockResolvedValue({
             id: 'existing',
             mac_address: mac,
             tenant_id: tenantId,
             employee_id: otherEmpId,
           } as never);
+          vi.mocked(prisma.device_mac_addresses.upsert).mockResolvedValue({} as never);
 
-          await expect(registerMAC(tenantId, empId, mac)).rejects.toThrow(
-            'already registered to another employee'
-          );
+          await expect(registerMAC(tenantId, empId, mac)).resolves.not.toThrow();
+          expect(prisma.device_mac_addresses.upsert).toHaveBeenCalled();
         }
       ),
       { numRuns: 50 }

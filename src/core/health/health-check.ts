@@ -60,10 +60,13 @@ export interface HealthCheckResult {
  */
 export class HealthCheckService {
   private prisma: PrismaClient;
-  private readonly timeout = 8000; // 8s: margen para el cold-start de conexion DB en serverless
+  // 8s por defecto: margen para el cold-start de conexion DB en serverless.
+  // Inyectable para poder probar el mecanismo de timeout sin esperar 8s en los tests.
+  private readonly timeout: number;
 
-  constructor(prisma?: PrismaClient) {
+  constructor(prisma?: PrismaClient, timeoutMs = 8000) {
     this.prisma = prisma || prismaSingleton;
+    this.timeout = timeoutMs;
   }
 
   /**

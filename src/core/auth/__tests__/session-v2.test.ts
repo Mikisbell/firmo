@@ -23,6 +23,7 @@ import {
   startPeriodicFingerprintValidation,
   stopPeriodicFingerprintValidation,
   isPeriodicValidationRunning,
+  SESSION_TIMEOUT_MINUTES,
   type EmployeeRole,
   type TerminalRole,
 } from '../session-v2';
@@ -152,7 +153,7 @@ describe('Property 11: Session Activity Tracking and Timeout', () => {
     );
   });
 
-  it('should invalidate session after 15 minutes of inactivity', () => {
+  it('should invalidate session after the inactivity timeout (full shift)', () => {
     fc.assert(
       fc.property(
         terminalArb,
@@ -161,10 +162,10 @@ describe('Property 11: Session Activity Tracking and Timeout', () => {
         fc.integer({ min: 0, max: 100 }),
         (terminal, employee, fingerprint, riskScore) => {
           const session = createSession(terminal, employee, fingerprint, riskScore);
-          
-          // Simulate 16 minutes of inactivity by modifying last_activity_at
-          session.last_activity_at = new Date(Date.now() - 16 * 60 * 1000);
-          
+
+          // Simular inactividad mas alla del timeout (8h = turno completo)
+          session.last_activity_at = new Date(Date.now() - (SESSION_TIMEOUT_MINUTES + 1) * 60 * 1000);
+
           const validation = validateSession(session.id);
           
           expect(validation.valid).toBe(false);
@@ -749,9 +750,9 @@ describe('Helper Functions', () => {
           const session = createSession(terminal, employee, fingerprint, riskScore);
           
           const remaining = getSessionTimeRemaining(session);
-          
+
           expect(remaining).toBeGreaterThanOrEqual(0);
-          expect(remaining).toBeLessThanOrEqual(15);
+          expect(remaining).toBeLessThanOrEqual(SESSION_TIMEOUT_MINUTES);
           
           return true;
         }

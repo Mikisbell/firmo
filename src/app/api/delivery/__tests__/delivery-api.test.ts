@@ -41,16 +41,27 @@ vi.mock('@/src/core/db/prisma', () => ({
   },
 }));
 
-vi.mock('@/src/core/config/tenant', () => ({
-  getTenantId: () => 'tenant-test-001',
+// El route ahora obtiene tenant_id desde requirePosAuth (authResult.user.tenantId),
+// NO desde getTenantId/config. Mockeamos el guard de auth para que devuelva un
+// usuario autorizado con el tenant esperado.
+const mockAuth = vi.fn();
+vi.mock('@/src/core/middleware/pos-auth', () => ({
+  requirePosAuth: (...args: any[]) => mockAuth(...args),
 }));
 
 vi.mock('@/src/core/cache/redis.service', () => ({
   cache: { invalidatePattern: vi.fn().mockResolvedValue(undefined) },
 }));
 
+// El logger ahora expone createLogger además de la instancia logger.
 vi.mock('@/src/core/observability/structured-logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
+  createLogger: () => ({ error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() }),
+}));
+
+// El POST dispara notificación WhatsApp fire-and-forget; mockear para aislar.
+vi.mock('@/src/core/delivery/whatsapp-tracking', () => ({
+  sendDeliveryTrackingWhatsApp: vi.fn().mockResolvedValue(undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -71,6 +82,14 @@ function makeGetRequest(params: Record<string, string> = {}) {
   return new NextRequest(url.toString(), { method: 'GET' });
 }
 
+// Configura requirePosAuth como usuario autorizado con el tenant de prueba.
+function authed() {
+  mockAuth.mockResolvedValue({
+    authorized: true,
+    user: { id: 'user-1', tenantId: 'tenant-test-001', role: 'CASHIER', terminalId: 'term-1' },
+  });
+}
+
 const VALID_DELIVERY_BODY = {
   orderId: '11111111-1111-1111-1111-111111111111',
   addressText: 'Av. Javier Prado 1234, San Isidro',
@@ -85,6 +104,7 @@ const VALID_DELIVERY_BODY = {
 describe('POST /api/delivery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authed();
   });
 
   it('debe crear delivery exitosamente con datos validos', async () => {
@@ -206,6 +226,7 @@ describe('POST /api/delivery', () => {
 describe('GET /api/delivery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authed();
   });
 
   it('debe listar deliveries con paginacion', async () => {

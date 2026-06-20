@@ -59,6 +59,9 @@ vi.mock('@/src/core/middleware/admin-auth', () => ({
 
 vi.mock('@/src/core/observability/structured-logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
+  // La cadena route->admin-auth llama createLogger() en carga de modulo;
+  // sin esto el import('../route') revienta y TODAS las pruebas fallan en cascada.
+  createLogger: () => ({ error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -144,7 +147,8 @@ describe('POST /api/drivers', () => {
     expect(mockDriverCreate).toHaveBeenCalledWith(
       'tenant-drv-001',
       'Test Driver',
-      undefined,
+      undefined, // phone
+      undefined, // employeeId
     );
   });
 
@@ -203,7 +207,8 @@ describe('POST /api/drivers', () => {
     expect(mockDriverCreate).toHaveBeenCalledWith(
       'tenant-drv-001',
       'Pedro',
-      undefined,
+      undefined, // phone
+      undefined, // employeeId
     );
   });
 
