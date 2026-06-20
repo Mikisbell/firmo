@@ -8,9 +8,11 @@
  */
 
 import { useState } from 'react';
-import { FileText, Search, Loader2, ArrowRight } from 'lucide-react';
-import { useSalesNotes } from '@/src/hooks/useSalesNotes';
+import { FileText, Search, Loader2, ArrowRight, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { useSalesNotes, type SalesNoteListItem } from '@/src/hooks/useSalesNotes';
 import { Badge, Card, PageHeader, EmptyState, Select, Input, Pagination } from '@/src/components/ui';
+import { SalesNoteVoidModal } from '@/src/components/SalesNoteVoidModal';
 
 function centsToSoles(cents: number): string {
   return `S/ ${(cents / 100).toFixed(2)}`;
@@ -32,13 +34,31 @@ export default function SalesNotesPage() {
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState('');
   const [search, setSearch] = useState('');
+  const [voidingNote, setVoidingNote] = useState<SalesNoteListItem | null>(null);
 
-  const { salesNotes, pagination, isLoading } = useSalesNotes({
+  const { salesNotes, pagination, isLoading, mutate } = useSalesNotes({
     page,
     limit: 20,
     status: filterStatus || undefined,
     search: search || undefined,
   });
+
+  const handleVoid = async (reason: string) => {
+    if (!voidingNote) return;
+    const res = await fetch(`/api/admin/sales-notes/${voidingNote.id}/void`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: 'Error al anular' }));
+      toast.error(data.error ?? 'Error al anular la nota');
+      return;
+    }
+    toast.success(`Nota ${voidingNote.serie}-${voidingNote.numero} anulada`);
+    setVoidingNote(null);
+    mutate();
+  };
 
   return (
     <div className="p-4 space-y-6">
@@ -93,6 +113,7 @@ export default function SalesNotesPage() {
                   <th className="px-4 py-3 text-center text-xs font-bold text-park-gray-400 uppercase">Estado</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-park-gray-400 uppercase">Comprobante</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-park-gray-400 uppercase">Fecha</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold text-park-gray-400 uppercase">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,6 +143,19 @@ export default function SalesNotesPage() {
                     <td className="px-4 py-3 text-park-gray-400 text-xs">
                       {new Date(note.created_at).toLocaleDateString('es-PE')}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      {note.status === 'OPEN' ? (
+                        <button
+                          onClick={() => setVoidingNote(note)}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-red-400 hover:text-red-300"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          Anular
+                        </button>
+                      ) : (
+                        <span className="text-park-gray-600">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -136,6 +170,14 @@ export default function SalesNotesPage() {
           page={page}
           totalPages={pagination.pages}
           onPageChange={setPage}
+        />
+      )}
+
+      {voidingNote && (
+        <SalesNoteVoidModal
+          label={`${voidingNote.serie}-${voidingNote.numero}`}
+          onClose={() => setVoidingNote(null)}
+          onConfirm={handleVoid}
         />
       )}
     </div>
