@@ -469,6 +469,62 @@ ${lineas}
 </SummaryDocuments>`;
 }
 
+export interface UblComunicacionBaja {
+  /** RA-YYYYMMDD-N */
+  id: string;
+  /** Fecha de emision de los documentos a dar de baja (YYYY-MM-DD). */
+  fechaReferencia: string;
+  /** Fecha de la comunicacion (YYYY-MM-DD). */
+  fechaEmision: string;
+  emisor: UblEmisor;
+  documentos: Array<{
+    /** Catalogo 01: 01=factura, 03=boleta. */
+    tipoDoc: string;
+    serie: string;
+    numero: string;
+    motivo: string;
+  }>;
+}
+
+/**
+ * Genera el XML UBL de la Comunicacion de Baja (RA), SIN firmar. Anula facturas (no boletas;
+ * las boletas se anulan via Resumen Diario con estado 3). UBL 2.0, namespace sac:. ASINCRONO.
+ */
+export function generateVoidedXml(v: UblComunicacionBaja): string {
+  const lineas = v.documentos.map((d, i) => `  <sac:VoidedDocumentsLine>
+    <cbc:LineID>${i + 1}</cbc:LineID>
+    <cbc:DocumentTypeCode>${d.tipoDoc}</cbc:DocumentTypeCode>
+    <sac:DocumentSerialID>${d.serie}</sac:DocumentSerialID>
+    <sac:DocumentNumberID>${d.numero}</sac:DocumentNumberID>
+    <sac:VoidReasonDescription>${cdata(d.motivo)}</sac:VoidReasonDescription>
+  </sac:VoidedDocumentsLine>`).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<VoidedDocuments xmlns="urn:sunat:names:specification:ubl:peru:schema:xsd:VoidedDocuments-1" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sac="urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1">
+  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent/>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>
+  <cbc:UBLVersionID>2.0</cbc:UBLVersionID>
+  <cbc:CustomizationID>1.0</cbc:CustomizationID>
+  <cbc:ID>${v.id}</cbc:ID>
+  <cbc:ReferenceDate>${v.fechaReferencia}</cbc:ReferenceDate>
+  <cbc:IssueDate>${v.fechaEmision}</cbc:IssueDate>
+${signatureXml(v.emisor)}
+  <cac:AccountingSupplierParty>
+    <cbc:CustomerAssignedAccountID>${v.emisor.ruc}</cbc:CustomerAssignedAccountID>
+    <cbc:AdditionalAccountID>6</cbc:AdditionalAccountID>
+    <cac:Party>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>${cdata(v.emisor.razonSocial)}</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+${lineas}
+</VoidedDocuments>`;
+}
+
 /** Genera el XML UBL 2.1 de una nota de debito (08), SIN firmar. motivoCodigo = Catalogo 10. */
 export function generateDebitNoteXml(nd: UblNotaDebito): string {
   const id = `${nd.serie}-${nd.numero}`;

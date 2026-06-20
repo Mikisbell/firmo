@@ -24,6 +24,7 @@ const mockSignXmlSunat = vi.fn();
 const mockGenerateComprobante = vi.fn();
 const mockGenerateCreditNote = vi.fn();
 const mockGenerateSummary = vi.fn();
+const mockGenerateVoided = vi.fn();
 
 vi.mock('nodefact', () => ({
   generateXML: vi.fn().mockReturnValue('<Invoice>mock-xml</Invoice>'),
@@ -75,6 +76,8 @@ vi.mock('../sunat-ubl', () => ({
   generateComprobanteXml: (...args: unknown[]) => mockGenerateComprobante(...args),
   generateCreditNoteXml: (...args: unknown[]) => mockGenerateCreditNote(...args),
   generateSummaryXml: (...args: unknown[]) => mockGenerateSummary(...args),
+  generateVoidedXml: (...args: unknown[]) => mockGenerateVoided(...args),
+  generateDebitNoteXml: (...args: unknown[]) => mockGenerateCreditNote(...args),
 }));
 
 vi.mock('@/src/core/observability/logger-pino', () => ({
@@ -192,6 +195,7 @@ describe('SunatDirectAdapter', () => {
     mockGenerateComprobante.mockReturnValue('<Invoice>mock-xml</Invoice>');
     mockGenerateCreditNote.mockReturnValue('<CreditNote>mock-xml</CreditNote>');
     mockGenerateSummary.mockReturnValue('<SummaryDocuments>mock-xml</SummaryDocuments>');
+    mockGenerateVoided.mockReturnValue('<VoidedDocuments>mock-xml</VoidedDocuments>');
 
     mockSendBill.mockResolvedValue({
       success: true,
