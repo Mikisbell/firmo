@@ -79,6 +79,10 @@ function createMockPrisma() {
     events: {
       create: vi.fn(),
     },
+    sales_notes: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({}),
+    },
     tenant_settings: {
       findUnique: vi.fn().mockResolvedValue({ loyalty_enabled: false }),
     },
@@ -284,6 +288,60 @@ describe('InvoiceService', () => {
       const result = await service.emitInvoice(input);
 
       expect(result.success).toBe(true);
+    });
+
+    it('debe auto-convertir la Nota de Venta abierta del check al emitir el comprobante', async () => {
+      const input = createEmitInput();
+
+      prisma.orders.findFirst.mockResolvedValueOnce({
+        id: 'order-456', tenant_id: 'tenant-123', status: 'PAID',
+        checks: [{ check_id: 'check-789', payment: { status: 'PAID' } }],
+      });
+      prisma.invoices.findFirst.mockResolvedValueOnce(null);
+      prisma.$transaction.mockResolvedValueOnce({ series: 'B001', invoiceNumber: '00000001' });
+      prisma.invoices.create.mockResolvedValueOnce(createMockInvoice());
+      prisma.events.create.mockResolvedValue({});
+      prisma.invoice_queue.create.mockResolvedValueOnce({});
+
+      // Hay una nota de venta ABIERTA para este check
+      prisma.sales_notes.findFirst.mockResolvedValueOnce({ id: 'sn-001' });
+
+      const result = await service.emitInvoice(input);
+
+      expect(result.success).toBe(true);
+      // La nota se marca CONVERTED enlazada al comprobante
+      expect(prisma.sales_notes.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'sn-001' },
+          data: expect.objectContaining({ status: 'CONVERTED', invoice_type: 'BOLETA' }),
+        }),
+      );
+      // Se emite el evento SALES_NOTE_CONVERTED
+      expect(prisma.events.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ type: 'SALES_NOTE_CONVERTED', entity_id: 'sn-001' }),
+        }),
+      );
+    });
+
+    it('NO debe tocar sales_notes si el check no tiene Nota de Venta abierta', async () => {
+      const input = createEmitInput();
+
+      prisma.orders.findFirst.mockResolvedValueOnce({
+        id: 'order-456', tenant_id: 'tenant-123', status: 'PAID',
+        checks: [{ check_id: 'check-789', payment: { status: 'PAID' } }],
+      });
+      prisma.invoices.findFirst.mockResolvedValueOnce(null);
+      prisma.$transaction.mockResolvedValueOnce({ series: 'B001', invoiceNumber: '00000001' });
+      prisma.invoices.create.mockResolvedValueOnce(createMockInvoice());
+      prisma.events.create.mockResolvedValue({});
+      prisma.invoice_queue.create.mockResolvedValueOnce({});
+      prisma.sales_notes.findFirst.mockResolvedValueOnce(null); // boleta directa, sin nota
+
+      const result = await service.emitInvoice(input);
+
+      expect(result.success).toBe(true);
+      expect(prisma.sales_notes.update).not.toHaveBeenCalled();
     });
   });
 
