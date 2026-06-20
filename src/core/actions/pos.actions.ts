@@ -8,6 +8,11 @@ import type {
 } from "@/src/core/domain/events";
 import { getSyncClient } from "@/src/core/sync/client";
 import { LIMITS, LIMIT_ERRORS } from "@/src/core/constants/limits";
+import {
+  salesNoteSerie,
+  formatSalesNoteNumero,
+  nextSalesNoteNumero,
+} from "@/src/core/services/sales-note-numbering";
 
 // Helper para obtener secuencia de forma segura
 async function getNextSequence(): Promise<number> {
@@ -338,8 +343,9 @@ export const POSActions = {
 
   /**
    * Emitir una NOTA DE VENTA (documento interno NO fiscal) para un check.
-   * serie/numero los calcula el llamador; el unique DB (tenant,serie,numero) y
-   * (tenant,order,check) son la red de seguridad ante colisiones offline.
+   * La serie se deriva del terminal (unica por terminal) y el numero es un
+   * correlativo local leido de Dexie -> la UI no puede equivocarse. El unique DB
+   * (tenant,serie,numero) y (tenant,order,check) son la red de seguridad final.
    */
   async issueSalesNote(
     tenant_id: string,
@@ -347,11 +353,27 @@ export const POSActions = {
     actor_id: string,
     order_id: string,
     check_id: string,
-    serie: string,
-    numero: string,
     total_cents: number,
-  ) {
+  ): Promise<{ sales_note_id: string; serie: string; numero: string }> {
+    const serie = salesNoteSerie(terminal_id);
+
+    // Idempotencia por check: si ya se emitio una nota para este order+check
+    // (ej. el mozo reimprime la pre-cuenta), reusamos la misma -> no quema correlativos.
+    const prior = await db.events.where("event_type").equals("SALES_NOTE_ISSUED").toArray();
+    const priorPayloads = prior.map(
+      (e) => e.payload as { sales_note_id?: string; order_id?: string; check_id?: string; serie?: string; numero?: string },
+    );
+    const already = priorPayloads.find((p) => p.order_id === order_id && p.check_id === check_id);
+    if (already?.sales_note_id && already.serie && already.numero) {
+      return { sales_note_id: already.sales_note_id, serie: already.serie, numero: already.numero };
+    }
+
     const sales_note_id = newUUID();
+    // Correlativo local: max(numeros emitidos en esta serie) + 1, desde Dexie.
+    const existingNumeros = priorPayloads
+      .filter((p) => p.serie === serie && typeof p.numero === "string")
+      .map((p) => p.numero as string);
+    const numero = formatSalesNoteNumero(nextSalesNoteNumero(existingNumeros));
 
     await appendEvent(tenant_id, terminal_id, {
       event_id: newUUID(),
@@ -371,7 +393,7 @@ export const POSActions = {
       },
     });
 
-    return sales_note_id;
+    return { sales_note_id, serie, numero };
   },
 
   /**
