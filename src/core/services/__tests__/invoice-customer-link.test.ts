@@ -65,6 +65,10 @@ function createMockPrisma() {
     events: {
       create: vi.fn().mockResolvedValue({}),
     },
+    sales_notes: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({}),
+    },
     tenant_settings: {
       findUnique: vi.fn().mockResolvedValue({ loyalty_enabled: false }),
     },
