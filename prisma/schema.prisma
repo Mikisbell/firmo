@@ -658,6 +658,29 @@ model invoices {
   @@index([tenant_id, customer_id])
 }
 
+// Nota de Venta: documento interno NO fiscal (pre-cuenta) convertible a boleta/factura.
+// Read-model proyectado desde eventos SALES_NOTE_*. status: OPEN | CONVERTED | VOIDED.
+model sales_notes {
+  id           String    @id @db.Uuid
+  tenant_id    String    @db.Uuid
+  order_id     String    @db.Uuid
+  check_id     String
+  serie        String
+  numero       String
+  total_cents  Int
+  status       String    @default("OPEN")
+  invoice_id   String?   @db.Uuid
+  invoice_type String?
+  void_reason  String?
+  converted_at DateTime? @db.Timestamptz(6)
+  voided_at    DateTime? @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@unique([tenant_id, order_id, check_id])
+  @@unique([tenant_id, serie, numero])
+  @@index([tenant_id, created_at(sort: Desc)])
+}
+
 model payments {
   id             String   @id @db.Uuid
   tenant_id      String   @db.Uuid
