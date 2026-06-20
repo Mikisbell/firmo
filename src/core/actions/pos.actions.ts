@@ -337,6 +337,98 @@ export const POSActions = {
   },
 
   /**
+   * Emitir una NOTA DE VENTA (documento interno NO fiscal) para un check.
+   * serie/numero los calcula el llamador; el unique DB (tenant,serie,numero) y
+   * (tenant,order,check) son la red de seguridad ante colisiones offline.
+   */
+  async issueSalesNote(
+    tenant_id: string,
+    terminal_id: string,
+    actor_id: string,
+    order_id: string,
+    check_id: string,
+    serie: string,
+    numero: string,
+    total_cents: number,
+  ) {
+    const sales_note_id = newUUID();
+
+    await appendEvent(tenant_id, terminal_id, {
+      event_id: newUUID(),
+      event_type: "SALES_NOTE_ISSUED",
+      aggregate_type: "SALES_NOTE",
+      aggregate_id: sales_note_id,
+      correlation_id: order_id,
+      causation_id: null,
+      actor_id,
+      payload: {
+        sales_note_id,
+        order_id,
+        check_id,
+        serie,
+        numero,
+        total_cents,
+      },
+    });
+
+    return sales_note_id;
+  },
+
+  /**
+   * Convertir una nota de venta en comprobante (boleta/factura).
+   * El comprobante ya debe estar emitido (invoice_id). El reducer/proyeccion
+   * impiden doble conversion y conversion de notas anuladas.
+   */
+  async convertSalesNote(
+    tenant_id: string,
+    terminal_id: string,
+    actor_id: string,
+    sales_note_id: string,
+    invoice_id: string,
+    invoice_type: "BOLETA" | "FACTURA",
+  ) {
+    await appendEvent(tenant_id, terminal_id, {
+      event_id: newUUID(),
+      event_type: "SALES_NOTE_CONVERTED",
+      aggregate_type: "SALES_NOTE",
+      aggregate_id: sales_note_id,
+      correlation_id: sales_note_id,
+      causation_id: null,
+      actor_id,
+      payload: {
+        sales_note_id,
+        invoice_id,
+        invoice_type,
+      },
+    });
+  },
+
+  /**
+   * Anular una nota de venta abierta (no convertida).
+   */
+  async voidSalesNote(
+    tenant_id: string,
+    terminal_id: string,
+    actor_id: string,
+    sales_note_id: string,
+    reason: string,
+  ) {
+    await appendEvent(tenant_id, terminal_id, {
+      event_id: newUUID(),
+      event_type: "SALES_NOTE_VOIDED",
+      aggregate_type: "SALES_NOTE",
+      aggregate_id: sales_note_id,
+      correlation_id: sales_note_id,
+      causation_id: null,
+      actor_id,
+      payload: {
+        sales_note_id,
+        reason,
+      },
+    });
+  },
+
+  /**
    * Open shift
    */
   async openShift(
