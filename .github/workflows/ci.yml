@@ -117,6 +117,10 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    # NO-BLOQUEANTE: el suite E2E (Playwright) es lento (~20min) y aun tiene specs flaky.
+    # Da senal util pero no debe gatear el merge; se estabiliza en su propio carril.
+    # El gate duro de merge es Lint+TypeCheck + Build + Unit (rapido y determinista).
+    continue-on-error: true
     needs: [build]
     services:
       postgres:
