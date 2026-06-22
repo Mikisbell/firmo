@@ -83,6 +83,28 @@ describe("Role-Based Event Validation", () => {
         });
 
         // =====================================================
+        // Regresion: Nota de Venta (SALES_NOTE_*) emitible por caja/mozo.
+        // Bug: faltaban en ROLE_PERMISSIONS -> el sync del ingest rechazaba
+        // la pre-cuenta con ROLE_NOT_AUTHORIZED (funcionaba en Dexie local
+        // pero no propagaba al servidor).
+        // =====================================================
+        it("SALES_NOTE_* es emitible por roles de venta (caja, mozo, gerencia)", () => {
+            const salesNoteEvents = [
+                "SALES_NOTE_ISSUED",
+                "SALES_NOTE_CONVERTED",
+                "SALES_NOTE_VOIDED",
+            ] as const;
+            const sellingRoles = [
+                "OWNER", "ADMIN", "MANAGER", "SUPERVISOR", "CASHIER", "WAITER",
+            ] as const;
+            for (const role of sellingRoles) {
+                for (const evt of salesNoteEvents) {
+                    expect(canRoleEmitEvent(role, evt).allowed).toBe(true);
+                }
+            }
+        });
+
+        // =====================================================
         // Property 4: Non-system events require role
         // Validates: Events without role are rejected
         // =====================================================

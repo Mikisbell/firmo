@@ -479,6 +479,62 @@ async function projectEvent(
                 break;
             }
 
+            case "SALES_NOTE_ISSUED": {
+                // Nota de Venta (pre-cuenta interna). Mismo modelo que el registry
+                // (sales-note-projections.ts): upsert idempotente por check.
+                const p = event.payload as PayloadOf<"SALES_NOTE_ISSUED">;
+                await tx.sales_notes.upsert({
+                    where: {
+                        tenant_id_order_id_check_id: {
+                            tenant_id,
+                            order_id: p.order_id,
+                            check_id: p.check_id,
+                        },
+                    },
+                    create: {
+                        id: p.sales_note_id,
+                        tenant_id,
+                        order_id: p.order_id,
+                        check_id: p.check_id,
+                        serie: p.serie,
+                        numero: p.numero,
+                        total_cents: p.total_cents,
+                        status: "OPEN",
+                        created_at: new Date(occurred_at),
+                    },
+                    update: {},
+                });
+                break;
+            }
+
+            case "SALES_NOTE_CONVERTED": {
+                // Solo afecta notas OPEN (no pisa CONVERTED/VOIDED). Defensa en profundidad.
+                const p = event.payload as PayloadOf<"SALES_NOTE_CONVERTED">;
+                await tx.sales_notes.updateMany({
+                    where: { tenant_id, id: p.sales_note_id, status: "OPEN" },
+                    data: {
+                        status: "CONVERTED",
+                        invoice_id: p.invoice_id,
+                        invoice_type: p.invoice_type,
+                        converted_at: new Date(occurred_at),
+                    },
+                });
+                break;
+            }
+
+            case "SALES_NOTE_VOIDED": {
+                const p = event.payload as PayloadOf<"SALES_NOTE_VOIDED">;
+                await tx.sales_notes.updateMany({
+                    where: { tenant_id, id: p.sales_note_id, status: "OPEN" },
+                    data: {
+                        status: "VOIDED",
+                        void_reason: p.reason,
+                        voided_at: new Date(occurred_at),
+                    },
+                });
+                break;
+            }
+
             case "SHIFT_OPENED": {
                 const p = event.payload as PayloadOf<"SHIFT_OPENED">;
 
