@@ -4,6 +4,7 @@ import prisma from "@/src/core/db/prisma";
 import { ingestRequestSchema, type ParkEvent, type PaymentMethod } from "@/src/core/domain/events";
 import { validateEvent, type ValidationResult } from "@/src/core/validation";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
+import { markAsProcessed } from "@/src/core/events/mark-processed";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
@@ -110,47 +111,9 @@ async function checkDependencies(
     return { hasDependency: false };
 }
 
-/**
- * Marca un evento como procesado de manera atómica.
- * Usa INSERT con manejo de constraint violation para idempotencia.
- *
- * @returns { isDuplicate: boolean } - true si el evento ya fue procesado
- */
-async function markAsProcessed(
-    tx: Prisma.TransactionClient,
-    event: ParkEvent
-): Promise<{ isDuplicate: boolean }> {
-    try {
-        // Intentar insertar en processed_events
-        // Si el evento ya existe, el constraint UNIQUE en event_id causará P2002
-        await tx.processed_events.create({
-            data: {
-                event_id: event.event_id,
-                tenant_id: event.tenant_id,
-                aggregate_id: event.aggregate_id,
-                event_type: event.event_type,
-                processor: 'ingest-api',
-            }
-        });
-
-        return { isDuplicate: false };
-    } catch (e: unknown) {
-        // P2002 = Unique constraint violation (evento duplicado)
-        if (e && typeof e === 'object' && 'code' in e && e.code === 'P2002') {
-            // Logging estructurado para eventos deduplicados
-            logger.info('Evento duplicado detectado, ya fue procesado', {
-                eventId: event.event_id,
-                tenantId: event.tenant_id,
-                eventType: event.event_type,
-                aggregateId: event.aggregate_id,
-                processor: 'ingest-api',
-            });
-            return { isDuplicate: true };
-        }
-        // Otro error - propagar
-        throw e;
-    }
-}
+// markAsProcessed se extrajo a `@/src/core/events/mark-processed` para poder
+// testear contra la DB real la invariante de idempotencia (que un duplicado NO
+// aborte la transacción). Ver el import al inicio del archivo.
 
 /**
  * Narrows the payload of a ParkEvent for a given event_type literal.

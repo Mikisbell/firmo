@@ -205,6 +205,9 @@ describe('POST /api/events/ingest', () => {
     mockTransaction.mockImplementation(async (fn: Function) => {
       // Provide a mock tx that the function can call into
       const tx = {
+        // markAsProcessed ahora usa INSERT ... ON CONFLICT vía $executeRaw.
+        // 1 = fila insertada (evento nuevo, no duplicado).
+        $executeRaw: vi.fn().mockResolvedValue(1),
         processed_events: {
           create: vi.fn().mockResolvedValue({}),
         },
