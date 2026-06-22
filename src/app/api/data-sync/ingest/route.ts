@@ -4,6 +4,8 @@ import prisma from "@/src/core/db/prisma";
 import { ingestRequestSchema, type ParkEvent, type PaymentMethod } from "@/src/core/domain/events";
 import { validateEvent, type ValidationResult } from "@/src/core/validation";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
+import { markAsProcessed } from "@/src/core/events/mark-processed";
+import { runWithSerializationRetry } from "@/src/core/db/serialization-retry";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
@@ -110,47 +112,9 @@ async function checkDependencies(
     return { hasDependency: false };
 }
 
-/**
- * Marca un evento como procesado de manera atómica.
- * Usa INSERT con manejo de constraint violation para idempotencia.
- *
- * @returns { isDuplicate: boolean } - true si el evento ya fue procesado
- */
-async function markAsProcessed(
-    tx: Prisma.TransactionClient,
-    event: ParkEvent
-): Promise<{ isDuplicate: boolean }> {
-    try {
-        // Intentar insertar en processed_events
-        // Si el evento ya existe, el constraint UNIQUE en event_id causará P2002
-        await tx.processed_events.create({
-            data: {
-                event_id: event.event_id,
-                tenant_id: event.tenant_id,
-                aggregate_id: event.aggregate_id,
-                event_type: event.event_type,
-                processor: 'ingest-api',
-            }
-        });
-
-        return { isDuplicate: false };
-    } catch (e: unknown) {
-        // P2002 = Unique constraint violation (evento duplicado)
-        if (e && typeof e === 'object' && 'code' in e && e.code === 'P2002') {
-            // Logging estructurado para eventos deduplicados
-            logger.info('Evento duplicado detectado, ya fue procesado', {
-                eventId: event.event_id,
-                tenantId: event.tenant_id,
-                eventType: event.event_type,
-                aggregateId: event.aggregate_id,
-                processor: 'ingest-api',
-            });
-            return { isDuplicate: true };
-        }
-        // Otro error - propagar
-        throw e;
-    }
-}
+// markAsProcessed se extrajo a `@/src/core/events/mark-processed` para poder
+// testear contra la DB real la invariante de idempotencia (que un duplicado NO
+// aborte la transacción). Ver el import al inicio del archivo.
 
 /**
  * Narrows the payload of a ParkEvent for a given event_type literal.
@@ -475,6 +439,62 @@ async function projectEvent(
                         creditNoteId: p.credit_note_id,
                         error: err instanceof Error ? err.message : String(err),
                     });
+                });
+                break;
+            }
+
+            case "SALES_NOTE_ISSUED": {
+                // Nota de Venta (pre-cuenta interna). Mismo modelo que el registry
+                // (sales-note-projections.ts): upsert idempotente por check.
+                const p = event.payload as PayloadOf<"SALES_NOTE_ISSUED">;
+                await tx.sales_notes.upsert({
+                    where: {
+                        tenant_id_order_id_check_id: {
+                            tenant_id,
+                            order_id: p.order_id,
+                            check_id: p.check_id,
+                        },
+                    },
+                    create: {
+                        id: p.sales_note_id,
+                        tenant_id,
+                        order_id: p.order_id,
+                        check_id: p.check_id,
+                        serie: p.serie,
+                        numero: p.numero,
+                        total_cents: p.total_cents,
+                        status: "OPEN",
+                        created_at: new Date(occurred_at),
+                    },
+                    update: {},
+                });
+                break;
+            }
+
+            case "SALES_NOTE_CONVERTED": {
+                // Solo afecta notas OPEN (no pisa CONVERTED/VOIDED). Defensa en profundidad.
+                const p = event.payload as PayloadOf<"SALES_NOTE_CONVERTED">;
+                await tx.sales_notes.updateMany({
+                    where: { tenant_id, id: p.sales_note_id, status: "OPEN" },
+                    data: {
+                        status: "CONVERTED",
+                        invoice_id: p.invoice_id,
+                        invoice_type: p.invoice_type,
+                        converted_at: new Date(occurred_at),
+                    },
+                });
+                break;
+            }
+
+            case "SALES_NOTE_VOIDED": {
+                const p = event.payload as PayloadOf<"SALES_NOTE_VOIDED">;
+                await tx.sales_notes.updateMany({
+                    where: { tenant_id, id: p.sales_note_id, status: "OPEN" },
+                    data: {
+                        status: "VOIDED",
+                        void_reason: p.reason,
+                        voided_at: new Date(occurred_at),
+                    },
                 });
                 break;
             }
@@ -953,7 +973,17 @@ export async function POST(req: NextRequest) {
         // Se llena durante la proyección y se procesa DESPUÉS del commit.
         const deductionSideEffects: DeductionSideEffect[] = [];
 
-        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        // Reintenta ante 40001/40P01. Los acumuladores se RESETEAN al inicio de
+        // cada intento porque se llenan dentro de la transacción: sin el reset,
+        // un reintento duplicaría las entradas de un intento abortado.
+        await runWithSerializationRetry(async () => {
+          deduped_event_ids.length = 0;
+          rejected.length = 0;
+          merged.length = 0;
+          acceptedEvents.length = 0;
+          deductionSideEffects.length = 0;
+
+          await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             for (const ev of secureEvents) {
                 // 1. DEDUPLICATION CHECK FIRST (atomic with constraint)
                 // Marcar como procesado ANTES de cualquier otra operación
@@ -1176,10 +1206,11 @@ export async function POST(req: NextRequest) {
 
                 acceptedEvents.push(migrated);
             }
-        }, {
+          }, {
             timeout: 30000, // 30 seconds
             maxWait: 10000, // 10 seconds max wait for transaction slot
             isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
+          });
         });
 
         txSpan.setAttribute('ingest.accepted', acceptedEvents.length);

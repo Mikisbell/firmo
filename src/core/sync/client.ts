@@ -554,11 +554,16 @@ export class SyncClient {
                 if (!r.ok && data?.error) {
                     const statusCode = r.status;
                     
-                    logger.error('sync.server_rejected', 'Server rejected batch', undefined, { 
+                    logger.error('sync.server_rejected', 'Server rejected batch', undefined, {
                         error_code: data.error.error_code,
                         message: data.error.message,
                         status: statusCode,
-                        retryable: data.error.retryable
+                        retryable: data.error.retryable,
+                        // El error REAL de la DB (ej. el mensaje de Postgres) viaja en
+                        // error.context.db_message; sin esto el 500 queda enmascarado como
+                        // "Error CRITICO" y no se puede diagnosticar la causa raiz.
+                        db_message: data.error.context?.db_message,
+                        context: data.error.context,
                     });
                     
                     // HTTP 429 → Respetar Retry-After header

@@ -148,6 +148,20 @@ for (const role of ["CASHIER", "WAITER", "KITCHEN", "COOK", "PACKER", "BAR", "DR
     }
 }
 
+// Nota de Venta (pre-cuenta interna NO fiscal). El mozo (WAITER) la emite/anula,
+// caja (CASHIER) emite/anula/convierte, y los admins todo. Sin estos permisos el
+// ingest RECHAZA los eventos SALES_NOTE_* al sincronizar y la nota nunca llega al server.
+const SALES_NOTE_EVENTS: EventType[] = [
+    "SALES_NOTE_ISSUED",
+    "SALES_NOTE_CONVERTED",
+    "SALES_NOTE_VOIDED",
+];
+for (const role of ["OWNER", "ADMIN", "MANAGER", "SUPERVISOR", "CASHIER", "WAITER"] as const) {
+    for (const evt of SALES_NOTE_EVENTS) {
+        ROLE_PERMISSIONS[role].add(evt);
+    }
+}
+
 // Eventos que requieren autorización de MANAGER/ADMIN
 const REQUIRES_MANAGER_APPROVAL: Set<EventType> = new Set([
     "ORDER_ITEM_VOIDED",
