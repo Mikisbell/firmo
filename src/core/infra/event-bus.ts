@@ -12,7 +12,6 @@
  * @module core/infra/event-bus
  */
 
-import { EventEmitter } from "events";
 import { ParkEvent } from "@/src/core/domain/events";
 import { SupabaseRealtimeEventBus } from "@/src/core/realtime/supabase-realtime-event-bus";
 import { createLogger } from '@/src/core/observability/structured-logger';
@@ -29,46 +28,27 @@ export interface EventBus {
     /**
      * Publicar evento a un tenant específico.
      *
+     * No hay `subscribe()` server-side: los clientes se suscriben DIRECTO a
+     * Supabase Realtime por WebSocket (ver src/core/sync/client.ts). El servidor
+     * solo emite.
+     *
      * @param tenantId - ID del tenant (UUID)
      * @param event - Evento a publicar
      */
     publish(tenantId: string, event: ParkEvent): Promise<void> | void;
-
-    /**
-     * Suscribirse a eventos de un tenant (solo InMemory, fallback dev).
-     * En producción los clientes se suscriben directo a Supabase Realtime, no
-     * por el servidor; por eso `SupabaseRealtimeEventBus.subscribe` lanza.
-     *
-     * @param tenantId - ID del tenant (UUID)
-     * @param listener - Función callback para eventos
-     * @returns Función de cleanup para cancelar suscripción
-     */
-    subscribe(
-        tenantId: string,
-        listener: (event: ParkEvent) => void
-    ): Promise<() => void> | (() => void);
 }
 
 /**
- * Implementación in-memory del EventBus usando EventEmitter.
+ * Implementación in-memory del EventBus (no-op de emisión).
  *
- * Solo funciona dentro del mismo proceso. NO comparte eventos entre instancias.
- * Fallback de desarrollo cuando no hay credenciales de Supabase Realtime.
+ * Fallback degradado cuando no hay credenciales de Supabase Realtime: no hay
+ * push en tiempo real (los clientes dependen solo del polling). Los eventos
+ * igualmente persisten en la DB vía el ingest.
  */
-class InMemoryEventBus extends EventEmitter implements EventBus {
-    constructor() {
-        super();
-        this.setMaxListeners(100);
-    }
-
-    publish(tenantId: string, event: ParkEvent): void {
-        this.emit(`event:${tenantId}`, event);
-    }
-
-    subscribe(tenantId: string, listener: (event: ParkEvent) => void): () => void {
-        const channel = `event:${tenantId}`;
-        this.on(channel, listener);
-        return () => this.off(channel, listener);
+class InMemoryEventBus implements EventBus {
+    publish(_tenantId: string, _event: ParkEvent): void {
+        // Sin transporte de realtime configurado: no-op. El polling del cliente
+        // (SyncClient.tick) trae los eventos igual.
     }
 }
 

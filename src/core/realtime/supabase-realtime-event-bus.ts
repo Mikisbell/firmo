@@ -59,14 +59,4 @@ export class SupabaseRealtimeEventBus implements EventBus {
       throw new Error(`Supabase broadcast HTTP ${res.status}`);
     }
   }
-
-  /**
-   * No aplica server-side: en este modelo los clientes se suscriben directo a
-   * Supabase Realtime. Se deja explicito para evitar usos incorrectos.
-   */
-  subscribe(_tenantId: string, _listener: (event: ParkEvent) => void): () => void {
-    throw new Error(
-      'SupabaseRealtimeEventBus es solo de emision: los clientes se suscriben directo a Supabase Realtime',
-    );
-  }
 }

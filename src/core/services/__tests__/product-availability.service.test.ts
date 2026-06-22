@@ -68,7 +68,6 @@ describe('ProductAvailabilityService', () => {
   };
   const mockBus: EventBus = {
     publish: vi.fn(),
-    subscribe: vi.fn(),
   };
 
   beforeEach(() => {

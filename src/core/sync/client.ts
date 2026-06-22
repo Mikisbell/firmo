@@ -163,7 +163,6 @@ export class SyncClient {
         this.onOnlineBound = this.onOnline.bind(this);
     }
 
-    private eventSource: EventSource | null = null;
     private realtimeClient: SupabaseClient | null = null;
     private realtimeChannel: RealtimeChannel | null = null;
     private realtimeConnecting = false;
@@ -176,10 +175,9 @@ export class SyncClient {
         if (typeof window !== "undefined") {
             window.addEventListener("online", this.onOnlineBound);
             this.timer = window.setInterval(() => void this.syncNow(), this.tickMs);
-            this.connectSSE();
-            // Realtime por Supabase (broadcast) en PARALELO al SSE; ambos alimentan
-            // handleIncomingEvent (idempotente). Transicion sin riesgo: si Realtime falla,
-            // SSE + polling siguen entregando.
+            // Push en tiempo real por Supabase Realtime (WebSocket, Cloudflare-safe).
+            // Si Realtime falla, el polling (this.timer) sigue trayendo eventos: es la
+            // red de seguridad. Ya no hay SSE (PG LISTEN/NOTIFY no corre en Workers).
             void this.connectRealtime();
             
             // Clean up invalid events on startup BEFORE first sync
@@ -226,7 +224,6 @@ export class SyncClient {
         if (typeof window !== "undefined") {
             window.removeEventListener("online", this.onOnlineBound);
             if (this.timer) window.clearInterval(this.timer);
-            this.disconnectSSE();
             this.disconnectRealtime();
         }
         this.timer = null;
@@ -247,52 +244,11 @@ export class SyncClient {
         return null;
     }
 
-    // @deprecated FASE 3 (issue #4): SSE legacy, corre en paralelo al realtime de Supabase.
-    // Retirar (dejar solo connectRealtime) tras validar el realtime con trafico real.
-    private connectSSE() {
-        if (this.eventSource) return;
-
-        const tenantId = this.getConfiguredTenantId();
-        if (!tenantId) {
-            logger.debug('sync.no_tenant', 'No tenant_id available for SSE connection. Terminal not configured.');
-            return;
-        }
-        
-        this.eventSource = new EventSource(`/api/data-sync/stream?tenant_id=${tenantId}`);
-
-        this.eventSource.onmessage = async (msg) => {
-            try {
-                const event = JSON.parse(msg.data);
-                if (event.type === "CONNECTED") {
-                    logger.info('sync.sse_connected', 'SSE Connected');
-                    return;
-                }
-
-                // Process incoming ParkEvent
-                await this.handleIncomingEvent(event);
-            } catch (error) {
-                logger.error('sync.sse_parse_error', 'SSE Error parsing', error instanceof Error ? error : new Error(String(error)));
-            }
-        };
-
-        this.eventSource.onerror = (_e) => {
-            // Browser auto-reconnects, but we log
-            logger.warn('sync.sse_connection_lost', 'SSE Connection lost, browser will retry...');
-        };
-    }
-
-    private disconnectSSE() {
-        if (this.eventSource) {
-            this.eventSource.close();
-            this.eventSource = null;
-        }
-    }
-
     /**
      * Suscripcion a Supabase Realtime (canal privado del tenant) por WEBSOCKET.
-     * Corre en PARALELO al SSE durante la transicion: los eventos que llegan por
-     * broadcast pasan por el mismo handleIncomingEvent idempotente, asi recibir el
-     * mismo evento por SSE y por Realtime no duplica nada. Sin puerto 5432 -> Cloudflare-safe.
+     * Es el UNICO transporte de push: los eventos llegan por broadcast y pasan por
+     * handleIncomingEvent (idempotente). Si el canal falla, el polling (this.timer)
+     * sigue trayendo eventos. Sin puerto 5432 -> corre en Cloudflare Workers.
      */
     private async connectRealtime() {
         // Guard SINCRONO: realtimeChannel se setea DESPUES del await del fetch, asi que dos
@@ -305,7 +261,7 @@ export class SyncClient {
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
         if (!url || !anonKey) {
-            logger.debug('sync.realtime_disabled', 'Supabase Realtime no configurado; se usa solo SSE');
+            logger.debug('sync.realtime_disabled', 'Supabase Realtime no configurado; se usa solo polling');
             return;
         }
 
@@ -317,7 +273,7 @@ export class SyncClient {
             // El token (y el tenant) los decide el servidor desde la sesion, no el cliente.
             const res = await fetch('/api/realtime/token', { credentials: 'include' });
             if (!res.ok) {
-                logger.warn('sync.realtime_token_failed', `No se pudo obtener token Realtime (HTTP ${res.status}); se usa solo SSE`);
+                logger.warn('sync.realtime_token_failed', `No se pudo obtener token Realtime (HTTP ${res.status}); se usa solo polling`);
                 return;
             }
             const { token, channel: serverTopic } = await res.json();
@@ -343,7 +299,9 @@ export class SyncClient {
                 if (status === 'SUBSCRIBED') {
                     logger.info('sync.realtime_connected', 'Supabase Realtime conectado');
                 } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                    logger.warn('sync.realtime_error', `Canal Realtime ${status}; SSE/polling siguen activos`);
+                    // Reconexion transitoria de WebSocket: el cliente reintenta solo y el
+                    // polling cubre el gap. Es esperado, por eso va a debug (no alarmar).
+                    logger.debug('sync.realtime_reconnect', `Canal Realtime ${status}; reintentando, el polling cubre el gap`);
                 }
             });
             this.realtimeChannel = channel;
@@ -424,7 +382,7 @@ export class SyncClient {
                 // so simply adding to DB *should* trigger UI update automatically!
             });
         } catch (e) {
-            logger.error('sync.sse_apply_error', 'Error applying SSE event', e instanceof Error ? e : new Error(String(e)));
+            logger.error('sync.realtime_apply_error', 'Error applying realtime event', e instanceof Error ? e : new Error(String(e)));
         }
     }
 
