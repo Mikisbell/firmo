@@ -301,10 +301,12 @@ export function useTableStatus(zoneId?: string) {
             }
         });
 
-        return Object.values(tableState);
+        // Devolvemos el MAPA (table_id -> TableInfo): mozo/mesa accede por tableState[tableId]
+        // y mozo/page hace Object.values(tableState). Antes devolvia un array y rompia el acceso por clave.
+        return tableState;
     }, [apiTables, zoneId]);
 
-    return tables || [];
+    return tables || {};
 }
 
 // Hook to get zones

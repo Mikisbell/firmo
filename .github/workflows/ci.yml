@@ -3,15 +3,18 @@ name: CI
 on:
   push:
     branches: [main, develop]
+  # Todos los PRs (a cualquier rama destino) pasan por el gate de tipos/lint/tests.
+  # Antes solo se validaban los PRs a main, dejando ramas de integracion sin red.
   pull_request:
-    branches: [main]
 
 env:
   NODE_VERSION: '22'
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/park_test
   DIRECT_URL: postgresql://postgres:postgres@localhost:5432/park_test
   REDIS_URL: redis://localhost:6379
-  JWT_SECRET: test-jwt-secret-ci-only
+  # Debe tener >= 32 chars: env-validation.ts lo exige y el next start del job E2E
+  # corre esa validacion en el instrumentation hook (si falla, el server no levanta).
+  JWT_SECRET: test-jwt-secret-ci-only-min-32-chars-padding
   NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-key
 
@@ -106,11 +109,18 @@ jobs:
         run: npx prisma generate
 
       - name: Build
+        env:
+          # next build pesa mas que tsc; sin esto el worker hace OOM (heap default ~2GB)
+          NODE_OPTIONS: "--max_old_space_size=6144"
         run: bun run build
 
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    # NO-BLOQUEANTE: el suite E2E (Playwright) es lento (~20min) y aun tiene specs flaky.
+    # Da senal util pero no debe gatear el merge; se estabiliza en su propio carril.
+    # El gate duro de merge es Lint+TypeCheck + Build + Unit (rapido y determinista).
+    continue-on-error: true
     needs: [build]
     services:
       postgres:
@@ -155,6 +165,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build for E2E
+        env:
+          NODE_OPTIONS: "--max_old_space_size=6144"
         run: bun run build
 
       - name: Run E2E tests

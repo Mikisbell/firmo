@@ -4,6 +4,7 @@ import { ingestRequestSchema, type IngestRequest, type ParkEvent } from "@/src/c
 import { syncCircuitBreaker } from "./circuit-breaker";
 import { logger, logEvents } from "@/src/core/observability/logger";
 import { safeStorage } from "@/src/lib/storage";
+import { createClient, type SupabaseClient, type RealtimeChannel } from "@supabase/supabase-js";
 
 export type IngestResponse = {
     accepted: boolean;
@@ -163,6 +164,10 @@ export class SyncClient {
     }
 
     private eventSource: EventSource | null = null;
+    private realtimeClient: SupabaseClient | null = null;
+    private realtimeChannel: RealtimeChannel | null = null;
+    private realtimeConnecting = false;
+    private realtimeTokenTimer: number | null = null;
 
     start() {
         if (this.running) return;
@@ -172,6 +177,10 @@ export class SyncClient {
             window.addEventListener("online", this.onOnlineBound);
             this.timer = window.setInterval(() => void this.syncNow(), this.tickMs);
             this.connectSSE();
+            // Realtime por Supabase (broadcast) en PARALELO al SSE; ambos alimentan
+            // handleIncomingEvent (idempotente). Transicion sin riesgo: si Realtime falla,
+            // SSE + polling siguen entregando.
+            void this.connectRealtime();
             
             // Clean up invalid events on startup BEFORE first sync
             this.cleanupInvalidEvents().then(() => {
@@ -218,27 +227,32 @@ export class SyncClient {
             window.removeEventListener("online", this.onOnlineBound);
             if (this.timer) window.clearInterval(this.timer);
             this.disconnectSSE();
+            this.disconnectRealtime();
         }
         this.timer = null;
     }
 
+    /** Lee el tenant_id de la config del terminal en localStorage (o null si no esta). */
+    private getConfiguredTenantId(): string | null {
+        if (typeof localStorage === 'undefined') return null;
+        try {
+            const configStr = safeStorage.getItem('park_terminal_config');
+            if (configStr) {
+                const config = JSON.parse(configStr);
+                return config.tenant_id ?? null;
+            }
+        } catch {
+            logger.error('sync.tenant_parse_error', 'Error reading tenant config');
+        }
+        return null;
+    }
+
+    // @deprecated FASE 3 (issue #4): SSE legacy, corre en paralelo al realtime de Supabase.
+    // Retirar (dejar solo connectRealtime) tras validar el realtime con trafico real.
     private connectSSE() {
         if (this.eventSource) return;
 
-        // Get tenant_id from localStorage (set during terminal setup)
-        let tenantId = null;
-        if (typeof localStorage !== 'undefined') {
-            try {
-                const configStr = safeStorage.getItem('park_terminal_config');
-                if (configStr) {
-                    const config = JSON.parse(configStr);
-                    tenantId = config.tenant_id;
-                }
-            } catch (e) {
-                logger.error('sync.tenant_parse_error', 'Error reading tenant config');
-            }
-        }
-        
+        const tenantId = this.getConfiguredTenantId();
         if (!tenantId) {
             logger.debug('sync.no_tenant', 'No tenant_id available for SSE connection. Terminal not configured.');
             return;
@@ -272,6 +286,107 @@ export class SyncClient {
             this.eventSource.close();
             this.eventSource = null;
         }
+    }
+
+    /**
+     * Suscripcion a Supabase Realtime (canal privado del tenant) por WEBSOCKET.
+     * Corre en PARALELO al SSE durante la transicion: los eventos que llegan por
+     * broadcast pasan por el mismo handleIncomingEvent idempotente, asi recibir el
+     * mismo evento por SSE y por Realtime no duplica nada. Sin puerto 5432 -> Cloudflare-safe.
+     */
+    private async connectRealtime() {
+        // Guard SINCRONO: realtimeChannel se setea DESPUES del await del fetch, asi que dos
+        // llamadas concurrentes (p.ej. React StrictMode en dev) pasaban el guard viejo y
+        // creaban DOS clientes Realtime -> warning "Multiple GoTrueClient". realtimeConnecting
+        // bloquea la segunda llamada antes del primer await.
+        if (this.realtimeChannel || this.realtimeClient || this.realtimeConnecting) return;
+        if (typeof window === 'undefined') return;
+
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (!url || !anonKey) {
+            logger.debug('sync.realtime_disabled', 'Supabase Realtime no configurado; se usa solo SSE');
+            return;
+        }
+
+        const tenantId = this.getConfiguredTenantId();
+        if (!tenantId) return;
+
+        this.realtimeConnecting = true;
+        try {
+            // El token (y el tenant) los decide el servidor desde la sesion, no el cliente.
+            const res = await fetch('/api/realtime/token', { credentials: 'include' });
+            if (!res.ok) {
+                logger.warn('sync.realtime_token_failed', `No se pudo obtener token Realtime (HTTP ${res.status}); se usa solo SSE`);
+                return;
+            }
+            const { token, channel: serverTopic } = await res.json();
+
+            // Cliente SOLO para Realtime: deshabilitamos la auth persistente de GoTrue para no
+            // registrar otra instancia que comparte storage key (warning "Multiple GoTrueClient").
+            const client = createClient(url, anonKey, {
+                // storageKey propia: no compartir la default con otros clientes Supabase del
+                // browser (p.ej. el de imagenes) -> mata el warning "Multiple GoTrueClient".
+                auth: { persistSession: false, autoRefreshToken: false, storageKey: 'park-realtime-auth' },
+            });
+            client.realtime.setAuth(token);
+            this.realtimeClient = client;
+
+            // Usamos el topic que devuelve el servidor: deriva del tenant de la SESION, igual que
+            // el claim tenant_id del token. Si lo armamos en el cliente desde el tenant local y
+            // difiere del claim, el RLS del canal privado deniega la suscripcion -> CHANNEL_ERROR.
+            const channel = client.channel(serverTopic ?? `tenant:${tenantId}`, { config: { private: true } });
+            channel.on('broadcast', { event: 'park_event' }, (msg) => {
+                void this.handleIncomingEvent(msg.payload as ParkEvent);
+            });
+            channel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    logger.info('sync.realtime_connected', 'Supabase Realtime conectado');
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    logger.warn('sync.realtime_error', `Canal Realtime ${status}; SSE/polling siguen activos`);
+                }
+            });
+            this.realtimeChannel = channel;
+
+            // El token minteado expira en 1h: lo renovamos antes (cada 50 min) para no
+            // perder el realtime en sesiones largas (cajas abiertas todo el dia).
+            this.realtimeTokenTimer = window.setInterval(() => {
+                void this.refreshRealtimeToken();
+            }, 50 * 60 * 1000);
+        } catch (e) {
+            logger.error('sync.realtime_connect_error', 'Error conectando a Supabase Realtime', e instanceof Error ? e : new Error(String(e)));
+        } finally {
+            this.realtimeConnecting = false;
+        }
+    }
+
+    /** Renueva el token de Realtime antes de que expire y lo re-aplica al cliente. */
+    private async refreshRealtimeToken() {
+        if (!this.realtimeClient) return;
+        try {
+            const res = await fetch('/api/realtime/token', { credentials: 'include' });
+            if (!res.ok) {
+                logger.warn('sync.realtime_token_refresh_failed', `No se pudo renovar token Realtime (HTTP ${res.status})`);
+                return;
+            }
+            const { token } = await res.json();
+            this.realtimeClient.realtime.setAuth(token);
+            logger.debug('sync.realtime_token_refreshed', 'Token de Realtime renovado');
+        } catch (e) {
+            logger.warn('sync.realtime_token_refresh_failed', 'Error renovando token de Realtime');
+        }
+    }
+
+    private disconnectRealtime() {
+        if (this.realtimeTokenTimer) {
+            window.clearInterval(this.realtimeTokenTimer);
+            this.realtimeTokenTimer = null;
+        }
+        if (this.realtimeClient && this.realtimeChannel) {
+            void this.realtimeClient.removeChannel(this.realtimeChannel);
+        }
+        this.realtimeChannel = null;
+        this.realtimeClient = null;
     }
 
     private async handleIncomingEvent(event: ParkEvent) {

@@ -6,7 +6,7 @@
  * Requirements: 2.1-2.8
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   updateDriverLocation,
   getDriverLocation,

@@ -7,13 +7,23 @@
  * NOTE: These tests use only Vitest utilities (no @testing-library/react)
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { 
-  AdminLoadingFallback, 
+import { describe, it, expect, vi, beforeAll } from 'vitest';
+import {
+  AdminLoadingFallback,
   withLazyLoading,
   useAdminPreload,
-  preloadAdminComponents 
+  preloadAdminComponents
 } from '../lazy-admin-components';
+
+// Pre-carga todos los modulos lazy ANTES de los tests: varios casos disparan
+// preloads fire-and-forget (imports dinamicos -> SWR/paginas admin). Sin esto, esos
+// imports resuelven DESPUES del teardown del env -> EnvironmentTeardownError (flaky CI).
+// Al calentar el cache de modulos aca, cualquier preload posterior resuelve al instante.
+beforeAll(async () => {
+  await Promise.all(
+    Object.values(preloadAdminComponents).map((fn) => fn().catch(() => {})),
+  );
+});
 
 describe('AdminLoadingFallback', () => {
   it('should be a valid React component', () => {

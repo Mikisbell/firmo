@@ -27,16 +27,21 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const router = useRouter();
   const { session, isLoading } = useAuth();
 
+  // En desarrollo NO bloqueamos por rol: permite probar todas las estaciones sin
+  // re-login (mismo criterio que el bypass de AuthProvider). En produccion se aplica
+  // el guard real. Gate de go-live: validar el flujo de roles real antes de lanzar.
+  const isDev = process.env.NODE_ENV !== 'production';
+
   const role = session?.employee_role ?? null;
-  const allowed = !isLoading && role !== null && allowedRoles.includes(role);
+  const allowed = isDev || (!isLoading && role !== null && allowedRoles.includes(role));
 
   useEffect(() => {
-    if (!isLoading && role !== null && !allowedRoles.includes(role)) {
+    if (!isDev && !isLoading && role !== null && !allowedRoles.includes(role)) {
       router.replace('/');
     }
-  }, [isLoading, role, allowedRoles, router]);
+  }, [isDev, isLoading, role, allowedRoles, router]);
 
-  if (isLoading || !allowed) return null;
+  if (!allowed) return null;
 
   return <>{children}</>;
 }

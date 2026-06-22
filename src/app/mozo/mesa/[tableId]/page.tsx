@@ -7,10 +7,15 @@ import { useOrder } from "@/src/app/mozo/hooks/useOrder";
 import { useWaiterContext } from "../../context/WaiterContext";
 import CatalogGrid from "@/src/app/pos/components/CatalogGrid";
 import { POSActions } from "@/src/core/actions/pos.actions";
+import { db } from "@/src/core/db/schema";
+import { ParkEvent } from "@/src/core/domain/events";
 import { OrderPanel } from "@/src/components/shared/OrderPanel";
-import { ArrowLeft, Clock, X } from "lucide-react";
+import { SalesNoteVoidModal } from "@/src/components/SalesNoteVoidModal";
+import { useSalesNoteForCheck } from "@/src/hooks/useSalesNoteForCheck";
+import { ArrowLeft, Clock, X, Receipt } from "lucide-react";
 import { getStoredTerminalConfig } from "@/src/core/auth/fingerprint";
 import { TerminalConfig } from "@/src/core/auth/types";
+import { getDevTerminalConfig, resolveDevStation } from "@/src/core/config/dev-identity";
 import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint } from "@/src/core/printing/utils";
 import { useResponsive } from "@/src/hooks/useResponsive";
@@ -53,6 +58,28 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
     // Reactive State
     const activeSale = useOrder(orderId);
 
+    // Nota de Venta del check (offline-first) + anulacion
+    const [showVoidNoteModal, setShowVoidNoteModal] = useState(false);
+    const salesNote = useSalesNoteForCheck(orderId, activeSale?.checks?.[0]?.check_id ?? null);
+
+    const handleVoidSalesNote = async (reason: string) => {
+        if (!salesNote || !terminalConfig) return;
+        try {
+            await POSActions.voidSalesNote(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                salesNote.sales_note_id,
+                reason,
+            );
+            toast.success(`Nota ${salesNote.serie}-${salesNote.numero} anulada`);
+            setShowVoidNoteModal(false);
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al anular la nota");
+        }
+    };
+
     // 0. Load terminal config and redirect if not configured
     useEffect(() => {
         const config = getStoredTerminalConfig();
@@ -63,17 +90,12 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
             const isE2E = typeof window !== 'undefined' && localStorage.getItem('e2e_mode') === 'true';
 
             if (isDev || isE2E) {
-                const defaultConfig: TerminalConfig = {
-                    tenant_id: "00000000-0000-0000-0000-000000000001",
-                    terminal_id: "WAITER_DEV_01",
-                    actor_id: "00000000-0000-0000-0000-000000000002",
-                    role: "WAITER",
-                    device_fingerprint: "dev-device-fingerprint",
-                    device_name: "Development Waiter Terminal",
-                    location_id: "00000000-0000-0000-0000-000000000001",
-                    is_allowed: true,
-                    registered_at: new Date().toISOString()
-                };
+                // Identidad de dev desde la AUTORIDAD UNICA (dev-identity), coherente con el seed.
+                // Respeta la estacion del launcher /dev; por defecto MOZO (vista de mesa del mozo).
+                const rawStation = typeof window !== 'undefined'
+                    ? (localStorage.getItem('dev_station') ?? localStorage.getItem('dev_role'))
+                    : null;
+                const defaultConfig = getDevTerminalConfig(rawStation ? resolveDevStation(rawStation) : 'MOZO');
                 setTerminalConfig(defaultConfig);
                 return;
             }
@@ -234,10 +256,40 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
         }
     };
 
-    const handlePrintPrecheck = () => {
+    const handlePrintPrecheck = async () => {
         if (!activeSale || items.length === 0) {
             toast.error("No hay items para imprimir");
             return;
+        }
+        if (!orderId || !terminalConfig) {
+            toast.error("No hay pedido activo");
+            return;
+        }
+
+        const checkId = activeSale.checks?.[0]?.check_id;
+        if (!checkId) {
+            toast.error("No hay cuenta activa para emitir la nota");
+            return;
+        }
+
+        // Formalizar la pre-cuenta como Nota de Venta (documento interno NO fiscal,
+        // numerado y convertible en caja a boleta/factura). Idempotente por check.
+        let noteSerie: string | undefined;
+        let noteNumero: string | undefined;
+        try {
+            const note = await POSActions.issueSalesNote(
+                terminalConfig.tenant_id,
+                terminalConfig.terminal_id,
+                terminalConfig.actor_id,
+                orderId,
+                checkId,
+                activeSale.subtotal_cents,
+            );
+            noteSerie = note.serie;
+            noteNumero = note.numero;
+        } catch (e) {
+            // No bloquear la impresion si falla el registro de la nota.
+            console.error(e);
         }
 
         const linesToPrint = transformLinesToPrint(items);
@@ -251,11 +303,13 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                 subtotal={activeSale.subtotal_cents}
                 discount={0}
                 total={activeSale.subtotal_cents}
-                invoiceType="PRE-CUENTA"
+                invoiceType={noteSerie ? "NOTA DE VENTA" : "PRE-CUENTA"}
+                invoiceSeries={noteSerie}
+                invoiceNumber={noteNumero}
             />,
-            `Pre-cuenta Mesa ${tableId}`
+            `Nota de Venta Mesa ${tableId}`
         );
-        toast.success("Pre-cuenta enviada a impresora");
+        toast.success(noteSerie ? "Nota de Venta emitida e impresa" : "Pre-cuenta impresa");
     };
 
     const handleRemoveItem = async (lineId: string) => {
@@ -623,6 +677,40 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
                     <span className="hidden sm:inline">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
             </header>
+
+            {/* Nota de Venta del check (visibilidad + anular) */}
+            {salesNote && (
+                <div className="flex items-center justify-between gap-2 px-3 md:px-4 py-2 bg-zinc-900/70 border-b border-zinc-800/50 shrink-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Receipt size={14} className="text-amber-400 shrink-0" />
+                        <span className="font-mono text-xs text-white truncate">Nota {salesNote.serie}-{salesNote.numero}</span>
+                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                            salesNote.status === "CONVERTED" ? "bg-emerald-500/20 text-emerald-300"
+                            : salesNote.status === "VOIDED" ? "bg-red-500/20 text-red-300"
+                            : "bg-amber-500/20 text-amber-300"
+                        }`}>
+                            {salesNote.status === "CONVERTED" ? "Convertida" : salesNote.status === "VOIDED" ? "Anulada" : "Abierta"}
+                        </span>
+                    </div>
+                    {salesNote.status === "OPEN" && (
+                        <button
+                            onClick={() => setShowVoidNoteModal(true)}
+                            className="text-xs font-bold text-red-400 hover:text-red-300 flex items-center gap-1 shrink-0 min-h-[44px] px-2 touch-manipulation"
+                        >
+                            <X size={14} />
+                            Anular
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {showVoidNoteModal && salesNote && (
+                <SalesNoteVoidModal
+                    label={`${salesNote.serie}-${salesNote.numero}`}
+                    onClose={() => setShowVoidNoteModal(false)}
+                    onConfirm={handleVoidSalesNote}
+                />
+            )}
 
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">

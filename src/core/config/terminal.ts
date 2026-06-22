@@ -1,66 +1,37 @@
 // src/core/config/terminal.ts
-// Configuración centralizada de terminal
+// Adaptador delgado sobre la AUTORIDAD UNICA de identidad de dev (dev-identity.ts).
+// Mantiene los terminal_id historicos que consumen las pantallas KDS, pero la identidad
+// real (tenant, empleado, rol) la resuelve dev-identity para que NO existan dos tablas de
+// estaciones que puedan driftear.
 
-import { DEFAULT_EMPLOYEE_IDS } from './employees';
+import type { TerminalConfig } from '@/src/core/auth/types';
+import { getDevTerminalConfig, type DevStationKey } from './dev-identity';
 
-// Tenant ID - debe coincidir con el seeded en la DB
-// TODO P1: Obtener dinámicamente del registro de terminal
-export const DEFAULT_TENANT_ID = process.env.NEXT_PUBLIC_TENANT_ID 
+// Tenant ID demo (coincide con el seed). Lo consumen rutas/paginas admin que aun no
+// derivan el tenant de la sesion (inventario, diagnostics, login-secure, confirm-device).
+export const DEFAULT_TENANT_ID = process.env.NEXT_PUBLIC_TENANT_ID
     || "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
-// Employee IDs - importados desde employees.ts para consistencia
-export const EMPLOYEE_IDS = DEFAULT_EMPLOYEE_IDS;
+/**
+ * Mapeo terminal_id legacy -> estacion de la autoridad unica.
+ * Solo los SPC_* los consumen hoy las pantallas KDS; el resto se mantiene por compatibilidad.
+ */
+const TERMINAL_TO_STATION = {
+    CAJA_01: 'CAJA',
+    MOZO_01: 'MOZO',
+    MOZO_02: 'MOZO',
+    SPC_COCINA: 'COCINA',
+    SPC_HORNO: 'HORNO',
+    SPC_BAR: 'BAR',
+    SPC_EMPAQUE: 'EMPAQUE',
+} as const satisfies Record<string, DevStationKey>;
 
-// Terminal configurations
-export const TERMINAL_CONFIG = {
-    // Caja principal
-    CAJA_01: {
-        terminal_id: "CAJA_01",
-        actor_id: EMPLOYEE_IDS.CASHIER_MARIA,
-        role: "CASHIER",
-    },
-    // Mozos
-    MOZO_01: {
-        terminal_id: "MOZO_01",
-        actor_id: EMPLOYEE_IDS.WAITER_CARLOS,
-        role: "WAITER",
-    },
-    MOZO_02: {
-        terminal_id: "MOZO_02",
-        actor_id: EMPLOYEE_IDS.WAITER_ANA,
-        role: "WAITER",
-    },
-    // Pantallas de cocina (SPC = Sistema Pantalla Cocina)
-    SPC_COCINA: {
-        terminal_id: "SPC_COCINA",
-        actor_id: EMPLOYEE_IDS.KITCHEN_LUIS,
-        role: "KITCHEN",
-    },
-    SPC_HORNO: {
-        terminal_id: "SPC_HORNO",
-        actor_id: EMPLOYEE_IDS.PARRILLA_PEDRO,
-        role: "KITCHEN",
-    },
-    SPC_BAR: {
-        terminal_id: "SPC_BAR",
-        actor_id: EMPLOYEE_IDS.BAR_JORGE,
-        role: "KITCHEN",
-    },
-    SPC_EMPAQUE: {
-        terminal_id: "SPC_EMPAQUE",
-        actor_id: EMPLOYEE_IDS.KITCHEN_LUIS, // Can use same employee or create new one
-        role: "KITCHEN",
-    },
-} as const;
-
-export type TerminalId = keyof typeof TERMINAL_CONFIG;
+export type TerminalId = keyof typeof TERMINAL_TO_STATION;
 
 /**
- * Obtiene la configuración de un terminal
+ * Obtiene la configuración de un terminal, resuelta desde la autoridad unica de dev.
+ * El terminal_id, tenant, empleado (actor) y rol quedan coherentes con el seed.
  */
-export function getTerminalConfig(terminalId: TerminalId) {
-    return {
-        tenant_id: DEFAULT_TENANT_ID,
-        ...TERMINAL_CONFIG[terminalId],
-    };
+export function getTerminalConfig(terminalId: TerminalId): TerminalConfig {
+    return getDevTerminalConfig(TERMINAL_TO_STATION[terminalId]);
 }

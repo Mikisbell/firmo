@@ -12,6 +12,7 @@ import { validateToken } from '@/src/core/auth/auth.service';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
 import { createLogger } from '@/src/core/observability/structured-logger';
 import prisma from '@/src/core/db/prisma';
+import { getTenantId } from '@/src/core/config/tenant';
 
 const log = createLogger('admin-auth');
 
@@ -40,16 +41,23 @@ export async function validateAdminAuth(request: NextRequest): Promise<
   
   const token = cookieToken || headerToken;
 
-  // DEV BACKDOOR: Auto-login to bypass login screen in development
+  // DEV BACKDOOR: Auto-login to bypass login screen in development.
+  // Pin-eado al tenant demo (getTenantId): con ~939 tenants de prueba en la DB, un findFirst
+  // sin filtrar caia en un tenant arbitrario y /admin mostraba datos de OTRO tenant que las
+  // estaciones. Asi /admin queda coherente con la identidad de dev (dev-identity).
   if (!token && process.env.NODE_ENV === 'development') {
     try {
       const admin = await prisma.employees.findFirst({
-        where: { role: { in: ['ADMIN', 'OWNER', 'MANAGER'] } }
+        where: { tenant_id: getTenantId(), role: { in: [...ADMIN_ROLES] }, is_active: true }
       });
       if (admin) {
         return { valid: true, user: {
           id: admin.id,
-          role: admin.role,
+          // Backdoor de DEV = acceso TOTAL: elevamos a OWNER para poder probar todo el panel,
+          // incluidos los endpoints fiscales (manage_fiscal es OWNER-only). Antes el findFirst
+          // sin orden devolvia ADMIN/MANAGER -> 403 intermitente en contingencia/configuracion.
+          // En produccion NO hay backdoor; el rol real del JWT manda.
+          role: 'OWNER',
           name: admin.name || 'Dev Admin',
           tenantId: admin.tenant_id,
           sessionId: 'dev-session'

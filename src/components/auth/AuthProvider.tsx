@@ -23,6 +23,7 @@ import { getTerminal } from '@/src/core/auth/terminal-registry';
 import { StepUpAuthModal } from './StepUpAuthModal';
 import { safeStorage } from '@/src/lib/storage';
 import { ADMIN_ROLES } from '@/src/core/constants/roles';
+import { getDevIdentity, resolveDevStation } from '@/src/core/config/dev-identity';
 
 interface AuthContextValue {
   terminal: TerminalConfig | null;
@@ -64,42 +65,44 @@ export function AuthProvider({ children, requireAuth = true }: AuthProviderProps
       const storedConfig = getStoredTerminalConfig();
       
       // =========================================================
-      // TODO: Restaurar auth cuando haya más usuarios.
-      // Por ahora bypass total — solo el dev usa el sistema.
+      // Bypass de login SOLO en desarrollo (dev/tester sin fricción).
+      // En producción (NODE_ENV=production) se exige el flujo de login real.
+      // GATE DE GO-LIVE: validar LoginScreen + /api/auth/session + fingerprint
+      // antes de lanzar (ver Engram: bugs/authprovider-bypass-unconditional).
       // =========================================================
-      const isBypassEnabled = true;
+      const isBypassEnabled = process.env.NODE_ENV !== 'production';
 
       if (isBypassEnabled) {
-        const bypassTerminal: TerminalConfig = {
-          terminal_id: 'CAJA_BYPASS_001',
-          tenant_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          device_fingerprint: 'bypass_virtual_device',
-          device_name: 'Virtual Bypass Terminal',
-          location_id: 'default',
-          is_allowed: true,
-          registered_at: new Date().toISOString(),
-          actor_id: '00000000-0000-0000-0000-000000000005', // empleado real (Pedro Ruiz)
-          role: 'CASHIER'
-        };
-        
-        const mockSession: SecureSession = {
-          id: `bypass-session-${Date.now()}`,
-          terminal_id: bypassTerminal.terminal_id,
-          employee_id: '00000000-0000-0000-0000-000000000005', // UUID real - evita sync errors
-          employee_name: 'Pedro Ruiz',
-          employee_role: 'CASHIER',
-          terminal_role: 'CAJA',
-          fingerprint_at_login: bypassTerminal.device_fingerprint,
-          fingerprint_signals_at_login: JSON.stringify({ bypass: true }),
-          risk_score_at_login: 0,
-          created_at: new Date(),
-          last_activity_at: new Date(),
-          last_fingerprint_check: new Date(),
-          expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000),
-        };
+        // Identidad de dev desde la AUTORIDAD UNICA (espeja el seed): cada estacion abre con
+        // su dispositivo + empleado real + rol coherentes, sin login. El launcher /dev guarda
+        // la estacion en localStorage('dev_station'); aceptamos 'dev_role' legacy por compat.
+        let rawStation: string | null = null;
+        try {
+          if (typeof localStorage !== 'undefined') {
+            rawStation = localStorage.getItem('dev_station') ?? localStorage.getItem('dev_role');
+          }
+        } catch { /* localStorage no disponible */ }
 
-        setTerminal(bypassTerminal);
-        setSession(mockSession);
+        const { terminal: devTerminal, session: devSession } = getDevIdentity(resolveDevStation(rawStation));
+
+        // Sanar/definir el config en localStorage: el SSE stream (getConfiguredTenantId) y las
+        // acciones POS (getStoredTerminalConfig) leen de ahi. Si quedo un config viejo en tenant
+        // fantasma, corregimos SOLO tenant/location (conservando la estacion); si no hay, lo creamos.
+        try {
+          const stored = getStoredTerminalConfig();
+          if (!stored?.terminal_id) {
+            safeStorage.setItem('park_terminal_config', JSON.stringify(devTerminal));
+          } else if (stored.tenant_id !== devTerminal.tenant_id || stored.location_id !== devTerminal.location_id) {
+            safeStorage.setItem('park_terminal_config', JSON.stringify({
+              ...stored,
+              tenant_id: devTerminal.tenant_id,
+              location_id: devTerminal.location_id,
+            }));
+          }
+        } catch { /* localStorage no disponible */ }
+
+        setTerminal(devTerminal);
+        setSession(devSession);
         setNeedsLogin(false);
         setIsLoading(false);
         return;

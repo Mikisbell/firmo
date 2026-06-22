@@ -197,7 +197,7 @@ describe('useWaiterNotifications', () => {
     expect((options as RequestInit).headers).toMatchObject({ 'x-tenant-id': TENANT_ID });
   });
 
-  it('polls every 10 seconds', async () => {
+  it('polls every 30 seconds', async () => {
     vi.useFakeTimers();
     readyItemsResponse([]);
 
@@ -208,13 +208,14 @@ describe('useWaiterNotifications', () => {
     await act(async () => { await Promise.resolve(); });
     expect(mockFetch).toHaveBeenCalledOnce();
 
-    // Advance 10s — second poll
-    await act(async () => { vi.advanceTimersByTime(10_000); });
+    // El intervalo de polling es 30s (subido desde 10s para no agotar el pool de DB).
+    // Advance 30s — second poll
+    await act(async () => { vi.advanceTimersByTime(30_000); });
     await act(async () => { await Promise.resolve(); });
     expect(mockFetch).toHaveBeenCalledTimes(2);
 
-    // Advance another 10s — third poll
-    await act(async () => { vi.advanceTimersByTime(10_000); });
+    // Advance another 30s — third poll
+    await act(async () => { vi.advanceTimersByTime(30_000); });
     await act(async () => { await Promise.resolve(); });
     expect(mockFetch).toHaveBeenCalledTimes(3);
   });

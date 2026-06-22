@@ -34,10 +34,10 @@ export default function WaiterPage() {
     const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     
-    // Hook de contexto global
-    const { tableState, readyItemNotifs } = useWaiterContext();
-    const unreadCount = useWaiterContext().checkNotifs.filter(n => !useWaiterContext().readSet.has(n.id)).length;
-    const readyItemsCount = readyItemNotifs.filter(n => !useWaiterContext().readSet.has(n.id)).length;
+    // Hook de contexto global — se invoca UNA sola vez (los hooks no pueden llamarse dentro de callbacks)
+    const { tableState, readyItemNotifs, checkNotifs, readSet } = useWaiterContext();
+    const unreadCount = checkNotifs.filter(n => !readSet.has(n.id)).length;
+    const readyItemsCount = readyItemNotifs.filter(n => !readSet.has(n.id)).length;
 
     // Use API zones only
     const zones = apiZones;

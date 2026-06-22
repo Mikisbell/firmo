@@ -50,6 +50,10 @@ export type SaleProjection = {
     order_number: number;
     order_type: OrderType;
 
+    // Momento de creacion de la orden (ORDER_CREATED.occurred_at). Usado para edad/SLA
+    // y el ElapsedTimer del checkout. Opcional: proyecciones legacy/snapshots pueden no tenerlo.
+    created_at?: string;
+
     // Legacy field (alias for order_id)
     sale_id: OrderId;
 

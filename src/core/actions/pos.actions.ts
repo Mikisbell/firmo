@@ -8,6 +8,11 @@ import type {
 } from "@/src/core/domain/events";
 import { getSyncClient } from "@/src/core/sync/client";
 import { LIMITS, LIMIT_ERRORS } from "@/src/core/constants/limits";
+import {
+  salesNoteSerie,
+  formatSalesNoteNumero,
+  nextSalesNoteNumero,
+} from "@/src/core/services/sales-note-numbering";
 
 // Helper para obtener secuencia de forma segura
 async function getNextSequence(): Promise<number> {
@@ -170,6 +175,7 @@ export const POSActions = {
       station: string;
       qty?: number;
       tax_category?: "GRAVADO" | "EXONERADO" | "INAFECTO";
+      is_special_sla?: boolean;
     },
   ) {
     const line_id = newUUID();
@@ -333,6 +339,115 @@ export const POSActions = {
     });
 
     return invoice_id;
+  },
+
+  /**
+   * Emitir una NOTA DE VENTA (documento interno NO fiscal) para un check.
+   * La serie se deriva del terminal (unica por terminal) y el numero es un
+   * correlativo local leido de Dexie -> la UI no puede equivocarse. El unique DB
+   * (tenant,serie,numero) y (tenant,order,check) son la red de seguridad final.
+   */
+  async issueSalesNote(
+    tenant_id: string,
+    terminal_id: string,
+    actor_id: string,
+    order_id: string,
+    check_id: string,
+    total_cents: number,
+  ): Promise<{ sales_note_id: string; serie: string; numero: string }> {
+    const serie = salesNoteSerie(terminal_id);
+
+    // Idempotencia por check: si ya se emitio una nota para este order+check
+    // (ej. el mozo reimprime la pre-cuenta), reusamos la misma -> no quema correlativos.
+    const prior = await db.events.where("event_type").equals("SALES_NOTE_ISSUED").toArray();
+    const priorPayloads = prior.map(
+      (e) => e.payload as { sales_note_id?: string; order_id?: string; check_id?: string; serie?: string; numero?: string },
+    );
+    const already = priorPayloads.find((p) => p.order_id === order_id && p.check_id === check_id);
+    if (already?.sales_note_id && already.serie && already.numero) {
+      return { sales_note_id: already.sales_note_id, serie: already.serie, numero: already.numero };
+    }
+
+    const sales_note_id = newUUID();
+    // Correlativo local: max(numeros emitidos en esta serie) + 1, desde Dexie.
+    const existingNumeros = priorPayloads
+      .filter((p) => p.serie === serie && typeof p.numero === "string")
+      .map((p) => p.numero as string);
+    const numero = formatSalesNoteNumero(nextSalesNoteNumero(existingNumeros));
+
+    await appendEvent(tenant_id, terminal_id, {
+      event_id: newUUID(),
+      event_type: "SALES_NOTE_ISSUED",
+      aggregate_type: "SALES_NOTE",
+      aggregate_id: sales_note_id,
+      correlation_id: order_id,
+      causation_id: null,
+      actor_id,
+      payload: {
+        sales_note_id,
+        order_id,
+        check_id,
+        serie,
+        numero,
+        total_cents,
+      },
+    });
+
+    return { sales_note_id, serie, numero };
+  },
+
+  /**
+   * Convertir una nota de venta en comprobante (boleta/factura).
+   * El comprobante ya debe estar emitido (invoice_id). El reducer/proyeccion
+   * impiden doble conversion y conversion de notas anuladas.
+   */
+  async convertSalesNote(
+    tenant_id: string,
+    terminal_id: string,
+    actor_id: string,
+    sales_note_id: string,
+    invoice_id: string,
+    invoice_type: "BOLETA" | "FACTURA",
+  ) {
+    await appendEvent(tenant_id, terminal_id, {
+      event_id: newUUID(),
+      event_type: "SALES_NOTE_CONVERTED",
+      aggregate_type: "SALES_NOTE",
+      aggregate_id: sales_note_id,
+      correlation_id: sales_note_id,
+      causation_id: null,
+      actor_id,
+      payload: {
+        sales_note_id,
+        invoice_id,
+        invoice_type,
+      },
+    });
+  },
+
+  /**
+   * Anular una nota de venta abierta (no convertida).
+   */
+  async voidSalesNote(
+    tenant_id: string,
+    terminal_id: string,
+    actor_id: string,
+    sales_note_id: string,
+    reason: string,
+  ) {
+    await appendEvent(tenant_id, terminal_id, {
+      event_id: newUUID(),
+      event_type: "SALES_NOTE_VOIDED",
+      aggregate_type: "SALES_NOTE",
+      aggregate_id: sales_note_id,
+      correlation_id: sales_note_id,
+      causation_id: null,
+      actor_id,
+      payload: {
+        sales_note_id,
+        reason,
+      },
+    });
   },
 
   /**

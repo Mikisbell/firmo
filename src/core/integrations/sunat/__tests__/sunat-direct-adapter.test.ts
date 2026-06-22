@@ -19,6 +19,12 @@ import type { InvoiceData } from '../client';
 const mockSendBill = vi.fn();
 const mockSendSummary = vi.fn();
 const mockGetStatus = vi.fn();
+// El adapter usa modulos PROPIOS para firmar/generar/enviar (nodefact era un stub roto).
+const mockSignXmlSunat = vi.fn();
+const mockGenerateComprobante = vi.fn();
+const mockGenerateCreditNote = vi.fn();
+const mockGenerateSummary = vi.fn();
+const mockGenerateVoided = vi.fn();
 
 vi.mock('nodefact', () => ({
   generateXML: vi.fn().mockReturnValue('<Invoice>mock-xml</Invoice>'),
@@ -56,6 +62,24 @@ vi.mock('nodefact', () => ({
   },
 }));
 
+// Modulos propios que reemplazaron a nodefact (firma/SOAP/generador UBL).
+vi.mock('../sunat-soap', () => ({
+  // Funcion regular (no arrow) para que sea construible con `new`.
+  SunatSoapClient: vi.fn().mockImplementation(function () {
+    return { sendBill: mockSendBill, sendSummary: mockSendSummary, getStatus: mockGetStatus };
+  }),
+}));
+vi.mock('../sunat-signer', () => ({
+  signXmlSunat: (...args: unknown[]) => mockSignXmlSunat(...args),
+}));
+vi.mock('../sunat-ubl', () => ({
+  generateComprobanteXml: (...args: unknown[]) => mockGenerateComprobante(...args),
+  generateCreditNoteXml: (...args: unknown[]) => mockGenerateCreditNote(...args),
+  generateSummaryXml: (...args: unknown[]) => mockGenerateSummary(...args),
+  generateVoidedXml: (...args: unknown[]) => mockGenerateVoided(...args),
+  generateDebitNoteXml: (...args: unknown[]) => mockGenerateCreditNote(...args),
+}));
+
 vi.mock('@/src/core/observability/logger-pino', () => ({
   pinoLogger: {
     info: vi.fn(),
@@ -80,6 +104,15 @@ const testConfig: SunatDirectConfig = {
   certificatePem: '-----BEGIN CERTIFICATE-----\nMOCK\n-----END CERTIFICATE-----',
   privateKeyPem: '-----BEGIN PRIVATE KEY-----\nMOCK\n-----END PRIVATE KEY-----',
   mode: 'BETA',
+  emisor: {
+    ruc: '20123456789',
+    razonSocial: 'EMPRESA DE PRUEBA SAC',
+    direccion: 'AV PRUEBA 123',
+    ubigeo: '150101',
+    departamento: 'LIMA',
+    provincia: 'LIMA',
+    distrito: 'LIMA',
+  },
 };
 
 // InvoiceData uses CENTAVOS for money fields (project rule)
@@ -154,9 +187,21 @@ describe('SunatDirectAdapter', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Reset nodefact mocks to default success
+    // Defaults exitosos del cliente SOAP propio + firma + generador.
+    mockSignXmlSunat.mockReturnValue({
+      success: true,
+      signedXml: '<SignedInvoice>mock-signed-xml</SignedInvoice>',
+    });
+    mockGenerateComprobante.mockReturnValue('<Invoice>mock-xml</Invoice>');
+    mockGenerateCreditNote.mockReturnValue('<CreditNote>mock-xml</CreditNote>');
+    mockGenerateSummary.mockReturnValue('<SummaryDocuments>mock-xml</SummaryDocuments>');
+    mockGenerateVoided.mockReturnValue('<VoidedDocuments>mock-xml</VoidedDocuments>');
+
     mockSendBill.mockResolvedValue({
       success: true,
+      accepted: true,
+      responseCode: '0',
+      description: 'Aceptado',
       cdr: '<ApplicationResponse><cbc:ID>B001-00000001</cbc:ID></ApplicationResponse>',
     });
 
@@ -191,13 +236,12 @@ describe('SunatDirectAdapter', () => {
       }
     });
 
-    it('debe incluir PDF en el resultado de boleta', async () => {
+    it('NO incluye PDF aun (generacion de PDF propia pendiente)', async () => {
       const result = await adapter.sendInvoice(testBoleta);
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.pdfBase64).toBeDefined();
-        expect(result.data.pdfBase64!.length).toBeGreaterThan(0);
+        expect(result.data.pdfBase64).toBeUndefined();
       }
     });
 
@@ -230,13 +274,10 @@ describe('SunatDirectAdapter', () => {
     });
 
     it('debe usar tipo de documento correcto para factura', async () => {
-      const { generateXML } = await import('nodefact');
-
       await adapter.sendInvoice(testFactura);
 
-      expect(generateXML).toHaveBeenCalledWith(
-        expect.anything(),
-        '01', // TipoDocumento.FACTURA
+      expect(mockGenerateComprobante).toHaveBeenCalledWith(
+        expect.objectContaining({ tipoDoc: '01' }),
       );
     });
   });
@@ -256,14 +297,11 @@ describe('SunatDirectAdapter', () => {
       }
     });
 
-    it('debe usar tipo de documento "07" para nota de credito', async () => {
-      const { generateXML } = await import('nodefact');
-
+    it('debe generar la nota de credito con el generador propio', async () => {
       await adapter.sendCreditNote(testCreditNote);
 
-      expect(generateXML).toHaveBeenCalledWith(
-        expect.anything(),
-        '07', // TipoDocumento.NOTA_CREDITO
+      expect(mockGenerateCreditNote).toHaveBeenCalledWith(
+        expect.objectContaining({ docModificado: expect.objectContaining({ tipo: expect.any(String) }) }),
       );
     });
   });
@@ -388,8 +426,7 @@ describe('SunatDirectAdapter', () => {
 
   describe('Signing error handling', () => {
     it('debe retornar SUNAT_SIGNING_ERROR cuando firma falla', async () => {
-      const { signXml } = await import('nodefact');
-      vi.mocked(signXml).mockResolvedValueOnce({
+      mockSignXmlSunat.mockReturnValueOnce({
         success: false,
         error: 'Invalid PEM certificate',
       });
@@ -409,31 +446,25 @@ describe('SunatDirectAdapter', () => {
   // ==========================================================================
 
   describe('Data mapping - centavos to soles', () => {
-    it('debe convertir centavos a soles correctamente en generateXML', async () => {
-      const { generateXML } = await import('nodefact');
-
+    it('debe convertir centavos a soles (totales derivados de lineas)', async () => {
       await adapter.sendInvoice(testBoleta);
 
-      expect(generateXML).toHaveBeenCalledWith(
+      // 2 x (2500c con IGV) -> valorUnit 25/1.18=21.19, valorVenta 42.38, IGV 7.63, total 50.01
+      expect(mockGenerateComprobante).toHaveBeenCalledWith(
         expect.objectContaining({
-          totalGravadas: 42.37,     // 4237 centavos -> 42.37 soles
-          totalIgv: 7.63,           // 763 centavos -> 7.63 soles
-          totalVenta: 50.00,        // 5000 centavos -> 50.00 soles
+          totalGravado: 42.38,
+          totalIgv: 7.63,
+          totalPrecio: 50.01,
         }),
-        expect.anything(),
       );
     });
 
     it('debe mapear items con precios en soles', async () => {
-      const { generateXML } = await import('nodefact');
-
       await adapter.sendInvoice(testBoleta);
 
-      const callArgs = vi.mocked(generateXML).mock.calls[0][0] as Record<string, unknown>;
-      const items = (callArgs as any).items;
-
-      expect(items).toBeDefined();
-      expect(items[0].precioUnitario).toBe(25); // 2500 centavos -> 25.00 soles
+      const callArgs = mockGenerateComprobante.mock.calls[0][0] as any;
+      expect(callArgs.items[0].precioUnitarioConIgv).toBe(25); // 2500 centavos -> 25.00 soles
+      expect(callArgs.items[0].valorUnitario).toBe(21.19);     // sin IGV
     });
   });
 
@@ -573,18 +604,9 @@ describe('SunatDirectAdapter', () => {
     });
 
     it('debe retornar error cuando conexion falla', async () => {
-      const { createSunatClient } = await import('nodefact');
-      const failingGetStatus = vi.fn().mockRejectedValue(new Error('ECONNREFUSED: Connection refused'));
+      mockGetStatus.mockRejectedValueOnce(new Error('ECONNREFUSED: Connection refused'));
 
-      // First call: constructor, Second call: testConnection (creates BETA client)
-      vi.mocked(createSunatClient)
-        .mockReturnValueOnce({ sendBill: mockSendBill, sendSummary: mockSendSummary, getStatus: mockGetStatus } as any)
-        .mockReturnValueOnce({ sendBill: mockSendBill, sendSummary: mockSendSummary, getStatus: failingGetStatus } as any);
-
-      const { SunatDirectAdapterImpl } = await import('../sunat-direct-adapter');
-      const failAdapter = new SunatDirectAdapterImpl(testConfig);
-
-      const result = await failAdapter.testConnection();
+      const result = await adapter.testConnection();
 
       expect(result.success).toBe(false);
       if (!result.success) {

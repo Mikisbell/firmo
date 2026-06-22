@@ -160,11 +160,16 @@ describe('ready-items property tests', () => {
             station: fc.constantFrom('HORNO', 'PARRILLA', 'BAR', 'COCINA'),
             status: fc.constant('READY'),
             notes: fc.option(fc.string({ maxLength: 200 }), { nil: null }),
-            ready_at: fc.date({ min: new Date(Date.now() - 7200000), max: new Date() }).map(d => d.toISOString()),
+            // noInvalidDate: sin esto fc.date puede generar un Invalid Date y
+            // d.toISOString() lanza "RangeError: Invalid time value" (flaky CI-only por seed).
+            ready_at: fc.date({ min: new Date(Date.now() - 7200000), max: new Date(), noInvalidDate: true }).map(d => d.toISOString()),
           }),
           { maxLength: 10 },
         ),
         async (rows) => {
+          // Reset por-run (higiene): fast-check corre el cuerpo N veces sin re-ejecutar
+          // beforeEach. La causa real del flaky era fc.date sin noInvalidDate (ver arriba).
+          mockQueryRaw.mockReset();
           mockQueryRaw.mockResolvedValue(rows);
           const { GET } = await import('../route');
           const res = await GET(makeRequest(TENANT_ID));

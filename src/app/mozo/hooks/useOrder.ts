@@ -4,6 +4,7 @@ import { ParkEvent } from "@/src/core/domain/events";
 import { applySaleEvent } from "@/src/core/projections/sale.reducer";
 import { SaleProjection } from "@/src/core/projections/types";
 import { usePosStore } from "@/src/core/store/usePosStore";
+import { useShallow } from "zustand/react/shallow";
 import { useMemo } from "react";
 
 export function useOrder(orderId: string | null) {
@@ -38,9 +39,13 @@ export function useOrder(orderId: string | null) {
     // 2. Extraemos SOLO los eventos optimistas de esta orden desde RAM (Zustand, O(1)).
     //    El SyncClient los purga por event_id de este set en cuanto el server los confirma
     //    (usePosStore.applySyncBatch). Hasta entonces conviven con la réplica.
-    const localOptimisticEvents = usePosStore(state =>
+    // Zustand v5: un selector que retorna un array derivado (.filter) crea una
+    // referencia nueva en cada render -> useSyncExternalStore lo ve como cambio y
+    // entra en loop infinito ("getSnapshot should be cached"). useShallow compara
+    // el array por contenido y corta el loop.
+    const localOptimisticEvents = usePosStore(useShallow(state =>
         state.localOptimisticEvents.filter(e => e.aggregate_id === orderId)
-    );
+    ));
 
     // 3. Matemática pura: proyectamos el estado al vuelo.
     //    useMemo recalcula solo si cambia la réplica del servidor o si el mozo agrega un evento local.

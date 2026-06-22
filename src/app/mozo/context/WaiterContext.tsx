@@ -5,7 +5,7 @@ import { useTableStatus, TableStatus, TableInfo } from "../hooks/useTableStatus"
 import { useWaiterNotifications, WaiterNotification } from "../hooks/useWaiterNotifications";
 
 interface WaiterContextValue {
-    // Tables
+    // Tables — mapa table_id -> TableInfo (consumido por mozo/mesa via tableState[tableId])
     tableState: Record<string, TableInfo>;
     // Notifications
     readyItemNotifs: WaiterNotification[];

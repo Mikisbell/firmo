@@ -370,6 +370,27 @@ const InvoiceIssuedPayload = z.object({
     total_cents: positiveCentsSchema,
 });
 
+// NOTA DE VENTA — documento interno NO fiscal (pre-cuenta) convertible a boleta/factura.
+const SalesNoteIssuedPayload = z.object({
+    sales_note_id: uuidSchema,
+    order_id: uuidSchema,
+    check_id: z.string().min(1),
+    serie: z.string().min(1),
+    numero: z.string().min(1),
+    total_cents: positiveCentsSchema,
+});
+const SalesNoteConvertedPayload = z.object({
+    sales_note_id: uuidSchema,
+    invoice_id: uuidSchema,
+    invoice_type: InvoiceTypeSchema,
+    series: z.string().optional(),
+    invoice_number: z.string().optional(),
+});
+const SalesNoteVoidedPayload = z.object({
+    sales_note_id: uuidSchema,
+    reason: z.string().min(1),
+});
+
 const InvoiceVoidedPayload = z.object({
     invoice_id: uuidSchema,
     reason: z.string().min(1),
@@ -1101,6 +1122,23 @@ export const EventSchema = z.discriminatedUnion("event_type", [
         payload: CreditNoteVoidedPayload,
     }),
 
+    // SALES NOTE events (nota de venta — documento interno NO fiscal, convertible a comprobante)
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SALES_NOTE_ISSUED"),
+        aggregate_type: z.literal("SALES_NOTE"),
+        payload: SalesNoteIssuedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SALES_NOTE_CONVERTED"),
+        aggregate_type: z.literal("SALES_NOTE"),
+        payload: SalesNoteConvertedPayload,
+    }),
+    BaseEnvelopeSchema.extend({
+        event_type: z.literal("SALES_NOTE_VOIDED"),
+        aggregate_type: z.literal("SALES_NOTE"),
+        payload: SalesNoteVoidedPayload,
+    }),
+
     // REFUND events
     BaseEnvelopeSchema.extend({
         event_type: z.literal("REFUND_ISSUED"),
@@ -1430,6 +1468,9 @@ export type CheckItemsUpdatedEvent = Extract<ParkEvent, { event_type: "CHECK_ITE
 export type CheckPaymentAddedEvent = Extract<ParkEvent, { event_type: "CHECK_PAYMENT_ADDED" }>;
 export type CheckMarkedPaidEvent = Extract<ParkEvent, { event_type: "CHECK_MARKED_PAID" }>;
 export type InvoiceIssuedEvent = Extract<ParkEvent, { event_type: "INVOICE_ISSUED" }>;
+export type SalesNoteIssuedEvent = Extract<ParkEvent, { event_type: "SALES_NOTE_ISSUED" }>;
+export type SalesNoteConvertedEvent = Extract<ParkEvent, { event_type: "SALES_NOTE_CONVERTED" }>;
+export type SalesNoteVoidedEvent = Extract<ParkEvent, { event_type: "SALES_NOTE_VOIDED" }>;
 export type InvoiceVoidedEvent = Extract<ParkEvent, { event_type: "INVOICE_VOIDED" }>;
 export type CreditNoteIssuedEvent = Extract<ParkEvent, { event_type: "CREDIT_NOTE_ISSUED" }>;
 export type CreditNoteVoidedEvent = Extract<ParkEvent, { event_type: "CREDIT_NOTE_VOIDED" }>;

@@ -33,6 +33,11 @@ import {
     handleCheckDiscountSet,
     handleRefundIssued
 } from "./check-projections";
+import {
+    handleSalesNoteIssued,
+    handleSalesNoteConverted,
+    handleSalesNoteVoided
+} from "./sales-note-projections";
 
 export const projectionRegistry: Record<string, ProjectionHandler> = {
     // Orders
@@ -68,4 +73,9 @@ export const projectionRegistry: Record<string, ProjectionHandler> = {
     CHECK_TIP_SET: handleCheckTipSet,
     CHECK_DISCOUNT_SET: handleCheckDiscountSet,
     REFUND_ISSUED: handleRefundIssued,
+
+    // Sales Notes (nota de venta — documento interno NO fiscal)
+    SALES_NOTE_ISSUED: handleSalesNoteIssued,
+    SALES_NOTE_CONVERTED: handleSalesNoteConverted,
+    SALES_NOTE_VOIDED: handleSalesNoteVoided,
 };

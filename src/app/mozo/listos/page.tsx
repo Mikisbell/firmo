@@ -19,10 +19,13 @@ export default function ListosPage() {
     const router = useRouter();
     const { isLoading, isAuthenticated } = useRequireTerminal();
     const { isMobile } = useResponsive();
-    const { readyItemNotifs, markAsRead } = useWaiterContext();
+    const { readyItemNotifs, checkNotifs, markAsRead } = useWaiterContext();
 
     const readyNotifications = readyItemNotifs.filter(n => n.type === 'ITEM_READY' && !n.read);
     const readyItemsCount = readyNotifications.length;
+    const checkNotifications = checkNotifs;
+    // La data llega live via WaiterContext; "Actualizar" fuerza un refresh recargando la vista.
+    const refreshReadyItems = () => { window.location.reload(); };
 
     // Mark individual item as served — lineId always present (server projection)
     const handleMarkServed = useCallback(async (

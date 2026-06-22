@@ -314,6 +314,51 @@ export class InvoiceService {
           },
         });
 
+        // Auto-convertir la Nota de Venta abierta de este check (si existe).
+        // Solo afecta notas OPEN -> nunca pisa una CONVERTED/VOIDED (fail-proof).
+        // Si no hay nota (boleta directa sin pre-cuenta formal), no hace nada.
+        const openSalesNote = await tx.sales_notes.findFirst({
+          where: {
+            tenant_id: input.tenantId,
+            order_id: input.orderId,
+            check_id: input.checkId,
+            status: 'OPEN',
+          },
+          select: { id: true },
+        });
+
+        if (openSalesNote) {
+          await tx.sales_notes.update({
+            where: { id: openSalesNote.id },
+            data: {
+              status: 'CONVERTED',
+              invoice_id: invoiceId,
+              invoice_type: input.invoiceType,
+              converted_at: new Date(),
+            },
+          });
+
+          // Evento para el log/sync (la proyeccion ya se actualizo arriba, mismo patron que INVOICE_ISSUED)
+          await tx.events.create({
+            data: {
+              id: uuidv4(),
+              tenant_id: input.tenantId,
+              occurred_at: new Date(),
+              type: 'SALES_NOTE_CONVERTED',
+              entity_type: 'SALES_NOTE',
+              entity_id: openSalesNote.id,
+              actor_id: input.issuedBy,
+              actor_role_snapshot: 'CASHIER',
+              terminal_id: input.terminalId,
+              payload: {
+                sales_note_id: openSalesNote.id,
+                invoice_id: invoiceId,
+                invoice_type: input.invoiceType,
+              },
+            },
+          });
+        }
+
         // Auto-create/link customer if doc provided
         if (input.customerDoc) {
           let customerId: string | null = null;

@@ -19,33 +19,19 @@
  * @module core/integrations/sunat/sunat-direct-adapter
  */
 
-import {
-  generateXML,
-  signXml,
-  createSunatClient,
-  SunatEndpoints,
-  TipoDocumento,
-  TipoIGV,
-  TipoMoneda,
-  generatePdf,
-} from 'nodefact';
-import type {
-  SunatClient as NodeFactSunatClient,
-  SunatResult,
-  SunatClientOptions,
-  SunatCredentials as NodeFactCredentials,
-} from 'nodefact';
-import type { SignOptions, Emisor, Receptor, Item } from 'nodefact';
-// nodefact exports PDFResult as a type from generatePdf return
-interface PDFResult {
-  success: boolean;
-  buffer?: Buffer;
-  error?: string;
-}
+// nodefact ya no genera, firma ni envia (era un stub no funcional): solo se reutiliza su
+// enum de endpoints. La generacion UBL, firma y SOAP son propios (sunat-ubl/signer/soap).
+import { SunatEndpoints } from 'nodefact';
 
 import { Result, ok, err, DomainError } from '@/src/core/result';
 import { pinoLogger } from '@/src/core/observability/logger-pino';
 import type { InvoiceData } from './client';
+import { signXmlSunat } from './sunat-signer';
+import { SunatSoapClient } from './sunat-soap';
+import {
+  generateComprobanteXml, generateCreditNoteXml, generateDebitNoteXml, generateSummaryXml, generateVoidedXml,
+  type UblComprobante, type UblEmisor, type UblNotaCredito, type UblNotaDebito, type UblResumenDiario, type UblComunicacionBaja,
+} from './sunat-ubl';
 
 // ============================================================================
 // Configuration Types
@@ -58,6 +44,8 @@ export interface SunatDirectConfig {
   certificatePem: string;
   privateKeyPem: string;
   mode: 'PRODUCTION' | 'BETA';
+  /** Datos del emisor para el XML UBL (razon social, direccion, ubigeo). */
+  emisor: UblEmisor;
 }
 
 export interface SunatDocumentResult {
@@ -100,6 +88,9 @@ export interface CreditNoteData {
   }>;
 }
 
+/** Nota de debito: mismo payload que la nota de credito (el motivoCodigo se asigna del Catalogo 10). */
+export type DebitNoteData = CreditNoteData;
+
 export interface VoidData {
   serie: string;
   numero: string;
@@ -137,6 +128,37 @@ export interface TicketStatusResult {
 // ============================================================================
 // SUNAT Endpoint Configuration
 // ============================================================================
+//
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │ PLAYBOOK DE PRUEBAS — AMBIENTE BETA DE SUNAT (verificado jun 2026)          │
+// │ Para cuando llegue el dia de probar facturacion. NO requiere RUC real,      │
+// │ ni Clave SOL real, ni certificado real, ni tramite. Todo gratis y publico.  │
+// │                                                                             │
+// │ Credenciales de PRUEBA publicas de SUNAT (usar en SunatDirectConfig):       │
+// │   ruc        = '20000000001'                                                │
+// │   solUser    = 'MODDATOS'                                                   │
+// │   solPassword= 'moddatos'                                                   │
+// │   mode       = 'BETA'   -> usa SUNAT_ENDPOINTS.BETA (e-beta.sunat.gob.pe)   │
+// │                                                                             │
+// │ Certificado: en BETA SUNAT SOLO valida la ESTRUCTURA del XML (UBL 2.1), NO  │
+// │ la autenticidad del certificado. Sirve un certificado de PRUEBA/autofirmado │
+// │ (los que trae nodefact/greenter). No hace falta el CDT real para BETA.      │
+// │                                                                             │
+// │ Como probar: construir un SunatDirectAdapter con esa config y llamar a      │
+// │ testConnection() o emitir una boleta/factura de prueba. Exito = CDR con     │
+// │ responseCode '0' (ACEPTADO).                                                │
+// │                                                                             │
+// │ PASO A PRODUCCION (cuando lance el cliente):                                │
+// │   - ruc/solUser/solPassword REALES de cada tenant (Clave SOL secundaria de  │
+// │     facturacion) — NUNCA hardcodear ni commitear; van encriptados           │
+// │     (ver credential-encryption.ts) y se inyectan por tenant.                │
+// │   - certificado = CDT GRATIS de SUNAT (req: renta 3ra cat., ingresos        │
+// │     <= S/1.26M/ano; vigente hasta dic-2027). Ver Engram reference/sunat-*.  │
+// │   - mode = 'PRODUCTION' -> SUNAT_ENDPOINTS.PRODUCTION (e-factura).          │
+// │                                                                             │
+// │ Fuentes: cpe.sunat.gob.pe/noticias/servicio-beta-para-realizar-pruebas-ubl-21│
+// │          cpe.sunat.gob.pe/certificado-digital                               │
+// └───────────────────────────────────────────────────────────────────────────┘
 
 const SUNAT_ENDPOINTS = {
   BETA: {
@@ -170,7 +192,7 @@ function centsToSoles(cents: number): number {
 
 export class SunatDirectAdapterImpl {
   private config: SunatDirectConfig;
-  private sunatClient: NodeFactSunatClient;
+  private soapClient: SunatSoapClient;
   private logger;
 
   constructor(config: SunatDirectConfig) {
@@ -179,20 +201,145 @@ export class SunatDirectAdapterImpl {
       ? pinoLogger.child({ module: 'sunat-direct-adapter', ruc: config.ruc })
       : pinoLogger;
 
-    // Initialize nodefact SUNAT client
+    // Cliente SOAP propio (WS-Security + zip + ?wsdl correctos; ver sunat-soap.ts).
     const endpoint = config.mode === 'PRODUCTION'
       ? SUNAT_ENDPOINTS.PRODUCTION.bill
       : SUNAT_ENDPOINTS.BETA.bill;
 
-    this.sunatClient = createSunatClient({
-      endpoint: endpoint as SunatEndpoints,
-      credentials: {
-        ruc: config.ruc,
-        usuario: config.solUser,
-        clave: config.solPassword,
-      },
-      timeout: 30_000,
+    this.soapClient = new SunatSoapClient(
+      endpoint,
+      { ruc: config.ruc, solUser: config.solUser, solPassword: config.solPassword },
+      30_000,
+    );
+  }
+
+  /**
+   * Firma el XML con el firmador propio (xml-crypto v6). Reemplaza la firma de nodefact, que
+   * esta rota para xml-crypto >=6. Acepta el PEM directo (sin archivos temporales).
+   */
+  private signXml(xml: string) {
+    return signXmlSunat(xml, this.config.certificatePem, this.config.privateKeyPem);
+  }
+
+  /**
+   * Mapea InvoiceData (montos en centavos, precio unitario CON IGV) a UblComprobante (soles).
+   * Los totales se derivan de las lineas para que sean internamente consistentes (SUNAT lo valida).
+   */
+  private mapToUbl(data: InvoiceData): UblComprobante {
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+    const items = data.items.map((it) => {
+      const precioConIgv = round2(it.precioUnitario / 100);
+      const valorUnitario = round2(precioConIgv / 1.18);
+      const valorVenta = round2(valorUnitario * it.cantidad);
+      const igv = round2(valorVenta * 0.18);
+      return {
+        cantidad: it.cantidad,
+        unidad: it.unidadMedida,
+        descripcion: it.descripcion,
+        codigo: it.codigo,
+        valorUnitario,
+        precioUnitarioConIgv: precioConIgv,
+        valorVenta,
+        igv,
+      };
     });
+    const totalGravado = round2(items.reduce((s, i) => s + i.valorVenta, 0));
+    const totalIgv = round2(items.reduce((s, i) => s + i.igv, 0));
+    return {
+      tipoDoc: data.tipo,
+      serie: data.serie,
+      numero: data.numero,
+      fechaEmision: data.fechaEmision.slice(0, 10),
+      horaEmision: data.fechaEmision.length >= 19 ? data.fechaEmision.slice(11, 19) : '12:00:00',
+      moneda: data.moneda === 'USD' ? 'USD' : 'PEN',
+      emisor: this.config.emisor,
+      cliente: {
+        tipoDoc: data.tipoDocumentoCliente,
+        numDoc: data.numeroDocumentoCliente,
+        razonSocial: data.razonSocialCliente,
+      },
+      items,
+      totalGravado,
+      totalIgv,
+      totalPrecio: round2(totalGravado + totalIgv),
+    };
+  }
+
+  /** Mapea DailySummaryData (centavos) a UblResumenDiario (soles) para el generador propio. */
+  private mapDailySummaryToUbl(data: DailySummaryData): UblResumenDiario {
+    return {
+      id: data.summaryNumber,
+      fechaReferencia: data.referenceDate,
+      fechaEmision: data.summaryDate,
+      moneda: 'PEN',
+      emisor: this.config.emisor,
+      boletas: data.boletas.map((b) => ({
+        tipoDoc: '03',
+        serieNumero: `${b.serie}-${b.numero}`,
+        clienteTipo: b.tipoDocumentoCliente,
+        clienteNumero: b.numeroDocumentoCliente,
+        estado: b.estado,
+        totalGravado: Math.round(b.totalGravadas) / 100,
+        totalIgv: Math.round(b.totalIgv) / 100,
+        totalPrecio: Math.round(b.totalImporte) / 100,
+      })),
+    };
+  }
+
+  /** Mapea VoidData a UblComunicacionBaja (RA) para el generador propio. */
+  private mapVoidToUbl(data: VoidData): UblComunicacionBaja {
+    return {
+      id: `RA-${data.fechaComunicacion.replace(/-/g, '')}-1`,
+      fechaReferencia: data.fechaEmision,
+      fechaEmision: data.fechaComunicacion,
+      emisor: this.config.emisor,
+      documentos: [{ tipoDoc: data.tipo, serie: data.serie, numero: data.numero, motivo: data.motivo }],
+    };
+  }
+
+  /** Mapea CreditNoteData (centavos) a UblNotaCredito (soles) para el generador propio. */
+  private mapCreditNoteToUbl(data: CreditNoteData): UblNotaCredito {
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+    const items = data.items.map((it) => {
+      const precioConIgv = round2(it.precioUnitario / 100);
+      const valorUnitario = round2(precioConIgv / 1.18);
+      const valorVenta = round2(valorUnitario * it.cantidad);
+      const igv = round2(valorVenta * 0.18);
+      return {
+        cantidad: it.cantidad,
+        unidad: it.unidadMedida,
+        descripcion: it.descripcion,
+        codigo: it.codigo,
+        valorUnitario,
+        precioUnitarioConIgv: precioConIgv,
+        valorVenta,
+        igv,
+      };
+    });
+    const totalGravado = round2(items.reduce((s, i) => s + i.valorVenta, 0));
+    const totalIgv = round2(items.reduce((s, i) => s + i.igv, 0));
+    return {
+      serie: data.serie,
+      numero: data.numero,
+      fechaEmision: data.fechaEmision.slice(0, 10),
+      horaEmision: data.fechaEmision.length >= 19 ? data.fechaEmision.slice(11, 19) : '12:00:00',
+      moneda: data.moneda === 'USD' ? 'USD' : 'PEN',
+      docModificado: data.invoiceReference,
+      // Catalogo 09 por defecto: 01 = anulacion de la operacion (caso comun en POS). El detalle
+      // textual viene de data.motivo; el codigo se puede extender si el flujo lo provee.
+      motivoCodigo: '01',
+      motivoDescripcion: data.motivo,
+      emisor: this.config.emisor,
+      cliente: {
+        tipoDoc: data.tipoDocumentoCliente,
+        numDoc: data.numeroDocumentoCliente,
+        razonSocial: data.razonSocialCliente,
+      },
+      items,
+      totalGravado,
+      totalIgv,
+      totalPrecio: round2(totalGravado + totalIgv),
+    };
   }
 
   /**
@@ -204,18 +351,12 @@ export class SunatDirectAdapterImpl {
     this.logger.info(traceCtx, 'Sending invoice to SUNAT via nodefact');
 
     try {
-      // 1. Map InvoiceData to nodefact format
-      const nodefactData = this.mapInvoiceToNodefact(data);
-
-      // 2. Generate UBL 2.1 XML
-      const documentType = data.tipo === '01' ? TipoDocumento.FACTURA : TipoDocumento.BOLETA;
-      const xml = generateXML(nodefactData, documentType);
+      // 1-2. Generar el XML UBL 2.1 con el generador PROPIO (generateXML de nodefact es un
+      // stub vacio). Validado contra SUNAT BETA (boleta aceptada, responseCode 0).
+      const xml = generateComprobanteXml(this.mapToUbl(data));
 
       // 3. Sign XML with certificate and private key
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -225,32 +366,24 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      // 4. Compress and send via SOAP
-      const fileName = `${this.config.ruc}-${data.tipo}-${data.serie}-${data.numero}.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
+      // 4. Zip + enviar via SOAP (el cliente zipea el XML y aplica WS-Security)
+      const fileBase = `${this.config.ruc}-${data.tipo}-${data.serie}-${data.numero}`;
+      const sunatResult = await this.soapClient.sendBill(fileBase, signResult.signedXml);
 
-      const sunatResult = await this.sunatClient.sendBill(fileName, contentBase64);
-
-      // 5. Process SUNAT response
-      if (!sunatResult.success) {
-        const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
+      // 5. Validar la ACEPTACION REAL del CDR (ResponseCode 0), no solo que el SOAP respondio
+      if (!sunatResult.success || !sunatResult.accepted) {
+        const reason = sunatResult.description ?? sunatResult.error ?? 'Error desconocido';
+        const errorCode = this.mapSunatErrorCode(reason);
         return err(new DomainError(
-          `SUNAT rechazo: ${sunatResult.error ?? 'Error desconocido'}`,
+          `SUNAT rechazo: ${reason}`,
           errorCode,
-          { ...traceCtx, sunatError: sunatResult.error },
+          { ...traceCtx, responseCode: sunatResult.responseCode, sunatError: reason },
         ));
       }
 
-      // 6. Generate PDF (best effort)
-      let pdfBase64: string | undefined;
-      try {
-        const pdfResult: PDFResult = await generatePdf(nodefactData, { paper: 'a4', qrCode: true });
-        if (pdfResult.success && pdfResult.buffer) {
-          pdfBase64 = pdfResult.buffer.toString('base64');
-        }
-      } catch (pdfError) {
-        this.logger.warn({ ...traceCtx, error: pdfError }, 'PDF generation failed (non-blocking)');
-      }
+      // 6. PDF: generatePdf de nodefact es un stub; el PDF propio queda pendiente (no bloquea
+      // la emision, el comprobante ya fue aceptado por SUNAT).
+      const pdfBase64: string | undefined = undefined;
 
       // 7. Generate QR string
       const qrString = this.generateQrString(data);
@@ -260,8 +393,8 @@ export class SunatDirectAdapterImpl {
 
       const result: SunatDocumentResult = {
         success: true,
-        cdrResponseCode: '0',
-        cdrResponseMessage: 'Comprobante aceptado por SUNAT',
+        cdrResponseCode: sunatResult.responseCode ?? '0',
+        cdrResponseMessage: sunatResult.description ?? 'Comprobante aceptado por SUNAT',
         cdrXml: sunatResult.cdr ?? '',
         hash,
         signedXml: signResult.signedXml,
@@ -294,13 +427,9 @@ export class SunatDirectAdapterImpl {
     this.logger.info(traceCtx, 'Sending credit note to SUNAT via nodefact');
 
     try {
-      const nodefactData = this.mapCreditNoteToNodefact(data);
-      const xml = generateXML(nodefactData, TipoDocumento.NOTA_CREDITO);
+      const xml = generateCreditNoteXml(this.mapCreditNoteToUbl(data));
 
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -310,17 +439,16 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      const fileName = `${this.config.ruc}-07-${data.serie}-${data.numero}.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
+      const fileBase = `${this.config.ruc}-07-${data.serie}-${data.numero}`;
+      const sunatResult = await this.soapClient.sendBill(fileBase, signResult.signedXml);
 
-      const sunatResult = await this.sunatClient.sendBill(fileName, contentBase64);
-
-      if (!sunatResult.success) {
-        const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
+      if (!sunatResult.success || !sunatResult.accepted) {
+        const reason = sunatResult.description ?? sunatResult.error ?? 'Error desconocido';
+        const errorCode = this.mapSunatErrorCode(reason);
         return err(new DomainError(
-          `SUNAT rechazo nota de credito: ${sunatResult.error ?? 'Error desconocido'}`,
+          `SUNAT rechazo nota de credito: ${reason}`,
           errorCode,
-          { ...traceCtx, sunatError: sunatResult.error },
+          { ...traceCtx, responseCode: sunatResult.responseCode, sunatError: reason },
         ));
       }
 
@@ -328,8 +456,8 @@ export class SunatDirectAdapterImpl {
 
       return ok({
         success: true,
-        cdrResponseCode: '0',
-        cdrResponseMessage: 'Nota de credito aceptada por SUNAT',
+        cdrResponseCode: sunatResult.responseCode ?? '0',
+        cdrResponseMessage: sunatResult.description ?? 'Nota de credito aceptada por SUNAT',
         cdrXml: sunatResult.cdr ?? '',
         hash,
         signedXml: signResult.signedXml,
@@ -349,6 +477,59 @@ export class SunatDirectAdapterImpl {
     }
   }
 
+  /** Send a debit note (08) to SUNAT. */
+  async sendDebitNote(data: DebitNoteData): Promise<Result<SunatDocumentResult, DomainError>> {
+    const traceCtx = { serie: data.serie, numero: data.numero, tipo: '08' };
+    this.logger.info(traceCtx, 'Sending debit note to SUNAT');
+
+    try {
+      const xml = generateDebitNoteXml(this.mapDebitNoteToUbl(data));
+      const signResult = this.signXml(xml);
+      if (!signResult.success || !signResult.signedXml) {
+        return err(new DomainError(
+          `Error al firmar XML: ${signResult.error ?? 'Unknown'}`,
+          'SUNAT_SIGNING_ERROR',
+          traceCtx,
+        ));
+      }
+
+      const fileBase = `${this.config.ruc}-08-${data.serie}-${data.numero}`;
+      const sunatResult = await this.soapClient.sendBill(fileBase, signResult.signedXml);
+
+      if (!sunatResult.success || !sunatResult.accepted) {
+        const reason = sunatResult.description ?? sunatResult.error ?? 'Error desconocido';
+        return err(new DomainError(
+          `SUNAT rechazo nota de debito: ${reason}`,
+          this.mapSunatErrorCode(reason),
+          { ...traceCtx, responseCode: sunatResult.responseCode, sunatError: reason },
+        ));
+      }
+
+      const hash = this.extractHash(sunatResult.cdr ?? '');
+      return ok({
+        success: true,
+        cdrResponseCode: sunatResult.responseCode ?? '0',
+        cdrResponseMessage: sunatResult.description ?? 'Nota de debito aceptada por SUNAT',
+        cdrXml: sunatResult.cdr ?? '',
+        hash,
+        signedXml: signResult.signedXml,
+      });
+    } catch (error) {
+      const errorCode = this.mapCaughtErrorCode(error);
+      this.logger.error({ ...traceCtx, errorCode }, 'SUNAT debit note submission failed');
+      return err(new DomainError(
+        `Error enviando nota de debito a SUNAT: ${(error as Error).message}`,
+        errorCode,
+        traceCtx,
+      ));
+    }
+  }
+
+  /** Mapea DebitNoteData a UblNotaDebito (reusa el mapeo de NC; motivoCodigo del Catalogo 10). */
+  private mapDebitNoteToUbl(data: DebitNoteData): UblNotaDebito {
+    return { ...this.mapCreditNoteToUbl(data), motivoCodigo: '02' };
+  }
+
   /**
    * Send a void communication (Comunicacion de Baja) to SUNAT.
    */
@@ -357,13 +538,9 @@ export class SunatDirectAdapterImpl {
     this.logger.info(traceCtx, 'Sending void communication to SUNAT via nodefact');
 
     try {
-      const nodefactData = this.mapVoidToNodefact(data);
-      const xml = generateXML(nodefactData, TipoDocumento.COMUNICACION_BAJA);
+      const xml = generateVoidedXml(this.mapVoidToUbl(data));
 
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -373,10 +550,8 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      const fileName = `${this.config.ruc}-RA-${data.fechaComunicacion.replace(/-/g, '')}-1.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
-
-      const sunatResult = await this.sunatClient.sendSummary(fileName, contentBase64);
+      const fileBase = `${this.config.ruc}-RA-${data.fechaComunicacion.replace(/-/g, '')}-1`;
+      const sunatResult = await this.soapClient.sendSummary(fileBase, signResult.signedXml);
 
       if (!sunatResult.success) {
         const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
@@ -390,8 +565,8 @@ export class SunatDirectAdapterImpl {
       return ok({
         success: true,
         cdrResponseCode: '0',
-        cdrResponseMessage: 'Comunicacion de baja registrada',
-        cdrXml: sunatResult.cdr ?? '',
+        cdrResponseMessage: 'Comunicacion de baja registrada (ticket pendiente)',
+        cdrXml: '',
         hash: '',
         signedXml: signResult.signedXml,
         ticketNumber: sunatResult.ticket,
@@ -420,13 +595,9 @@ export class SunatDirectAdapterImpl {
     this.logger.info(traceCtx, 'Sending daily summary to SUNAT via nodefact');
 
     try {
-      const nodefactData = this.mapDailySummaryToNodefact(data);
-      const xml = generateXML(nodefactData, TipoDocumento.RESUMEN_DIARIO);
+      const xml = generateSummaryXml(this.mapDailySummaryToUbl(data));
 
-      const signResult = await signXml(xml, {
-        certFile: this.config.certificatePem,
-        keyFile: this.config.privateKeyPem,
-      });
+      const signResult = this.signXml(xml);
 
       if (!signResult.success || !signResult.signedXml) {
         return err(new DomainError(
@@ -436,10 +607,8 @@ export class SunatDirectAdapterImpl {
         ));
       }
 
-      const fileName = `${data.ruc}-RC-${data.summaryDate.replace(/-/g, '')}.xml`;
-      const contentBase64 = Buffer.from(signResult.signedXml, 'utf-8').toString('base64');
-
-      const sunatResult = await this.sunatClient.sendSummary(fileName, contentBase64);
+      const fileBase = `${data.ruc}-RC-${data.summaryDate.replace(/-/g, '')}`;
+      const sunatResult = await this.soapClient.sendSummary(fileBase, signResult.signedXml);
 
       if (!sunatResult.success) {
         const errorCode = this.mapSunatErrorCode(sunatResult.error ?? '');
@@ -481,7 +650,7 @@ export class SunatDirectAdapterImpl {
     this.logger.info({ ticketNumber }, 'Querying ticket status on SUNAT');
 
     try {
-      const sunatResult = await this.sunatClient.getStatus(ticketNumber);
+      const sunatResult = await this.soapClient.getStatus(ticketNumber);
 
       if (!sunatResult.success && !sunatResult.cdr) {
         // Still pending or error
@@ -531,22 +700,16 @@ export class SunatDirectAdapterImpl {
     this.logger.info({}, 'Testing SUNAT connection');
 
     try {
-      // Create a BETA client for testing (always use BETA regardless of config)
-      const betaClient = createSunatClient({
-        endpoint: SUNAT_ENDPOINTS.BETA.bill as SunatEndpoints,
-        credentials: {
-          ruc: this.config.ruc,
-          usuario: this.config.solUser,
-          clave: this.config.solPassword,
-        },
-        timeout: 15_000,
-      });
+      // Cliente BETA para probar conectividad (siempre BETA, sin importar el modo).
+      const betaClient = new SunatSoapClient(
+        SUNAT_ENDPOINTS.BETA.bill,
+        { ruc: this.config.ruc, solUser: this.config.solUser, solPassword: this.config.solPassword },
+        15_000,
+      );
 
-      // Send a minimal test — just check that SOAP client can connect
-      // We use getStatus with an invalid ticket to test connectivity
-      const testResult = await betaClient.getStatus('0');
+      // getStatus con ticket invalido: cualquier respuesta (aun error) prueba la conexion.
+      await betaClient.getStatus('0');
 
-      // Any response (even error) means connectivity works
       return ok({ message: 'Conexion exitosa con SUNAT (endpoint beta)' });
 
     } catch (error) {
@@ -559,165 +722,6 @@ export class SunatDirectAdapterImpl {
     }
   }
 
-  // ============================================================================
-  // Data Mapping: InvoiceData (centavos) -> nodefact format (soles)
-  // ============================================================================
-
-  private mapInvoiceToNodefact(data: InvoiceData): Record<string, unknown> {
-    const emisor: Emisor = {
-      ruc: this.config.ruc,
-      razonSocial: '', // Will be filled by tenant data in queue worker
-      direccion: { direccion: '' },
-    };
-
-    const receptor: Receptor = {
-      tipoDocumento: data.tipoDocumentoCliente,
-      numeroDocumento: data.numeroDocumentoCliente,
-      razonSocial: data.razonSocialCliente,
-    };
-
-    if (data.direccionCliente) {
-      receptor.direccion = { direccion: data.direccionCliente };
-    }
-
-    const items: Item[] = data.items.map((item) => {
-      const valorUnitario = centsToSoles(item.precioUnitario);
-      const igvMultiplier = 1.18; // 18% IGV standard
-      const valorSinIgv = Number((valorUnitario / igvMultiplier).toFixed(2));
-      const subtotal = Number((valorSinIgv * item.cantidad).toFixed(2));
-      const total = Number((valorUnitario * item.cantidad).toFixed(2));
-      const igv = Number((total - subtotal).toFixed(2));
-
-      return {
-        codigo: item.codigo,
-        descripcion: item.descripcion,
-        unidadMedida: item.unidadMedida,
-        cantidad: item.cantidad,
-        valorUnitario: valorSinIgv,
-        precioUnitario: valorUnitario,
-        tipoIGV: TipoIGV.GRAVADO_OPERACION_ONEROSA,
-        igv,
-        porcentajeIGV: 18,
-        subtotal,
-        total,
-      };
-    });
-
-    return {
-      tipoDocumento: data.tipo,
-      serie: data.serie,
-      numero: data.numero,
-      fechaEmision: data.fechaEmision,
-      moneda: TipoMoneda.PEN,
-      emisor,
-      receptor,
-      items,
-      impuestos: {
-        igv: centsToSoles(data.totalIgv),
-        total: centsToSoles(data.totalIgv),
-      },
-      totalGravadas: centsToSoles(data.totalGravadas),
-      totalIgv: centsToSoles(data.totalIgv),
-      totalVenta: centsToSoles(data.totalImporte),
-    };
-  }
-
-  private mapCreditNoteToNodefact(data: CreditNoteData): Record<string, unknown> {
-    const items: Item[] = data.items.map((item) => {
-      const valorUnitario = centsToSoles(item.precioUnitario);
-      const igvMultiplier = 1.18;
-      const valorSinIgv = Number((valorUnitario / igvMultiplier).toFixed(2));
-      const subtotal = Number((valorSinIgv * item.cantidad).toFixed(2));
-      const total = centsToSoles(item.precioTotal);
-      const igv = centsToSoles(item.igv);
-
-      return {
-        codigo: item.codigo,
-        descripcion: item.descripcion,
-        unidadMedida: item.unidadMedida,
-        cantidad: item.cantidad,
-        valorUnitario: valorSinIgv,
-        precioUnitario: valorUnitario,
-        tipoIGV: TipoIGV.GRAVADO_OPERACION_ONEROSA,
-        igv,
-        porcentajeIGV: 18,
-        subtotal,
-        total,
-      };
-    });
-
-    return {
-      tipoDocumento: '07',
-      serie: data.serie,
-      numero: data.numero,
-      fechaEmision: data.fechaEmision,
-      moneda: TipoMoneda.PEN,
-      emisor: {
-        ruc: this.config.ruc,
-        razonSocial: '',
-        direccion: { direccion: '' },
-      },
-      receptor: {
-        tipoDocumento: data.tipoDocumentoCliente,
-        numeroDocumento: data.numeroDocumentoCliente,
-        razonSocial: data.razonSocialCliente,
-      },
-      items,
-      documentoRelacionado: {
-        tipoDocumento: data.invoiceReference.tipo,
-        serie: data.invoiceReference.serie,
-        numero: data.invoiceReference.numero,
-      },
-      motivo: data.motivo,
-      totalGravadas: centsToSoles(data.totalGravadas),
-      totalIgv: centsToSoles(data.totalIgv),
-      totalVenta: centsToSoles(data.totalImporte),
-    };
-  }
-
-  private mapVoidToNodefact(data: VoidData): Record<string, unknown> {
-    return {
-      tipoDocumento: TipoDocumento.COMUNICACION_BAJA,
-      fechaComunicacion: data.fechaComunicacion,
-      emisor: {
-        ruc: this.config.ruc,
-        razonSocial: '',
-        direccion: { direccion: '' },
-      },
-      documentos: [{
-        tipoDocumento: data.tipo,
-        serie: data.serie,
-        numero: data.numero,
-        motivo: data.motivo,
-        fechaEmision: data.fechaEmision,
-      }],
-    };
-  }
-
-  private mapDailySummaryToNodefact(data: DailySummaryData): Record<string, unknown> {
-    return {
-      tipoDocumento: TipoDocumento.RESUMEN_DIARIO,
-      summaryNumber: data.summaryNumber,
-      fechaEmision: data.summaryDate,
-      fechaReferencia: data.referenceDate,
-      emisor: {
-        ruc: data.ruc,
-        razonSocial: data.razonSocial,
-        direccion: { direccion: '' },
-      },
-      documentos: data.boletas.map((b) => ({
-        tipoDocumento: '03',
-        serie: b.serie,
-        numero: b.numero,
-        tipoDocumentoCliente: b.tipoDocumentoCliente,
-        numeroDocumentoCliente: b.numeroDocumentoCliente,
-        totalGravadas: centsToSoles(b.totalGravadas),
-        totalIgv: centsToSoles(b.totalIgv),
-        totalVenta: centsToSoles(b.totalImporte),
-        estado: b.estado,
-      })),
-    };
-  }
 
   // ============================================================================
   // QR String Generation (SUNAT format)

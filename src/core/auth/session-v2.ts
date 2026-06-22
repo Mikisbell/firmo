@@ -61,7 +61,7 @@ export interface SessionValidation {
 
 // ============ CONSTANTS ============
 
-const SESSION_TIMEOUT_MINUTES = 480;          // Inactivity timeout: 8 hours = full shift
+export const SESSION_TIMEOUT_MINUTES = 480;   // Inactivity timeout: 8 hours = full shift
 const FINGERPRINT_CHECK_INTERVAL_MINUTES = 5; // Periodic check (Requirement 5.4)
 const FINGERPRINT_DRIFT_THRESHOLD = 50;       // Below this requires re-auth (Requirement 5.5)
 

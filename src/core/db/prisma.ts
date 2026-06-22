@@ -45,9 +45,16 @@ const prismaClientSingleton = () => {
         // Conecta al pooler de Supabase y NO depende del binary del engine nativo
         // (que en Vercel serverless fallaba al instante por target de plataforma).
         console.log('PRISMA INIT - Usando adaptador pg para Supabase/Postgres');
-        // ssl rejectUnauthorized:false: Supabase EXIGE SSL y su certificado no esta en el
-        // trust store por defecto de Node en Vercel; sin esto el handshake TLS cuelga (timeout).
-        const pool = new PgPool({ connectionString, ssl: { rejectUnauthorized: false } });
+        // SSL solo para hosts remotos (Supabase EXIGE SSL y su cert no esta en el trust
+        // store de Node en Vercel -> rejectUnauthorized:false). El postgres local de CI/dev
+        // (localhost) NO soporta SSL: forzarlo da "server does not support SSL connections"
+        // y tumba TODOS los tests de DB. Detectamos local y desactivamos SSL ahi.
+        const isLocalDb = /@(localhost|127\.0\.0\.1|postgres)[:/]/.test(connectionString)
+            || /sslmode=disable/.test(connectionString);
+        const pool = new PgPool({
+            connectionString,
+            ssl: isLocalDb ? false : { rejectUnauthorized: false },
+        });
         // CRITICO: el pooler (pgbouncer) corta conexiones idle. Sin este handler, ese error
         // sube como 'uncaughtException' y TUMBA el proceso (dev server / funcion serverless).
         // Lo logueamos y el pool se recupera solo (abre nueva conexion en el siguiente query).

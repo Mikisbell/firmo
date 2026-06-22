@@ -87,7 +87,7 @@ interface TicketProps {
     total: number;
     payments?: Array<{ method: string; amount: number }>;
     clientDoc?: string;
-    invoiceType?: "BOLETA" | "FACTURA" | "PRE-CUENTA";
+    invoiceType?: "BOLETA" | "FACTURA" | "PRE-CUENTA" | "NOTA DE VENTA";
     invoiceSeries?: string;
     invoiceNumber?: string;
     tableKey?: string;
@@ -185,6 +185,19 @@ export const TicketTemplate: React.FC<TicketProps> = ({
                 <>
                     <div className="divider" />
                     <div>Cliente: {clientDoc}</div>
+                </>
+            )}
+
+            {(invoiceType === "NOTA DE VENTA" || invoiceType === "PRE-CUENTA") && (
+                <>
+                    <div className="divider" />
+                    <div className="center bold">
+                        ESTE DOCUMENTO NO ES UN<br />
+                        COMPROBANTE DE PAGO
+                    </div>
+                    <div className="center">
+                        Solicite su boleta o factura en caja.
+                    </div>
                 </>
             )}
 

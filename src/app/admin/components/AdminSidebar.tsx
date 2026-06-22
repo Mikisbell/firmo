@@ -205,6 +205,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/caja-chica', label: 'Caja Chica', description: 'Gastos menores y reembolsos', icon: Wallet, permission: 'manage_config' },
       { href: '/admin/facturacion', label: 'Facturación', description: 'Boletas, facturas y notas SUNAT', icon: FileText, permission: 'manage_config' },
+      { href: '/admin/sales-notes', label: 'Notas de Venta', description: 'Pre-cuentas internas (no fiscales) convertibles', icon: FileText, permission: 'view_reports' },
       { href: '/admin/conciliacion', label: 'Conciliación', description: 'Cruce de caja vs ventas del día', icon: Scale, permission: 'view_reports' },
       { href: '/admin/estado-resultados', label: 'P&L', description: 'Estado de resultados detallado', icon: PieChart, permission: 'view_reports' },
     ],

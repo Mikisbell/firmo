@@ -7,7 +7,10 @@
  * @module core/infra/supabase-event-bus
  */
 
-import { Pool, PoolClient } from '@neondatabase/serverless';
+// Pool de node-postgres (pg) sobre TCP: soporta LISTEN/NOTIFY nativo. Solo runtime NODE
+// (Vercel/Supabase); pg NO corre en Edge/Workers, mismo criterio que prisma.ts. Antes se
+// usaba @neondatabase/serverless (WebSocket de Neon), que contra Supabase daba EAUTHPROTOCOL.
+import { Pool, PoolClient } from 'pg';
 import { ParkEvent } from '@/src/core/domain/events';
 import { logger, createLogger } from '@/src/core/observability/structured-logger';
 
@@ -33,6 +36,8 @@ type EventChannel = `events:${string}`;
  * - Aislamiento por tenant
  * - Manejo robusto de errores
  */
+// @deprecated FASE 3 (issue #4): bus por PG LISTEN/NOTIFY (TCP 5432). Reemplazado por
+// SupabaseRealtimeEventBus (broadcast, sin 5432, Cloudflare-safe). Retirar tras validar.
 export class SupabaseEventBus {
     private pool: Pool | null = null;
     private client: PoolClient | null = null;
@@ -55,14 +60,41 @@ export class SupabaseEventBus {
      */
     async connect(): Promise<void> {
         try {
-            // Crear pool de conexiones
+            // Limpiar pool previo si esto es una reconexión (evita fuga de conexiones)
+            if (this.pool) {
+                await this.pool.end().catch(() => { /* pool ya cerrado o en error */ });
+                this.pool = null;
+            }
+
+            // SSL solo para hosts remotos. Supabase EXIGE SSL (cert fuera del trust store
+            // de Node en Vercel -> rejectUnauthorized:false), pero el postgres local de
+            // CI/dev (localhost) NO soporta SSL y forzarlo rompe la conexion.
+            const isLocalDb = /@(localhost|127\.0\.0\.1|postgres)[:/]/.test(this.connectionString)
+                || /sslmode=disable/.test(this.connectionString);
+            // Crear pool de conexiones (pg sobre TCP)
             this.pool = new Pool({
                 connectionString: this.connectionString,
                 max: 10, // Máximo 10 conexiones en el pool
+                ssl: isLocalDb ? false : { rejectUnauthorized: false },
             });
 
-            // Obtener cliente dedicado para LISTEN
+            // Errores en conexiones idle del pool: los logueamos para que NO suban como
+            // uncaughtException y tumben el proceso (el pool se recupera solo).
+            this.pool.on('error', (err) => {
+                log.error('Error en el pool del event-bus (conexión idle, recuperable)', err instanceof Error ? err : new Error(String(err)));
+            });
+
+            // Obtener cliente dedicado para LISTEN (LISTEN es a nivel de sesión: requiere
+            // una conexión fija, no una del pool rotando)
             this.client = await this.pool.connect();
+
+            // CRÍTICO: si la conexión de LISTEN se cae, sin este handler el error sube como
+            // uncaughtException y TUMBA el proceso. Lo logueamos, soltamos el cliente y reconectamos.
+            this.client.on('error', (err) => {
+                log.error('Error en la conexión LISTEN del event-bus, reconectando', err instanceof Error ? err : new Error(String(err)));
+                this.client = null;
+                this.scheduleReconnect();
+            });
 
             // Configurar handler para notificaciones
             this.client.on('notification', this.handleNotification.bind(this));
