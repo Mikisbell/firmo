@@ -12,7 +12,9 @@ env:
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/park_test
   DIRECT_URL: postgresql://postgres:postgres@localhost:5432/park_test
   REDIS_URL: redis://localhost:6379
-  JWT_SECRET: test-jwt-secret-ci-only
+  # Debe tener >= 32 chars: env-validation.ts lo exige y el next start del job E2E
+  # corre esa validacion en el instrumentation hook (si falla, el server no levanta).
+  JWT_SECRET: test-jwt-secret-ci-only-min-32-chars-padding
   NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-key
 
