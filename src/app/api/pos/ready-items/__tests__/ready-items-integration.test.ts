@@ -150,7 +150,7 @@ vi.mock('@/src/core/conflict/conflict-resolver', () => ({
   detectAndResolveConflict: vi.fn().mockResolvedValue({ resolution: 'ACCEPT' }),
 }));
 vi.mock('@/src/core/notifications/event-listener', () => ({
-  registerNotificationHandlers: vi.fn(),
+  dispatchNotifications: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock('@/src/core/events/out-of-order-queue', () => ({
   outOfOrderQueue: { enqueue: vi.fn(), processAll: vi.fn() },

@@ -7,7 +7,7 @@ import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service"
 import { markAsProcessed } from "@/src/core/events/mark-processed";
 import { runWithSerializationRetry } from "@/src/core/db/serialization-retry";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
-import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
+import { dispatchNotifications } from "@/src/core/notifications/event-listener";
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 import { outOfOrderQueue, startCleanupJob } from "@/src/core/events/out-of-order-queue";
 import { rateLimiter } from "@/src/core/rate-limiting/rate-limiter";
@@ -943,9 +943,6 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    // Register notification handlers for this tenant (idempotent)
-    registerNotificationHandlers(tenant_id);
-
     // Fast path: empty batch
     if (events.length === 0) {
         return NextResponse.json({ accepted: true, acked_through_terminal_sequence: to_terminal_sequence });
@@ -1308,6 +1305,11 @@ export async function POST(req: NextRequest) {
                         eventId: ev.event_id,
                     });
                 });
+
+                // Notificaciones push + invalidación de cache, INLINE (serverless-safe).
+                // Reemplaza al listener que se suscribía a PG LISTEN/NOTIFY (no sobrevive
+                // en Cloudflare). dispatchNotifications es best-effort: no lanza al caller.
+                await dispatchNotifications(ev);
             } catch (e) {
                 logger.warn('Fallo al publicar en bus, outbox worker reintentará', {
                     eventId: ev.event_id,

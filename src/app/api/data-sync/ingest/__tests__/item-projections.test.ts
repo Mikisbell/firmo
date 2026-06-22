@@ -62,7 +62,7 @@ vi.mock('@/src/core/conflict/conflict-resolver', () => ({
 }));
 
 vi.mock('@/src/core/notifications/event-listener', () => ({
-  registerNotificationHandlers: vi.fn(),
+  dispatchNotifications: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/src/core/events/out-of-order-queue', () => ({

@@ -143,8 +143,8 @@ export const deliveryRedisService = {
 
   /**
    * NOTA: publish, subscribe y unsubscribe fueron eliminados.
-   * Se debe utilizar SupabaseEventBus (Neon LISTEN/NOTIFY) 
-   * para la funcionalidad de Pub/Sub en tiempo real en la capa Edge.
+   * El Pub/Sub en tiempo real se hace por Supabase Realtime (ver
+   * src/core/infra/event-bus.ts → SupabaseRealtimeEventBus).
    */
 
   /**
@@ -506,7 +506,7 @@ export const deliveryRedisService = {
     }
   },
 
-  // Unsubscribe eliminado. Usar SupabaseEventBus.
+  // Unsubscribe eliminado. El realtime va por Supabase Realtime (event-bus.ts).
 
   /**
    * Check if Redis is available
