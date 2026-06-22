@@ -134,6 +134,15 @@ describe('Real POS Order Flow - Integration', () => {
   let checkId: string;
 
   beforeAll(async () => {
+    // Seed del tenant padre: terminal_number_ranges/orders/payments tienen FK a tenants.
+    // En CI la DB se crea vacia con `prisma db push`, asi que sin esto el upsert siguiente
+    // viola terminal_number_ranges_tenant_id_fkey.
+    await prisma.tenants.upsert({
+      where: { id: TENANT_ID },
+      create: { id: TENANT_ID, name: 'Tenant Integracion POS' },
+      update: {},
+    });
+
     // Create terminal range to pass validation
     await prisma.terminal_number_ranges.upsert({
       where: {

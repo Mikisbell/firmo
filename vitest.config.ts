@@ -4,7 +4,17 @@ import path from "node:path";
 export default defineConfig({
     test: {
         environment: "node",
-        exclude: ['**/node_modules/**', '**/e2e/**', '**/.claude/worktrees/**'],
+        // tests/simulation y tests/solutions son SPIKES EXPLORATORIOS autocontenidos:
+        // definen su propia logica e importan 0 codigo de produccion (@/src), asi que NO
+        // protegen produccion y no deben gatear el merge. Se corren on-demand con `test:sim`.
+        // (No se borran: valen como documentacion ejecutable / modelado de escenarios.)
+        exclude: [
+            '**/node_modules/**',
+            '**/e2e/**',
+            '**/.claude/worktrees/**',
+            '**/tests/simulation/**',
+            '**/tests/solutions/**',
+        ],
         testTimeout: 30000, // 30 seconds for async property tests with DB operations
         retry: 2, // Retry flaky property tests (delivery assignment under high concurrency)
         pool: 'forks', // Use forks instead of threads to reduce resource contention
