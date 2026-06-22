@@ -5,6 +5,7 @@ import { ingestRequestSchema, type ParkEvent, type PaymentMethod } from "@/src/c
 import { validateEvent, type ValidationResult } from "@/src/core/validation";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
 import { markAsProcessed } from "@/src/core/events/mark-processed";
+import { runWithSerializationRetry } from "@/src/core/db/serialization-retry";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { registerNotificationHandlers } from "@/src/core/notifications/event-listener";
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
@@ -972,7 +973,17 @@ export async function POST(req: NextRequest) {
         // Se llena durante la proyección y se procesa DESPUÉS del commit.
         const deductionSideEffects: DeductionSideEffect[] = [];
 
-        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        // Reintenta ante 40001/40P01. Los acumuladores se RESETEAN al inicio de
+        // cada intento porque se llenan dentro de la transacción: sin el reset,
+        // un reintento duplicaría las entradas de un intento abortado.
+        await runWithSerializationRetry(async () => {
+          deduped_event_ids.length = 0;
+          rejected.length = 0;
+          merged.length = 0;
+          acceptedEvents.length = 0;
+          deductionSideEffects.length = 0;
+
+          await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             for (const ev of secureEvents) {
                 // 1. DEDUPLICATION CHECK FIRST (atomic with constraint)
                 // Marcar como procesado ANTES de cualquier otra operación
@@ -1195,10 +1206,11 @@ export async function POST(req: NextRequest) {
 
                 acceptedEvents.push(migrated);
             }
-        }, {
+          }, {
             timeout: 30000, // 30 seconds
             maxWait: 10000, // 10 seconds max wait for transaction slot
             isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
+          });
         });
 
         txSpan.setAttribute('ingest.accepted', acceptedEvents.length);
