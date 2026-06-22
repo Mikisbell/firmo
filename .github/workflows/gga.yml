@@ -20,46 +20,61 @@ jobs:
         with:
           fetch-depth: 0  # Full git history for PR mode
 
-      # Si no hay API key configurada, omitimos el review en CI sin dar rojo falso:
-      # el hook pre-commit local de GGA ya revisa cada commit. (gate-on-secret)
-      - name: Check AI provider key
-        id: key
+      # GGA usa PROVIDER="claude" -> invoca el CLI de Claude Code (`claude --print`).
+      # Autenticamos con la SUSCRIPCION via CLAUDE_CODE_OAUTH_TOKEN (generado en local con
+      # `claude setup-token`), NO con una API key de billing. Si el secret no esta, el
+      # review se omite sin rojo falso (el hook pre-commit local de GGA ya revisa cada commit).
+      - name: Check Claude Code token
+        id: auth
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
-          if [ -z "$ANTHROPIC_API_KEY" ]; then
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::ANTHROPIC_API_KEY no configurado; se omite el review GGA en CI (el hook pre-commit local ya lo aplica)."
+            echo "::warning::CLAUDE_CODE_OAUTH_TOKEN no configurado; se omite el review GGA en CI (el hook pre-commit local ya lo aplica). Generalo con 'claude setup-token' y agregalo como secret."
           else
             echo "present=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # Instalacion SIN brew: clonar el repo y correr install.sh (instala en ~/.local/bin o ~/bin).
+      - name: Setup Node
+        if: steps.auth.outputs.present == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # CLI de Claude Code (lo que GGA invoca como provider 'claude').
+      - name: Install Claude Code CLI
+        if: steps.auth.outputs.present == 'true'
+        run: npm install -g @anthropic-ai/claude-code
+
+      # Instalacion de GGA SIN brew: clonar el repo oficial y correr install.sh.
       - name: Install GGA (sin brew)
-        if: steps.key.outputs.present == 'true'
+        if: steps.auth.outputs.present == 'true'
         run: |
           git clone --depth 1 https://github.com/Gentleman-Programming/gentleman-guardian-angel.git /tmp/gga
           ( cd /tmp/gga && ./install.sh )
-          # install.sh coloca el binario en ~/.local/bin (Linux) o ~/bin; cubrimos ambos.
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           echo "$HOME/bin" >> "$GITHUB_PATH"
 
-      - name: Verify GGA
-        if: steps.key.outputs.present == 'true'
-        run: gga version
+      - name: Verify tooling
+        if: steps.auth.outputs.present == 'true'
+        run: |
+          gga version
+          claude --version || true
 
       - name: Run GGA Code Review
-        if: steps.key.outputs.present == 'true'
+        if: steps.auth.outputs.present == 'true'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # El CLI de Claude Code usa la suscripcion via este token (sin API billing).
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "  Gentleman Guardian Angel - PR Code Review"
+          echo "  Gentleman Guardian Angel - PR Code Review (provider: claude)"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           gga run --pr-mode --ci
 
       - name: Upload violation report
-        if: failure() && steps.key.outputs.present == 'true'
+        if: failure() && steps.auth.outputs.present == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: gga-violations
@@ -68,7 +83,7 @@ jobs:
           retention-days: 30
 
       - name: Comment PR on failure
-        if: failure() && steps.key.outputs.present == 'true'
+        if: failure() && steps.auth.outputs.present == 'true'
         uses: actions/github-script@v7
         with:
           script: |
