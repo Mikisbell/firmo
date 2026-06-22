@@ -1,7 +1,18 @@
 # Plan Fase 3 — Retirar PG LISTEN/NOTIFY + SSE, dejar Supabase Realtime
 
-> Estado: **PROPUESTA, pendiente de aprobación de Belico.** No ejecutado.
+> Estado: **IMPLEMENTADO (Variante B)** en rama `refactor/realtime-fase3-retirar-pg-sse`.
+> Pendiente: aplicar `prisma/rls/realtime-broadcast-authz.sql` a la DB cloud (con OK
+> de Belico) + validación en preview Cloudflare (checklist del paso 5).
 > Fecha: 2026-06-22
+
+## Hallazgo durante la implementación (no estaba en el plan original)
+
+`registerNotificationHandlers` se llamaba DENTRO del ingest y se suscribía al
+pg-bus para disparar push notifications + invalidación de cache de analytics. Ese
+patrón (suscribirse en memoria a LISTEN/NOTIFY en un request) **ya era frágil en
+Cloudflare**. Solución aplicada (Fase 3-A): `dispatchNotifications(event)` inline
+en el ingest post-commit (best-effort). Reparó las notificaciones en prod además
+de desacoplarlas del pg-bus.
 
 ## 1. Contexto y evidencia (verificado, no supuesto)
 
