@@ -27,6 +27,10 @@ import {
   handleSalesNoteIssued,
   handleSalesNoteConverted,
 } from '@/src/core/events/projections/sales-note-projections';
+import {
+  handleCheckPaymentAdded,
+  handleCheckMarkedPaid,
+} from '@/src/core/events/projections/check-projections';
 
 const TENANT = randomUUID();
 const ORDER = randomUUID();
@@ -100,6 +104,7 @@ describe('Flujo core PARK (integracion DB)', () => {
     await prisma.products.deleteMany({ where: { tenant_id: TENANT } }).catch(() => {});
     await prisma.inventory.deleteMany({ where: { tenant_id: TENANT } }).catch(() => {});
     await prisma.$executeRaw`DELETE FROM order_item_projections WHERE tenant_id = ${TENANT}::uuid`.catch(() => {});
+    await prisma.payments.deleteMany({ where: { tenant_id: TENANT } }).catch(() => {});
     await prisma.order_tables.deleteMany({ where: { order_id: ORDER } }).catch(() => {});
     await prisma.orders.deleteMany({ where: { tenant_id: TENANT } }).catch(() => {});
     await prisma.tenants.deleteMany({ where: { id: TENANT } }).catch(() => {});
@@ -140,7 +145,23 @@ describe('Flujo core PARK (integracion DB)', () => {
     const open = await prisma.sales_notes.findUnique({ where: { id: SALES_NOTE } });
     expect(open?.status).toBe('OPEN');
 
-    // 5. Caja convierte la nota en comprobante -> CONVERTED.
+    // 5. Cliente paga en caja: pago agregado + check marcado PAID.
+    await handleCheckPaymentAdded(prisma as never, ev('CHECK_PAYMENT_ADDED', {
+      order_id: ORDER, check_id: CHECK, idempotency_key: randomUUID(),
+      payment: { method: 'CASH', amount_cents: 5000 },
+    }));
+    await handleCheckMarkedPaid(prisma as never, ev('CHECK_MARKED_PAID', {
+      order_id: ORDER, check_id: CHECK, paid_at: new Date().toISOString(), change_cents: 0,
+    }));
+    // ASSERT: el pago se registro y el check quedo PAID.
+    const pagos = await prisma.payments.count({ where: { tenant_id: TENANT, order_id: ORDER, check_id: CHECK } });
+    expect(pagos).toBe(1);
+    const ordPagada = await prisma.orders.findUnique({ where: { id: ORDER } });
+    const checkPagado = ((ordPagada?.checks as Array<{ check_id: string; payment?: { status?: string } }>) ?? [])
+      .find((c) => c.check_id === CHECK);
+    expect(checkPagado?.payment?.status).toBe('PAID');
+
+    // 6. Caja convierte la nota en comprobante -> CONVERTED.
     await handleSalesNoteConverted(prisma as never, ev('SALES_NOTE_CONVERTED', {
       sales_note_id: SALES_NOTE, invoice_id: INVOICE, invoice_type: 'BOLETA',
     }, SALES_NOTE));
