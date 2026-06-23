@@ -52,6 +52,11 @@ function createMockPrisma() {
     events: {
       create: vi.fn(),
     },
+    // Proyeccion order_item_projections: verdad VIVA del status por line_id.
+    // Por defecto retorna [] → buildCourseReport cae al fallback (status del JSON).
+    order_item_projections: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
   } as any;
 }
 
@@ -409,6 +414,103 @@ describe('CourseFireService', () => {
       expect(result.data.courses[0].completedCount).toBe(2);
       expect(result.data.courses[0].totalCount).toBe(4);
       expect(result.data.courses[0].percentComplete).toBe(50);
+    });
+
+    // -----------------------------------------------------------------------
+    // Trap: status del JSON congelado vs proyeccion VIVA
+    // (architecture/order-item-status-trap — engram #2171)
+    // -----------------------------------------------------------------------
+
+    it('debe usar el status VIVO de order_item_projections, no el JSON congelado', async () => {
+      // El JSON tiene status PENDING (congelado en la creacion), pero la
+      // verdad viva en la proyeccion dice READY → el curso debe contarlo completado.
+      const items = [
+        makeItem({ line_id: 'l1', course: 2, held: false, status: 'PENDING' }),
+      ];
+      prisma.orders.findFirst.mockResolvedValue(makeOrder(items));
+      prisma.order_item_projections.findMany.mockResolvedValue([
+        { line_id: 'l1', status: 'READY' },
+      ]);
+
+      const result = await service.getCourseStatus('tenant-1', 'order-1');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const course = result.data.courses[0];
+      expect(course.items[0].status).toBe('READY'); // status vivo, no el JSON
+      expect(course.completedCount).toBe(1);
+      expect(course.state).toBe('COMPLETED');
+      expect(course.percentComplete).toBe(100);
+
+      // La query debe estar scoped por tenant + order
+      expect(prisma.order_item_projections.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { tenant_id: 'tenant-1', order_id: 'order-1' },
+        }),
+      );
+    });
+
+    it('debe marcar COMPLETED un curso con todos los items READY en la proyeccion', async () => {
+      const items = [
+        makeItem({ line_id: 'l1', course: 2, held: false, status: 'COOKING' }),
+        makeItem({ line_id: 'l2', course: 2, held: false, status: 'PENDING' }),
+      ];
+      prisma.orders.findFirst.mockResolvedValue(makeOrder(items));
+      prisma.order_item_projections.findMany.mockResolvedValue([
+        { line_id: 'l1', status: 'READY' },
+        { line_id: 'l2', status: 'DONE' },
+      ]);
+
+      const result = await service.getCourseStatus('tenant-1', 'order-1');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data.courses[0].state).toBe('COMPLETED');
+      expect(result.data.courses[0].completedCount).toBe(2);
+    });
+
+    it('debe preservar held/course del JSON aunque el status venga de la proyeccion (hibrido)', async () => {
+      // held y course son estructura del curso: viven SOLO en el JSON.
+      // La proyeccion no los tiene; solo aporta status.
+      const items = [
+        makeItem({ line_id: 'l1', course: 1, held: false, status: 'PENDING', name: 'Ceviche' }),
+        makeItem({ line_id: 'l2', course: 3, held: true, status: 'PENDING', name: 'Torta' }),
+      ];
+      prisma.orders.findFirst.mockResolvedValue(makeOrder(items));
+      prisma.order_item_projections.findMany.mockResolvedValue([
+        { line_id: 'l1', status: 'DONE' },
+        { line_id: 'l2', status: 'PENDING' },
+      ]);
+
+      const result = await service.getCourseStatus('tenant-1', 'order-1');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      // Course 1: status vivo DONE → COMPLETED, held estructural false
+      expect(result.data.courses[0].items[0].status).toBe('DONE');
+      expect(result.data.courses[0].items[0].held).toBe(false);
+      expect(result.data.courses[0].state).toBe('COMPLETED');
+
+      // Course 3: held estructural true preservado del JSON → HELD
+      expect(result.data.courses[1].items[0].held).toBe(true);
+      expect(result.data.courses[1].state).toBe('HELD');
+    });
+
+    it('debe caer al status del JSON si la linea no esta en la proyeccion (fallback)', async () => {
+      // Items de ORDER_CREATED pueden no estar proyectados todavia.
+      const items = [
+        makeItem({ line_id: 'l1', course: 2, held: false, status: 'READY' }),
+      ];
+      prisma.orders.findFirst.mockResolvedValue(makeOrder(items));
+      prisma.order_item_projections.findMany.mockResolvedValue([]); // sin filas
+
+      const result = await service.getCourseStatus('tenant-1', 'order-1');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      // Sin proyeccion → usa el status del JSON (READY)
+      expect(result.data.courses[0].items[0].status).toBe('READY');
+      expect(result.data.courses[0].state).toBe('COMPLETED');
     });
   });
 
