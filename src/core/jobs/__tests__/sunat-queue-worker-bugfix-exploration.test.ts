@@ -114,6 +114,8 @@ function makePrisma(invoiceData: any = null, creditNoteData: any = null) {
     },
     events: {
       create: vi.fn().mockResolvedValue({}),
+      // Sin items anulados por defecto (resolveVoidedLineIds -> set vacio).
+      findMany: vi.fn().mockResolvedValue([]),
     },
     customers: {
       findUnique: vi.fn().mockResolvedValue(null),
