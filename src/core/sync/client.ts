@@ -348,7 +348,14 @@ export class SyncClient {
     }
 
     private async handleIncomingEvent(event: ParkEvent) {
-        // Idempotency check handled by DB unique constraints mainly, 
+        // Señal de observabilidad: cada evento que entra por Supabase Realtime
+        // (broadcast de OTRO terminal). Confirma que el push end-to-end funciona.
+        logger.info('sync.realtime_event_received', 'Evento recibido por Supabase Realtime', {
+            event_type: event.event_type,
+            event_id: event.event_id,
+        });
+
+        // Idempotency check handled by DB unique constraints mainly,
         // but we should verify if we already 'own' this event locally to avoid echoes
         // However, standard flow is: We create (Saved) -> Push -> Server -> SSE -> We receive.
         // If we receive our own event, we must ensure we don't duplicate or weirdly re-process.
