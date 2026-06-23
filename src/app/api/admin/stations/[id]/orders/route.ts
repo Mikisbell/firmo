@@ -120,6 +120,21 @@ export async function GET(
       },
     });
 
+    // El status VIVO de cada item está en order_item_projections (lo actualiza la
+    // cocina vía ORDER_ITEM_STATUS_CHANGED). El JSON orders.items se queda en el
+    // estado inicial, así que esta vista de estación (KDS) mostraba estados
+    // congelados. Leemos la proyección como fuente de verdad (fallback al JSON).
+    const orderIds = orders.map((o) => o.id);
+    const projections = orderIds.length
+      ? await prisma.order_item_projections.findMany({
+          where: { tenant_id: user.tenantId, order_id: { in: orderIds } },
+          select: { order_id: true, line_id: true, status: true },
+        })
+      : [];
+    const statusByLine = new Map(
+      projections.map((p) => [`${p.order_id}:${p.line_id}`, p.status]),
+    );
+
     // Map to response format
     const now = new Date();
     const stationOrders: StationOrder[] = orders.map(order => {
@@ -127,7 +142,8 @@ export async function GET(
         itemId: item.line_id || item.id,
         productName: item.name,
         quantity: item.qty,
-        status: item.status || 'PENDING',
+        // Fuente viva: la proyección; fallback al status del JSON inicial.
+        status: statusByLine.get(`${order.id}:${item.line_id}`) ?? (item.status || 'PENDING'),
       }));
 
       const waitTime = Math.floor(
