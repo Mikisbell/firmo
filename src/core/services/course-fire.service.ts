@@ -10,6 +10,7 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ItemStatus, OrderLine } from '@/src/core/domain/events';
 import { STATIONS, type StationCode } from '@/src/core/domain/stations';
+import { getItemStatuses } from '@/src/core/projections/order-items.read';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -251,13 +252,15 @@ export class CourseFireService {
 
     const items = (order.items as any[]) || [];
 
-    // Status VIVO por line_id desde la proyeccion (tenant-scoped, Node puro).
-    const projections = await this.prisma.order_item_projections.findMany({
-      where: { tenant_id: tenantId, order_id: orderId },
-      select: { line_id: true, status: true },
-    });
+    // Status VIVO por line_id desde el read-model UNICO order-items.read
+    // (consolida la query a order_item_projections que antes vivia inline aqui;
+    // change remove-item-status-from-write-model). Solo-proyeccion, sin fusion
+    // con el JSON. buildCourseReport mantiene su propio fallback de presentacion
+    // ('PENDING' para lineas no proyectadas) en SU capa — el read-model reporta
+    // solo lo que la proyeccion sabe.
+    const projected = await getItemStatuses(this.prisma, tenantId, orderId);
     const liveStatusByLineId = new Map<string, ItemStatus>(
-      projections.map((p) => [p.line_id, p.status as ItemStatus]),
+      Array.from(projected.values()).map((p) => [p.line_id, p.status]),
     );
 
     return {
