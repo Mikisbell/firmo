@@ -138,6 +138,22 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       take: 5, // Max 5 recent orders
     });
 
+    // El status VIVO de cada item vive en order_item_projections (lo actualiza la
+    // cocina vía ORDER_ITEM_STATUS_CHANGED). El JSON orders.items se queda en el
+    // estado inicial, así que el cliente NUNCA veía READY/DONE. Leemos la
+    // proyección y la usamos como fuente de verdad del estado (fallback al JSON si
+    // todavía no hay fila proyectada, p.ej. un item recién agregado).
+    const orderIds = orders.map((o) => o.id);
+    const projections = orderIds.length
+      ? await prisma.order_item_projections.findMany({
+          where: { tenant_id: tenant.id, order_id: { in: orderIds } },
+          select: { order_id: true, line_id: true, status: true },
+        })
+      : [];
+    const statusByLine = new Map(
+      projections.map((p) => [`${p.order_id}:${p.line_id}`, p.status]),
+    );
+
     // Transform items for public display (strip internal fields)
     const publicOrders = orders.map((order) => {
       const rawItems = (order.items as unknown as OrderItem[]) ?? [];
@@ -147,7 +163,8 @@ export async function GET(_request: NextRequest, context: RouteContext) {
           name: item.name,
           qty: item.qty,
           total_cents: item.line_total_cents,
-          status: item.status,
+          // Fuente viva: la proyección; fallback al status del JSON inicial.
+          status: statusByLine.get(`${order.id}:${item.line_id}`) ?? item.status,
           notes: item.notes ?? null,
         }));
 
