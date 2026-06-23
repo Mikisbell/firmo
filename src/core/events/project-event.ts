@@ -11,7 +11,8 @@
 // con dedup previo (`markAsProcessed`) y persistencia del evento en `events`.
 import { Prisma } from "@prisma/client";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
-import type { ParkEvent, PaymentMethod } from "@/src/core/domain/events";
+import type { OrderLine, ParkEvent, PaymentMethod } from "@/src/core/domain/events";
+import type { PersistedOrderLine } from "@/src/core/types/shared";
 import { deductInventoryForOrder } from "@/src/core/inventory/deduction.service";
 import { logger } from "@/src/core/observability/structured-logger";
 
@@ -47,6 +48,27 @@ export type DeductionSideEffect = {
     alerts: import("@/src/core/inventory/deduction.service").DeductionAlert[];
 };
 
+/**
+ * Quita `status` de una línea ANTES de persistirla en el snapshot `orders.items[]`.
+ *
+ * Change remove-item-status-from-write-model (council #2179, design #2186):
+ * `status` es un PROCESO MUTABLE que NO pertenece al write-model. El snapshot del
+ * agregado solo guarda HECHOS INMUTABLES del append. La verdad VIVA del status
+ * vive EXCLUSIVAMENTE en `order_item_projections` (insertada/actualizada por los
+ * mismos handlers más abajo) y se lee vía `src/core/projections/order-items.read.ts`.
+ *
+ * El PAYLOAD del evento (`OrderLineSchema.status`) NO se toca: el reducer cliente
+ * offline lo foldea de `db.events`. Lo que se omite es SOLO lo que se persiste en
+ * el JSON. El tipo de retorno `PersistedOrderLine` es un guard de compilación.
+ *
+ * INVARIANTE FISCAL: el writer solo omite status en líneas NUEVAS (hacia adelante);
+ * NUNCA reescribe el JSON histórico de órdenes ya emitidas con boleta aceptada.
+ */
+function toPersistedLine(line: OrderLine): PersistedOrderLine {
+    const { status: _status, ...persisted } = line;
+    return persisted;
+}
+
 export async function projectEvent(
     tx: Prisma.TransactionClient,
     event: ParkEvent,
@@ -59,6 +81,9 @@ export async function projectEvent(
         switch (event_type) {
             case "ORDER_CREATED": {
                 const p = event.payload as PayloadOf<"ORDER_CREATED">;
+                // SNAPSHOT sin `status`: el JSON `orders.items[]` guarda solo hechos
+                // inmutables. El status vivo vive en order_item_projections (INSERT abajo).
+                const persistedItems: PersistedOrderLine[] = (p.items ?? []).map(toPersistedLine);
                 await tx.orders.upsert({
                     where: { id: p.order_id },
                     create: {
@@ -74,7 +99,7 @@ export async function projectEvent(
                         subtotal_cents: 0,
                         discount_cents: 0,
                         total_cents: 0,
-                        items: p.items || [],
+                        items: persistedItems as unknown as Prisma.InputJsonValue,
                         checks: p.checks || [],
                         terminal_id,
                         created_at: new Date(occurred_at),
@@ -132,10 +157,13 @@ export async function projectEvent(
                 if (order) {
                     const items = (order.items as Prisma.JsonArray) || [];
                     const lineCents = (p.line.qty || 1) * (p.line.unit_price_cents || 0);
+                    // SNAPSHOT sin `status`: la línea añadida al JSON guarda solo hechos
+                    // inmutables. El status vivo vive en order_item_projections (INSERT abajo).
+                    const persistedLine: PersistedOrderLine = toPersistedLine(p.line);
                     await tx.orders.update({
                         where: { id: p.order_id },
                         data: {
-                            items: [...items, p.line] as Prisma.InputJsonValue,
+                            items: [...items, persistedLine] as Prisma.InputJsonValue,
                             subtotal_cents: order.subtotal_cents + lineCents,
                             total_cents: order.total_cents + lineCents,
                             updated_at: new Date(occurred_at),
