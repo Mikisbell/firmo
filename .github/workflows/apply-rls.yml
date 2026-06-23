@@ -1,0 +1,69 @@
+name: Apply RLS (production)
+
+# Aplica las policies de Row-Level Security (prisma/rls/*.sql) a la DB de
+# producción. Cubre el eslabón que faltaba: el deploy lo hace Vercel y el CI solo
+# testea contra un postgres efímero, así que el RLS nunca se aplicaba en el
+# pipeline (era 100% manual). Ahora es automático, versionado e idempotente.
+#
+# REQUISITO: configurar el secret `PRODUCTION_DIRECT_URL` (connection string
+# DIRECTA — no el pooler — de la DB de producción en Supabase). Sin el secret, el
+# job NO falla: avisa y se omite (las policies existentes siguen activas).
+
+on:
+  push:
+    branches: [main]
+    # Solo cuando cambian las policies — no en cada deploy.
+    paths:
+      - 'prisma/rls/**'
+      - '.github/workflows/apply-rls.yml'
+  workflow_dispatch: {}
+
+# Evita aplicaciones concurrentes (dos pushes seguidos) pisándose en la DB.
+concurrency:
+  group: apply-rls-production
+  cancel-in-progress: false
+
+jobs:
+  apply-rls:
+    name: Apply RLS to production DB
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply idempotent RLS SQL to production
+        env:
+          # Connection string DIRECTA de prod (Supabase). Necesaria porque algunas
+          # operaciones de RLS no van por el pooler transaccional.
+          PRODUCTION_DIRECT_URL: ${{ secrets.PRODUCTION_DIRECT_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PRODUCTION_DIRECT_URL:-}" ]; then
+            echo "::warning::PRODUCTION_DIRECT_URL no configurado; se omite la aplicación de RLS. Configúralo en Settings → Secrets para activar la automatización."
+            exit 0
+          fi
+
+          export DATABASE_URL="$PRODUCTION_DIRECT_URL"
+          export DIRECT_URL="$PRODUCTION_DIRECT_URL"
+
+          # Aplica todos los scripts forward de prisma/rls/ (excluye los *-rollback.sql).
+          # Son idempotentes (DROP POLICY IF EXISTS + CREATE), así que re-correrlos es seguro.
+          shopt -s nullglob
+          applied=0
+          for f in prisma/rls/*.sql; do
+            case "$f" in
+              *rollback*) echo "↳ omito (rollback): $f"; continue ;;
+            esac
+            echo "▶ Aplicando $f ..."
+            npx prisma db execute --file "$f" --schema prisma/schema.prisma
+            applied=$((applied+1))
+          done
+          echo "✅ RLS aplicado: $applied script(s) forward."
