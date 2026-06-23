@@ -2,6 +2,16 @@
 
 > P3.5 Guardrail | ADR-009 | 7 tablas sensibles | **EJECUTADO Mar 2, 2026**
 
+## Aplicación automatizada (desde Jun 2026)
+
+Los scripts de `prisma/rls/*.sql` (forward, idempotentes) se aplican a la DB de
+producción vía el workflow **`.github/workflows/apply-rls.yml`**, que corre en
+push a `main` cuando cambian los archivos RLS, o manualmente
+(`workflow_dispatch`). Antes era 100% manual (`prisma db execute` a mano); ese
+era un paso fácil de olvidar. **Requisito:** el secret `PRODUCTION_DIRECT_URL`
+(connection string directa de prod). Sin él, el workflow se omite sin fallar.
+Aplicación manual (abajo) sigue siendo válida como fallback.
+
 ## Resumen
 
 RLS (Row-Level Security) en PostgreSQL actua como red de seguridad para el aislamiento multi-tenant. El aislamiento primario es por codigo (middleware + `WHERE tenant_id`). RLS protege contra acceso directo a la base de datos via Supabase Dashboard, client libraries, o queries ad-hoc con roles non-superuser.
