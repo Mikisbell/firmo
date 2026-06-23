@@ -9,10 +9,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/src/core/db/prisma';
 import { createLogger } from '@/src/core/observability/structured-logger';
+import type { ParkEvent } from '@/src/core/domain/events';
+import { markAsProcessed } from '@/src/core/events/mark-processed';
+import { projectEvent } from '@/src/core/events/project-event';
 
 const logger = createLogger('public-self-order');
 
@@ -284,7 +288,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     `;
     const orderNumber = (orderNumberResult[0]?.max_num ?? 1000) + 1;
 
-    // Build order items JSON (matches OrderLine schema)
+    // Build order item lines (matches OrderLineSchema en domain/events.ts).
+    // line_ids `qr_N` se preservan (consumidos por el KDS/proyección).
     const now = new Date().toISOString();
     const orderItems = items.map((item, idx) => {
       const product = productMap.get(item.product_id)!;
@@ -295,7 +300,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         name: product.name,
         qty: item.qty,
         unit_price_cents: product.price_cents,
-        station: product.station,
+        station: product.station ?? 'COCINA',
         status: 'PENDING',
         tax_category: 'GRAVADO',
         mods: [] as string[],
@@ -310,7 +315,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       0,
     );
 
-    // Build checks JSON
+    // Build checks JSON (mismo formato que el POS)
     const checks = [
       {
         check_id: 'c1',
@@ -329,28 +334,124 @@ export async function POST(request: NextRequest, context: RouteContext) {
     ];
 
     const orderId = uuidv4();
+    const terminalId = 'QR_ORDER';
+    const fulfillment = { table_number: table.number, guest_count: 1 };
 
-    // Create order directly via Prisma
-    await prisma.orders.create({
-      data: {
-        id: orderId,
-        tenant_id: tenant.id,
+    // ════════════════════════════════════════════════════════════════════════
+    // EVENT SOURCING: el portal QR entra por la MISMA arquitectura que el POS.
+    //
+    // Antes: `prisma.orders.create` DIRECTO metía los items en orders.items[]
+    // SIN emitir eventos ni proyectar a order_item_projections → los items eran
+    // INVISIBLES para el KDS y /api/pos/ready-items, y su status NUNCA podía
+    // progresar (ORDER_ITEM_STATUS_CHANGED hace UPDATE WHERE order_id+line_id →
+    // 0 filas). Ver Engram bugs/qr-portal-bypasses-event-sourcing.
+    //
+    // Ahora: emitimos ORDER_CREATED (items:[] + checks) + N ORDER_ITEM_ADDED,
+    // los proyectamos vía `projectEvent` (que INSERTA en order_item_projections)
+    // y persistimos cada evento en la tabla `events`. El handler ORDER_CREATED
+    // crea la orden; cada ORDER_ITEM_ADDED agrega la línea al JSON + proyecta.
+    //
+    // SEGURIDAD: el QR es PÚBLICO. tenant_id se resuelve server-side por slug
+    // (confiable, NUNCA del cliente). actor_id = null (sin sesión). El
+    // ORDER_CREATED no maneja table_id/fulfillment/business_date, así que las
+    // seteamos en un UPDATE final dentro de la misma transacción (preserva el
+    // comportamiento del create directo: la GET del QR filtra por table_id).
+    // ════════════════════════════════════════════════════════════════════════
+
+    function baseEnvelope(eventType: string): Omit<ParkEvent, 'payload' | 'event_type'> {
+      return {
+        event_id: uuidv4(),
+        tenant_id: tenant!.id,
+        terminal_id: terminalId,
+        terminal_sequence: 0,
+        occurred_at: now,
+        aggregate_type: 'ORDER',
+        aggregate_id: orderId,
+        correlation_id: orderId,
+        causation_id: null,
+        actor_id: null,
+        actor_role_snapshot: null,
+        schema_version: 1,
+        payload_version: 1,
+        shift_id: null,
+        business_date: null,
+      } as Omit<ParkEvent, 'payload' | 'event_type'>;
+    }
+
+    const orderCreatedEvent = {
+      ...baseEnvelope('ORDER_CREATED'),
+      event_type: 'ORDER_CREATED',
+      payload: {
+        order_id: orderId,
         order_number: orderNumber,
         order_type: 'DINE_IN',
-        order_status: 'OPEN',
-        fulfillment_status: 'COOKING',
-        handoff_status: 'WAITING',
-        terminal_id: 'QR_ORDER',
-        subtotal_cents: subtotalCents,
-        total_cents: subtotalCents,
-        items: orderItems,
+        items: [], // el POS también nace vacío; las líneas entran por ITEM_ADDED
         checks,
-        fulfillment: { table_number: table.number, guest_count: 1 },
-        table_id: table.id,
-        unpaid_checks_count: 1,
-        business_date: new Date(),
-        ...(notes ? {} : {}), // notes stored in check name or items
+        fulfillment,
       },
+    } as ParkEvent;
+
+    const itemAddedEvents = orderItems.map(
+      (line) =>
+        ({
+          ...baseEnvelope('ORDER_ITEM_ADDED'),
+          event_type: 'ORDER_ITEM_ADDED',
+          payload: { order_id: orderId, line },
+        }) as ParkEvent,
+    );
+
+    const orderEvents: ParkEvent[] = [orderCreatedEvent, ...itemAddedEvents];
+
+    await prisma.$transaction(async (tx) => {
+      for (const ev of orderEvents) {
+        // Dedup (idempotencia por processed_events). Sin esto, dos commits con
+        // el mismo event_id duplicarían proyección. Los event_ids son uuid v4
+        // generados aquí, así que en condiciones normales nunca son duplicados.
+        const { isDuplicate } = await markAsProcessed(tx, ev);
+        if (isDuplicate) continue;
+
+        // Proyecta al read-model (crea la orden / inserta order_item_projections).
+        const projected = await projectEvent(tx, ev);
+        if (!projected) {
+          // projectEvent ya logueó; abortamos la transacción para no dejar la
+          // orden a medio proyectar (consistencia).
+          throw new Error(`PROJECTION_FAILED:${ev.event_type}`);
+        }
+
+        // Persiste el evento en el event store (mismos campos que el ingest).
+        await tx.events.create({
+          data: {
+            id: ev.event_id,
+            tenant_id: ev.tenant_id,
+            occurred_at: new Date(ev.occurred_at),
+            type: ev.event_type,
+            entity_type: ev.aggregate_type,
+            entity_id: ev.aggregate_id,
+            actor_id: ev.actor_id ?? null,
+            actor_role_snapshot: ev.actor_role_snapshot ?? null,
+            terminal_id: ev.terminal_id,
+            payload_version: ev.payload_version,
+            payload: ev.payload as Prisma.InputJsonValue,
+          },
+        });
+
+        // Columnas QR-específicas que el handler ORDER_CREATED no setea (preserva
+        // el comportamiento del create directo): table_id (la GET del QR filtra
+        // por él), fulfillment y business_date. Se aplica JUSTO DESPUÉS de
+        // ORDER_CREATED y ANTES de los ORDER_ITEM_ADDED, porque la proyección de
+        // ITEM_ADDED lee order.fulfillment.table_number para poblar
+        // order_item_projections.table_number (que ve el KDS/mozo).
+        if (ev.event_type === 'ORDER_CREATED') {
+          await tx.orders.update({
+            where: { id: orderId },
+            data: {
+              table_id: table.id,
+              fulfillment: fulfillment as Prisma.InputJsonValue,
+              business_date: new Date(),
+            },
+          });
+        }
+      }
     });
 
     // Record for rate limiting
