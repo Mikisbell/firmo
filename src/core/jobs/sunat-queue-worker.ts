@@ -382,8 +382,8 @@ export class SunatQueueWorker {
       ));
     }
 
-    // Resolve items from order → check → lines
-    const sunatItems = this.resolveInvoiceItems(invoice);
+    // Resolve items from order → check → lines (excluye items anulados via event store)
+    const sunatItems = await this.resolveInvoiceItems(invoice);
     
     // Validate: SUNAT requires at least 1 item per invoice
     if (sunatItems.length === 0) {
@@ -472,9 +472,9 @@ export class SunatQueueWorker {
       ));
     }
 
-    // Resolve items from the original invoice
+    // Resolve items from the original invoice (excluye items anulados via event store)
     const sunatItems = creditNote.invoices
-      ? this.resolveInvoiceItems(creditNote.invoices)
+      ? await this.resolveInvoiceItems(creditNote.invoices)
       : [];
     
     // Validate: SUNAT requires at least 1 item per credit note
@@ -540,7 +540,7 @@ export class SunatQueueWorker {
    *
    * Uses `any` because Prisma dynamic includes + JSON columns yield untyped results.
    */
-  private resolveInvoiceItems(invoice: any): Array<{
+  private async resolveInvoiceItems(invoice: any): Promise<Array<{
     codigo: string;
     descripcion: string;
     cantidad: number;
@@ -548,12 +548,20 @@ export class SunatQueueWorker {
     precioUnitario: number;
     precioTotal: number;
     igv: number;
-  }> {
+  }>> {
     const order = invoice.orders;
     if (!order) {
       this.logger.warn({ invoiceId: invoice.id }, 'resolveInvoiceItems: no order relation loaded');
       return [];
     }
+
+    // FUENTE DE VERDAD del void de item = eventos ORDER_ITEM_VOIDED del agregado.
+    // NO confiar en order.items[].status (queda CONGELADO en creacion: el void hace
+    // DELETE en order_item_projections y nunca escribe 'VOIDED' en el JSON).
+    // Tampoco filtrar por presencia en order_item_projections: ORDER_CREATED no
+    // proyecta sus items iniciales, solo ORDER_ITEM_ADDED lo hace.
+    // El modelo `events` mapea: type=event_type, entity_id=aggregate_id (order.id).
+    const voidedLineIds = await this.resolveVoidedLineIds(order.id, invoice.tenant_id);
 
     // Parse order items JSON (Prisma auto-parses Json columns)
     const orderItems: any[] = Array.isArray(order.items)
@@ -580,14 +588,18 @@ export class SunatQueueWorker {
 
     const check = checks.find((c: any) => c.check_id === invoice.check_id);
 
-    // If check has specific lines, use those; otherwise use all order items
+    // If check has specific lines, use those; otherwise use all order items.
+    // En AMBOS caminos se excluyen las lineas anuladas (voidedLineIds).
     const linesToUse = check?.lines?.length > 0
-      ? check.lines.map((cl: any) => {
-          const orderItem = itemsByLineId.get(cl.line_id);
-          if (!orderItem) return null;
-          return { ...orderItem, qty: cl.qty ?? orderItem.qty };
-        }).filter(Boolean)
-      : orderItems.filter((item: any) => item.status !== 'VOIDED');
+      ? check.lines
+          .filter((cl: any) => !voidedLineIds.has(cl.line_id))
+          .map((cl: any) => {
+            const orderItem = itemsByLineId.get(cl.line_id);
+            if (!orderItem) return null;
+            return { ...orderItem, qty: cl.qty ?? orderItem.qty };
+          })
+          .filter(Boolean)
+      : orderItems.filter((item: any) => !voidedLineIds.has(item.line_id));
 
     return linesToUse.map((item: any) => {
       const qty = item.qty ?? 1;
@@ -610,6 +622,48 @@ export class SunatQueueWorker {
         igv: igvCents,
       };
     });
+  }
+
+  /**
+   * Obtiene el set de line_ids anulados consultando el event store.
+   *
+   * Fuente de verdad del void de item: eventos ORDER_ITEM_VOIDED del agregado
+   * de la orden. Se usa porque order.items[].status queda congelado en el valor
+   * de creacion (el void hace DELETE en order_item_projections y nunca escribe
+   * 'VOIDED' en el JSON), y porque la proyeccion order_item_projections puede
+   * estar vacia para items nacidos via ORDER_CREATED (no proyectan sus items).
+   *
+   * Mapeo del modelo `events`: type = event_type, entity_id = aggregate_id (order.id).
+   * tenant_id SIEMPRE desde el invoice (server-side), NUNCA del cliente.
+   */
+  private async resolveVoidedLineIds(
+    orderId: string,
+    tenantId: string,
+  ): Promise<Set<string>> {
+    const voidedLineIds = new Set<string>();
+
+    if (!orderId || !tenantId) {
+      return voidedLineIds;
+    }
+
+    const voidEvents: Array<{ payload: any }> = await (this.prisma as any).events.findMany({
+      where: {
+        tenant_id: tenantId,
+        type: 'ORDER_ITEM_VOIDED',
+        entity_id: orderId,
+      },
+      select: { payload: true },
+    });
+
+    for (const ev of voidEvents) {
+      const payload = ev.payload;
+      const lineId = typeof payload?.line_id === 'string' ? payload.line_id : undefined;
+      if (lineId) {
+        voidedLineIds.add(lineId);
+      }
+    }
+
+    return voidedLineIds;
   }
 
   /**

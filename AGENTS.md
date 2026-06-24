@@ -56,6 +56,9 @@
 - Ingest: dedup via `processed_events` + idempotent upsert
 - Reducer: return `{ state, warnings }` — NEVER throw
 - Dexie SSR-safe: always check `typeof window !== 'undefined'`
+- Live item `status` lives ONLY in `order_item_projections` (single source of truth). Read it via `order-items.read.ts` (`getItemStatuses`). See ADR-010.
+- FORBIDDEN to read `orders.items[].status` from the JSON snapshot: it's frozen at creation (the aggregate snapshot carries no mutable status). A blocking architecture test (`no-json-status-read`) enforces this in CI.
+- The event payload (`OrderLineSchema.status`) DOES keep status — the offline client reducer folds it from `db.events`, not from the snapshot.
 
 ## React/Next.js
 - No `useMemo`/`useCallback` (React 19 compiler handles this)

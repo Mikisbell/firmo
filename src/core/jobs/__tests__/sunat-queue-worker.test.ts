@@ -148,6 +148,8 @@ function makePrisma(items: any[] = [], pendingTickets: any[] = []) {
     },
     events: {
       create: vi.fn().mockResolvedValue({}),
+      // Por defecto sin items anulados (resolveVoidedLineIds -> set vacio).
+      findMany: vi.fn().mockResolvedValue([]),
     },
   };
   return prisma;

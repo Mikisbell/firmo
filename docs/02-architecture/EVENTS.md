@@ -245,6 +245,68 @@ EXECUTE FUNCTION validate_invoice_before_insert();
 
 ---
 
+## C-bis) Snapshot del agregado vs Proyección (status de items)
+
+> Ver **ADR-010** para la decisión completa y el veredicto del council.
+
+El JSON del agregado `orders.items[]` y la proyección `order_item_projections`
+tienen roles **distintos y no superpuestos**:
+
+| | `orders.items[]` (snapshot del agregado) | `order_item_projections` (proyección) |
+|---|---|---|
+| Qué guarda | **Hechos INMUTABLES** del append: `line_id`, `product_id`, `qty`, `unit_price_cents`, `station` | Estado **MUTABLE** del proceso: el `status` VIVO del item |
+| Cuándo cambia | Solo en la creación de la línea (`ORDER_CREATED` / `ORDER_ITEM_ADDED`) | En cada transición (`ORDER_ITEM_STATUS_CHANGED`, `ORDER_SUBMITTED`, `ORDER_ITEM_VOIDED`) |
+| Quién lo posee | El write-model | **ÚNICO dueño** del status vivo server-side |
+
+**El snapshot NO guarda `status`.** Antes lo hacía y quedaba **congelado** en el
+valor inicial para siempre (el handler de `ORDER_ITEM_STATUS_CHANGED` solo
+actualizaba la proyección, nunca el JSON). Esa doble verdad sin reconciliar era el
+"trap": un campo mutable de read-model embebido en el write-model.
+
+### Cómo se lee el status (server-side)
+
+SIEMPRE vía el read-model único `src/core/projections/order-items.read.ts`:
+
+```ts
+const statuses = await getItemStatuses(tx, tenantId, orderId);
+// Map<line_id, { status, station, updated_at }>
+// Línea sin fila proyectada → AUSENTE del Map (ausencia explícita).
+```
+
+- **PROHIBIDO** leer `item.status` del JSON `orders.items[]`. Un test de arquitectura
+  bloqueante (`src/__tests__/architecture/no-json-status-read.test.ts`) falla el build
+  si un lector de `src/app/api/**` o `src/core/**` lo hace.
+- El read-model **NO fusiona** JSON + proyección ni usa fallback `?? item.status`:
+  reporta solo lo que la proyección sabe. Cualquier fallback de presentación se aplica
+  en la capa del consumer, no aquí.
+
+### Status en el PAYLOAD del evento (sí se conserva)
+
+`OrderLineSchema.status` (`src/core/domain/events.ts`) **SIGUE en el payload** de
+`ORDER_CREATED` / `ORDER_ITEM_ADDED`. El cliente offline-first deriva el status del
+**fold** del payload de `db.events` (`sale.reducer.ts`), nunca del snapshot. Por eso
+quitar `status` del snapshot NO rompe al cliente. Distinguir siempre:
+**PAYLOAD-DEL-EVENTO** (vive en `events.payload`, lo foldea el reducer cliente y es
+auditoría de eventos históricos) vs **SNAPSHOT-DEL-AGREGADO** (vive en `orders.items[]`,
+solo hechos inmutables).
+
+### Contrato de replay/rebuild
+
+Un rebuild de la proyección desde el event log NO debe pisar el status vivo con el
+inicial. Garantizado por:
+
+1. `ON CONFLICT (order_id, line_id) DO NOTHING` en `ORDER_CREATED` → nunca degrada
+   `READY`/`DONE` a `PENDING`.
+2. Rebuild SIEMPRE por `global_sequence` ascendente → `ORDER_CREATED` precede a
+   `ORDER_ITEM_STATUS_CHANGED`.
+3. Dependency-check del ingest encola `STATUS_CHANGED` out-of-order si falta `CREATE`.
+
+**Precondición (no bug):** si `STATUS_CHANGED` se aplicara ANTES que `CREATE`, la
+convergencia no es total. Fijado como contrato vía property test (numRuns 200) en
+`src/core/events/__tests__/order-created-projection.test.ts`.
+
+---
+
 ## D) Enums Sugeridos
 
 ```typescript

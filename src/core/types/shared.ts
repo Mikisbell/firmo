@@ -47,7 +47,7 @@ export type {
   EventType,
 } from '@/src/core/domain/events';
 
-export { 
+export {
   PaymentMethodSchema,
   OrderTypeSchema,
   ItemStatusSchema,
@@ -55,6 +55,31 @@ export {
   CheckSchema,
   EventSchema,
 } from '@/src/core/domain/events';
+
+import type { OrderLine } from '@/src/core/domain/events';
+
+/**
+ * Forma SERVER-SIDE de una línea persistida en el snapshot del agregado
+ * (`orders.items[]` JSON). Deriva de `OrderLine` (SSoT del payload del evento)
+ * QUITANDO `status`.
+ *
+ * RAZÓN (change remove-item-status-from-write-model, council #2179):
+ * `status` es un PROCESO MUTABLE que NO pertenece al write-model. El snapshot
+ * del agregado solo guarda HECHOS INMUTABLES del append (line_id, product_id,
+ * sku, name, qty, unit_price_cents, station, tax_category, mods, notes). La
+ * verdad VIVA del status del item vive EXCLUSIVAMENTE en la proyección
+ * `order_item_projections` y se lee vía `src/core/projections/order-items.read.ts`.
+ *
+ * Este tipo es un GUARD de compilación: leer `.status` de un valor tipado
+ * `PersistedOrderLine` es error de TS — fuerza a los lectores server-side a ir
+ * a la proyección en vez de al JSON congelado.
+ *
+ * IMPORTANTE: `OrderLineSchema` (events.ts) CONSERVA `status` opcional, porque
+ * el PAYLOAD del evento sí lo necesita: el reducer cliente offline lo foldea de
+ * `db.events`. Lo que se quita es el `status` del SNAPSHOT persistido, no del
+ * payload.
+ */
+export type PersistedOrderLine = Omit<OrderLine, 'status'>;
 
 // ============================================================================
 // Branded Types - Zero Runtime Cost, Full Type Safety

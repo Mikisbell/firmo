@@ -10,6 +10,7 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ItemStatus, OrderLine } from '@/src/core/domain/events';
 import { STATIONS, type StationCode } from '@/src/core/domain/stations';
+import { getItemStatuses } from '@/src/core/projections/order-items.read';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -230,6 +231,13 @@ export class CourseFireService {
 
   /**
    * Get course status for an order.
+   *
+   * HIBRIDO (architecture/order-item-status-trap): el JSON `orders.items[].status`
+   * queda CONGELADO en el valor de creacion — la verdad VIVA del status de cada
+   * linea vive en `order_item_projections`. Por eso cruzamos por line_id y le
+   * pasamos a buildCourseReport el status vivo. La estructura del curso (held,
+   * course, name, qty, station) SOLO existe en el JSON, asi que esa sigue
+   * leyendose del agregado.
    */
   async getCourseStatus(
     tenantId: string,
@@ -243,25 +251,55 @@ export class CourseFireService {
     }
 
     const items = (order.items as any[]) || [];
-    return { success: true, data: this.buildCourseReport(orderId, items) };
+
+    // Status VIVO por line_id desde el read-model UNICO order-items.read
+    // (consolida la query a order_item_projections que antes vivia inline aqui;
+    // change remove-item-status-from-write-model). Solo-proyeccion, sin fusion
+    // con el JSON. buildCourseReport mantiene su propio fallback de presentacion
+    // ('PENDING' para lineas no proyectadas) en SU capa — el read-model reporta
+    // solo lo que la proyeccion sabe.
+    const projected = await getItemStatuses(this.prisma, tenantId, orderId);
+    const liveStatusByLineId = new Map<string, ItemStatus>(
+      Array.from(projected.values()).map((p) => [p.line_id, p.status]),
+    );
+
+    return {
+      success: true,
+      data: this.buildCourseReport(orderId, items, liveStatusByLineId),
+    };
   }
 
   /**
    * Build a course status report from items. Pure function.
+   *
+   * @param liveStatusByLineId Mapa line_id → status VIVO desde
+   *   order_item_projections. El status del JSON `items[]` esta congelado en la
+   *   creacion (trap de read-model embebido en write-model), por eso para el
+   *   status preferimos la proyeccion. La estructura del curso (held, course,
+   *   name, qty, station) SOLO vive en el JSON y se lee de ahi.
+   *   Si una linea no esta en el mapa (ej. items aun no proyectados), cae al
+   *   status del JSON o 'PENDING'.
    */
-  buildCourseReport(orderId: string, items: any[]): CourseStatusReport {
+  buildCourseReport(
+    orderId: string,
+    items: any[],
+    liveStatusByLineId?: Map<string, ItemStatus>,
+  ): CourseStatusReport {
     // Separate items by course
     const courseMap = new Map<number, CourseItem[]>();
     const parallelItems: CourseItem[] = [];
 
     for (const item of items) {
+      // status: verdad VIVA de la proyeccion cruzando por line_id; fallback al
+      // status del JSON (congelado) o 'PENDING' si la linea no esta proyectada.
+      const liveStatus = liveStatusByLineId?.get(item.line_id);
       const ci: CourseItem = {
         lineId: item.line_id,
         name: item.name,
         qty: item.qty,
         station: item.station,
-        status: item.status || 'PENDING',
-        held: item.held || false,
+        status: liveStatus ?? item.status ?? 'PENDING',
+        held: item.held || false, // estructura del curso: solo en el JSON
       };
 
       if (item.course) {

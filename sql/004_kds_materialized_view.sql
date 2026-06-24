@@ -3,6 +3,19 @@
 -- Version: 004
 -- Description: Vista materializada para queries eficientes del KDS
 -- ============================================================================
+--
+-- ⚠️ OBSOLETO — NO APLICAR (change remove-item-status-from-write-model, Phase 6 / D7)
+--
+-- Esta vista lee `item->>'status'` del JSON `orders.items[]` (el snapshot CONGELADO).
+-- Tras el corte global del writer (P4), ese JSON ya NO contiene `status`: el status
+-- VIVO de los items se resuelve SOLO desde la proyección `order_item_projections`
+-- (read-model único src/core/projections/order-items.read.ts).
+--
+-- La vista está MUERTA (0 consumers) y se DROPEA en la migración versionada:
+--   prisma/migrations/20260623_drop_dead_status_materialized_views/migration.sql
+--
+-- Se conserva este archivo solo como registro histórico. NO lo ejecutes.
+-- ============================================================================
 
 -- ============================================================================
 -- VISTA MATERIALIZADA: Items pendientes por estación

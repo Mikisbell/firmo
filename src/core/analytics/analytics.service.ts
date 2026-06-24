@@ -223,7 +223,12 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
     estimatedTimeByStation[sc.code] = sc.estimated_time;
   }
 
-  // Get orders with pending items
+  // El universo de órdenes se preserva igual que antes: órdenes del business_date
+  // actual cuyo fulfillment todavía está en cocina (COOKING / PARTIALLY_READY).
+  // OJO (trap [[architecture/order-item-status-trap]]): el JSON `orders.items[].status`
+  // queda CONGELADO en la creación (PENDING) y nunca refleja COOKING/READY. La verdad
+  // VIVA del status del item y de sus timestamps de lifecycle vive en la proyección
+  // `order_item_projections`, así que los items de cada estación se leen de ahí.
   const orders = await prisma.orders.findMany({
     where: {
       tenant_id: tenantId,
@@ -231,8 +236,7 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
       fulfillment_status: { in: ['COOKING', 'PARTIALLY_READY'] },
     },
     select: {
-      items: true,
-      created_at: true,
+      id: true,
     },
   });
 
@@ -251,61 +255,88 @@ export async function getStationMetrics(tenantId: string): Promise<StationMetric
 
   const now = Date.now();
 
-  for (const order of orders) {
-    const items = order.items as Array<{
-      station: string;
-      status: string;
-      started_cooking_at?: string;
-      ready_at?: string;
-    }>;
+  // Sin órdenes activas no hay items que proyectar — evita un IN () vacío.
+  if (orders.length === 0) {
+    return STATIONS.map((station) => buildStationMetric(station, stationData[station]));
+  }
 
-    for (const item of items) {
-      const station = item.station;
-      if (!stationData[station]) continue;
+  const orderIds = orders.map((o) => o.id);
 
-      if (item.status === 'PENDING' || item.status === 'COOKING') {
-        stationData[station].pending++;
+  // Items VIVOS por estación, filtrados SIEMPRE por tenant (server-side) y acotados al
+  // mismo universo de órdenes activas. Un solo findMany sobre la proyección (edge-safe,
+  // sin pg/ioredis crudo). El índice [tenant_id, station, status] cubre este acceso.
+  const liveItems = await prisma.order_item_projections.findMany({
+    where: {
+      tenant_id: tenantId,
+      order_id: { in: orderIds },
+    },
+    select: {
+      station: true,
+      status: true,
+      created_at: true,
+      submitted_at: true,
+      ready_at: true,
+    },
+  });
 
-        // Calculate age of oldest pending item
-        const ageMinutes = Math.round((now - new Date(order.created_at).getTime()) / 60000);
-        if (stationData[station].oldestMinutes === null || ageMinutes > stationData[station].oldestMinutes) {
-          stationData[station].oldestMinutes = ageMinutes;
-        }
+  for (const item of liveItems) {
+    const station = item.station;
+    if (!stationData[station]) continue;
+
+    if (item.status === 'PENDING' || item.status === 'COOKING') {
+      stationData[station].pending++;
+
+      // Edad del item pending más antiguo, según created_at de la proyección.
+      const ageMinutes = Math.round((now - new Date(item.created_at).getTime()) / 60000);
+      if (stationData[station].oldestMinutes === null || ageMinutes > stationData[station].oldestMinutes) {
+        stationData[station].oldestMinutes = ageMinutes;
       }
+    }
 
-      // Calculate prep time and efficiency for completed items
-      if (item.status === 'READY' && item.started_cooking_at && item.ready_at) {
-        const prepTime = (new Date(item.ready_at).getTime() - new Date(item.started_cooking_at).getTime()) / 60000;
-        stationData[station].prepTimes.push(prepTime);
-        stationData[station].completedCount++;
-        const estimated = estimatedTimeByStation[station] ?? 10;
-        if (prepTime <= estimated) {
-          stationData[station].onTimeCount++;
-        }
+    // Prep time y eficiencia de items completados (READY).
+    // NOTA: order_item_projections NO tiene started_cooking_at; usamos submitted_at como
+    // proxy del inicio de preparación -> prep = ready_at - submitted_at (solo items con
+    // ambos timestamps presentes). Es la mejor señal viva disponible en la proyección.
+    if (item.status === 'READY' && item.submitted_at && item.ready_at) {
+      const prepTime = (new Date(item.ready_at).getTime() - new Date(item.submitted_at).getTime()) / 60000;
+      stationData[station].prepTimes.push(prepTime);
+      stationData[station].completedCount++;
+      const estimated = estimatedTimeByStation[station] ?? 10;
+      if (prepTime <= estimated) {
+        stationData[station].onTimeCount++;
       }
     }
   }
 
-  return STATIONS.map(station => {
-    const data = stationData[station];
-    const avgPrepTime = data.prepTimes.length > 0
-      ? Math.round((data.prepTimes.reduce((a, b) => a + b, 0) / data.prepTimes.length) * 10) / 10
-      : 0;
-    const efficiency = data.completedCount > 0
-      ? Math.round((data.onTimeCount / data.completedCount) * 100)
-      : 100;
-    const load = Math.min(100, Math.round((data.pending / MAX_STATION_CAPACITY) * 100));
+  return STATIONS.map((station) => buildStationMetric(station, stationData[station]));
+}
 
-    return {
-      station,
-      pending_items: data.pending,
-      avg_prep_time_minutes: avgPrepTime,
-      oldest_item_minutes: data.oldestMinutes,
-      has_alert: data.pending > 10,
-      efficiency,
-      load,
-    };
-  });
+/**
+ * Construye la métrica de salida de una estación a partir de sus contadores agregados.
+ * Centraliza la forma del retorno (mismos campos que consume el endpoint/dashboard)
+ * para no duplicar la lógica entre el camino normal y el early-return sin órdenes.
+ */
+function buildStationMetric(
+  station: string,
+  data: { pending: number; prepTimes: number[]; onTimeCount: number; completedCount: number; oldestMinutes: number | null }
+): StationMetrics {
+  const avgPrepTime = data.prepTimes.length > 0
+    ? Math.round((data.prepTimes.reduce((a, b) => a + b, 0) / data.prepTimes.length) * 10) / 10
+    : 0;
+  const efficiency = data.completedCount > 0
+    ? Math.round((data.onTimeCount / data.completedCount) * 100)
+    : 100;
+  const load = Math.min(100, Math.round((data.pending / MAX_STATION_CAPACITY) * 100));
+
+  return {
+    station,
+    pending_items: data.pending,
+    avg_prep_time_minutes: avgPrepTime,
+    oldest_item_minutes: data.oldestMinutes,
+    has_alert: data.pending > 10,
+    efficiency,
+    load,
+  };
 }
 
 export async function getTopProducts(
