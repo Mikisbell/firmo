@@ -56,7 +56,10 @@ describe('Tenant-Scoped Login Unit Tests', () => {
   });
 
   afterEach(async () => {
-    // Cleanup
+    // Cleanup tenant-scoped y robusto ante fallos (no inline): sessions PRIMERO
+    // por su FK a employee/tenant. Evita que una corrida abortada deje filas
+    // huerfanas que choquen contra el unique de token_hash en corridas futuras.
+    await prisma.sessions.deleteMany({ where: { tenant_id } });
     await prisma.employees.deleteMany({ where: { tenant_id } });
     await prisma.tenant_settings.deleteMany({ where: { tenant_id } });
     await prisma.tenants.delete({ where: { id: tenant_id } });
@@ -253,7 +256,7 @@ describe('Tenant-Scoped Login Unit Tests', () => {
           id: session_id,
           tenant_id,
           employee_id,
-          token_hash: 'test_hash',
+          token_hash: randomUUID(), // unico por test: el unique de token_hash no colisiona aunque quede residuo
           expires_at: new Date(Date.now() + 30 * 60 * 1000),
         },
       });
@@ -281,7 +284,7 @@ describe('Tenant-Scoped Login Unit Tests', () => {
           id: session_id,
           tenant_id,
           employee_id,
-          token_hash: 'test_hash',
+          token_hash: randomUUID(), // unico por test: el unique de token_hash no colisiona aunque quede residuo
           expires_at: new Date(Date.now() - 1000), // Expired 1 second ago
         },
       });
@@ -310,7 +313,7 @@ describe('Tenant-Scoped Login Unit Tests', () => {
           id: session_id,
           tenant_id,
           employee_id,
-          token_hash: 'test_hash',
+          token_hash: randomUUID(), // unico por test: el unique de token_hash no colisiona aunque quede residuo
           expires_at: new Date(Date.now() + 30 * 60 * 1000),
         },
       });
