@@ -215,3 +215,6 @@ Do NOT force SDD on small tasks (single file edits, quick fixes, questions).
 - Ingest: dedup por `processed_events` + upsert idempotente
 - Reducer: retorna `{ state, warnings }` — NUNCA throws
 - Dexie SSR-safe: siempre verificar `typeof window !== 'undefined'`
+- El status VIVO de un item de orden vive SOLO en `order_item_projections` (única fuente). Leelo vía `order-items.read.ts` (`getItemStatuses`). Ver ADR-010.
+- PROHIBIDO leer `orders.items[].status` del JSON: queda congelado en la creación (el snapshot del agregado NO lleva status mutable). Un test de arquitectura bloqueante (`no-json-status-read`) lo impide en CI.
+- El payload del evento (`OrderLineSchema.status`) SÍ conserva status — el reducer cliente offline lo foldea de `db.events`.
