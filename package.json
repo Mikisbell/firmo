@@ -16,7 +16,7 @@
     "test:property:watch": "vitest --include '**/*.property.test.ts'",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "test:e2e:smoke": "playwright test e2e/landing-page.spec.ts e2e/public-menu-qr.spec.ts --retries=1 --workers=2 --timeout=120000 --reporter=dot,html",
+    "test:e2e:smoke": "playwright test --grep @smoke --retries=1 --workers=2 --timeout=120000 --reporter=dot,html",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",

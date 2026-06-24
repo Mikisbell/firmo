@@ -119,10 +119,11 @@ jobs:
     runs-on: ubuntu-latest
     # Contencion: el smoke debe ser RAPIDO; si supera 6min algo se colgo.
     timeout-minutes: 6
-    # BLOQUEANTE (gate de merge): solo specs publicos confiables (landing, public-menu-qr)
-    # que pasan rapido sin depender de auth/seed. La medicion mostro que los specs
-    # autenticados (sale/kds/payment/role) aun se cuelgan -> quedan en el suite completo
-    # (job e2e-tests, no-bloqueante) hasta estabilizarlos por lote.
+    # BLOQUEANTE (gate de merge). Corre `playwright test --grep @smoke` -> ESCALABLE:
+    # un spec entra al smoke marcando su describe con { tag: '@smoke' } (NO se edita el CI).
+    # Hoy: los 2 publicos (landing, public-menu-qr), rapidos y sin auth/seed. Los autenticados
+    # (sale/kds/payment/role) se taggean @smoke cuando pasen verde estable; mientras tanto
+    # viven en el suite completo (job e2e-tests, no-bloqueante).
     needs: [build]
     services:
       postgres:
