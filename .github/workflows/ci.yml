@@ -117,13 +117,12 @@ jobs:
   e2e-smoke:
     name: E2E Smoke Gate
     runs-on: ubuntu-latest
-    # Contencion: el smoke debe ser RAPIDO; si supera 12min algo se colgo.
-    timeout-minutes: 12
-    # MIDIENDO: arranca NO-BLOQUEANTE. Se endurece a bloqueante (quitar continue-on-error)
-    # cuando el CI confirme que estos specs criticos pasan verde de forma estable.
-    # Endurecer un gate sin confirmar verde primero lo auto-bloquea: primero el CI del PR
-    # mide cuales del smoke realmente pasan, despues se quita esta linea.
-    continue-on-error: true
+    # Contencion: el smoke debe ser RAPIDO; si supera 6min algo se colgo.
+    timeout-minutes: 6
+    # BLOQUEANTE (gate de merge): solo specs publicos confiables (landing, public-menu-qr)
+    # que pasan rapido sin depender de auth/seed. La medicion mostro que los specs
+    # autenticados (sale/kds/payment/role) aun se cuelgan -> quedan en el suite completo
+    # (job e2e-tests, no-bloqueante) hasta estabilizarlos por lote.
     needs: [build]
     services:
       postgres:
