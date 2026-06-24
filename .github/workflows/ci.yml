@@ -117,6 +117,8 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    # Contencion: corta el job si se cuelga (antes corria hasta el timeout default de 6h).
+    timeout-minutes: 25
     # NO-BLOQUEANTE: el suite E2E (Playwright) es lento (~20min) y aun tiene specs flaky.
     # Da senal util pero no debe gatear el merge; se estabiliza en su propio carril.
     # El gate duro de merge es Lint+TypeCheck + Build + Unit (rapido y determinista).
@@ -168,6 +170,13 @@ jobs:
         env:
           NODE_OPTIONS: "--max_old_space_size=6144"
         run: bun run build
+
+      # CAUSA RAIZ del fallo masivo del E2E: la DB de test nacia VACIA (prisma db push
+      # crea el esquema, nadie sembraba datos) -> authenticateAsAdmin no podia loguear
+      # (tenant 11111111 / admin PIN 1111 inexistentes) -> cientos de tests timeout 15min.
+      # El provision es idempotente (upsert) y usa el mismo PIN_SALT default que el runtime.
+      - name: Seed E2E test tenants (tenant 11111111 / admin PIN 1111)
+        run: npx tsx scripts/provision-e2e-test-tenants.ts
 
       - name: Run E2E tests
         run: bun run test:e2e
