@@ -10,13 +10,12 @@
  *   debe leer `status` del snapshot JSON `orders.items[]` — ese JSON queda
  *   CONGELADO en la creación y nunca refleja transiciones de cocina (el "trap").
  *
- * MODO: **WARN** (gate de migración). HOY este test NO falla el build: reporta
- *   las violaciones por consola para visibilidad durante la migración gradual
- *   de lectores y de los ~4900 tests (Phases 4–5 del change). Se vuelve
- *   BLOQUEANTE en Phase 6, una vez que el writer deja de escribir status y la
- *   migración de tests termina con 0 violaciones. Mientras tanto, los `expect`
- *   de este archivo solo verifican que el ESCÁNER funciona, no que haya 0
- *   violaciones.
+ * MODO: **BLOQUEANTE** (Phase 6 del change — completada). Este test FALLA el
+ *   build si detecta UNA SOLA lectura de `status` del JSON `orders.items[]` en
+ *   `src/app/api/**` o `src/core/**`. Pasó por modo WARN (gate de migración)
+ *   durante las Phases 4–5; al confirmarse 0 violaciones reales tras el corte
+ *   global del writer (P4: el writer ya NO escribe status en el snapshot), el
+ *   gate se endurece: cualquier nueva lectura del status congelado rompe CI.
  *
  * TÉCNICA: fs + regex (heurística), siguiendo el patrón existente
  *   `src/lib/openapi/__tests__/typedoc.property.test.ts`. El repo NO tiene
@@ -27,11 +26,19 @@
  *     falsos positivos, solo se reporta `.status` sobre variables que aliasan
  *     `order.items` / `orders.items` (cast a array JSON), NO sobre resultados de
  *     `order_item_projections` (cuyo `.status` SÍ es la fuente válida).
+ *   - FALSO NEGATIVO conocido (aliasing complejo): el escáner detecta el alias
+ *     solo cuando la asignación está en la MISMA línea textual
+ *     (`const items = order.items`). NO sigue aliasing indirecto multi-salto
+ *     (p.ej. pasar `order.items` a una función y leer `.status` dentro), ni
+ *     desestructuración profunda. Se acepta esta limitación: el gate es
+ *     intencionalmente conservador para NO romper CI con falsos positivos, y
+ *     captura el patrón directo que constituye el 'trap' real. Es mejor un gate
+ *     bloqueante con falsos negativos acotados que un WARN ignorado.
  *   - NO cubre lectores fuera de TypeScript: las 2 vistas materializadas
  *     MUERTAS (sql/004_kds_materialized_view.sql,
- *     prisma/migrations/20260122_create_materialized_views) leen
- *     `item->>'status'` del JSON y este test NO las ve. Se limpian en Phase 6
- *     (D7 del design).
+ *     prisma/migrations/20260122_create_materialized_views) leían
+ *     `item->>'status'` del JSON — se DROPEAN en Phase 6 (migración versionada
+ *     prisma/migrations/.../drop_dead_status_materialized_views, D7 del design).
  */
 
 import { describe, it, expect } from 'vitest';
@@ -155,26 +162,26 @@ export function scanContent(content: string, relPath = '<inline>'): Violation[] 
 describe('Arquitectura: no leer item.status del JSON orders.items[] (read-model único)', () => {
   const files = SCAN_DIRS.flatMap(collectSourceFiles);
 
-  it('escanea las carpetas server-side y reporta violaciones (MODO WARN — no falla el build)', () => {
+  it('NINGÚN lector server-side lee status del JSON orders.items[] (BLOQUEANTE)', () => {
     expect(files.length).toBeGreaterThan(0); // el escáner encontró archivos
 
     const allViolations = files.flatMap(scanFile);
 
-    if (allViolations.length > 0) {
-      // MODO WARN: reportar, NO romper el build (gate de migración del change).
-      const report = allViolations
-        .map((v) => `  - ${v.file}:${v.line}  →  ${v.text}`)
-        .join('\n');
-      // eslint-disable-next-line no-console
-      console.warn(
-        `\n[ARQUITECTURA · WARN] ${allViolations.length} lectura(s) de status desde el JSON orders.items[] detectada(s).\n` +
-          `La fuente VÁLIDA es order_item_projections vía src/core/projections/order-items.read.ts.\n` +
-          `Estas serán BLOQUEANTES en Phase 6 del change remove-item-status-from-write-model:\n${report}\n`,
-      );
-    }
+    // MODO BLOQUEANTE (Phase 6): 0 violaciones o falla el build. El mensaje de
+    // error lista cada violación con archivo:línea para diagnóstico inmediato.
+    const report = allViolations
+      .map((v) => `  - ${v.file}:${v.line}  →  ${v.text}`)
+      .join('\n');
 
-    // En modo WARN siempre pasa: el assert real (0 violaciones) se activa en Phase 6.
-    expect(true).toBe(true);
+    expect(
+      allViolations,
+      allViolations.length === 0
+        ? ''
+        : `\n[ARQUITECTURA · BLOQUEANTE] ${allViolations.length} lectura(s) de status desde el JSON orders.items[] detectada(s).\n` +
+            `El status VIVO se resuelve SOLO desde order_item_projections vía src/core/projections/order-items.read.ts.\n` +
+            `El JSON orders.items[] queda CONGELADO en la creación (el 'trap') y nunca refleja transiciones de cocina.\n` +
+            `Reemplazá estas lecturas por getItemStatuses/getItemStatusesForOrders del read-model único:\n${report}\n`,
+    ).toHaveLength(0);
   });
 
   it('el read-model único order-items.read.ts existe y es la vía documentada', () => {
