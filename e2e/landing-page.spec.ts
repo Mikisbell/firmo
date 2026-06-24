@@ -4,7 +4,8 @@
  */
 import { test, expect } from '@playwright/test';
 
-test.describe('Landing Page', () => {
+// @smoke: gate bloqueante de CI (publico, rapido, sin auth/seed). Ver job e2e-smoke en ci.yml.
+test.describe('Landing Page', { tag: '@smoke' }, () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/landing');
     await page.waitForLoadState('domcontentloaded');

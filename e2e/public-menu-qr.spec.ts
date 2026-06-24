@@ -5,7 +5,8 @@
  */
 import { test, expect } from '@playwright/test';
 
-test.describe('Public Menu QR', () => {
+// @smoke: gate bloqueante de CI (publico, rapido, sin auth/seed). Ver job e2e-smoke en ci.yml.
+test.describe('Public Menu QR', { tag: '@smoke' }, () => {
   const testSlug = 'polleria-test';
   const testTableId = 'mesa-01';
 
