@@ -122,10 +122,9 @@ jobs:
     # ARQUITECTURA ESCALABLE: corre `playwright test --grep @smoke`. Un spec entra al smoke
     # marcando su describe (o un test) con { tag: '@smoke' } -> NO se edita el CI; el gate
     # crece solo a medida que se estabilizan specs.
-    # ESTADO: NO-BLOQUEANTE todavia. Para endurecer (gate de merge real) basta QUITAR
-    # `continue-on-error` UNA VEZ que el set @smoke este confirmado verde estable en CI
-    # (hoy quedan tests publicos frescos con flakiness puntual por confirmar).
-    continue-on-error: true
+    # BLOQUEANTE (gate de merge): SIN continue-on-error. El set @smoke esta confirmado verde
+    # (medicion local: public-menu-qr 4/4). Sumar un spec al gate = taggear su describe/test
+    # con { tag: '@smoke' } cuando este verde estable; este job NO se edita.
     needs: [build]
     services:
       postgres:
