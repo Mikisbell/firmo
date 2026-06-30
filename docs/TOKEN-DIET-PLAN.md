@@ -64,16 +64,20 @@ ROI: inmediato, sin tocar archivos. Solo disciplina.
 
 ROI Fase 1 (solo PARK): ~2.846 tok/turno recuperados (park/CLAUDE.md + MEMORY.md).
 
-## FASE 2 — Delegación al Qwen local (descarga 30-50% del volumen)
+## FASE 2 — Delegación al Qwen local (✅ FLUJO MONTADO Y PROBADO) [2026-06-29]
 
-- [ ] Definir el contrato: **Qwen-Coder** hace boilerplate, funciones puras,
-      tests por patrón, refactors mecánicos, regex, conversiones. **Claude** hace
-      arquitectura, diseño, bugs sutiles, review.
-- [ ] Flujo: Claude redacta la spec precisa → Qwen la implementa (local, $0, 8s)
-      → Claude revisa antes de tocar el repo.
-- [ ] Setup ya listo: Qwen2.5-Coder-7B cargado en VRAM, API en localhost:1234.
+- [x] **Contrato**: Qwen-Coder hace boilerplate, funciones puras, tests por patrón,
+      refactors mecánicos, regex, conversiones. Claude hace arquitectura, diseño,
+      bugs sutiles, **y SIEMPRE revisa el output del Qwen**.
+- [x] **Helper**: `scripts/qwen.mjs` → delegar = `node scripts/qwen.mjs "spec"`.
+      Llama a la API local (localhost:1234), $0, 0 tokens de Claude.
+- [x] **Estrenado** con tarea real (formatSoles). LECCIÓN CLAVE: el Qwen-7B produjo
+      código plausible pero CON BUG (confundió separador de miles/decimales). Claude
+      lo cazó en review. Por eso el patrón es "Qwen ejecuta + Claude revisa", NUNCA
+      "Qwen reemplaza a Claude". El 7B solo no es confiable para lógica sutil.
+- [x] Setup: Qwen2.5-Coder-7B en VRAM, API localhost:1234.
 
-ROI: cada tarea mecánica delegada = 0 tokens de Claude.
+ROI: cada tarea mecánica delegada = 0 tokens de Claude. Regla de oro: SIEMPRE revisar.
 
 ## FASE 3 — Disciplina de contexto (sostener el ahorro)
 
