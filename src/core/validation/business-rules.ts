@@ -14,10 +14,13 @@ import { Prisma } from "@prisma/client";
 import type { ParkEvent } from "@/src/core/domain/events";
 import { LIMITS } from "@/src/core/constants/limits";
 import { 
-    canRoleEmitEvent, 
-    requiresManagerApproval, 
-    canApproveManagerActions 
+    canRoleEmitEvent,
+    requiresManagerApproval,
+    canApproveManagerActions
 } from "./role-permissions";
+// Status VIVO del item desde la proyección (única fuente, ADR-010). Para la defensa
+// server-side de ORDER_ITEM_VOIDED: no anular items en estado terminal (DONE/VOIDED).
+import { getItemStatuses } from "@/src/core/projections/order-items.read";
 import {
     isValidStatus,
     ORDER_STATUS_VALUES,
@@ -520,11 +523,29 @@ async function validateItemVoided(
         }
 
         if (order.order_status === "CANCELLED" || order.order_status === "CONFIRMED") {
-            return { 
-                valid: false, 
+            return {
+                valid: false,
                 error: "ORDER_NOT_MODIFIABLE",
                 details: { status: order.order_status }
             };
+        }
+
+        // DEFENSA server-side (no confiar en el cliente): el item NO debe estar en un
+        // estado TERMINAL. El front respeta canTransition (no ofrece VOID en DONE/VOIDED),
+        // pero un evento offline/manipulado podría intentar anular un item DONE — que YA
+        // dedujo inventario (ORDER_ITEM_STATUS_CHANGED->DONE en project-event) — y borrar la
+        // proyección sin reversar el stock lo descuadraría. DONE/VOIDED son terminales
+        // (item-status-machine). Leemos el status VIVO de la proyección (ADR-010).
+        if (payload.line_id) {
+            const statuses = await getItemStatuses(tx, event.tenant_id, payload.order_id);
+            const itemStatus = statuses.get(payload.line_id)?.status;
+            if (itemStatus === "DONE" || itemStatus === "VOIDED") {
+                return {
+                    valid: false,
+                    error: "ITEM_NOT_VOIDABLE",
+                    details: { line_id: payload.line_id, status: itemStatus },
+                };
+            }
         }
     }
 
