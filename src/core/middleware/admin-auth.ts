@@ -41,11 +41,14 @@ export async function validateAdminAuth(request: NextRequest): Promise<
   
   const token = cookieToken || headerToken;
 
-  // DEV BACKDOOR: Auto-login to bypass login screen in development.
-  // Pin-eado al tenant demo (getTenantId): con ~939 tenants de prueba en la DB, un findFirst
-  // sin filtrar caia en un tenant arbitrario y /admin mostraba datos de OTRO tenant que las
-  // estaciones. Asi /admin queda coherente con la identidad de dev (dev-identity).
-  if (!token && process.env.NODE_ENV === 'development') {
+  // DEV BACKDOOR (auto-login) — DOBLE BARRERA (auditoría 2026-06-29): NODE_ENV=development
+  // Y opt-in EXPLÍCITO ALLOW_DEV_AUTOLOGIN=true. Este es el backdoor RAÍZ (validateAdminAuth
+  // es base de requirePosAuth y de todo /admin) y ELEVA A OWNER (acceso total, incl. fiscal),
+  // así que un deploy con NODE_ENV mal configurado sería crítico. El flag explícito NUNCA se
+  // setea en entornos desplegados. En producción NO hay backdoor; el rol real del JWT manda.
+  // Pin-eado al tenant demo (getTenantId): con ~939 tenants de prueba, un findFirst sin
+  // filtrar caia en un tenant arbitrario y /admin mostraba datos de OTRO tenant.
+  if (!token && process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_AUTOLOGIN === 'true') {
     try {
       const admin = await prisma.employees.findFirst({
         where: { tenant_id: getTenantId(), role: { in: [...ADMIN_ROLES] }, is_active: true }

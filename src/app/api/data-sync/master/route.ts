@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/core/db/prisma';
+import { requirePosAuth } from '@/src/core/middleware/pos-auth';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
-    const tenantId = request.headers.get('x-tenant-id') || request.nextUrl.searchParams.get('tenant_id');
-    
-    if (!tenantId) {
-        return NextResponse.json({ error: 'tenant_id requerido' }, { status: 400 });
+    // SECURITY (auditoría 2026-06-29): el tenant se deriva del JWT, NUNCA del query/header.
+    // Antes tomaba x-tenant-id/tenant_id del cliente sin auth -> enumeración cross-tenant de
+    // datos maestros (mesas, catálogo, settings) con solo conocer un UUID. El POS llama esto
+    // ya autenticado (cookie auth_token same-origin), así que validar NO rompe el bootstrap.
+    const authResult = await requirePosAuth(request);
+    if (!authResult.authorized) {
+        return authResult.response;
     }
+    const tenantId = authResult.user.tenantId;
 
     try {
         // En un entorno productivo real 2026, aquí leeríamos primero de Upstash Redis.
