@@ -34,27 +34,22 @@ if (muertos.length) {
   console.log('\n✅ Todos los índices de las tablas calientes registran uso (>0 scans).');
 }
 
-// Definiciones exactas — confirmar si hay duplicados reales
-const defs = await prisma.$queryRaw`
-  SELECT indexname, indexdef FROM pg_indexes
-  WHERE tablename = 'order_item_projections'
-  ORDER BY indexname;
-`;
-console.log('\n=== DEFINICIONES (order_item_projections) ===');
+// Definiciones exactas — tabla parametrizable: node diagnose-indices.mjs <tabla>
+const TABLE = process.argv[2] || 'order_item_projections';
+const defs = await prisma.$queryRawUnsafe(
+  `SELECT indexname, indexdef FROM pg_indexes WHERE tablename = '${TABLE}' ORDER BY indexname;`,
+);
+console.log(`\n=== DEFINICIONES (${TABLE}) ===`);
 for (const d of defs) console.log(`• ${d.indexname}\n    ${d.indexdef.replace(/.*USING /, 'USING ')}`);
 
 // Distribución / cardinalidad — ¿los índices tendrían sentido aún con tráfico?
-const dist = await prisma.$queryRaw`
-  SELECT
-    COUNT(*)::int                                          AS total_filas,
-    COUNT(DISTINCT station)::int                           AS stations_distintas,
-    COUNT(DISTINCT table_number)::int                      AS mesas_distintas,
-    COUNT(*) FILTER (WHERE station IS NULL)::int           AS station_null,
-    COUNT(*) FILTER (WHERE table_number IS NULL)::int      AS table_number_null,
-    COUNT(DISTINCT status)::int                            AS status_distintos
-  FROM order_item_projections;
-`;
-console.log('\n=== DISTRIBUCIÓN de datos en order_item_projections ===');
-console.table(dist.map((r) => ({ ...r })));
+const [stats] = await prisma.$queryRawUnsafe(
+  `SELECT COUNT(*)::int AS filas,
+          pg_size_pretty(pg_total_relation_size('${TABLE}')) AS total,
+          pg_size_pretty(pg_relation_size('${TABLE}'))       AS solo_tabla,
+          pg_size_pretty(pg_indexes_size('${TABLE}'))        AS solo_indices
+   FROM ${TABLE};`,
+);
+console.log(`\n=== TAMAÑO ${TABLE}: ${stats.filas} filas | total ${stats.total} (tabla ${stats.solo_tabla} + indices ${stats.solo_indices}) ===`);
 
 await prisma.$disconnect();
