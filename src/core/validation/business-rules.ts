@@ -133,6 +133,12 @@ export async function validateEvent(
         case "CHECK_PAYMENT_ADDED":
             return validateCheckPaymentAdded(tx, event);
 
+        case "CHECK_TIP_SET":
+            return validateCheckTip(tx, event);
+
+        case "CHECK_DISCOUNT_SET":
+            return validateCheckDiscount(tx, event);
+
         case "REQUEST_CHECK":
             return validateRequestCheck(tx, event);
 
@@ -550,6 +556,72 @@ async function validateItemVoided(
     }
 
     // Permisos de manager ya validados en validateEvent()
+    return { valid: true };
+}
+
+/** Lee el subtotal del check desde el snapshot JSON de la orden (fallback a total_cents). */
+async function readCheckBaseCents(
+    tx: Prisma.TransactionClient,
+    orderId: string | undefined,
+    checkId: string | undefined,
+): Promise<number> {
+    if (!orderId || !checkId) return 0;
+    const order = await tx.orders.findUnique({ where: { id: orderId }, select: { checks: true } });
+    const checks = (order?.checks as Array<{ check_id: string; subtotal_cents?: number; total_cents?: number }>) || [];
+    const check = checks.find((c) => c.check_id === checkId);
+    return check?.subtotal_cents ?? check?.total_cents ?? 0;
+}
+
+/**
+ * Valida CHECK_TIP_SET — DEFENSA server-side (auditoría 2026-06-30): la propina no puede ser
+ * negativa ni exceder el máximo absoluto ni el % del subtotal. El ingest NO confía en el
+ * cliente: `client-validation.ts` se saltea con un evento offline/manipulado.
+ */
+async function validateCheckTip(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent,
+): Promise<ValidationResult> {
+    const payload = event.payload as { order_id?: string; check_id?: string; tip_cents?: number };
+    const tip = payload.tip_cents ?? 0;
+
+    if (tip < 0) return { valid: false, error: "TIP_NEGATIVE", details: { tip_cents: tip } };
+    if (tip > LIMITS.MAX_TIP_AMOUNT_CENTS) {
+        return { valid: false, error: "TIP_TOO_HIGH", details: { tip_cents: tip, max: LIMITS.MAX_TIP_AMOUNT_CENTS } };
+    }
+
+    const base = await readCheckBaseCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    if (base > 0 && tip > (base * LIMITS.MAX_TIP_PERCENT) / 100) {
+        return {
+            valid: false,
+            error: "TIP_TOO_HIGH",
+            details: { tip_cents: tip, base_cents: base, max_percent: LIMITS.MAX_TIP_PERCENT },
+        };
+    }
+    return { valid: true };
+}
+
+/**
+ * Valida CHECK_DISCOUNT_SET — DEFENSA server-side (auditoría 2026-06-30): el descuento NO puede
+ * ser negativo ni EXCEDER el subtotal del check (evita total NEGATIVO). El ingest no confía en
+ * el cliente. Espeja el patrón de ADR-012 (validación server-side de eventos manipulados).
+ */
+async function validateCheckDiscount(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent,
+): Promise<ValidationResult> {
+    const payload = event.payload as { order_id?: string; check_id?: string; discount_cents?: number };
+    const discount = payload.discount_cents ?? 0;
+
+    if (discount < 0) return { valid: false, error: "DISCOUNT_NEGATIVE", details: { discount_cents: discount } };
+
+    const subtotal = await readCheckBaseCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    if (subtotal > 0 && discount > subtotal) {
+        return {
+            valid: false,
+            error: "DISCOUNT_EXCEEDS_SUBTOTAL",
+            details: { discount_cents: discount, subtotal_cents: subtotal },
+        };
+    }
     return { valid: true };
 }
 
