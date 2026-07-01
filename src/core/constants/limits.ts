@@ -22,9 +22,14 @@ export const LIMITS = {
     MAX_PAYMENTS_PER_CHECK: 5,         // Máximo métodos de pago por cuenta
     MAX_PAYMENT_AMOUNT_CENTS: 100_000_00, // S/100,000 máximo por pago
     
-    // === DESCUENTOS ===
-    MAX_DISCOUNT_PERCENT: 100,         // Máximo descuento porcentual
-    MAX_DISCOUNT_AMOUNT_CENTS: 50_000_00, // S/50,000 máximo descuento fijo
+    // === DESCUENTOS — POLÍTICA DE APROBACIÓN POR UMBRAL ("approval matrix" del sistema) ===
+    // El descuento NO es un permiso binario por rol: cualquier rol de caja lo EMITE, pero la
+    // POLÍTICA decide la autorización según el % (PBAC / approval matrix — patrón de Toast/
+    // Square/Lightspeed). Umbrales configurables (a futuro, por tenant_settings).
+    MAX_DISCOUNT_PERCENT: 100,             // Techo absoluto (100% = total 0; >100% sería negativo)
+    MAX_DISCOUNT_AMOUNT_CENTS: 50_000_00,  // S/50,000 máximo descuento fijo
+    DISCOUNT_AUTO_APPROVE_MAX_PERCENT: 15, // <=15%: autonomía del rol de caja (sin aprobación)
+    DISCOUNT_MANAGER_MAX_PERCENT: 50,      // 15-50%: requiere approved_by de MANAGER+; >50%: rechazo
     
     // === SYNC ===
     MAX_EVENTS_PER_BATCH: 100,         // Máximo eventos por batch de sync

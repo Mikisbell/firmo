@@ -1,14 +1,12 @@
 /**
- * Caracterización: defensa server-side de límites de dinero en CHECK_DISCOUNT_SET / CHECK_TIP_SET.
+ * Caracterización: POLÍTICA de descuento (approval matrix, ADR-013) + límites de propina,
+ * validados server-side en el ingest.
  *
- * HALLAZGO (auditoría 2026-06-30): el ingest NO validaba descuento ni propina — ambos eventos
- * caían al `default: return { valid: true }` en validateEvent. La validación existía SOLO en
- * client-validation.ts (cliente), bypasseable con un evento offline/manipulado. Un descuento
- * mayor al subtotal producía un total NEGATIVO; una propina sin tope, un cobro desproporcionado.
- *
- * FIX: validateCheckDiscount rechaza discount > subtotal (DISCOUNT_EXCEEDS_SUBTOTAL); validateCheckTip
- * rechaza propina > máximo absoluto / % del subtotal (TIP_TOO_HIGH). Mismo patrón que ADR-012 (VOID):
- * el ingest es la frontera de confianza, no confía en el cliente.
+ * HALLAZGO (auditoría 2026-06-30): el ingest no validaba descuento ni propina (caían al
+ * default de validateEvent), y CHECK_DISCOUNT_SET ni siquiera estaba en la matriz de permisos
+ * (los descuentos se perdían al sync). El descuento NO es un permiso binario por rol: el rol
+ * de caja lo emite, pero la POLÍTICA por umbral de % decide la autorización (PBAC, patrón
+ * Toast/Square/Lightspeed). El ingest es la frontera de confianza (no confía en el cliente).
  */
 import { describe, it, expect, vi } from 'vitest';
 import { validateEvent } from '../business-rules';
@@ -19,7 +17,7 @@ const TID = '11111111-1111-1111-1111-111111111111';
 const OID = '22222222-2222-2222-2222-222222222222';
 const CID = 'check-1';
 
-function ev(type: string, payload: Record<string, unknown>, role = 'MANAGER'): ParkEvent {
+function ev(type: string, payload: Record<string, unknown>, role = 'CASHIER'): ParkEvent {
   return {
     event_id: '33333333-3333-3333-3333-333333333333',
     tenant_id: TID,
@@ -30,19 +28,52 @@ function ev(type: string, payload: Record<string, unknown>, role = 'MANAGER'): P
   } as unknown as ParkEvent;
 }
 
-function mockTx(subtotalCents: number): Prisma.TransactionClient {
+function mockTx(subtotalCents: number, approverRole?: string): Prisma.TransactionClient {
   return {
     orders: {
       findUnique: vi.fn().mockResolvedValue({
         checks: [{ check_id: CID, subtotal_cents: subtotalCents, total_cents: subtotalCents }],
       }),
     },
-    employees: { findUnique: vi.fn() },
+    employees: {
+      findUnique: vi.fn().mockResolvedValue(approverRole ? { role: approverRole, is_active: true } : null),
+    },
   } as unknown as Prisma.TransactionClient;
 }
 
-describe('CHECK_DISCOUNT_SET — defensa server-side (descuento no excede subtotal)', () => {
-  it('RECHAZA descuento > subtotal -> DISCOUNT_EXCEEDS_SUBTOTAL (evita total negativo)', async () => {
+describe('CHECK_DISCOUNT_SET — POLÍTICA de descuento por umbral (approval matrix)', () => {
+  it('AUTONOMÍA: descuento <= 15% pasa sin aprobación (rol de caja)', async () => {
+    // 500 / 5000 = 10%
+    const r = await validateEvent(mockTx(5000), ev('CHECK_DISCOUNT_SET', { order_id: OID, check_id: CID, discount_cents: 500 }));
+    expect(r.valid).toBe(true);
+  });
+
+  it('REQUIERE MANAGER: descuento 15-50% SIN approved_by -> DISCOUNT_REQUIRES_MANAGER_APPROVAL', async () => {
+    // 1500 / 5000 = 30%
+    const r = await validateEvent(mockTx(5000), ev('CHECK_DISCOUNT_SET', { order_id: OID, check_id: CID, discount_cents: 1500 }));
+    expect(r.valid).toBe(false);
+    if (!r.valid) expect(r.error).toBe('DISCOUNT_REQUIRES_MANAGER_APPROVAL');
+  });
+
+  it('APROBADO: descuento 15-50% CON approved_by de MANAGER -> OK', async () => {
+    const r = await validateEvent(mockTx(5000, 'MANAGER'), ev('CHECK_DISCOUNT_SET', { order_id: OID, check_id: CID, discount_cents: 1500, approved_by: 'mgr-1' }));
+    expect(r.valid).toBe(true);
+  });
+
+  it('RECHAZA aprobador NO-manager (WAITER) en descuento 15-50% -> DISCOUNT_REQUIRES_MANAGER_APPROVAL', async () => {
+    const r = await validateEvent(mockTx(5000, 'WAITER'), ev('CHECK_DISCOUNT_SET', { order_id: OID, check_id: CID, discount_cents: 1500, approved_by: 'w-1' }));
+    expect(r.valid).toBe(false);
+    if (!r.valid) expect(r.error).toBe('DISCOUNT_REQUIRES_MANAGER_APPROVAL');
+  });
+
+  it('RECHAZA descuento > 50% (tope de manager) -> DISCOUNT_EXCEEDS_MAX', async () => {
+    // 3000 / 5000 = 60%
+    const r = await validateEvent(mockTx(5000, 'MANAGER'), ev('CHECK_DISCOUNT_SET', { order_id: OID, check_id: CID, discount_cents: 3000, approved_by: 'mgr-1' }));
+    expect(r.valid).toBe(false);
+    if (!r.valid) expect(r.error).toBe('DISCOUNT_EXCEEDS_MAX');
+  });
+
+  it('RECHAZA descuento > subtotal -> DISCOUNT_EXCEEDS_SUBTOTAL (MVP: total negativo)', async () => {
     const r = await validateEvent(mockTx(5000), ev('CHECK_DISCOUNT_SET', { order_id: OID, check_id: CID, discount_cents: 6000 }));
     expect(r.valid).toBe(false);
     if (!r.valid) expect(r.error).toBe('DISCOUNT_EXCEEDS_SUBTOTAL');
@@ -53,14 +84,9 @@ describe('CHECK_DISCOUNT_SET — defensa server-side (descuento no excede subtot
     expect(r.valid).toBe(false);
     if (!r.valid) expect(r.error).toBe('DISCOUNT_NEGATIVE');
   });
-
-  it('PERMITE descuento <= subtotal', async () => {
-    const r = await validateEvent(mockTx(5000), ev('CHECK_DISCOUNT_SET', { order_id: OID, check_id: CID, discount_cents: 3000 }));
-    expect(r.valid).toBe(true);
-  });
 });
 
-describe('CHECK_TIP_SET — defensa server-side (propina con límites)', () => {
+describe('CHECK_TIP_SET — límites de propina server-side', () => {
   it('RECHAZA propina > máximo absoluto -> TIP_TOO_HIGH', async () => {
     const r = await validateEvent(mockTx(5000), ev('CHECK_TIP_SET', { order_id: OID, check_id: CID, tip_cents: 999_999_999 }));
     expect(r.valid).toBe(false);

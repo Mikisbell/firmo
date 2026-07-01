@@ -601,27 +601,57 @@ async function validateCheckTip(
 }
 
 /**
- * Valida CHECK_DISCOUNT_SET — DEFENSA server-side (auditoría 2026-06-30): el descuento NO puede
- * ser negativo ni EXCEDER el subtotal del check (evita total NEGATIVO). El ingest no confía en
- * el cliente. Espeja el patrón de ADR-012 (validación server-side de eventos manipulados).
+ * Valida CHECK_DISCOUNT_SET — POLÍTICA DE DESCUENTO del sistema (approval matrix, ADR-013).
+ * El descuento NO es un permiso binario por rol: el rol de caja lo EMITE, pero la POLÍTICA por
+ * UMBRAL de % decide la autorización (patrón PBAC de Toast/Square/Lightspeed):
+ *   - discount% <= AUTO_APPROVE_MAX  -> autonomía (sin aprobación)
+ *   - AUTO < discount% <= MANAGER_MAX -> requiere approved_by de MANAGER+ (mismo mecanismo que VOID)
+ *   - discount% > MANAGER_MAX          -> rechazo (DISCOUNT_EXCEEDS_MAX)
+ *   - discount > subtotal (MVP)        -> rechazo (total NEGATIVO)
+ * Defensa server-side: el ingest es la frontera de confianza, no confía en el cliente.
  */
 async function validateCheckDiscount(
     tx: Prisma.TransactionClient,
     event: ParkEvent,
 ): Promise<ValidationResult> {
-    const payload = event.payload as { order_id?: string; check_id?: string; discount_cents?: number };
+    const payload = event.payload as {
+        order_id?: string; check_id?: string; discount_cents?: number; reason?: string; approved_by?: string;
+    };
     const discount = payload.discount_cents ?? 0;
 
-    if (discount < 0) return { valid: false, error: "DISCOUNT_NEGATIVE", details: { discount_cents: discount } };
+    if (discount < 0) {
+        return { valid: false, error: "DISCOUNT_NEGATIVE", details: { discount_cents: discount } };
+    }
 
     const subtotal = await readCheckBaseCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+
+    // MVP (Minimum Viable Price): el descuento NO puede exceder el subtotal -> total negativo.
     if (subtotal > 0 && discount > subtotal) {
-        return {
-            valid: false,
-            error: "DISCOUNT_EXCEEDS_SUBTOTAL",
-            details: { discount_cents: discount, subtotal_cents: subtotal },
-        };
+        return { valid: false, error: "DISCOUNT_EXCEEDS_SUBTOTAL", details: { discount_cents: discount, subtotal_cents: subtotal } };
     }
+
+    const percent = subtotal > 0 ? (discount / subtotal) * 100 : 0;
+
+    // Tier ALTO: por encima del máximo de manager -> rechazo (a futuro: requerir OWNER).
+    if (percent > LIMITS.DISCOUNT_MANAGER_MAX_PERCENT) {
+        return { valid: false, error: "DISCOUNT_EXCEEDS_MAX", details: { percent, max_percent: LIMITS.DISCOUNT_MANAGER_MAX_PERCENT } };
+    }
+
+    // Tier MEDIO: por encima del auto-approve -> requiere aprobación de MANAGER+.
+    if (percent > LIMITS.DISCOUNT_AUTO_APPROVE_MAX_PERCENT) {
+        const approver = payload.approved_by
+            ? await tx.employees.findUnique({ where: { id: payload.approved_by }, select: { role: true, is_active: true } })
+            : null;
+        if (!approver || !approver.is_active || !canApproveManagerActions(approver.role)) {
+            return {
+                valid: false,
+                error: "DISCOUNT_REQUIRES_MANAGER_APPROVAL",
+                details: { percent, auto_approve_max: LIMITS.DISCOUNT_AUTO_APPROVE_MAX_PERCENT },
+            };
+        }
+    }
+
+    // Tier BAJO (<= auto-approve): autonomía del rol de caja.
     return { valid: true };
 }
 
