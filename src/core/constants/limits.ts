@@ -80,4 +80,11 @@ export const LIMIT_ERRORS = {
     BATCH_TOO_LARGE: `Máximo ${LIMITS.MAX_EVENTS_PER_BATCH} eventos por batch`,
     CASH_OPENING_TOO_HIGH: `Fondo inicial máximo: ${formatCentsToSoles(LIMITS.DEFAULT_MAX_CASH_OPENING_CENTS)}`,
     CASH_VARIANCE_ALERT: `Diferencia de caja superior al umbral configurado`,
+    // Política de descuento (ADR-013) + límites de propina. Boilerplate escrito por el Qwen
+    // local, corregido en review: usaba formatCentsToSoles() sobre un PORCENTAJE (daba "S/0.50%").
+    DISCOUNT_NEGATIVE: 'El descuento no puede ser negativo.',
+    DISCOUNT_EXCEEDS_SUBTOTAL: 'El descuento no puede exceder el subtotal de la cuenta.',
+    DISCOUNT_EXCEEDS_MAX: `El descuento supera el máximo permitido (${LIMITS.DISCOUNT_MANAGER_MAX_PERCENT}%).`,
+    DISCOUNT_REQUIRES_MANAGER_APPROVAL: 'Este descuento requiere aprobación de un gerente.',
+    TIP_NEGATIVE: 'La propina no puede ser negativa.',
 } as const;
