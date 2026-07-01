@@ -559,17 +559,23 @@ async function validateItemVoided(
     return { valid: true };
 }
 
-/** Lee el subtotal del check desde el snapshot JSON de la orden (fallback a total_cents). */
-async function readCheckBaseCents(
+/**
+ * Subtotal del check desde el snapshot JSON de la orden. Devuelve `null` si la orden o el
+ * check NO existen (distinto de subtotal 0) — para rechazar descuentos/propinas fantasma
+ * sobre un check inexistente (hueco encontrado en la auditoría del propio fix, 2026-07-01).
+ */
+async function readCheckSubtotalCents(
     tx: Prisma.TransactionClient,
     orderId: string | undefined,
     checkId: string | undefined,
-): Promise<number> {
-    if (!orderId || !checkId) return 0;
+): Promise<number | null> {
+    if (!orderId || !checkId) return null;
     const order = await tx.orders.findUnique({ where: { id: orderId }, select: { checks: true } });
-    const checks = (order?.checks as Array<{ check_id: string; subtotal_cents?: number; total_cents?: number }>) || [];
+    if (!order) return null;
+    const checks = (order.checks as Array<{ check_id: string; subtotal_cents?: number; total_cents?: number }>) || [];
     const check = checks.find((c) => c.check_id === checkId);
-    return check?.subtotal_cents ?? check?.total_cents ?? 0;
+    if (!check) return null;
+    return check.subtotal_cents ?? check.total_cents ?? 0;
 }
 
 /**
@@ -589,7 +595,10 @@ async function validateCheckTip(
         return { valid: false, error: "TIP_TOO_HIGH", details: { tip_cents: tip, max: LIMITS.MAX_TIP_AMOUNT_CENTS } };
     }
 
-    const base = await readCheckBaseCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    const base = await readCheckSubtotalCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    if (base === null) {
+        return { valid: false, error: "CHECK_NOT_FOUND", details: { order_id: payload.order_id, check_id: payload.check_id } };
+    }
     if (base > 0 && tip > (base * LIMITS.MAX_TIP_PERCENT) / 100) {
         return {
             valid: false,
@@ -623,10 +632,14 @@ async function validateCheckDiscount(
         return { valid: false, error: "DISCOUNT_NEGATIVE", details: { discount_cents: discount } };
     }
 
-    const subtotal = await readCheckBaseCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    const subtotal = await readCheckSubtotalCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    if (subtotal === null) {
+        return { valid: false, error: "CHECK_NOT_FOUND", details: { order_id: payload.order_id, check_id: payload.check_id } };
+    }
 
     // MVP (Minimum Viable Price): el descuento NO puede exceder el subtotal -> total negativo.
-    if (subtotal > 0 && discount > subtotal) {
+    // Sin `subtotal > 0`: un descuento > 0 sobre un check de subtotal 0 también se rechaza.
+    if (discount > subtotal) {
         return { valid: false, error: "DISCOUNT_EXCEEDS_SUBTOTAL", details: { discount_cents: discount, subtotal_cents: subtotal } };
     }
 
