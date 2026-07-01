@@ -42,7 +42,16 @@ AUTO < discount% <= DISCOUNT_MANAGER_MAX_PERCENT -> requiere approved_by de MANA
 discount% > DISCOUNT_MANAGER_MAX_PERCENT          -> rechazo (DISCOUNT_EXCEEDS_MAX)
 discount > subtotal (MVP)                         -> rechazo (DISCOUNT_EXCEEDS_SUBTOTAL, total negativo)
 discount < 0                                       -> rechazo (DISCOUNT_NEGATIVE)
+check inexistente                                  -> rechazo (CHECK_NOT_FOUND, no dinero fantasma)
 ```
+
+> **Auditoría del propio fix (2026-07-01)**: la primera versión de `validateCheckDiscount` tenía 3
+> huecos que dejaban pasar dinero: (1) descuento sobre un `check_id` inexistente caía a subtotal 0
+> y se auto-aprobaba; (2) el MVP exigía `subtotal > 0`, así que un descuento sobre subtotal 0 pasaba;
+> (3) mismo problema en la propina. Se cerró distinguiendo "check no existe" (`readCheckSubtotalCents`
+> devuelve `null` → `CHECK_NOT_FOUND`) de "subtotal 0", y quitando el `subtotal > 0` del MVP. Esto
+> alinea la frontera del ingest con el reducer, que YA ignoraba descuentos sobre checks inexistentes.
+> Tests adversariales en `check-money-limits.test.ts` (13/13).
 
 Umbrales configurables en `src/core/constants/limits.ts` (a futuro, override por `tenant_settings`):
 `DISCOUNT_AUTO_APPROVE_MAX_PERCENT = 15`, `DISCOUNT_MANAGER_MAX_PERCENT = 50`. **Son política de
