@@ -4,7 +4,7 @@
 
 ## Resumen
 
-El aprovisionamiento de tenants en PARK POS es un proceso **iniciado por un super-administrador**. No existe registro de autoservicio (self-service) durante la fase piloto. El flujo completo es:
+El aprovisionamiento de tenants en FIRMO POS es un proceso **iniciado por un super-administrador**. No existe registro de autoservicio (self-service) durante la fase piloto. El flujo completo es:
 
 1. El super-admin provisiona el tenant via formulario interno
 2. El super-admin entrega las credenciales al dueno de la polleria

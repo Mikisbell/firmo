@@ -259,7 +259,7 @@ export default function ZReportPrintPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500 mt-8">
-          <p>Generado por PARK POS — {new Date(report.generatedAt).toLocaleString('es-PE')}</p>
+          <p>Generado por FIRMO POS — {new Date(report.generatedAt).toLocaleString('es-PE')}</p>
         </div>
       </div>
     </>

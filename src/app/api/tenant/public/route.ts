@@ -16,9 +16,9 @@ export async function GET() {
       select: { legal_name: true, logo_url: true, address_text: true },
     });
     return NextResponse.json(
-      settings ?? { legal_name: 'PARK POS', logo_url: null, address_text: null },
+      settings ?? { legal_name: 'FIRMO POS', logo_url: null, address_text: null },
     );
   } catch {
-    return NextResponse.json({ legal_name: 'PARK POS', logo_url: null, address_text: null });
+    return NextResponse.json({ legal_name: 'FIRMO POS', logo_url: null, address_text: null });
   }
 }

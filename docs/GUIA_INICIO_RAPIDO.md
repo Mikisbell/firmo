@@ -1,6 +1,6 @@
-# Guia de Inicio Rapido — PARK POS
+# Guia de Inicio Rapido — FIRMO POS
 
-Bienvenido a **PARK POS**, el sistema de punto de venta disenado para pollerias peruanas.
+Bienvenido a **FIRMO POS**, el sistema de punto de venta disenado para pollerias peruanas.
 
 Esta guia te ayudara a configurar tu negocio paso a paso para que puedas empezar a vender lo antes posible. No necesitas conocimientos tecnicos — solo sigue las instrucciones.
 
@@ -10,7 +10,7 @@ Esta guia te ayudara a configurar tu negocio paso a paso para que puedas empezar
 
 Antes de comenzar, asegurate de tener lo siguiente:
 
-- **Credenciales de acceso** — Tu administrador de PARK POS te habra proporcionado:
+- **Credenciales de acceso** — Tu administrador de FIRMO POS te habra proporcionado:
   - Un enlace para acceder al sistema
   - Un PIN de administrador (4 digitos)
 - **Un dispositivo con navegador** — Computadora, tablet o celular con Chrome, Firefox o Safari
@@ -166,7 +166,7 @@ Si tienes problemas o preguntas:
 
 1. **Revisa esta guia** — La mayoria de preguntas se resuelven siguiendo los pasos
 2. **Usa el asistente** — El asistente en `/admin/onboarding` te indica que falta configurar
-3. **Contacta a tu proveedor** — La persona que te instalo PARK POS puede ayudarte con problemas tecnicos
+3. **Contacta a tu proveedor** — La persona que te instalo FIRMO POS puede ayudarte con problemas tecnicos
 4. **Documentacion tecnica** — Si tienes un equipo tecnico, la documentacion completa esta en la carpeta `docs/` del proyecto
 
 ---

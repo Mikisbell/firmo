@@ -1,4 +1,4 @@
-# 🔧 PARK POS — Soluciones Alternativas y Trade-offs
+# 🔧 FIRMO POS — Soluciones Alternativas y Trade-offs
 
 **Fecha:** 2026-01-05  
 **Objetivo:** Comparar diferentes approaches para los problemas críticos identificados

@@ -1,4 +1,4 @@
-# Estado de la Base de Datos — PARK POS
+# Estado de la Base de Datos — FIRMO POS
 
 > Supabase Cloud (sa-east-1) | PostgreSQL | Ultima auditoria: 2 Marzo 2026
 

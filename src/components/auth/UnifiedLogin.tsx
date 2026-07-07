@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ParkLogo } from '@/src/components/icons';
+import { FirmoLogo } from '@/src/components/icons';
 import { TenantLogo } from '@/src/components/branding/TenantLogo';
 import { Delete, Settings, ChevronLeft } from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
@@ -394,7 +394,7 @@ export function UnifiedLogin({ onCajaSetup }: UnifiedLoginProps) {
             </>
           ) : (
             <>
-              <ParkLogo size={28} />
+              <FirmoLogo size={28} />
               <span className="text-white font-bold tracking-tight text-lg">
                 PARK <span className="text-emerald-500">POS</span>
               </span>

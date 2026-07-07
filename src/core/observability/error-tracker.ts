@@ -1,5 +1,5 @@
 /**
- * PARK POS Error Tracker - Production Grade
+ * FIRMO POS Error Tracker - Production Grade
  * 
  * Implements comprehensive error tracking with:
  * - Sentry SDK integration for error monitoring

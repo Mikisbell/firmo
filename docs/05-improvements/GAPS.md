@@ -1,4 +1,4 @@
-# 🔍 PARK POS — Análisis de Huecos e Inconsistencias
+# 🔍 FIRMO POS — Análisis de Huecos e Inconsistencias
 
 **Fecha:** 2026-01-05  
 **Última actualización:** 7 de Enero 2026  

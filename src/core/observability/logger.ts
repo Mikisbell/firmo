@@ -1,5 +1,5 @@
 /**
- * PARK POS Structured Logger
+ * FIRMO POS Structured Logger
  * 
  * Provides structured logging with consistent format for
  * easy parsing and analysis in log aggregation systems.

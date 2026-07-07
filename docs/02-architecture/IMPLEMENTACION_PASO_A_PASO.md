@@ -1,4 +1,4 @@
-# 🛠️ PARK POS — Guía de Implementación Paso a Paso
+# 🛠️ FIRMO POS — Guía de Implementación Paso a Paso
 
 > **Objetivo:** Documentar TODOS los pasos necesarios para llevar el sistema a producción.  
 > **Prerrequisito:** Leer `AUDITORIA_CRITICA.md` y `MONEY_SAFETY.md` primero.
@@ -1457,7 +1457,7 @@ npx prisma migrate dev --name add_server_received_at
 ```typescript
 /**
  * Utilidades para manejo consistente de timezones.
- * PARK POS opera en Perú (America/Lima, UTC-5).
+ * FIRMO POS opera en Perú (America/Lima, UTC-5).
  */
 
 export const PERU_TIMEZONE = 'America/Lima';
@@ -3626,5 +3626,5 @@ Una vez completada esta documentación, el orden de implementación recomendado 
 ---
 
 **Documento creado:** Enero 2026  
-**Autor:** Arquitectura PARK POS  
+**Autor:** Arquitectura FIRMO POS  
 **Versión:** 1.0

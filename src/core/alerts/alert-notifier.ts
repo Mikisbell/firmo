@@ -371,7 +371,7 @@ export class AlertNotifier {
     }
 
     const subject = config.notificationConfig?.email?.subject
-      ?? `[${alertEvent.severity}] ${alertEvent.alertType} — PARK POS`;
+      ?? `[${alertEvent.severity}] ${alertEvent.alertType} — FIRMO POS`;
 
     const html = buildAlertEmailHtml({
       alertType: alertEvent.alertType,

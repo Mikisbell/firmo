@@ -59,7 +59,7 @@
 ### ADR-010: SUNAT Direct via nodefact (Zero Cost)
 
 **Status**: Proposed
-**Context**: PARK POS needs electronic invoicing for SUNAT compliance. The existing `NubefactAdapter` uses a paid OSE (S/0.10/doc). nodefact (MIT) enables free direct SUNAT integration.
+**Context**: FIRMO POS needs electronic invoicing for SUNAT compliance. The existing `NubefactAdapter` uses a paid OSE (S/0.10/doc). nodefact (MIT) enables free direct SUNAT integration.
 **Decision**: Use `nodefact` as the default provider (`sunat-direct`). Keep `NubefactAdapter` as fallback for tenants that prefer it.
 **Consequences**: Zero cost per document. Tenant manages own SOL credentials and certificates. More operational responsibility but massive cost savings.
 

@@ -1,5 +1,5 @@
 /**
- * PARK POS Health Check Service - Production Grade
+ * FIRMO POS Health Check Service - Production Grade
  * 
  * Implements comprehensive health checking with:
  * - Database connectivity check (PostgreSQL via Prisma)

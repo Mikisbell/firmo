@@ -1,5 +1,5 @@
 /**
- * i18n Foundation for PARK POS
+ * i18n Foundation for FIRMO POS
  *
  * Minimal translation layer. Spanish is the default locale.
  * This module provides the `t()` function and `useLocale()` hook

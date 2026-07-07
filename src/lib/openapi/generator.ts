@@ -1,5 +1,5 @@
 /**
- * OpenAPI 3.0 Specification Generator for PARK POS API
+ * OpenAPI 3.0 Specification Generator for FIRMO POS API
  * 
  * Generates comprehensive API documentation from code annotations.
  * Supports authentication, request/response schemas, and error responses.
@@ -8,7 +8,7 @@
 import { OpenAPIV3 } from 'openapi-types';
 
 /**
- * Generate complete OpenAPI 3.0 specification for PARK POS API
+ * Generate complete OpenAPI 3.0 specification for FIRMO POS API
  * 
  * @returns OpenAPI document with all endpoints, schemas, and security definitions
  */
@@ -16,11 +16,11 @@ export function generateOpenAPISpec(): OpenAPIV3.Document {
   return {
     openapi: '3.0.0',
     info: {
-      title: 'PARK POS API',
+      title: 'FIRMO POS API',
       version: '1.0.0',
-      description: 'REST API for PARK POS offline-first point-of-sale system for Peruvian restaurants',
+      description: 'REST API for FIRMO POS offline-first point-of-sale system for Peruvian restaurants',
       contact: {
-        name: 'PARK POS Support',
+        name: 'FIRMO POS Support',
         email: 'support@parkpos.com',
       },
       license: {

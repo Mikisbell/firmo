@@ -1,5 +1,5 @@
 /**
- * PARK POS Structured Logger - Production Grade
+ * FIRMO POS Structured Logger - Production Grade
  * 
  * Implements comprehensive structured logging with:
  * - Pino for high-performance JSON logging
@@ -214,7 +214,7 @@ export class StructuredLogger implements Logger {
   private serviceName: string;
   private environment: string;
 
-  constructor(serviceName: string = 'park-pos') {
+  constructor(serviceName: string = 'firmo-pos') {
     this.serviceName = serviceName;
     this.environment = process.env.NODE_ENV || 'development';
     
@@ -353,7 +353,7 @@ export class StructuredLogger implements Logger {
  * Singleton logger instance
  * Use this for application-wide logging
  */
-export const logger = new StructuredLogger('park-pos');
+export const logger = new StructuredLogger('firmo-pos');
 
 /**
  * Create a logger for a specific service/module

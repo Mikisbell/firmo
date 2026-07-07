@@ -1,4 +1,4 @@
-# PARK POS — Checklist de Produccion
+# FIRMO POS — Checklist de Produccion
 
 ## Antes del Primer Uso
 

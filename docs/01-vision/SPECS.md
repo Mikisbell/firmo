@@ -1,4 +1,4 @@
-# PARK POS — Enums + Payment Model + Printing + KDS
+# FIRMO POS — Enums + Payment Model + Printing + KDS
 
 **Versión:** 1.3  
 **Fecha:** Diciembre 2025

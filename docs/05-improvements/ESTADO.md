@@ -1,4 +1,4 @@
-# 📊 ESTADO ACTUAL DEL PROYECTO PARK POS
+# 📊 ESTADO ACTUAL DEL PROYECTO FIRMO POS
 **Fecha de Análisis:** 2026-01-07  
 **Última actualización:** 7 de Enero 2026  
 **Versión Documentación:** 1.5.0  
@@ -10,7 +10,7 @@
 
 ### Estado General: **P0 + P1 100% Completados** ✅
 
-El proyecto PARK POS ha completado las fases P0 (MVP) y P1 (Multi-Terminal). Listo para producción.
+El proyecto FIRMO POS ha completado las fases P0 (MVP) y P1 (Multi-Terminal). Listo para producción.
 
 **Logros P0:**
 - ✅ Event Sourcing implementado correctamente

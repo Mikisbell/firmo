@@ -1,5 +1,5 @@
 /**
- * Custom SWR Hooks para PARK POS
+ * Custom SWR Hooks para FIRMO POS
  * 
  * Hooks reutilizables para data fetching con deduplicación automática,
  * revalidación inteligente y manejo de errores consistente.

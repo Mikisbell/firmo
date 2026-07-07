@@ -1,4 +1,4 @@
-# PARK POS — Product Requirements Document (PRD)
+# FIRMO POS — Product Requirements Document (PRD)
 
 **Versión:** 2.0
 **Fecha:** Marzo 2026
@@ -11,13 +11,13 @@
 
 ### 1.1 Declaración de Visión
 
-**PARK POS es un sistema de punto de venta cognitivo, offline-first y event-sourced diseñado específicamente para pollerías y restaurantes peruanos.**
+**FIRMO POS es un sistema de punto de venta cognitivo, offline-first y event-sourced diseñado específicamente para pollerías y restaurantes peruanos.**
 
 Combina la operación completa de un restaurante — desde la mesa hasta la cocina, desde la caja hasta SUNAT — en una plataforma multi-tenant que funciona incluso sin internet, con sincronización inteligente y facturación electrónica integrada.
 
 ### 1.2 Propuesta de Valor Única
 
-| Diferenciador | PARK POS | POS Tradicional |
+| Diferenciador | FIRMO POS | POS Tradicional |
 |---------------|----------|-----------------|
 | **Offline-first** | Funciona sin internet, sincroniza al reconectar | Requiere conexión constante |
 | **Event-sourcing** | Historial completo, auditable, reversible | Solo estado actual |
@@ -379,7 +379,7 @@ Combina la operación completa de un restaurante — desde la mesa hasta la coci
 
 ### 6.1 Benchmark contra Competidores
 
-| Feature | **Toast** (líder USA) | **Inforest** (líder Perú) | **Restaurant.pe** | **PARK POS** |
+| Feature | **Toast** (líder USA) | **Inforest** (líder Perú) | **Restaurant.pe** | **FIRMO POS** |
 |---------|----------------------|--------------------------|-------------------|-------------|
 | **POS core** | Nativo, hardware propio | Windows desktop | Web | Web (offline-first) |
 | **Offline mode** | Hub local + KDS offline | Sí (instalado local) | Limitado | Dexie + event sourcing |
@@ -398,7 +398,7 @@ Combina la operación completa de un restaurante — desde la mesa hasta la coci
 | **Usuarios reales** | Millones de restaurantes | Miles en Perú | Cientos | **0** |
 | **Precio** | $0-110/mes + processing fees | ~S/200-400/mes | ~S/150-300/mes | S/0 (producto propio) |
 
-### 6.2 Ventajas Reales de PARK POS
+### 6.2 Ventajas Reales de FIRMO POS
 
 1. **Event sourcing** — Historial completo y auditable de toda operación; los competidores peruanos solo guardan estado actual
 2. **Offline-first real** — Funciona sin internet desde el primer momento; los POS web de la competencia se caen sin conexión
@@ -415,7 +415,7 @@ Combina la operación completa de un restaurante — desde la mesa hasta la coci
 | **Procesador de pagos real** (Niubiz/Izipay) | Sin verificación de Yape/Plin = error de cuadre | Inforest, Restaurant.pe, Smart System | BLOQUEANTE |
 | **0 usuarios reales** | No se ha validado nada en un restaurante real | Todos los competidores | BLOQUEANTE |
 | **Facturación SUNAT rota** (2 bugs) | No puede emitir un solo comprobante válido | Inforest, Restaurant.pe | BLOQUEANTE |
-| **Multi-sucursal** | Cadenas no pueden usar PARK POS | Toast, Inforest | Alta |
+| **Multi-sucursal** | Cadenas no pueden usar FIRMO POS | Toast, Inforest | Alta |
 | **App móvil nativa** | Meseros en browser = lento, propenso a cerrar pestaña | Toast (Toast Go) | Alta |
 | **Integración contable** (CONCAR, etc.) | Contadores no pueden importar data | Inforest, Restaurant.pe | Media |
 | **Soporte 24/7** | Restaurantes operan noches y feriados | Todos los comerciales | Media |
@@ -560,9 +560,9 @@ Combina la operación completa de un restaurante — desde la mesa hasta la coci
 | 5.1 | **Seleccionar pollería piloto** | Acuerdo con 1 local, 5-15 empleados | Local con internet + disposición a probar |
 | 5.2 | **Deploy producción** | App live en dominio real, HTTPS, DB producción | App accesible desde cualquier device |
 | 5.3 | **Onboarding real** | Configurar tenant, productos, mesas, empleados, precios reales | Menú completo cargado en < 2 horas |
-| 5.4 | **Turno piloto (shadow)** | Correr PARK POS en paralelo con sistema actual durante 1 semana | 0 pérdida de datos, cajero puede operar |
+| 5.4 | **Turno piloto (shadow)** | Correr FIRMO POS en paralelo con sistema actual durante 1 semana | 0 pérdida de datos, cajero puede operar |
 | 5.5 | **Facturación SUNAT real** | Emitir boletas/facturas reales contra SUNAT producción | > 99% éxito en emisión |
-| 5.6 | **Corte (cutover)** | Reemplazar sistema actual por PARK POS | 1 semana completa sin sistema anterior |
+| 5.6 | **Corte (cutover)** | Reemplazar sistema actual por FIRMO POS | 1 semana completa sin sistema anterior |
 | 5.7 | **Feedback y fixes** | Lista de bugs y mejoras priorizadas por el usuario | Bugs críticos corregidos en < 48h |
 | 5.8 | **Métricas post-piloto** | Tiempo de pedido, cuadre de caja, uptime, satisfacción | Cumplir KPIs de sección 10.1 |
 
@@ -601,7 +601,7 @@ Combina la operación completa de un restaurante — desde la mesa hasta la coci
 
 ### 9.5 Fase P7 — Más Allá del Web (Expansión de Plataforma)
 
-**Objetivo:** Convertir PARK POS de "app web" a "plataforma multi-canal".
+**Objetivo:** Convertir FIRMO POS de "app web" a "plataforma multi-canal".
 **Pre-requisito:** P6 estable, múltiples locales operando.
 
 #### 9.5.1 Apps Nativas
@@ -626,9 +626,9 @@ Combina la operación completa de un restaurante — desde la mesa hasta la coci
 
 | Producto | Descripción | Pricing |
 |----------|-------------|---------|
-| **PARK POS Free** | POS básico: ventas, productos, 1 caja, facturación SUNAT | S/0/mes |
-| **PARK POS Pro** | + KDS, meseros, delivery, inventario, RRHH, CRM | S/X/mes por local |
-| **PARK POS Enterprise** | + Multi-sucursal, API, integraciones, soporte prioritario | S/Y/mes |
+| **FIRMO POS Free** | POS básico: ventas, productos, 1 caja, facturación SUNAT | S/0/mes |
+| **FIRMO POS Pro** | + KDS, meseros, delivery, inventario, RRHH, CRM | S/X/mes por local |
+| **FIRMO POS Enterprise** | + Multi-sucursal, API, integraciones, soporte prioritario | S/Y/mes |
 | **Marketplace** | Proveedores de pollo conectados directamente al inventario | Comisión % |
 
 ### 9.6 Visión a Largo Plazo — P8+

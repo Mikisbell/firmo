@@ -1,7 +1,7 @@
 /**
  * Swagger UI page for interactive API documentation
  * 
- * Provides a web interface for exploring and testing the PARK POS API
+ * Provides a web interface for exploring and testing the FIRMO POS API
  */
 
 'use client';

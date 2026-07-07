@@ -2,7 +2,7 @@
 
 ## Descripcion General
 
-Este documento especifica los cambios exactos en archivos, flujos de datos y decisiones de arquitectura para cada uno de los 30 hallazgos distribuidos en 5 fases. Todos los patrones de codigo se derivan de las convenciones existentes en el codebase de PARK POS.
+Este documento especifica los cambios exactos en archivos, flujos de datos y decisiones de arquitectura para cada uno de los 30 hallazgos distribuidos en 5 fases. Todos los patrones de codigo se derivan de las convenciones existentes en el codebase de FIRMO POS.
 
 ---
 
@@ -690,7 +690,7 @@ export default withSentryConfig(withSerwist(nextConfig), {
 # Error Tracking (Sentry) - Optional
 # NEXT_PUBLIC_SENTRY_DSN="https://...@sentry.io/..."
 # SENTRY_ORG="your-org"
-# SENTRY_PROJECT="park-pos"
+# SENTRY_PROJECT="firmo-pos"
 # SENTRY_AUTH_TOKEN="your-sentry-auth-token"
 ```
 

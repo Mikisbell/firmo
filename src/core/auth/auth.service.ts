@@ -27,8 +27,8 @@ if (!JWT_SECRET_STRING) {
     throw new Error('SECURITY ERROR: JWT_SECRET must be configured');
 }
 const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
-const JWT_ISSUER = 'park-pos';
-const JWT_AUDIENCE = 'park-pos-client';
+const JWT_ISSUER = 'firmo-pos';
+const JWT_AUDIENCE = 'firmo-pos-client';
 
 // Lockout settings - ESCALATING (not too aggressive)
 // First lockout: 5 failed attempts → 2 minutes

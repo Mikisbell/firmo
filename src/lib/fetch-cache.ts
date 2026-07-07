@@ -12,7 +12,7 @@
  * - Performance monitoring integrado
  * 
  * @module lib/fetch-cache
- * @see {@link https://github.com/park-pos/docs/02-architecture/PERFORMANCE.md}
+ * @see {@link https://github.com/firmo-pos/docs/02-architecture/PERFORMANCE.md}
  */
 
 import { perfMonitor } from './performance-monitor';

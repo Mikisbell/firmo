@@ -2,7 +2,7 @@
 
 ## Intención
 
-Una auditoría integral de cuatro sub-agentes del codebase de PARK POS (27 Feb 2026) reveló **30 hallazgos verificados** en los dominios de seguridad, arquitectura, infraestructura y testing. Tres de ellos son **CRITICAL** (standalone de Docker faltante, dos endpoints admin sin autenticación), nueve son **HIGH** y dieciocho son **MEDIUM**. Sin atender, estos hallazgos exponen el sistema de producción a acceso no autorizado de datos, pérdida silenciosa de errores, rendimiento degradado y una falsa sensación de calidad proveniente de una suite de tests que cubre menos del 6% de la superficie de API.
+Una auditoría integral de cuatro sub-agentes del codebase de FIRMO POS (27 Feb 2026) reveló **30 hallazgos verificados** en los dominios de seguridad, arquitectura, infraestructura y testing. Tres de ellos son **CRITICAL** (standalone de Docker faltante, dos endpoints admin sin autenticación), nueve son **HIGH** y dieciocho son **MEDIUM**. Sin atender, estos hallazgos exponen el sistema de producción a acceso no autorizado de datos, pérdida silenciosa de errores, rendimiento degradado y una falsa sensación de calidad proveniente de una suite de tests que cubre menos del 6% de la superficie de API.
 
 **Estado verificado** (re-auditoría 27 Feb 2026):
 - El outbox publisher ya utiliza un diseño eficiente por lotes — eliminado del alcance

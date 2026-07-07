@@ -1,5 +1,5 @@
 /**
- * Web Vitals Tracking for PARK POS
+ * Web Vitals Tracking for FIRMO POS
  * 
  * Tracks Core Web Vitals metrics and sends them to the metrics collector.
  * Implements Next.js best practices for Web Vitals tracking.

@@ -73,10 +73,10 @@ class DocumentationGenerator {
     return {
       openapi: '3.0.0',
       info: {
-        title: 'PARK POS API',
+        title: 'FIRMO POS API',
         description: `
 ## Overview
-PARK POS is a comprehensive Point of Sale system for restaurants with delivery capabilities.
+FIRMO POS is a comprehensive Point of Sale system for restaurants with delivery capabilities.
 
 ## Features
 - **Order Management**: Create, update, and manage customer orders
@@ -109,22 +109,22 @@ All errors follow this standard format:
 
 ## Environment
 - **Development**: http://localhost:3000/api
-- **Production**: https://parkpos.pe/api
+- **Production**: https://firmopos.pe/api
         `,
         version: '2.0.0',
         contact: {
-          name: 'PARK POS Support',
-          email: 'support@parkpos.pe',
+          name: 'FIRMO POS Support',
+          email: 'support@firmopos.pe',
         },
         license: {
           name: 'MIT',
-          url: 'https://github.com/park-pos/license',
+          url: 'https://github.com/firmo-pos/license',
         },
       },
       servers: [
         {
           url: process.env.NODE_ENV === 'production' 
-            ? 'https://parkpos.pe/api'
+            ? 'https://firmopos.pe/api'
             : 'http://localhost:3000/api',
           description: process.env.NODE_ENV === 'production' 
             ? 'Production Server'
@@ -1093,7 +1093,7 @@ All errors follow this standard format:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PARK POS API Documentation</title>
+    <title>FIRMO POS API Documentation</title>
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.0.0/swagger-ui-bundle.css" />
     <style>
         body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
@@ -1113,7 +1113,7 @@ All errors follow this standard format:
 </head>
 <body>
     <div class="header">
-        <h1>🍽️ PARK POS API</h1>
+        <h1>🍽️ FIRMO POS API</h1>
         <p>Comprehensive Point of Sale API with real-time order tracking, inventory management, and delivery coordination.</p>
     </div>
     

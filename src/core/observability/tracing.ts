@@ -9,7 +9,7 @@
 
 import { trace, SpanStatusCode, type Span, type Attributes } from '@opentelemetry/api';
 
-const tracer = trace.getTracer('park-pos');
+const tracer = trace.getTracer('firmo-pos');
 
 export interface SpanOptions {
   attributes?: Attributes;

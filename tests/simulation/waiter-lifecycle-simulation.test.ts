@@ -370,7 +370,7 @@ describe('Waiter Employee Full Lifecycle Simulation (1 Month)', () => {
     // ==========================================
     // DAY 0: Upload photo and update phone
     // ==========================================
-    const employeeWithPhoto = updateEmployeePhoto(employee, 'https://storage.park-pos.com/photos/carlos-lopez.jpg');
+    const employeeWithPhoto = updateEmployeePhoto(employee, 'https://storage.firmo-pos.com/photos/carlos-lopez.jpg');
     const employeeWithNewPhone = updateEmployeePhone(employeeWithPhoto, '987654322');
 
     expect(employeeWithPhoto.photoUrl).toBeDefined();

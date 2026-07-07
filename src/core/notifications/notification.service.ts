@@ -24,7 +24,7 @@ import type {
 // Configure VAPID keys from environment
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@parkpos.pe';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@firmopos.pe';
 
 // Only configure VAPID if all keys are present and subject is valid
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && webpush) {

@@ -56,7 +56,7 @@ export default function PosShell() {
                 </div>
                 
                 <h1 className="text-2xl font-black text-white mb-2 tracking-tight">
-                    PARK POS <span className="text-indigo-400">SHELL</span>
+                    FIRMO POS <span className="text-indigo-400">SHELL</span>
                 </h1>
                 
                 <p className="text-zinc-400 mb-6 font-medium">

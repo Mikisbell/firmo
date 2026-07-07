@@ -136,7 +136,7 @@ export default function OnboardingWizard({
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Bienvenido a PARK POS
+            Bienvenido a FIRMO POS
           </h1>
           <p className="text-slate-600">
             Configuremos tu sistema de restaurante. Completa los pasos requeridos para comenzar.
@@ -207,7 +207,7 @@ export default function OnboardingWizard({
               Configuracion Completa!
             </h3>
             <p className="text-green-700">
-              Tu sistema PARK POS esta listo para usar. Ya puedes comenzar a tomar pedidos.
+              Tu sistema FIRMO POS esta listo para usar. Ya puedes comenzar a tomar pedidos.
             </p>
           </div>
         )}

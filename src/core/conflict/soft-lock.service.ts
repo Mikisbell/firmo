@@ -1,5 +1,5 @@
 // src/core/conflict/soft-lock.service.ts
-// Soft Lock Service for PARK POS Multi-Terminal
+// Soft Lock Service for FIRMO POS Multi-Terminal
 // Soft locks are advisory only - they warn but don't block operations
 
 import { logger } from '@/src/core/observability/logger';

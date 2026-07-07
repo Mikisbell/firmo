@@ -14,13 +14,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-    title: "PARK POS",
+    title: "FIRMO POS",
     description: "Sistema POS offline-first para pollerías y parrilleras peruanas. Facturación SUNAT, multi-terminal, KDS cocina, gestión de personal.",
     manifest: "/manifest.json",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "PARK POS",
+        title: "FIRMO POS",
     },
     icons: {
         icon: [
@@ -31,15 +31,15 @@ export const metadata: Metadata = {
         apple: "/images/apple-touch-icon.png",
     },
     openGraph: {
-        title: "PARK POS",
+        title: "FIRMO POS",
         description: "Sistema POS offline-first para pollerías y parrilleras peruanas",
-        siteName: "PARK POS",
+        siteName: "FIRMO POS",
         type: "website",
         locale: "es_PE",
     },
     twitter: {
         card: "summary_large_image",
-        title: "PARK POS",
+        title: "FIRMO POS",
         description: "Sistema POS offline-first para pollerías y parrilleras peruanas",
     },
 };

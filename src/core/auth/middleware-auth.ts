@@ -39,8 +39,8 @@ export async function validateTokenMiddleware(token: string): Promise<TokenValid
 
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET, {
-      issuer: 'park-pos',
-      audience: 'park-pos-client',
+      issuer: 'firmo-pos',
+      audience: 'firmo-pos-client',
     });
 
     // Validate required fields

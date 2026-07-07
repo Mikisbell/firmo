@@ -137,8 +137,8 @@ describe('Tenant-Scoped Login Unit Tests', () => {
 
       const result = await validateToken(token);
       expect(result.valid).toBe(true);
-      expect(result.payload?.iss).toBe('park-pos');
-      expect(result.payload?.aud).toBe('park-pos-client');
+      expect(result.payload?.iss).toBe('firmo-pos');
+      expect(result.payload?.aud).toBe('firmo-pos-client');
     });
 
     /**

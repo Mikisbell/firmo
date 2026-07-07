@@ -1,7 +1,7 @@
 /**
  * Product Type Definitions
  * 
- * Comprehensive type definitions for products in PARK POS.
+ * Comprehensive type definitions for products in FIRMO POS.
  * Extends Prisma-generated types with additional fields and utilities.
  * 
  * @see .kiro/specs/products-p1-improvements/design.md

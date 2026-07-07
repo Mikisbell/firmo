@@ -1,4 +1,4 @@
-# PARK POS — Roadmap 2026
+# FIRMO POS — Roadmap 2026
 
 **Version:** 3.2.0
 **Fecha:** 17 Marzo 2026
@@ -81,7 +81,7 @@
 
 ## P3: Production Ready (Mar - Abr 2026)
 
-Objetivo: llevar PARK POS a produccion real en una polleria piloto.
+Objetivo: llevar FIRMO POS a produccion real en una polleria piloto.
 
 ### ~~P3.1 — Offline Queue Persistente~~ ✅ YA IMPLEMENTADO
 

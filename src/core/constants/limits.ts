@@ -1,5 +1,5 @@
 /**
- * Límites de Seguridad - PARK POS
+ * Límites de Seguridad - FIRMO POS
  * 
  * Estos límites se validan tanto en CLIENTE como en SERVIDOR
  * para prevenir fraudes y errores.

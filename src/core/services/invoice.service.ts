@@ -1014,7 +1014,7 @@ export class InvoiceService {
     }
 
     // Verificar que la orden esté pagada
-    // En PARK POS, las órdenes pagadas tienen checks pagados
+    // En FIRMO POS, las órdenes pagadas tienen checks pagados
     const checks = order.checks as any[];
     const targetCheck = checks?.find((c: any) => c.check_id === input.checkId);
 

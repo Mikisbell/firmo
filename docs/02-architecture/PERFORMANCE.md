@@ -1,4 +1,4 @@
-# PARK POS — Optimizaciones de Performance
+# FIRMO POS — Optimizaciones de Performance
 
 **Versión:** 1.0  
 **Fecha:** Enero 2026  

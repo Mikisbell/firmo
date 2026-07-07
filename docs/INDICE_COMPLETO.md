@@ -1,4 +1,4 @@
-# 📚 PARK POS - Índice Completo de Documentación
+# 📚 FIRMO POS - Índice Completo de Documentación
 
 **Última actualización:** 17 de Febrero 2026  
 **Total de documentos:** 305+  
@@ -531,7 +531,7 @@ La Fase 2 de auditoría ha generado documentación completa de categorización:
 
 ---
 
-**Generado por:** Sistema de Auditoría de Documentación PARK POS  
+**Generado por:** Sistema de Auditoría de Documentación FIRMO POS  
 **Fecha:** 17 de Febrero 2026  
 **Versión:** 1.1.0 (Fase 2 Completada)
 

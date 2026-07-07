@@ -1,4 +1,4 @@
-# PARK POS — Arquitectura Enterprise (Velocidad + Escalabilidad + Growth)
+# FIRMO POS — Arquitectura Enterprise (Velocidad + Escalabilidad + Growth)
 
 **Versión:** 1.1  
 **Fecha:** Diciembre 2025  

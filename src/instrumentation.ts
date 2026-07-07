@@ -6,7 +6,7 @@ export async function register() {
     if (otelEndpoint) {
       const { registerOTel } = await import('@vercel/otel');
       registerOTel({
-        serviceName: process.env.OTEL_SERVICE_NAME ?? 'park-pos',
+        serviceName: process.env.OTEL_SERVICE_NAME ?? 'firmo-pos',
         attributes: {
           'deployment.environment': process.env.NODE_ENV ?? 'development',
         },

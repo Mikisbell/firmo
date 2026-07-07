@@ -296,7 +296,7 @@ export default function WaiterOrderPage({ params }: { params: Promise<{ tableId:
 
         printComponent(
             <TicketTemplate
-                tenantName="PARK POS"
+                tenantName="FIRMO POS"
                 date={new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}
                 orderNumber={activeSale.order_number || 0}
                 lines={linesToPrint}
