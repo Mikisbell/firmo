@@ -1037,7 +1037,7 @@ interface AnomalyDetector {
 │  │                                                                     │    │
 │  │ Por favor confirmar disponibilidad.                                 │    │
 │  │                                                                     │    │
-│  │ [Generado automáticamente por PARK POS]                             │    │
+│  │ [Generado automáticamente por FIRMO POS]                             │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 │  ⚙️ CONFIGURACIÓN POR PROVEEDOR                                            │

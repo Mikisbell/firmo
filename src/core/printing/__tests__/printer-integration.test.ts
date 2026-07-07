@@ -124,7 +124,7 @@ describe('End-to-end print pipeline', () => {
 
     // Simulate ESC/POS receipt: init + text + cut
     const ESC_INIT = new Uint8Array([0x1b, 0x40]); // Initialize printer
-    const TEXT = new TextEncoder().encode('PARK POS\nGracias por su compra\n');
+    const TEXT = new TextEncoder().encode('FIRMO POS\nGracias por su compra\n');
     const CUT = new Uint8Array([0x1d, 0x56, 0x00]); // Full cut
 
     // Combine into single buffer

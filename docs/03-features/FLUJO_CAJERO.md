@@ -900,7 +900,7 @@ División:
 - Persona A: 1/4 Pollo + Gaseosa = S/ 21.50
 - Persona B: 1/4 Pollo + Gaseosa + Ensalada = S/ 27.50
 
-✅ PARK POS soporta esto
+✅ FIRMO POS soporta esto
 ```
 
 ### Modo 2: Equitativo (NO soportado)
@@ -913,7 +913,7 @@ Mesa pide: Total S/ 72
 División:
 - Cada uno paga: S/ 72 ÷ 4 = S/ 18.00
 
-❌ PARK POS NO soporta esto
+❌ FIRMO POS NO soporta esto
 ```
 
 ### Modo 3: Por Porcentaje (NO soportado)
@@ -924,7 +924,7 @@ Total: S/ 100
 - Persona A: 60% = S/ 60
 - Persona B: 40% = S/ 40
 
-❌ PARK POS NO soporta esto
+❌ FIRMO POS NO soporta esto
 ```
 
 ### Modo 4: División de Item (NO soportado)
@@ -936,7 +936,7 @@ Un item se divide entre varias personas.
 División:
 - Cada uno paga: S/ 58 ÷ 4 = S/ 14.50
 
-❌ PARK POS NO soporta esto
+❌ FIRMO POS NO soporta esto
 ```
 
 ### Modo 5: Mixto (NO soportado)
@@ -952,7 +952,7 @@ División:
 - Persona B: S/ 14.50 (pollo) + S/ 3.50 (gaseosa) = S/ 18.00
 - etc.
 
-❌ PARK POS NO soporta esto
+❌ FIRMO POS NO soporta esto
 ```
 
 ---

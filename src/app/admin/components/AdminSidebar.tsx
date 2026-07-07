@@ -434,7 +434,7 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
             <Link href="/admin" className="flex items-center justify-center">
               <TenantLogo
                 logoUrl={branding?.logo_url}
-                legalName={branding?.legal_name || 'PARK POS'}
+                legalName={branding?.legal_name || 'FIRMO POS'}
                 size="sm"
               />
             </Link>
@@ -443,12 +443,12 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
               <Link href="/admin" className="flex items-center gap-2 flex-1 min-w-0 group">
                 <TenantLogo
                   logoUrl={branding?.logo_url}
-                  legalName={branding?.legal_name || 'PARK POS'}
+                  legalName={branding?.legal_name || 'FIRMO POS'}
                   size="sm"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold truncate text-zinc-100 group-hover:text-emerald-400 transition-colors">
-                    PARK POS
+                    FIRMO POS
                   </div>
                   <div className="text-[11px] text-zinc-600 truncate">
                     Panel de Administraci&oacute;n
@@ -600,7 +600,7 @@ export default function AdminSidebar({ permissions }: AdminSidebarProps) {
             <div className="px-3 pb-2.5 pt-0.5">
               <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-700">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-                <span>PARK POS</span>
+                <span>FIRMO POS</span>
                 <span>&middot;</span>
                 <span>v{APP_VERSION}</span>
               </div>

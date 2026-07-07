@@ -1,5 +1,5 @@
 /**
- * PARK POS Observability Module
+ * FIRMO POS Observability Module
  *
  * Barrel export for metrics, logging, and monitoring utilities.
  * Import from '@/src/core/observability' instead of individual files.

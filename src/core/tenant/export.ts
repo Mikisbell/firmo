@@ -268,7 +268,7 @@ function formatAsJSON(data: any): string {
  * Format data as SQL INSERT statements
  */
 async function formatAsSQL(data: any): Promise<string> {
-  let sql = '-- PARK POS Tenant Export\n';
+  let sql = '-- FIRMO POS Tenant Export\n';
   sql += `-- Tenant ID: ${data.export_metadata.tenant_id}\n`;
   sql += `-- Exported: ${data.export_metadata.exported_at}\n`;
   sql += `-- Format Version: ${data.export_metadata.version}\n\n`;

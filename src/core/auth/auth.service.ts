@@ -27,8 +27,8 @@ if (!JWT_SECRET_STRING) {
     throw new Error('SECURITY ERROR: JWT_SECRET must be configured');
 }
 const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
-const JWT_ISSUER = 'park-pos';
-const JWT_AUDIENCE = 'park-pos-client';
+const JWT_ISSUER = 'firmo-pos';
+const JWT_AUDIENCE = 'firmo-pos-client';
 
 // Lockout settings - ESCALATING (not too aggressive)
 // First lockout: 5 failed attempts → 2 minutes
@@ -555,8 +555,10 @@ export async function getSessionFromRequest(
         }
     }
 
-    // DEV BACKDOOR: Auto-login to bypass login screen in development
-    if (!token && process.env.NODE_ENV === 'development') {
+    // AUTO-LOGIN de desarrollo — DOBLE BARRERA (auditoría 2026-06-29): requiere opt-in
+    // explícito ALLOW_DEV_AUTOLOGIN=true ADEMÁS de NODE_ENV, para que un deploy con NODE_ENV
+    // mal configurado NO active este bypass de auth en prod. Espejo de auth/session/route.ts.
+    if (!token && process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_AUTOLOGIN === 'true') {
         try {
             // IMPORTANT: Filter by the real tenant ID to avoid picking up seed/test tenants
             const devTenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';

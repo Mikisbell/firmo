@@ -14,10 +14,13 @@ import { Prisma } from "@prisma/client";
 import type { ParkEvent } from "@/src/core/domain/events";
 import { LIMITS } from "@/src/core/constants/limits";
 import { 
-    canRoleEmitEvent, 
-    requiresManagerApproval, 
-    canApproveManagerActions 
+    canRoleEmitEvent,
+    requiresManagerApproval,
+    canApproveManagerActions
 } from "./role-permissions";
+// Status VIVO del item desde la proyección (única fuente, ADR-010). Para la defensa
+// server-side de ORDER_ITEM_VOIDED: no anular items en estado terminal (DONE/VOIDED).
+import { getItemStatuses } from "@/src/core/projections/order-items.read";
 import {
     isValidStatus,
     ORDER_STATUS_VALUES,
@@ -129,6 +132,12 @@ export async function validateEvent(
 
         case "CHECK_PAYMENT_ADDED":
             return validateCheckPaymentAdded(tx, event);
+
+        case "CHECK_TIP_SET":
+            return validateCheckTip(tx, event);
+
+        case "CHECK_DISCOUNT_SET":
+            return validateCheckDiscount(tx, event);
 
         case "REQUEST_CHECK":
             return validateRequestCheck(tx, event);
@@ -520,15 +529,142 @@ async function validateItemVoided(
         }
 
         if (order.order_status === "CANCELLED" || order.order_status === "CONFIRMED") {
-            return { 
-                valid: false, 
+            return {
+                valid: false,
                 error: "ORDER_NOT_MODIFIABLE",
                 details: { status: order.order_status }
             };
         }
+
+        // DEFENSA server-side (no confiar en el cliente): el item NO debe estar en un
+        // estado TERMINAL. El front respeta canTransition (no ofrece VOID en DONE/VOIDED),
+        // pero un evento offline/manipulado podría intentar anular un item DONE — que YA
+        // dedujo inventario (ORDER_ITEM_STATUS_CHANGED->DONE en project-event) — y borrar la
+        // proyección sin reversar el stock lo descuadraría. DONE/VOIDED son terminales
+        // (item-status-machine). Leemos el status VIVO de la proyección (ADR-010).
+        if (payload.line_id) {
+            const statuses = await getItemStatuses(tx, event.tenant_id, payload.order_id);
+            const itemStatus = statuses.get(payload.line_id)?.status;
+            if (itemStatus === "DONE" || itemStatus === "VOIDED") {
+                return {
+                    valid: false,
+                    error: "ITEM_NOT_VOIDABLE",
+                    details: { line_id: payload.line_id, status: itemStatus },
+                };
+            }
+        }
     }
 
     // Permisos de manager ya validados en validateEvent()
+    return { valid: true };
+}
+
+/**
+ * Subtotal del check desde el snapshot JSON de la orden. Devuelve `null` si la orden o el
+ * check NO existen (distinto de subtotal 0) — para rechazar descuentos/propinas fantasma
+ * sobre un check inexistente (hueco encontrado en la auditoría del propio fix, 2026-07-01).
+ */
+async function readCheckSubtotalCents(
+    tx: Prisma.TransactionClient,
+    orderId: string | undefined,
+    checkId: string | undefined,
+): Promise<number | null> {
+    if (!orderId || !checkId) return null;
+    const order = await tx.orders.findUnique({ where: { id: orderId }, select: { checks: true } });
+    if (!order) return null;
+    const checks = (order.checks as Array<{ check_id: string; subtotal_cents?: number; total_cents?: number }>) || [];
+    const check = checks.find((c) => c.check_id === checkId);
+    if (!check) return null;
+    return check.subtotal_cents ?? check.total_cents ?? 0;
+}
+
+/**
+ * Valida CHECK_TIP_SET — DEFENSA server-side (auditoría 2026-06-30): la propina no puede ser
+ * negativa ni exceder el máximo absoluto ni el % del subtotal. El ingest NO confía en el
+ * cliente: `client-validation.ts` se saltea con un evento offline/manipulado.
+ */
+async function validateCheckTip(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent,
+): Promise<ValidationResult> {
+    const payload = event.payload as { order_id?: string; check_id?: string; tip_cents?: number };
+    const tip = payload.tip_cents ?? 0;
+
+    if (tip < 0) return { valid: false, error: "TIP_NEGATIVE", details: { tip_cents: tip } };
+    if (tip > LIMITS.MAX_TIP_AMOUNT_CENTS) {
+        return { valid: false, error: "TIP_TOO_HIGH", details: { tip_cents: tip, max: LIMITS.MAX_TIP_AMOUNT_CENTS } };
+    }
+
+    const base = await readCheckSubtotalCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    if (base === null) {
+        return { valid: false, error: "CHECK_NOT_FOUND", details: { order_id: payload.order_id, check_id: payload.check_id } };
+    }
+    if (base > 0 && tip > (base * LIMITS.MAX_TIP_PERCENT) / 100) {
+        return {
+            valid: false,
+            error: "TIP_TOO_HIGH",
+            details: { tip_cents: tip, base_cents: base, max_percent: LIMITS.MAX_TIP_PERCENT },
+        };
+    }
+    return { valid: true };
+}
+
+/**
+ * Valida CHECK_DISCOUNT_SET — POLÍTICA DE DESCUENTO del sistema (approval matrix, ADR-013).
+ * El descuento NO es un permiso binario por rol: el rol de caja lo EMITE, pero la POLÍTICA por
+ * UMBRAL de % decide la autorización (patrón PBAC de Toast/Square/Lightspeed):
+ *   - discount% <= AUTO_APPROVE_MAX  -> autonomía (sin aprobación)
+ *   - AUTO < discount% <= MANAGER_MAX -> requiere approved_by de MANAGER+ (mismo mecanismo que VOID)
+ *   - discount% > MANAGER_MAX          -> rechazo (DISCOUNT_EXCEEDS_MAX)
+ *   - discount > subtotal (MVP)        -> rechazo (total NEGATIVO)
+ * Defensa server-side: el ingest es la frontera de confianza, no confía en el cliente.
+ */
+async function validateCheckDiscount(
+    tx: Prisma.TransactionClient,
+    event: ParkEvent,
+): Promise<ValidationResult> {
+    const payload = event.payload as {
+        order_id?: string; check_id?: string; discount_cents?: number; reason?: string; approved_by?: string;
+    };
+    const discount = payload.discount_cents ?? 0;
+
+    if (discount < 0) {
+        return { valid: false, error: "DISCOUNT_NEGATIVE", details: { discount_cents: discount } };
+    }
+
+    const subtotal = await readCheckSubtotalCents(tx, payload.order_id ?? event.aggregate_id, payload.check_id);
+    if (subtotal === null) {
+        return { valid: false, error: "CHECK_NOT_FOUND", details: { order_id: payload.order_id, check_id: payload.check_id } };
+    }
+
+    // MVP (Minimum Viable Price): el descuento NO puede exceder el subtotal -> total negativo.
+    // Sin `subtotal > 0`: un descuento > 0 sobre un check de subtotal 0 también se rechaza.
+    if (discount > subtotal) {
+        return { valid: false, error: "DISCOUNT_EXCEEDS_SUBTOTAL", details: { discount_cents: discount, subtotal_cents: subtotal } };
+    }
+
+    const percent = subtotal > 0 ? (discount / subtotal) * 100 : 0;
+
+    // Tier ALTO: por encima del máximo de manager -> rechazo (a futuro: requerir OWNER).
+    if (percent > LIMITS.DISCOUNT_MANAGER_MAX_PERCENT) {
+        return { valid: false, error: "DISCOUNT_EXCEEDS_MAX", details: { percent, max_percent: LIMITS.DISCOUNT_MANAGER_MAX_PERCENT } };
+    }
+
+    // Tier MEDIO: por encima del auto-approve -> requiere aprobación de MANAGER+.
+    if (percent > LIMITS.DISCOUNT_AUTO_APPROVE_MAX_PERCENT) {
+        const approver = payload.approved_by
+            ? await tx.employees.findUnique({ where: { id: payload.approved_by }, select: { role: true, is_active: true } })
+            : null;
+        if (!approver || !approver.is_active || !canApproveManagerActions(approver.role)) {
+            return {
+                valid: false,
+                error: "DISCOUNT_REQUIRES_MANAGER_APPROVAL",
+                details: { percent, auto_approve_max: LIMITS.DISCOUNT_AUTO_APPROVE_MAX_PERCENT },
+            };
+        }
+    }
+
+    // Tier BAJO (<= auto-approve): autonomía del rol de caja.
     return { valid: true };
 }
 

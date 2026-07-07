@@ -1,5 +1,5 @@
 /**
- * PARK POS Domain Module
+ * FIRMO POS Domain Module
  *
  * Barrel export for core domain types, events, and value objects.
  * Import from '@/src/core/domain' instead of individual files.

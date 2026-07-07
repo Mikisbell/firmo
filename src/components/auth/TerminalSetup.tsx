@@ -7,7 +7,7 @@ import { generateFingerprintV2, type FingerprintResult } from '@/src/core/auth/f
 import { getOrCreateDeviceId } from '@/src/core/auth/device-id';
 import type { TerminalConfig, TerminalRole } from '@/src/core/auth/types';
 import { Monitor, Loader2, ArrowRight, ArrowLeft, Settings, Sparkles, Key } from 'lucide-react';
-import { ParkLogo } from '@/src/components/icons';
+import { FirmoLogo } from '@/src/components/icons';
 import { APP_VERSION } from '@/src/core/constants/version';
 
 interface TerminalSetupProps { 
@@ -320,7 +320,7 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <div className="absolute inset-0 bg-emerald-500/30 blur-2xl rounded-full scale-150" />
-              <ParkLogo size={48} className="relative z-10" />
+              <FirmoLogo size={48} className="relative z-10" />
             </motion.div>
             
             <div>
@@ -382,7 +382,7 @@ export function TerminalSetup({ onComplete }: TerminalSetupProps) {
         className="py-4 text-center relative z-10"
       >
         <p className="text-xs text-zinc-600">
-          <span className="bg-gradient-to-r from-zinc-600 to-zinc-500 bg-clip-text text-transparent">PARK POS</span>
+          <span className="bg-gradient-to-r from-zinc-600 to-zinc-500 bg-clip-text text-transparent">FIRMO POS</span>
           <span className="mx-2 text-zinc-700">•</span>
           <span className="text-zinc-600">v{APP_VERSION}</span>
           <span className="mx-2 text-zinc-700">•</span>

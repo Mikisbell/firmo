@@ -1,5 +1,5 @@
 /**
- * PARK POS - Service Worker (Serwist)
+ * FIRMO POS - Service Worker (Serwist)
  * 
  * Estrategias de cache profesionales:
  * - Precaching automático de assets con hash
@@ -112,7 +112,7 @@ self.addEventListener("push", (event: PushEvent) => {
     };
 
     event.waitUntil(
-        self.registration.showNotification(payload.title || 'PARK POS', options)
+        self.registration.showNotification(payload.title || 'FIRMO POS', options)
     );
 
     console.log(`[SW] Push notification shown: ${payload.type}`);

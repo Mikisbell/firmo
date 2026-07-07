@@ -1,4 +1,4 @@
-# 📜 PARK POS — Historial del Proyecto
+# 📜 FIRMO POS — Historial del Proyecto
 
 > Consolidación de hitos importantes, fixes críticos, decisiones arquitectónicas y lecciones aprendidas
 

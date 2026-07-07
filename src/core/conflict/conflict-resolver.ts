@@ -1,5 +1,5 @@
 // src/core/conflict/conflict-resolver.ts
-// Conflict Resolution Service for PARK POS Multi-Terminal
+// Conflict Resolution Service for FIRMO POS Multi-Terminal
 
 import { v4 as uuidv4 } from 'uuid';
 import { Prisma } from "@prisma/client";

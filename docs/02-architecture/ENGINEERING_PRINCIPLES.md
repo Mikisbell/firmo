@@ -1,4 +1,4 @@
-# PARK POS — Principios de Ingeniería
+# FIRMO POS — Principios de Ingeniería
 
 > Lecciones de proceso destiladas de refactors reales. No son reglas de estilo
 > (esas viven en `AGENTS.md` / `CLAUDE.md`); son **cómo pensar** un cambio de alto

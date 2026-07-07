@@ -1,7 +1,7 @@
 /**
  * Profitability Service - Servicio de Rentabilidad
  * 
- * Proporciona análisis financiero completo para PARK POS:
+ * Proporciona análisis financiero completo para FIRMO POS:
  * - Cálculo de COGS desde recetas
  * - Análisis de ganancias y márgenes
  * - Reportes por producto y categoría
@@ -189,7 +189,7 @@ export interface MarginAnalysis {
  * Servicio de análisis de rentabilidad
  * 
  * Proporciona métodos para calcular y analizar la rentabilidad
- * de productos y categorías en PARK POS.
+ * de productos y categorías en FIRMO POS.
  */
 export class ProfitabilityService {
   /**

@@ -26,7 +26,7 @@
  *    ⚠️ Para lógica de turnos, SIEMPRE usar getBusinessDate() de business-date.ts
  * 
  * 5. IDs BRANDED (OrderId, ShiftId, etc.):
- *    Útiles solo si pasas múltiples IDs juntos. En PARK POS, el contexto
+ *    Útiles solo si pasas múltiples IDs juntos. En FIRMO POS, el contexto
  *    de uso ya distingue los IDs, por lo que son OPCIONALES.
  * 
  * @see docs/CHANGELOG.md [1.6.7] para decisión arquitectónica

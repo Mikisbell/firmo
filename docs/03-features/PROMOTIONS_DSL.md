@@ -1,4 +1,4 @@
-# PARK POS — Promotions Rules DSL
+# FIRMO POS — Promotions Rules DSL
 
 **Versión:** 1.0  
 **Fecha:** Diciembre 2025

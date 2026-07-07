@@ -1,4 +1,4 @@
-# PARK POS — Referencia de API
+# FIRMO POS — Referencia de API
 
 > 316 route handlers organizados por modulo. Todos los endpoints requieren autenticacion salvo los marcados como **Public**.
 

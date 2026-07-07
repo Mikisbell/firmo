@@ -1,7 +1,7 @@
 /**
  * API Documentation Route
  *
- * Serves OpenAPI/Swagger documentation for the PARK POS API
+ * Serves OpenAPI/Swagger documentation for the FIRMO POS API
  */
 
 import { NextRequest, NextResponse } from 'next/server';

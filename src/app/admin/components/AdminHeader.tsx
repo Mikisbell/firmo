@@ -58,7 +58,7 @@ export default function AdminHeader({ employee, isOnline = true, onLogout }: Adm
       <div className="hidden lg:flex items-center gap-3 flex-1">
         <TenantLogo
           logoUrl={branding?.logo_url}
-          legalName={branding?.legal_name || 'PARK POS'}
+          legalName={branding?.legal_name || 'FIRMO POS'}
           size="sm"
         />
         <div className="flex flex-col gap-0.5">

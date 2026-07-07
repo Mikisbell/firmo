@@ -859,9 +859,11 @@ model orders {
   @@index([tenant_id, fulfillment_status], map: "idx_orders_fulfillment")
   @@index([tenant_id, order_number], map: "idx_orders_number")
   @@index([tenant_id, terminal_id, created_at(sort: Desc)], map: "idx_orders_terminal")
+  // candidato a drop: REDUNDANTE con idx_orders_business_date_status (lo cubre por prefijo). Confirmar con EXPLAIN en prod antes de dropear.
   @@index([tenant_id, business_date])
   @@index([tenant_id, created_at(sort: Desc)])
   @@index([tenant_id, order_status])
+  // candidato a drop: REDUNDANTE con idx_orders_shift_status (lo cubre por prefijo). Confirmar con EXPLAIN en prod antes de dropear.
   @@index([tenant_id, shift_id])
   @@index([tenant_id, waiter_id])
   @@index([tenant_id, location_id])
@@ -912,9 +914,11 @@ model order_item_projections {
 
   @@unique([order_id, line_id])
   @@index([tenant_id, status])
-  @@index([tenant_id, table_number, status])
-  @@index([tenant_id, station, status])
   @@index([tenant_id, ready_at])
+  // station/table_number idx dropeados (migracion 20260629_drop_dead_oip_indexes):
+  // verificado 0 uso en codigo + 0 scans. El KDS de estacion filtra por orders.stations_active
+  // y en memoria, NUNCA por order_item_projections.station. Re-agregables si vuelve la feature
+  // waiter-por-estacion/mesa (table_number deberia ser indice PARCIAL: WHERE table_number IS NOT NULL).
 }
 
 model petty_cash_balance {

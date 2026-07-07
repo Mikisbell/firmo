@@ -1,4 +1,4 @@
-# PARK POS — Roadmap de Mejoras Arquitectónicas
+# FIRMO POS — Roadmap de Mejoras Arquitectónicas
 
 **Versión:** 1.0  
 **Fecha:** Enero 2026  

@@ -1,4 +1,4 @@
-# PARK POS — Growth Engine 2025 (WhatsApp + IA + Segmentación)
+# FIRMO POS — Growth Engine 2025 (WhatsApp + IA + Segmentación)
 
 **Versión:** 1.4  
 **Fecha:** Diciembre 2025

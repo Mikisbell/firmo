@@ -17,7 +17,7 @@ try {
   const wp = require('web-push') as typeof import('web-push');
   const vapidPublic = process.env.VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
-  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@parkpos.pe';
+  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@firmopos.pe';
   if (vapidPublic && vapidPrivate) {
     const isValidSubject = vapidSubject.startsWith('mailto:') || vapidSubject.startsWith('https://');
     if (isValidSubject) {

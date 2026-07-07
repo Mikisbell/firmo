@@ -22,7 +22,7 @@
 
 ## 1. Resumen Ejecutivo
 
-Este documento especifica los requisitos tecnicos detallados para implementar facturacion electronica SUNAT directa en PARK POS usando el paquete npm `nodefact` (MIT, costo S/ 0.00). Cubre 4 fases: F1 Queue Worker + nodefact, F2 Config per-tenant, F3 Resumen Diario, F4 Contingencia persistente.
+Este documento especifica los requisitos tecnicos detallados para implementar facturacion electronica SUNAT directa en FIRMO POS usando el paquete npm `nodefact` (MIT, costo S/ 0.00). Cubre 4 fases: F1 Queue Worker + nodefact, F2 Config per-tenant, F3 Resumen Diario, F4 Contingencia persistente.
 
 ### Estado actual del sistema
 
@@ -708,7 +708,7 @@ Response 200 (error de SUNAT, no HTTP error):
 
 ```gherkin
 Feature: F1 — SunatDirectAdapter y Queue Worker
-  Como sistema PARK POS
+  Como sistema FIRMO POS
   Necesito enviar comprobantes electronicos a SUNAT via nodefact
   Para cumplir con la obligacion de facturacion electronica
 
@@ -874,7 +874,7 @@ Feature: F1 — SunatDirectAdapter y Queue Worker
 ```gherkin
 Feature: F2 — Configuracion SUNAT por Tenant
   Como administrador de una polleria
-  Necesito configurar mis credenciales SUNAT en PARK POS
+  Necesito configurar mis credenciales SUNAT en FIRMO POS
   Para que mis comprobantes se envien automaticamente a SUNAT
 
   Background:
@@ -1034,7 +1034,7 @@ Feature: F2 — Configuracion SUNAT por Tenant
 
 ```gherkin
 Feature: F3 — Resumen Diario de Boletas
-  Como sistema PARK POS
+  Como sistema FIRMO POS
   Necesito enviar Resumenes Diarios de boletas a SUNAT
   Para cumplir con la regulacion (antes de 11:59 PM del dia siguiente)
 
@@ -1126,7 +1126,7 @@ Feature: F3 — Resumen Diario de Boletas
 
 ```gherkin
 Feature: F4 — Contingencia Persistente en Base de Datos
-  Como sistema PARK POS
+  Como sistema FIRMO POS
   Necesito que el estado de contingencia persista entre reinicios
   Para no perder facturas pendientes de reconciliacion
 

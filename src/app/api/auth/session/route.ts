@@ -33,8 +33,15 @@ export async function GET(request: NextRequest) {
     const token = cookieToken || headerToken;
 
     if (!token) {
-      // DEV BACKDOOR: Auto-login to bypass login screen in development
-      if (process.env.NODE_ENV === 'development') {
+      // AUTO-LOGIN de desarrollo — DOBLE BARRERA (auditoría 2026-06-29):
+      // SOLO local (NODE_ENV=development) Y con opt-in EXPLÍCITO (ALLOW_DEV_AUTOLOGIN=true
+      // en .env.local). El flag explícito NUNCA se setea en entornos desplegados, así que
+      // aunque un deploy quedara con NODE_ENV mal configurado, este bypass de auth NO se
+      // activa en producción. Antes dependía solo de NODE_ENV (frágil).
+      if (
+        process.env.NODE_ENV === 'development' &&
+        process.env.ALLOW_DEV_AUTOLOGIN === 'true'
+      ) {
         const admin = await prisma.employees.findFirst({
           where: { role: { in: ['ADMIN', 'OWNER', 'MANAGER'] } }
         });

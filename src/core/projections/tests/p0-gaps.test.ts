@@ -1,5 +1,5 @@
 /**
- * PARK POS - Tests for P0 Gaps (UNDO, Cash Movements)
+ * FIRMO POS - Tests for P0 Gaps (UNDO, Cash Movements)
  * Run with: npx vitest run src/core/projections/tests/p0-gaps.test.ts
  */
 

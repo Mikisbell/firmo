@@ -85,7 +85,7 @@ export default function AdminOnboardingPage() {
   const handleOnboardingComplete = async () => {
     localStorage.removeItem('park-onboarding-progress');
     toast.success('Configuracion completada', {
-      description: 'Tu sistema PARK POS esta listo para usar.',
+      description: 'Tu sistema FIRMO POS esta listo para usar.',
     });
     router.push('/admin');
   };

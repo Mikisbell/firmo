@@ -1,7 +1,7 @@
 import "@/src/app/globals.css";
 
 export const metadata = {
-    title: "PARK POS — Motorizado",
+    title: "FIRMO POS — Motorizado",
     description: "App de entregas para motorizado",
 };
 

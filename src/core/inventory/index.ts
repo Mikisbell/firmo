@@ -1,5 +1,5 @@
 /**
- * PARK POS Inventory Module
+ * FIRMO POS Inventory Module
  *
  * Barrel export for inventory services.
  * Import from '@/src/core/inventory' instead of individual files.

@@ -78,7 +78,7 @@ export function ReceiptPreviewModal({ open, onClose, order, check, onPrint }: Re
                     <div className="bg-white max-w-[320px] w-full shadow-lg border border-gray-200 p-6 font-mono text-xs text-gray-900 leading-relaxed">
                         {/* Header */}
                         <div className="text-center space-y-1 mb-4">
-                            <div className="text-base font-black tracking-widest uppercase">PARK POS</div>
+                            <div className="text-base font-black tracking-widest uppercase">FIRMO POS</div>
                             <div className="text-[10px] text-gray-500">Sistema de Punto de Venta</div>
                         </div>
 

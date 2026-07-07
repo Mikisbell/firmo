@@ -1,4 +1,4 @@
-# PARK POS — Arquitectura Enterprise (Velocidad + Escalabilidad + Growth)
+# FIRMO POS — Arquitectura Enterprise (Velocidad + Escalabilidad + Growth)
 
 **Versión:** 1.1  
 **Fecha:** Diciembre 2025  
@@ -367,8 +367,13 @@ CREATE TABLE events (
     payload JSONB NOT NULL
 );
 
-CREATE INDEX idx_events_tenant_time ON events(tenant_id, occurred_at DESC);
-CREATE INDEX idx_events_entity ON events(tenant_id, entity_id);
+-- Índices reales (verificado 2026-06-29 vía pg_indexes; todos con uso real. Ver ADR-011):
+CREATE UNIQUE INDEX events_pkey                ON events(id);
+CREATE UNIQUE INDEX events_global_sequence_key ON events(global_sequence);
+CREATE INDEX idx_events_replay                 ON events(tenant_id, entity_id, occurred_at);  -- replay por agregado (más usado)
+CREATE INDEX events_tenant_id_occurred_at_idx  ON events(tenant_id, occurred_at DESC);        -- archiver 180d + auditoría admin
+CREATE INDEX idx_events_by_type                ON events(tenant_id, type, occurred_at DESC);  -- dashboard por tipo
+CREATE INDEX idx_events_by_terminal            ON events(terminal_id, occurred_at DESC);      -- auditoría por terminal
 ```
 
 ---

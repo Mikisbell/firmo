@@ -1,4 +1,4 @@
-# RLS Setup — Row-Level Security para PARK POS
+# RLS Setup — Row-Level Security para FIRMO POS
 
 > P3.5 Guardrail | ADR-009 | 7 tablas sensibles | **EJECUTADO Mar 2, 2026**
 

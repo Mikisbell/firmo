@@ -217,7 +217,7 @@ Feature: Toda la UI en Espanol (Gap 8)
 
   Scenario: OnboardingWizard en espanol
     Given que el wizard esta renderizado
-    Then el titulo DEBE ser "Bienvenido a PARK POS" (no "Welcome to PARK POS")
+    Then el titulo DEBE ser "Bienvenido a FIRMO POS" (no "Welcome to FIRMO POS")
     And el subtitulo DEBE estar en espanol
     And "Setup Progress" DEBE ser "Progreso de Configuracion"
     And "required steps completed" DEBE estar en espanol

@@ -1,6 +1,6 @@
 # Design: P3.6 — Onboarding Real de Tenant (10 Gaps)
 
-> Generado desde proposal.md + specs.md | Proyecto: park-pos
+> Generado desde proposal.md + specs.md | Proyecto: firmo-pos
 
 ---
 

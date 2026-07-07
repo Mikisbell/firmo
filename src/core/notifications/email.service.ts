@@ -24,7 +24,7 @@ interface EmailResult {
   error?: string;
 }
 
-const DEFAULT_FROM = 'PARK POS <alerts@parkpos.pe>';
+const DEFAULT_FROM = 'FIRMO POS <alerts@firmopos.pe>';
 
 /**
  * Send an email via Resend API.
@@ -107,7 +107,7 @@ export function buildAlertEmailHtml(params: {
     <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">Tenant</td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${params.tenantId}</td></tr>
     <tr><td style="padding: 8px; color: #6b7280;">Fecha</td><td style="padding: 8px;">${params.timestamp.toISOString()}</td></tr>
   </table>
-  <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">PARK POS — Sistema de alertas automatizado</p>
+  <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">FIRMO POS — Sistema de alertas automatizado</p>
 </body>
 </html>`.trim();
 }

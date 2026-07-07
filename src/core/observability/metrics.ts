@@ -1,5 +1,5 @@
 /**
- * Metrics Collector for PARK POS
+ * Metrics Collector for FIRMO POS
  * 
  * Tracks business and technical metrics for monitoring and analytics.
  * Implements batching and flushing for efficient metric collection.

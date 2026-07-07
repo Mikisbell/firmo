@@ -1,5 +1,5 @@
 /**
- * PARK POS - Inventory Frontend Stress Tests
+ * FIRMO POS - Inventory Frontend Stress Tests
  * Tests: Component rendering, state management, large datasets
  * 
  * Validates:

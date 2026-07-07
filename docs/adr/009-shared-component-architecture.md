@@ -6,7 +6,7 @@
 
 ## Context
 
-PARK POS serves multiple user roles (Cajera, Mozo, Cocina/Bar) through different UI interfaces. Initially, each role had independent component implementations, leading to:
+FIRMO POS serves multiple user roles (Cajera, Mozo, Cocina/Bar) through different UI interfaces. Initially, each role had independent component implementations, leading to:
 
 - Duplicate code for rendering order items
 - Inconsistent behavior between roles

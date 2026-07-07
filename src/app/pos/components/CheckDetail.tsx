@@ -13,7 +13,7 @@ import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { transformLinesToPrint, OrderLineInput } from "@/src/core/printing/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { asCentavos } from "@/src/core/types/shared";
-import { ParkLogo } from "@/src/components/icons";
+import { FirmoLogo } from "@/src/components/icons";
 import { POSActions } from "@/src/core/actions/pos.actions";
 import { TableTransferModal } from "./TableTransferModal";
 import { SalesNoteVoidModal } from "@/src/components/SalesNoteVoidModal";
@@ -154,7 +154,7 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
 
         printComponent(
             <TicketTemplate
-                tenantName="PARK POS"
+                tenantName="FIRMO POS"
                 date={new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}
                 orderNumber={order.order_number}
                 lines={linesToPrint}
@@ -279,8 +279,8 @@ export function CheckDetail({ check, order, tenantId, terminalId, actorId, onBac
                 ) : (
                     <div className="bg-zinc-900/40 backdrop-blur-md shadow-xl shadow-black/20 border border-white/10 rounded-2xl p-4 min-h-full flex flex-col">
                         <div className="text-center border-b border-dashed border-white/10 pb-4 mb-4">
-                            <ParkLogo size={48} className="mx-auto mb-2" />
-                            <h3 className="font-black text-xl uppercase tracking-widest text-white">PARK POS</h3>
+                            <FirmoLogo size={48} className="mx-auto mb-2" />
+                            <h3 className="font-black text-xl uppercase tracking-widest text-white">FIRMO POS</h3>
                             <p className="text-xs text-gray-500 font-mono mt-1">{new Date().toLocaleDateString()}</p>
                         </div>
 

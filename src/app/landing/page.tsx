@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Landing Page - PARK POS
+ * Landing Page - FIRMO POS
  *
  * Public marketing page to attract restaurant customers.
  * Light theme, responsive, Spanish.
@@ -18,7 +18,7 @@ import {
   Store, Star,
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import { ParkLogo, WhatsAppIcon, InstagramIcon, FacebookIcon } from '@/src/components/icons';
+import { FirmoLogo, WhatsAppIcon, InstagramIcon, FacebookIcon } from '@/src/components/icons';
 
 // ============================================================================
 // Feature data
@@ -139,7 +139,7 @@ function Hero() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            PARK POS es el sistema todo-en-uno diseñado para pollerías peruanas.
+            FIRMO POS es el sistema todo-en-uno diseñado para pollerías peruanas.
             Vende offline, emite boletas SUNAT, controla tu cocina y gestiona tu personal.
           </p>
 
@@ -355,7 +355,7 @@ function DemoForm() {
             Solicitar Demo Gratis
           </h2>
           <p className="mt-3 text-gray-500">
-            Te mostramos PARK POS funcionando con los datos de tu negocio
+            Te mostramos FIRMO POS funcionando con los datos de tu negocio
           </p>
         </div>
 
@@ -454,7 +454,7 @@ function Footer() {
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <ParkLogo size={28} />
+            <FirmoLogo size={28} />
             <span className="text-emerald-400 font-black text-lg">PARK</span>
             <span className="text-white font-bold text-lg">POS</span>
           </div>
@@ -475,7 +475,7 @@ function Footer() {
             ))}
           </div>
 
-          <p className="text-xs">&copy; {new Date().getFullYear()} PARK POS</p>
+          <p className="text-xs">&copy; {new Date().getFullYear()} FIRMO POS</p>
         </div>
         <p className="text-sm text-center mt-4 text-gray-500">
           Hecho con dedicación en Perú. Sistema POS para pollerías y parrilleras.
@@ -498,7 +498,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ParkLogo size={32} />
+            <FirmoLogo size={32} />
             <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-black text-xl">PARK</span>
             <span className="text-gray-900 font-bold text-xl">POS</span>
           </div>

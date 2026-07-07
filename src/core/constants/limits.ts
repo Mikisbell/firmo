@@ -1,5 +1,5 @@
 /**
- * Límites de Seguridad - PARK POS
+ * Límites de Seguridad - FIRMO POS
  * 
  * Estos límites se validan tanto en CLIENTE como en SERVIDOR
  * para prevenir fraudes y errores.
@@ -22,9 +22,14 @@ export const LIMITS = {
     MAX_PAYMENTS_PER_CHECK: 5,         // Máximo métodos de pago por cuenta
     MAX_PAYMENT_AMOUNT_CENTS: 100_000_00, // S/100,000 máximo por pago
     
-    // === DESCUENTOS ===
-    MAX_DISCOUNT_PERCENT: 100,         // Máximo descuento porcentual
-    MAX_DISCOUNT_AMOUNT_CENTS: 50_000_00, // S/50,000 máximo descuento fijo
+    // === DESCUENTOS — POLÍTICA DE APROBACIÓN POR UMBRAL ("approval matrix" del sistema) ===
+    // El descuento NO es un permiso binario por rol: cualquier rol de caja lo EMITE, pero la
+    // POLÍTICA decide la autorización según el % (PBAC / approval matrix — patrón de Toast/
+    // Square/Lightspeed). Umbrales configurables (a futuro, por tenant_settings).
+    MAX_DISCOUNT_PERCENT: 100,             // Techo absoluto (100% = total 0; >100% sería negativo)
+    MAX_DISCOUNT_AMOUNT_CENTS: 50_000_00,  // S/50,000 máximo descuento fijo
+    DISCOUNT_AUTO_APPROVE_MAX_PERCENT: 15, // <=15%: autonomía del rol de caja (sin aprobación)
+    DISCOUNT_MANAGER_MAX_PERCENT: 50,      // 15-50%: requiere approved_by de MANAGER+; >50%: rechazo
     
     // === SYNC ===
     MAX_EVENTS_PER_BATCH: 100,         // Máximo eventos por batch de sync
@@ -75,4 +80,11 @@ export const LIMIT_ERRORS = {
     BATCH_TOO_LARGE: `Máximo ${LIMITS.MAX_EVENTS_PER_BATCH} eventos por batch`,
     CASH_OPENING_TOO_HIGH: `Fondo inicial máximo: ${formatCentsToSoles(LIMITS.DEFAULT_MAX_CASH_OPENING_CENTS)}`,
     CASH_VARIANCE_ALERT: `Diferencia de caja superior al umbral configurado`,
+    // Política de descuento (ADR-013) + límites de propina. Boilerplate escrito por el Qwen
+    // local, corregido en review: usaba formatCentsToSoles() sobre un PORCENTAJE (daba "S/0.50%").
+    DISCOUNT_NEGATIVE: 'El descuento no puede ser negativo.',
+    DISCOUNT_EXCEEDS_SUBTOTAL: 'El descuento no puede exceder el subtotal de la cuenta.',
+    DISCOUNT_EXCEEDS_MAX: `El descuento supera el máximo permitido (${LIMITS.DISCOUNT_MANAGER_MAX_PERCENT}%).`,
+    DISCOUNT_REQUIRES_MANAGER_APPROVAL: 'Este descuento requiere aprobación de un gerente.',
+    TIP_NEGATIVE: 'La propina no puede ser negativa.',
 } as const;

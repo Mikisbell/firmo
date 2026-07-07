@@ -1,5 +1,5 @@
 /**
- * PARK POS Cache Service - Production Grade
+ * FIRMO POS Cache Service - Production Grade
  * 
  * Implements comprehensive caching with:
  * - Redis (Upstash) for distributed caching

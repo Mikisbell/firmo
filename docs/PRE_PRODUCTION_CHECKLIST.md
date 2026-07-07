@@ -1,4 +1,4 @@
-# 🚀 PARK POS - Checklist Pre-Producción
+# 🚀 FIRMO POS - Checklist Pre-Producción
 
 > **Objetivo:** Validar que el sistema está listo para uso real en pollería.
 > **Fecha:** Enero 2026

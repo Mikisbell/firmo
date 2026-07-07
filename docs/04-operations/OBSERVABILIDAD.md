@@ -1,4 +1,4 @@
-# PARK POS — Observabilidad y Monitoring
+# FIRMO POS — Observabilidad y Monitoring
 
 **Versión:** 1.0  
 **Fecha:** Enero 2026  
@@ -34,7 +34,7 @@
 
 ```
 ┌─────────────────────────────────────────┐
-│  PARK POS (Frontend + Backend)         │
+│  FIRMO POS (Frontend + Backend)         │
 │  - Traces (spans)                       │
 │  - Metrics (counters, histograms)      │
 │  - Logs (structured)                    │
@@ -110,7 +110,7 @@ process.on('SIGTERM', () => {
 // src/core/sync/client.ts
 import { metrics } from '@opentelemetry/api';
 
-const meter = metrics.getMeter('park-pos-sync');
+const meter = metrics.getMeter('firmo-pos-sync');
 
 const syncLatency = meter.createHistogram('sync.latency', {
   description: 'Sync batch latency in milliseconds',
@@ -160,8 +160,8 @@ syncBacklog.addCallback(async (result) => {
 // src/app/api/events/ingest/route.ts
 import { trace, metrics } from '@opentelemetry/api';
 
-const tracer = trace.getTracer('park-pos-api');
-const meter = metrics.getMeter('park-pos-api');
+const tracer = trace.getTracer('firmo-pos-api');
+const meter = metrics.getMeter('firmo-pos-api');
 
 const ingestLatency = meter.createHistogram('ingest.latency', {
   description: 'Event ingest latency',

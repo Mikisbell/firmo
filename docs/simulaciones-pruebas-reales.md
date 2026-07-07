@@ -1,4 +1,4 @@
-# Simulaciones de Pruebas Reales - PARK POS
+# Simulaciones de Pruebas Reales - FIRMO POS
 
 > Escenarios reales de uso para validar funcionalidad del POS de pollerías.
 > Basado en la arquitectura event-sourced del proyecto.
@@ -396,7 +396,7 @@
 ### Paso a Paso:
 
 ```
-1. NUEVO CLIENTE accede a: park-pos.com/signup
+1. NUEVO CLIENTE accede a: firmo-pos.com/signup
 2. Completa formulario:
    → Razón social: "Pollería El Buen Sabor SAC"
    → RUC: 20601234567
@@ -556,7 +556,7 @@ Para cada simulación, verificar:
 
 ---
 
-**Nota:** Estas simulaciones están basadas en la arquitectura real del proyecto PARK POS y pueden usarse como:
+**Nota:** Estas simulaciones están basadas en la arquitectura real del proyecto FIRMO POS y pueden usarse como:
 - 📝 Documentación de casos de uso
 - 🧪 Guía para escribir tests E2E
 - 🎯 Plan de validación en producción

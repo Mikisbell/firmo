@@ -213,7 +213,7 @@ export function LoginScreen({ terminal, onLogin, onTerminalError }: LoginScreenP
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">🍗 PARK POS</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">🍗 FIRMO POS</h1>
         <div className="flex items-center justify-center gap-2 text-zinc-400">
           <span className="text-xl">{getRoleIcon()}</span>
           <span>{terminal.device_name || terminal.terminal_id}</span>

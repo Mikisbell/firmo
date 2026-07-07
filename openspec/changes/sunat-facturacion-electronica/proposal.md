@@ -2,7 +2,7 @@
 
 ## Intencion
 
-El sistema de facturacion de PARK POS esta construido al ~70% — el `invoice.service.ts` (1207 lineas) es completo, el `NubefactAdapter` esta escrito y testeado, los modelos de base de datos existen (`invoices`, `invoice_queue`, `invoice_cdr`, `credit_notes`, `sunat_daily_summary`), la UI de admin esta montada, y el flujo de emision/anulacion/notas de credito funciona end-to-end en modo mock. Pero **ninguna factura llega realmente a SUNAT**. Los 4 gaps criticos son:
+El sistema de facturacion de FIRMO POS esta construido al ~70% — el `invoice.service.ts` (1207 lineas) es completo, el `NubefactAdapter` esta escrito y testeado, los modelos de base de datos existen (`invoices`, `invoice_queue`, `invoice_cdr`, `credit_notes`, `sunat_daily_summary`), la UI de admin esta montada, y el flujo de emision/anulacion/notas de credito funciona end-to-end en modo mock. Pero **ninguna factura llega realmente a SUNAT**. Los 4 gaps criticos son:
 
 1. **G1 — No hay Queue Worker**: `invoice.service.ts` crea items en `invoice_queue` (3 call-sites: emision, anulacion, nota de credito), pero **ningun proceso los consume**. Los items se quedan en estado `PENDING` para siempre.
 2. **G6 — No hay Configuracion SUNAT por Tenant**: `SunatClient` lee credenciales de variables de entorno globales (`SUNAT_RUC`, `SUNAT_USERNAME`, etc.). En un sistema multi-tenant, cada polleria tiene su propio RUC y certificado digital. No hay campos en `tenant_settings` para almacenar esta configuracion.
@@ -64,7 +64,7 @@ Este cambio conecta las piezas existentes: implementa un `SunatDirectAdapter` us
 La decision clave es **conectar directamente con SUNAT** usando el paquete npm `nodefact` (MIT, gratuito), eliminando la dependencia de un OSE de pago como Nubefact. El flujo es:
 
 ```
-PARK POS ----> nodefact (UBL 2.1 XML + firma digital + SOAP) ----> SUNAT directamente
+FIRMO POS ----> nodefact (UBL 2.1 XML + firma digital + SOAP) ----> SUNAT directamente
                                     |
                                     v
                            CDR response + PDF + QR

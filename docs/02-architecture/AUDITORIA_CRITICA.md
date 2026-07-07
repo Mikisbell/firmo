@@ -1,4 +1,4 @@
-# 🔴 AUDITORÍA CRÍTICA — PARK POS
+# 🔴 AUDITORÍA CRÍTICA — FIRMO POS
 
 > **Fecha:** Enero 2026  
 > **Última actualización:** 6 de Enero 2026  

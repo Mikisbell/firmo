@@ -4,8 +4,8 @@
  * Replica el contrato EXACTO que verifican las rutas de produccion
  * (src/core/auth/auth.service.ts y src/app/api/data-sync/ingest/route.ts):
  *   - secret:   process.env.JWT_SECRET (TextEncoder().encode), HS256
- *   - issuer:   'park-pos'
- *   - audience: 'park-pos-client'
+ *   - issuer:   'firmo-pos'
+ *   - audience: 'firmo-pos-client'
  *   - claims:   tid (tenant_id), sub (actor_id), role
  *
  * vitest.config.ts (test.env) provee JWT_SECRET en import-time, asi que
@@ -16,8 +16,8 @@
 
 import { SignJWT } from 'jose';
 
-const JWT_ISSUER = 'park-pos';
-const JWT_AUDIENCE = 'park-pos-client';
+const JWT_ISSUER = 'firmo-pos';
+const JWT_AUDIENCE = 'firmo-pos-client';
 
 function getSecret(): Uint8Array {
     const secret = process.env.JWT_SECRET;

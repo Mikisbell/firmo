@@ -300,12 +300,12 @@
 **OnboardingWizard.tsx**:
 | Ingles | Espanol |
 |--------|---------|
-| Welcome to PARK POS | Bienvenido a PARK POS |
+| Welcome to FIRMO POS | Bienvenido a FIRMO POS |
 | Let's set up your restaurant system. Complete the required steps to get started. | Configuremos tu sistema de restaurante. Completa los pasos requeridos para comenzar. |
 | Setup Progress | Progreso de Configuracion |
 | required steps completed | pasos requeridos completados |
 | Setup Complete! | Configuracion Completa |
-| Your PARK POS system is ready to use. You can now start accepting orders. | Tu sistema PARK POS esta listo para usar. Ya puedes comenzar a tomar pedidos. |
+| Your FIRMO POS system is ready to use. You can now start accepting orders. | Tu sistema FIRMO POS esta listo para usar. Ya puedes comenzar a tomar pedidos. |
 
 **OnboardingStepProgress.tsx**:
 | Ingles | Espanol |

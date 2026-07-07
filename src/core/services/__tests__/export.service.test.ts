@@ -336,7 +336,7 @@ describe('ExportService - PDF HTML', () => {
     expect(html).toContain('Margen');
   });
 
-  it('debe incluir footer de PARK POS', () => {
+  it('debe incluir footer de FIRMO POS', () => {
     const config: PDFConfig = {
       title: 'Test',
       columns: sampleColumns,
@@ -344,7 +344,7 @@ describe('ExportService - PDF HTML', () => {
     };
 
     const html = service.generatePDFHtml(config);
-    expect(html).toContain('PARK POS');
+    expect(html).toContain('FIRMO POS');
   });
 
   it('debe alinear columnas numéricas a la derecha', () => {

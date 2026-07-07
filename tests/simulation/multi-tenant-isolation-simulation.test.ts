@@ -322,7 +322,7 @@ describe('Multi-Tenant Data Isolation Simulation', () => {
       'Sign JWT with tenant-specific secret, verify tid matches employee.tenantId',
       'Always use createTenantKey() for cache operations',
       'Add middleware to inject tenant_id from JWT, never from request body',
-      'Use tenant-prefixed S3 buckets: s3://park-pos/{tenantId}/uploads/',
+      'Use tenant-prefixed S3 buckets: s3://firmo-pos/{tenantId}/uploads/',
       'Prefix Redis channels with tenantId: {tenantId}:orders:new',
     ];
 

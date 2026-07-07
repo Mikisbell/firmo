@@ -1,4 +1,4 @@
-# PARK POS — Code Review Rules (GGA)
+# FIRMO POS — Code Review Rules (GGA)
 
 ## Language
 - Code and variables in English
