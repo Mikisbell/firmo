@@ -60,7 +60,7 @@ export default function OfflinePage() {
                 </button>
 
                 <p className="text-zinc-500 text-sm mt-8">
-                    PARK POS funciona offline. Si ya estabas usando la app,
+                    FIRMO POS funciona offline. Si ya estabas usando la app,
                     tus datos están guardados localmente.
                 </p>
             </div>

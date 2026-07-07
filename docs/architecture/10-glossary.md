@@ -1,6 +1,6 @@
 # 10. Glosario
 
-> Términos del dominio, acrónimos técnicos, y conceptos específicos de PARK POS.
+> Términos del dominio, acrónimos técnicos, y conceptos específicos de FIRMO POS.
 
 ## Dominio de Negocio (Pollería Peruana)
 

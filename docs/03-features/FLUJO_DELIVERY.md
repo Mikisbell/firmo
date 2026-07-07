@@ -57,7 +57,7 @@ TIPOS DE CLIENTES:
 │                          │                                      │
 │                          ▼                                      │
 │                   ┌─────────────┐                               │
-│                   │  PARK POS   │                               │
+│                   │  FIRMO POS   │                               │
 │                   │  (Central)  │                               │
 │                   └──────┬──────┘                               │
 │                          │                                      │
@@ -250,7 +250,7 @@ SITUACIÓN:
 FLUJO ESPERADO:
 1. Tablet de Rappi suena con nuevo pedido
 2. Cajero acepta en Rappi
-3. Sistema PARK POS recibe webhook (futuro)
+3. Sistema FIRMO POS recibe webhook (futuro)
    O cajero ingresa manualmente:
 4. POS → "Nuevo Pedido" → "Delivery App"
 5. Selecciona: Rappi
@@ -761,7 +761,7 @@ GET    /api/integrations/status          // Estado de integraciones
 │                            │                                    │
 │                            ▼                                    │
 │                   ┌─────────────────┐                           │
-│                   │    PARK POS     │                           │
+│                   │    FIRMO POS     │                           │
 │                   │                 │                           │
 │                   │ ORDER_CREATED   │                           │
 │                   │ (delivery: APP) │                           │
@@ -802,7 +802,7 @@ interface RappiWebhookPayload {
   };
 }
 
-// Adapter: Rappi → PARK POS
+// Adapter: Rappi → FIRMO POS
 function rappiToParkOrder(rappi: RappiWebhookPayload["order"]): OrderCreatedPayload {
   return {
     order_id: generateUUID(),
@@ -891,7 +891,7 @@ IMPLEMENTACIÓN:
 - WhatsApp Business API (Meta)
 - Chatbot con flujo de pedido
 - Integración con Yape/Plin para pagos
-- Webhook a PARK POS
+- Webhook a FIRMO POS
 ```
 
 ### Yape/Plin para Delivery

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Home page — renders the public PARK POS landing page.
+ * Home page — renders the public FIRMO POS landing page.
  * Staff login is at /login.
  */
 

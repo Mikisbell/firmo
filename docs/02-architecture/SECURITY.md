@@ -1,4 +1,4 @@
-# PARK POS — Coupons & Redemptions + Anti-Fraud
+# FIRMO POS — Coupons & Redemptions + Anti-Fraud
 
 **Versión:** 1.0  
 **Fecha:** Diciembre 2025

@@ -1,5 +1,5 @@
 /**
- * IndexedDB Cleanup - PARK POS
+ * IndexedDB Cleanup - FIRMO POS
  * 
  * Limpia datos antiguos para evitar que la tablet se quede sin espacio.
  * Solo borra eventos YA SINCRONIZADOS (synced = 1).

@@ -112,7 +112,7 @@ export default function CustomerDisplayPage() {
           </p>
         )}
         <p className="text-emerald-300/70 text-lg mt-6">
-          {data.tenantName || "PARK POS"}
+          {data.tenantName || "FIRMO POS"}
         </p>
       </div>
     );
@@ -141,7 +141,7 @@ export default function CustomerDisplayPage() {
         <div className="flex items-center gap-4">
           <ShoppingBag className="w-8 h-8 text-indigo-400" />
           <h1 className="text-2xl font-bold text-zinc-200">
-            {data.tenantName || "PARK POS"}
+            {data.tenantName || "FIRMO POS"}
           </h1>
         </div>
         {data.orderNumber && (

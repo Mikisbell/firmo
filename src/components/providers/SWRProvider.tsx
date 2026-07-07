@@ -1,5 +1,5 @@
 /**
- * Provider de SWR para PARK POS
+ * Provider de SWR para FIRMO POS
  * 
  * Envuelve la aplicación con SWRConfig para habilitar:
  * - Deduplicación de requests HTTP

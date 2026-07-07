@@ -1,10 +1,10 @@
-# 🚀 PARK POS — Guía de Despliegue a Producción
+# 🚀 FIRMO POS — Guía de Despliegue a Producción
 
 **Versión:** 1.0  
 **Fecha:** Febrero 2026  
 **Estado:** ✅ Listo para Producción
 
-> **Objetivo:** Guía completa para desplegar PARK POS en producción usando Vercel + Supabase con configuración enterprise-grade.
+> **Objetivo:** Guía completa para desplegar FIRMO POS en producción usando Vercel + Supabase con configuración enterprise-grade.
 
 ---
 
@@ -109,7 +109,7 @@ npm install -g supabase
 1. Ir a [vercel.com](https://vercel.com)
 2. Click en "Add New Project"
 3. Importar repositorio de GitHub
-4. Seleccionar `park-pos` (o tu nombre de repo)
+4. Seleccionar `firmo-pos` (o tu nombre de repo)
 
 ### Paso 2: Configurar Build
 
@@ -150,10 +150,10 @@ vercel --prod
 
 ```bash
 # URL de producción
-https://park-pos.vercel.app
+https://firmo-pos.vercel.app
 
 # Verificar endpoints
-curl https://park-pos.vercel.app/api/health
+curl https://firmo-pos.vercel.app/api/health
 # Respuesta esperada: {"status":"healthy"}
 ```
 
@@ -166,7 +166,7 @@ curl https://park-pos.vercel.app/api/health
 1. Ir a [supabase.com](https://supabase.com)
 2. Click en "New Project"
 3. Configurar:
-   - **Name:** park-pos-production
+   - **Name:** firmo-pos-production
    - **Database Password:** (generar seguro)
    - **Region:** South America (São Paulo) - más cercano a Perú
    - **Plan:** Pro ($25/mes)
@@ -318,7 +318,7 @@ VAPID_SUBJECT="mailto:admin@tu-dominio.com"
 
 ```bash
 # Dominios permitidos (separados por coma)
-ALLOWED_ORIGINS="https://park-pos.vercel.app,https://tu-dominio.com"
+ALLOWED_ORIGINS="https://firmo-pos.vercel.app,https://tu-dominio.com"
 ```
 
 #### Admin API (Opcional)
@@ -494,7 +494,7 @@ pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
 gzip backup-$(date +%Y%m%d).sql
 
 # Subir a S3 (opcional)
-aws s3 cp backup-$(date +%Y%m%d).sql.gz s3://park-pos-backups/
+aws s3 cp backup-$(date +%Y%m%d).sql.gz s3://firmo-pos-backups/
 ```
 
 ### Restauración desde Backup
@@ -950,4 +950,4 @@ CREATE INDEX CONCURRENTLY idx_missing ON table(column);
 
 **Última actualización:** 13 Febrero 2026  
 **Versión:** 1.0.0  
-**Mantenido por:** Equipo PARK POS
+**Mantenido por:** Equipo FIRMO POS

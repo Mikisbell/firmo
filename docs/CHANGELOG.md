@@ -387,7 +387,7 @@ getBusinessDate(date)     // → "2026-01-07" ← Lógica de NEGOCIO (hora de co
 Para turnos, reportes, o cualquier lógica de "día de negocio", SIEMPRE usar `getBusinessDate()` de `business-date.ts`.
 
 **5. IDs Branded (OrderId, ShiftId, etc.):**
-Útiles solo si pasas múltiples IDs juntos. En PARK POS, el contexto de uso ya distingue los IDs, por lo que son OPCIONALES.
+Útiles solo si pasas múltiples IDs juntos. En FIRMO POS, el contexto de uso ya distingue los IDs, por lo que son OPCIONALES.
 
 ### Import Guidelines
 ```typescript
@@ -848,7 +848,7 @@ const generateActorId = () => crypto.randomUUID();
 ## [1.5.0] - 2026-01-07
 ### P1 Multi-Terminal ✅ COMPLETADO
 
-**El proyecto PARK POS ha completado las fases P0 y P1. Listo para producción.**
+**El proyecto FIRMO POS ha completado las fases P0 y P1. Listo para producción.**
 
 ### Added - Security & Authentication
 - **JWT Authentication System** (`src/core/auth/auth.service.ts`):

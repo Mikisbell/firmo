@@ -26,7 +26,7 @@ const sizeClasses = {
 
 export const TenantLogo = React.memo(function TenantLogo({
   logoUrl,
-  legalName = 'PARK POS',
+  legalName = 'FIRMO POS',
   size = 'md',
   className = '',
 }: TenantLogoProps) {

@@ -23,7 +23,7 @@ export interface OrientationHintProps {
   delay?: number;
 }
 
-const STORAGE_PREFIX = 'park-pos-orientation-hint-';
+const STORAGE_PREFIX = 'firmo-pos-orientation-hint-';
 
 export function OrientationHint({
   recommended = 'landscape',

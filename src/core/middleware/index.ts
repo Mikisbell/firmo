@@ -1,5 +1,5 @@
 /**
- * PARK POS Middleware Module
+ * FIRMO POS Middleware Module
  *
  * Barrel export for authentication and authorization middleware.
  * Import from '@/src/core/middleware' instead of individual files.

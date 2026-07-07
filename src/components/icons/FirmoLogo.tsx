@@ -1,15 +1,15 @@
 import React from 'react';
 
-interface ParkLogoProps {
+interface FirmoLogoProps {
   size?: number;
   className?: string;
 }
 
 /**
- * PARK POS brand logo - Professional inline SVG.
+ * FIRMO POS brand logo - Professional inline SVG.
  * Emerald gradient rounded square with stylized "P" and flame accent.
  */
-export const ParkLogo = React.memo(function ParkLogo({ size = 40, className = '' }: ParkLogoProps) {
+export const FirmoLogo = React.memo(function FirmoLogo({ size = 40, className = '' }: FirmoLogoProps) {
   return (
     <svg
       width={size}
@@ -18,7 +18,7 @@ export const ParkLogo = React.memo(function ParkLogo({ size = 40, className = ''
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="PARK POS"
+      aria-label="FIRMO POS"
     >
       <defs>
         <linearGradient id="park-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">

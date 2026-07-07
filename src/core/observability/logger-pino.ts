@@ -49,7 +49,7 @@ const pinoLogger = isDevelopment
       },
       base: {
         env: process.env.NODE_ENV,
-        service: 'park-pos-admin',
+        service: 'firmo-pos-admin',
       },
       timestamp: pino.stdTimeFunctions.isoTime,
     });

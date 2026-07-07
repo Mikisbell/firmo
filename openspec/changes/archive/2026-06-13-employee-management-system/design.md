@@ -1,6 +1,6 @@
 # Design: Employee Management System (RRHH) - Documentación Retrospectiva
 
-> Generado desde implementación existente | Proyecto: park-pos
+> Generado desde implementación existente | Proyecto: firmo-pos
 
 ---
 
@@ -771,7 +771,7 @@ log.error({ operation: 'payroll_calc_failed', error }, 'Payroll calculation fail
 
 ## Conclusión
 
-El módulo de Employee Management System está completamente funcional y sigue las mejores prácticas del proyecto. La arquitectura es escalable, segura, y mantiene consistencia con el resto del sistema PARK POS.
+El módulo de Employee Management System está completamente funcional y sigue las mejores prácticas del proyecto. La arquitectura es escalable, segura, y mantiene consistencia con el resto del sistema FIRMO POS.
 
 **Fecha de documentación**: Marzo 5, 2026
 **Estado**: Producción

@@ -91,7 +91,7 @@ export default function DevLauncher() {
       <div className="max-w-5xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-black tracking-tight">
-            PARK POS <span className="text-indigo-400">· Dev Launcher</span>
+            FIRMO POS <span className="text-indigo-400">· Dev Launcher</span>
           </h1>
           <p className="text-zinc-400 mt-2 font-medium">
             Salta a cualquier estación como su rol, sin re-login. En producción, la entrada

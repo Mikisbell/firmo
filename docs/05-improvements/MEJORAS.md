@@ -1,4 +1,4 @@
-# PARK POS — Mejoras Arquitectónicas
+# FIRMO POS — Mejoras Arquitectónicas
 
 **Versión:** 1.0  
 **Fecha:** Enero 2026  
@@ -10,7 +10,7 @@
 
 ## 0) Contexto
 
-El proyecto PARK POS tiene una arquitectura sólida basada en Event Sourcing + Offline-First. Este documento identifica **10 mejoras críticas** para alcanzar nivel enterprise en:
+El proyecto FIRMO POS tiene una arquitectura sólida basada en Event Sourcing + Offline-First. Este documento identifica **10 mejoras críticas** para alcanzar nivel enterprise en:
 - Confiabilidad
 - Escalabilidad
 - Observabilidad
@@ -846,7 +846,7 @@ sdk.start();
 ```typescript
 import { metrics } from '@opentelemetry/api';
 
-const meter = metrics.getMeter('park-pos-sync');
+const meter = metrics.getMeter('firmo-pos-sync');
 
 // Histograma de latencia
 const syncLatency = meter.createHistogram('sync.latency', {

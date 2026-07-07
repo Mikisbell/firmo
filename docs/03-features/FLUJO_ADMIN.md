@@ -722,7 +722,7 @@ ESTADO ACTUAL: ❌ NO EXISTE (Multi-tenant básico)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  🍗 PARK POS                              Admin: Carlos    [👤] │
+│  🍗 FIRMO POS                              Admin: Carlos    [👤] │
 ├────────────┬────────────────────────────────────────────────────┤
 │            │                                                    │
 │  📊 Dashboard                                                   │

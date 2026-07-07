@@ -816,9 +816,9 @@ describe('Dashboard de Monitoreo - Exportación CSV', () => {
     it('debe generar nombre de archivo con timestamp', () => {
       // Requirement 11.10: Exportar métricas en CSV
       const timestamp = new Date().toISOString();
-      const filename = `park-pos-metrics-${timestamp.replace(/[:.]/g, '-')}.csv`;
+      const filename = `firmo-pos-metrics-${timestamp.replace(/[:.]/g, '-')}.csv`;
       
-      expect(filename).toMatch(/^park-pos-metrics-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}/);
+      expect(filename).toMatch(/^firmo-pos-metrics-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}/);
       expect(filename).toMatch(/\.csv$/);
     });
 
@@ -845,12 +845,12 @@ describe('Dashboard de Monitoreo - Exportación CSV', () => {
     it('debe incluir header con información de exportación', () => {
       // Requirement 11.10: Exportar métricas en CSV
       const header = [
-        '# PARK POS - Reporte de Métricas',
+        '# FIRMO POS - Reporte de Métricas',
         `# Fecha de exportación: ${new Date().toLocaleString('es-PE')}`,
         '# Período: 24h',
       ].join('\n');
       
-      expect(header).toContain('PARK POS');
+      expect(header).toContain('FIRMO POS');
       expect(header).toContain('Fecha de exportación');
       expect(header).toContain('Período');
     });

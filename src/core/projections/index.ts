@@ -1,5 +1,5 @@
 /**
- * PARK POS Projections Module
+ * FIRMO POS Projections Module
  *
  * Barrel export for event projection reducers, snapshot service, and types.
  * Import from '@/src/core/projections' instead of individual files.

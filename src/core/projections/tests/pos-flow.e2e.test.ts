@@ -1,5 +1,5 @@
 /**
- * PARK POS - E2E Tests for Complete POS Flow
+ * FIRMO POS - E2E Tests for Complete POS Flow
  * Run with: npx vitest run src/core/projections/tests/pos-flow.e2e.test.ts
  */
 

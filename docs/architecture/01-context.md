@@ -1,6 +1,6 @@
 # 1. Contexto del Sistema
 
-> Quiénes interactúan con PARK POS y qué sistemas externos se integran.
+> Quiénes interactúan con FIRMO POS y qué sistemas externos se integran.
 
 ## Diagrama de Contexto (C4 Level 1)
 
@@ -14,7 +14,7 @@
                                      │
 ┌──────────┐   ┌──────────┐   ┌──────┴──────────────────────────────┐   ┌──────────┐
 │ PedidosYa│──▶│          │   │                                     │   │  Twilio  │
-│          │   │          │   │          PARK POS                    │──▶│ WhatsApp │
+│          │   │          │   │          FIRMO POS                    │──▶│ WhatsApp │
 └──────────┘   │          │   │                                     │   └──────────┘
                │ Webhooks │──▶│  Next.js 16 monolito               │
 ┌──────────┐   │ (inbound)│   │  PostgreSQL + Redis + Dexie         │   ┌──────────┐

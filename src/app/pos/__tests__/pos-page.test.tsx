@@ -103,7 +103,7 @@ vi.mock('@/src/components/shared/EmployeeProfileDrawer', () => ({
   EmployeeProfileDrawer: () => null,
 }));
 vi.mock('@/src/components/icons', () => ({
-  ParkLogo: () => null,
+  FirmoLogo: () => null,
 }));
 vi.mock('@/src/components/ui', () => ({
   MobileWarning: () => null,

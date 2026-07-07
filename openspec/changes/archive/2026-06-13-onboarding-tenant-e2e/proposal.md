@@ -2,7 +2,7 @@
 
 ## Intencion
 
-El flujo de onboarding de PARK POS esta construido en piezas pero **no conectado end-to-end**. Un dueno de polleria que recibe un tenant provisionado no tiene camino claro desde "tenant creado" hasta "POS funcional". La exploracion identifico **10 gaps concretos** que impiden este flujo. Este cambio los resuelve todos: conecta provisioning con onboarding, unifica los pasos divergentes, monta el wizard en su pagina, crea la API, traduce a espanol, documenta el proceso, y valida con un E2E test completo de provision-to-POS.
+El flujo de onboarding de FIRMO POS esta construido en piezas pero **no conectado end-to-end**. Un dueno de polleria que recibe un tenant provisionado no tiene camino claro desde "tenant creado" hasta "POS funcional". La exploracion identifico **10 gaps concretos** que impiden este flujo. Este cambio los resuelve todos: conecta provisioning con onboarding, unifica los pasos divergentes, monta el wizard en su pagina, crea la API, traduce a espanol, documenta el proceso, y valida con un E2E test completo de provision-to-POS.
 
 **Estado actual verificado:**
 - `provisioning.ts` define **6 pasos** (en espanol) pero solo los retorna como JSON — no los persiste en `onboarding_steps`
@@ -80,7 +80,7 @@ El flujo de onboarding de PARK POS esta construido en piezas pero **no conectado
    - Redirect a `/admin/dashboard` cuando onboarding completo
 
 3. **Gap 8 — Traducir UI a espanol**:
-   - `OnboardingWizard.tsx` — "Bienvenido a PARK POS", "Progreso de Configuracion", etc.
+   - `OnboardingWizard.tsx` — "Bienvenido a FIRMO POS", "Progreso de Configuracion", etc.
    - `OnboardingStepProgress.tsx` — "Pasos de Configuracion", "Requerido"
    - `OnboardingStepForm.tsx` — Contenido de cada paso, botones, mensajes
    - `provisioning/page.tsx` — Headers, labels, botones, mensajes de exito

@@ -1,4 +1,4 @@
-# PARK POS — Event Contracts & Triggers
+# FIRMO POS — Event Contracts & Triggers
 
 **Versión:** 1.0  
 **Fecha:** Diciembre 2025

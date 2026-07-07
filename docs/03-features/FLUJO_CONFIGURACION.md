@@ -552,7 +552,7 @@ function getEmergencyRange(terminalId: string): NumberRange {
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│                    🍗 PARK POS                                  │
+│                    🍗 FIRMO POS                                  │
 │                    Configuración Inicial                        │
 │                                                                 │
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
@@ -626,7 +626,7 @@ function getEmergencyRange(terminalId: string): NumberRange {
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│                    🍗 PARK POS                                  │
+│                    🍗 FIRMO POS                                  │
 │                                                                 │
 │                    REGISTRAR TERMINAL                           │
 │                                                                 │

@@ -1,6 +1,6 @@
 # GGA Setup Guide - Gentleman Guardian Angel
 
-This guide explains how to set up and use Gentleman Guardian Angel (GGA) for automated code review in the park-pos project.
+This guide explains how to set up and use Gentleman Guardian Angel (GGA) for automated code review in the firmo-pos project.
 
 ## What is GGA?
 
@@ -396,7 +396,7 @@ For issues or questions:
 1. Check this guide's troubleshooting section
 2. Review GGA documentation: https://github.com/Gentleman-Programming/gentleman-guardian-angel
 3. Ask the team in #dev-tools Slack channel
-4. Open an issue in the park-pos repository
+4. Open an issue in the firmo-pos repository
 
 ## Summary
 

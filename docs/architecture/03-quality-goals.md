@@ -5,7 +5,7 @@
 ## Quality Tree
 
 ```
-                        PARK POS
+                        FIRMO POS
                            │
            ┌───────────────┼───────────────┐
            │               │               │

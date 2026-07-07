@@ -1,4 +1,4 @@
-# PARK POS — Premium Dashboard & Push Notifications
+# FIRMO POS — Premium Dashboard & Push Notifications
 
 **Versión:** 1.0  
 **Fecha:** Enero 2026  
@@ -10,7 +10,7 @@
 
 ## 📋 Resumen
 
-Este módulo implementa dos funcionalidades premium que diferencian PARK POS:
+Este módulo implementa dos funcionalidades premium que diferencian FIRMO POS:
 
 | Feature | Beneficio | Usuario |
 |---------|-----------|---------|
@@ -189,7 +189,7 @@ CREATE TABLE analytics_cache (
 
 ```
 ┌─────────────────────────────────────┐
-│ 🍗 PARK POS                         │
+│ 🍗 FIRMO POS                         │
 │ Mesa 12 - 1/4 Pollo listo          │
 │ Recoger en: HORNO                   │
 │                                     │

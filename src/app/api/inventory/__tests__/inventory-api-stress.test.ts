@@ -1,5 +1,5 @@
 /**
- * PARK POS - Inventory API Stress Tests
+ * FIRMO POS - Inventory API Stress Tests
  * Tests: API validation, concurrent requests, data integrity
  * 
  * Validates:

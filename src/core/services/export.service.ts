@@ -89,7 +89,7 @@ export class ExportService {
    */
   async generateExcel(config: ExcelConfig): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'PARK POS';
+    workbook.creator = 'FIRMO POS';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet(config.sheetName);
@@ -266,7 +266,7 @@ export class ExportService {
     <tbody>${bodyRows}</tbody>
     ${footerHtml}
   </table>
-  <p class="footer">Generado por PARK POS &mdash; ${new Date().toLocaleDateString('es-PE')}</p>
+  <p class="footer">Generado por FIRMO POS &mdash; ${new Date().toLocaleDateString('es-PE')}</p>
 </body>
 </html>`;
   }

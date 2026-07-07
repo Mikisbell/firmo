@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Dashboard de Monitoreo - PARK POS
+ * Dashboard de Monitoreo - FIRMO POS
  * 
  * Muestra métricas en tiempo real del sistema:
  * - Error rate y tendencias
@@ -267,14 +267,14 @@ export default function MonitoringDashboard() {
     if (!metricsData) return;
 
     const timestamp = new Date().toISOString();
-    const filename = `park-pos-metrics-${timestamp.replace(/[:.]/g, '-')}.csv`;
+    const filename = `firmo-pos-metrics-${timestamp.replace(/[:.]/g, '-')}.csv`;
 
     // Construir CSV con BOM para UTF-8 (compatibilidad con Excel)
     const BOM = '\uFEFF';
     let csv = BOM;
 
     // Header del CSV con información de exportación
-    csv += '# PARK POS - Reporte de Métricas\n';
+    csv += '# FIRMO POS - Reporte de Métricas\n';
     csv += `# Fecha de exportación: ${new Date().toLocaleString('es-PE')}\n`;
     csv += `# Período: ${period}\n`;
     csv += `# Rango: ${new Date(metricsData.summary.startTime).toLocaleString('es-PE')} - ${new Date(metricsData.summary.endTime).toLocaleString('es-PE')}\n`;
@@ -394,7 +394,7 @@ export default function MonitoringDashboard() {
     <div className="min-h-screen text-white p-6">
       <PageHeader
         title="Monitoreo"
-        description="Métricas en tiempo real del sistema PARK POS"
+        description="Métricas en tiempo real del sistema FIRMO POS"
         actions={
           <div className="flex items-center gap-2">
             <span className="text-sm text-park-gray-400">Auto-refresh: 30s</span>

@@ -1,5 +1,5 @@
 /**
- * PARK POS - Inventory Database Stress Tests
+ * FIRMO POS - Inventory Database Stress Tests
  * Tests: Data integrity, query performance, concurrent operations
  * 
  * Validates:

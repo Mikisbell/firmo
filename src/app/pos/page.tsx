@@ -18,7 +18,7 @@ import { printComponent, TicketTemplate } from "@/src/core/printing/templates";
 import { ShoppingCart, Wifi, WifiOff, CloudOff, Cloud, Undo2, Receipt, Truck, Plus, Utensils, LayoutDashboard, Menu, Store, History, Settings } from "lucide-react";
 import { EmployeeProfileButton } from "@/src/components/shared/EmployeeProfileButton";
 import { EmployeeProfileDrawer } from "@/src/components/shared/EmployeeProfileDrawer";
-import { ParkLogo } from "@/src/components/icons";
+import { FirmoLogo } from "@/src/components/icons";
 import { toast, Toaster } from "sonner";
 import { getDb } from "@/src/core/db/schema";
 import { useAuth } from "@/src/components/auth";
@@ -419,7 +419,7 @@ export default function POSPage() {
 
         printComponent(
             <TicketTemplate
-                tenantName="PARK POS"
+                tenantName="FIRMO POS"
                 date={new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}
                 orderNumber={activeSale.order_number}
                 lines={linesToPrint}
@@ -780,7 +780,7 @@ export default function POSPage() {
             {/* COLUMN 1: SIDEBAR NAVIGATION */}
             <nav className="w-[88px] bg-zinc-950/80 backdrop-blur-xl border-r border-white/10 flex flex-col items-center py-6 gap-6 z-30 shrink-0 shadow-2xl shadow-black/50">
                 <div className="mb-4">
-                    <ParkLogo size={44} className="rounded-xl shadow-lg" />
+                    <FirmoLogo size={44} className="rounded-xl shadow-lg" />
                 </div>
                 
                 <div className="flex flex-col gap-4 flex-1 w-full px-3">

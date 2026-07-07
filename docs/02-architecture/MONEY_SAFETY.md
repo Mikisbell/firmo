@@ -1,4 +1,4 @@
-# 💰 PARK POS — Plano de Seguridad Financiera
+# 💰 FIRMO POS — Plano de Seguridad Financiera
 
 > **Objetivo:** Garantizar que el sistema NUNCA pierda dinero ni genere datos corruptos.
 
