@@ -1,8 +1,11 @@
-# PARK POS
+# FIRMO POS
+
+> **Sistema POS offline-first para restaurantes. Antes conocido como PARK POS.**
+
 
 <!-- Logo placeholder -->
 <p align="center">
-  <img src="docs/assets/logo-placeholder.png" alt="PARK POS" width="200" />
+  <img src="docs/assets/logo-placeholder.png" alt="FIRMO POS" width="200" />
 </p>
 
 <p align="center">
