@@ -69,11 +69,11 @@
 
 ---
 
-## Eventos
+## Eventos / Sincronización
 
 | Metodo | Ruta | Auth | Descripcion |
 |--------|------|------|-------------|
-| POST | `/events/ingest` | API Secret | Ingerir eventos desde terminales |
+| POST | `/data-sync/ingest` | API Secret / POS Auth | Ingerir eventos desde terminales |
 | GET | `/events/stream` | POS Auth | SSE stream de eventos en tiempo real |
 
 ---
@@ -873,4 +873,33 @@ Configurados en `vercel.json`. Protegidos con `CRON_SECRET`.
 
 ---
 
-**Total: 316 route handlers | Ultima actualizacion: Abril 2026**
+## Enterprise Hardware & Specs Architecture
+
+### 1. NFC / RFID Hardware Swiper Integration (WebNFC API)
+* **Standard Tag:** ISO/IEC 14443-A NTAG213 / NTAG215 (Pulseras y Tarjetas de Mozo/Cajero)
+* **USB Swiper:** USB HID Emulation Keyboard Emulation (Vid/Pid auto-detect)
+* **Web Integration:** `navigator.nfc` API con listener en tiempo real de tag ID:
+  ```ts
+  const reader = new NDEFReader();
+  await reader.scan();
+  reader.addEventListener("reading", ({ serialNumber }) => {
+    // Dispara autenticacion ultra-rapida de 50ms por hardware
+  });
+  ```
+
+### 2. Reloj Marcador de Asistencia SUNAFIL (Clock-In / Clock-Out)
+* **Endpoint:** `POST /api/hr/attendance/clock-in` & `POST /api/hr/attendance/clock-out`
+* **Trigger:** Invocado opcionalmente en el primer login del dia desde la terminal POS.
+* **Payload:**
+  ```json
+  {
+    "employee_id": "00000000-0000-0000-0000-000000000001",
+    "terminal_id": "CAJA_01",
+    "photo_base64": "data:image/jpeg;base64,...",
+    "timestamp": "2026-07-29T12:30:00Z"
+  }
+  ```
+
+---
+
+**Total: 316 route handlers | Ultima actualizacion: Julio 2026**

@@ -14,6 +14,12 @@ export default function LoginPage() {
   const [view, setView] = useState<View>('checking');
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('force') === 'true' || searchParams.has('redirect')) {
+      setView('login');
+      return;
+    }
+
     const stored = getStoredTerminalConfig();
     if (!stored?.terminal_id) {
       setView('login');

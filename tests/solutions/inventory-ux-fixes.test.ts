@@ -360,13 +360,13 @@ describe('Inventory UX Fixes', () => {
       lots: [],
     };
 
-    const now = new Date('2026-04-09');
+    const now = new Date();
 
     // Expired lot (should be blocked)
     const expiredResult = receiveGoodsWithExpiryCheck(item, {
       lotNumber: 'P-EXPIRED',
       quantity: 50,
-      expiryDate: new Date('2026-04-05'), // 4 days ago
+      expiryDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
       costPerUnit: 1800 as Centavos,
     });
 
@@ -374,7 +374,7 @@ describe('Inventory UX Fixes', () => {
     expect(expiredResult.error).toContain('EXPIRADO');
 
     // Lot expiring in 2 days (should warn)
-    const twoDaysFromNow = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
     const warnResult = receiveGoodsWithExpiryCheck(item, {
       lotNumber: 'P-SOON',
       quantity: 30,
@@ -389,7 +389,7 @@ describe('Inventory UX Fixes', () => {
     const normalResult = receiveGoodsWithExpiryCheck(item, {
       lotNumber: 'P-NORMAL',
       quantity: 20,
-      expiryDate: new Date('2026-04-20'), // 11 days from now
+      expiryDate: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000), // 11 days from now
       costPerUnit: 1900 as Centavos,
     });
 

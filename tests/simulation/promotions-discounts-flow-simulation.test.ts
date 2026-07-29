@@ -232,8 +232,8 @@ describe('Promotions and Discounts Flow Simulation', () => {
       type: 'COMBO',
       discountType: 'PERCENT',
       discountValue: 15, // 15% off
-      validFrom: new Date('2026-04-01'),
-      validUntil: new Date('2026-04-30'),
+      validFrom: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       isActive: true,
       currentUses: 0,
     };

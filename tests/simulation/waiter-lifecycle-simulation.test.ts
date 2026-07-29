@@ -259,11 +259,11 @@ function approveAdvance(request: AdvanceRequest, approvedBy: string): AdvanceReq
   };
 }
 
-function payAdvance(request: AdvanceRequest): AdvanceRequest {
+function payAdvance(request: AdvanceRequest, paidAt: Date = new Date()): AdvanceRequest {
   return {
     ...request,
     status: 'PAID',
-    paidAt: new Date(),
+    paidAt,
   };
 }
 
@@ -384,7 +384,7 @@ describe('Waiter Employee Full Lifecycle Simulation (1 Month)', () => {
     const attendances: AttendanceRecord[] = [];
     const tableAssignments: TableAssignment[] = [];
     const services: ServiceRecord[] = [];
-    const startDate = new Date('2026-04-01');
+    const startDate = new Date(2026, 3, 1);
 
     // Waiter works Monday-Sunday, rests on weekdays (Mon-Thu)
     // Weekends (Fri-Sun) are ALWAYS working days (busiest)
@@ -513,7 +513,7 @@ describe('Waiter Employee Full Lifecycle Simulation (1 Month)', () => {
 
     // Manager approves and pays
     const approvedAdvance = approveAdvance(advanceRequest, 'manager-1');
-    const paidAdvance = payAdvance(approvedAdvance);
+    const paidAdvance = payAdvance(approvedAdvance, new Date(2026, 3, 15));
     expect(paidAdvance.status).toBe('PAID');
 
     console.log('💰 Day 15: Salary Advance');
@@ -530,8 +530,8 @@ describe('Waiter Employee Full Lifecycle Simulation (1 Month)', () => {
       services,
       [paidAdvance],
       [approvedVacation],
-      3, // April (0-indexed)
-      2026
+      startDate.getMonth(),
+      startDate.getFullYear()
     );
 
     // Validate payroll

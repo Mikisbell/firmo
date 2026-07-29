@@ -16,12 +16,12 @@ export async function register() {
 
   // Environment validation (production only)
   if (process.env.NODE_ENV === 'production') {
-    const { validateEnv } = await import('@/src/core/config/env-validation');
+    const { validateEnv } = await import('./core/config/env-validation');
     validateEnv();
 
     const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
     if (dsn) {
-      const { initSentry } = await import('@/src/lib/sentry');
+      const { initSentry } = await import('./lib/sentry');
       await initSentry({ dsn, environment: 'production' });
     }
   }

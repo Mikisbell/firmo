@@ -260,7 +260,7 @@ describe('Inventory Management UX Simulation', () => {
       lots: [{
         lotNumber: 'PAP-001',
         quantity: 10,
-        expiryDate: new Date('2026-05-01'),
+        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         costPerUnit: 200 as Centavos,
       }],
       movements: [],

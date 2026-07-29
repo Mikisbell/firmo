@@ -53,6 +53,19 @@ const DEV_EMPLOYEES = [
 async function main() {
     console.log(`\n🌱 Dev seed — Tenant: ${TENANT_ID}\n`);
 
+    await prisma.tenant_settings.upsert({
+        where: { tenant_id: TENANT_ID },
+        update: { legal_name: "FIRMO" },
+        create: {
+            tenant_id: TENANT_ID,
+            legal_name: "FIRMO",
+            ruc: "20123456789",
+            address_text: "Av. Castilla 2500, El Tambo, Huancayo",
+            timezone: "America/Lima",
+            currency: "PEN",
+        },
+    });
+
     let created = 0;
     let updated = 0;
 

@@ -1,6 +1,6 @@
-# 📡 PARK POS - Documentación de API
+# 📡 FIRMO POS - Documentación de API
 
-> Documentación completa de todos los endpoints REST de PARK POS
+> Documentación completa de todos los endpoints REST de FIRMO POS
 
 **Base URL:** `http://localhost:3000/api` (desarrollo) | `https://tu-dominio.com/api` (producción)
 
@@ -118,7 +118,7 @@ Cerrar sesión actual.
 
 Sistema de Event Sourcing - todos los cambios son eventos inmutables.
 
-### POST `/events/ingest`
+### POST `/data-sync/ingest`
 
 Ingerir eventos desde terminales.
 
@@ -259,7 +259,6 @@ Obtener detalle de una orden.
       "qty": 2,
       "unitPriceCents": 2500,
       "station": "PARRILLA",
-      "status": "COOKING",
       "mods": [],
       "notes": "",
       "addedAt": "2026-02-13T10:30:00Z",
