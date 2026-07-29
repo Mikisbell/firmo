@@ -3,8 +3,8 @@
 /**
  * Landing Page — FIRMO POS
  * 
- * Public marketing page for Peruvian restaurants & pollerías.
- * FIRMO Flame & Charcoal OLED Dark Theme, responsive, high-converting.
+ * Executive B2B Light Design System (Stripe / Toast POS Benchmark)
+ * Clean, high-contrast, perfectly aligned, 100% responsive for all devices.
  */
 
 import { useState } from 'react';
@@ -13,7 +13,7 @@ import {
   WifiOff, Monitor, Receipt, Package,
   Users, ChefHat, TrendingUp, Shield, Zap,
   CheckCircle2, ArrowRight, Send, Phone, Mail,
-  Star, Flame, Lock, Fingerprint, ChevronRight
+  Star, Flame, Lock, Fingerprint, ChevronRight, Menu, X
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { FirmoLogo, WhatsAppIcon } from '@/src/components/icons';
@@ -21,59 +21,59 @@ import { FirmoLogo, WhatsAppIcon } from '@/src/components/icons';
 const FEATURES = [
   {
     icon: WifiOff,
-    title: 'Vende Sin Internet (100% Offline)',
-    desc: 'Arquitectura Offline-First: si se corta la fibra óptica, tu pollería sigue cobrando e imprimiendo comandas sin detenerse.',
-    color: 'text-orange-400',
-    bg: 'bg-orange-500/10 border-orange-500/20',
+    title: '100% Offline-First',
+    desc: 'Sigue vendiendo aunque se corte el internet. Todo se sincroniza automáticamente al reconectarse.',
+    color: 'text-orange-600',
+    bg: 'bg-orange-50 border-orange-100',
   },
   {
     icon: Monitor,
     title: 'Multi-Terminal Táctil',
-    desc: 'Vistas especializadas para Caja, Mozos en Salón, Cocina KDS, Barra y Delivery. Cada estación optimizada.',
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10 border-amber-500/20',
+    desc: 'Estaciones optimizadas para Caja, Mozos en Salón, Cocina KDS, Barra y Delivery.',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50 border-blue-100',
   },
   {
     icon: Receipt,
-    title: 'Facturación SUNAT Automática',
-    desc: 'Boletas y facturas electrónicas integradas al instante. Cumple con el 100% de normativas tributarias.',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10 border-emerald-500/20',
+    title: 'Facturación SUNAT',
+    desc: 'Boletas y facturas electrónicas emitidas en 1 segundo. Cumplimiento tributario al 100%.',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50 border-emerald-100',
   },
   {
     icon: Package,
-    title: 'Control de Stock FEFO & Auto-86',
-    desc: 'Gestión de insumos clave (pollos, papas, aceite, salsas). Alerta automática cuando un plato se agota.',
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10 border-purple-500/20',
+    title: 'Control de Stock & Auto-86',
+    desc: 'Gestión de insumos clave (pollos, papas, aceites). Descuento automático por cada plato vendido.',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50 border-purple-100',
   },
   {
     icon: ChefHat,
-    title: 'Pantalla KDS Cocina & Tiempos',
-    desc: 'Control de comandas por cursos en tiempo real, alarmas de demora por plato y sincronización con parrilla.',
-    color: 'text-rose-400',
-    bg: 'bg-rose-500/10 border-rose-500/20',
+    title: 'KDS Cocina & Tiempos',
+    desc: 'Pantalla de cocina en tiempo real. Control de tiempos por plato y marcha de pedidos.',
+    color: 'text-rose-600',
+    bg: 'bg-rose-50 border-rose-100',
   },
   {
     icon: Fingerprint,
-    title: 'Seguridad Biométrica & Override',
-    desc: 'Login ultra-rápido, bloqueo automático por inactividad y autorización biométrica de supervisor para anulaciones.',
-    color: 'text-cyan-400',
-    bg: 'bg-cyan-500/10 border-cyan-500/20',
+    title: 'Seguridad Biométrica',
+    desc: 'Login ultra-rápido por huella/PIN y autorización de supervisor para anulaciones y descuentos.',
+    color: 'text-cyan-600',
+    bg: 'bg-cyan-50 border-cyan-100',
   },
   {
     icon: Users,
-    title: 'Gestión de Personal & Nómina',
-    desc: 'Asistencia, turnos de mozos y cocineros, propinas, adelantos de sueldo y reportes de desempeño.',
-    color: 'text-indigo-400',
-    bg: 'bg-indigo-500/10 border-indigo-500/20',
+    title: 'Gestión de Personal',
+    desc: 'Control de asistencia, horarios de mozos, propinas, sueldos y métricas de desempeño.',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50 border-indigo-100',
   },
   {
     icon: TrendingUp,
-    title: 'Reportes & Dashboard en Vivo',
-    desc: 'Analítica de ventas del día en tiempo real, ticket promedio, platos más vendidos e ingresos por mozo.',
-    color: 'text-yellow-400',
-    bg: 'bg-yellow-500/10 border-yellow-500/20',
+    title: 'Reportes en Tiempo Real',
+    desc: 'Dashboard ejecutivo con ventas del día, ticket promedio, platos top y rotación por hora.',
+    color: 'text-amber-600',
+    bg: 'bg-amber-50 border-amber-100',
   },
 ] as const;
 
@@ -82,8 +82,8 @@ const PRICING = [
     name: 'Básico',
     price: '149',
     period: '/mes',
-    desc: 'Para pollerías locales con 1-2 cajas',
-    features: ['1 Terminal POS Táctil', 'Facturación SUNAT Integrada', 'Inventario de Insumos Básico', 'Modo Offline Resiliente', 'Soporte prioritario'],
+    desc: 'Ideal para pollerías y locales de 1-2 cajas',
+    features: ['1 Terminal POS Táctil', 'Facturación SUNAT Integrada', 'Inventario de Insumos Básico', 'Modo Offline Resiliente', 'Soporte prioritario por WhatsApp'],
     cta: 'Solicitar Demo Gratis',
     highlight: false,
   },
@@ -91,9 +91,9 @@ const PRICING = [
     name: 'Pro',
     price: '299',
     period: '/mes',
-    desc: 'Para restaurantes y pollerías en crecimiento',
-    features: ['Hasta 5 Terminales (Caja, Mozo, Cocina)', 'Facturación + Delivery', 'Pantalla KDS Cocina & Barra', 'Gestión de Personal & Propinas', 'Reportes y Analítica en Vivo', 'Autenticación Biométrica'],
-    cta: 'Empezar Prueba Pro',
+    desc: 'Para restaurantes en crecimiento con salón',
+    features: ['Hasta 5 Terminales (Caja, Mozo, Cocina)', 'Facturación + Módulo Delivery', 'Pantalla KDS Cocina & Barra', 'Gestión de Personal & Propinas', 'Reportes & Analítica en Vivo', 'Autenticación Biométrica'],
+    cta: 'Probar Plan Pro',
     highlight: true,
   },
   {
@@ -102,108 +102,134 @@ const PRICING = [
     period: '',
     desc: 'Para cadenas de pollerías y franquicias',
     features: ['Terminales Ilimitados', 'Gestión Multi-Local Centralizada', 'API & Webhooks Personalizados', 'Auditoría Criptográfica de Eventos', 'SLA Garantizado 99.99%', 'Gerente de Cuenta Dedicado'],
-    cta: 'Contactar Ventas Enterprise',
+    cta: 'Contactar Ventas',
     highlight: false,
   },
 ] as const;
 
 function Navbar() {
+  const [mobileMenu, setMobileMenu] = useState(false);
+
   return (
-    <nav className="w-full border-b border-white/5 bg-[#07080A]/80 backdrop-blur-xl fixed top-0 left-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <nav className="w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 left-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-18 sm:h-20 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <FirmoLogo size={34} />
-          <span className="font-black text-2xl tracking-tight text-white">
-            FIRMO <span className="text-orange-500">POS</span>
+          <FirmoLogo size={32} />
+          <span className="font-black text-xl sm:text-2xl tracking-tight text-slate-900">
+            FIRMO <span className="text-orange-600">POS</span>
           </span>
         </div>
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-zinc-300">
-          <a href="#features" className="hover:text-orange-400 transition-colors">Funcionalidades</a>
-          <a href="#pricing" className="hover:text-orange-400 transition-colors">Planes & Precios</a>
-          <a href="#demo" className="hover:text-orange-400 transition-colors">Contacto</a>
+        <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600">
+          <a href="#features" className="hover:text-orange-600 transition-colors">Funcionalidades</a>
+          <a href="#pricing" className="hover:text-orange-600 transition-colors">Planes & Precios</a>
+          <a href="#demo" className="hover:text-orange-600 transition-colors">Contacto</a>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
           <a
             href="/login?force=true"
-            className="text-xs md:text-sm font-bold text-zinc-300 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-white/10 px-4 py-2.5 rounded-xl transition-all"
+            className="text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-xl transition-all"
           >
             Ingresar al Sistema
           </a>
           <a
-            href="#demo"
-            className="hidden sm:inline-flex items-center gap-2 text-xs md:text-sm font-black text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 px-4 py-2.5 rounded-xl shadow-lg shadow-orange-600/20 transition-all"
+            href="https://wa.me/51900000000?text=Hola,%20deseo%20una%20demostraci%C3%B3n%20gratuita%20de%20FIRMO%20POS"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-black text-white bg-orange-600 hover:bg-orange-700 px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
           >
             Demo Gratis
           </a>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setMobileMenu(!mobileMenu)}
+          className="sm:hidden p-2 text-slate-700 hover:text-slate-900"
+        >
+          {mobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
       </div>
+
+      {/* Mobile Dropdown */}
+      {mobileMenu && (
+        <div className="sm:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-3 font-semibold text-slate-700 text-sm">
+          <a href="#features" onClick={() => setMobileMenu(false)} className="block py-2">Funcionalidades</a>
+          <a href="#pricing" onClick={() => setMobileMenu(false)} className="block py-2">Planes & Precios</a>
+          <a href="#demo" onClick={() => setMobileMenu(false)} className="block py-2">Contacto</a>
+          <div className="pt-2 flex flex-col gap-2">
+            <a
+              href="/login?force=true"
+              className="w-full text-center py-2.5 rounded-xl bg-slate-100 font-bold text-slate-800"
+            >
+              Ingresar al POS
+            </a>
+            <a
+              href="https://wa.me/51900000000?text=Hola,%20deseo%20informacion"
+              className="w-full text-center py-2.5 rounded-xl bg-orange-600 font-black text-white"
+            >
+              Demo por WhatsApp
+            </a>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
 
 function Hero() {
   return (
-    <section className="relative pt-32 pb-24 px-6 overflow-hidden">
-      {/* Destellos de Brasa en Fondo */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-orange-600/10 rounded-full blur-[160px] pointer-events-none" />
-
-      <div className="relative max-w-5xl mx-auto text-center">
+    <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-6 bg-slate-50 border-b border-slate-200/60">
+      <div className="max-w-5xl mx-auto text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-full px-4 py-2 text-xs md:text-sm font-bold mb-8 shadow-inner">
-            <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
-            El Sistema POS N°1 para Pollerías y Parrilleras en el Perú
+          <div className="inline-flex items-center gap-2 bg-orange-100/80 border border-orange-200 text-orange-800 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold mb-6">
+            <Flame className="w-4 h-4 text-orange-600" />
+            Sistema POS para Pollerías y Parrilleras en Perú
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1]">
-            La velocidad del fuego en la caja de tu <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent">Pollería</span>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+            El sistema punto de venta diseñado para la velocidad de tu <span className="text-orange-600">Pollería</span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-zinc-400 max-w-3xl mx-auto font-medium leading-relaxed">
-            FIRMO POS es el sistema operativo integral diseñado para restaurantes y pollerías peruanas.
-            Vende sin internet, emite boletas SUNAT al instante, controla tu cocina en tiempo real y protege tu caja contra fraudes.
+          <p className="mt-5 text-base sm:text-xl text-slate-600 max-w-3xl mx-auto font-normal leading-relaxed">
+            FIRMO POS combina la estabilidad offline-first con la emisión rápida de boletas SUNAT, control de cocina KDS y protección anti-fraude en caja.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
             <a
               href="https://wa.me/51900000000?text=Hola,%20deseo%20una%20demostraci%C3%B3n%20gratuita%20de%20FIRMO%20POS"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-400 text-white font-black py-4 px-8 rounded-2xl text-base shadow-xl shadow-orange-600/30 active:scale-98 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-7 rounded-xl text-base shadow-lg shadow-orange-600/20 active:scale-98 transition-all"
             >
-              <WhatsAppIcon size={22} />
+              <WhatsAppIcon size={20} />
               Solicitar Demo Gratis por WhatsApp
             </a>
 
             <a
               href="/login?force=true"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900/80 hover:bg-zinc-800 text-white font-bold py-4 px-8 rounded-2xl border border-white/10 text-base transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-slate-800 font-bold py-4 px-7 rounded-xl border border-slate-300 text-base shadow-sm transition-all"
             >
-              Ingresar al POS
-              <ArrowRight className="w-5 h-5 text-orange-400" />
+              Ingresar al Sistema POS
+              <ArrowRight className="w-4 h-4 text-slate-500" />
             </a>
           </div>
         </motion.div>
 
-        {/* Badges de Confianza */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-16 flex flex-wrap justify-center gap-6 text-xs sm:text-sm font-semibold text-zinc-400"
-        >
-          {['100% Offline-First (Cero Caídas)', 'Facturación SUNAT Integrada', 'Resistencia Biométrica', 'Hecho en Perú'].map((item) => (
-            <div key={item} className="flex items-center gap-2 bg-zinc-900/50 px-4 py-2 rounded-xl border border-white/5">
-              <CheckCircle2 className="w-4 h-4 text-orange-400" />
+        {/* Feature Badges */}
+        <div className="mt-12 sm:mt-16 flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm font-semibold text-slate-600">
+          {['100% Offline-First', 'Facturación Electrónica SUNAT', 'Biometría Anti-Fraude', 'Desarrollado en Perú'].map((item) => (
+            <div key={item} className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-lg border border-slate-200 shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               {item}
             </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -211,35 +237,31 @@ function Hero() {
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 px-6 relative z-10 border-t border-white/5 bg-zinc-950/50">
+    <section id="features" className="py-16 sm:py-24 px-4 sm:px-6 bg-white border-b border-slate-200/60">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-            Todo lo que tu restaurante necesita para volar
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Todo lo que tu restaurante necesita para operar sin pausas
           </h2>
-          <p className="mt-4 text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto font-medium">
-            Herramientas construidas especialmente para la operación de alto flujo en pollerías y parrilleras
+          <p className="mt-3 text-slate-500 text-sm sm:text-base max-w-2xl mx-auto font-medium">
+            Módulos integrados y probados para el alto tráfico en cajas, salón y cocina
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURES.map((f, i) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {FEATURES.map((f) => {
             const Icon = f.icon;
             return (
-              <motion.div
+              <div
                 key={f.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="bg-zinc-900/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 hover:border-orange-500/30 transition-all group"
+                className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-6 hover:border-orange-300 hover:shadow-md transition-all group"
               >
-                <div className={`w-12 h-12 rounded-2xl ${f.bg} border flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+                <div className={`w-12 h-12 rounded-xl ${f.bg} border flex items-center justify-center mb-4 group-hover:scale-105 transition-transform`}>
                   <Icon className={`w-6 h-6 ${f.color}`} />
                 </div>
-                <h3 className="text-white font-bold text-lg mb-2">{f.title}</h3>
-                <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium">{f.desc}</p>
-              </motion.div>
+                <h3 className="text-slate-900 font-bold text-lg mb-2">{f.title}</h3>
+                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-normal">{f.desc}</p>
+              </div>
             );
           })}
         </div>
@@ -250,48 +272,48 @@ function FeaturesSection() {
 
 function PricingSection() {
   return (
-    <section id="pricing" className="py-24 px-6 relative z-10 border-t border-white/5">
+    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 bg-slate-50 border-b border-slate-200/60">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-            Planes transparentes en Soles Peruanos
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Planes Transparentes en Soles Peruanos
           </h2>
-          <p className="mt-4 text-zinc-400 text-base sm:text-lg font-medium">
-            Sin permanencias forzadas ni comisiones ocultas por venta
+          <p className="mt-3 text-slate-500 text-sm sm:text-base font-medium">
+            Sin contratos forzados ni cobro de comisiones por tus ventas
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
           {PRICING.map((plan) => (
             <div
               key={plan.name}
               className={[
-                'rounded-3xl p-8 flex flex-col justify-between transition-all relative',
+                'rounded-2xl p-6 sm:p-8 flex flex-col justify-between transition-all bg-white relative',
                 plan.highlight
-                  ? 'bg-zinc-900/90 border-2 border-orange-500 shadow-2xl shadow-orange-600/20'
-                  : 'bg-zinc-900/40 border border-white/10',
+                  ? 'border-2 border-orange-600 shadow-xl shadow-orange-600/10'
+                  : 'border border-slate-200 shadow-sm',
               ].join(' ')}
             >
               {plan.highlight && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-600 to-amber-500 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
-                  Más Popular
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-orange-600 text-white text-xs font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                  Recomendado
                 </div>
               )}
 
               <div>
-                <h3 className="text-white font-black text-2xl mb-1">{plan.name}</h3>
-                <p className="text-zinc-400 text-xs font-medium mb-6">{plan.desc}</p>
+                <h3 className="text-slate-900 font-black text-2xl mb-1">{plan.name}</h3>
+                <p className="text-slate-500 text-xs font-medium mb-6">{plan.desc}</p>
 
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-zinc-400 text-xl font-bold">S/.</span>
-                  <span className="text-white font-black text-5xl tracking-tight">{plan.price}</span>
-                  <span className="text-zinc-400 text-sm font-semibold">{plan.period}</span>
+                  <span className="text-slate-500 text-lg font-bold">S/.</span>
+                  <span className="text-slate-900 font-black text-4xl sm:text-5xl tracking-tight">{plan.price}</span>
+                  <span className="text-slate-500 text-sm font-semibold">{plan.period}</span>
                 </div>
 
-                <div className="space-y-3.5 mb-8">
+                <div className="space-y-3 mb-8">
                   {plan.features.map((feat) => (
-                    <div key={feat} className="flex items-center gap-3 text-xs sm:text-sm text-zinc-300 font-medium">
-                      <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                    <div key={feat} className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-orange-600 flex-shrink-0" />
                       <span>{feat}</span>
                     </div>
                   ))}
@@ -303,10 +325,10 @@ function PricingSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={[
-                  'w-full py-4 rounded-2xl font-black text-center text-sm transition-all',
+                  'w-full py-3.5 rounded-xl font-bold text-center text-sm transition-all',
                   plan.highlight
-                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white hover:from-orange-500 hover:to-amber-400 shadow-lg shadow-orange-600/25'
-                    : 'bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10',
+                    ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-md'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800',
                 ].join(' ')}
               >
                 {plan.cta}
@@ -325,44 +347,44 @@ function ContactSection() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    toast.success('¡Solicitud recibida! Un asesor de FIRMO POS se comunicará en breve.');
+    toast.success('¡Solicitud enviada! Nos comunicaremos contigo en breve.');
   };
 
   return (
-    <section id="demo" className="py-24 px-6 relative z-10 border-t border-white/5 bg-zinc-950/60">
-      <div className="max-w-4xl mx-auto bg-zinc-900/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 sm:p-12 text-center shadow-2xl">
-        <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 mx-auto mb-6">
-          <Flame className="w-7 h-7" />
+    <section id="demo" className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
+      <div className="max-w-4xl mx-auto bg-slate-900 rounded-3xl p-8 sm:p-12 text-center text-white shadow-xl">
+        <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400 mx-auto mb-5">
+          <Flame className="w-6 h-6" />
         </div>
 
-        <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-3">
-          ¿Listo para transformar la caja de tu pollería?
+        <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-3">
+          ¿Listo para equipar tu pollería con FIRMO POS?
         </h2>
-        <p className="text-zinc-400 text-sm sm:text-base font-medium max-w-xl mx-auto mb-8">
-          Déjanos tus datos y te mostraremos una demostración en vivo ajustada a tu restaurante.
+        <p className="text-slate-300 text-xs sm:text-sm font-medium max-w-xl mx-auto mb-8">
+          Déjanos tus datos y te enviaremos una demostración guiada adaptada a tu restaurante.
         </p>
 
         {submitted ? (
-          <div className="bg-emerald-950/60 border border-emerald-500/30 p-6 rounded-2xl text-emerald-400 font-bold text-sm">
-            ¡Muchas gracias! Nos pondremos en contacto contigo en los próximos 15 minutos.
+          <div className="bg-emerald-900/60 border border-emerald-500/30 p-4 rounded-xl text-emerald-300 font-bold text-sm">
+            ¡Muchas gracias! Un asesor se contactará contigo en breve.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
             <input
               type="text"
               required
-              placeholder="Nombre del restaurante"
-              className="h-14 bg-zinc-950 border border-white/10 rounded-2xl px-4 text-white text-sm focus:outline-none focus:border-orange-500 transition-colors"
+              placeholder="Nombre de tu pollería"
+              className="h-13 bg-slate-800 border border-slate-700 rounded-xl px-4 text-white text-sm focus:outline-none focus:border-orange-500 transition-colors"
             />
             <input
               type="tel"
               required
               placeholder="Teléfono / WhatsApp"
-              className="h-14 bg-zinc-950 border border-white/10 rounded-2xl px-4 text-white text-sm focus:outline-none focus:border-orange-500 transition-colors"
+              className="h-13 bg-slate-800 border border-slate-700 rounded-xl px-4 text-white text-sm focus:outline-none focus:border-orange-500 transition-colors"
             />
             <button
               type="submit"
-              className="h-14 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-400 text-white font-black text-sm rounded-2xl shadow-xl shadow-orange-600/30 transition-all flex items-center justify-center gap-2"
+              className="h-13 bg-orange-600 hover:bg-orange-700 text-white font-black text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
             >
               Solicitar Demo
               <Send className="w-4 h-4" />
@@ -376,8 +398,8 @@ function ContactSection() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#07080A] text-white selection:bg-orange-500 selection:text-white relative overflow-hidden">
-      <Toaster position="top-right" theme="dark" />
+    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased selection:bg-orange-600 selection:text-white">
+      <Toaster position="top-right" />
       <Navbar />
       <main>
         <Hero />
@@ -385,8 +407,8 @@ export default function LandingPage() {
         <PricingSection />
         <ContactSection />
       </main>
-      <footer className="w-full py-8 px-6 text-center text-zinc-500 text-xs border-t border-white/5 bg-[#07080A]">
-        <span>FIRMO POS &copy; {new Date().getFullYear()} — Hecho con dedicación en Perú para Pollerías y Parrilleras</span>
+      <footer className="w-full py-6 px-4 text-center text-slate-500 text-xs border-t border-slate-200 bg-slate-50">
+        <span>FIRMO POS &copy; {new Date().getFullYear()} — Sistema de Punto de Venta para Pollerías y Parrilleras en Perú</span>
       </footer>
     </div>
   );
