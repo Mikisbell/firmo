@@ -9,7 +9,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FirmoLogo, FirmoBrandHeader } from '@/src/components/icons';
-import { Delete, ChevronLeft, ShieldCheck, Clock, Monitor, Wifi, Lock, Cpu, Sparkles, AlertTriangle } from 'lucide-react';
+import {
+  Delete, ChevronLeft, ShieldCheck, Clock, Monitor, Wifi, Lock,
+  Cpu, Sparkles, AlertTriangle, Utensils, Store
+} from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
 import { cacheEmployeeForOffline, verifyOfflineEmployee } from '@/src/core/auth/offline-auth';
 import type { TerminalRole } from '@/src/core/auth/types';
@@ -370,19 +373,39 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
         
         {/* Left Column: Branding Showcase & Restaurant Identity */}
         <div className="hidden lg:flex lg:col-span-5 flex-col justify-center gap-8 pr-4">
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-wide">
               <ShieldCheck className="w-4 h-4 text-orange-400" />
               <span>Terminal POS Certificada</span>
             </div>
 
-            <h1 className="text-3xl xl:text-4xl font-black text-white tracking-tight leading-tight">
-              {tenant?.legal_name || 'FIRMO POS'}
-            </h1>
-            
-            <p className="text-slate-400 text-xs xl:text-sm font-medium leading-relaxed">
-              {tenant?.address_text || 'Av. Castilla 2500, El Tambo, Huancayo — Local Principal'}
-            </p>
+            {/* Brand Logo & Composition Header */}
+            <div className="flex items-center gap-4 py-2">
+              <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-orange-500/30 shadow-xl shadow-orange-500/10 shrink-0">
+                <FirmoLogo size={56} />
+              </div>
+              <div>
+                <h1 className="text-3xl xl:text-4xl font-black tracking-tight leading-none uppercase text-white flex items-center gap-2">
+                  FIRMO <span className="text-orange-500">POS</span>
+                </h1>
+                <div className="flex items-center gap-1.5 mt-2 text-xs font-mono font-bold text-slate-300 uppercase">
+                  <Utensils className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                  <span>Sistema Operativo Gastronómico</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tenant / Local Info */}
+            <div className="pt-3 border-t border-slate-800/80">
+              <p className="text-slate-200 text-sm font-bold flex items-center gap-2">
+                <Store className="w-4 h-4 text-orange-400 shrink-0" />
+                <span>{tenant?.legal_name || 'FIRMO POS — Sede Principal'}</span>
+              </p>
+              <p className="text-slate-400 text-xs font-medium mt-1 leading-relaxed pl-6">
+                {tenant?.address_text || 'Av. Castilla 2500, El Tambo, Huancayo — Local Principal'}
+              </p>
+            </div>
           </div>
 
           <div className="space-y-3.5">
