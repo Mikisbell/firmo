@@ -1,16 +1,15 @@
 'use client';
 
 /**
- * UnifiedLogin — Professional Responsive POS Login Screen
- * Architecture: Split 2-Column for POS/Tablet (10"+), Full-Screen for Mobile
- * DNI (8 digits) → PIN (4-6 digits) → Auto-route by Role
+ * UnifiedLogin — Enterprise POS Touchscreen Login Screen
+ * Theme: Premium Gastronomic Operating System (OLED Navy & Warm Flame Accents)
+ * Ergonomic 2-Column POS Layout (10"+ Tablets) & Optimized Mobile Touch Screen
  */
 
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FirmoLogo } from '@/src/components/icons';
-import { TenantLogo } from '@/src/components/branding/TenantLogo';
-import { Delete, ChevronLeft, ShieldCheck, Clock, Monitor } from 'lucide-react';
+import { FirmoLogo, FirmoBrandHeader } from '@/src/components/icons';
+import { Delete, ChevronLeft, ShieldCheck, Clock, Monitor, Wifi, Lock, Cpu, Sparkles, AlertTriangle } from 'lucide-react';
 import { safeStorage } from '@/src/lib/storage';
 import { cacheEmployeeForOffline, verifyOfflineEmployee } from '@/src/core/auth/offline-auth';
 import type { TerminalRole } from '@/src/core/auth/types';
@@ -45,7 +44,7 @@ function maskDni(dni: string): string {
   return `${dni.slice(0, 2)}${'•'.repeat(dni.length - 4)}${dni.slice(-2)}`;
 }
 
-// ── Numpad Ergonométrico ──────────────────────────────────────────────────────
+// ── Numpad Ergonométrico Tactil POS ───────────────────────────────────────────
 interface NumpadProps {
   value: string;
   onChange: (v: string) => void;
@@ -94,57 +93,64 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
 
   return (
     <div className="flex flex-col items-center w-full max-w-md mx-auto">
-      {/* Dynamic Header */}
+      {/* Encabezado Dinámico de Usuario */}
       <div className="text-center mb-6">
-        <h3 className="text-white text-xl md:text-2xl font-black tracking-tight mb-1">{label}</h3>
-        {sublabel && <p className="text-zinc-400 text-xs md:text-sm font-medium">{sublabel}</p>}
+        <h3 className="text-white text-2xl md:text-3xl font-black tracking-tight mb-1.5 drop-shadow-md">
+          {label}
+        </h3>
+        {sublabel && (
+          <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed max-w-xs mx-auto">
+            {sublabel}
+          </p>
+        )}
       </div>
 
-      {/* Puntos Indicadores Neon */}
-      <div className="flex items-center justify-center gap-3.5 mb-6 h-10">
+      {/* Puntos Indicadores Brasa Neon */}
+      <div className="flex items-center justify-center gap-3.5 mb-7 h-10">
         {dots.map((_, i) => {
           const filled = i < value.length;
           const required = i < minLength;
           return (
             <motion.div
               key={i}
-              animate={filled ? { scale: [1, 1.4, 1] } : { scale: 1 }}
+              animate={filled ? { scale: [1, 1.35, 1] } : { scale: 1 }}
               transition={{ duration: 0.15 }}
               className={[
                 'transition-all duration-200',
                 filled
-                  ? 'w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 shadow-[0_0_18px_rgba(249,115,22,0.9)] scale-110'
+                  ? 'w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.9)] scale-110'
                   : required
-                    ? 'w-3.5 h-3.5 rounded-full bg-zinc-800 border border-zinc-700'
-                    : 'w-3 h-3 rounded-full bg-zinc-900 border border-zinc-800',
+                    ? 'w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-700'
+                    : 'w-3 h-3 rounded-full bg-slate-900 border border-slate-800',
               ].join(' ')}
             />
           );
         })}
       </div>
 
-      {/* Mensaje de Error */}
+      {/* Mensaje de Error / Alerta Estilizada */}
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="w-full text-red-400 text-xs md:text-sm font-semibold mb-5 text-center bg-red-950/60 border border-red-500/30 px-4 py-2.5 rounded-2xl backdrop-blur-md"
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="w-full text-red-300 text-xs md:text-sm font-bold mb-6 text-center bg-red-950/80 border border-red-500/40 px-4 py-3 rounded-2xl backdrop-blur-md flex items-center justify-center gap-2 shadow-lg shadow-red-950/50"
           >
-            {error}
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            <span>{error}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Teclado Táctil POS (80px de alto en tablets/pos, 64px en mobile) */}
+      {/* Teclado Táctil Táctico (Botones Ergonométricos 80px+) */}
       <div className="grid grid-cols-3 gap-3 md:gap-4 w-full">
         {['1','2','3','4','5','6','7','8','9'].map(d => (
           <button
             key={d}
             onPointerDown={e => { e.preventDefault(); handleDigit(d); }}
             disabled={disabled}
-            className="h-16 md:h-20 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 active:bg-zinc-700/80 border border-white/10 text-white text-2xl md:text-3xl font-black transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg shadow-black/50 disabled:opacity-40"
+            className="h-16 md:h-20 rounded-2xl bg-slate-900/90 hover:bg-slate-800 active:bg-slate-700/80 border border-slate-700/60 hover:border-orange-500/40 text-white text-2xl md:text-3xl font-black transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg shadow-black/60 disabled:opacity-40"
           >
             {d}
           </button>
@@ -153,7 +159,7 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
         <button
           onPointerDown={e => { e.preventDefault(); handleClear(); }}
           disabled={disabled || value.length === 0}
-          className="h-16 md:h-20 rounded-2xl bg-zinc-950/90 hover:bg-zinc-900 active:bg-zinc-800 border border-white/5 text-zinc-400 hover:text-white text-xs md:text-sm font-bold tracking-wider transition-all select-none touch-manipulation active:scale-95 disabled:opacity-30"
+          className="h-16 md:h-20 rounded-2xl bg-slate-950/90 hover:bg-slate-900 active:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs md:text-sm font-bold tracking-wider transition-all select-none touch-manipulation active:scale-95 disabled:opacity-30"
         >
           LIMPIAR
         </button>
@@ -161,7 +167,7 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
         <button
           onPointerDown={e => { e.preventDefault(); handleDigit('0'); }}
           disabled={disabled}
-          className="h-16 md:h-20 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 active:bg-zinc-700/80 border border-white/10 text-white text-2xl md:text-3xl font-black transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg shadow-black/50 disabled:opacity-40"
+          className="h-16 md:h-20 rounded-2xl bg-slate-900/90 hover:bg-slate-800 active:bg-slate-700/80 border border-slate-700/60 hover:border-orange-500/40 text-white text-2xl md:text-3xl font-black transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg shadow-black/60 disabled:opacity-40"
         >
           0
         </button>
@@ -169,13 +175,13 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
         <button
           onPointerDown={e => { e.preventDefault(); handleBack(); }}
           disabled={disabled || value.length === 0}
-          className="h-16 md:h-20 rounded-2xl bg-zinc-950/90 hover:bg-zinc-900 active:bg-zinc-800 border border-white/5 text-zinc-400 hover:text-white transition-all flex items-center justify-center select-none touch-manipulation active:scale-95 disabled:opacity-30"
+          className="h-16 md:h-20 rounded-2xl bg-slate-950/90 hover:bg-slate-900 active:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all flex items-center justify-center select-none touch-manipulation active:scale-95 disabled:opacity-30"
         >
           <Delete className="w-6 h-6" />
         </button>
       </div>
 
-      {/* Botón de Confirmación */}
+      {/* Botón de Confirmación Manual */}
       <AnimatePresence>
         {canSubmit && value.length < maxLength && (
           <motion.button
@@ -184,9 +190,9 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
             exit={{ opacity: 0, y: 10 }}
             onPointerDown={e => { e.preventDefault(); onSubmit(value); }}
             disabled={disabled}
-            className="mt-5 w-full h-14 md:h-16 rounded-2xl bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-400 active:scale-[0.98] text-white font-black tracking-wide text-base md:text-lg transition-all select-none touch-manipulation shadow-xl shadow-orange-600/30 disabled:opacity-40"
+            className="mt-6 w-full h-14 md:h-16 rounded-2xl bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-400 active:scale-[0.98] text-white font-black tracking-wider text-base md:text-lg transition-all select-none touch-manipulation shadow-xl shadow-orange-600/30 disabled:opacity-40"
           >
-            CONFIRMAR
+            INGRESAR A TERMINAL
           </motion.button>
         )}
       </AnimatePresence>
@@ -194,7 +200,7 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
   );
 }
 
-// ── Componente Principal ──────────────────────────────────────────────────────
+// ── Componente Principal Login ────────────────────────────────────────────────
 export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
   const [phase, setPhase] = useState<Phase>('dni');
   const [dniValue, setDniValue] = useState('');
@@ -214,10 +220,10 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
 
     const updateClock = () => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }));
+      setCurrentTime(now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     };
     updateClock();
-    const interval = setInterval(updateClock, 30000);
+    const interval = setInterval(updateClock, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -280,7 +286,7 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
         if (data.errorCode === 'ACCOUNT_LOCKED' && data.lockoutUntil) {
           setLockout(new Date(data.lockoutUntil));
         }
-        setError(data.error || 'DNI o contraseña incorrecta');
+        setError(data.error || 'DNI o clave secreta incorrecta');
         setLoading(false);
         return;
       }
@@ -330,23 +336,18 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#07080A] text-white flex flex-col justify-between relative overflow-hidden select-none">
-      {/* Destellos de Brasa (Glow Background) */}
-      <div className="absolute -top-48 -left-48 w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute -bottom-48 -right-48 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[160px] pointer-events-none" />
+    <div className="min-h-screen bg-[#0A0E14] text-white flex flex-col justify-between relative overflow-hidden select-none">
+      {/* Ambient Flame Glow Background */}
+      <div className="absolute top-0 left-1/4 -translate-x-1/2 w-[600px] h-[450px] bg-orange-600/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[400px] bg-amber-500/10 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Top Bar Responsivo */}
-      <header className="w-full flex items-center justify-between px-6 py-4 border-b border-white/5 bg-zinc-950/60 backdrop-blur-xl relative z-20">
-        <div className="flex items-center gap-3">
-          <FirmoLogo size={32} />
-          <span className="font-black text-xl tracking-tight">
-            FIRMO <span className="text-orange-500">POS</span>
-          </span>
-        </div>
+      {/* Top Header Bar */}
+      <header className="w-full flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-[#0A0E14]/90 backdrop-blur-xl relative z-20">
+        <FirmoBrandHeader logoSize={40} theme="dark" />
 
         <div className="flex items-center gap-4">
           {currentTime && (
-            <div className="hidden md:flex items-center gap-1.5 text-zinc-400 text-xs font-mono bg-zinc-900/80 px-3 py-1.5 rounded-xl border border-white/5">
+            <div className="hidden sm:flex items-center gap-2 text-slate-300 text-xs font-mono bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-800 shadow-inner">
               <Clock className="w-3.5 h-3.5 text-orange-400" />
               <span>{currentTime}</span>
             </div>
@@ -355,7 +356,7 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
           {(phase === 'pin' || phase === 'checking_dni') && (
             <button
               onClick={backToDni}
-              className="flex items-center gap-2 text-zinc-300 hover:text-white text-xs font-bold bg-zinc-900 hover:bg-zinc-800 px-3 py-1.5 rounded-xl border border-white/10 transition-colors"
+              className="flex items-center gap-2 text-slate-200 hover:text-white text-xs font-bold bg-slate-900 hover:bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-700/80 transition-all shadow-sm"
             >
               <ChevronLeft className="w-4 h-4 text-orange-400" />
               <span>CAMBIAR DNI ({maskDni(dniValue)})</span>
@@ -364,48 +365,59 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
         </div>
       </header>
 
-      {/* Main Split Layout: 2 Columnas en POS (1024px+), 1 Columna en Mobile */}
-      <main className="flex-1 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-4 md:px-8 py-6 relative z-10">
+      {/* Main Grid Layout: 2 Columns for POS Terminal (1024px+), 1 Column for Mobile */}
+      <main className="flex-1 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center px-4 md:px-8 py-8 relative z-10">
         
-        {/* Columna Izquierda: Hero & Branding de la Tienda (Visible en lg+) */}
-        <div className="hidden lg:flex lg:col-span-5 flex-col justify-center gap-8 pr-6 border-r border-white/5">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-semibold mb-4">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Terminal Certificada FIRMO POS</span>
+        {/* Left Column: Branding Showcase & Restaurant Identity */}
+        <div className="hidden lg:flex lg:col-span-5 flex-col justify-center gap-8 pr-4">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-wide">
+              <ShieldCheck className="w-4 h-4 text-orange-400" />
+              <span>Terminal POS Certificada</span>
             </div>
 
-            <h1 className="text-4xl xl:text-5xl font-black text-white tracking-tight leading-tight">
+            <h1 className="text-3xl xl:text-4xl font-black text-white tracking-tight leading-tight">
               {tenant?.legal_name || 'FIRMO POS'}
             </h1>
-            {tenant?.address_text && (
-              <p className="text-zinc-400 text-sm mt-2 font-medium leading-relaxed">
-                {tenant.address_text}
-              </p>
-            )}
+            
+            <p className="text-slate-400 text-xs xl:text-sm font-medium leading-relaxed">
+              {tenant?.address_text || 'Av. Castilla 2500, El Tambo, Huancayo — Local Principal'}
+            </p>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-900/40 border border-white/5">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 font-bold">
+          <div className="space-y-3.5">
+            <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-md">
+              <div className="w-11 h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 font-bold shrink-0">
                 <Monitor className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-white text-sm font-bold">Modo Terminal Táctil</p>
-                <p className="text-zinc-500 text-xs">Acceso seguro por DNI y clave secreta de empleado</p>
+                <p className="text-slate-400 text-xs">Acceso por DNI y clave secreta de empleado</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-zinc-950/60 border border-white/5 text-xs text-zinc-500 font-mono">
-              <span>ESTADO DE RED: <strong className="text-emerald-400 font-sans">ONLINE</strong></span>
-              <span>VERSIÓN: {APP_VERSION}</span>
+            <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between">
+                <span className="text-slate-400 text-[10px] uppercase block">Estado Red</span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  ONLINE
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between">
+                <span className="text-slate-400 text-[10px] uppercase block">Versión</span>
+                <span className="text-orange-400 font-bold">{APP_VERSION}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Columna Derecha: Panel del Numpad Táctil */}
+        {/* Right Column: High-Purity Numpad Kiosk Container */}
         <div className="lg:col-span-7 flex flex-col justify-center items-center w-full">
-          <div className="w-full max-w-md bg-zinc-900/50 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl shadow-orange-950/20">
+          <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-2xl border border-slate-800/90 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-orange-950/20 relative overflow-hidden">
+            {/* Subtle Top Ember Border Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 via-amber-400 to-orange-500" />
+
             <AnimatePresence mode="wait">
               {phase === 'checking_dni' ? (
                 <motion.div
@@ -413,14 +425,14 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center py-20 gap-4"
+                  className="flex flex-col items-center justify-center py-20 gap-4 text-center"
                 >
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                    className="w-12 h-12 border-3 border-zinc-700 border-t-orange-500 rounded-full"
+                    className="w-12 h-12 border-3 border-slate-700 border-t-orange-500 rounded-full"
                   />
-                  <p className="text-zinc-300 font-semibold text-sm">Verificando DNI...</p>
+                  <p className="text-slate-200 font-bold text-sm">Verificando DNI en sistema...</p>
                 </motion.div>
               ) : phase === 'dni' ? (
                 <motion.div
@@ -438,7 +450,7 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
                     minLength={8}
                     error={error}
                     label="Ingresá tu DNI"
-                    sublabel="8 dígitos para identificar tu perfil de usuario"
+                    sublabel="Ingresá los 8 dígitos para identificar tu perfil de usuario"
                   />
                 </motion.div>
               ) : (
@@ -450,13 +462,13 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
                   transition={{ duration: 0.15 }}
                 >
                   {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                        className="w-12 h-12 border-3 border-zinc-700 border-t-orange-500 rounded-full"
+                        className="w-12 h-12 border-3 border-slate-700 border-t-orange-500 rounded-full"
                       />
-                      <p className="text-zinc-300 font-semibold text-sm">Iniciando sesión segura...</p>
+                      <p className="text-slate-200 font-bold text-sm">Iniciando sesión en terminal POS...</p>
                     </div>
                   ) : (
                     <Numpad
@@ -467,10 +479,10 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
                       minLength={4}
                       disabled={loading || (!!lockout && lockout > new Date())}
                       error={error}
-                      label={employeeName ? `¡Hola, ${employeeName}!` : 'Ingresá tu contraseña'}
+                      label={employeeName ? `¡Hola, ${employeeName}!` : 'Ingresá tu clave secreta'}
                       sublabel={
                         lockout && lockout > new Date()
-                          ? '🔒 Cuenta bloqueada temporalmente'
+                          ? '🔒 Acceso bloqueado temporalmente por seguridad'
                           : 'Ingresá tu clave secreta de 4 a 6 dígitos'
                       }
                     />
@@ -482,9 +494,9 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
         </div>
       </main>
 
-      {/* Footer Minimalista */}
-      <footer className="w-full py-3 px-6 text-center text-zinc-600 text-xs border-t border-white/5 bg-zinc-950/40 relative z-20">
-        <span>FIRMO POS &copy; {new Date().getFullYear()} — Sistema Gastronómico de Alta Velocidad</span>
+      {/* Minimal Footer */}
+      <footer className="w-full py-3.5 px-6 text-center text-slate-500 text-xs font-mono border-t border-slate-800/80 bg-[#0A0E14] relative z-20">
+        <span>FIRMO POS &copy; {new Date().getFullYear()} — Gastronomic Operating System</span>
       </footer>
     </div>
   );
