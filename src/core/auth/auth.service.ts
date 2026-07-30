@@ -488,12 +488,15 @@ export async function authenticate(
         };
     }
 
-    // Success
-    await recordLoginAttempt(prisma, tenantId, pinHash, true, employee.id, metadata);
-    const tokenHash = await generateTokenHash();
-    const sessionId = await createSession(prisma, tenantId, employee.id, tokenHash, metadata);
+    // Success — parallelized session creation & non-blocking audit logging
+    const { generateTokenHash: genTokenHash } = await import('./crypto-utils');
+    const tokenHash = await genTokenHash();
+    const [sessionId] = await Promise.all([
+        createSession(prisma, tenantId, employee.id, tokenHash, metadata),
+        recordLoginAttempt(prisma, tenantId, pinHash, true, employee.id, metadata).catch(() => {}),
+        logAdminAccess(prisma, tenantId, employee.id, 'LOGIN', metadata).catch(() => {}),
+    ]);
     const { token, expiresAt } = await generateToken(employee, tenantId, sessionId);
-    await logAdminAccess(prisma, tenantId, employee.id, 'LOGIN', metadata);
 
     return {
         success: true,
