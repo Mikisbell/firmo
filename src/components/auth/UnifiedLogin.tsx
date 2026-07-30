@@ -396,16 +396,7 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
               </div>
             </div>
 
-            {/* Tenant / Local Info */}
-            <div className="pt-3 border-t border-slate-800/80">
-              <p className="text-slate-200 text-sm font-bold flex items-center gap-2">
-                <Store className="w-4 h-4 text-orange-400 shrink-0" />
-                <span>{tenant?.legal_name || 'FIRMO POS — Sede Principal'}</span>
-              </p>
-              <p className="text-slate-400 text-xs font-medium mt-1 leading-relaxed pl-6">
-                {tenant?.address_text || 'Av. Castilla 2500, El Tambo, Huancayo — Local Principal'}
-              </p>
-            </div>
+
           </div>
 
           <div className="space-y-3.5">
