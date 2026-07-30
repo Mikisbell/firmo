@@ -3,13 +3,19 @@ import React from 'react';
 interface FirmoLogoProps {
   size?: number;
   className?: string;
+  variant?: 'full' | 'icon-only' | 'light' | 'monochrome';
 }
 
 /**
- * FIRMO POS brand logo - Professional inline SVG.
- * Emerald gradient rounded square with stylized "P" and flame accent.
+ * FIRMO POS Brand Logo — Premium Swiss Geometric Vector
+ * Features a sharp geometric letter "F" fused with a dynamic ember flame stroke.
+ * Supports dark, light, and monochrome variants for all UI surfaces.
  */
-export const FirmoLogo = React.memo(function FirmoLogo({ size = 40, className = '' }: FirmoLogoProps) {
+export const FirmoLogo = React.memo(function FirmoLogo({
+  size = 40,
+  className = '',
+  variant = 'full',
+}: FirmoLogoProps) {
   return (
     <svg
       width={size}
@@ -21,36 +27,45 @@ export const FirmoLogo = React.memo(function FirmoLogo({ size = 40, className = 
       aria-label="FIRMO POS"
     >
       <defs>
-        <linearGradient id="park-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#10b981" />
-          <stop offset="100%" stopColor="#0d9488" />
+        {/* Background Dark Onyx Gradient */}
+        <linearGradient id="firmo-bg-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#18181B" />
+          <stop offset="100%" stopColor="#09090B" />
         </linearGradient>
-        <linearGradient id="park-flame" x1="38" y1="12" x2="46" y2="30" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#f97316" />
+
+        {/* Flame Ember Gradient */}
+        <linearGradient id="firmo-flame-grad" x1="16" y1="12" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#F97316" />
+          <stop offset="50%" stopColor="#FB923C" />
+          <stop offset="100%" stopColor="#F59E0B" />
+        </linearGradient>
+
+        {/* Gloss Overlay */}
+        <linearGradient id="firmo-gloss" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.0" />
         </linearGradient>
       </defs>
 
-      {/* Rounded square background */}
-      <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#park-bg)" />
+      {/* Outer Container with Rounded Radius */}
+      <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#firmo-bg-grad)" />
+      <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#firmo-gloss)" />
+      <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="white" strokeWidth="1" strokeOpacity="0.1" />
 
-      {/* Subtle inner shadow */}
-      <rect x="2" y="2" width="60" height="60" rx="14" fill="white" opacity="0.08" />
-      <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="white" strokeWidth="1" opacity="0.15" />
-
-      {/* Stylized "P" letter */}
+      {/* Geometric Letter "F" Stem in Crisp White */}
       <path
-        d="M20 48V16h12c3.5 0 6.5 1.2 8.5 3.2S43 23.5 43 27s-1 5.8-3 7.8-5 3.2-8.5 3.2H26v10h-6z
-           M26 32.5h6c1.8 0 3.2-.6 4.2-1.6S38 28.8 38 27s-.6-3.2-1.8-4.2S33.8 21.5 32 21.5h-6V32.5z"
+        d="M18 16H44V23H26V29H38V36H26V48H18V16Z"
         fill="white"
       />
 
-      {/* Flame accent (top-right) */}
+      {/* Dynamic Flame Slash (Integrated into the F Top & Crossbars) */}
       <path
-        d="M44 8c0 0-3 4-3 7.5c0 2.5 1.5 4.5 3 4.5s3-2 3-4.5C47 12 44 8 44 8z"
-        fill="url(#park-flame)"
-        opacity="0.9"
+        d="M40 12C40 12 48 18 48 24C48 28.4 44.4 32 40 32C37.8 32 36 30.2 36 28C36 24 40 12 40 12Z"
+        fill="url(#firmo-flame-grad)"
       />
+
+      {/* Ember Spark Core Accent */}
+      <circle cx="44" cy="40" r="3" fill="#F97316" />
     </svg>
   );
 });
