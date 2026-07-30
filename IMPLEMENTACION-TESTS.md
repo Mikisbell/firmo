@@ -344,6 +344,28 @@ park/
 - ✅ Mensajes descriptivos
 - ✅ Validaciones de negocio críticas (dinero en centavos, REJECT para pagos)
 
+**¿Necesitas que implemente algún otro flujo o tipo de test?**
+
 ---
 
-**¿Necesitas que implemente algún otro flujo o tipo de test?**
+## 🤖 Playwright MCP (Web Automation & UI Debugging con IA)
+
+Además de usar Playwright para las pruebas E2E clásicas, adoptamos el uso de **Playwright MCP (Model Context Protocol)** para potenciar a los agentes de IA (como Antigravity/Cloud Code) con capacidades reales de navegación y automatización web.
+
+### Playwright MCP vs "Computer Use" Clásico
+El *Computer Use* tradicional toma capturas de pantalla, usa visión artificial para "adivinar" coordenadas (x, y) y luego mueve el mouse. Es un proceso lento, propenso a errores ante el más mínimo cambio de interfaz y extremadamente costoso en consumo de tokens.
+
+Playwright MCP interactúa directamente con el **Accessibility Tree (Árbol de Accesibilidad)** y el DOM.
+- **Determinístico:** Navega entendiendo los componentes reales (inputs, botones, links) a través de sus roles y nombres accesibles, no buscando píxeles.
+- **Más rápido y preciso:** Al interactuar a nivel de código de accesibilidad, ejecuta acciones secuenciales a gran velocidad sin necesidad de ida y vuelta visual.
+- **Menor costo:** Transmitir la estructura del accessibility tree usa una fracción de los tokens comparado con enviar imágenes de alta resolución en cada paso.
+
+### Casos de Uso
+1. **UI Debugging Avanzado:** El agente de IA puede navegar nuestro POS localmente, diagnosticar por qué un layout se rompe en móvil, detectar botones ocultos o llamadas de API fallidas en tiempo real.
+2. **Scraping y Automatización sin APIs:** Extracción de datos y automatización de flujos en plataformas de terceros (ej. SUNAT, pasarelas de pago) que no ofrecen integraciones oficiales.
+3. **Pruebas Exploratorias Dinámicas:** Permitir a la IA "jugar" con la interfaz en modo `headed` para encontrar edge cases antes de escribir el script E2E estático.
+
+### Consideraciones y Limitaciones
+- **Consumo en SPAs gigantes:** Aunque es más eficiente que procesar imágenes, el árbol de accesibilidad de una SPA muy compleja puede ser grande. Para flujos largos, los scripts de Playwright CLI siguen siendo la opción más barata.
+- **Seguridad Antibot:** Plataformas externas muy protegidas (Cloudflare estricto) podrían bloquear el navegador.
+- **Estandarización:** Cuando la IA logra automatizar un flujo complejo navegando exitosamente, la mejor práctica es convertir esos pasos en un **Skill** o script determinístico para futuras ejecuciones.

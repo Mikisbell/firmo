@@ -5,6 +5,9 @@
  * Developed by FreeCloud
  * Theme: Premium Gastronomic Operating System (OLED Navy & Warm Flame Accents)
  * Ergonomic 2-Column POS Layout (10"+ Tablets) & Optimized Mobile Touch Screen
+ * 
+ * UX Policy: DNI is an IDENTIFIER (fully visible 8-digit display).
+ *            PIN is a SECRET CREDENTIAL (masked neon dot indicators).
  */
 
 import { useState, useCallback, useEffect } from 'react';
@@ -43,11 +46,6 @@ function getRouteForRole(role: string): string {
   }
 }
 
-function maskDni(dni: string): string {
-  if (dni.length <= 4) return '•'.repeat(dni.length);
-  return `${dni.slice(0, 2)}${'•'.repeat(dni.length - 4)}${dni.slice(-2)}`;
-}
-
 // ── Numpad Ergonométrico Tactil POS ───────────────────────────────────────────
 interface NumpadProps {
   value: string;
@@ -55,13 +53,25 @@ interface NumpadProps {
   onSubmit: (currentValue: string) => void;
   maxLength: number;
   minLength: number;
+  isMasked?: boolean;
   disabled?: boolean;
   error?: string;
   label: string;
   sublabel?: string;
 }
 
-function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, error, label, sublabel }: NumpadProps) {
+function Numpad({
+  value,
+  onChange,
+  onSubmit,
+  maxLength,
+  minLength,
+  isMasked = false,
+  disabled,
+  error,
+  label,
+  sublabel,
+}: NumpadProps) {
   const handleDigit = useCallback((d: string) => {
     if (disabled || value.length >= maxLength) return;
     const next = value + d;
@@ -92,14 +102,14 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
     return () => window.removeEventListener('keydown', onKey);
   }, [handleDigit, handleBack, value, minLength, onSubmit, disabled]);
 
-  const dots = Array.from({ length: maxLength });
+  const slots = Array.from({ length: maxLength });
   const canSubmit = value.length >= minLength;
 
   return (
     <div className="flex flex-col items-center w-full max-w-md mx-auto">
       {/* Encabezado Dinámico de Usuario */}
-      <div className="text-center mb-6">
-        <h3 className="text-white text-2xl md:text-3xl font-black tracking-tight mb-1.5 drop-shadow-md">
+      <div className="text-center mb-5">
+        <h3 className="text-white text-2xl md:text-3xl font-black tracking-tight mb-1 drop-shadow-md">
           {label}
         </h3>
         {sublabel && (
@@ -109,25 +119,47 @@ function Numpad({ value, onChange, onSubmit, maxLength, minLength, disabled, err
         )}
       </div>
 
-      {/* Puntos Indicadores Brasa Neon */}
-      <div className="flex items-center justify-center gap-3.5 mb-7 h-10">
-        {dots.map((_, i) => {
-          const filled = i < value.length;
-          const required = i < minLength;
+      {/* Visualización de Entrada: Dígitos Visibles para DNI, Puntos Neón para PIN */}
+      <div className="flex items-center justify-center gap-2 sm:gap-2.5 mb-7 h-12 w-full px-2">
+        {slots.map((_, i) => {
+          const char = value[i];
+          const isCurrent = i === value.length;
+          const isFilled = i < value.length;
+
+          if (isMasked) {
+            // Modo Secret PIN: Puntos de Brasa Neón
+            return (
+              <motion.div
+                key={i}
+                animate={isFilled ? { scale: [1, 1.35, 1] } : { scale: 1 }}
+                transition={{ duration: 0.15 }}
+                className={[
+                  'transition-all duration-200',
+                  isFilled
+                    ? 'w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.9)] scale-110'
+                    : i < minLength
+                      ? 'w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-700'
+                      : 'w-3 h-3 rounded-full bg-slate-900 border border-slate-800',
+                ].join(' ')}
+              />
+            );
+          }
+
+          // Modo DNI Público: Casilleros de Dígitos Claros y Visibles
           return (
-            <motion.div
+            <div
               key={i}
-              animate={filled ? { scale: [1, 1.35, 1] } : { scale: 1 }}
-              transition={{ duration: 0.15 }}
               className={[
-                'transition-all duration-200',
-                filled
-                  ? 'w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.9)] scale-110'
-                  : required
-                    ? 'w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-700'
-                    : 'w-3 h-3 rounded-full bg-slate-900 border border-slate-800',
+                'flex-1 max-w-[44px] h-12 rounded-xl flex items-center justify-center font-mono font-black text-xl transition-all duration-200 border select-none',
+                isFilled
+                  ? 'bg-slate-900 text-orange-400 border-orange-500/50 shadow-md shadow-orange-600/10'
+                  : isCurrent
+                    ? 'bg-slate-950 text-white border-amber-400/80 animate-pulse ring-2 ring-amber-500/30'
+                    : 'bg-slate-950/80 text-slate-600 border-slate-800',
               ].join(' ')}
-            />
+            >
+              {char || ''}
+            </div>
           );
         })}
       </div>
@@ -365,10 +397,10 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
           {(phase === 'pin' || phase === 'checking_dni') && (
             <button
               onClick={backToDni}
-              className="flex items-center gap-2 text-slate-200 hover:text-white text-xs font-bold bg-slate-900 hover:bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-700/80 transition-all shadow-sm"
+              className="flex items-center gap-2 text-slate-200 hover:text-white text-xs font-bold bg-slate-900 hover:bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-700/80 transition-all shadow-sm font-mono"
             >
               <ChevronLeft className="w-4 h-4 text-orange-400" />
-              <span>CAMBIAR DNI ({maskDni(dniValue)})</span>
+              <span>CAMBIAR DNI ({dniValue})</span>
             </button>
           )}
         </div>
@@ -466,6 +498,7 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
                     onSubmit={submitDni}
                     maxLength={8}
                     minLength={8}
+                    isMasked={false}
                     error={error}
                     label="Ingresá tu DNI"
                     sublabel="Ingresá los 8 dígitos para identificar tu perfil de usuario"
@@ -495,6 +528,7 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
                       onSubmit={submitPin}
                       maxLength={6}
                       minLength={4}
+                      isMasked={true}
                       disabled={loading || (!!lockout && lockout > new Date())}
                       error={error}
                       label={employeeName ? `¡Hola, ${employeeName}!` : 'Ingresá tu clave secreta'}

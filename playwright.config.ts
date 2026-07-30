@@ -1,4 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+dotenv.config(); // Loads .env
 
 export default defineConfig({
   testDir: './e2e',
@@ -43,5 +45,6 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2 minutes for server startup
+    env: process.env as { [key: string]: string }, // Pasa las variables cargadas al Next.js server
   },
 });

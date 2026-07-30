@@ -5,7 +5,7 @@ import { applySaleEvent } from "@/src/core/projections/sale.reducer";
 import { SaleProjection } from "@/src/core/projections/types";
 import { usePosStore } from "@/src/core/store/usePosStore";
 import { useShallow } from "zustand/react/shallow";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 export function useOrder(orderId: string | null) {
     // 1. Leemos los eventos confirmados desde la réplica local (Estado del Servidor).
@@ -87,6 +87,22 @@ export function useOrder(orderId: string | null) {
 
         return state;
     }, [serverOrderState, serverReplica, localOptimisticEvents]);
+
+    // 4. Escudo Absoluto: Limpiamos los eventos de la RAM *solo* cuando 
+    // ya estamos seguros de que llegaron a la réplica de Dexie vía SSE.
+    // Esto evita Ghost Items (desaparición temporal) y Chaufa Zombies.
+    const purgeConfirmedEvents = usePosStore(state => state.purgeConfirmedEvents);
+    useEffect(() => {
+        if (!serverReplica) return;
+        const { confirmedEventIds } = serverReplica;
+        const toPurge = localOptimisticEvents
+            .filter(ev => confirmedEventIds.has(ev.event_id))
+            .map(ev => ev.event_id);
+            
+        if (toPurge.length > 0) {
+            purgeConfirmedEvents(toPurge);
+        }
+    }, [localOptimisticEvents, serverReplica, purgeConfirmedEvents]);
 
     return projectedState;
 }

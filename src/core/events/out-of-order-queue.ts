@@ -21,6 +21,7 @@ import prisma from '@/src/core/db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '@/src/core/observability/structured-logger';
 import { metrics } from '@/src/core/observability/metrics';
+import { deadLetterQueueService } from './dlq.service';
 
 const log = createLogger('out-of-order-queue');
 
@@ -43,7 +44,7 @@ interface QueuedEvent {
  */
 class OutOfOrderQueue {
   private queue: Map<string, QueuedEvent[]> = new Map();
-  private readonly TIMEOUT_MS = 60_000; // 60 seconds
+  private readonly TIMEOUT_MS = 300_000; // 5 minutos (offline-first grace period)
   private readonly ALERT_THRESHOLD = 10;
   private recovered = false;
 
@@ -342,6 +343,7 @@ export function startCleanupJob(): void {
   cleanupInterval = setInterval(async () => {
     try {
       await outOfOrderQueue.cleanupExpired();
+      await deadLetterQueueService.drainDLQ(50);
     } catch (e) {
       log.error('Error en trabajo de limpieza', e instanceof Error ? e : new Error(String(e)));
     }

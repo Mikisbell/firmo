@@ -14,9 +14,11 @@ interface PosState {
   unpushedEventsCount: number;
   poisonPillsByAggregate: Record<string, Array<{ eventId: string; error: string }>>;
   localOptimisticEvents: LocalEvent[];
+  recent_processed_event_ids: string[];
 
   // Mutaciones puras (Síncronas O(1))
   applySyncBatch: (payload: SyncBatchUpdate['payload']) => void;
+  purgeConfirmedEvents: (eventIds: string[]) => void;
   incrementUnpushedCount: () => void;
   
   // Acciones compuestas (Persistencia + Mutación de Memoria)
@@ -29,6 +31,7 @@ export const usePosStore = create<PosState>((set) => ({
   unpushedEventsCount: 0,
   poisonPillsByAggregate: {},
   localOptimisticEvents: [],
+  recent_processed_event_ids: [],
 
   // Reducer puro O(N), ciego a la red y a los Workers
   applySyncBatch: (payload) => {
@@ -47,20 +50,34 @@ export const usePosStore = create<PosState>((set) => ({
         }
       }
 
-      // SRE Opción A: Flag the poison pills and remove synced events from RAM
-      let nextEvents = state.localOptimisticEvents.filter(e => !synced_event_ids.includes(e.event_id));
+      // Escudo Absoluto: No borramos los eventos optimistas de la RAM inmediatamente
+      // para evitar el "Ghost Item" (flicker). Solo los marcamos como synced.
+      // useOrder.ts los filtrará y llamará a purgeConfirmedEvents cuando lleguen por SSE.
+      let nextEvents = state.localOptimisticEvents.map(e => 
+        synced_event_ids.includes(e.event_id) ? { ...e, sync_status: 'synced' as const } : e
+      );
+
       for (const pill of poison_pills) {
         nextEvents = nextEvents.map(e => 
           e.event_id === pill.event_id ? { ...e, sync_status: 'poison_pill' as const, last_error: pill.error } : e
         );
       }
 
+      const newRecent = [...state.recent_processed_event_ids, ...synced_event_ids].slice(-200);
+
       return {
         unpushedEventsCount: Math.max(0, state.unpushedEventsCount - synced_event_ids.length),
         poisonPillsByAggregate: newPoisonPills,
-        localOptimisticEvents: nextEvents
+        localOptimisticEvents: nextEvents,
+        recent_processed_event_ids: newRecent
       };
     });
+  },
+
+  purgeConfirmedEvents: (eventIds) => {
+    set((state) => ({
+      localOptimisticEvents: state.localOptimisticEvents.filter(e => !eventIds.includes(e.event_id))
+    }));
   },
 
   incrementUnpushedCount: () => {

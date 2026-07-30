@@ -11,7 +11,7 @@ import { logger } from '@/src/core/observability/logger';
 
 // ============ TYPES ============
 
-export type SyncStatus = 'pending' | 'syncing' | 'failed' | 'poison_pill';
+export type SyncStatus = 'pending' | 'syncing' | 'failed' | 'poison_pill' | 'synced';
 
 export interface LocalEvent {
   id?: number;              // Auto-increment local
