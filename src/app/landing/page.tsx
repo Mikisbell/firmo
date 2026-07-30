@@ -175,8 +175,8 @@ function Navbar() {
   return (
     <header className="w-full border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 left-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-3.5">
-          <FirmoLogo size={42} />
+        <div className="flex items-center gap-4">
+          <FirmoLogo size={54} />
           <div className="flex flex-col justify-center">
             <span className="font-black text-xl tracking-tight text-slate-900 leading-none">
               FIRMO <span className="text-orange-600">POS</span>

@@ -8,24 +8,22 @@ interface FirmoLogoProps {
 
 /**
  * FIRMO POS Official Brand Logo.
- * Displays the official /images/logo/logo.png asset inside a sleek dark badge
- * to ensure 100% symmetry and contrast on both light and dark UI surfaces.
+ * Displays the official /images/logo/logo.png asset cleanly with zero background wrapper,
+ * scaled to fit the text height symmetrically.
  */
 export const FirmoLogo = React.memo(function FirmoLogo({
-  size = 40,
+  size = 52,
   className = '',
   alt = 'FIRMO POS',
 }: FirmoLogoProps) {
   return (
-    <div
-      className={`inline-flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl p-1.5 shadow-sm shrink-0 overflow-hidden ${className}`}
+    <img
+      src="/images/logo/logo.png"
+      alt={alt}
+      width={size}
+      height={size}
+      className={`object-contain block shrink-0 ${className}`}
       style={{ width: `${size}px`, height: `${size}px` }}
-    >
-      <img
-        src="/images/logo/logo.png"
-        alt={alt}
-        className="w-full h-full object-contain block"
-      />
-    </div>
+    />
   );
 });
