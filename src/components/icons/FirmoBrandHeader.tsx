@@ -10,9 +10,9 @@ interface FirmoBrandHeaderProps {
 
 /**
  * FIRMO Official Brand Composition Header.
- * Recreates the exact layout:
+ * Winner Tagline (SEO #1 & Maximum B2B Conversion):
  * [Logo F] FIRMO
- *         [Bell Icon] SISTEMA POS PARA COMIDA [Fork/Knife Icon]
+ *         [Bell Icon] SISTEMA POS PARA RESTAURANTES [Fork/Knife Icon]
  */
 export const FirmoBrandHeader = React.memo(function FirmoBrandHeader({
   logoSize = 56,
@@ -47,7 +47,7 @@ export const FirmoBrandHeader = React.memo(function FirmoBrandHeader({
               isDark ? 'text-slate-300' : 'text-slate-700',
             ].join(' ')}
           >
-            SISTEMA POS PARA COMIDA
+            SISTEMA POS PARA RESTAURANTES
           </span>
           <Utensils className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-600'} shrink-0`} />
         </div>
