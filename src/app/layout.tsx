@@ -9,65 +9,64 @@ import { ErrorBoundary } from "@/src/components/ErrorBoundary";
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 export const viewport: Viewport = {
-    themeColor: "#09090b",
-    viewportFit: "cover",
+  themeColor: "#0A0E14",
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
+  title: "FIRMO POS — By FreeCloud",
+  description: "Sistema POS offline-first desarrollado por FreeCloud para pollerías y restaurantes peruanos. Facturación SUNAT, multi-terminal y KDS cocina.",
+  manifest: "/manifest.json",
+  authors: [{ name: "FreeCloud" }],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
     title: "FIRMO POS",
-    description: "Sistema POS offline-first para pollerías y parrilleras peruanas. Facturación SUNAT, multi-terminal, KDS cocina, gestión de personal.",
-    manifest: "/manifest.json",
-    appleWebApp: {
-        capable: true,
-        statusBarStyle: "black-translucent",
-        title: "FIRMO POS",
-    },
-    icons: {
-        icon: [
-            { url: "/images/logo/logo.png", type: "image/png" },
-        ],
-        shortcut: "/images/logo/logo.png",
-        apple: "/images/logo/logo.png",
-    },
-    openGraph: {
-        title: "FIRMO POS",
-        description: "Sistema POS offline-first para pollerías y parrilleras peruanas",
-        siteName: "FIRMO POS",
-        type: "website",
-        locale: "es_PE",
-    },
-    twitter: {
-        card: "summary_large_image",
-        title: "FIRMO POS",
-        description: "Sistema POS offline-first para pollerías y parrilleras peruanas",
-    },
+  },
+  icons: {
+    icon: [
+      { url: "/images/logo/logo-freecloud.ico", type: "image/x-icon" },
+      { url: "/images/logo/logo.png", type: "image/png" },
+    ],
+    shortcut: "/images/logo/logo-freecloud.ico",
+    apple: "/images/logo/logo.png",
+  },
+  openGraph: {
+    title: "FIRMO POS — By FreeCloud",
+    description: "Sistema POS offline-first desarrollado por FreeCloud para pollerías y restaurantes peruanos",
+    siteName: "FIRMO POS",
+    type: "website",
+    locale: "es_PE",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FIRMO POS — By FreeCloud",
+    description: "Sistema POS offline-first desarrollado por FreeCloud para pollerías y restaurantes peruanos",
+  },
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return (
-        <html lang="es" className={`dark ${inter.variable}`} suppressHydrationWarning>
-            <head>
-                {/* Preconnect to external domains for faster resource loading */}
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                
-                {/* DNS prefetch for external services */}
-                <link rel="dns-prefetch" href="https://vercel.live" />
-            </head>
-            <body className={`${inter.className} bg-zinc-950 text-white antialiased`}>
-                <ErrorBoundary>
-                    <SWRProvider>
-                        <PWAProvider>
-                            {children}
-                        </PWAProvider>
-                        <Toaster position="top-center" richColors theme="dark" />
-                    </SWRProvider>
-                </ErrorBoundary>
-            </body>
-        </html>
-    );
+  return (
+    <html lang="es" className={`dark ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://vercel.live" />
+      </head>
+      <body className={`${inter.className} bg-[#0A0E14] text-white antialiased`}>
+        <ErrorBoundary>
+          <SWRProvider>
+            <PWAProvider>
+              {children}
+            </PWAProvider>
+            <Toaster position="top-center" richColors theme="dark" />
+          </SWRProvider>
+        </ErrorBoundary>
+      </body>
+    </html>
+  );
 }

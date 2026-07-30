@@ -2,6 +2,7 @@
 
 /**
  * UnifiedLogin — Enterprise POS Touchscreen Login Screen
+ * Developed by FreeCloud
  * Theme: Premium Gastronomic Operating System (OLED Navy & Warm Flame Accents)
  * Ergonomic 2-Column POS Layout (10"+ Tablets) & Optimized Mobile Touch Screen
  */
@@ -346,7 +347,12 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
 
       {/* Top Header Bar */}
       <header className="w-full flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-[#0A0E14]/90 backdrop-blur-xl relative z-20">
-        <FirmoBrandHeader logoSize={40} theme="dark" />
+        <div className="flex items-center gap-3">
+          <FirmoBrandHeader logoSize={40} theme="dark" />
+          <span className="hidden sm:inline-block text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md">
+            BY FREECLOUD
+          </span>
+        </div>
 
         <div className="flex items-center gap-4">
           {currentTime && (
@@ -395,8 +401,6 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
                 </div>
               </div>
             </div>
-
-
           </div>
 
           <div className="space-y-3.5">
@@ -510,7 +514,7 @@ export function UnifiedLogin({ onCajaSetup }: { onCajaSetup: () => void }) {
 
       {/* Minimal Footer */}
       <footer className="w-full py-3.5 px-6 text-center text-slate-500 text-xs font-mono border-t border-slate-800/80 bg-[#0A0E14] relative z-20">
-        <span>FIRMO POS &copy; {new Date().getFullYear()} — Gastronomic Operating System</span>
+        <span>FIRMO POS &copy; {new Date().getFullYear()} — Desarrollado por <strong className="text-slate-300">FreeCloud</strong></span>
       </footer>
     </div>
   );

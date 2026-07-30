@@ -2,6 +2,7 @@
 
 /**
  * Landing Page — FIRMO POS
+ * Developed by FreeCloud
  * 
  * Theme: "SISTEMA OPERATIVO GASTRONÓMICO"
  * Redesign: Split Hero, Bento Grid Features, Social Proof & Interactive Product Showcase
@@ -222,7 +223,12 @@ function Navbar() {
   return (
     <header className="w-full border-b border-slate-800/80 bg-[#0A0E14]/90 backdrop-blur-xl sticky top-0 left-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
-        <FirmoBrandHeader logoSize={44} theme="dark" />
+        <div className="flex items-center gap-3">
+          <FirmoBrandHeader logoSize={44} theme="dark" />
+          <span className="hidden sm:inline-block text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md">
+            BY FREECLOUD
+          </span>
+        </div>
 
         <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider text-slate-300 uppercase">
           <a href="#inicio" className="hover:text-orange-400 transition-colors">Inicio</a>
@@ -307,7 +313,7 @@ function HeroSection() {
             {/* Tagline Badge */}
             <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-full px-3.5 py-1.5 text-xs font-bold tracking-wide uppercase mb-4">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-              SISTEMA OPERATIVO GASTRONÓMICO
+              SISTEMA OPERATIVO GASTRONÓMICO — BY FREECLOUD
             </div>
 
             {/* Headline */}
@@ -320,7 +326,7 @@ function HeroSection() {
 
             {/* Sub-headline */}
             <p className="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
-              Caja POS ultra-rápida, comanderas de mozo, cocina KDS y facturación SUNAT en un solo sistema resiliente que nunca se detiene en hora punta.
+              Caja POS ultra-rápida, comanderas de mozo, cocina KDS y facturación SUNAT en un solo sistema resiliente desarrollado por FreeCloud que nunca se detiene en hora punta.
             </p>
 
             {/* CTA Buttons */}
@@ -369,7 +375,7 @@ function HeroSection() {
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/10 via-transparent to-amber-500/10 opacity-60 pointer-events-none" />
             <Image
               src="/images/hero-mockup.png"
-              alt="FIRMO POS Terminal Software Interface"
+              alt="FIRMO POS Terminal Software Interface by FreeCloud"
               width={640}
               height={480}
               priority
@@ -720,7 +726,7 @@ export default function LandingPage() {
         <ContactSection />
       </main>
       <footer className="w-full py-6 px-8 text-center text-slate-500 text-xs font-mono border-t border-slate-800 bg-[#0A0E14]">
-        <span>FIRMO POS &copy; {new Date().getFullYear()} — Sistema Operativo Gastronómico para Restaurantes y Pollerías</span>
+        <span>FIRMO POS &copy; {new Date().getFullYear()} — Desarrollado por <strong className="text-slate-300">FreeCloud</strong>. Todos los derechos reservados.</span>
       </footer>
     </div>
   );
