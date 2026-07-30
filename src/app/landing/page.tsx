@@ -3,70 +3,118 @@
 /**
  * Landing Page — FIRMO POS
  * 
- * Swiss Design System & Compact Landing Architecture
- * (Grid discipline, quiet typography, mathematical whitespace, high-craft anti-generic B2B UI)
+ * Kaizen (改善) Philosophy: Continuous Improvement, Zero Waste, Operational Precision.
+ * Best of Toast POS (Operations), Square (Visual Clarity), Foodics (Interactive Previews), Lightspeed (Stock Control).
  */
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   WifiOff, Monitor, Receipt, Package,
   ChefHat, Fingerprint, Users, TrendingUp,
-  CheckCircle2, ArrowRight, Send, Menu, X, ShieldCheck, Zap
+  CheckCircle2, ArrowRight, Send, Menu, X, ShieldCheck, Zap,
+  Smartphone, Clock, SlidersHorizontal
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { FirmoLogo, WhatsAppIcon } from '@/src/components/icons';
 
-const FEATURES = [
+// ============================================================================
+// Interactive Module Demos (Kaizen Precision)
+// ============================================================================
+
+const MODULE_PREVIEWS = [
   {
-    code: '01',
-    icon: WifiOff,
-    title: 'Arquitectura Offline-First',
-    desc: 'La terminal sigue cobrando e imprimiendo comprobantes aunque caiga el internet de la ciudad. Sincronización automática al volver en línea.',
-  },
-  {
-    code: '02',
-    icon: Receipt,
-    title: 'Facturación SUNAT en 1s',
-    desc: 'Emisión instantánea de boletas y facturas electrónicas conectada a la OSE/PSE oficial. Cumplimiento tributario al 100%.',
-  },
-  {
-    code: '03',
-    icon: ChefHat,
-    title: 'Pantalla KDS Cocina & Parrilla',
-    desc: 'Despacho de comandas por tiempos y estaciones en tiempo real. Alarmas automáticas de demora por plato.',
-  },
-  {
-    code: '04',
-    icon: Package,
-    title: 'Control de Insumos & Auto-86',
-    desc: 'Descuento automático de stock de pollo, papas y aceite por cada plato vendido. Alerta de agotado inmediata.',
-  },
-  {
-    code: '05',
-    icon: Fingerprint,
-    title: 'Biometría & Anti-Fraude',
-    desc: 'Inicio de sesión biométrico WebAuthn, auto-bloqueo por inactividad y autorización de supervisor para anulaciones.',
-  },
-  {
-    code: '06',
+    id: 'pos',
+    name: 'Caja Principal (POS)',
     icon: Monitor,
-    title: 'Vistas Multi-Estación',
-    desc: 'Interfaces optimizadas ergonómicamente para Caja Principal, Comandera de Salón, Cocina KDS y Delivery.',
+    tagline: 'Cobro ultrarrápido y facturación SUNAT en 1 segundo',
+    stats: [
+      { label: 'Tiempo de Boleta', val: '0.8s' },
+      { label: 'Operación sin Red', val: '100% Offline' },
+      { label: 'Metodos de Pago', val: 'Efectivo / Yape / Plin / Tarjeta' },
+    ],
+    items: [
+      { qty: 1, name: '1/2 Pollo a la Brasa + Papas + Ensalada', price: 'S/. 38.00' },
+      { qty: 2, name: 'Inca Kola 1.5L Retornable', price: 'S/. 18.00' },
+      { qty: 1, name: 'Porción Porción Anticuchos (3 palitos)', price: 'S/. 24.00' },
+    ],
+    total: 'S/. 80.00',
   },
   {
-    code: '07',
-    icon: Users,
-    title: 'Gestión de Personal',
-    desc: 'Asistencia, control de turnos por mozo, reparto de propinas y liquidación de nómina integrada.',
+    id: 'waiter',
+    name: 'Comandera de Mozo',
+    icon: Smartphone,
+    tagline: 'Toma de pedidos en mesa conectada instantáneamente a cocina',
+    stats: [
+      { label: 'Envío a Cocina', val: '< 0.2s' },
+      { label: 'Ergonomía Táctil', val: 'Modo 1 Mano' },
+      { label: 'Gestión de Mesas', val: 'Mapa en Vivo' },
+    ],
+    items: [
+      { qty: 1, name: 'Mesa 08 — 4 Personas', price: 'En Atención' },
+      { qty: 1, name: '1/4 Pollo Parte Pecho (Papas crujientes)', price: 'Marchando' },
+      { qty: 2, name: 'Chicha Morada Jarra 1L', price: 'Servido' },
+    ],
+    total: 'Mesa Activa',
   },
   {
-    code: '08',
-    icon: TrendingUp,
-    title: 'Analítica de Ventas en Vivo',
-    desc: 'Dashboard con KPIs en tiempo real: ticket promedio, platos más vendidos y distribución de ingresos por hora.',
+    id: 'kds',
+    name: 'Pantalla KDS Cocina',
+    icon: ChefHat,
+    tagline: 'Despacho sin papeles, tiempos por plato y alerta por demoras',
+    stats: [
+      { label: 'Ahorro de Papel', val: '100% Digital' },
+      { label: 'Alerta por Demora', val: ' > 12 mins' },
+      { label: 'Filtro por Estación', val: 'Horno / Parrilla / Fríos' },
+    ],
+    items: [
+      { qty: 2, name: 'ORDEN #104 — Horno Principal', price: 'Tiempo: 04:12 min' },
+      { qty: 1, name: '1 Pollo Entero (Bien Dorado)', price: 'EN PREPARACIÓN' },
+      { qty: 1, name: 'Mollejitas a la Parrilla', price: 'LISTO PARA SERVIR' },
+    ],
+    total: '3 Platos en Marcha',
   },
-] as const;
+  {
+    id: 'inventory',
+    name: 'Control de Stock FEFO',
+    tagline: 'Auditoría exacta de insumos clave y mermas en tiempo real',
+    icon: Package,
+    stats: [
+      { label: 'Auto-86 Agotado', val: 'Automático' },
+      { label: 'Mermas Registradas', val: '0% Pérdidas' },
+      { label: 'Rotación Insumos', val: 'Sistema FEFO' },
+    ],
+    items: [
+      { qty: 45, name: 'Pollos Frescos (Enteros)', price: 'Stock Normal' },
+      { qty: 120, name: 'Sacos de Papa Canchán (Kg)', price: 'Stock Ok' },
+      { qty: 3, name: 'Aceite Vegetal Balde 18L', price: '⚠️ Reordenar' },
+    ],
+    total: 'Auditoría Ok',
+  },
+];
+
+const KAIZEN_PILLARS = [
+  {
+    num: '01',
+    title: 'Cero Desperdicio Operativo (Muda)',
+    desc: 'Elimina las comandas perdidas de papel, los errores de digitación en caja y el tiempo muerto de los mozos caminando a la cocina.',
+  },
+  {
+    num: '02',
+    title: 'Resiliencia Extrema Offline',
+    desc: 'Si la fibra óptica se corta o la nube falla, la caja sigue cobrando e imprimiendo comprobantes al instante sin perder un solo centavo.',
+  },
+  {
+    num: '03',
+    title: 'Protección Anti-Fraude Criptográfica',
+    desc: 'Bloqueo automático por inactividad, huella biométrica WebAuthn y validación de supervisor para anulaciones y cortesías.',
+  },
+  {
+    num: '04',
+    title: 'Facturación SUNAT en 1 Segundo',
+    desc: 'Conexión directa a la OSE/PSE oficial para emisión instantánea de boletas y facturas sin cuellos de botella.',
+  },
+];
 
 const PRICING = [
   {
@@ -74,11 +122,11 @@ const PRICING = [
     name: 'Básico',
     price: '149',
     period: '/ mes',
-    desc: 'Para pollerías y locales de 1 a 2 cajas',
+    desc: 'Para pollerías locales con 1-2 cajas',
     features: [
       '1 Terminal POS Táctil',
       'Facturación SUNAT Ilimitada',
-      'Modo Offline Resiliente',
+      'Modo 100% Offline Resiliente',
       'Inventario Básico de Insumos',
       'Soporte directo por WhatsApp',
     ],
@@ -86,69 +134,62 @@ const PRICING = [
     cta: 'Solicitar Demo',
   },
   {
-    tag: 'MÁS POPULAR',
+    tag: 'RECOMENDADO KAIZEN',
     name: 'Pro',
     price: '299',
     period: '/ mes',
-    desc: 'Para restaurantes en crecimiento con salón',
+    desc: 'Para pollerías y restaurantes en crecimiento con salón',
     features: [
-      'Hasta 5 Terminales (Caja, Mozos, Cocina)',
+      'Hasta 5 Terminales (Caja, Mozos, Cocina KDS)',
       'Facturación SUNAT + Módulo Delivery',
-      'Pantalla KDS Cocina & Barra',
+      'Pantalla KDS Cocina & Parrilla',
       'Autenticación Biométrica & Anti-Fraude',
       'Gestión de Personal & Propinas',
-      'Reportes & Analítica Ejecutiva',
+      'Reportes & Analítica en Tiempo Real',
     ],
     highlight: true,
     cta: 'Probar Plan Pro',
   },
   {
-    tag: 'CADENAS',
+    tag: 'FRANQUICIAS',
     name: 'Enterprise',
-    price: 'A Medida',
+    price: 'Personalizado',
     period: '',
-    desc: 'Para franquicias y grupos gastronómicos',
+    desc: 'Para cadenas de pollerías y franquicias multi-local',
     features: [
       'Terminales & Locales Ilimitados',
       'Administración Multi-Local Centralizada',
       'API REST & Webhooks para Integraciones',
-      'Registro Criptográfico Inalterable de Auditoría',
+      'Auditoría Criptográfica de Eventos',
       'Garantía SLA de Disponibilidad 99.99%',
       'Gerente de Cuenta Dedicado',
     ],
     highlight: false,
     cta: 'Contactar Ventas',
   },
-] as const;
-
-const METRICS = [
-  { label: 'DISPONIBILIDAD OPERATIVA', value: '99.99%' },
-  { label: 'TIEMPO EMISIÓN SUNAT', value: '< 1.0s' },
-  { label: 'LATENCIA DE COBRO OFFLINE', value: '0.0ms' },
-  { label: 'CUMPLIMIENTO TRIBUTARIO', value: '100%' },
-] as const;
+];
 
 function Navbar() {
   const [mobileMenu, setMobileMenu] = useState(false);
 
   return (
     <header className="w-full border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 left-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-18 sm:h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <FirmoLogo size={30} />
+          <FirmoLogo size={32} />
           <div className="flex flex-col">
             <span className="font-black text-xl tracking-tight text-slate-900 leading-none">
               FIRMO <span className="text-orange-600">POS</span>
             </span>
-            <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase mt-0.5">
-              Gastronomic Operating System
+            <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase mt-1">
+              Kaizen Operating System
             </span>
           </div>
         </div>
 
         <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider text-slate-600 uppercase">
-          <a href="#features" className="hover:text-orange-600 transition-colors">Funcionalidades</a>
-          <a href="#metrics" className="hover:text-orange-600 transition-colors">Métricas</a>
+          <a href="#demo-interactive" className="hover:text-orange-600 transition-colors">Simulador</a>
+          <a href="#kaizen" className="hover:text-orange-600 transition-colors">Filosofía</a>
           <a href="#pricing" className="hover:text-orange-600 transition-colors">Planes</a>
           <a href="#contact" className="hover:text-orange-600 transition-colors">Contacto</a>
         </nav>
@@ -161,11 +202,12 @@ function Navbar() {
             Ingresar al POS
           </a>
           <a
-            href="https://wa.me/51900000000?text=Hola,%20deseo%20una%20demostraci%C3%B3n%20gratuita%20de%20FIRMO%20POS"
+            href="https://wa.me/51900000000?text=Hola,%20deseo%20una%20demostraci%C3%B3n%20de%20FIRMO%20POS"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-xs font-black tracking-wider uppercase text-white bg-orange-600 hover:bg-orange-700 px-4 py-2.5 rounded-lg shadow-sm transition-all"
           >
+            <WhatsAppIcon size={16} />
             Demo WhatsApp
           </a>
         </div>
@@ -181,8 +223,8 @@ function Navbar() {
 
       {mobileMenu && (
         <div className="sm:hidden border-b border-slate-200 bg-white px-6 py-5 space-y-4 font-bold text-xs uppercase tracking-wider text-slate-700">
-          <a href="#features" onClick={() => setMobileMenu(false)} className="block py-1">Funcionalidades</a>
-          <a href="#metrics" onClick={() => setMobileMenu(false)} className="block py-1">Métricas</a>
+          <a href="#demo-interactive" onClick={() => setMobileMenu(false)} className="block py-1">Simulador</a>
+          <a href="#kaizen" onClick={() => setMobileMenu(false)} className="block py-1">Filosofía</a>
           <a href="#pricing" onClick={() => setMobileMenu(false)} className="block py-1">Planes</a>
           <a href="#contact" onClick={() => setMobileMenu(false)} className="block py-1">Contacto</a>
           <div className="pt-2 flex flex-col gap-2">
@@ -207,26 +249,24 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-8 bg-slate-50/50 border-b border-slate-200">
+    <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-20 px-4 sm:px-8 bg-slate-50/60 border-b border-slate-200">
       <div className="max-w-6xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {/* Badge Suizo Ponderado */}
           <div className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-800 rounded-full px-4 py-1.5 text-xs font-bold tracking-wide uppercase mb-6 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-orange-600 animate-pulse" />
-            Sistema POS para Pollerías y Parrilleras en Perú
+            Mejora Continua (Kaizen) para Pollerías y Parrilleras
           </div>
 
-          {/* Titular Retenido & Tipografía Suiza */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08] max-w-4xl mx-auto">
-            El sistema punto de venta diseñado para la velocidad de tu <span className="text-orange-600">Pollería</span>.
+            La precisión del sistema operativo diseñado para tu <span className="text-orange-600">Pollería</span>.
           </h1>
 
           <p className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            FIRMO POS combina estabilidad offline-first con la emisión rápida de boletas SUNAT, control de cocina KDS y protección anti-fraude en caja.
+            Elimina el desperdicio operativo, acelera la emisión de boletas SUNAT y protege tu caja con resiliencia 100% offline.
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3.5 justify-center items-center">
@@ -237,7 +277,7 @@ function Hero() {
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-8 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all"
             >
               <WhatsAppIcon size={18} />
-              Solicitar Demo Gratis
+              Solicitar Demo por WhatsApp
             </a>
 
             <a
@@ -254,60 +294,127 @@ function Hero() {
   );
 }
 
-function MetricsSection() {
+function InteractiveDemo() {
+  const [activeTab, setActiveTab] = useState(MODULE_PREVIEWS[0].id);
+  const currentModule = MODULE_PREVIEWS.find(m => m.id === activeTab) || MODULE_PREVIEWS[0];
+
   return (
-    <section id="metrics" className="py-12 bg-white border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {METRICS.map((m) => (
-            <div key={m.label} className="p-4 border-r last:border-r-0 border-slate-100">
-              <div className="text-2xl sm:text-4xl font-black text-slate-900 font-mono tracking-tight">{m.value}</div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{m.label}</div>
-            </div>
-          ))}
+    <section id="demo-interactive" className="py-16 sm:py-24 px-4 sm:px-8 bg-white border-b border-slate-200">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-2">EXPERIENCIA INTERACTIVA</span>
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Explora las Estaciones del Sistema
+          </h2>
+          <p className="mt-3 text-slate-500 text-xs sm:text-sm font-medium">
+            Selecciona un módulo para inspeccionar su interfaz y métricas operativas
+          </p>
         </div>
+
+        {/* Tab Selector */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8 border-b border-slate-200 pb-4">
+          {MODULE_PREVIEWS.map((m) => {
+            const Icon = m.icon;
+            const isActive = m.id === activeTab;
+            return (
+              <button
+                key={m.id}
+                onClick={() => setActiveTab(m.id)}
+                className={[
+                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
+                  isActive
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600',
+                ].join(' ')}
+              >
+                <Icon className="w-4 h-4" />
+                {m.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Module Screen Preview Sandbox */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentModule.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-xl"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6 mb-6">
+              <div>
+                <span className="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-widest block mb-1">MÓDULO SELECCIONADO</span>
+                <h3 className="text-xl sm:text-2xl font-black">{currentModule.name}</h3>
+                <p className="text-slate-400 text-xs mt-1">{currentModule.tagline}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-xs">
+                {currentModule.stats.map(s => (
+                  <div key={s.label} className="bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
+                    <span className="text-slate-400 text-[10px] uppercase font-mono block">{s.label}</span>
+                    <span className="text-orange-400 font-bold font-mono">{s.val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Simulated Live Orders Table */}
+            <div className="bg-zinc-950 border border-slate-800 rounded-xl p-4 font-mono text-xs">
+              <div className="flex justify-between items-center text-slate-500 border-b border-slate-800 pb-2 mb-3 font-bold uppercase">
+                <span>Cant / Insumo</span>
+                <span>Estado</span>
+              </div>
+              <div className="space-y-2.5">
+                {currentModule.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center border-b border-slate-900 pb-2 text-slate-200">
+                    <span className="flex items-center gap-2">
+                      <strong className="text-orange-400">[{item.qty}x]</strong> {item.name}
+                    </span>
+                    <span className="text-emerald-400 font-bold">{item.price}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-sm font-bold text-white">
+                <span>ESTADO DE OPERACIÓN</span>
+                <span className="text-orange-400">{currentModule.total}</span>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );
 }
 
-function FeaturesSection() {
+function KaizenPillarsSection() {
   return (
-    <section id="features" className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/30 border-b border-slate-200">
+    <section id="kaizen" className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/50 border-b border-slate-200">
       <div className="max-w-7xl mx-auto">
         <div className="mb-14 text-left border-b border-slate-200 pb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <span className="text-xs font-bold text-orange-600 uppercase tracking-widest block mb-1">Módulos Especializados</span>
+            <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-1">FILOSOFÍA KAIZEN (改善)</span>
             <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Ingeniería Operativa para Restaurantes
+              Los 4 Pilares de la Excelencia Operativa
             </h2>
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm max-w-md font-medium">
-            Componentes desacoplados diseñados para resistir el alto tráfico en cajas, salón y cocina.
+          <p className="text-slate-500 text-xs sm:text-sm font-medium max-w-md">
+            Optimizaciones pequeñas e incesantes para garantizar velocidad y cero pérdidas en tu local.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURES.map((f) => {
-            const Icon = f.icon;
-            return (
-              <div
-                key={f.code}
-                className="bg-white border border-slate-200 rounded-xl p-6 hover:border-slate-400 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <span className="font-mono text-xs font-bold text-slate-300">{f.code}</span>
-                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
-                      <Icon className="w-4 h-4 text-slate-800" />
-                    </div>
-                  </div>
-                  <h3 className="text-slate-900 font-bold text-base mb-2">{f.title}</h3>
-                  <p className="text-slate-600 text-xs leading-relaxed font-normal">{f.desc}</p>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {KAIZEN_PILLARS.map(p => (
+            <div key={p.num} className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 hover:border-slate-400 transition-all flex gap-5">
+              <span className="font-mono text-2xl font-black text-orange-600 leading-none">{p.num}</span>
+              <div>
+                <h3 className="text-slate-900 font-bold text-lg mb-2">{p.title}</h3>
+                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-normal">{p.desc}</p>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -320,13 +427,13 @@ function PricingSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-14 text-left border-b border-slate-200 pb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <span className="text-xs font-bold text-orange-600 uppercase tracking-widest block mb-1">Inversión Transparente</span>
+            <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-1">INVERSIÓN TRANSPARENTE</span>
             <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
               Planes en Soles Peruanos
             </h2>
           </div>
           <p className="text-slate-500 text-xs sm:text-sm font-medium">
-            Sin contratos forzados ni cobro de comisiones por ventas.
+            Sin comisiones por venta ni contratos de permanencia.
           </p>
         </div>
 
@@ -400,12 +507,12 @@ function ContactSection() {
   return (
     <section id="contact" className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/50">
       <div className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center shadow-xs">
-        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-2">DEMOSTRACIÓN GUIADA</span>
+        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-2">DEMOSTRACIÓN GUIADA KAIZEN</span>
         <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mb-3">
           Equipa tu Pollería con FIRMO POS
         </h2>
         <p className="text-slate-500 text-xs sm:text-sm font-medium max-w-xl mx-auto mb-8">
-          Déjanos los datos de tu local y te agendamos una prueba guiada en vivo.
+          Déjanos los datos de tu local y agendamos una prueba guiada en vivo.
         </p>
 
         {submitted ? (
@@ -447,13 +554,13 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <Hero />
-        <MetricsSection />
-        <FeaturesSection />
+        <InteractiveDemo />
+        <KaizenPillarsSection />
         <PricingSection />
         <ContactSection />
       </main>
       <footer className="w-full py-6 px-8 text-center text-slate-400 text-xs font-mono border-t border-slate-200 bg-white">
-        <span>FIRMO POS &copy; {new Date().getFullYear()} — Gastronomic Operating System for Peruvian Restaurants</span>
+        <span>FIRMO POS &copy; {new Date().getFullYear()} — Kaizen Operating System for Peruvian Restaurants</span>
       </footer>
     </div>
   );
