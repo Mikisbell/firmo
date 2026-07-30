@@ -24,11 +24,10 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: "/icon.svg", type: "image/svg+xml" },
-            { url: "/images/favicon.ico", sizes: "any" },
-            { url: "/images/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+            { url: "/images/logo/logo.png", type: "image/png" },
         ],
-        apple: "/images/apple-touch-icon.png",
+        shortcut: "/images/logo/logo.png",
+        apple: "/images/logo/logo.png",
     },
     openGraph: {
         title: "FIRMO POS",
