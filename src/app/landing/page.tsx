@@ -3,8 +3,8 @@
 /**
  * Landing Page — FIRMO POS
  * 
- * Kaizen (改善) Philosophy: Continuous Improvement, Zero Waste, Operational Precision.
- * Best of Toast POS (Operations), Square (Visual Clarity), Foodics (Interactive Previews), Lightspeed (Stock Control).
+ * Theme: "SISTEMA OPERATIVO GASTRONÓMICO"
+ * Hero: "El Ecosistema de Control Unificado" (B2B Executive Enterprise Architecture)
  */
 
 import { useState } from 'react';
@@ -13,13 +13,141 @@ import {
   WifiOff, Monitor, Receipt, Package,
   ChefHat, Fingerprint, Users, TrendingUp,
   CheckCircle2, ArrowRight, Send, Menu, X, ShieldCheck, Zap,
-  Smartphone, Clock, SlidersHorizontal
+  Smartphone, Clock, CreditCard, Shield, Lock, Activity
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { FirmoLogo, FirmoBrandHeader, WhatsAppIcon } from '@/src/components/icons';
 
 // ============================================================================
-// Interactive Module Demos (Kaizen Precision)
+// Interactive Ecosystem Node Graph (The Operating System in Action)
+// ============================================================================
+
+function EcosystemVisual() {
+  const [activeNode, setActiveNode] = useState<string | null>('pos');
+
+  const NODES = [
+    {
+      id: 'pos',
+      title: 'Caja Principal (POS)',
+      sub: 'Motor Central de Venta',
+      status: '100% Offline-First',
+      icon: Monitor,
+      pos: 'col-span-2 md:col-span-1 border-orange-500/50 bg-slate-900/90 shadow-xl shadow-orange-500/10',
+    },
+    {
+      id: 'waiter',
+      title: 'Comanderas de Mozo',
+      sub: 'Toma de Pedido en Mesa',
+      status: 'Sincronizado < 0.2s',
+      icon: Smartphone,
+      pos: 'bg-slate-900/70 border-slate-800',
+    },
+    {
+      id: 'kds',
+      title: 'Pantalla KDS Cocina',
+      sub: 'Despacho por Tiempos',
+      status: 'Cero Papel',
+      icon: ChefHat,
+      pos: 'bg-slate-900/70 border-slate-800',
+    },
+    {
+      id: 'sunat',
+      title: 'Facturación SUNAT',
+      sub: 'Conexión Directa OSE/PSE',
+      status: 'Certificado 100%',
+      icon: ShieldCheck,
+      pos: 'bg-slate-900/70 border-slate-800',
+    },
+    {
+      id: 'pay',
+      title: 'Terminal de Pago',
+      sub: 'Yape / Plin / Tarjeta',
+      status: 'Conciliación Automática',
+      icon: CreditCard,
+      pos: 'bg-slate-900/70 border-slate-800',
+    },
+  ];
+
+  return (
+    <div className="w-full bg-slate-950/90 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden my-12">
+      {/* Background Ember Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="relative z-10 text-center mb-8">
+        <span className="text-[10px] font-mono font-bold tracking-widest text-orange-400 uppercase bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full">
+          ECOSISTEMA DE CONTROL UNIFICADO
+        </span>
+        <h3 className="text-xl sm:text-2xl font-black text-white mt-3">
+          El Motor Central del Restaurante Conectado
+        </h3>
+        <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto mt-1 font-medium">
+          Haz clic en cualquier nodo para verificar la sincronización de datos en tiempo real
+        </p>
+      </div>
+
+      {/* Nodes Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto relative z-10">
+        {NODES.map((node) => {
+          const Icon = node.icon;
+          const isSelected = activeNode === node.id;
+
+          return (
+            <motion.div
+              key={node.id}
+              onClick={() => setActiveNode(node.id)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={[
+                'p-5 rounded-2xl border text-left cursor-pointer transition-all relative overflow-hidden',
+                node.pos,
+                isSelected ? 'border-orange-500 ring-2 ring-orange-500/30 bg-slate-900' : 'hover:border-slate-700',
+              ].join(' ')}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  {node.status}
+                </span>
+              </div>
+
+              <h4 className="text-white font-bold text-base">{node.title}</h4>
+              <p className="text-slate-400 text-xs font-medium mt-0.5">{node.sub}</p>
+
+              {/* Pulsing Ember Line Indicator */}
+              {isSelected && (
+                <motion.div
+                  layoutId="pulse-line"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 via-amber-400 to-orange-500"
+                />
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Live Node Flow Details */}
+      <div className="mt-8 pt-6 border-t border-slate-800 text-center font-mono text-xs text-slate-400 flex flex-wrap justify-center items-center gap-6">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
+          <span>Sincronización Idempotente: <strong className="text-white">ACTIVA</strong></span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Lock className="w-4 h-4 text-orange-400" />
+          <span>Auditoría Criptográfica: <strong className="text-white">HABILITADA</strong></span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-blue-400" />
+          <span>Conexión SUNAT: <strong className="text-white">ONLINE / OFFLINE READY</strong></span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Interactive Module Previews
 // ============================================================================
 
 const MODULE_PREVIEWS = [
@@ -31,12 +159,12 @@ const MODULE_PREVIEWS = [
     stats: [
       { label: 'Tiempo de Boleta', val: '0.8s' },
       { label: 'Operación sin Red', val: '100% Offline' },
-      { label: 'Metodos de Pago', val: 'Efectivo / Yape / Plin / Tarjeta' },
+      { label: 'Métodos de Pago', val: 'Efectivo / Yape / Plin / Tarjeta' },
     ],
     items: [
       { qty: 1, name: '1/2 Pollo a la Brasa + Papas + Ensalada', price: 'S/. 38.00' },
       { qty: 2, name: 'Inca Kola 1.5L Retornable', price: 'S/. 18.00' },
-      { qty: 1, name: 'Porción Porción Anticuchos (3 palitos)', price: 'S/. 24.00' },
+      { qty: 1, name: 'Porción Anticuchos (3 palitos)', price: 'S/. 24.00' },
     ],
     total: 'S/. 80.00',
   },
@@ -93,36 +221,13 @@ const MODULE_PREVIEWS = [
   },
 ];
 
-const KAIZEN_PILLARS = [
-  {
-    num: '01',
-    title: 'Cero Desperdicio Operativo (Muda)',
-    desc: 'Elimina las comandas perdidas de papel, los errores de digitación en caja y el tiempo muerto de los mozos caminando a la cocina.',
-  },
-  {
-    num: '02',
-    title: 'Resiliencia Extrema Offline',
-    desc: 'Si la fibra óptica se corta o la nube falla, la caja sigue cobrando e imprimiendo comprobantes al instante sin perder un solo centavo.',
-  },
-  {
-    num: '03',
-    title: 'Protección Anti-Fraude Criptográfica',
-    desc: 'Bloqueo automático por inactividad, huella biométrica WebAuthn y validación de supervisor para anulaciones y cortesías.',
-  },
-  {
-    num: '04',
-    title: 'Facturación SUNAT en 1 Segundo',
-    desc: 'Conexión directa a la OSE/PSE oficial para emisión instantánea de boletas y facturas sin cuellos de botella.',
-  },
-];
-
 const PRICING = [
   {
     tag: 'ESENCIAL',
     name: 'Básico',
     price: '149',
     period: '/ mes',
-    desc: 'Para pollerías locales con 1-2 cajas',
+    desc: 'Para pollerías y locales de 1 a 2 cajas',
     features: [
       '1 Terminal POS Táctil',
       'Facturación SUNAT Ilimitada',
@@ -134,11 +239,11 @@ const PRICING = [
     cta: 'Solicitar Demo',
   },
   {
-    tag: 'RECOMENDADO KAIZEN',
+    tag: 'RECOMENDADO ENTERPRISE',
     name: 'Pro',
     price: '299',
     period: '/ mes',
-    desc: 'Para pollerías y restaurantes en crecimiento con salón',
+    desc: 'Para restaurantes y pollerías en crecimiento con salón',
     features: [
       'Hasta 5 Terminales (Caja, Mozos, Cocina KDS)',
       'Facturación SUNAT + Módulo Delivery',
@@ -148,10 +253,10 @@ const PRICING = [
       'Reportes & Analítica en Tiempo Real',
     ],
     highlight: true,
-    cta: 'Probar Plan Pro',
+    cta: 'Agendar Demo Enterprise',
   },
   {
-    tag: 'FRANQUICIAS',
+    tag: 'CADENAS & FRANQUICIAS',
     name: 'Enterprise',
     price: 'Personalizado',
     period: '',
@@ -165,7 +270,7 @@ const PRICING = [
       'Gerente de Cuenta Dedicado',
     ],
     highlight: false,
-    cta: 'Contactar Ventas',
+    cta: 'Contactar Ventas Enterprise',
   },
 ];
 
@@ -173,38 +278,38 @@ function Navbar() {
   const [mobileMenu, setMobileMenu] = useState(false);
 
   return (
-    <header className="w-full border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 left-0 z-50">
+    <header className="w-full border-b border-slate-800 bg-[#07080A]/95 backdrop-blur-md sticky top-0 left-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-        <FirmoBrandHeader logoSize={56} theme="light" />
+        <FirmoBrandHeader logoSize={52} theme="dark" />
 
-        <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider text-slate-600 uppercase">
-          <a href="#demo-interactive" className="hover:text-orange-600 transition-colors">Simulador</a>
-          <a href="#kaizen" className="hover:text-orange-600 transition-colors">Filosofía</a>
-          <a href="#pricing" className="hover:text-orange-600 transition-colors">Planes</a>
-          <a href="#contact" className="hover:text-orange-600 transition-colors">Contacto</a>
+        <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider text-slate-300 uppercase">
+          <a href="#ecosistema" className="hover:text-orange-400 transition-colors">Ecosistema</a>
+          <a href="#demo-interactive" className="hover:text-orange-400 transition-colors">Módulos</a>
+          <a href="#pricing" className="hover:text-orange-400 transition-colors">Planes</a>
+          <a href="#contact" className="hover:text-orange-400 transition-colors">Contacto</a>
         </nav>
 
         <div className="hidden sm:flex items-center gap-3">
           <a
             href="/login?force=true"
-            className="text-xs font-bold tracking-wider uppercase text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-lg transition-all"
+            className="text-xs font-bold tracking-wider uppercase text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 px-4 py-2.5 rounded-lg transition-all"
           >
             Ingresar al POS
           </a>
           <a
-            href="https://wa.me/51900000000?text=Hola,%20deseo%20una%20demostraci%C3%B3n%20de%20FIRMO%20POS"
+            href="https://wa.me/51900000000?text=Hola,%20deseo%20agendar%20una%20demostraci%C3%B3n%20Enterprise%20de%20FIRMO%20POS"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs font-black tracking-wider uppercase text-white bg-orange-600 hover:bg-orange-700 px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="inline-flex items-center gap-2 text-xs font-black tracking-wider uppercase text-white bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-400 px-4 py-2.5 rounded-lg shadow-lg shadow-orange-600/20 transition-all"
           >
             <WhatsAppIcon size={16} />
-            Demo WhatsApp
+            Demo Enterprise
           </a>
         </div>
 
         <button
           onClick={() => setMobileMenu(!mobileMenu)}
-          className="sm:hidden p-2 text-slate-800"
+          className="sm:hidden p-2 text-white"
           aria-label="Abrir menú"
         >
           {mobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -212,15 +317,15 @@ function Navbar() {
       </div>
 
       {mobileMenu && (
-        <div className="sm:hidden border-b border-slate-200 bg-white px-6 py-5 space-y-4 font-bold text-xs uppercase tracking-wider text-slate-700">
-          <a href="#demo-interactive" onClick={() => setMobileMenu(false)} className="block py-1">Simulador</a>
-          <a href="#kaizen" onClick={() => setMobileMenu(false)} className="block py-1">Filosofía</a>
+        <div className="sm:hidden border-b border-slate-800 bg-[#07080A] px-6 py-5 space-y-4 font-bold text-xs uppercase tracking-wider text-slate-300">
+          <a href="#ecosistema" onClick={() => setMobileMenu(false)} className="block py-1">Ecosistema</a>
+          <a href="#demo-interactive" onClick={() => setMobileMenu(false)} className="block py-1">Módulos</a>
           <a href="#pricing" onClick={() => setMobileMenu(false)} className="block py-1">Planes</a>
           <a href="#contact" onClick={() => setMobileMenu(false)} className="block py-1">Contacto</a>
           <div className="pt-2 flex flex-col gap-2">
             <a
               href="/login?force=true"
-              className="w-full text-center py-3 rounded-lg bg-slate-100 text-slate-900 font-bold"
+              className="w-full text-center py-3 rounded-lg bg-slate-900 text-white font-bold border border-slate-800"
             >
               Ingresar al POS
             </a>
@@ -228,7 +333,7 @@ function Navbar() {
               href="https://wa.me/51900000000?text=Hola,%20deseo%20una%20demostraci%C3%B3n"
               className="w-full text-center py-3 rounded-lg bg-orange-600 text-white font-black"
             >
-              Demo WhatsApp
+              Demo Enterprise
             </a>
           </div>
         </div>
@@ -239,46 +344,71 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-20 px-4 sm:px-8 bg-slate-50/60 border-b border-slate-200">
-      <div className="max-w-6xl mx-auto text-center">
+    <section id="ecosistema" className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-8 bg-[#07080A] text-white border-b border-slate-800/80 overflow-hidden">
+      {/* Background Radial Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[650px] h-[450px] bg-orange-600/10 rounded-full blur-[140px] pointer-events-none" />
+
+      <div className="relative max-w-6xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-800 rounded-full px-4 py-1.5 text-xs font-bold tracking-wide uppercase mb-6 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-orange-600 animate-pulse" />
-            Mejora Continua (Kaizen) para Pollerías y Parrilleras
+          {/* Exact Verbatim Selected Slogan */}
+          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-full px-4 py-1.5 text-xs font-bold tracking-wide uppercase mb-6 shadow-inner">
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            SISTEMA OPERATIVO GASTRONÓMICO
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08] max-w-4xl mx-auto">
-            La precisión del sistema operativo diseñado para tu <span className="text-orange-600">Pollería</span>.
+          {/* Headline B2B Executive */}
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[1.08] max-w-5xl mx-auto text-white">
+            EL MOTOR CENTRAL DE TU RESTAURANTE <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent">ENTERPRISE</span>.
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Elimina el desperdicio operativo, acelera la emisión de boletas SUNAT y protege tu caja con resiliencia 100% offline.
+          {/* Sub-headline */}
+          <p className="mt-6 text-base sm:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+            El ecosistema de control unificado: resiliencia 100% offline-first, facturación SUNAT instantánea, KDS de cocina y auditoría criptográfica en tiempo real.
           </p>
 
-          <div className="mt-9 flex flex-col sm:flex-row gap-3.5 justify-center items-center">
+          <div className="mt-9 flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
-              href="https://wa.me/51900000000?text=Hola,%20deseo%20una%20demostraci%C3%B3n%20gratuita%20de%20FIRMO%20POS"
+              href="https://wa.me/51900000000?text=Hola,%20deseo%20agendar%20una%20demostraci%C3%B3n%20Enterprise%20de%20FIRMO%20POS"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-8 rounded-lg text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-400 text-white font-black py-4 px-8 rounded-xl text-xs sm:text-sm uppercase tracking-wider shadow-xl shadow-orange-600/30 transition-all"
             >
               <WhatsAppIcon size={18} />
-              Solicitar Demo por WhatsApp
+              AGENDAR DEMOSTRACIÓN ENTERPRISE
             </a>
 
             <a
               href="/login?force=true"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-slate-800 font-bold py-4 px-8 rounded-lg border border-slate-300 text-xs sm:text-sm uppercase tracking-wider transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-white font-bold py-4 px-8 rounded-xl border border-slate-700 text-xs sm:text-sm uppercase tracking-wider transition-all"
             >
-              Probar Terminal POS
-              <ArrowRight className="w-4 h-4 text-slate-400" />
+              PROBAR TERMINAL POS
+              <ArrowRight className="w-4 h-4 text-orange-400" />
             </a>
           </div>
         </motion.div>
+
+        {/* Central Visual Architecture Diagram */}
+        <EcosystemVisual />
+
+        {/* Value Proposition Badges */}
+        <div className="mt-8 flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm font-semibold text-slate-400">
+          <div className="flex items-center gap-2 bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-800">
+            <ShieldCheck className="w-4 h-4 text-orange-400" />
+            Seguridad Criptográfica
+          </div>
+          <div className="flex items-center gap-2 bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-800">
+            <WifiOff className="w-4 h-4 text-emerald-400" />
+            Resiliencia 100% Offline-First
+          </div>
+          <div className="flex items-center gap-2 bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-800">
+            <CheckCircle2 className="w-4 h-4 text-blue-400" />
+            Certificado SUNAT Ready
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -289,20 +419,20 @@ function InteractiveDemo() {
   const currentModule = MODULE_PREVIEWS.find(m => m.id === activeTab) || MODULE_PREVIEWS[0];
 
   return (
-    <section id="demo-interactive" className="py-16 sm:py-24 px-4 sm:px-8 bg-white border-b border-slate-200">
+    <section id="demo-interactive" className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-950 border-b border-slate-800 text-white">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-2">EXPERIENCIA INTERACTIVA</span>
-          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Explora las Estaciones del Sistema
+          <span className="text-xs font-mono font-bold text-orange-400 uppercase tracking-widest block mb-2">ARQUITECTURA DE MÓDULOS</span>
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
+            Inspección de Módulos del Sistema
           </h2>
-          <p className="mt-3 text-slate-500 text-xs sm:text-sm font-medium">
-            Selecciona un módulo para inspeccionar su interfaz y métricas operativas
+          <p className="mt-3 text-slate-400 text-xs sm:text-sm font-medium">
+            Selecciona un módulo para inspeccionar la interfaz operativa en tiempo real
           </p>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8 border-b border-slate-200 pb-4">
+        <div className="flex flex-wrap justify-center gap-2 mb-8 border-b border-slate-800 pb-4">
           {MODULE_PREVIEWS.map((m) => {
             const Icon = m.icon;
             const isActive = m.id === activeTab;
@@ -311,10 +441,10 @@ function InteractiveDemo() {
                 key={m.id}
                 onClick={() => setActiveTab(m.id)}
                 className={[
-                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
+                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all',
                   isActive
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600',
+                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md'
+                    : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800',
                 ].join(' ')}
               >
                 <Icon className="w-4 h-4" />
@@ -332,18 +462,18 @@ function InteractiveDemo() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-xl"
+            className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl"
           >
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6 mb-6">
               <div>
                 <span className="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-widest block mb-1">MÓDULO SELECCIONADO</span>
-                <h3 className="text-xl sm:text-2xl font-black">{currentModule.name}</h3>
+                <h3 className="text-xl sm:text-2xl font-black text-white">{currentModule.name}</h3>
                 <p className="text-slate-400 text-xs mt-1">{currentModule.tagline}</p>
               </div>
 
               <div className="flex flex-wrap gap-4 text-xs">
                 {currentModule.stats.map(s => (
-                  <div key={s.label} className="bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
+                  <div key={s.label} className="bg-slate-950 px-3 py-2 rounded-xl border border-slate-800">
                     <span className="text-slate-400 text-[10px] uppercase font-mono block">{s.label}</span>
                     <span className="text-orange-400 font-bold font-mono">{s.val}</span>
                   </div>
@@ -352,7 +482,7 @@ function InteractiveDemo() {
             </div>
 
             {/* Simulated Live Orders Table */}
-            <div className="bg-zinc-950 border border-slate-800 rounded-xl p-4 font-mono text-xs">
+            <div className="bg-black/80 border border-slate-800 rounded-2xl p-4 font-mono text-xs">
               <div className="flex justify-between items-center text-slate-500 border-b border-slate-800 pb-2 mb-3 font-bold uppercase">
                 <span>Cant / Insumo</span>
                 <span>Estado</span>
@@ -379,51 +509,19 @@ function InteractiveDemo() {
   );
 }
 
-function KaizenPillarsSection() {
-  return (
-    <section id="kaizen" className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/50 border-b border-slate-200">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-14 text-left border-b border-slate-200 pb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <div>
-            <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-1">FILOSOFÍA KAIZEN (改善)</span>
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Los 4 Pilares de la Excelencia Operativa
-            </h2>
-          </div>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium max-w-md">
-            Optimizaciones pequeñas e incesantes para garantizar velocidad y cero pérdidas en tu local.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {KAIZEN_PILLARS.map(p => (
-            <div key={p.num} className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 hover:border-slate-400 transition-all flex gap-5">
-              <span className="font-mono text-2xl font-black text-orange-600 leading-none">{p.num}</span>
-              <div>
-                <h3 className="text-slate-900 font-bold text-lg mb-2">{p.title}</h3>
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-normal">{p.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function PricingSection() {
   return (
-    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-white border-b border-slate-200">
+    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-[#07080A] border-b border-slate-800 text-white">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-14 text-left border-b border-slate-200 pb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div className="mb-14 text-left border-b border-slate-800 pb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-1">INVERSIÓN TRANSPARENTE</span>
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            <span className="text-xs font-mono font-bold text-orange-400 uppercase tracking-widest block mb-1">INVERSIÓN TRANSPARENTE ENTERPRISE</span>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
               Planes en Soles Peruanos
             </h2>
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium">
-            Sin comisiones por venta ni contratos de permanencia.
+          <p className="text-slate-400 text-xs sm:text-sm font-medium">
+            Sin contratos de permanencia ni comisiones ocultas por venta.
           </p>
         </div>
 
@@ -432,32 +530,32 @@ function PricingSection() {
             <div
               key={plan.name}
               className={[
-                'rounded-xl p-7 flex flex-col justify-between transition-all bg-white relative',
+                'rounded-2xl p-7 flex flex-col justify-between transition-all bg-slate-900/60 relative',
                 plan.highlight
-                  ? 'border-2 border-orange-600 shadow-md'
-                  : 'border border-slate-200 shadow-xs',
+                  ? 'border-2 border-orange-500 shadow-2xl shadow-orange-600/20'
+                  : 'border border-slate-800 shadow-xs',
               ].join(' ')}
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-mono font-bold tracking-widest uppercase px-2.5 py-1 bg-slate-100 text-slate-600 rounded">
+                  <span className="text-[10px] font-mono font-bold tracking-widest uppercase px-2.5 py-1 bg-slate-800 text-orange-400 rounded">
                     {plan.tag}
                   </span>
                 </div>
 
-                <h3 className="text-slate-900 font-black text-2xl mb-1">{plan.name}</h3>
-                <p className="text-slate-500 text-xs font-medium mb-6">{plan.desc}</p>
+                <h3 className="text-white font-black text-2xl mb-1">{plan.name}</h3>
+                <p className="text-slate-400 text-xs font-medium mb-6">{plan.desc}</p>
 
-                <div className="flex items-baseline gap-1 mb-6 border-b border-slate-100 pb-6">
+                <div className="flex items-baseline gap-1 mb-6 border-b border-slate-800 pb-6">
                   <span className="text-slate-400 text-base font-bold">S/.</span>
-                  <span className="text-slate-900 font-black text-4xl sm:text-5xl font-mono tracking-tight">{plan.price}</span>
+                  <span className="text-white font-black text-4xl sm:text-5xl font-mono tracking-tight">{plan.price}</span>
                   <span className="text-slate-400 text-xs font-semibold">{plan.period}</span>
                 </div>
 
                 <div className="space-y-3 mb-8">
                   {plan.features.map((feat) => (
-                    <div key={feat} className="flex items-center gap-2.5 text-xs text-slate-700 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" />
+                    <div key={feat} className="flex items-center gap-2.5 text-xs text-slate-300 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
                       <span>{feat}</span>
                     </div>
                   ))}
@@ -465,14 +563,14 @@ function PricingSection() {
               </div>
 
               <a
-                href="https://wa.me/51900000000?text=Hola,%20deseo%20informacion%20del%20plan%20"
+                href="https://wa.me/51900000000?text=Hola,%20deseo%20agendar%20informacion%20del%20plan%20"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={[
-                  'w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-center text-xs transition-all',
+                  'w-full py-3.5 rounded-xl font-bold uppercase tracking-wider text-center text-xs transition-all',
                   plan.highlight
-                    ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800',
+                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-600/30 hover:from-orange-500 hover:to-amber-400'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700',
                 ].join(' ')}
               >
                 {plan.cta}
@@ -495,19 +593,19 @@ function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/50">
-      <div className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center shadow-xs">
-        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block mb-2">DEMOSTRACIÓN GUIADA KAIZEN</span>
-        <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mb-3">
-          Equipa tu Pollería con FIRMO POS
+    <section id="contact" className="py-16 sm:py-24 px-4 sm:px-8 bg-black text-white">
+      <div className="max-w-4xl mx-auto bg-slate-900/80 border border-slate-800 rounded-3xl p-8 sm:p-12 text-center shadow-2xl">
+        <span className="text-xs font-mono font-bold text-orange-400 uppercase tracking-widest block mb-2">DEMOSTRACIÓN GUIADA ENTERPRISE</span>
+        <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-3">
+          Equipa tu Restaurante con FIRMO POS
         </h2>
-        <p className="text-slate-500 text-xs sm:text-sm font-medium max-w-xl mx-auto mb-8">
-          Déjanos los datos de tu local y agendamos una prueba guiada en vivo.
+        <p className="text-slate-400 text-xs sm:text-sm font-medium max-w-xl mx-auto mb-8">
+          Déjanos los datos de tu local y agendamos una prueba guiada en vivo con el equipo Enterprise.
         </p>
 
         {submitted ? (
-          <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-lg text-emerald-800 font-bold text-xs">
-            ¡Muchas gracias! Un especialista de FIRMO POS se contactará en breve.
+          <div className="bg-emerald-950/80 border border-emerald-500/30 p-4 rounded-xl text-emerald-300 font-bold text-xs">
+            ¡Muchas gracias! Un especialista Enterprise de FIRMO POS se contactará en breve.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
@@ -515,19 +613,19 @@ function ContactSection() {
               type="text"
               required
               placeholder="Nombre del Restaurante"
-              className="h-12 bg-white border border-slate-300 rounded-lg px-4 text-slate-900 text-xs focus:outline-none focus:border-orange-600 transition-colors"
+              className="h-12 bg-slate-950 border border-slate-800 rounded-xl px-4 text-white text-xs focus:outline-none focus:border-orange-500 transition-colors"
             />
             <input
               type="tel"
               required
               placeholder="Teléfono / WhatsApp"
-              className="h-12 bg-white border border-slate-300 rounded-lg px-4 text-slate-900 text-xs focus:outline-none focus:border-orange-600 transition-colors"
+              className="h-12 bg-slate-950 border border-slate-800 rounded-xl px-4 text-white text-xs focus:outline-none focus:border-orange-500 transition-colors"
             />
             <button
               type="submit"
-              className="h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2"
+              className="h-12 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-600/30"
             >
-              Solicitar Demo
+              AGENDAR DEMO
               <Send className="w-3.5 h-3.5" />
             </button>
           </form>
@@ -539,18 +637,17 @@ function ContactSection() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased selection:bg-orange-600 selection:text-white">
-      <Toaster position="top-right" />
+    <div className="min-h-screen bg-[#07080A] font-sans text-white antialiased selection:bg-orange-600 selection:text-white">
+      <Toaster position="top-right" theme="dark" />
       <Navbar />
       <main>
         <Hero />
         <InteractiveDemo />
-        <KaizenPillarsSection />
         <PricingSection />
         <ContactSection />
       </main>
-      <footer className="w-full py-6 px-8 text-center text-slate-400 text-xs font-mono border-t border-slate-200 bg-white">
-        <span>FIRMO POS &copy; {new Date().getFullYear()} — Kaizen Operating System for Peruvian Restaurants</span>
+      <footer className="w-full py-6 px-8 text-center text-slate-500 text-xs font-mono border-t border-slate-800 bg-[#07080A]">
+        <span>FIRMO POS &copy; {new Date().getFullYear()} — Gastronomic Operating System for Enterprise Restaurants</span>
       </footer>
     </div>
   );
