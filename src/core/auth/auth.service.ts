@@ -11,6 +11,7 @@
  */
 
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { hashPin, generateTokenHash } from './crypto-utils';
 
 type PrismaClientType = any;
 
@@ -167,8 +168,6 @@ export async function recordLoginAttempt(
     employeeId?: string,
     metadata?: { ip?: string; userAgent?: string; terminalId?: string }
 ): Promise<void> {
-    const { generateToken: generateRandomToken } = await import('./crypto-utils');
-    
     await prisma.login_attempts.create({
         data: {
             id: crypto.randomUUID(),
@@ -199,8 +198,6 @@ export async function logAdminAccess(
         details?: Record<string, string | number | boolean | null>;
     }
 ): Promise<void> {
-    const { generateToken: generateRandomToken } = await import('./crypto-utils');
-    
     await prisma.admin_access_logs.create({
         data: {
             id: crypto.randomUUID(),
@@ -273,8 +270,6 @@ export async function createSession(
     tokenHash: string,
     metadata?: { ip?: string; userAgent?: string; terminalId?: string }
 ): Promise<string> {
-    const { generateToken: generateRandomToken } = await import('./crypto-utils');
-    
     const sessionId = crypto.randomUUID();
     
     await prisma.sessions.create({
@@ -381,7 +376,6 @@ export async function authenticate(
     metadata?: { ip?: string; userAgent?: string; terminalId?: string },
     dni?: string
 ): Promise<AuthResult> {
-    const { hashPin, generateTokenHash } = await import('./crypto-utils');
     const pinHash = await hashPin(pin);
 
     let employee: { id: string; name: string; role: string; is_active: boolean } | null = null;
@@ -489,8 +483,7 @@ export async function authenticate(
     }
 
     // Success — parallelized session creation & non-blocking audit logging
-    const { generateTokenHash: genTokenHash } = await import('./crypto-utils');
-    const tokenHash = await genTokenHash();
+    const tokenHash = await generateTokenHash();
     const [sessionId] = await Promise.all([
         createSession(prisma, tenantId, employee.id, tokenHash, metadata),
         recordLoginAttempt(prisma, tenantId, pinHash, true, employee.id, metadata).catch(() => {}),
