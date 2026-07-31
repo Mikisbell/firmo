@@ -7,10 +7,10 @@ vi.mock('@/src/core/db/prisma', () => ({
   default: {
     dead_letter_queue: {
       findMany: vi.fn(),
-      delete: vi.fn(),
+      deleteMany: vi.fn(),
     },
     pending_events: {
-      create: vi.fn(),
+      createMany: vi.fn(),
     },
     $transaction: vi.fn(),
   }
@@ -28,7 +28,7 @@ describe('DeadLetterQueueService', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
-  it('debe procesar los eventos moviendolos a pending_events y borrandolos de DLQ', async () => {
+  it('debe procesar los eventos en lote moviéndolos a pending_events y borrándolos de DLQ', async () => {
     const mockEvent = {
       id: 'old-dlq-id',
       tenant_id: 'tenant-1',
@@ -43,7 +43,7 @@ describe('DeadLetterQueueService', () => {
     };
 
     vi.mocked(prisma.dead_letter_queue.findMany).mockResolvedValueOnce([mockEvent as any]);
-    vi.mocked(prisma.$transaction).mockResolvedValueOnce([{}, {}]);
+    vi.mocked(prisma.$transaction).mockResolvedValueOnce([{ count: 1 }, { count: 1 }]);
 
     const count = await deadLetterQueueService.drainDLQ();
     
@@ -53,23 +53,19 @@ describe('DeadLetterQueueService', () => {
       orderBy: { enqueued_at: 'asc' },
     });
 
-    // Se debió llamar a la transacción con un create y un delete
+    // Se debió llamar a la transacción con batch createMany y deleteMany
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
-    const transactionCalls = vi.mocked(prisma.$transaction).mock.calls[0][0] as unknown as any[];
-    expect(transactionCalls).toHaveLength(2);
-
-    // Verify create call logic (it's hard to verify inside a transaction mock if we didn't inject a specific structure, 
-    // but we can check if it passed arrays properly)
-    // Actually, prisma.pending_events.create and prisma.dead_letter_queue.delete are passed as unresolved promises or query objects.
-    // In our implementation we passed the result of prisma...create() directly.
-    expect(prisma.pending_events.create).toHaveBeenCalledTimes(1);
-    expect(prisma.dead_letter_queue.delete).toHaveBeenCalledTimes(1);
+    expect(prisma.pending_events.createMany).toHaveBeenCalledTimes(1);
+    expect(prisma.dead_letter_queue.deleteMany).toHaveBeenCalledTimes(1);
     
-    const createArgs = vi.mocked(prisma.pending_events.create).mock.calls[0][0];
-    expect(createArgs.data.tenant_id).toBe('tenant-1');
-    expect(createArgs.data.event_type).toBe('ORDER_ITEM_ADDED');
-    expect(createArgs.data.reason).toBe('Reintentado desde DLQ: Dependency missing');
-    expect(createArgs.data.id).toBeDefined();
-    expect(createArgs.data.id).not.toBe('old-dlq-id'); // UUID v4 new
+    const createManyArgs = vi.mocked(prisma.pending_events.createMany).mock.calls[0]?.[0] as any;
+    expect(createManyArgs?.data).toHaveLength(1);
+    expect(createManyArgs?.data[0].tenant_id).toBe('tenant-1');
+    expect(createManyArgs?.data[0].event_type).toBe('ORDER_ITEM_ADDED');
+    expect(createManyArgs?.data[0].reason).toBe('Reintentado desde DLQ: Dependency missing');
+    expect(createManyArgs?.data[0].id).toBeDefined();
+
+    const deleteManyArgs = vi.mocked(prisma.dead_letter_queue.deleteMany).mock.calls[0]?.[0] as any;
+    expect(deleteManyArgs?.where).toEqual({ id: { in: ['old-dlq-id'] } });
   });
 });

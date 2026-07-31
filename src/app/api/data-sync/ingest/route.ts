@@ -9,7 +9,7 @@ import { runWithSerializationRetry } from "@/src/core/db/serialization-retry";
 import { detectAndResolveConflict } from "@/src/core/conflict/conflict-resolver";
 import { dispatchNotifications } from "@/src/core/notifications/event-listener";
 import { v4 as uuidv4 } from 'uuid';
-import { outOfOrderQueue, startCleanupJob } from "@/src/core/events/out-of-order-queue";
+import { outOfOrderQueue } from "@/src/core/events/out-of-order-queue";
 import { rateLimiter } from "@/src/core/rate-limiting/rate-limiter";
 import { logger } from '@/src/core/observability/structured-logger';
 import { startSpan, endSpan } from '@/src/core/observability/tracing';
@@ -20,9 +20,6 @@ import "@/src/core/domain/migrations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// Iniciar cleanup job al cargar el módulo
-startCleanupJob();
 
 // Error Helpers
 type ApiError = {

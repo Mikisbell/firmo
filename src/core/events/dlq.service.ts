@@ -19,29 +19,29 @@ export class DeadLetterQueueService {
 
       if (events.length === 0) return 0;
 
-      let count = 0;
-      for (const event of events) {
-        const newEvent = {
-          id: uuidv4(),
-          tenant_id: event.tenant_id,
-          event_id: event.event_id,
-          event_type: event.event_type,
-          aggregate_id: event.aggregate_id,
-          payload: event.payload as any,
-          reason: `Reintentado desde DLQ: ${event.reason}`,
-          enqueued_at: new Date(),
-        };
+      const newEvents = events.map((event) => ({
+        id: uuidv4(),
+        tenant_id: event.tenant_id,
+        event_id: event.event_id,
+        event_type: event.event_type,
+        aggregate_id: event.aggregate_id,
+        payload: event.payload as any,
+        reason: `Reintentado desde DLQ: ${event.reason}`,
+        enqueued_at: new Date(),
+      }));
 
-        // Transacción para garantizar que no duplicamos en caso de fallo
-        await prisma.$transaction([
-          prisma.pending_events.create({ data: newEvent }),
-          prisma.dead_letter_queue.delete({ where: { id: event.id } })
-        ]);
-        
-        count++;
-      }
+      const eventIds = events.map((event) => event.id);
 
-      logger.info(`Procesados ${count} eventos de la DLQ`);
+      // Procesamiento en lote atómico para evitar RTTs secuenciales
+      await prisma.$transaction([
+        prisma.pending_events.createMany({ data: newEvents }),
+        prisma.dead_letter_queue.deleteMany({
+          where: { id: { in: eventIds } },
+        }),
+      ]);
+
+      const count = events.length;
+      logger.info(`Procesados en lote ${count} eventos de la DLQ`);
       return count;
     } catch (error) {
       logger.error('Error procesando eventos de la DLQ', error instanceof Error ? error : new Error(String(error)));
