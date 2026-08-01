@@ -96,6 +96,7 @@ export interface InvoiceResult {
   invoiceNumber: string;
   customerDocType?: string;
   customerDoc?: string;
+  customerName?: string;
   totalCents: number;
   paymentSummary: PaymentSummary;
   status: InvoiceStatus;
@@ -294,6 +295,9 @@ export class InvoiceService {
               invoice_type: input.invoiceType,
               series,
               invoice_number: invoiceNumber,
+              customer_doc_type: input.customerDocType,
+              customer_doc: input.customerDoc,
+              customer_name: input.customerName,
               total_cents: input.paymentSummary.totalCents,
             },
           },
@@ -1098,6 +1102,7 @@ export class InvoiceService {
       invoiceNumber: invoice.invoice_number || '',
       customerDocType: invoice.customer_doc_type || undefined,
       customerDoc: invoice.customer_doc || undefined,
+      customerName: invoice.customer_name || undefined,
       totalCents: invoice.total_cents,
       paymentSummary: invoice.payment_summary as PaymentSummary,
       status: invoice.status as InvoiceStatus,
